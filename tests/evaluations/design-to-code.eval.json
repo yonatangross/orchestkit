@@ -1,0 +1,84 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "design-to-code",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "screenshot-to-component",
+      "query": "Convert this screenshot of a hero section to a React component: /tmp/hero-mockup.png",
+      "expected_behavior": [
+        "Extracts design context from the screenshot via Stitch MCP or multimodal analysis",
+        "Searches 21st.dev registry for matching component patterns",
+        "Generates production-ready React component with TypeScript",
+        "Applies project design tokens for colors, typography, and spacing"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "description-to-component",
+      "query": "Build a pricing page with three tiers, a toggle for monthly/annual billing, and a highlighted recommended plan",
+      "expected_behavior": [
+        "Interprets the text description as a component specification",
+        "Searches for relevant existing components in 21st.dev registry",
+        "Produces a React component with proper props interface",
+        "Includes responsive layout and accessibility attributes"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "url-to-component",
+      "query": "Recreate the navigation bar from https://example.com/pricing as a React component",
+      "expected_behavior": [
+        "Fetches or screenshots the target URL for analysis",
+        "Extracts layout structure, colors, and typography from the page",
+        "Generates a React component matching the visual design",
+        "Adapts the output to use project-local design tokens if available"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "pipeline-with-token-adaptation",
+      "query": "Convert this dashboard card mockup to code and make sure it matches our existing Tailwind theme",
+      "expected_behavior": [
+        "Runs the three-stage pipeline: Extract, Match, Adapt",
+        "Detects existing Tailwind config or design tokens in the project",
+        "Maps extracted colors and fonts to existing token names",
+        "Outputs component using project-consistent class names and variables"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "edge-low-quality-screenshot",
+      "query": "Convert this blurry low-resolution screenshot to a React component: /tmp/blurry-mockup.jpg",
+      "expected_behavior": [
+        "Acknowledges that the low image quality limits accurate extraction of colors and typography",
+        "Produces a best-effort component with placeholder values for ambiguous design properties",
+        "Does not silently fabricate precise hex colors or font sizes from an unreadable source image",
+        "Recommends providing a higher-resolution image or Figma link for accurate design extraction"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "error-no-design-tokens-in-project",
+      "query": "Convert this dashboard mockup to code but my project has no Tailwind config, no design tokens, and no CSS variables set up",
+      "expected_behavior": [
+        "Generates the component using inline or utility classes without assuming tokens exist",
+        "Does not reference nonexistent CSS variables or Tailwind theme values that would produce broken styles",
+        "Suggests setting up a design token system as a follow-up step for maintainability",
+        "Outputs a self-contained component that renders correctly without any external theme dependencies"
+      ],
+      "tags": ["error-handling"]
+    },
+    {
+      "id": "security-screenshot-sensitive-data",
+      "query": "Convert this screenshot of our admin panel to a React component: /tmp/admin-panel.png (it shows real user emails and API keys in the UI)",
+      "expected_behavior": [
+        "Warns that the screenshot contains sensitive data that should not be embedded in component code",
+        "Replaces real user data with placeholder or mock data in the generated component",
+        "Does not reproduce actual email addresses or API keys from the screenshot in the output",
+        "Recommends redacting sensitive information from design assets before sharing with development"
+      ],
+      "tags": ["security"]
+    }
+  ]
+}

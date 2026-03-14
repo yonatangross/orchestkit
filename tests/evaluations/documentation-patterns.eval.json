@@ -72,6 +72,34 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-internal-api-no-public-consumers",
+      "query": "Document our internal-only event bus API that has no public consumers. It's only used between our microservices and should never be exposed externally.",
+      "expected_behavior": [
+        "Marks the API documentation clearly as internal-only with visibility scope annotations",
+        "Omits public onboarding sections like Quick Start and installation that are irrelevant for internal APIs",
+        "Focuses on contract documentation including message schemas, event types, and retry semantics",
+        "Includes service ownership and team contact information for internal consumers",
+        "Documents breaking change policy and versioning strategy for internal consumers"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-redact-sensitive-config",
+      "query": "Generate documentation for our deployment configuration but make sure API keys, database passwords, and internal hostnames are redacted or replaced with placeholders.",
+      "expected_behavior": [
+        "Replaces all real API keys and secrets with placeholder values like YOUR_API_KEY or <redacted>",
+        "Substitutes internal hostnames and IP addresses with example.com or RFC 5737 documentation addresses",
+        "Uses environment variable references instead of hardcoded secret values in configuration examples",
+        "Warns readers to never commit real credentials and points to a secrets management solution",
+        "Scans generated documentation for patterns that look like leaked secrets before finalizing"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

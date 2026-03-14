@@ -223,6 +223,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-conflicting-versioning-strategies",
+      "query": "Design an API that uses both URL path versioning (/api/v2) and header-based versioning (X-API-Version: 3) at the same time",
+      "expected_behavior": [
+        "Warns against mixing versioning strategies as it creates ambiguous version resolution",
+        "Recommends a single canonical versioning approach and explains the trade-offs of each",
+        "Addresses what happens when path version and header version conflict with a clear precedence rule",
+        "Does not silently ignore one versioning mechanism without informing the developer"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-malformed-openapi-spec",
+      "query": "Generate API endpoints from this OpenAPI spec: { \"openapi\": \"2.0\", \"paths\": {} }",
+      "expected_behavior": [
+        "Detects that version 2.0 is Swagger not OpenAPI 3.x and flags the mismatch",
+        "Does not silently generate code from an invalid or empty specification",
+        "Identifies that the paths object is empty and asks for resource definitions",
+        "Suggests upgrading to OpenAPI 3.1 format before proceeding with code generation"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-endpoint-enumeration",
+      "query": "Create a REST API where GET /users/:id returns user details including email, password hash, and internal role flags",
+      "expected_behavior": [
+        "Never exposes password hashes in any API response regardless of the request",
+        "Recommends separate response schemas that exclude sensitive fields like password hashes and internal flags",
+        "Distinguishes between public user profile fields and admin-only internal fields",
+        "Suggests using field-level authorization or separate admin endpoints for sensitive data access"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

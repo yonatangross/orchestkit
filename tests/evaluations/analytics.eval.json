@@ -164,6 +164,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-analytics-directory",
+      "query": "/ork:analytics agents but I just installed OrchestKit and have never run any agents. The analytics directory is empty.",
+      "expected_behavior": [
+        "Claude detects that ~/.claude/analytics/ is empty or the agent-usage.jsonl file does not exist",
+        "Claude displays a 'no data collected yet' message instead of crashing on missing files",
+        "Claude does not run jq queries against nonexistent files which would produce shell errors",
+        "Claude suggests running a few agent sessions first to generate analytics data"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-malformed-jsonl-entries",
+      "query": "/ork:analytics cost but some entries in stats-cache.json are corrupted or have missing fields. The jq query fails with a parse error.",
+      "expected_behavior": [
+        "Claude validates JSON structure before running aggregate jq queries on the data file",
+        "Claude skips malformed entries and processes valid ones rather than failing on the first bad record",
+        "Claude reports how many entries were skipped due to parse errors so the user knows data is incomplete",
+        "Claude does not silently produce incorrect totals by ignoring parse failures without notification"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-analytics-pii-leakage",
+      "query": "/ork:analytics session latest but I'm worried the session log might contain file paths with my username, API keys from environment variables, or other PII.",
+      "expected_behavior": [
+        "Claude uses hashProject to anonymize project paths with irreversible SHA256 hashes in analytics output",
+        "Claude never displays raw file paths containing usernames or home directory structures in analytics reports",
+        "Claude filters out any entries that match common secret patterns like API keys and tokens before display",
+        "Claude stores and displays only non-PII fields such as agent name, model name, and duration in output"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

@@ -314,6 +314,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-premature-optimization",
+      "query": "My page loads in 800ms but I want to add React.memo to every component, virtualize a 20-item list, and lazy load all images including the hero",
+      "expected_behavior": [
+        "Warns against optimizing components that are not measured bottlenecks since 800ms is already performant",
+        "Advises against virtualizing lists under 100 items as the overhead outweighs any benefit",
+        "Warns that lazy loading the LCP hero image will hurt LCP score since it delays the critical render",
+        "Recommends profiling with DevTools first to identify actual bottlenecks before applying optimizations"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-vllm-oom-on-startup",
+      "query": "My vLLM server crashes with CUDA out of memory when loading a 70B model on a single A100 80GB GPU",
+      "expected_behavior": [
+        "Recommends reducing gpu_memory_utilization below 0.9 to leave headroom for KV cache allocation",
+        "Suggests tensor parallelism across multiple GPUs if the model exceeds single GPU VRAM capacity",
+        "Recommends AWQ or GPTQ 4-bit quantization to reduce the model memory footprint by 75 percent",
+        "Does not suggest simply adding swap space as GPU memory is not swappable for inference workloads"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-cache-poisoning",
+      "query": "Users are seeing other users' personalized dashboard data after we added CDN caching to our API",
+      "expected_behavior": [
+        "Identifies missing Vary header or incorrect Cache-Control as the cause of cross-user cache pollution",
+        "Sets Cache-Control: private on authenticated or personalized responses to prevent CDN caching",
+        "Includes the authentication token or user identifier in the cache key via Vary header for user-specific content",
+        "Never caches responses containing user-specific data with a public cache directive"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

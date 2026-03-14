@@ -160,6 +160,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-circular-dependency-between-features",
+      "query": "Feature A imports from Feature B and Feature B imports from Feature A causing circular import errors at runtime",
+      "expected_behavior": [
+        "Identifies the circular dependency and recommends extracting shared types into a common module",
+        "Does not suggest lazy imports or import-inside-function as a permanent solution to circular dependencies",
+        "Recommends dependency inversion where both features depend on a shared protocol or interface",
+        "Validates the fix by checking that the import graph remains acyclic after refactoring"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-dependency-injection-binding",
+      "query": "My FastAPI app returns 500 Internal Server Error on every request with 'No overload variant of Depends matches argument type' but tests pass",
+      "expected_behavior": [
+        "Checks that all Depends() parameters have registered provider functions returning the correct type",
+        "Verifies that the dependency chain is complete from route handler through service to repository layers",
+        "Identifies that tests may pass because they mock dependencies directly without going through the DI chain",
+        "Does not suggest removing type annotations to suppress the error since it masks a real wiring issue"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-service-layer-bypass",
+      "query": "A developer added a database query directly in a FastAPI route handler to save time instead of going through the service and repository layers",
+      "expected_behavior": [
+        "Flags direct database access in route handlers as a violation of layer separation rules",
+        "Warns that bypassing the service layer skips business logic validation and authorization checks",
+        "Recommends enforcing layer boundaries with linting rules or architectural tests that detect raw DB usage in routers",
+        "Does not accept time pressure as a justification for bypassing security-relevant architectural layers"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

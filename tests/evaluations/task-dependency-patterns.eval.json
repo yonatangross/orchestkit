@@ -80,6 +80,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-circular-task-dependencies",
+      "query": "Task A depends on Task B, Task B depends on Task C, and Task C depends on Task A. All three are stuck in pending. How do I break this deadlock?",
+      "expected_behavior": [
+        "Detects the circular dependency chain A -> B -> C -> A as a deadlock in the task graph",
+        "Recommends breaking the cycle by identifying the weakest dependency link to remove or restructure",
+        "Suggests splitting one of the tasks into independent subtasks that can start without the circular blocker",
+        "Does not attempt to force-start a task that still has unresolved blockers in the cycle"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-nonexistent-upstream-task",
+      "query": "I set task 'deploy-frontend' as blocked by task 'setup-cdn-config' but that upstream task doesn't exist in our task list. What happens?",
+      "expected_behavior": [
+        "Detects that the referenced upstream task does not exist in the current task graph",
+        "Warns the user that the dependency points to a nonexistent task and cannot be resolved",
+        "Recommends either creating the missing upstream task or removing the invalid dependency",
+        "Does not leave the downstream task permanently blocked by a phantom dependency"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

@@ -45,6 +45,33 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-heavily-constrained-brainstorm",
+      "query": "Brainstorm a real-time collaboration feature but it must work offline-first, have zero added dependencies, fit within our 50KB JS budget, support IE11, and ship by next Friday.",
+      "expected_behavior": [
+        "Acknowledges that constraints severely limit the solution space before divergent ideation",
+        "Generates ideas that respect all stated constraints rather than ignoring difficult ones",
+        "Flags constraints that are likely mutually exclusive such as real-time plus offline-first plus IE11",
+        "Presents a feasibility assessment that honestly rates which constraint combinations are achievable",
+        "Does not produce 10+ ideas that each violate one or more stated constraints"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-contradictory-constraints",
+      "query": "Brainstorm a data storage approach. It must have zero latency, infinite storage, cost nothing, require no infrastructure, and guarantee 100% durability.",
+      "expected_behavior": [
+        "Identifies that the constraints are physically impossible to satisfy simultaneously",
+        "Does not generate ideas pretending all constraints can be met at once",
+        "Asks the user to prioritize which constraints are hard requirements versus nice-to-haves",
+        "Suggests realistic tradeoff dimensions such as latency versus cost or durability versus infrastructure"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

@@ -63,7 +63,7 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 60_000)}m`;
 }
 
-export function postCompactRecovery(_input: HookInput): HookResult {
+export function postCompactRecovery(input: HookInput): HookResult {
   const stateFile = getSessionStateFile();
   const state = loadSessionState(stateFile);
 
@@ -75,7 +75,15 @@ export function postCompactRecovery(_input: HookInput): HookResult {
   const ctx = state.preservedContext;
   const parts: string[] = [];
 
-  parts.push(`[POST-COMPACTION RECOVERY] Compaction #${state.compactionCount || '?'} completed.`);
+  // Prefer CC-provided fields (2.1.76) over file-based state for compaction metadata
+  const compactionNum = input.compaction_count ?? state.compactionCount ?? '?';
+  const contextAfter = input.context_size_after;
+
+  parts.push(`[POST-COMPACTION RECOVERY] Compaction #${compactionNum} completed.`);
+
+  if (contextAfter) {
+    parts.push(`Context size after compaction: ~${Math.round(contextAfter / 1000)}k tokens`);
+  }
 
   // Branch context
   if (ctx.branch) {
@@ -105,7 +113,7 @@ export function postCompactRecovery(_input: HookInput): HookResult {
   }
 
   // Circuit breaker awareness (CC 2.1.76: stops after 3 consecutive failures)
-  const count = state.compactionCount || 0;
+  const count = typeof compactionNum === 'number' ? compactionNum : (state.compactionCount || 0);
   if (count >= 3) {
     parts.push(`Warning: ${count} compactions this session — consider wrapping up or splitting work.`);
   }

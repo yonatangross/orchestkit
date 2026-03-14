@@ -81,6 +81,34 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-rtl-non-gregorian-calendar",
+      "query": "Our app needs to support Persian (fa-IR) locale with the Jalali/Solar Hijri calendar, right-to-left layout, and Persian numerals. How do I handle dates, numbers, and layout together?",
+      "expected_behavior": [
+        "Uses Intl.DateTimeFormat with calendar: 'persian' and numberingSystem: 'arabext' for Persian numerals",
+        "Applies CSS logical properties (margin-inline-start, padding-inline-end) instead of physical left/right",
+        "Sets dir='rtl' and lang='fa-IR' on the document or component root for correct text direction",
+        "Does not assume Gregorian calendar or Western Arabic numerals in any date formatting logic",
+        "Tests that formatted dates render correctly in the Jalali calendar with proper month and year order"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-locale-string-injection",
+      "query": "A user-submitted locale preference field contains '../../../etc/passwd' and '{constructor.constructor(\"return this\")()}'. How do I safely handle untrusted locale strings?",
+      "expected_behavior": [
+        "Validates locale strings against a whitelist of supported BCP 47 locale tags before use",
+        "Rejects locale values containing path traversal sequences, code injection, or non-locale characters",
+        "Never passes unsanitized user input directly to Intl constructors or file path resolution",
+        "Falls back to a default locale when the provided locale string fails validation",
+        "Logs the rejected locale attempt for security monitoring without including the raw payload in user-facing output"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

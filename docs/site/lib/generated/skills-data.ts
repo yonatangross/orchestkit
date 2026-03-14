@@ -3999,7 +3999,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "testing-unit": {
     "name": "testing-unit",
-    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data.",
+    "description": "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [

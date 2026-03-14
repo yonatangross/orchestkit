@@ -68,6 +68,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-circular-dependency-references",
+      "query": "Issue #410 says it's blocked by #411, and #411 says it's blocked by #410. How do I track progress on these circular dependencies?",
+      "expected_behavior": [
+        "Detects the circular dependency between the two issues before attempting progress updates",
+        "Recommends breaking the cycle by identifying which issue can be partially completed first",
+        "Does not get stuck in an infinite loop of checking blockers across the two issues",
+        "Suggests updating issue descriptions to clarify the actual sequencing or splitting into smaller tasks"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-github-api-rate-limit",
+      "query": "Update the progress on issue #500 with a status comment and label change. I've completed the database migration step.",
+      "expected_behavior": [
+        "Handles GitHub API rate limit errors gracefully when posting comments or updating labels",
+        "Reports the rate limit error to the user with the reset time rather than silently failing",
+        "Does not retry indefinitely or crash when the gh API returns a 403 rate limit response",
+        "Suggests waiting for the rate limit window to reset or using a personal access token with higher limits"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

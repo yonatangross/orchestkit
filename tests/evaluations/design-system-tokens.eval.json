@@ -80,6 +80,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-circular-alias-tokens",
+      "query": "My Style Dictionary build fails with a maximum call stack error after I added new alias tokens that reference each other",
+      "expected_behavior": [
+        "Identifies circular alias references as the cause of the infinite resolution loop",
+        "Recommends auditing the alias chain to find and break the circular dependency",
+        "Does not suggest increasing the stack size or recursion limit as a workaround",
+        "Advises using a token linting tool or pre-build validation to detect circular references before building"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "edge-oklch-gamut-overflow",
+      "query": "Some of my OKLCH color tokens look different in Safari versus Chrome, especially saturated blues and greens",
+      "expected_behavior": [
+        "Explains that highly saturated OKLCH values can fall outside the sRGB gamut causing browser-dependent clamping",
+        "Recommends reducing chroma values for tokens that must be consistent across browsers",
+        "Does not suggest switching back to hex or HSL as the entire solution",
+        "Advises testing token output in both sRGB and P3 gamut contexts and providing sRGB fallback values"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-token-api-key-leak",
+      "query": "Our design token JSON file includes API keys for our Figma integration and font service URLs with access tokens embedded",
+      "expected_behavior": [
+        "Warns that design token files should never contain API keys or authentication credentials",
+        "Recommends moving API keys to environment variables referenced at build time, not hardcoded in token files",
+        "Advises checking if the token file has already been committed to version control and rotating exposed credentials",
+        "Suggests adding token files with sensitive values to gitignore or using a separate secrets-excluded config layer"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

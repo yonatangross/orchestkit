@@ -1,0 +1,49 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "testing-patterns",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "redirect-to-subskills",
+      "query": "I need help with testing patterns for my project",
+      "expected_behavior": [
+        "Redirects to the appropriate sub-skill based on testing context",
+        "Lists the 5 focused sub-skills: testing-unit, testing-e2e, testing-integration, testing-llm, testing-perf",
+        "Helps the user identify which sub-skill matches their need"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "redirect-unit-testing",
+      "query": "How do I write unit tests with proper fixtures and mocking?",
+      "expected_behavior": [
+        "Identifies the query as unit testing and routes to testing-unit",
+        "Does not attempt to answer directly from the redirect skill",
+        "References AAA pattern, fixtures, and mocking as testing-unit concerns"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "edge-spans-multiple-testing-categories",
+      "query": "I need to test my API endpoint that calls an LLM, verify the response renders correctly in the browser, and ensure it handles 1000 concurrent requests. Which testing skill should I use?",
+      "expected_behavior": [
+        "Recognizes the query spans multiple testing sub-skills: testing-integration, testing-llm, testing-e2e, and testing-perf",
+        "Recommends multiple sub-skills rather than forcing the user into a single category",
+        "Explains which aspects of the query map to which sub-skill for the user to prioritize",
+        "Does not attempt to answer the full question from the redirect skill itself"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "error-uncovered-technology",
+      "query": "How do I test my Solidity smart contracts for reentrancy vulnerabilities and gas optimization?",
+      "expected_behavior": [
+        "Acknowledges that Solidity smart contract testing is not directly covered by the existing sub-skills",
+        "Does not forcefully redirect to a sub-skill that does not cover blockchain or smart contract testing",
+        "Provides general testing principles that still apply while noting the coverage gap",
+        "Suggests the user look into domain-specific testing frameworks like Hardhat or Foundry"
+      ],
+      "tags": ["error-handling"]
+    }
+  ]
+}

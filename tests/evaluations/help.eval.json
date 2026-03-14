@@ -41,6 +41,34 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-ambiguous-multi-skill-match",
+      "query": "/ork:help testing — I see there are multiple testing skills. Which one do I use for API endpoint tests vs component tests vs performance benchmarks?",
+      "expected_behavior": [
+        "Lists all testing-related skills and clearly distinguishes their scopes and use cases",
+        "Explains when to use testing-unit vs testing-integration vs testing-e2e vs testing-perf",
+        "Does not arbitrarily recommend one skill when the query matches multiple equally relevant skills",
+        "Provides concrete example invocations for each matching skill to help the user choose",
+        "Acknowledges the ambiguity and helps the user narrow down based on their specific need"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-plugin-manifest",
+      "query": "/ork:help — but the ork plugin manifest file is missing or was deleted. What happens?",
+      "expected_behavior": [
+        "Detects that the plugin manifest file is absent and reports the issue clearly",
+        "Does not crash or produce an unhandled exception when the manifest cannot be loaded",
+        "Suggests running npm run build to regenerate the plugins/ directory from source",
+        "Falls back to reading skill definitions directly from src/skills/ if the manifest is unavailable",
+        "Provides a meaningful error message instead of showing an empty or broken skill listing"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

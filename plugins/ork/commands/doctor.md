@@ -90,7 +90,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 |----------|---------------|
 | **6. Permission Rules** | Unreachable rules detection (CC 2.1.3) |
 | **7. Schema Compliance** | JSON files against schemas |
-| **8. Coordination** | Multi-worktree lock health, stale locks |
+| **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |
 
 ### Categories 10-12: Environment

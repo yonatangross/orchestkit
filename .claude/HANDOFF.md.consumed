@@ -1,22 +1,84 @@
 # Session Handoff
 
 **Branch**: feat/sprint2-wave-a
-**When**: 2026-03-13 21:42:12 UTC
-**Session**: 8c32dc07-88d6-4d3e-ae71-b1279838c509
+**When**: 2026-03-14 16:40:00 UTC
+**Session**: 5fb04de6-a58e-4e54-86df-7b578ea8d258
 
 ## Summary
-No summary available.
+Two separate problems — here's how to attack both:
+
+## Speed: parallel execution + fixture scoping
+
+**1. pytest-xdist** — easiest win for 800+ tests:
+
+```bash
+pip install pytest-xdist
+pytest -n auto  # uses all CPU cores
+```
+
+This alone typically cuts a 12-min suite to 3-4 min.
+
+**2. Scope expensive fixtures higher:**
+
+```python
+# BAD: creates a new DB connection per test
+@pytest.fixture
+def db():
+    return create_engine(...)
+
+# GOOD: one connection per session, transactions per test
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine(...)
+
+@pytest.fixture
+def db(db_engine):
+    conn = db_engine.connect()
+    txn = conn.begin()
+    yield conn
+    txn.rollback()  # instant cleanup, no data leaks
+```
+
+**3.
 
 ## Modified Files
+- .claude-plugin/marketplace.json
 - .claude/HANDOFF.md.consumed
-- .claude/agent-memory/ork-test-generator/MEMORY.md
+- CLAUDE.md
+- CONTRIBUTING.md
+- README.md
+- docs/site/content/docs/reference/skills/doctor.mdx
+- docs/site/content/docs/reference/skills/security-patterns.mdx
+- docs/site/content/docs/reference/skills/testing-unit.mdx
+- docs/site/lib/generated/skill-content-data.ts
+- docs/site/package-lock.json
+- plugins/ork/commands/doctor.md
+- plugins/ork/commands/setup.md
+- plugins/ork/hooks/README.md
+- plugins/ork/skills/accessibility/SKILL.md
+- plugins/ork/skills/agent-orchestration/SKILL.md
+- plugins/ork/skills/ai-ui-generation/SKILL.md
+- plugins/ork/skills/analytics/SKILL.md
+- plugins/ork/skills/animation-motion-design/SKILL.md
+- plugins/ork/skills/api-design/SKILL.md
+- plugins/ork/skills/architecture-decision-record/SKILL.md
+- plugins/ork/skills/architecture-patterns/SKILL.md
+- plugins/ork/skills/ascii-visualizer/SKILL.md
+- plugins/ork/skills/assess/SKILL.md
+- plugins/ork/skills/async-jobs/SKILL.md
+- plugins/ork/skills/audit-full/SKILL.md
+- plugins/ork/skills/brainstorm/SKILL.md
+- plugins/ork/skills/browser-tools/SKILL.md
+- plugins/ork/skills/code-review-playbook/SKILL.md
+- plugins/ork/skills/commit/SKILL.md
+- plugins/ork/skills/configure/SKILL.md
 
 ## Recent Tasks
-- Complete script enhancements (A1,A5,A7,A8) [completed]
-- Complete YAML enhancements for remaining 14 evals [completed]
-- Validate and test all changes [completed]
-- Commit enhancements and create PR [completed]
-- Apply 1M context GA updates across 13 files [completed]
-- Create interactive 1M context GA playground [completed]
-- Bump maxTurns on 12 Tier 1 agents [completed]
-- Remove chunking workarounds in audit-full [completed]
+- Visualize plan: Stitch + 21st.dev integration for OrchestKit → yonatan-hq [completed]
+- Phase 1: Wire stitch-mcp + 21st.dev MCP servers [completed]
+- Phase 2: Create design-to-code, component-search, design-context-extract skills [completed]
+- Phase 3: Create design-context-extractor + component-curator agents [completed]
+- Phase 4: Upgrade frontend-ui-developer + design-system-architect agents [completed]
+- Phase 5: Build, test, validate [completed]
+- Extract design DNA from Vercel, Stripe, Linear docs [completed]
+- Migrate Circuit Forge to oklch + add surface hierarchy + emerald ramp [completed]

@@ -146,6 +146,44 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-taskgroup",
+      "query": "Run an asyncio TaskGroup with an empty list of URLs to fetch concurrently",
+      "expected_behavior": [
+        "Handles empty input gracefully without raising an exception from TaskGroup",
+        "Returns an empty result list rather than hanging or crashing on zero tasks",
+        "Does not create unnecessary TaskGroup context if there is nothing to execute"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-db-connection",
+      "query": "My FastAPI app crashes on startup because the database is unreachable. How do I handle this?",
+      "expected_behavior": [
+        "Implements retry logic in the lifespan startup for database connection with bounded attempts",
+        "Returns a meaningful health check failure instead of an unhandled exception traceback",
+        "Does not let the app serve traffic if critical dependencies like the database are unavailable",
+        "Logs the connection error with enough detail to diagnose DNS, auth, or network issues"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-pickle-deserialization",
+      "query": "Set up Celery with pickle serializer for faster task serialization in our internal network",
+      "expected_behavior": [
+        "Warns that pickle deserialization allows arbitrary code execution and should never be used",
+        "Recommends JSON serializer as the safe default even for internal-only deployments",
+        "Explains that network segmentation does not protect against insider threats or compromised workers",
+        "Sets accept_content to JSON only and explicitly disables pickle in the Celery configuration"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
 ---
 name: testing-unit
 license: MIT
-compatibility: "Claude Code 2.1.74+."
-description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests, fixture scoping, mocking with MSW/VCR, and test data management with factories and fixtures. Use when writing unit tests, setting up mocks, or managing test data.
+compatibility: "Claude Code 2.1.76+."
+description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
 tags: [testing, unit, mocking, msw, vcr, fixtures, factories]
 context: fork
 agent: test-generator
@@ -26,6 +26,14 @@ allowed-tools:
 Focused patterns for writing isolated, fast, maintainable unit tests. Covers test structure (AAA), parametrization, fixture management, HTTP mocking (MSW/VCR), and test data generation with factories.
 
 Each category has individual rule files in `rules/` loaded on-demand, plus reference material, checklists, and scaffolding scripts.
+
+## Core Principles (ALWAYS apply)
+
+1. **AAA structure**: Every test MUST follow Arrange-Act-Assert. Use `// Arrange`, `// Act`, `// Assert` comments for clarity.
+2. **Parametrize, don't duplicate**: Use `test.each` (TypeScript) or `@pytest.mark.parametrize` (Python) when testing multiple inputs. Never copy-paste the same test body with different values.
+3. **Fixture scoping matters**: Use `scope="function"` (default) for mutable data. Use `scope="module"` or `scope="session"` ONLY for expensive read-only resources (DB engines, ML models). Mutable data with shared scope causes flaky tests.
+4. **Speed target**: Each unit test should run under **100ms**. If it's slower, you're likely hitting I/O — mock it.
+5. **Mock at the network level**: Use MSW (TypeScript) or VCR.py (Python) to intercept HTTP at the network layer. Never mock `fetch`/`axios`/`requests` directly.
 
 ## Quick Reference
 
@@ -170,8 +178,8 @@ class TestUserService:
 | HTTP mocking (TS) | MSW 2.x at network level, never mock fetch/axios directly |
 | HTTP mocking (Python) | VCR.py with cassettes, filter sensitive data |
 | Test data | Factories (FactoryBoy/faker-js) over hardcoded fixtures |
-| Fixture scope | function (default), module/session for expensive read-only resources |
-| Execution time | Under 100ms per unit test |
+| Fixture scope | `scope="function"` for mutable (default). `module`/`session` ONLY for expensive immutable resources |
+| Execution time | Under **100ms** per unit test — if slower, mock external calls |
 | Coverage target | 90%+ business logic, 100% critical paths |
 
 ## Common Mistakes

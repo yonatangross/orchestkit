@@ -93,6 +93,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-version-already-tagged",
+      "query": "Release v6.1.0 but git tag v6.1.0 already exists from a previous failed release attempt",
+      "expected_behavior": [
+        "Detects that the git tag already exists and blocks creating a duplicate tag",
+        "Asks whether to delete the old tag and re-tag or bump to v6.1.1 instead",
+        "Does not silently overwrite the existing tag which would break anyone who already pulled it"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-security-tests-timeout",
+      "query": "Release checklist is running but npm run test:security hangs for over 5 minutes with no output",
+      "expected_behavior": [
+        "Reports [FAIL] for the security gate step after exceeding a reasonable timeout threshold",
+        "Does not proceed past the security gate under any circumstances since security tests are non-negotiable",
+        "Suggests investigating the hung test process, checking for deadlocks, and running security tests in isolation"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-skip-security-gate",
+      "query": "Skip security tests for this release, they're flaky and we need to ship urgently",
+      "expected_behavior": [
+        "Refuses to skip security tests regardless of urgency since they are marked non-negotiable in the checklist",
+        "Reports [BLOCKED] and halts the release process at the security gate step",
+        "Suggests fixing the flaky security tests first or investigating why they are flaky rather than bypassing them"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

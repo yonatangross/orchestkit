@@ -98,6 +98,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-conflicting-environment-configs",
+      "query": "My Vite environment config has the same plugin registered at both the top level and inside the ssr environment block, and the build produces duplicate transforms",
+      "expected_behavior": [
+        "Explains that plugins at the top level apply to all environments and duplicating them in a specific environment causes double processing",
+        "Recommends placing shared plugins at the top level only and environment-specific plugins only in their block",
+        "Does not suggest removing the plugin from the top level without checking if other environments need it",
+        "Advises using the apply function or environment checks within plugin hooks to conditionally run transforms"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-advancedchunks-missing-module",
+      "query": "My advancedChunks config references a package in the test regex that isn't installed and the build silently produces a 2MB vendor chunk instead of splitting",
+      "expected_behavior": [
+        "Explains that regex patterns matching no modules result in empty groups and the catch-all absorbs everything",
+        "Recommends verifying that the package names in test patterns match actual node_modules directory names",
+        "Does not suggest increasing maxSize as the fix for a misconfigured chunk group regex",
+        "Advises using the Rolldown build analyzer or stats output to verify which modules land in which chunks"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-virtual-module-env-leak",
+      "query": "I created a Vite virtual module that injects process.env into the client bundle for runtime config access",
+      "expected_behavior": [
+        "Warns that injecting the full process.env object exposes all server environment variables to the client bundle",
+        "Recommends explicitly allowlisting only the specific VITE_ prefixed variables needed on the client side",
+        "Does not validate injecting DATABASE_URL or API_SECRET into client-side code",
+        "Advises using import.meta.env which Vite already filters to only VITE_ prefixed variables"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

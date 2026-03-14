@@ -44,6 +44,45 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-empty-statement-no-entities",
+      "query": "/ork:remember --success --category general It worked fine",
+      "expected_behavior": [
+        "Claude detects that the statement contains no extractable entities or meaningful relationships",
+        "Claude asks the user to provide more specific details about what worked and what technology was used",
+        "Claude does not create empty or generic entities with no useful observations from vague input",
+        "Claude does not silently succeed while storing meaningless data in the knowledge graph"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-duplicate-entity-creation",
+      "query": "/ork:remember --success --category database We chose PostgreSQL for the backend but a PostgreSQL entity with the same observations already exists in the knowledge graph.",
+      "expected_behavior": [
+        "Claude searches for existing PostgreSQL entities via mcp__memory__search_nodes before creating new ones",
+        "Claude adds new observations to the existing entity instead of creating a duplicate entity",
+        "Claude does not create duplicate entities when an entity with the same name and type already exists",
+        "Claude reports that the existing entity was updated with additional observations rather than replaced"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-secret-in-memory-statement",
+      "query": "/ork:remember --success --category auth We set the JWT_SECRET to sk-abc123xyz789 in production and it fixed the token validation issues",
+      "expected_behavior": [
+        "Claude detects the secret value in the statement and refuses to store it in the knowledge graph",
+        "Claude warns that credentials and secret values must never be stored as entity observations",
+        "Claude strips the secret value and stores only the non-sensitive parts of the decision",
+        "Claude suggests using environment variables or a secret manager for the actual credential storage"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

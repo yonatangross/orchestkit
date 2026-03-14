@@ -72,6 +72,34 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-hooks-partially-compiled",
+      "query": "/ork:doctor reports hooks are healthy but I just added a new TypeScript hook to src/ without rebuilding. The dist/ files are stale. Will doctor catch this?",
+      "expected_behavior": [
+        "Compares the list of hooks registered in src/hooks/hooks.json against compiled bundles in dist/",
+        "Detects when src/ contains hook source files that are newer than their corresponding dist/ output",
+        "Reports a warning or fail status for hooks whose compiled bundles are outdated or missing",
+        "Suggests running cd src/hooks && npm run build to recompile stale hook bundles",
+        "Does not report hooks as healthy when dist/ is out of sync with src/"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-corrupted-manifest",
+      "query": "Running /ork:doctor crashes because the plugin manifest JSON file is corrupted with a trailing comma. How should it handle this?",
+      "expected_behavior": [
+        "Wraps manifest parsing in a try-catch to handle JSON.parse SyntaxError gracefully",
+        "Reports a clear fail status for the manifest validation category with the parse error location",
+        "Continues running remaining diagnostic categories that do not depend on the manifest",
+        "Suggests validating the manifest with a JSON linter and shows the specific syntax error",
+        "Does not crash the entire doctor run due to a single corrupted input file"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

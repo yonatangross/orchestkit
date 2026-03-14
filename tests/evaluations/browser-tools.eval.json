@@ -106,6 +106,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-page-loads-infinite-spinner",
+      "query": "The page I'm navigating to shows an infinite loading spinner and never reaches networkidle. My automation hangs forever waiting for the page to load.",
+      "expected_behavior": [
+        "Claude uses a timeout parameter on the wait command instead of waiting for networkidle indefinitely",
+        "Claude falls back to wait --load domcontentloaded when networkidle never triggers on the page",
+        "Claude does not let the automation hang forever without a timeout or circuit breaker mechanism",
+        "Claude checks for the presence of specific content elements instead of relying solely on network idle state"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-element-ref-stale-after-navigation",
+      "query": "I clicked a button using @e5 but after the page navigated, trying to interact with @e12 throws 'element not found'. All my saved element references are broken.",
+      "expected_behavior": [
+        "Claude re-runs snapshot after every navigation or significant DOM change to refresh element references",
+        "Claude does not reuse stale @e# references from a previous page state after navigation events",
+        "Claude explains that element references are invalidated by page navigation and dynamic DOM updates",
+        "Claude uses find with visible text or ARIA role to re-locate elements after DOM changes instead of cached refs"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-credential-capture-in-trace",
+      "query": "I'm recording a browser trace to debug a login flow but the trace file captures my username and password as I type them into the form fields.",
+      "expected_behavior": [
+        "Claude loads authentication state from a saved vault before starting the trace recording",
+        "Claude never records traces during the credential entry phase of authentication flows",
+        "Claude stores trace output in /tmp/ or ephemeral directories and not in the project repository",
+        "Claude warns that trace recordings capture all DOM interactions including sensitive form field input"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

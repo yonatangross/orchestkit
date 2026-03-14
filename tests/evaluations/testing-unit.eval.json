@@ -99,6 +99,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-test-subject",
+      "query": "Write a unit test for a function that takes no arguments and returns void",
+      "expected_behavior": [
+        "Tests observable side effects rather than return values since the function returns void",
+        "Verifies the function does not throw when called with no arguments",
+        "Uses spies or mocks to verify internal side effects like logging, event emission, or state mutation"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-test-dependencies",
+      "query": "Run unit tests but vitest is not installed and the test config file is missing",
+      "expected_behavior": [
+        "Detects missing test runner dependency and reports the specific package that needs to be installed",
+        "Does not attempt to run tests without the required test framework being configured",
+        "Suggests installing the test runner and creating a minimal config file before retrying"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-mock-leaking-secrets",
+      "query": "Write a unit test for a function that calls process.env.API_SECRET internally",
+      "expected_behavior": [
+        "Mocks environment variables rather than using real secrets in test files",
+        "Uses fake placeholder values like 'test-secret-xxx' instead of copying production credentials",
+        "Restores original environment variables in afterEach to prevent secret leakage across tests"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

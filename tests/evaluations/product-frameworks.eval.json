@@ -236,6 +236,46 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "conflicting-framework-requirements",
+      "query": "Prioritize our features. The CEO wants RICE scoring but the VP of Engineering insists on WSJF. Also use MoSCoW and Kano. Apply all of them.",
+      "expected_behavior": [
+        "Acknowledges the conflicting framework requests and explains when each is most appropriate",
+        "Does not blindly apply all four frameworks without explaining their overlap and contradictions",
+        "Recommends a coherent approach rather than producing four incompatible rankings",
+        "Warns that combining too many frameworks reduces decision clarity rather than improving it"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "no-data-available-for-metrics",
+      "query": "Build a KPI tree for our product. We launched last week and have zero historical data, no analytics, and no baseline metrics.",
+      "expected_behavior": [
+        "Acknowledges the absence of historical data as a constraint rather than fabricating baselines",
+        "Suggests proxy metrics or industry benchmarks as temporary baselines until real data accumulates",
+        "Recommends an instrumentation plan to start collecting the data needed for meaningful KPIs",
+        "Does not set specific numeric targets without data to anchor them against"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "roi-with-fabricated-numbers",
+      "query": "Calculate ROI for our project. Revenue will be $10M (I made that up), costs are unknown, timeline is whenever. Just give me a good-looking number for the board.",
+      "expected_behavior": [
+        "Refuses to produce a misleading ROI calculation with fabricated inputs",
+        "Warns that presenting unsupported financial projections to a board creates governance and credibility risk",
+        "Asks for actual cost estimates, realistic revenue assumptions, or comparable benchmarks",
+        "Suggests a range-based sensitivity analysis if exact figures are genuinely unavailable"
+      ],
+      "tags": [
+        "error-handling",
+        "edge-case"
+      ]
     }
   ]
 }

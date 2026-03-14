@@ -210,6 +210,7 @@ Claude Code: 2.1.56 (OK)
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
 | v7.8.x | 2.1.76 | PostCompact hook, Elicitation hooks, sparse paths, /effort, bg agent partial results |
+| v7.7.x | 2.1.75 | 1M context default, memory timestamps, hook source display, token estimation fix |
 | v7.5.x | 2.1.74 | SessionEnd timeout fix, managed policy precedence, full model IDs, memory fixes |
 | v7.4.x | 2.1.73 | Deadlock fix, SessionStart fix, no-op fix, Opus 4.6 cloud default |
 | v7.1.x | 2.1.69 | InstructionsLoaded, once:true loaders, outputAsk, env var HTTP hooks, worktree dedup |

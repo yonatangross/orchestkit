@@ -163,6 +163,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-container-query-no-parent-size",
+      "query": "My container query styles never activate even though I set container-type on the parent. The parent has no explicit width set.",
+      "expected_behavior": [
+        "Identifies that container-type inline-size requires the container to have a deterministic size",
+        "Explains that a container with no width constraints collapses or takes implicit size causing queries to fail",
+        "Does not suggest removing container-type as the fix but rather ensuring the parent has a layout-determined width",
+        "Recommends checking for missing flex or grid context that would give the container a resolved size"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-clamp-browser-fallback",
+      "query": "Our analytics show 8% of users are on browsers that don't support clamp() for font-size. How do I handle this without dropping fluid typography?",
+      "expected_behavior": [
+        "Provides a static font-size fallback declaration before the clamp() declaration for unsupported browsers",
+        "Does not suggest polyfills or JavaScript-based font scaling as the primary solution",
+        "Uses progressive enhancement so the base experience works and clamp enhances it",
+        "Wraps advanced features in @supports where appropriate for graceful degradation"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "edge-conflicting-media-container-queries",
+      "query": "I have both media queries and container queries targeting the same component and they're fighting each other at certain viewport widths",
+      "expected_behavior": [
+        "Recommends using container queries exclusively for component-level layout and media queries only for page-level structure",
+        "Explains that mixing both on the same element creates unpredictable specificity and override conflicts",
+        "Does not suggest adding !important to resolve the conflict",
+        "Advises auditing which breakpoints should be viewport-based versus container-based"
+      ],
+      "tags": [
+        "edge-case"
+      ]
     }
   ]
 }

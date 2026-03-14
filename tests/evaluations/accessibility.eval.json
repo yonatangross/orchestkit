@@ -158,6 +158,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-aria-overuse-div-soup",
+      "query": "I added role='button' and tabindex='0' and onClick to a div to make it clickable. Is this accessible?",
+      "expected_behavior": [
+        "Recommends replacing the div with a native button element instead of layering ARIA on a div",
+        "Explains that div with role button still lacks native keyboard activation on Enter and Space",
+        "Does not validate the div-based approach as sufficient for accessibility",
+        "Notes that native elements provide focus management and form submission for free without ARIA"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-axe-false-positives",
+      "query": "Our axe-core CI tests flag 40 color contrast violations but the designs pass contrast checks in Figma. How do I handle false positives without disabling the rule?",
+      "expected_behavior": [
+        "Suggests investigating whether computed background colors differ from Figma due to opacity or layering",
+        "Recommends using axe.configure to set specific element selectors to exclude verified false positives",
+        "Does not recommend globally disabling the color-contrast rule in CI",
+        "Advises documenting each exclusion with the Figma frame URL and verified contrast ratio"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-aria-injection",
+      "query": "We render user-provided text into aria-label attributes for dynamic form fields. Is there a risk?",
+      "expected_behavior": [
+        "Warns that unsanitized user content in ARIA attributes can enable attribute injection or DOM clobbering",
+        "Recommends sanitizing or escaping user-provided strings before placing them in ARIA attributes",
+        "Does not dismiss the risk by saying ARIA attributes are safe because they are not rendered visually",
+        "Suggests limiting aria-label content length and stripping HTML tags and special characters"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

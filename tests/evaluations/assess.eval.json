@@ -54,6 +54,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "assess-file-not-found",
+      "query": "Assess the quality of backend/app/services/payment_processor.py. This file is critical to review.",
+      "expected_behavior": [
+        "Attempts to read the specified file and reports that it does not exist at the given path",
+        "Does not fabricate a code quality assessment for a file that cannot be read",
+        "Suggests searching for the file with alternative paths or similar names using Glob",
+        "Handles the file-not-found condition gracefully without producing a score"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "assess-massive-scope",
+      "query": "Assess every single file in this monorepo. I want quality scores for all 5,000 files.",
+      "expected_behavior": [
+        "Enforces the MAX 30 files scope limit to prevent context exhaustion",
+        "Explains that assessing 5,000 files exceeds the practical scope and would produce shallow results",
+        "Recommends focusing on high-risk modules, recently changed files, or known hotspots",
+        "Offers to prioritize which directories or components to assess first"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "assess-obfuscated-code",
+      "query": "Assess the quality of this minified JavaScript file: vendor.min.js. It's 50,000 characters on one line.",
+      "expected_behavior": [
+        "Identifies that minified or obfuscated code cannot be meaningfully assessed for code quality",
+        "Explains that readability, maintainability, and documentation scores are inapplicable to minified code",
+        "Recommends assessing the source files before minification instead of the build output",
+        "Does not produce misleading low scores that reflect the minification rather than actual code quality"
+      ],
+      "tags": [
+        "edge-case"
+      ]
     }
   ]
 }

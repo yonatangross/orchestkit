@@ -218,6 +218,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-variant-config",
+      "query": "Create a button component with CVA but I don't have any design tokens defined yet and no Tailwind config",
+      "expected_behavior": [
+        "Does not crash or produce invalid output when no design tokens or theme config exists",
+        "Provides sensible default variant values that work without custom theme setup",
+        "Warns that hardcoded color values should be replaced with design tokens once available",
+        "Still produces a working component that renders correctly with base Tailwind classes"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-radix-dependency",
+      "query": "I'm getting 'Module not found: @radix-ui/react-dialog' when trying to use shadcn Dialog but I installed shadcn components manually",
+      "expected_behavior": [
+        "Identifies that shadcn components require their underlying Radix UI primitives as peer dependencies",
+        "Lists the specific Radix packages needed for the Dialog component",
+        "Does not suggest copying Radix source code or reimplementing the primitive from scratch",
+        "Recommends verifying package.json dependencies and running the package manager install"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-form-xss-injection",
+      "query": "Build a form component that renders user-submitted HTML content in a preview pane next to the input",
+      "expected_behavior": [
+        "Never uses dangerouslySetInnerHTML with unsanitized user input",
+        "Recommends a sanitization library like DOMPurify before rendering HTML content",
+        "Warns about XSS risks when rendering arbitrary user-provided markup",
+        "Suggests using a markdown renderer with safe defaults instead of raw HTML rendering"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

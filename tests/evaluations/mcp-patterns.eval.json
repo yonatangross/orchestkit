@@ -226,6 +226,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-tool-returns-empty-result",
+      "query": "My MCP tool searches a database but sometimes returns zero results. The AI agent then hallucinates an answer instead of saying nothing was found. How do I handle empty tool results?",
+      "expected_behavior": [
+        "Claude returns an explicit 'no results found' TextContent message instead of an empty response",
+        "Claude includes the original query parameters in the empty result message so the agent can retry or rephrase",
+        "Claude does not return an empty string or null which causes the agent to fabricate results",
+        "Claude distinguishes between 'no matches' and 'search error' with different response content"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-lifespan-db-connection-failure",
+      "query": "My FastMCP server's database connection fails on startup inside the lifespan function. The server starts anyway and all tool calls crash with NoneType errors. How do I fail fast?",
+      "expected_behavior": [
+        "Claude raises an exception in the lifespan function if critical resources fail to initialize",
+        "Claude does not swallow connection errors and allow the server to start in a broken state",
+        "Claude logs the specific connection failure reason before shutting down the server process",
+        "Claude implements a health check tool that verifies resource availability before serving requests"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-tool-output-secret-leakage",
+      "query": "My MCP tool queries a database and the result accidentally contains a row with an API key stored in a config table. How do I prevent secrets from leaking through tool responses?",
+      "expected_behavior": [
+        "Claude filters tool output through a secret detection regex before returning content to the client",
+        "Claude redacts values matching common secret patterns like API keys, tokens, and passwords",
+        "Claude never returns raw database rows without sanitization in tool output content",
+        "Claude logs redaction events for security audit trails without including the redacted secret values"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

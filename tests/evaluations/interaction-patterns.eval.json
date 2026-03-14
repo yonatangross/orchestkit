@@ -93,6 +93,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-state-infinite-scroll",
+      "query": "My infinite scroll feed shows a loading spinner forever when the API returns an empty array on the first page",
+      "expected_behavior": [
+        "Detects and renders an empty state illustration or message when the first page returns zero items",
+        "Does not keep the IntersectionObserver sentinel active when there are no more items to load",
+        "Distinguishes between loading state and empty result state in the component logic",
+        "Provides a clear call-to-action in the empty state instead of a blank or stuck screen"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-drag-drop-touch-conflict",
+      "query": "My drag-and-drop sortable list works on desktop but on mobile the drag gesture conflicts with native page scrolling",
+      "expected_behavior": [
+        "Configures a touch activation constraint like delay or distance threshold to distinguish drag from scroll",
+        "Uses the TouchSensor with activationConstraint from dnd-kit to require a deliberate hold before drag starts",
+        "Does not suggest disabling native scroll or using touch-action none on the entire page",
+        "Provides a visible drag handle that limits the touch target for initiating drag operations"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-toast-content-injection",
+      "query": "Our toast notifications display error messages returned directly from the API response body",
+      "expected_behavior": [
+        "Warns against rendering raw API error messages in the UI without sanitization",
+        "Recommends mapping API error codes to predefined user-friendly messages instead of displaying raw server text",
+        "Does not suggest using dangerouslySetInnerHTML for toast content",
+        "Advises stripping or escaping HTML from API responses before displaying in toast notifications"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

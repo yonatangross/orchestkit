@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->92<!--/ork--> skills · <!--ork:agents-->33<!--/ork--> agents · <!--ork:hooks-->101<!--/ork--> hooks**
+**<!--ork:skills-->92<!--/ork--> skills · <!--ork:agents-->33<!--/ork--> agents · <!--ork:hooks-->104<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.74-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.76-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -62,7 +62,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|---------|
 | **<!--ork:skills-->92<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->33<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->101<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->104<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -157,7 +157,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.74**. Check with `claude --version`.
+Requires **≥2.1.76**. Check with `claude --version`.
 </details>
 
 ---
