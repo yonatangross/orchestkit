@@ -27,7 +27,7 @@ quality_evals:
       - name: "unidirectional imports"
         check: "enforces unidirectional import direction: shared -> components -> features -> app"
       - name: "no barrel files"
-        check: "recommends removing barrel files (index.ts re-exports) due to tree-shaking and circular dependency issues"
+        check: "warns against re-export files (barrel files or index.ts) that cause circular dependencies or hurt tree-shaking"
       - name: "component placement"
         check: "specifies where components and hooks should live (components/ or features/ directories)"
 
@@ -37,9 +37,9 @@ quality_evals:
       for test structure, naming, and coverage?
     assertions:
       - name: "AAA pattern"
-        check: "recommends Arrange-Act-Assert pattern for test structure"
+        check: "recommends a structured test pattern such as Arrange-Act-Assert or Given-When-Then for consistent test organization"
       - name: "coverage thresholds"
-        check: "specifies minimum coverage targets (80%+ overall, 90%+ for business logic, 100% for new code)"
+        check: "specifies minimum coverage targets with higher thresholds for critical business logic than for overall code"
       - name: "descriptive naming"
         check: "requires behavior-focused descriptive test names, not generic names like test1 or test_works"
 

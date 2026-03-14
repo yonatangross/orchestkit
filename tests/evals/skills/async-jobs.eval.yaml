@@ -13,7 +13,7 @@ quality_evals:
       but not retry forever. How do I set this up with Celery?
     assertions:
       - name: "exponential backoff with jitter"
-        check: "uses retry_backoff=True with retry_jitter=True or manual exponential backoff formula"
+        check: "uses exponential backoff with jitter for retry delays to avoid thundering herd on transient failures"
       - name: "max retries capped"
         check: "sets max_retries to a finite number (3-5) for transient errors"
       - name: "idempotency for retries"
@@ -25,11 +25,11 @@ quality_evals:
       depends on the previous. How should I orchestrate this with Celery?
     assertions:
       - name: "chain for sequential steps"
-        check: "uses Celery chain (or pipe operator |) to sequence extract, transform, load steps"
+        check: "uses a task chaining or pipeline mechanism to sequence the extract, transform, load steps so each step passes its result to the next"
       - name: "link_error for failure handling"
-        check: "mentions link_error callback or on_error for handling failures in the workflow"
+        check: "includes an error callback or failure handler that triggers when any step in the workflow fails"
       - name: "late ack for crash safety"
-        check: "recommends task_acks_late=True so tasks are re-delivered if a worker crashes mid-processing"
+        check: "recommends acknowledging tasks only after completion (not on receipt) so tasks are re-delivered if a worker crashes mid-processing"
 
   - prompt: |
       My FastAPI app needs lightweight background jobs — sending emails and
@@ -37,10 +37,10 @@ quality_evals:
       use case. What are my options?
     assertions:
       - name: "ARQ for async jobs"
-        check: "recommends ARQ (async Redis queue) as a lightweight alternative to Celery for FastAPI"
+        check: "recommends a lightweight async-native task queue as an alternative to a full-featured task framework for simple use cases"
       - name: "BackgroundTasks for simple cases"
-        check: "mentions FastAPI BackgroundTasks for quick in-process work that doesn't need persistence"
+        check: "mentions using the framework's built-in background task mechanism for quick in-process work that doesn't need persistence or crash recovery"
       - name: "tool selection criteria"
-        check: "explains when to use ARQ vs Celery vs BackgroundTasks based on complexity and durability needs"
+        check: "explains criteria for choosing between lightweight in-process tasks, async queues, and full task frameworks based on complexity, durability, and persistence needs"
 
 tags: [async-jobs, background, queues]

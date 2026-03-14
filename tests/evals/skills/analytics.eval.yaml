@@ -14,16 +14,16 @@ quality_evals:
       - name: "agent-usage data source"
         check: "references agent-usage.jsonl in ~/.claude/analytics/ as the data source"
       - name: "jq query approach"
-        check: "uses or recommends jq to query and aggregate JSONL data"
+        check: "recommends a CLI or scripting approach to query and aggregate structured log data"
       - name: "model breakdown"
-        check: "shows agent frequency with model delegation breakdown (opus/sonnet/haiku)"
+        check: "shows agent usage frequency with a breakdown by model tier or model name"
 
   - prompt: |
       How much have my Claude Code sessions cost me this month? I want
       to see token usage broken down by model.
     assertions:
       - name: "stats-cache source"
-        check: "references stats-cache.json as the data source for token and cost data"
+        check: "references a local cache or analytics file as the data source for token and cost data"
       - name: "per-model breakdown"
         check: "shows costs broken down by model with input and output token counts"
       - name: "cache savings"
@@ -34,7 +34,7 @@ quality_evals:
       I want to identify bottlenecks in my development workflow.
     assertions:
       - name: "hook-timing data source"
-        check: "references hook-timing.jsonl for hook execution timing and failure data"
+        check: "references a hook execution log or timing data source for performance and failure analysis"
       - name: "slowest hooks"
         check: "identifies the slowest hooks by execution duration"
       - name: "failure rates"

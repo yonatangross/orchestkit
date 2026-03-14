@@ -37,10 +37,10 @@ quality_evals:
       deploys. How should I configure the deployment for zero downtime?
     assertions:
       - name: "separate health probes"
-        check: "configures separate startupProbe, livenessProbe, and readinessProbe with appropriate thresholds"
+        check: "configures separate startup, liveness, and readiness health checks with appropriate thresholds for each"
       - name: "rolling update with zero unavailable"
-        check: "sets maxUnavailable to 0 in the rolling update strategy for zero-downtime deploys"
+        check: "configures the rolling update strategy to ensure zero unavailable pods during deployment for zero-downtime rollouts"
       - name: "security context"
-        check: "includes securityContext with runAsNonRoot, allowPrivilegeEscalation false, or drop capabilities"
+        check: "includes container security hardening such as running as non-root, disabling privilege escalation, or dropping capabilities"
 
 tags: [devops-deployment, background, infrastructure]

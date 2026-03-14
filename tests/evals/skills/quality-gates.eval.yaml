@@ -13,7 +13,7 @@ quality_evals:
       it done in 2 weeks. Before I start, how should I assess this task?
     assertions:
       - name: "complexity score 4-5"
-        check: "scores the task at complexity level 4 or 5 on the 1-5 scale due to multiple unknowns and dependencies"
+        check: "identifies the task as high complexity due to multiple unknowns, dependencies, and unfamiliar technology"
       - name: "blocks without plan"
         check: "recommends BLOCKING progress until a decomposition plan exists for level 4-5 tasks"
       - name: "breakdown into subtasks"
@@ -25,7 +25,7 @@ quality_evals:
       timeouts. Nothing works and I'm not sure what's causing the flakiness.
     assertions:
       - name: "stuck detection at 3 attempts"
-        check: "identifies 3 failed attempts as the escalation trigger threshold"
+        check: "identifies repeated failed attempts as a signal that the developer is stuck and needs escalation"
       - name: "escalation protocol"
         check: "recommends escalating to the user or team rather than continuing to iterate"
       - name: "escalation template"
@@ -37,7 +37,7 @@ quality_evals:
       is for an internal tool used by 3 people. Should I build all of this?
     assertions:
       - name: "YAGNI gate triggers"
-        check: "flags the justified complexity ratio as too high — the planned scope far exceeds what 3 users need"
+        check: "flags overengineering — the planned scope far exceeds what the actual user base needs"
       - name: "simpler alternatives"
         check: "suggests simpler alternatives that match the actual scale of the project"
       - name: "block or warn"

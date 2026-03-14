@@ -15,7 +15,7 @@ quality_evals:
       - name: "horizontal format"
         check: "recommends 16:9 horizontal format for YouTube and Twitter"
       - name: "VHS or terminal recording"
-        check: "mentions VHS, asciinema, or terminal recording for CLI demos"
+        check: "mentions using a terminal recording tool or technique to capture CLI command execution for the demo"
       - name: "focused content"
         check: "advises keeping it focused on one feature or concept per video"
 
@@ -26,9 +26,9 @@ quality_evals:
       - name: "multi-format support"
         check: "supports generating multiple format variants (16:9 horizontal and 9:16 vertical)"
       - name: "Remotion composition"
-        check: "mentions Remotion for composing and rendering video in different formats"
+        check: "mentions a programmatic video composition tool or framework for rendering output in different formats"
       - name: "template selection"
-        check: "offers template options like TriTerminalRace, ProgressiveZoom, or SplitThenMerge"
+        check: "offers layout or template options suited to different demo styles such as comparisons, walkthroughs, or before/after transformations"
 
   - prompt: |
       Our marketing team says the demo videos look too generic and

@@ -13,11 +13,11 @@ quality_evals:
       cancel if any single call raises. What's the modern Python way to do this?
     assertions:
       - name: "uses TaskGroup not gather"
-        check: "recommends asyncio.TaskGroup for structured concurrency, NOT asyncio.gather"
+        check: "recommends structured concurrency that cancels all tasks when one fails, rather than fire-and-forget parallel execution"
       - name: "asyncio.timeout for deadline"
-        check: "wraps the concurrent calls with asyncio.timeout() context manager"
+        check: "wraps the concurrent calls with a timeout or deadline mechanism to prevent indefinite waiting"
       - name: "handles CancelledError"
-        check: "mentions never swallowing CancelledError and letting it propagate"
+        check: "mentions properly propagating cancellation signals rather than swallowing them"
 
   - prompt: |
       I'm building a FastAPI app with SQLAlchemy. My endpoints create their own
@@ -25,11 +25,11 @@ quality_evals:
       closed' errors under load. How should I structure the session lifecycle?
     assertions:
       - name: "dependency injection for sessions"
-        check: "uses Depends() with an async generator yielding AsyncSession, not inline session creation"
+        check: "uses dependency injection to manage database session lifecycle rather than creating sessions inline in each endpoint"
       - name: "expire_on_commit false"
-        check: "sets expire_on_commit=False on the session factory to prevent lazy load errors"
+        check: "configures the session to avoid expiring objects after commit, preventing lazy-load errors when accessing attributes post-commit"
       - name: "lazy raise for relationships"
-        check: "recommends lazy='raise' on relationships to prevent accidental N+1 queries"
+        check: "recommends making relationship loading explicit or raising on implicit lazy loads to prevent accidental N+1 queries"
 
   - prompt: |
       My async Python service connects to PostgreSQL and also makes outbound
@@ -37,10 +37,10 @@ quality_evals:
       and HTTP calls queue up. How do I tune the connection pools?
     assertions:
       - name: "SQLAlchemy pool parameters"
-        check: "mentions pool_size, max_overflow, and pool_pre_ping for the database pool"
+        check: "mentions tuning database connection pool settings such as pool size, overflow limits, and connection health checks"
       - name: "HTTP connector limits"
-        check: "recommends TCPConnector or similar with connection limits for HTTP client sessions"
+        check: "recommends configuring connection limits on the HTTP client to prevent resource exhaustion under high traffic"
       - name: "lifespan for pool lifecycle"
-        check: "creates pools at startup and closes them at shutdown using FastAPI lifespan"
+        check: "creates connection pools at application startup and closes them at shutdown to manage resource lifecycle properly"
 
 tags: [python-backend, background, python]

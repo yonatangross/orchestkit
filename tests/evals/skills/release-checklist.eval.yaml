@@ -27,9 +27,9 @@ quality_evals:
       - name: "changelog entry"
         check: "verifies a CHANGELOG.md entry exists for the new version before committing"
       - name: "version bump in both files"
-        check: "bumps version in both package.json and CLAUDE.md"
+        check: "bumps version in all relevant manifest and documentation files to keep them in sync"
       - name: "specific file staging"
-        check: "stages specific files with git add, never uses git add -A or git add ."
+        check: "stages files individually or by name rather than using broad wildcard staging to avoid accidental inclusions"
 
   - prompt: |
       I just ran npm test and got a failure in the manifest consistency

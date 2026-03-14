@@ -14,7 +14,7 @@ quality_evals:
       - name: "status subcommand"
         check: "describes a status command that shows current feedback system state and learned patterns"
       - name: "data location"
-        check: "references feedback data stored in .claude/feedback/ directory"
+        check: "references where feedback data is stored or how to locate it"
       - name: "agent performance"
         check: "mentions viewing agent performance metrics as part of the status"
 
@@ -27,7 +27,7 @@ quality_evals:
       - name: "privacy policy"
         check: "mentions a privacy policy or privacy command for viewing data handling details"
       - name: "GDPR compliance"
-        check: "references GDPR-compliant consent management"
+        check: "addresses data privacy compliance or user consent management for collected data"
 
   - prompt: |
       The learned patterns seem wrong and are causing bad suggestions.

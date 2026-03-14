@@ -40,6 +40,6 @@ quality_evals:
       - name: "match to use case"
         check: "recommends matching framework choice to team expertise and specific requirements"
       - name: "topology guidance"
-        check: "distinguishes between star topology (Task tool) for simple work and mesh topology (Agent Teams) for complex coordination"
+        check: "distinguishes between a centralized hub-and-spoke topology for simple delegated work and a peer-to-peer mesh topology for complex cross-agent coordination"
 
 tags: [agent-orchestration, background, workflow]

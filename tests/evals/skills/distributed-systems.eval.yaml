@@ -13,9 +13,9 @@ quality_evals:
       hit different instances. How do I prevent duplicate payments?
     assertions:
       - name: "idempotency keys"
-        check: "recommends idempotency keys (e.g., Stripe-style Idempotency-Key header) with deterministic generation"
+        check: "recommends idempotency keys with deterministic generation to deduplicate retried requests"
       - name: "distributed lock or dedup"
-        check: "suggests Redis + database dual-layer dedup or distributed locking to coordinate across instances"
+        check: "suggests a distributed deduplication or locking mechanism (cache layer, database constraint, or distributed lock) to coordinate across instances"
       - name: "no non-deterministic keys"
         check: "warns against using random UUIDs as idempotency keys since they differ on every retry"
 
@@ -25,9 +25,9 @@ quality_evals:
       because every request waits for the timeout. How should I handle this?
     assertions:
       - name: "circuit breaker pattern"
-        check: "recommends circuit breaker with CLOSED/OPEN/HALF_OPEN states to fast-fail when the downstream is unhealthy"
+        check: "recommends a circuit breaker pattern with multiple states to fast-fail when the downstream service is unhealthy"
       - name: "retry with backoff"
-        check: "uses exponential backoff with jitter — retry decorator inside (not outside) the circuit breaker"
+        check: "uses exponential backoff with jitter for retries, coordinated with the circuit breaker pattern"
       - name: "error classification"
         check: "distinguishes retryable errors (timeouts, 503) from non-retryable errors (401, 400) — never retries auth failures"
 
@@ -40,7 +40,7 @@ quality_evals:
       - name: "saga pattern"
         check: "recommends saga pattern with compensation steps to roll back across service boundaries"
       - name: "transactional outbox"
-        check: "mentions transactional outbox pattern for reliable event publishing to avoid dual-write problems"
+        check: "mentions a reliable event publishing pattern (transactional outbox, change data capture, or similar) to avoid dual-write problems"
       - name: "right-sizing caveat"
         check: "notes that saga/event-sourcing patterns are appropriate for enterprise scale but overkill for simpler projects"
 

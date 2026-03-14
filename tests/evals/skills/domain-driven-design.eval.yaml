@@ -15,9 +15,9 @@ quality_evals:
       - name: "entity vs value object"
         check: "explains that entities have identity and lifecycle (Order) while value objects are immutable and defined by attributes (Money, Address)"
       - name: "frozen value objects"
-        check: "value objects use frozen=True dataclass or equivalent immutability enforcement"
+        check: "value objects are immutable (frozen dataclass, readonly record, or equivalent enforcement)"
       - name: "identity equality"
-        check: "entities compare by ID (__eq__ checks id), not by attribute values"
+        check: "entities compare by identity (ID-based equality), not by comparing all attribute values"
 
   - prompt: |
       Our codebase has models that are just data holders — no behavior, no

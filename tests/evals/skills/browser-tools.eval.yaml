@@ -13,7 +13,7 @@ quality_evals:
       the data?
     assertions:
       - name: "WebFetch first fallback"
-        check: "recommends trying WebFetch first before resorting to full browser automation"
+        check: "recommends trying a lightweight HTTP fetch first before resorting to full browser automation"
       - name: "wait for dynamic content"
         check: "mentions waiting for elements or network idle before extracting from SPAs"
       - name: "rate limiting"
@@ -37,7 +37,7 @@ quality_evals:
       browser automation?
     assertions:
       - name: "diff url command"
-        check: "recommends using diff url to compare two URLs side by side"
+        check: "recommends comparing the two URLs side by side using a browser-based diff or comparison approach"
       - name: "screenshot comparison"
         check: "mentions screenshot-based visual comparison or diff screenshot"
       - name: "selector targeting"

@@ -14,9 +14,9 @@ quality_evals:
       retrieval pipeline?
     assertions:
       - name: "hybrid search with RRF"
-        check: "combines BM25 keyword search with vector semantic search using reciprocal rank fusion"
+        check: "combines keyword search with vector semantic search using a rank fusion or score combination strategy"
       - name: "chunking strategy"
-        check: "recommends chunking documents into 256-1024 token segments with semantic boundaries"
+        check: "recommends chunking documents into appropriately sized segments respecting semantic boundaries"
       - name: "citation tracking"
         check: "includes citations or source references in the generated answers for verifiability"
 
@@ -27,11 +27,11 @@ quality_evals:
       policy doc. How do I fix this vocabulary mismatch?
     assertions:
       - name: "HyDE approach"
-        check: "suggests Hypothetical Document Embeddings — generating a hypothetical answer to embed instead of the raw query"
+        check: "suggests query expansion or hypothetical document generation to bridge the vocabulary gap between queries and documents"
       - name: "HyDE timeout fallback"
-        check: "mentions a timeout (2-3 seconds) with fallback to direct embedding if HyDE is slow"
+        check: "mentions a timeout or fallback mechanism if the query expansion step is too slow"
       - name: "contextual retrieval"
-        check: "mentions context-prepending technique to add document-level context to each chunk"
+        check: "mentions adding document-level or section-level context to individual chunks to improve retrieval relevance"
 
   - prompt: |
       I want to use PostgreSQL as my vector store instead of adding Pinecone.
@@ -39,10 +39,10 @@ quality_evals:
       indexing for production traffic?
     assertions:
       - name: "HNSW index"
-        check: "recommends HNSW index over IVFFlat for production due to better query performance"
+        check: "recommends an approximate nearest neighbor index (HNSW or similar) for production vector search performance"
       - name: "pre-computed tsvector"
-        check: "uses a pre-computed tsvector column with GIN index for the keyword search component"
+        check: "uses pre-computed or indexed full-text search columns for efficient keyword search"
       - name: "RRF fusion in SQL"
-        check: "implements reciprocal rank fusion combining vector similarity and text search scores"
+        check: "combines vector similarity scores and text search scores using rank fusion or score normalization"
 
 tags: [rag-retrieval, background, llm]

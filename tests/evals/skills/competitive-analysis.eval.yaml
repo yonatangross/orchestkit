@@ -14,7 +14,7 @@ quality_evals:
       industry structure and barriers to entry.
     assertions:
       - name: "Porter's Five Forces framework"
-        check: "applies Porter's Five Forces framework analyzing competitive rivalry, threat of new entrants, supplier power, buyer power, and threat of substitutes"
+        check: "applies an industry structure framework that analyzes competitive forces such as rivalry, new entrants, supplier power, buyer power, and substitutes"
       - name: "barrier assessment"
         check: "evaluates specific barriers to entry such as network effects, switching costs, brand loyalty, and capital requirements"
       - name: "industry attractiveness rating"
@@ -40,8 +40,8 @@ quality_evals:
       - name: "SWOT analysis"
         check: "uses SWOT analysis with four quadrants: Strengths (internal positive), Weaknesses (internal negative), Opportunities (external positive), Threats (external negative)"
       - name: "TOWS strategy matrix"
-        check: "converts SWOT findings into actionable strategies using a TOWS matrix (SO, WO, ST, WT strategic options)"
+        check: "converts the internal/external assessment into actionable strategies by combining strengths with opportunities and addressing weaknesses against threats"
       - name: "competitive landscape map"
-        check: "plots position on a competitive landscape map using two buyer-relevant axes to identify whitespace opportunities"
+        check: "visualizes competitive positioning on a map or matrix using relevant axes to identify gaps or whitespace opportunities"
 
 tags: [competitive-analysis, background, product]

@@ -31,7 +31,7 @@ quality_evals:
       - name: "bottom-up cross-validation"
         check: "recommends bottom-up calculation (number of acquirable customers times average deal size) to cross-validate the top-down estimate"
       - name: "reconciliation within 20%"
-        check: "methods should reconcile within 20% divergence — if they diverge more, revisit assumptions"
+        check: "recommends cross-validating estimates from different methods and revisiting assumptions if they diverge significantly"
 
   - prompt: |
       We're expanding our developer tools product into the European

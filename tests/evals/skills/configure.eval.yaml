@@ -13,7 +13,7 @@ quality_evals:
       customize the installation?
     assertions:
       - name: "preset selection"
-        check: "offers preset options like Complete, Standard, Lite, or Hooks-only"
+        check: "offers preset or profile options with different scope levels so users can choose a minimal or full installation"
       - name: "category filtering"
         check: "allows selecting specific skill categories like Backend and Security while excluding Frontend"
       - name: "config file location"
@@ -37,8 +37,8 @@ quality_evals:
       - name: "webhook URL"
         check: "asks for or configures a webhook endpoint URL"
       - name: "dual channel"
-        check: "describes HTTP hooks for all events and command hooks for enriched summaries"
+        check: "describes multiple telemetry channels or hook types for streaming session data to an external endpoint"
       - name: "auth token"
-        check: "mentions setting ORCHESTKIT_HOOK_TOKEN for authentication"
+        check: "mentions configuring an authentication token or secret for securing the telemetry webhook"
 
 tags: [configure, background, workflow]

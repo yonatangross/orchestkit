@@ -13,7 +13,7 @@ quality_evals:
       Largest Contentful Paint?
     assertions:
       - name: "priority attribute"
-        check: "recommends adding priority prop or fetchpriority=high to the hero image"
+        check: "recommends marking the hero image as high priority (priority prop, fetchpriority, or preload) to load it sooner"
       - name: "SSR for LCP content"
         check: "advises server-rendering the LCP content rather than client-side fetching"
       - name: "no lazy loading LCP"
@@ -25,11 +25,11 @@ quality_evals:
       on any state change. How do I fix this?
     assertions:
       - name: "virtualization"
-        check: "recommends TanStack Virtual or windowing library for rendering only visible items"
+        check: "recommends virtualization or windowing (rendering only visible items) to handle large lists efficiently"
       - name: "selector optimization"
-        check: "suggests using selectors or memoization to prevent unnecessary re-renders"
+        check: "suggests using selectors, memoization, or fine-grained subscriptions to prevent unnecessary re-renders"
       - name: "React Compiler"
-        check: "mentions React Compiler for automatic memoization in React 19+"
+        check: "mentions automatic memoization or compiler-level optimizations available in modern React"
 
   - prompt: |
       I want to deploy a fine-tuned LLM for production inference. What
@@ -37,10 +37,10 @@ quality_evals:
       maximize throughput?
     assertions:
       - name: "FP8 for H100"
-        check: "recommends FP8 quantization for H100/H200 GPUs"
+        check: "recommends an appropriate quantization level (FP8, INT8, or similar) matched to the GPU hardware capabilities"
       - name: "vLLM deployment"
-        check: "recommends vLLM with PagedAttention and continuous batching for production"
+        check: "recommends a high-throughput inference server with efficient memory management and batching for production"
       - name: "speculative decoding"
-        check: "mentions speculative decoding for 1.5-2.5x throughput improvement"
+        check: "mentions speculative decoding or draft-model techniques for improving generation throughput"
 
 tags: [performance, background, optimization]

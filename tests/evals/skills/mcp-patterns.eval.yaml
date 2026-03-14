@@ -13,7 +13,7 @@ quality_evals:
       lifecycle management?
     assertions:
       - name: "FastMCP setup"
-        check: "uses FastMCP with lifespan management for proper resource handling"
+        check: "uses an MCP server framework (FastMCP or equivalent SDK) with lifecycle management for proper resource handling"
       - name: "tool and resource primitives"
         check: "defines both tool and resource primitives with proper decorators"
       - name: "error handling pattern"
@@ -29,17 +29,17 @@ quality_evals:
       - name: "zero-trust model"
         check: "advocates for a zero-trust approach with explicit tool allowlists"
       - name: "hash verification"
-        check: "mentions hash verification on tool invocations to detect tampering"
+        check: "mentions integrity verification or tamper detection on tool invocations"
 
   - prompt: |
       Should I use stdio or HTTP transport for my MCP server? It needs
       to work both in development and production deployment.
     assertions:
       - name: "transport selection"
-        check: "recommends stdio for CLI/desktop and Streamable HTTP for production"
+        check: "recommends different transports for local development vs production deployment scenarios"
       - name: "SSE deprecated"
-        check: "mentions that SSE transport is deprecated in favor of Streamable HTTP"
+        check: "mentions that SSE transport is deprecated or superseded by a newer streaming transport"
       - name: "spec version reference"
-        check: "references the 2025-11-25 specification or later"
+        check: "references a recent MCP specification version for transport and protocol guidance"
 
 tags: [mcp-patterns, background, ai-ml]

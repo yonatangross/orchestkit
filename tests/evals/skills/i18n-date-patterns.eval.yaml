@@ -13,11 +13,11 @@ quality_evals:
       for the user's locale. How should I handle the formatting?
     assertions:
       - name: "useFormatting hook"
-        check: "recommends using a centralized formatting hook like useFormatting for locale-aware currency and list formatting"
+        check: "recommends using a centralized formatting utility or hook for locale-aware currency and list formatting"
       - name: "no hardcoded currency symbols"
         check: "warns against hardcoding currency symbols like the shekel sign"
       - name: "formatList for lists"
-        check: "uses formatList instead of .join() for locale-aware list formatting"
+        check: "uses a locale-aware list formatting API or function instead of manual string joining"
 
   - prompt: |
       I have a component with the text "5 patients" but I need it to
@@ -25,11 +25,11 @@ quality_evals:
       in Hebrew. How do I handle pluralization?
     assertions:
       - name: "ICU MessageFormat"
-        check: "recommends ICU MessageFormat plural syntax in translation files"
+        check: "recommends a structured pluralization format (ICU MessageFormat or equivalent) in translation files"
       - name: "no inline plural logic"
         check: "warns against using ternary operators like count === 1 ? 'item' : 'items' for pluralization"
       - name: "translation function"
-        check: "uses t() from useTranslation with a count parameter for pluralization"
+        check: "uses a translation function or hook with a count parameter for pluralization"
 
   - prompt: |
       Our app needs to support Hebrew (RTL) alongside English (LTR).
@@ -38,7 +38,7 @@ quality_evals:
       - name: "CSS logical properties"
         check: "recommends CSS logical properties for RTL-aware layouts"
       - name: "isRTL detection"
-        check: "mentions detecting RTL direction via isRTL or similar mechanism"
+        check: "mentions detecting or setting the text direction (RTL vs LTR) programmatically based on locale"
       - name: "bidirectional text"
         check: "addresses handling bidirectional text content"
 

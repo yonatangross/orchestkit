@@ -15,11 +15,11 @@ quality_evals:
       should I use?
     assertions:
       - name: "W3C DTCG token format"
-        check: "recommends W3C Design Token Community Group format with $type and $value properties in .tokens.json files"
+        check: "recommends a standardized token format (e.g., W3C DTCG or similar spec) with typed token definitions in JSON files"
       - name: "three-tier hierarchy"
-        check: "organizes tokens into three tiers: global (raw values), alias (semantic meaning), and component (scoped usage)"
+        check: "organizes tokens into layered tiers: primitive/global values, semantic/alias tokens, and component-level tokens"
       - name: "Style Dictionary for transformation"
-        check: "recommends Style Dictionary (or similar tool) to transform tokens into platform-specific outputs like CSS custom properties and Tailwind theme"
+        check: "recommends a token transformation tool or build pipeline to generate platform-specific outputs (CSS custom properties, theme configs, etc.)"
 
   - prompt: |
       We're adding dark mode to our app. Currently we toggle CSS classes
@@ -32,7 +32,7 @@ quality_evals:
       - name: "data-theme attribute"
         check: "uses a data-theme attribute (or equivalent selector) on the root element to switch theme values via CSS custom properties"
       - name: "OKLCH for color scales"
-        check: "recommends OKLCH color space for generating perceptually uniform shade scales across themes, not HSL"
+        check: "recommends a perceptually uniform color space (OKLCH, LCH, or similar) for generating consistent shade scales across themes"
 
   - prompt: |
       Our design team wants to deprecate some old color tokens and

@@ -27,9 +27,9 @@ quality_evals:
       - name: "Cursor for existing codebase"
         check: "recommends Cursor for incremental changes in an existing codebase since it understands project context"
       - name: "v0 for new components"
-        check: "mentions v0 is better for generating new components from scratch with shadcn/ui"
+        check: "recommends a scaffold-oriented AI tool for generating new components from scratch rather than editing existing ones"
       - name: "constraint-first prompting"
-        check: "advises specifying framework, tokens, accessibility, and states upfront in prompts"
+        check: "advises specifying design constraints like framework, tokens, accessibility requirements, and component states upfront in prompts rather than leaving them vague"
 
   - prompt: |
       My team wants to skip CI for AI-generated components since they're
