@@ -1,7 +1,7 @@
 ---
 name: api-design
 license: MIT
-compatibility: "Claude Code 2.1.74+."
+compatibility: "Claude Code 2.1.76+."
 description: API design patterns for REST/GraphQL framework design, versioning strategies, and RFC 9457 error handling. Use when designing API endpoints, choosing versioning schemes, implementing Problem Details errors, or building OpenAPI specifications.
 tags: [api-design, rest, graphql, versioning, error-handling, rfc9457, openapi, problem-details]
 context: fork
@@ -31,14 +31,14 @@ Comprehensive API design patterns covering REST/GraphQL framework design, versio
 |----------|-------|--------|-------------|
 | [API Framework](#api-framework) | 3 | HIGH | REST conventions, resource modeling, OpenAPI specifications |
 | [Versioning](#versioning) | 3 | HIGH | URL path versioning, header versioning, deprecation/sunset policies |
-| [Error Handling](#error-handling) | 3 | HIGH | RFC 9457 Problem Details, validation errors, error type registries |
+| [Error Handling](#error-handling) | 4 | HIGH | RFC 9457 Problem Details, agent-facing errors, validation errors, error type registries |
 | [GraphQL](#graphql) | 2 | HIGH | Strawberry code-first, DataLoader, permissions, subscriptions |
 | [gRPC](#grpc) | 2 | HIGH | Protobuf services, streaming, interceptors, retry |
 | [Streaming](#streaming) | 2 | HIGH | SSE endpoints, WebSocket bidirectional, async generators |
 
 | [Integrations](#integrations) | 2 | HIGH | Messaging platforms (WhatsApp, Telegram), Payload CMS patterns |
 
-**Total: 17 rules across 7 categories**
+**Total: 18 rules across 7 categories**
 
 ## API Framework
 
@@ -67,6 +67,7 @@ RFC 9457 Problem Details for machine-readable, standardized error responses.
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Problem Details | `rules/errors-problem-details.md` | RFC 9457 schema, `application/problem+json`, exception classes |
+| Agent-Facing Errors | `rules/errors-agent-facing.md` | Agent extensions: `retryable`, `error_category`, content negotiation, token efficiency |
 | Validation | `rules/errors-validation.md` | Field-level errors, Pydantic integration, 422 responses |
 | Error Catalog | `rules/errors-error-catalog.md` | Problem type registry, error type URIs, client handling |
 
@@ -218,6 +219,14 @@ See `test-cases.json` for 9 test cases across all categories.
 **Solves:**
 - How to standardize API error responses?
 - What format for API errors?
+
+### agent-facing-errors
+**Keywords:** agent error, AI agent, retryable, retry_after, error_category, content negotiation, accept header, token efficient, machine readable
+**Solves:**
+- How to design error responses for AI agent consumers?
+- How to reduce token cost of error responses?
+- How to enable deterministic agent error handling?
+- Content negotiation for agents vs browsers vs LLMs
 
 ### validation-errors
 **Keywords:** validation, field error, 422, unprocessable, pydantic

@@ -1,0 +1,83 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "component-search",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "search-by-description",
+      "query": "Find a React pricing table component with monthly/annual toggle",
+      "expected_behavior": [
+        "Searches 21st.dev registry using natural language description",
+        "Returns ranked component results with relevance scores",
+        "Includes install instructions for each result",
+        "Shows framework compatibility (React, Tailwind, shadcn)"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "search-with-style-filter",
+      "query": "Search for a dark mode toggle component that uses Tailwind CSS and shadcn/ui",
+      "expected_behavior": [
+        "Filters results by style system (Tailwind, shadcn)",
+        "Returns components matching the specified design system",
+        "Shows component preview or code snippet",
+        "Provides npm/pnpm install command"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "search-alternative-components",
+      "query": "Find alternatives to our current DataTable component for better performance",
+      "expected_behavior": [
+        "Searches for table/data-grid components in the registry",
+        "Compares features across matched components",
+        "Highlights performance-related characteristics like virtualization",
+        "Suggests components with view/popularity metrics"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "search-no-results",
+      "query": "Find a React component for quantum computing circuit visualization",
+      "expected_behavior": [
+        "Handles zero or low-relevance results gracefully",
+        "Suggests broadening the search or alternative descriptions",
+        "Does not fabricate component names or install commands"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "edge-ambiguous-component-name",
+      "query": "Find me a 'card' component",
+      "expected_behavior": [
+        "Asks for clarification or returns multiple card variants since card is highly ambiguous",
+        "Shows different card types such as product card, profile card, pricing card, and stats card",
+        "Does not return a single result and assume the user wants a generic card without context",
+        "Suggests narrowing the search with additional descriptors like purpose or content type"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "error-registry-unavailable",
+      "query": "Search for a file upload component with drag and drop support",
+      "expected_behavior": [
+        "Handles registry API timeout or unavailability gracefully without crashing",
+        "Provides a fallback suggestion based on well-known libraries like react-dropzone if the registry is unreachable",
+        "Reports the service unavailability clearly to the user instead of silently returning no results",
+        "Does not fabricate component names or URLs when the registry cannot be reached"
+      ],
+      "tags": ["error-handling"]
+    },
+    {
+      "id": "security-malicious-package-name",
+      "query": "Find a React component called react-datepicker-2024-free-download",
+      "expected_behavior": [
+        "Flags the suspicious package naming pattern that resembles typosquatting or SEO spam",
+        "Recommends verifying package authenticity through npm download counts and maintainer reputation",
+        "Does not blindly suggest installing packages with suspicious or spammy naming conventions",
+        "Suggests well-known alternatives like react-datepicker or date-fns with established community trust"
+      ],
+      "tags": ["security"]
+    }
+  ]
+}

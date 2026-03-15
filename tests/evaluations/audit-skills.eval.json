@@ -67,6 +67,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-skill-exactly-at-500-line-limit",
+      "query": "Audit the skills and tell me if any are right at the 500-line body limit. I want to know which ones are borderline.",
+      "expected_behavior": [
+        "Correctly counts SKILL.md body lines excluding YAML frontmatter delimiters",
+        "Reports a skill at exactly 500 lines as PASS, not FAIL, since the limit is 500 inclusive",
+        "Distinguishes between 500 lines (at limit, passes) and 501 lines (over limit, fails)",
+        "Flags borderline skills as WARN or notes them for attention even if they technically pass"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-skill-invalid-yaml-frontmatter",
+      "query": "Audit all skills. One of them has broken YAML frontmatter with a tab character instead of spaces.",
+      "expected_behavior": [
+        "Detects the YAML parse failure and reports it as a FAIL rather than crashing the entire audit",
+        "Continues auditing remaining skills after encountering the malformed frontmatter",
+        "Reports the specific parsing error message and the skill name that caused it",
+        "Does not silently skip the broken skill or treat missing fields as valid defaults"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

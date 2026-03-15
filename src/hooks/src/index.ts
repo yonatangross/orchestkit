@@ -23,6 +23,9 @@ export * from './lib/multi-agent-coordinator.js';
 // Re-export decision history module (Issues #203, #206, #207, #208)
 export * from './lib/decision-history.js';
 
+// Re-export effort detector (CC 2.1.76)
+export * from './lib/effort-detector.js';
+
 // Import hook implementations
 // Permission hooks
 import { autoApproveSafeBash } from './permission/auto-approve-safe-bash.js';
@@ -171,6 +174,13 @@ import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
 
 // PostTool/Task hooks — Agent Teams
 import { teamMemberStart } from './posttool/task/team-member-start.js';
+
+// PostCompact hooks (CC 2.1.76)
+import { postCompactRecovery } from './lifecycle/post-compact-recovery.js';
+
+// Elicitation hooks (CC 2.1.76)
+import { elicitationGuard } from './elicitation/elicitation-guard.js';
+import { elicitationResultLogger } from './elicitation/elicitation-result-logger.js';
 
 // Lifecycle hooks (12) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
@@ -398,6 +408,13 @@ export const hooks: Record<string, HookFn> = {
 
   // TaskCompleted hooks (CC 2.1.33)
   'task-completed/completion-tracker': completionTracker,
+
+  // PostCompact hooks (CC 2.1.76)
+  'lifecycle/post-compact-recovery': postCompactRecovery,
+
+  // Elicitation hooks (CC 2.1.76)
+  'elicitation/elicitation-guard': elicitationGuard,
+  'elicitation/elicitation-result-logger': elicitationResultLogger,
 };
 
 /**

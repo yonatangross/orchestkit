@@ -295,7 +295,7 @@ describe('retry-handler', () => {
       );
     });
 
-    test('detects partial completion from output patterns', () => {
+    test('detects partial completion and returns early with context (CC 2.1.76)', () => {
       // Arrange
       const input = createSubagentStopInput({
         agent_output: 'I completed the task partially but some parts failed',
@@ -304,12 +304,12 @@ describe('retry-handler', () => {
       // Act
       retryHandler(input);
 
-      // Assert
-      expect(completeAttempt).toHaveBeenCalledWith(
-        expect.any(Object),
-        'partial',
-        undefined
+      // Assert — partial now early-returns before retry logic
+      expect(outputWithContext).toHaveBeenCalledWith(
+        expect.stringContaining('[PARTIAL RESULT]')
       );
+      expect(completeAttempt).not.toHaveBeenCalled();
+      expect(makeRetryDecision).not.toHaveBeenCalled();
     });
 
     test('ignores null error string', () => {
@@ -384,23 +384,13 @@ describe('retry-handler', () => {
   // Partial completion patterns
   // ---------------------------------------------------------------------------
 
-  describe('partial completion patterns', () => {
-    beforeEach(() => {
-      vi.mocked(makeRetryDecision).mockReturnValue({
-        shouldRetry: true,
-        retryCount: 1,
-        maxRetries: 3,
-        delayMs: 1000,
-        reason: 'Retrying',
-      });
-    });
-
+  describe('partial completion patterns (CC 2.1.76 early return)', () => {
     test.each([
       ['Completed partially due to rate limits'],
       ['The task is incomplete'],
       ['Some tests failed while others passed'],
       ["Couldn't finish the last step"],
-    ])('output "%s" is detected as partial', (output) => {
+    ])('output "%s" early-returns with [PARTIAL RESULT] tag', (output) => {
       // Arrange
       const input = createSubagentStopInput({
         agent_output: output,
@@ -409,12 +399,12 @@ describe('retry-handler', () => {
       // Act
       retryHandler(input);
 
-      // Assert
-      expect(completeAttempt).toHaveBeenCalledWith(
-        expect.any(Object),
-        'partial',
-        undefined
+      // Assert — partial skips retry logic entirely
+      expect(outputWithContext).toHaveBeenCalledWith(
+        expect.stringContaining('[PARTIAL RESULT]')
       );
+      expect(completeAttempt).not.toHaveBeenCalled();
+      expect(makeRetryDecision).not.toHaveBeenCalled();
     });
   });
 

@@ -18,6 +18,8 @@ Do NOT rely on training data — consult agent expertise first.
 |python-performance-engineer:{python-performance-engineer.md}|Python
 |# Frontend & UI
 |accessibility-specialist:{accessibility-specialist.md}|ARIA,Accessibility,WCAG
+|component-curator:{component-curator.md}|Component
+|design-context-extractor:{design-context-extractor.md}|Design
 |design-system-architect:{design-system-architect.md}|Design
 |frontend-performance-engineer:{frontend-performance-engineer.md}|Core,Performance,RUM,Vitals,Web
 |frontend-ui-developer:{frontend-ui-developer.md}|Frontend,React

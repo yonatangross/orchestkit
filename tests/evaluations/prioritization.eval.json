@@ -41,6 +41,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "single-item-prioritization",
+      "query": "Prioritize this one feature: dark mode",
+      "expected_behavior": [
+        "Explains that prioritization frameworks require at least two items to produce a relative ranking",
+        "Asks what other features or backlog items dark mode should be evaluated against",
+        "Does not produce a RICE or WSJF score for a single item in isolation without comparison context",
+        "Suggests framing the question as an assessment or go/no-go decision instead of prioritization"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "all-items-same-priority",
+      "query": "Prioritize these 20 features. They are all critical, all urgent, all high-value, and all low-effort. The CEO says everything is P0.",
+      "expected_behavior": [
+        "Challenges the assumption that all items are equally critical since prioritization requires differentiation",
+        "Asks probing questions to surface hidden differences in reach, confidence, or time sensitivity",
+        "Warns that labeling everything P0 is equivalent to having no prioritization at all",
+        "Suggests forced ranking or pairwise comparison to break ties when scores appear identical"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "prioritize-with-unknown-effort",
+      "query": "Score these features with RICE but we have no engineering estimates and no idea how long anything will take. Just use 1 for effort on everything.",
+      "expected_behavior": [
+        "Warns that using uniform effort values defeats the purpose of the effort dimension in RICE",
+        "Explains that RICE without meaningful effort estimates degrades to just Reach times Impact times Confidence",
+        "Recommends t-shirt sizing or relative estimation techniques to get approximate effort values",
+        "Does not silently produce misleading RICE scores with placeholder effort data"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

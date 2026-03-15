@@ -214,6 +214,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-redis-lock-clock-skew",
+      "query": "Our distributed lock occasionally gets acquired by two workers simultaneously despite using Redis SET NX with TTL",
+      "expected_behavior": [
+        "Identifies clock skew and GC pauses as causes of dual-acquisition even with correct Redis lock implementation",
+        "Recommends fencing tokens to ensure stale lock holders cannot perform writes after lock expiry",
+        "Warns that a single Redis instance lock is not safe under network partitions without Redlock quorum",
+        "Does not recommend simply increasing the TTL as a fix since it trades correctness for availability"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-circuit-breaker-half-open-thundering-herd",
+      "query": "When my circuit breaker transitions from OPEN to HALF_OPEN, all pending requests flood the recovering service and crash it again",
+      "expected_behavior": [
+        "Limits the number of probe requests allowed through in HALF_OPEN state to one or a small fixed count",
+        "Queues or rejects excess requests during HALF_OPEN rather than forwarding them all at once",
+        "Implements gradual traffic ramp-up after successful probes before fully closing the circuit",
+        "Does not transition directly from OPEN to CLOSED without a controlled HALF_OPEN validation phase"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-idempotency-key-spoofing",
+      "query": "A malicious client sends an Idempotency-Key header matching another user's previous payment request to replay their cached response",
+      "expected_behavior": [
+        "Scopes idempotency keys to the authenticated user or tenant so keys from different users never collide",
+        "Stores the original requester identity alongside the cached response for ownership validation",
+        "Returns 403 or 422 when the idempotency key belongs to a different authenticated principal",
+        "Does not use the idempotency key alone without binding it to the caller's identity"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

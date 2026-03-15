@@ -29,6 +29,15 @@ trigger_evals:
     should_trigger: false
   - prompt: "set up authentication middleware with JWT"
     should_trigger: false
+  # Should NOT trigger — architecture-patterns confusion pair
+  - prompt: "review the overall system architecture and component boundaries"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "design api"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the user API endpoints based on this OpenAPI spec"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -47,6 +56,8 @@ quality_evals:
         check: "models the relationships between users, projects, tasks, comments"
       - name: "HTTP methods correct"
         check: "uses GET/POST/PUT/PATCH/DELETE appropriately for CRUD"
+      - name: "no verb-based URLs"
+        check: "endpoint paths do NOT use verbs like /getUsers or /createTask — uses nouns only"
 
   - prompt: |
       my api currently returns errors like {"error": "not found"} with
@@ -56,5 +67,7 @@ quality_evals:
         check: "recommends using appropriate HTTP status codes (404, 400, 500)"
       - name: "structured error format"
         check: "suggests a consistent error response schema"
+      - name: "no 200-for-errors"
+        check: "does NOT recommend returning error information with HTTP 200 status codes"
 
 tags: [api-design, knowledge, backend]

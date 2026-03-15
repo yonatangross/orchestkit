@@ -306,7 +306,7 @@ export function SetupWizard() {
                   aria-pressed={active}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     active
-                      ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                      ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                       : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                   }`}
                 >
@@ -343,7 +343,7 @@ export function SetupWizard() {
                       currentStep === i
                         ? "bg-fd-primary text-fd-primary-foreground shadow-sm"
                         : currentStep > i
-                          ? "bg-fd-primary/15 text-fd-primary"
+                          ? "bg-[var(--color-fd-primary-20)] text-fd-primary"
                           : "bg-fd-muted text-fd-muted-foreground"
                     }`}
                   >
@@ -370,7 +370,7 @@ export function SetupWizard() {
                     <div
                       className={`mx-2 hidden h-px flex-1 sm:block ${
                         currentStep > i
-                          ? "bg-fd-primary/40"
+                          ? "bg-[var(--color-fd-primary-30)]"
                           : "bg-fd-border"
                       }`}
                     />
@@ -397,7 +397,7 @@ export function SetupWizard() {
                         aria-pressed={active}
                         className={`flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-all ${
                           active
-                            ? "border-fd-primary/40 bg-fd-primary/10 shadow-sm"
+                            ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] shadow-sm"
                             : "border-fd-border hover:border-fd-border hover:bg-fd-muted"
                         }`}
                       >
@@ -447,7 +447,7 @@ export function SetupWizard() {
                         aria-pressed={active}
                         className={`flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition-all ${
                           active
-                            ? "border-fd-primary/40 bg-fd-primary/10 shadow-sm"
+                            ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] shadow-sm"
                             : "border-fd-border hover:border-fd-border hover:bg-fd-muted"
                         }`}
                       >
@@ -548,7 +548,7 @@ export function SetupWizard() {
                 className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                   currentStep === 2
                     ? "cursor-not-allowed bg-fd-muted text-fd-muted-foreground/30"
-                    : "bg-fd-primary text-fd-primary-foreground shadow-sm hover:bg-fd-primary/90 hover:shadow"
+                    : "bg-fd-primary text-fd-primary-foreground shadow-sm hover:bg-[var(--color-fd-primary-50)] hover:shadow"
                 }`}
               >
                 Next

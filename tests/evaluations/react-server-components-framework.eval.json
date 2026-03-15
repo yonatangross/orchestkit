@@ -108,6 +108,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-use-cache-with-dynamic-cookies",
+      "query": "My cached Server Component needs to show different content based on the user's locale cookie but use cache blocks calling cookies()",
+      "expected_behavior": [
+        "Reads the locale from cookies() outside the use cache boundary and passes it as an argument to the cached function",
+        "Does not suggest calling cookies() inside a use cache block which causes a build error",
+        "Explains that each unique argument combination creates a separate cache entry so locale becomes a cache key",
+        "Recommends using cacheTag with locale-scoped tags for targeted invalidation per locale"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-server-action-large-payload",
+      "query": "My Server Action receives a form with a file upload and crashes with 'body exceeded 1MB limit' in production",
+      "expected_behavior": [
+        "Explains that Server Actions have a default body size limit and large files should be uploaded via a separate API route",
+        "Recommends configuring serverActions.bodySizeLimit in next.config.ts for legitimate larger payloads",
+        "Does not suggest removing all size limits which would expose the server to denial-of-service attacks",
+        "Advises using presigned URLs for direct-to-storage uploads instead of routing files through Server Actions"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-server-component-env-leak",
+      "query": "I console.log my DATABASE_URL in a Server Component for debugging. Can the user see it?",
+      "expected_behavior": [
+        "Clarifies that Server Component console.log output appears only in the server terminal and not in the browser",
+        "Warns that accidentally importing the module with DATABASE_URL into a Client Component would expose it in the bundle",
+        "Recommends using the server-only package to prevent accidental client-side imports of sensitive modules",
+        "Advises removing debug logging of credentials before deploying to production regardless of component type"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

@@ -109,13 +109,13 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 ### Python (FastAPI/Flask/Django)
 
-- [ ] Install SDK: `pip install "langfuse>=3.13.0"`
-- [ ] Add to requirements.txt: `langfuse>=3.13.0`
+- [ ] Install SDK: `pip install "langfuse>=4.0.0"`
+- [ ] Add to requirements.txt: `langfuse>=4.0.0`
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install @langfuse/core`
-- [ ] Add to package.json: `"@langfuse/core": "^3.0.0"`
+- [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
+- [ ] Add to package.json: `"@langfuse/core": "^4.0.0"` and `"@langfuse/otel": "^4.0.0"`
 
 ## Phase 3: Configuration
 
@@ -246,6 +246,12 @@ async def analyze_content(url: str, content: str) -> AnalysisResult:
 - [ ] Add session_id for multi-step workflows
 - [ ] Add user_id for user-facing features
 - [ ] Tag traces by environment (production/staging)
+
+### v4-Specific Setup
+
+- [ ] Add `as_type` to `@observe()` decorators to classify span types (`"span"`, `"generation"`, `"retriever"`, `"chain"`)
+- [ ] Add `should_export_span` filter to exclude noisy spans from export
+- [ ] Migrate manual scoring to `score_current_span()` for simpler in-context scoring
 
 ## Phase 6: LLM Call Instrumentation
 

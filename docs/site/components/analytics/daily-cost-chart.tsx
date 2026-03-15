@@ -18,7 +18,7 @@ export function DailyCostChart({ data }: { data: AnalyticsExport }) {
             <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
               <span className="text-[9px] text-fd-muted-foreground">{formatCost(cost)}</span>
               <div
-                className="w-full rounded-t-sm bg-fd-primary/70 transition-all"
+                className="w-full rounded-t-sm bg-[var(--color-fd-primary-50)] transition-all"
                 style={{ height: `${heightPct}%`, minHeight: cost > 0 ? 4 : 0 }}
                 title={`${formatDate(d.date)}: ${formatCost(cost)}`}
               />

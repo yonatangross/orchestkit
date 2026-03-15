@@ -6,3 +6,6 @@ export { LazyDemoGallery } from "./demo-gallery";
 export { LazyAgentSelector } from "./agent-selector";
 export { LazyChangelogTimeline } from "./changelog-timeline";
 export { LazyAnalyticsDashboard } from "./analytics-dashboard";
+export { LazyPipelineGallery } from "./pipeline-gallery";
+export { LazyComponentDNA } from "./component-dna";
+export { LazySetupWizard } from "./setup-wizard";

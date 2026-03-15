@@ -1,7 +1,7 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 argument-hint: "[scope]"
 context: fork
@@ -31,7 +31,7 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 /ork:audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (beta, Tier 4+) enables cross-file reasoning that chunked approaches miss.
+> **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
 
@@ -140,7 +140,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
-| Context window < 200K tokens | `/ork:verify` (chunked approach) |
+| Codebase > 125K LOC (exceeds 1M) | `/ork:verify` (chunked approach) |
 
 ---
 
@@ -150,7 +150,7 @@ Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/
 - `ork:security-patterns` — Security architecture patterns and OWASP vulnerability classification
 - `ork:architecture-patterns` — Architectural pattern reference
 - `ork:quality-gates` — Quality assessment criteria
-- `ork:verify` — Chunked multi-agent verification (fallback for large codebases)
+- `ork:verify` — Multi-agent verification (fallback for codebases exceeding 1M context)
 
 ## References
 

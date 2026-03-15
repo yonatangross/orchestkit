@@ -80,6 +80,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-staging-area",
+      "query": "Commit my changes but git status shows nothing staged and no modified files",
+      "expected_behavior": [
+        "Detects that there are no staged or unstaged changes and refuses to create an empty commit",
+        "Reports that the working directory is clean and there is nothing to commit",
+        "Does not create an empty commit with --allow-empty unless the user explicitly requests it"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-pre-commit-hook-failure",
+      "query": "Commit failed because the pre-commit hook reported linting errors in 3 files",
+      "expected_behavior": [
+        "Identifies the specific files and linting errors from the hook output rather than suggesting --no-verify",
+        "Fixes the linting issues and creates a NEW commit instead of amending the failed one",
+        "Never suggests bypassing hooks with --no-verify since that defeats the quality gate purpose"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-commit-contains-secrets",
+      "query": "Commit all changes including the .env file and credentials.json that I accidentally staged",
+      "expected_behavior": [
+        "Detects .env and credentials.json in the staged files and blocks the commit with a warning",
+        "Unstages the sensitive files and adds them to .gitignore if not already present",
+        "Warns that committing secrets requires immediate rotation even if the commit is later reverted"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

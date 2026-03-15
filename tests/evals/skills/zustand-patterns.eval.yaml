@@ -1,0 +1,41 @@
+id: zustand-patterns
+name: "Zustand patterns evaluation"
+skill_path: src/skills/zustand-patterns/SKILL.md
+plugin_dir: plugins/ork
+
+quality_evals:
+  - prompt: |
+      I'm building a React dashboard with multiple panels that share state.
+      Currently using useState and prop drilling through 4 levels. I want
+      to switch to Zustand. How should I structure the store for a dashboard
+      with user preferences, notification count, and active panel state?
+    assertions:
+      - name: "slice pattern"
+        check: "recommends organizing state into slices rather than one monolithic store"
+      - name: "useShallow for multiple values"
+        check: "uses useShallow when selecting multiple values to prevent unnecessary re-renders"
+      - name: "typed store"
+        check: "creates a properly typed store with TypeScript interfaces"
+
+  - prompt: |
+      My Zustand store has a complex nested object for a form builder
+      with sections containing fields. Updating deeply nested state is
+      getting messy with spread operators. What's the best approach?
+    assertions:
+      - name: "immer middleware"
+        check: "recommends using the immer middleware for clean mutable-style updates of nested state"
+      - name: "middleware ordering"
+        check: "shows correct middleware composition order"
+
+  - prompt: |
+      I need my app's theme preference and sidebar collapse state to
+      persist across page refreshes. How do I set this up with Zustand?
+    assertions:
+      - name: "persist middleware"
+        check: "uses the persist middleware with localStorage or sessionStorage"
+      - name: "selective persistence"
+        check: "shows how to persist only specific fields using partialize rather than the entire store"
+      - name: "version migration"
+        check: "mentions versioning the persisted state and providing a migrate function for schema changes"
+
+tags: [zustand-patterns, background, frontend]

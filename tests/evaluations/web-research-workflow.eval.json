@@ -98,6 +98,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-url-returns-empty-content",
+      "query": "I'm trying to extract pricing data from a competitor site but WebFetch returns an empty string and Tavily extract returns only the navigation menu text. No actual page content comes through.",
+      "expected_behavior": [
+        "Claude detects the under-500-character threshold and escalates through the 3-tier decision tree",
+        "Claude falls back to agent-browser for JavaScript-rendered content after static extraction fails",
+        "Claude does not repeatedly retry the same failing extraction method without escalating tier",
+        "Claude reports which tier succeeded or if all tiers failed so the user can investigate manually"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-tavily-api-key-missing",
+      "query": "I set up web research monitoring but Tavily search calls keep returning authentication errors. My TAVILY_API_KEY environment variable might be missing.",
+      "expected_behavior": [
+        "Claude checks for TAVILY_API_KEY availability before attempting any Tavily API calls",
+        "Claude falls back to WebFetch-only workflow when the Tavily API key is not configured",
+        "Claude does not expose the API key value in error messages or log output",
+        "Claude suggests setting the environment variable and provides the correct variable name without a default value"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-credential-exposure-in-browser",
+      "query": "My web research workflow needs to log into a competitor's partner portal. I'm worried about credentials being captured in browser traces or screenshots.",
+      "expected_behavior": [
+        "Claude loads credentials from environment variables and never hardcodes them in automation scripts",
+        "Claude uses state save after login to avoid re-entering credentials on subsequent page navigations",
+        "Claude avoids capturing screenshots or trace recordings during the authentication step",
+        "Claude stores browser session state securely and does not commit auth cookies or tokens to version control"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

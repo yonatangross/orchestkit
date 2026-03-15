@@ -93,6 +93,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-layout-animation-scroll-jump",
+      "query": "When items are added to my animated list, the page scroll position jumps because the layout animation changes the document height mid-transition",
+      "expected_behavior": [
+        "Uses layoutScroll prop or scroll-aware container to compensate for scroll position during layout animations",
+        "Does not suggest disabling layout animations entirely as the fix",
+        "Recommends constraining layout animations to transform-only properties to avoid reflow-triggered scroll jumps",
+        "Considers using AnimatePresence with mode popLayout to avoid height shifts during enter and exit"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-exit-animation-not-running",
+      "query": "My exit animation defined in the exit prop never plays. The component just disappears instantly when the condition becomes false.",
+      "expected_behavior": [
+        "Checks that the conditional element is a direct child of AnimatePresence, not nested inside another wrapper",
+        "Verifies that each direct child of AnimatePresence has a unique and stable key prop",
+        "Does not suggest using CSS transitions as a replacement for the broken exit animation",
+        "Confirms that AnimatePresence is rendered unconditionally and only its children are conditionally rendered"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "edge-reduced-motion-with-layout-deps",
+      "query": "When prefers-reduced-motion is enabled, my layout animations break because components teleport to new positions without any visual feedback",
+      "expected_behavior": [
+        "Provides a crossfade or opacity-only transition as the reduced-motion alternative instead of removing all animation",
+        "Does not remove layout prop entirely which would break list reordering functionality",
+        "Uses useReducedMotion hook to conditionally set transition duration to zero or near-zero with opacity fade",
+        "Ensures the component still reaches its final layout position even when motion is reduced"
+      ],
+      "tags": [
+        "edge-case"
+      ]
     }
   ]
 }

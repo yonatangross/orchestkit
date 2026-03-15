@@ -4,6 +4,7 @@ import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
+import { AnimateOnView } from "@/components/animate-on-view";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -43,11 +44,32 @@ const PRIMITIVES = [
   },
 ] as const;
 
+const PERSONAS = [
+  {
+    title: "New to OrchestKit?",
+    desc: "Install and ship your first feature in under 5 minutes.",
+    cta: "Get started",
+    href: "/docs/getting-started/installation",
+  },
+  {
+    title: "Evaluating for your team?",
+    desc: "104 hooks enforce security and quality automatically. Zero config.",
+    cta: "See the guardrails",
+    href: "/docs/hooks/overview",
+  },
+  {
+    title: "Already using Claude Code?",
+    desc: "33 parallel specialist agents, 3-tier memory, keyword activation.",
+    cta: "What OrchestKit adds",
+    href: "/docs/foundations/overview",
+  },
+] as const;
+
 const QUICK_PATHS = [
-  { title: "3 Building Blocks", desc: "How Skills, Agents, and Hooks compose", href: "/docs/foundations/skills-agents-hooks" },
   { title: "First 10 Minutes", desc: "Install to first AI-assisted commit", href: "/docs/getting-started/first-10-minutes" },
   { title: "Find Your Path", desc: "Backend, Frontend, AI, or DevOps", href: "/docs/getting-started/navigating" },
   { title: "Cookbook", desc: "Real workflow walkthroughs", href: "/docs/cookbook/implement-feature" },
+  { title: "How It Works", desc: "Skills, Agents, and Hooks in depth", href: "/docs/foundations/skills-agents-hooks" },
 ] as const;
 
 export default async function HomePage() {
@@ -59,25 +81,29 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-dot-grid" aria-hidden="true" />
 
         <div className="relative z-10 mx-auto w-full max-w-[1024px] px-6 py-20">
-          <div className="animate-fade-in stagger-1">
+          <AnimateOnView>
             <span className="overline">OrchestKit v{SITE.version}</span>
-          </div>
+          </AnimateOnView>
 
-          <h1 id="hero-heading" className="animate-fade-in stagger-2 mt-4 max-w-3xl text-4xl font-bold tracking-tight text-fd-foreground sm:text-5xl lg:text-6xl">
-            Stop explaining your stack.
-            <br />
-            <span className="text-fd-primary">Start shipping.</span>
-          </h1>
+          <AnimateOnView delay={100} className="mt-4">
+            <h1 id="hero-heading" className="max-w-3xl text-fluid-h1 font-bold tracking-tight text-fd-foreground">
+              Stop explaining your stack.
+              <br />
+              <span className="text-fd-primary">Start shipping.</span>
+            </h1>
+          </AnimateOnView>
 
-          <p className="animate-fade-in stagger-3 mt-6 max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
-            {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
-            a full development team.
-          </p>
+          <AnimateOnView delay={200} className="mt-6">
+            <p className="max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
+              {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
+              a full development team.
+            </p>
+          </AnimateOnView>
 
-          <div className="animate-fade-in stagger-4 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <AnimateOnView delay={300} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-fd-primary/80"
+              className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-[var(--color-fd-primary-50)]"
             >
               Get Started
             </Link>
@@ -86,7 +112,7 @@ export default async function HomePage() {
               href={SITE.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-secondary"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-all hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
               aria-label="Star OrchestKit on GitHub"
             >
               <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -94,14 +120,14 @@ export default async function HomePage() {
               </svg>
               Star on GitHub
             </a>
-          </div>
+          </AnimateOnView>
 
-          {/* Circuit-trace stat bar */}
-          <div className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" aria-label="Quick statistics">
-            <div className="text-center">
+          {/* Circuit-trace stat bar — animated counters */}
+          <AnimateOnView delay={400} className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" distance={16}>
+            <AnimateOnView delay={500} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.skills}</dd>
               <dt className="mt-1 overline-muted">Skills</dt>
-            </div>
+            </AnimateOnView>
 
             <div className="flex-1 mx-6 relative">
               <div className="circuit-line" />
@@ -109,10 +135,10 @@ export default async function HomePage() {
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center">
+            <AnimateOnView delay={600} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.agents}</dd>
               <dt className="mt-1 overline-muted">Agents</dt>
-            </div>
+            </AnimateOnView>
 
             <div className="flex-1 mx-6 relative">
               <div className="circuit-line" />
@@ -120,11 +146,11 @@ export default async function HomePage() {
               <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="text-center">
+            <AnimateOnView delay={700} className="text-center" distance={20}>
               <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.hooks}</dd>
               <dt className="mt-1 overline-muted">Hooks</dt>
-            </div>
-          </div>
+            </AnimateOnView>
+          </AnimateOnView>
 
           {/* Mobile stats — stacked, no connectors */}
           <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-fd-border pt-6 sm:hidden" aria-label="Quick statistics">
@@ -143,7 +169,7 @@ export default async function HomePage() {
       </section>
 
       {/* Social proof */}
-      <section aria-label="Community traction" className="border-t border-fd-border bg-fd-card/30">
+      <section aria-label="Community traction" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
         <div className="mx-auto flex max-w-[1024px] items-center justify-center gap-6 px-6 py-4 text-[13px] text-fd-muted-foreground sm:gap-8">
           <a
             href={`${SITE.github}/stargazers`}
@@ -172,24 +198,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Category Distribution */}
-      <section aria-label="Skill categories" className="border-t border-fd-border bg-fd-card/50">
+      {/* Coverage areas */}
+      <section aria-label="Coverage areas" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
         <div className="mx-auto max-w-[1024px] px-6 py-5">
           <div className="flex flex-wrap justify-center gap-3">
-            {Object.entries({
-              Backend: 38,
-              Frontend: 32,
-              "AI / LLM": 35,
-              Security: 12,
-              DevOps: 18,
-              Testing: 22,
-              Product: 16,
-              Workflows: 27,
-            }).map(([label, count]) => (
+            {["Backend", "Frontend", "AI / LLM", "Security", "DevOps", "Testing", "Product", "Data"].map((label) => (
               <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-fd-primary" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-fd-primary-30)]" />
                 <span>{label}</span>
-                <span className="font-mono font-medium tabular-nums text-fd-muted-foreground">{count}</span>
               </div>
             ))}
           </div>
@@ -200,7 +216,7 @@ export default async function HomePage() {
       <section aria-labelledby="primitives-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Building Blocks</span>
-          <h2 id="primitives-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
+          <h2 id="primitives-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
             Three primitives, infinite workflows
           </h2>
           <p className="mt-2 max-w-lg text-[15px] text-fd-muted-foreground">
@@ -212,7 +228,7 @@ export default async function HomePage() {
               <Link
                 key={item.letter}
                 href={item.href}
-                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-colors duration-200 hover:bg-fd-secondary hover:border-l-fd-primary/80 sm:rounded-r-lg"
+                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-l-fd-primary sm:rounded-r-lg hover:shadow-[0_0_12px_var(--color-fd-glow)]"
               >
                 <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded border border-fd-border font-mono text-xs font-bold text-fd-primary" aria-hidden="true">
                   {item.letter}
@@ -233,11 +249,39 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Choose Your Path — persona-based entry points */}
+      <section aria-labelledby="personas-heading" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
+        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
+          <span className="overline">Choose Your Path</span>
+          <h2 id="personas-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
+            Where do you want to start?
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {PERSONAS.map((persona) => (
+              <Link
+                key={persona.href}
+                href={persona.href}
+                className="group flex flex-col justify-between border border-fd-border bg-fd-card p-5 rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)] hover:shadow-[0_0_12px_var(--color-fd-glow)]"
+              >
+                <div>
+                  <h3 className="font-semibold text-fd-foreground">{persona.title}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-fd-muted-foreground">{persona.desc}</p>
+                </div>
+                <span className="mt-4 inline-flex items-center gap-1 font-mono text-[12px] font-medium text-fd-primary transition-all group-hover:gap-2">
+                  {persona.cta}
+                  <ChevronRight className="h-3 w-3" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Demo Showcase */}
       <section aria-labelledby="demos-heading" className="border-t border-fd-border">
         <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
           <span className="overline">Demos</span>
-          <h2 id="demos-heading" className="mt-2 text-2xl font-semibold tracking-tight text-fd-foreground">
+          <h2 id="demos-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
             See it in action
           </h2>
           <p className="mt-2 max-w-md text-[15px] text-fd-muted-foreground">
@@ -248,7 +292,7 @@ export default async function HomePage() {
               <Link
                 key={comp.id}
                 href="/docs/reference"
-                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-colors hover:bg-fd-secondary"
+                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
               >
                 <div className="aspect-video bg-fd-background relative">
                   <OptimizedThumbnail
@@ -269,7 +313,7 @@ export default async function HomePage() {
           <div className="mt-3">
             <Link
               href="/docs/reference"
-              className="font-mono text-[13px] text-fd-primary hover:text-fd-primary/80 transition-colors"
+              className="font-mono text-[13px] text-fd-primary hover:text-[var(--color-fd-primary-50)] transition-colors"
             >
               View all compositions &rarr;
             </Link>
@@ -289,7 +333,7 @@ export default async function HomePage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-colors duration-200 hover:bg-fd-secondary"
+                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)]"
               >
                 <div>
                   <h3 className="text-sm font-medium text-fd-foreground">{item.title}</h3>
@@ -316,7 +360,7 @@ export default async function HomePage() {
           </span>
           <nav aria-label="Footer" className="flex gap-5">
             <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-muted-foreground">GitHub</a>
-            <Link href="/docs/foundations/overview" className="hover:text-fd-muted-foreground">Docs</Link>
+            <Link href="/docs/getting-started/installation" className="hover:text-fd-muted-foreground">Docs</Link>
             <Link href="/docs/cookbook/implement-feature" className="hover:text-fd-muted-foreground">Cookbook</Link>
           </nav>
         </div>

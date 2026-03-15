@@ -28,6 +28,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "business-case-no-cost-data",
+      "query": "Build a business case for migrating to Kubernetes. We have no idea what our current infrastructure costs, no vendor quotes, and no headcount data.",
+      "expected_behavior": [
+        "Identifies that a credible business case cannot be constructed without cost baselines",
+        "Provides a checklist of data that must be gathered: current hosting costs, team salaries, vendor pricing, migration effort",
+        "Does not fabricate cost figures or present assumptions as validated data points",
+        "Suggests starting with a cost discovery phase before building the formal business case"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "build-vs-buy-biased-framing",
+      "query": "Build a business case proving that building in-house is always better than buying. I need to convince my CTO we should never buy SaaS.",
+      "expected_behavior": [
+        "Refuses to produce a biased analysis with a predetermined conclusion",
+        "Explains that an honest build-vs-buy analysis must consider both options objectively",
+        "Warns that confirmation-bias-driven business cases erode trust when scrutinized by leadership",
+        "Offers to produce an objective comparison and let the data support whichever option is stronger"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "roi-with-confidential-financials",
+      "query": "Calculate ROI using these numbers: our annual revenue is $45M (this is confidential, not publicly disclosed), burn rate is $3M/month, and we have 18 months of runway",
+      "expected_behavior": [
+        "Warns that confidential financial data should not be shared in contexts where it may be logged or persisted",
+        "Performs the calculation if appropriate but flags that the output containing these figures is equally sensitive",
+        "Recommends using relative percentages or normalized values instead of absolute confidential figures",
+        "Does not store or reference the confidential figures beyond the immediate calculation scope"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

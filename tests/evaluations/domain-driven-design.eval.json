@@ -83,6 +83,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-single-entity-no-invariants",
+      "query": "I have a single 'UserProfile' entity with just name, email, and avatar URL fields. No complex business rules. Should I still model it as an aggregate root with a repository?",
+      "expected_behavior": [
+        "Claude recommends against full DDD ceremony for a simple entity with no domain invariants",
+        "Claude suggests a plain dataclass or ORM model without aggregate root, repository, or domain events",
+        "Claude does not apply DDD patterns to trivial CRUD entities that have no complex business rules",
+        "Claude references the scope-appropriate-architecture principle of matching patterns to actual complexity"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-cross-aggregate-transaction",
+      "query": "I need to update an Order aggregate and an Inventory aggregate in the same database transaction. My domain event handler sometimes fails halfway through and leaves data inconsistent.",
+      "expected_behavior": [
+        "Claude warns against spanning a single transaction across multiple aggregate boundaries",
+        "Claude recommends eventual consistency with domain events and compensating actions between aggregates",
+        "Claude does not allow two aggregates to be modified in the same transaction as it violates DDD boundaries",
+        "Claude suggests a saga or process manager pattern for coordinating multi-aggregate state changes"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-domain-event-injection",
+      "query": "Our domain events are serialized to JSON and published to a message queue. Could a malicious consumer craft a fake OrderSubmitted event to bypass payment validation?",
+      "expected_behavior": [
+        "Claude recommends signing domain events with HMAC or digital signatures to prevent tampering",
+        "Claude validates event source and schema on the consumer side before processing any event",
+        "Claude does not trust deserialized domain events without verifying their authenticity and origin",
+        "Claude suggests an event schema registry to reject events that do not match expected structure"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

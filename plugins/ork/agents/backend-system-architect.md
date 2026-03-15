@@ -3,7 +3,7 @@ name: backend-system-architect
 description: "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture."
 model: inherit
 category: backend
-maxTurns: 40
+maxTurns: 50
 permissionMode: plan
 context: fork
 color: yellow

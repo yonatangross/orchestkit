@@ -267,6 +267,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-tool-response",
+      "query": "My tool execution returns an empty string and the LLM enters an infinite loop calling the same tool repeatedly",
+      "expected_behavior": [
+        "Returns a descriptive message like 'No results found' instead of an empty string from tool execution",
+        "Enforces a max iteration guard that terminates the tool loop after a bounded number of calls",
+        "Detects repeated identical tool calls and breaks the loop with an explanation to the LLM",
+        "Does not allow empty tool results to propagate back as they provide no signal for the model to reason about"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-streaming-disconnect",
+      "query": "My SSE streaming endpoint leaks memory because the async generator keeps running after the client disconnects mid-stream",
+      "expected_behavior": [
+        "Monitors the client disconnect signal via request.is_disconnected or abort controller in the streaming loop",
+        "Uses aclosing context manager to guarantee async generator cleanup when the connection is severed",
+        "Cancels any in-flight LLM API calls when the client disconnect is detected to stop token consumption",
+        "Does not rely on garbage collection to clean up long-running async generators after disconnect"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-prompt-injection-via-tool-output",
+      "query": "A user stores malicious instructions in a database record and when the search tool retrieves it the LLM follows the injected instructions instead of the system prompt",
+      "expected_behavior": [
+        "Separates system instructions from tool output content using clear delimiters or role boundaries",
+        "Treats all tool output as untrusted user content and wraps it in explicit data-only markers",
+        "Does not concatenate raw tool results directly into the system prompt without sanitization",
+        "Implements output validation to detect when LLM behavior deviates from the system prompt after tool calls"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

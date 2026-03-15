@@ -80,6 +80,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-no-test-files-found",
+      "query": "Verify the notification service but there are no test files in the project at all",
+      "expected_behavior": [
+        "Detects zero test files and assigns a 0 score for the coverage dimension rather than skipping it",
+        "Reports the missing tests as a critical gap in the verification report with specific file patterns searched",
+        "Does not produce a passing composite score when an entire quality dimension has zero evidence"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-agent-spawn-failure",
+      "query": "Verify the auth module but one of the 5 parallel verification agents fails to respond",
+      "expected_behavior": [
+        "Reports which specific agent failed and still produces scores from the remaining successful agents",
+        "Marks the failed dimension as INCOMPLETE rather than silently omitting it from the composite score",
+        "Does not block the entire verification if a non-critical agent times out but flags reduced confidence"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-verify-hardcoded-credentials",
+      "query": "Verify a module that has hardcoded database passwords in the connection config file",
+      "expected_behavior": [
+        "The security-auditor agent flags hardcoded credentials as a critical finding that blocks merge",
+        "Assigns a failing score to the security dimension regardless of how well other dimensions score",
+        "Composite grade cannot be A or B when security dimension has a critical vulnerability finding"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

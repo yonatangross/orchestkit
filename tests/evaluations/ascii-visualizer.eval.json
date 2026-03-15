@@ -69,6 +69,33 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-extremely-complex-system-20-plus-components",
+      "query": "Draw an ASCII architecture diagram of our platform: React frontend, Next.js BFF, API gateway, auth service, user service, billing service, notification service, analytics service, search service, recommendation engine, ML pipeline, feature store, Redis cache, PostgreSQL primary, PostgreSQL read replica, MongoDB, Elasticsearch, RabbitMQ, S3 storage, CDN, and a monitoring stack with Prometheus and Grafana.",
+      "expected_behavior": [
+        "Groups related components into logical clusters or layers rather than placing 22 boxes in a flat layout",
+        "Uses a hierarchical or layered diagram pattern to manage visual complexity",
+        "Stays within 120 characters wide or clearly explains the tradeoff if wider",
+        "Includes a legend or grouping labels to help readers parse the dense diagram",
+        "Does not omit components silently; accounts for all 22 listed services"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-contradictory-relationships",
+      "query": "Draw a diagram where Service A calls Service B, Service B calls Service C, and Service C calls Service A, but also show that A has no dependencies and is a standalone leaf node.",
+      "expected_behavior": [
+        "Detects the contradiction between the cyclic dependency and the claim that A is a standalone leaf node",
+        "Asks the user to clarify whether A is truly standalone or participates in the circular dependency",
+        "Does not silently render a diagram that contains logically inconsistent relationship arrows",
+        "May visualize the cycle separately and flag the inconsistency in a note alongside the diagram"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

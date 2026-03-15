@@ -105,6 +105,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-ambiguous-conflicting-design-requirements",
+      "query": "Generate a hero section that should be both minimalist with lots of whitespace AND information-dense with stats, testimonials, and a feature grid all above the fold",
+      "expected_behavior": [
+        "Detects the conflicting requirements between minimalism and information density",
+        "Asks clarifying questions or proposes a prioritized approach rather than silently choosing one direction",
+        "Does not produce a component that ignores half the stated requirements without explanation",
+        "Suggests a compromise strategy such as progressive disclosure or tabbed content sections"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-nonexistent-design-system-tokens",
+      "query": "Generate a pricing card component using our design tokens: --color-brand-aurora, --spacing-nebula, and --radius-quantum from our Cosmos design system",
+      "expected_behavior": [
+        "Does not silently invent CSS custom property values for nonexistent tokens",
+        "Asks the user to provide the actual token definitions or a reference to the design system",
+        "Falls back to semantic token naming conventions if the design system cannot be located",
+        "Warns that referencing undefined tokens will cause runtime styling failures"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

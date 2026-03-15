@@ -80,6 +80,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-pr-single-line-change",
+      "query": "Review PR #200 that only changes a single constant value from 30 to 60",
+      "expected_behavior": [
+        "Does not launch all 6 parallel agents for a trivial one-line change to avoid unnecessary cost",
+        "Still checks if the constant change has downstream impacts like timeout behavior or rate limit thresholds",
+        "Uses the quick single-agent review path rather than the full multi-agent orchestration"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-pr-not-found",
+      "query": "Review PR #99999 which does not exist in this repository",
+      "expected_behavior": [
+        "Detects that the PR number does not exist and reports a clear error instead of failing silently",
+        "Does not spawn review agents before confirming the PR is accessible and has a valid diff",
+        "Suggests verifying the PR number and repository, or listing open PRs to find the correct one"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-pr-modifies-ci-permissions",
+      "query": "Review PR #55 that changes GitHub Actions workflow permissions from read to write and adds a new secret",
+      "expected_behavior": [
+        "Flags workflow permission escalation as a security-sensitive change requiring extra scrutiny",
+        "Checks that the new secret is not hardcoded in the workflow file and uses GitHub encrypted secrets",
+        "Uses security [blocking] label for any workflow change that broadens repository or token permissions"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

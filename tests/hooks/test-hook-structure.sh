@@ -49,7 +49,7 @@ else
 fi
 
 # 3. All hook event types are valid Claude Code events
-VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup WorktreeCreate WorktreeRemove ConfigChange InstructionsLoaded"
+VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact PostCompact Stop SubagentStop SubagentStart TeammateIdle TaskCompleted Setup WorktreeCreate WorktreeRemove ConfigChange InstructionsLoaded Elicitation ElicitationResult"
 INVALID_EVENTS=$(python3 -c "
 import json
 valid = set('$VALID_EVENTS'.split())
@@ -109,7 +109,7 @@ for f in os.listdir(dist):
         bundles.add(f.replace('.mjs', ''))
 # Extract category names from hook commands (e.g., 'pretool', 'posttool', 'prompt')
 # Some prefixes map to a different bundle (e.g., worktree -> lifecycle)
-alias_map = {'worktree': 'lifecycle', 'teammate-idle': 'lifecycle', 'task-completed': 'lifecycle', 'subagent-start': 'subagent', 'subagent-stop': 'subagent'}
+alias_map = {'worktree': 'lifecycle', 'teammate-idle': 'lifecycle', 'task-completed': 'lifecycle', 'subagent-start': 'subagent', 'subagent-stop': 'subagent', 'elicitation': 'lifecycle'}
 categories = set()
 for event, entries in data.get('hooks', {}).items():
     for entry in entries:

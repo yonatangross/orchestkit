@@ -83,6 +83,33 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-adr-reverses-previous-decision",
+      "query": "We adopted microservices in ADR-0012 six months ago but it's causing too much operational overhead for our 3-person team. Create an ADR to move back to a modular monolith.",
+      "expected_behavior": [
+        "Creates a new ADR with next sequential number that explicitly supersedes ADR-0012",
+        "Documents the concrete evidence that led to reversing the previous decision rather than just stating preference",
+        "Acknowledges the sunk cost of the microservices migration and addresses rollback strategy",
+        "Sets Status to Proposed and includes a References section linking to ADR-0012",
+        "Frames the reversal as a legitimate architectural evolution, not a failure"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-incomplete-context-no-options",
+      "query": "Create an ADR for our authentication approach. We need to decide soon.",
+      "expected_behavior": [
+        "Does not generate an ADR with fabricated alternatives the user never mentioned",
+        "Asks clarifying questions about which authentication options are being considered",
+        "Requests context about constraints such as compliance requirements, team expertise, and existing infrastructure",
+        "Refuses to set a Decision without sufficient information to justify the choice"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

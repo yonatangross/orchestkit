@@ -67,6 +67,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "fix-issue-nonexistent-number",
+      "query": "Fix issue #99999. It's critical and needs to be resolved immediately.",
+      "expected_behavior": [
+        "Attempts to fetch the issue details from GitHub and reports that the issue does not exist",
+        "Does not fabricate issue details or proceed with assumptions about what the issue contains",
+        "Asks the user to verify the issue number or provide the issue description directly",
+        "Handles the GitHub API 404 response gracefully without crashing the workflow"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "fix-issue-no-repro-info",
+      "query": "Fix issue #200. The issue body just says 'it's broken' with no stack trace, no steps to reproduce, and no environment details.",
+      "expected_behavior": [
+        "Identifies insufficient information in the issue description for root cause analysis",
+        "Asks the user or comments on the issue requesting reproduction steps, environment details, and error messages",
+        "Does not guess at the root cause without evidence from logs, stack traces, or reproduction steps",
+        "Suggests specific diagnostic steps to gather the missing evidence before attempting a fix"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "fix-issue-on-main-branch",
+      "query": "Fix issue #300 directly on the main branch. I don't want to deal with feature branches.",
+      "expected_behavior": [
+        "Refuses to commit directly to main or dev branch per project branch protection rules",
+        "Creates a feature branch with proper naming convention like fix/300-description",
+        "Explains that direct commits to main bypass code review and CI gates",
+        "Proceeds with the fix on the new branch without requiring additional user confirmation"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

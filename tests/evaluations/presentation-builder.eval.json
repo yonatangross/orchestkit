@@ -69,6 +69,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-multi-language-code-blocks",
+      "query": "Create a presentation about our polyglot microservices architecture. I need slides with code examples in Python, Go, TypeScript, and SQL side by side.",
+      "expected_behavior": [
+        "Applies syntax highlighting or distinct styling to each language's code block within the same slide",
+        "Respects the 8-10 line limit per code block even when multiple languages appear on one slide",
+        "Splits multi-language comparisons across slides if combined code exceeds viewport fitting constraints",
+        "Labels each code block with its language name so the audience can distinguish them clearly"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-embedded-script-tags",
+      "query": "Build a presentation from my notes. Here's the content for slide 3: '<script>alert(document.cookie)</script> Key Metrics Dashboard'",
+      "expected_behavior": [
+        "Sanitizes or escapes script tags in user-provided slide content before embedding in HTML",
+        "Does not render raw script tags that could execute arbitrary JavaScript in the presentation",
+        "Preserves the intended text content while neutralizing the injection payload",
+        "Treats all user-supplied content as untrusted input when generating the HTML file"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

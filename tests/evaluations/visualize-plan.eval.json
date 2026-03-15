@@ -53,6 +53,32 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-large-complex-dependency-graph",
+      "query": "/ork:visualize-plan for our platform migration with 35 steps across 4 phases, where backend, frontend, infrastructure, and data migration all have cross-dependencies",
+      "expected_behavior": [
+        "Handles a plan with 30+ steps without truncating or dropping steps from the visualization",
+        "Groups steps by phase or domain to keep the visualization readable despite high step count",
+        "Renders cross-phase dependencies clearly rather than producing an unreadable tangled graph",
+        "Provides a summary overview before drilling into individual phase details to manage complexity"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-references-nonexistent-files",
+      "query": "/ork:visualize-plan for the auth refactor. The plan references src/auth/legacy-handler.ts and src/middleware/session-v1.ts but neither file exists in the repo anymore.",
+      "expected_behavior": [
+        "Detects that referenced files do not exist in the current repository when running impact analysis",
+        "Flags the missing files as a risk or warning in the visualization rather than silently ignoring them",
+        "Suggests updating the plan to reference the correct current file paths",
+        "Does not crash or produce misleading impact metrics based on nonexistent file paths"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

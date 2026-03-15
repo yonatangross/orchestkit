@@ -37,15 +37,14 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
  * Per-category token budgets.
  *
  * CC 2.1.32+ scales skill budget to 2% of context window:
- *   200K context → ~4000 tokens for skills
  *   1M context   → ~20000 tokens for skills
  *
  * We scale our internal budgets proportionally based on CLAUDE_MAX_CONTEXT.
- * Default (200K) preserves backward-compatible values.
+ * Default (1M) preserves backward-compatible values.
  */
 function getScaledBudgets(): Record<string, number> {
-  const contextWindow = parseInt(process.env.CLAUDE_MAX_CONTEXT || '200000', 10);
-  const scale = contextWindow / 200000; // 1.0x at 200K, 5.0x at 1M
+  const contextWindow = parseInt(process.env.CLAUDE_MAX_CONTEXT || '1000000', 10);
+  const scale = contextWindow / 1000000; // 1.0x at 1M
 
   return {
     'skill-injection': Math.round(1200 * scale),

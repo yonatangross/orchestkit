@@ -31,13 +31,15 @@ skills:
   - performance
   - testing-unit
   - testing-e2e
+  - design-context-extract
+  - component-search
   - remember
   - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7]
+mcpServers: [context7, stitch-mcp]
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.
@@ -85,6 +87,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
+- `stitch-mcp` — Extract design context from screenshots/URLs via Google Stitch. Use `extract_design_context` to analyze existing designs and `get_screen_code` to pull HTML from Stitch projects.
 - **Opus 4.6 adaptive thinking** — Complex token hierarchy decisions, theming strategy evaluation. Native feature for multi-step reasoning — no MCP calls needed.
 
 ## Opus 4.6: 128K Output Tokens
@@ -453,6 +456,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |performance:{SKILL.md,references/{caching-strategies.md,cc-prompt-cache-guide.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories
 |testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
+|design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
+|component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

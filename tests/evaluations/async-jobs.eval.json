@@ -132,6 +132,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-task-result-too-large",
+      "query": "My Celery task returns a 50MB DataFrame as the result and the Redis result backend keeps running out of memory",
+      "expected_behavior": [
+        "Warns against storing large results in Redis as it is an in-memory store with size limits",
+        "Recommends storing large results in S3 or a database and returning only a reference key or URL",
+        "Sets result_expires to limit how long results are retained in the backend",
+        "Does not suggest increasing Redis memory as a fix for fundamentally oversized task results"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-broker-connection-lost",
+      "query": "My Celery workers stop processing tasks after a Redis broker restart but show no errors in logs",
+      "expected_behavior": [
+        "Configures broker_connection_retry_on_startup=True to automatically reconnect after broker restarts",
+        "Sets broker_transport_options with visibility_timeout to prevent lost tasks during reconnection",
+        "Implements a health check that verifies both broker connectivity and active worker count",
+        "Does not rely on worker logs alone since silent disconnection produces no error output"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-task-injection",
+      "query": "Our API endpoint accepts a task_name parameter and calls app.send_task(task_name) to dispatch arbitrary Celery tasks",
+      "expected_behavior": [
+        "Never allows user input to determine which Celery task is dispatched without validation",
+        "Uses an explicit allowlist of permitted task names mapped from user-facing action identifiers",
+        "Warns that arbitrary task dispatch enables remote code execution if custom tasks have side effects",
+        "Validates and sanitizes all task arguments before dispatching even for allowed task names"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

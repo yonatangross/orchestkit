@@ -29,6 +29,21 @@ trigger_evals:
     should_trigger: false
   - prompt: "review this pull request and leave comments"
     should_trigger: false
+  # Should NOT trigger — verify confusion pair (both evaluate quality)
+  - prompt: "run all the tests and verify the auth feature works correctly"
+    should_trigger: false
+  # Should NOT trigger — review-pr confusion pair (both analyze code)
+  - prompt: "review PR 45 and leave comments on the auth changes"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "assess this"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "asses this code"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is implement
+  - prompt: "implement the new auth flow and then assess its quality"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
@@ -47,5 +62,9 @@ quality_evals:
         check: "mentions lack of API versioning as a concern"
       - name: "actionable recommendations"
         check: "provides specific next steps, not just criticism"
+      - name: "no unsubstantiated scores"
+        check: "every score is accompanied by evidence, never just 'looks good' or 'seems fine'"
+      - name: "no missing dimensions"
+        check: "does NOT skip major quality dimensions like security, maintainability, or performance"
 
 tags: [assess, user-invocable, core]

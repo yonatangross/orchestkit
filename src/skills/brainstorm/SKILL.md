@@ -1,16 +1,16 @@
 ---
 name: brainstorm
 license: MIT
-compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 4.4.0
+version: 4.6.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns]
+skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 complexity: medium
 model: sonnet
 hooks:
@@ -191,6 +191,26 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 
 ---
 
+## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76)
+
+Read the `/effort` setting to scale brainstorm depth. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly:
+
+| Effort Level | Phases Run | Token Budget | Agents |
+|-------------|------------|--------------|--------|
+| **low** | Phase 0 → Phase 2 (quick ideation) → Phase 5 (light synthesis) | ~50K | 2 max |
+| **medium** | Phase 0 → Phase 2 → Phase 3 → Phase 5 → Phase 6 | ~150K | 3 max |
+| **high** (default) | All 7 phases | ~400K | 3-5 |
+
+```python
+# Effort detection — the global hook injects effort level, but also check:
+# If user said "quick brainstorm" or "just ideas" → treat as low effort
+# If user selected "Quick ideation" in Step 0a → treat as low effort regardless of /effort
+```
+
+> **Override:** Explicit user selection in Step 0a (e.g., "Open exploration") overrides `/effort` downscaling.
+
+---
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 ```python
@@ -250,6 +270,10 @@ Skip brainstorming when:
 | "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, **test-generator** |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, **test-generator** |
 | "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer, **test-generator** |
+| "brainstorm design system" | workflow-architect, frontend-ui-developer, design-context-extractor, component-curator, **test-generator** |
+| "brainstorm event sourcing" | workflow-architect, event-driven-architect, backend-system-architect, **test-generator** |
+| "brainstorm pricing strategy" | workflow-architect, product-strategist, web-research-analyst, **test-generator** |
+| "brainstorm deploy pipeline" | workflow-architect, infrastructure-architect, ci-cd-engineer, **test-generator** |
 
 **Always include:** `workflow-architect` for system design perspective, `test-generator` for testability assessment.
 
@@ -322,7 +346,9 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **Fallback:** If team formation fails, load `Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
-> **Context exhaustion:** If context limit is reached mid-brainstorm, collect partial results from completed agents, synthesize what's available, and note which phases were skipped. Prefer returning partial results over failing silently.
+> **Partial results (CC 2.1.76):** Background agents that are killed (timeout, context limit) return responses tagged with `[PARTIAL RESULT]`. When collecting Phase 2 divergent ideas, check each agent's output for this tag. If present, include the partial ideas but note them as incomplete in Phase 3 feasibility. Prefer synthesizing partial results over re-spawning agents.
+
+> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table).
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
@@ -347,6 +373,9 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 - `ork:implement` - Execute the implementation plan after brainstorming completes
 - `ork:explore` - Deep codebase exploration to understand existing patterns
 - `ork:assess` - Rate quality 0-10 with dimension breakdown
+- `ork:design-to-code` - Convert brainstormed UI designs into components
+- `ork:component-search` - Find existing components before building new ones
+- `ork:competitive-analysis` - Porter's Five Forces, SWOT for product brainstorms
 
 ## References
 
@@ -364,4 +393,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ---
 
-**Version:** 4.4.0 (March 2026) — Added ExitWorktree cleanup in agent teardown for Tier 3+ projects
+**Version:** 4.6.0 (March 2026) — Added product/event-driven/devops/data-pipeline domains, browser-tools + web-research-analyst for research, design pipeline agents (7.7.0), /effort scaling, CC 2.1.76 partial results + PostCompact recovery (7.8.0)

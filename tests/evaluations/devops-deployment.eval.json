@@ -123,6 +123,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-dockerfile-no-dockerignore",
+      "query": "My Docker build context is 2GB and takes 10 minutes to send even though my app is only 50MB of source code",
+      "expected_behavior": [
+        "Identifies missing or insufficient .dockerignore as the root cause of large build context",
+        "Adds .git, node_modules, .env, test files, and build artifacts to .dockerignore",
+        "Does not suggest increasing Docker daemon memory or timeout as a fix for bloated context",
+        "Verifies that COPY instructions use specific paths rather than COPY . . to limit what enters the image"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-k8s-crashloopbackoff",
+      "query": "My Kubernetes pods keep restarting with CrashLoopBackOff but the logs show no errors before exit",
+      "expected_behavior": [
+        "Checks liveness probe configuration for probes that fail before the app is ready causing premature restarts",
+        "Distinguishes between liveness, readiness, and startup probes and their correct initialDelaySeconds settings",
+        "Recommends adding a startup probe with a generous failureThreshold for slow-starting applications",
+        "Checks for OOMKilled events via kubectl describe pod to identify silent memory limit terminations"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-secrets-in-docker-layers",
+      "query": "Our security scan found AWS credentials baked into a Docker image layer from a previous build step",
+      "expected_behavior": [
+        "Never passes secrets via ARG or ENV instructions as they persist in image layer metadata",
+        "Uses Docker BuildKit secrets mount (--mount=type=secret) for build-time secrets that leave no trace",
+        "Injects runtime secrets via environment variables or mounted files from a secrets manager",
+        "Warns that multi-stage builds do not remove secrets from earlier stage layers in the image history"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

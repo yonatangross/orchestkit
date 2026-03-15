@@ -137,6 +137,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-play-function-timeout",
+      "query": "My Storybook play function test passes locally but times out in CI with 'exceeded timeout of 10000ms' on the expect assertion",
+      "expected_behavior": [
+        "Recommends increasing the play function timeout via parameters.test.timeout for slow CI environments",
+        "Checks whether the play function is awaiting all async operations including userEvent calls",
+        "Does not suggest removing the play function test as the solution to CI timeout failures",
+        "Advises using findBy queries with built-in retry instead of getBy for elements that appear after async operations"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-story-missing-decorator-context",
+      "query": "My Storybook story renders a blank screen because the component depends on a React Context provider that isn't available in the story environment",
+      "expected_behavior": [
+        "Adds the required context provider as a decorator in the story meta or individual story",
+        "Shows how to configure global decorators in preview.ts for providers needed by many stories",
+        "Does not suggest mocking the useContext hook directly as the primary solution",
+        "Provides mock context values that cover the component's expected data shape"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-story-hardcoded-credentials",
+      "query": "Some of our Storybook stories use real API keys and user credentials in the args to demonstrate authenticated components",
+      "expected_behavior": [
+        "Warns that Storybook stories are bundled as static assets and credentials in args are exposed in the published build",
+        "Recommends using mock auth tokens or fake credentials that are clearly non-functional",
+        "Does not treat Storybook as a private environment even when deployed behind authentication",
+        "Advises using MSW or mock service workers to intercept API calls instead of real credentials"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

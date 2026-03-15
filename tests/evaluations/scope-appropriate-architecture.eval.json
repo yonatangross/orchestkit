@@ -40,6 +40,32 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-straddles-two-complexity-tiers",
+      "query": "We're building an internal tool for 50 users but it needs to integrate with 3 external payment providers, handle PCI compliance, and process webhooks asynchronously. Is this Tier 2 or Tier 4?",
+      "expected_behavior": [
+        "Recognizes that the project has mixed signals spanning multiple complexity tiers",
+        "Does not force-fit the project into a single tier but acknowledges the boundary case",
+        "Recommends tier-appropriate patterns for each concern: simpler patterns for the internal UI, more robust patterns for payment and compliance",
+        "Uses the highest-tier requirements like PCI compliance to drive security and data handling decisions while keeping non-critical components simple"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-no-clear-requirements",
+      "query": "What architecture should I use for my new project? I don't have a PRD yet, no team size decided, and we're not sure if it's a prototype or production system.",
+      "expected_behavior": [
+        "Does not guess a tier or recommend architecture without sufficient context signals",
+        "Asks clarifying questions about team size, user count, expected lifespan, and deployment target",
+        "Warns that choosing architecture without clear requirements leads to over-engineering or under-engineering",
+        "Suggests starting with the lowest viable tier and evolving upward as requirements solidify"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

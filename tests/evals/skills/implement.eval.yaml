@@ -29,33 +29,46 @@ trigger_evals:
     should_trigger: false
   - prompt: "compare these two approaches for handling websockets"
     should_trigger: false
+  # Should NOT trigger — fix-issue confusion pair (both write code)
+  - prompt: "there's a bug in the payment webhook, it's not validating signatures"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "implement search"
+    should_trigger: true
+  # Should trigger — common typo
+  - prompt: "implment user auth"
+    should_trigger: true
+  # Should NOT trigger — multi-intent, primary is explore
+  - prompt: "explore how the auth system works and then implement SSO"
+    should_trigger: false
 
 quality_evals:
   - prompt: |
-      implement a simple health check endpoint that returns
-      the app version, uptime, and database connectivity status.
-      include a test for it.
-    scaffold: typescript-nextjs
+      i need to implement a health check endpoint that returns the
+      app version, uptime, and database connectivity status. what's
+      the right approach and what should i test?
     assertions:
-      - name: "endpoint created"
-        check: "creates a route/handler file for the health endpoint"
-      - name: "returns required fields"
-        check: "response includes version, uptime, and db status"
-      - name: "test included"
-        check: "creates a test file for the health endpoint"
-      - name: "error handling"
-        check: "handles database connection failure gracefully"
+      - name: "endpoint design"
+        check: "describes the health endpoint structure with version, uptime, and db status fields"
+      - name: "db failure handling"
+        check: "explains how to handle database connection failure gracefully (return degraded status, not crash)"
+      - name: "test strategy"
+        check: "recommends testing both healthy and unhealthy states"
+      - name: "no placeholder approach"
+        check: "provides concrete implementation guidance, not TODO stubs"
 
   - prompt: |
       add a search feature to the existing users list.
       needs debounced input, loading state, and empty state.
-    scaffold: typescript-nextjs
+      walk me through the implementation plan.
     assertions:
-      - name: "debounce implemented"
-        check: "input has debounce logic to avoid excessive API calls"
+      - name: "debounce pattern"
+        check: "describes debounce logic to avoid excessive API calls on each keystroke"
       - name: "loading state"
-        check: "shows loading indicator while search is in progress"
+        check: "includes loading indicator while search is in progress"
       - name: "empty state"
-        check: "displays message when no results found"
+        check: "handles and displays a message when no results are found"
+      - name: "component structure"
+        check: "outlines the component structure or file organization for the feature"
 
 tags: [implement, user-invocable, core]

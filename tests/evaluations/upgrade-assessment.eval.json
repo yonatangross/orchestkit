@@ -98,6 +98,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-no-version-info-available",
+      "query": "Assess our upgrade readiness but I'm not sure what version of OrchestKit or Claude we're currently running. There's no CLAUDE.md in the project root.",
+      "expected_behavior": [
+        "Claude detects the missing CLAUDE.md and reports reduced assessment confidence due to missing version data",
+        "Claude continues with a partial assessment using whatever signals are available instead of aborting entirely",
+        "Claude does not assume a specific current version when version information is missing from the project",
+        "Claude suggests creating a CLAUDE.md or checking package.json for version clues before proceeding"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-changelog-missing-or-empty",
+      "query": "We want to upgrade from OrchestKit 6.x to 7.x but the CHANGELOG.md file is missing from the repository. How do you identify breaking changes?",
+      "expected_behavior": [
+        "Claude reports that breaking change analysis is degraded without a CHANGELOG.md available",
+        "Claude falls back to scanning git history or release notes for breaking change indicators",
+        "Claude does not claim there are no breaking changes just because the changelog file is absent",
+        "Claude recommends reconstructing the changelog from git tags and release notes before attempting the upgrade"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-hardcoded-secrets-in-scan",
+      "query": "During the codebase scan phase, the assessment found hardcoded API keys in agent configuration files. How should the report handle displaying these findings?",
+      "expected_behavior": [
+        "Claude reports the file path and line number of the hardcoded secret but never displays the actual secret value",
+        "Claude classifies hardcoded secrets as CRITICAL severity findings that block the upgrade until resolved",
+        "Claude recommends migrating secrets to environment variables or a secret manager before proceeding",
+        "Claude does not include secret values in the assessment JSON output or readiness report"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

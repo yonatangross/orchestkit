@@ -1,6 +1,6 @@
 ---
 title: "Monitoring Observability"
-description: "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse LLM tracing, and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring."
+description: "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -33,16 +33,18 @@ http_duration = Histogram('http_request_duration_seconds', 'Request latency',
 ```
 
 ```python
-# Langfuse LLM tracing
+# Langfuse v4 LLM tracing — semantic as_type + inline scoring
 from langfuse import observe, get_client
 
-@observe()
+@observe(as_type="generation", name="analyze_content")
 async def analyze_content(content: str):
     get_client().update_current_trace(
         user_id="user_123", session_id="session_abc",
         tags=["production", "orchestkit"],
     )
-    return await llm.generate(content)
+    result = await llm.generate(content)
+    get_client().score_current_span(name="response_quality", value=0.85)
+    return result
 ```
 
 ```python
@@ -102,7 +104,7 @@ Detection and alerting for silent failures in LLM agents.
 | Log format | Structured JSON | Machine-parseable, supports log aggregation |
 | Tracing | OpenTelemetry | Vendor-neutral, auto-instrumentation, broad ecosystem |
 | LLM observability | Langfuse (not LangSmith) | Open-source, self-hosted, built-in prompt management |
-| LLM tracing API | `@observe` + `get_client()` | OTEL-native, automatic span creation |
+| LLM tracing API | `@observe(as_type=...)` + `score_current_span()` | v4: semantic types, inline scoring, span filtering |
 | Drift method | PSI for production, KS for small samples | PSI is stable for large datasets, KS more sensitive |
 | Threshold strategy | Dynamic (95th percentile) over static | Reduces alert fatigue, context-aware |
 | Alert severity | 4 levels (Critical, High, Medium, Low) | Clear escalation paths, appropriate response times |
@@ -636,12 +638,12 @@ if psi >= 0.25:  # Stable threshold
 
 # LLM Cost Tracking
 
-## Basic Cost Tracking (Langfuse v3)
+## Basic Cost Tracking (Langfuse v4)
 
 ```python
 from langfuse import observe, get_client
 
-@observe(name="security_audit")
+@observe(as_type="chain", name="security_audit")
 async def run_audit(content: str):
     response = await llm.generate(
         model="claude-sonnet-4-6",
@@ -673,6 +675,44 @@ langfuse.create_model(
     unit="TOKENS",
     input_price=0.000003,   # $3/MTok
     output_price=0.000015,  # $15/MTok
+)
+```
+
+## Reducing Tracing Costs with should_export_span (v4)
+
+OTel auto-instrumentation exports many infra spans (HTTP, DNS, DB drivers)
+that inflate Langfuse ingestion costs without adding LLM-relevant insight.
+Use `should_export_span` to filter out noisy spans:
+
+```python
+from langfuse.opentelemetry import LangfuseSpanProcessor
+
+def cost_relevant_only(span) -> bool:
+    """Only export spans that contribute to LLM cost attribution."""
+    skip_libs = {"urllib3", "httpcore", "dns", "ssl", "sqlalchemy"}
+    lib = span.attributes.get("otel.library.name", "")
+    return lib not in skip_libs
+
+langfuse_processor = LangfuseSpanProcessor(
+    public_key="pk-...",
+    secret_key="sk-...",
+    should_export_span=cost_relevant_only,
+)
+```
+
+## Cost Sampling (v4)
+
+v4 adds cost sampling to reduce tracing overhead in high-throughput systems.
+Configure a sample rate to trace a percentage of requests while preserving
+accurate cost estimates via extrapolation:
+
+```python
+from langfuse.opentelemetry import LangfuseSpanProcessor
+
+langfuse_processor = LangfuseSpanProcessor(
+    public_key="pk-...",
+    secret_key="sk-...",
+    sample_rate=0.1,  # Trace 10% of requests, extrapolate costs
 )
 ```
 
@@ -793,6 +833,8 @@ GROUP BY DATE(timestamp) ORDER BY date;
 5. **Group by metadata** (agent_type, operation) for cost attribution
 6. **Use custom pricing** for self-hosted models
 7. **Use Metrics API** for programmatic queries instead of raw SQL
+8. **Use `should_export_span`** to skip noisy infra spans and reduce ingestion costs
+9. **Use `sample_rate`** in high-throughput systems to control tracing overhead
 
 **Incorrect — no cost tracking in LLM calls:**
 ```python
@@ -802,9 +844,9 @@ async def analyze(content: str):
     return response  # Cost visibility lost
 ```
 
-**Correct — tracking usage for cost attribution:**
+**Correct — tracking usage for cost attribution (v4):**
 ```python
-@observe()
+@observe(as_type="chain")
 async def analyze(content: str):
     response = await llm.generate(content)
     get_client().update_current_observation(
@@ -820,26 +862,31 @@ async def analyze(content: str):
 
 # LLM Evaluation Scoring
 
-## Basic Scoring (Langfuse v3)
+## Basic Scoring (Langfuse v4)
 
 ```python
 from langfuse import observe, get_client, Langfuse
 
 langfuse = Langfuse()
 
-@observe()
+# ❌ v3 — manual trace_id + scoring
+trace_id = get_current_trace_id()
+if trace_id:
+    submit_trace_quality_score(name="relevance", value=0.85, trace_id=trace_id)
+
+# ✅ v4 — score the active span directly
+@observe(as_type="chain")
 async def analyze_and_score(query: str):
     response = await llm.generate(query)
 
-    # Score within @observe context
-    get_client().score_current_trace(
+    get_client().score_current_span(
         name="relevance",
         value=0.85,
         comment="Response addresses query but lacks depth",
     )
     return response
 
-# Or score by trace_id directly
+# Or score by trace_id directly (still supported)
 langfuse.score(
     trace_id="trace_123",
     name="factuality",
@@ -868,7 +915,7 @@ Each evaluator run creates its own inspectable trace:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     score = await llm_judge.evaluate(
         criteria="relevance", query=query, response=response,
@@ -906,9 +953,40 @@ async def analyze_with_scoring(query: str):
     )
 
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
 
     return response
+```
+
+## Batch Evaluation with run_experiment() (v4)
+
+Use `run_experiment()` to evaluate a pipeline against a dataset with multiple evaluators:
+
+```python
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+async def relevance_eval(run_output, expected_output):
+    return await llm_judge.evaluate(
+        criteria="relevance", output=run_output, expected=expected_output,
+    )
+
+async def coherence_eval(run_output, expected_output):
+    return await llm_judge.evaluate(
+        criteria="coherence", output=run_output, expected=expected_output,
+    )
+
+result = langfuse.run_experiment(
+    dataset_name="golden_set",
+    experiment_name="quality_v4",
+    run_fn=your_pipeline,
+    evaluators=[
+        {"name": "relevance", "fn": relevance_eval},
+        {"name": "coherence", "fn": coherence_eval},
+    ],
+)
+# Results visible in Langfuse Experiments UI with per-row scores
 ```
 
 ## Common Evaluation Metrics
@@ -932,7 +1010,7 @@ async def quality_gate_node(state):
     scores = await run_quality_evaluators(state)
 
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
 
     avg_score = sum(scores.values()) / len(scores)
     return {"quality_gate_passed": avg_score >= 0.7, "quality_scores": scores}
@@ -955,7 +1033,7 @@ ORDER BY date;
 ## Best Practices
 
 1. **Score all production traces** for quality monitoring
-2. **Use evaluator type** (`@observe(type="evaluator")`) for inspectable judge traces
+2. **Use evaluator type** (`@observe(as_type="evaluator")`) for inspectable judge traces
 3. **Use consistent criteria** across all evaluations
 4. **Automate scoring** with G-Eval or similar frameworks
 5. **Set quality thresholds** (e.g., avg_relevance > 0.7)
@@ -971,14 +1049,14 @@ async def analyze(query: str):
     return response  # No quality metrics
 ```
 
-**Correct — automated quality scoring:**
+**Correct — automated quality scoring (v4):**
 ```python
-@observe()
+@observe(as_type="chain")
 async def analyze(query: str):
     response = await llm.generate(query)
     scores = await scorer.score(query, response, ["relevance", "depth"])
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
     return response
 ```
 
@@ -988,12 +1066,12 @@ async def analyze(query: str):
 
 # Langfuse Traces
 
-## Basic Tracing with @observe (v3)
+## Basic Tracing with @observe (v4)
 
 ```python
 from langfuse import observe, get_client
 
-@observe()  # Auto-creates trace on first root span
+@observe(as_type="chain")  # Auto-creates trace on first root span
 async def analyze_content(content: str):
     get_client().update_current_observation(
         metadata={"content_length": len(content)}
@@ -1009,7 +1087,7 @@ from langfuse import observe, get_client
 @observe(name="content_analysis")
 async def analyze(content: str):
     # Nested span for retrieval
-    @observe(name="retrieval")
+    @observe(as_type="retriever", name="retrieval")
     async def retrieve_context():
         chunks = await vector_db.search(content)
         get_client().update_current_observation(
@@ -1018,7 +1096,7 @@ async def analyze(content: str):
         return chunks
 
     # Nested span for generation
-    @observe(name="generation")
+    @observe(as_type="generation", name="generation")
     async def generate_analysis(context):
         response = await llm.generate(content)
         get_client().update_current_observation(
@@ -1059,29 +1137,70 @@ async def analysis(content: str):
 
 ## Observation Types for Agent Graphs
 
-Beyond `generation` and `span`, v3 adds typed observations:
+Use `as_type=` (v4) to assign semantic span types for Agent Graph rendering:
 
 ```python
-@observe(type="agent", name="supervisor")
+@observe(as_type="agent", name="supervisor")
 async def supervisor(query: str): ...     # Agent node in graph
 
-@observe(type="tool", name="web_search")
-async def search(query: str): ...         # Tool call in graph
+@observe(as_type="generation", name="llm_call")
+async def generate(query: str): ...       # LLM generation step
 
-@observe(type="retriever", name="vector_search")
+@observe(as_type="retriever", name="vector_search")
 async def retrieve(query: str): ...       # Retrieval step
 
-@observe(type="chain", name="prompt_chain")
+@observe(as_type="chain", name="prompt_chain")
 async def chain(inputs: dict): ...        # Sequential processing
 
-@observe(type="guardrail", name="pii_check")
+@observe(as_type="guardrail", name="pii_check")
 async def check_pii(text: str): ...       # Safety check
 
-@observe(type="embedding", name="embed")
+@observe(as_type="embedding", name="embed")
 async def embed(text: str): ...           # Vector generation
 
-@observe(type="evaluator", name="quality_judge")
+@observe(as_type="evaluator", name="quality_judge")
 async def evaluate(output: str): ...      # Inspectable evaluator trace
+```
+
+## Inline Span Scoring (v4)
+
+Use `score_current_span()` to attach scores directly to the active span:
+
+```python
+from langfuse import observe, get_client
+
+@observe(as_type="chain", name="rag_pipeline")
+async def rag_pipeline(query: str):
+    context = await retrieve(query)
+    response = await generate(query, context)
+
+    get_client().score_current_span(
+        name="relevance", value=0.85,
+        comment="Good retrieval alignment",
+    )
+    return response
+```
+
+## Filtering Noisy OTel Spans
+
+When using OpenTelemetry auto-instrumentation, many infra spans (HTTP clients,
+DB drivers, DNS) are exported to Langfuse. Use `should_export_span` to keep
+only the spans you care about:
+
+```python
+from langfuse.opentelemetry import LangfuseSpanProcessor
+
+def span_filter(span) -> bool:
+    """Only export LLM and application spans, skip infra noise."""
+    dominated_libs = {"urllib3", "httpcore", "dns", "ssl"}
+    lib = span.attributes.get("otel.library.name", "")
+    return lib not in dominated_libs
+
+langfuse_processor = LangfuseSpanProcessor(
+    public_key="pk-...",
+    secret_key="sk-...",
+    should_export_span=span_filter,
+)
 ```
 
 ## OpenTelemetry SpanProcessor
@@ -1121,7 +1240,7 @@ sdk.start();
 1. **Use `from langfuse import observe, get_client`** — NOT `from langfuse.decorators`
 2. **Let `@observe()` auto-create traces** — no explicit `langfuse.trace()` needed
 3. **Name spans descriptively** (e.g., "retrieval", "generation")
-4. **Use `type=` parameter** for Agent Graph rendering
+4. **Use `as_type=` parameter** (v4) for Agent Graph rendering
 5. **Add metadata** for debugging (chunk counts, model params)
 6. **Truncate large inputs/outputs** to 500-1000 chars
 7. **Tag production vs staging** traces for environment filtering
@@ -4889,7 +5008,7 @@ See `scripts/prometheus-metrics.ts` for complete setup.
 
 ### Migration V2 V3
 
-# Migration Guide: v2 → v3 (Python) / v3 → v4 (JS)
+# Migration Guide: v2 → v4 (Python) / v3 → v4 (JS)
 
 ## Python SDK: v2 → v3
 
@@ -4996,6 +5115,109 @@ langfuse = Langfuse()
 dataset = langfuse.create_dataset(name="golden-v1")
 langfuse.score(trace_id="...", name="quality", value=0.85)
 ```
+
+## Python SDK: v3 → v4
+
+### API Removals
+
+| v3 (Removed) | v4 (Current) |
+|--------------|-------------|
+| `langfuse.start_span(name=...)` | `langfuse.start_observation(name=..., as_type="span")` |
+| `langfuse.start_generation(name=...)` | `langfuse.start_observation(name=..., as_type="generation")` |
+| `span.start_generation(name=...)` | `span.start_observation(name=..., as_type="generation")` |
+| `langfuse.trace(name=...)` | `langfuse.start_observation(name=...)` |
+| `.score(name=..., value=...)` on trace | `langfuse.create_score(trace_id=..., name=..., value=...)` |
+| `@observe(type="agent")` | `@observe(as_type="agent")` |
+
+### New v4 APIs
+
+- `get_client().score_current_span(name=..., value=...)` — score the active span without trace_id lookup
+- `get_client().score_current_trace(name=..., value=...)` — score the active trace
+- `should_export_span` — filter noisy spans (sqlalchemy, httpx, asyncpg, redis)
+- `LangfuseMedia(content_bytes=..., content_type=...)` — attach images/audio to spans
+- `as_type` parameter with 7 semantic types: span, generation, agent, retriever, embedding, guardrail, chain, evaluator
+- `run_experiment()` — unified experiment runner for batch evaluation
+
+### Migration Example
+
+```python
+# ❌ v3 (DEPRECATED)
+from langfuse import Langfuse
+langfuse = Langfuse()
+root = langfuse.start_span(name="pipeline")
+gen = root.start_generation(name="llm_call", model="claude-sonnet-4-6")
+gen.end(output=response)
+root.end()
+
+# ✅ v4 (CURRENT)
+from langfuse import Langfuse
+langfuse = Langfuse()
+root = langfuse.start_observation(name="pipeline", as_type="span")
+gen = root.start_observation(name="llm_call", as_type="generation", model="claude-sonnet-4-6")
+gen.end(output=response)
+root.end()
+```
+
+### score_current_span Example
+
+```python
+# ❌ v3 pattern (3 lines, needs trace_id)
+trace_id = get_current_trace_id()
+if trace_id:
+    submit_trace_quality_score(name="relevance", value=0.85, trace_id=trace_id)
+
+# ✅ v4 pattern (1 line, auto-resolves context)
+get_client().score_current_span(name="relevance", value=0.85)
+```
+
+### should_export_span Example
+
+```python
+from langfuse.span_filter import is_default_export_span
+
+_NOISY_SCOPES = frozenset({"sqlalchemy", "asyncpg", "redis", "httpx", "urllib3"})
+
+def _should_export(span) -> bool:
+    if is_default_export_span(span):
+        scope = span.instrumentation_scope.name if span.instrumentation_scope else ""
+        return not any(scope.startswith(s) for s in _NOISY_SCOPES)
+    return False
+
+client = Langfuse(..., should_export_span=_should_export)
+```
+
+### LangfuseMedia Example
+
+```python
+from langfuse.media import LangfuseMedia
+
+media = LangfuseMedia(content_bytes=image_bytes, content_type="image/png")
+get_client().update_current_span(input={"screenshot": media})
+```
+
+### Semantic as_type Values
+
+| as_type | Use For |
+|---------|---------|
+| `"generation"` | LLM calls (chat completion, text generation) |
+| `"retriever"` | Vector search, knowledge retrieval |
+| `"chain"` | Multi-step orchestration pipelines |
+| `"embedding"` | Embedding generation calls |
+| `"agent"` | Agent executor / supervisor |
+| `"guardrail"` | Safety checks, content filtering |
+| `"evaluator"` | LLM-as-judge scoring |
+
+### Breaking Changes Checklist (Python v3 → v4)
+
+- [ ] Replace `start_span(name=...)` → `start_observation(name=..., as_type="span")`
+- [ ] Replace `start_generation(name=...)` → `start_observation(name=..., as_type="generation")`
+- [ ] Replace `.trace(name=...)` → `start_observation(name=...)`
+- [ ] Replace `.score(name=..., value=...)` → `create_score(trace_id=..., name=..., value=...)`
+- [ ] Replace `@observe(type=...)` → `@observe(as_type=...)`
+- [ ] Add `as_type=` to `@observe()` decorators for semantic classification
+- [ ] Migrate `submit_trace_quality_score()` callers to `score_current_span()`
+- [ ] Add `should_export_span` filter to suppress noisy infrastructure spans
+- [ ] Update `requirements.txt`: `langfuse>=4.0.0`
 
 ## JavaScript/TypeScript SDK: v3 → v4
 
@@ -5174,7 +5396,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 
 ## Breaking Changes Checklist
 
-### Python v2 → v3
+### Python v2 → v3 (then v3 → v4)
 
 - [ ] Replace `from langfuse.decorators import observe` → `from langfuse import observe`
 - [ ] Replace `from langfuse.decorators import langfuse_context` → `from langfuse import get_client`
@@ -5196,6 +5418,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 ## References
 
 - [Python SDK v3 Migration](https://langfuse.com/docs/sdk/python/v3-migration)
+- [Python SDK v4 Migration](https://langfuse.com/docs/sdk/python/v4-migration)
 - [JS SDK v4 Migration](https://langfuse.com/docs/sdk/typescript/v4-migration)
 - [Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host)
 - [ClickHouse Acquisition](https://langfuse.com/blog/clickhouse-acquisition)
@@ -7262,13 +7485,13 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 ### Python (FastAPI/Flask/Django)
 
-- [ ] Install SDK: `pip install "langfuse>=3.13.0"`
-- [ ] Add to requirements.txt: `langfuse>=3.13.0`
+- [ ] Install SDK: `pip install "langfuse>=4.0.0"`
+- [ ] Add to requirements.txt: `langfuse>=4.0.0`
 
 ### Node.js (Express/Next.js)
 
-- [ ] Install SDK: `npm install @langfuse/core`
-- [ ] Add to package.json: `"@langfuse/core": "^3.0.0"`
+- [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
+- [ ] Add to package.json: `"@langfuse/core": "^4.0.0"` and `"@langfuse/otel": "^4.0.0"`
 
 ## Phase 3: Configuration
 
@@ -7399,6 +7622,12 @@ async def analyze_content(url: str, content: str) -> AnalysisResult:
 - [ ] Add session_id for multi-step workflows
 - [ ] Add user_id for user-facing features
 - [ ] Tag traces by environment (production/staging)
+
+### v4-Specific Setup
+
+- [ ] Add `as_type` to `@observe()` decorators to classify span types (`"span"`, `"generation"`, `"retriever"`, `"chain"`)
+- [ ] Add `should_export_span` filter to exclude noisy spans from export
+- [ ] Migrate manual scoring to `score_current_span()` for simpler in-context scoring
 
 ## Phase 6: LLM Call Instrumentation
 

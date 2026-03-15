@@ -131,6 +131,35 @@ Security patterns for LLM integrations including context separation and output v
 
 **Key Decisions:** IDs flow around LLM, never through | Attribution is deterministic | Audit every prompt
 
+### Context Separation (CRITICAL)
+
+Sensitive IDs and data flow AROUND the LLM, never through it. The LLM sees only content — mapping back to entities happens deterministically after.
+
+```python
+# CORRECT: IDs bypass the LLM
+context = {"user_id": user_id, "tenant_id": tenant_id}  # kept server-side
+llm_input = f"Summarize this document:\n{doc_text}"       # no IDs in prompt
+llm_output = call_llm(llm_input)
+result = {"summary": llm_output, **context}               # IDs reattached after
+```
+
+### Output Validation Pipeline
+
+Every LLM response MUST pass a 4-stage guardrail pipeline before reaching the user:
+
+```python
+def validate_llm_output(raw_output: str, schema, sources: list[str]) -> str:
+    # 1. Schema — does it match expected structure?
+    parsed = schema.parse(raw_output)
+    # 2. Grounding — are claims supported by source documents?
+    assert_grounded(parsed, sources)
+    # 3. Safety — toxicity, PII leakage, prompt leakage
+    assert_safe(parsed, max_toxicity=0.5)
+    # 4. Size — prevent token-bomb responses
+    assert len(parsed.text) < MAX_OUTPUT_CHARS
+    return parsed.text
+```
+
 ## PII Masking
 
 PII detection and masking for LLM observability pipelines and logging.

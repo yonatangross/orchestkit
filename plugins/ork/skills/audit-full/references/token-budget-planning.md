@@ -21,8 +21,8 @@ bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project
 
 | Context Size | Available for Code | Fits LOC (approx) |
 |-------------|-------------------|-------------------|
-| 200K (standard) | ~150K tokens | ~20K LOC |
-| 1M (beta) | ~800K tokens | ~100K LOC |
+| 200K | ~150K tokens | ~20K LOC |
+| 1M (standard) | ~950K tokens | ~125K LOC |
 
 ## Auto-Exclusion List
 
@@ -38,7 +38,7 @@ Always exclude from loading:
 
 1. **Priority loading**: Entry points first, then imported modules
 2. **Directory scoping**: Ask user to narrow to specific directories
-3. **Fallback**: Recommend `/ork:verify` for chunked multi-agent approach
+3. **Fallback**: Recommend `/ork:verify` for multi-agent approach (only needed for codebases > 125K LOC)
 
 ```python
 # Fallback suggestion

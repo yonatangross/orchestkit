@@ -3,7 +3,7 @@ name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.
 model: inherit
 category: devops
-maxTurns: 30
+maxTurns: 50
 permissionMode: plan
 context: fork
 color: cyan

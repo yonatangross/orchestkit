@@ -1,11 +1,11 @@
 ---
 name: monitoring-observability
 license: MIT
-compatibility: "Claude Code 2.1.74+."
-description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse LLM tracing, and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
+compatibility: "Claude Code 2.1.76+."
+description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
 tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
 context: fork
-version: 2.0.0
+version: 3.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -47,16 +47,18 @@ http_duration = Histogram('http_request_duration_seconds', 'Request latency',
 ```
 
 ```python
-# Langfuse LLM tracing
+# Langfuse v4 LLM tracing — semantic as_type + inline scoring
 from langfuse import observe, get_client
 
-@observe()
+@observe(as_type="generation", name="analyze_content")
 async def analyze_content(content: str):
     get_client().update_current_trace(
         user_id="user_123", session_id="session_abc",
         tags=["production", "orchestkit"],
     )
-    return await llm.generate(content)
+    result = await llm.generate(content)
+    get_client().score_current_span(name="response_quality", value=0.85)
+    return result
 ```
 
 ```python
@@ -116,7 +118,7 @@ Detection and alerting for silent failures in LLM agents.
 | Log format | Structured JSON | Machine-parseable, supports log aggregation |
 | Tracing | OpenTelemetry | Vendor-neutral, auto-instrumentation, broad ecosystem |
 | LLM observability | Langfuse (not LangSmith) | Open-source, self-hosted, built-in prompt management |
-| LLM tracing API | `@observe` + `get_client()` | OTEL-native, automatic span creation |
+| LLM tracing API | `@observe(as_type=...)` + `score_current_span()` | v4: semantic types, inline scoring, span filtering |
 | Drift method | PSI for production, KS for small samples | PSI is stable for large datasets, KS more sensitive |
 | Threshold strategy | Dynamic (95th percentile) over static | Reduces alert fatigue, context-aware |
 | Alert severity | 4 levels (Critical, High, Medium, Low) | Clear escalation paths, appropriate response times |

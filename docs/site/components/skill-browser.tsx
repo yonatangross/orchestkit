@@ -271,7 +271,7 @@ export function SkillBrowser() {
                 aria-pressed={active}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "bg-fd-primary/10 text-fd-primary shadow-sm"
+                    ? "bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                     : "text-fd-muted-foreground hover:bg-fd-muted"
                 }`}
               >
@@ -513,7 +513,7 @@ function SkillCard({
                 </span>
               ))}
               <a
-                href={`https://github.com/orchestkit/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
+                href={`https://github.com/yonatangross/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
                 className="inline-flex items-center gap-1 text-[11px] text-fd-primary hover:underline"
                 tabIndex={expanded ? 0 : -1}
                 target="_blank"

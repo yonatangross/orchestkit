@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Eval Coverage Plan</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+    --green: #3fb950; --green2: #238636; --red: #f85149; --yellow: #d29922;
+    --blue: #58a6ff; --purple: #bc8cff; --cyan: #39d353; --orange: #f0883e;
+    --accent: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  .app { display: grid; grid-template-columns: 320px 1fr; grid-template-rows: auto 1fr auto; height: 100vh; }
+
+  header { grid-column: 1 / -1; padding: 16px 24px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .badge { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; font-size: 12px; color: var(--text2); }
+
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+  .sidebar h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin: 16px 0 8px; }
+  .sidebar h3:first-child { margin-top: 0; }
+
+  .control-group { margin-bottom: 12px; }
+  .control-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .control-group select, .control-group input[type=range] { width: 100%; background: var(--bg3); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; }
+  .control-group input[type=range] { padding: 0; height: 6px; -webkit-appearance: none; border: none; border-radius: 3px; cursor: pointer; }
+  .control-group input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+  .range-value { font-size: 12px; color: var(--accent); font-weight: 600; float: right; }
+
+  .toggle { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; font-size: 13px; }
+  .toggle input { display: none; }
+  .toggle .switch { width: 36px; height: 20px; background: var(--bg3); border-radius: 10px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle input:checked + .switch { background: var(--green2); }
+  .toggle .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--text); border-radius: 50%; transition: transform 0.2s; }
+  .toggle input:checked + .switch::after { transform: translateX(16px); }
+
+  .preset-btn { display: block; width: 100%; padding: 8px 12px; margin-bottom: 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent); background: rgba(88,166,255,0.1); }
+  .preset-btn.active { border-color: var(--accent); background: rgba(88,166,255,0.15); }
+  .preset-btn small { color: var(--text2); display: block; font-size: 11px; margin-top: 2px; }
+
+  .main { overflow-y: auto; padding: 24px; }
+
+  /* Coverage Grid */
+  .coverage-header { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; min-width: 150px; flex: 1; }
+  .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); }
+  .stat-card .value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .stat-card .sub { font-size: 12px; color: var(--text3); }
+  .stat-card.green .value { color: var(--green); }
+  .stat-card.red .value { color: var(--red); }
+  .stat-card.blue .value { color: var(--blue); }
+  .stat-card.yellow .value { color: var(--yellow); }
+
+  /* Timeline */
+  .timeline { margin: 24px 0; }
+  .timeline-phase { display: grid; grid-template-columns: 80px 32px 1fr; gap: 0; margin-bottom: 0; position: relative; }
+  .timeline-day { font-size: 12px; color: var(--text2); padding: 12px 0; text-align: right; padding-right: 12px; }
+  .timeline-dot { display: flex; flex-direction: column; align-items: center; }
+  .timeline-dot .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); z-index: 1; flex-shrink: 0; }
+  .timeline-dot .line { width: 2px; background: var(--border); flex: 1; }
+  .timeline-phase:last-child .timeline-dot .line { display: none; }
+  .timeline-dot.active .dot { background: var(--accent); border-color: var(--accent); }
+  .timeline-dot.done .dot { background: var(--green); border-color: var(--green); }
+  .timeline-content { padding: 8px 0 24px 12px; }
+  .timeline-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-content p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .timeline-content .tag { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-right: 4px; margin-top: 4px; }
+  .tag-build { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .tag-run { background: rgba(57,211,83,0.15); color: var(--cyan); border: 1px solid rgba(57,211,83,0.3); }
+  .tag-author { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+
+  /* Coverage Map */
+  .coverage-map { margin: 24px 0; }
+  .coverage-section { margin-bottom: 20px; }
+  .coverage-section h3 { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .coverage-section h3 .count { font-size: 12px; color: var(--text2); font-weight: 400; }
+  .skill-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .skill-chip { font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid; cursor: default; white-space: nowrap; transition: all 0.15s; }
+  .skill-chip.has-eval { background: rgba(57,211,83,0.1); border-color: rgba(57,211,83,0.3); color: var(--green); }
+  .skill-chip.no-eval { background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.2); color: var(--red); opacity: 0.7; }
+  .skill-chip.phase-target { background: rgba(88,166,255,0.12); border-color: rgba(88,166,255,0.3); color: var(--blue); }
+  .skill-chip:hover { opacity: 1; transform: scale(1.05); }
+
+  /* Budget Chart */
+  .budget-chart { margin: 24px 0; }
+  .budget-bar { display: grid; grid-template-columns: 120px 1fr 60px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+  .budget-bar .bar-track { height: 24px; background: var(--bg3); border-radius: 4px; overflow: hidden; position: relative; }
+  .budget-bar .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; color: var(--bg); min-width: 2px; transition: width 0.5s ease; }
+  .budget-bar .bar-calls { text-align: right; font-size: 12px; color: var(--text2); }
+
+  /* Rate Limit Viz */
+  .rate-viz { margin: 24px 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .rate-viz h3 { font-size: 14px; margin-bottom: 12px; }
+  .window-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+  .window-block { width: 120px; height: 80px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; position: relative; overflow: hidden; }
+  .window-block .fill { position: absolute; bottom: 0; left: 0; right: 0; transition: height 0.5s; border-radius: 0 0 5px 5px; }
+  .window-block .label { font-weight: 600; z-index: 1; position: relative; }
+  .window-block .calls { z-index: 1; position: relative; color: var(--text2); }
+  .window-block .pct { z-index: 1; position: relative; font-weight: 700; font-size: 16px; }
+
+  /* Footer */
+  .footer { grid-column: 1 / -1; background: var(--bg2); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+  .prompt-output { flex: 1; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--text2); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; max-height: 80px; overflow-y: auto; white-space: pre-wrap; line-height: 1.5; }
+  .copy-btn { background: var(--accent); color: var(--bg); border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn.copied { background: var(--green); }
+
+  /* Tab nav */
+  .tab-nav { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab-btn { padding: 8px 16px; font-size: 13px; color: var(--text2); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>OrchestKit Eval Plan</h1>
+    <span class="badge">v7.6.0</span>
+    <span class="badge">89 skills + 31 agents</span>
+    <span class="badge" id="headerCost">$0 on Max 20x</span>
+  </header>
+
+  <div class="sidebar">
+    <h3>Presets</h3>
+    <button class="preset-btn active" onclick="applyPreset('recommended')">
+      Recommended
+      <small>Skip baseline, Sonnet, 8 days</small>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('aggressive')">
+      Aggressive
+      <small>All at once, 3 days, tight on limits</small>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('conservative')">
+      Conservative
+      <small>With baseline, reps=3, 12 days</small>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('skills-only')">
+      Skills Only
+      <small>Skip agents, 5 days</small>
+    </button>
+
+    <h3>Generation</h3>
+    <div class="control-group">
+      <label>Model <span class="range-value" id="modelLabel">sonnet</span></label>
+      <select id="model" onchange="update()">
+        <option value="sonnet" selected>Sonnet (faster, higher rate limit)</option>
+        <option value="opus">Opus (slower, more capable)</option>
+        <option value="haiku">Haiku (fastest, cheapest)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Max turns (skills) <span class="range-value" id="skillTurnsLabel">10</span></label>
+      <input type="range" id="skillTurns" min="3" max="20" value="10" oninput="update()">
+    </div>
+
+    <div class="control-group">
+      <label>Max turns (agents) <span class="range-value" id="agentTurnsLabel">15</span></label>
+      <input type="range" id="agentTurns" min="5" max="30" value="15" oninput="update()">
+    </div>
+
+    <div class="control-group">
+      <label>Timeout per call (sec) <span class="range-value" id="timeoutLabel">180</span></label>
+      <input type="range" id="timeout" min="60" max="600" step="30" value="180" oninput="update()">
+    </div>
+
+    <h3>Coverage</h3>
+    <label class="toggle">
+      <input type="checkbox" id="skipBaseline" checked onchange="update()">
+      <span class="switch"></span>
+      Skip baseline (saves ~50%)
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="includeAgents" checked onchange="update()">
+      <span class="switch"></span>
+      Include agents (31)
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="includeBgSkills" checked onchange="update()">
+      <span class="switch"></span>
+      Include background skills (67)
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="baselineRerun" checked onchange="update()">
+      <span class="switch"></span>
+      Re-run NEUTRAL with baseline
+    </label>
+
+    <h3>Grading</h3>
+    <div class="control-group">
+      <label>Grading reps <span class="range-value" id="repsLabel">1</span></label>
+      <input type="range" id="reps" min="1" max="5" value="1" oninput="update()">
+    </div>
+
+    <div class="control-group">
+      <label>Cases per bg skill <span class="range-value" id="bgCasesLabel">3</span></label>
+      <input type="range" id="bgCases" min="2" max="8" value="3" oninput="update()">
+    </div>
+
+    <div class="control-group">
+      <label>Cases per agent <span class="range-value" id="agentCasesLabel">5</span></label>
+      <input type="range" id="agentCases" min="2" max="10" value="5" oninput="update()">
+    </div>
+
+    <h3>Rate Limits</h3>
+    <div class="control-group">
+      <label>Msgs per 5h window <span class="range-value" id="rateLimitLabel">900</span></label>
+      <input type="range" id="rateLimit" min="200" max="1500" step="50" value="900" oninput="update()">
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+      <button class="tab-btn" onclick="switchTab('timeline')">Timeline</button>
+      <button class="tab-btn" onclick="switchTab('coverage')">Coverage Map</button>
+      <button class="tab-btn" onclick="switchTab('budget')">CLI Budget</button>
+      <button class="tab-btn" onclick="switchTab('ratelimit')">Rate Limits</button>
+    </div>
+
+    <div id="tab-overview" class="tab-content active">
+      <div class="coverage-header" id="statCards"></div>
+      <div id="overviewSummary"></div>
+    </div>
+
+    <div id="tab-timeline" class="tab-content">
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <div id="tab-coverage" class="tab-content">
+      <div class="coverage-map" id="coverageMap"></div>
+    </div>
+
+    <div id="tab-budget" class="tab-content">
+      <div class="budget-chart" id="budgetChart"></div>
+    </div>
+
+    <div id="tab-ratelimit" class="tab-content">
+      <div class="rate-viz" id="rateViz"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="prompt-output" id="promptOutput"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy Plan</button>
+  </div>
+</div>
+
+<script>
+const SKILLS_INVOCABLE = ['assess','brainstorm','commit','create-pr','doctor','explore','fix-issue','help','implement','memory','remember','review-pr','setup','verify','visualize-plan','write-prd'];
+const SKILLS_WITH_EVAL = ['api-design','assess','brainstorm','commit','create-pr','doctor','explore','fix-issue','help','implement','memory','remember','review-pr','setup','verify','visualize-plan','write-prd'];
+const SKILLS_BG = ['accessibility','agent-orchestration','ai-ui-generation','analytics','animation-motion-design','architecture-decision-record','architecture-patterns','ascii-visualizer','async-jobs','audit-full','audit-skills','browser-tools','business-case','chain-patterns','checkpoint-resume','code-review-playbook','competitive-analysis','configure','database-patterns','demo-producer','design-system-tokens','devops-deployment','distributed-systems','documentation-patterns','domain-driven-design','errors','feedback','figma-design-handoff','github-operations','golden-dataset','i18n-date-patterns','interaction-patterns','issue-progress-tracking','langgraph','llm-integration','market-sizing','mcp-patterns','memory-fabric','monitoring-observability','multimodal-llm','notebooklm','okr-design','performance','presentation-builder','prioritization','product-analytics','product-frameworks','python-backend','quality-gates','rag-retrieval','react-server-components-framework','release-checklist','release-management','responsive-patterns','scope-appropriate-architecture','security-patterns','skill-evolution','storybook-testing','task-dependency-patterns','testing-e2e','testing-integration','testing-llm','testing-patterns','testing-perf','testing-unit','ui-components','upgrade-assessment','user-research','validate-counts','vite-advanced','web-research-workflow','zustand-patterns'];
+const AGENTS = ['accessibility-specialist','ai-safety-auditor','backend-system-architect','ci-cd-engineer','code-quality-reviewer','data-pipeline-engineer','database-engineer','debug-investigator','demo-producer','deployment-manager','design-system-architect','eval-runner','event-driven-architect','frontend-performance-engineer','frontend-ui-developer','git-operations-engineer','infrastructure-architect','llm-integrator','market-intelligence','monitoring-engineer','multimodal-specialist','product-strategist','python-performance-engineer','release-engineer','security-auditor','security-layer-auditor','system-design-reviewer','test-generator','ui-feedback','web-research-analyst','workflow-architect'];
+const SKIP_SKILLS = ['testing-patterns','notebooklm','web-research-workflow','code-review-playbook'];
+
+const EXISTING_CASES = 265;
+const EXISTING_ASSERTIONS_AVG = 5;
+
+const state = {};
+
+function readControls() {
+  state.model = document.getElementById('model').value;
+  state.skillTurns = +document.getElementById('skillTurns').value;
+  state.agentTurns = +document.getElementById('agentTurns').value;
+  state.timeout = +document.getElementById('timeout').value;
+  state.skipBaseline = document.getElementById('skipBaseline').checked;
+  state.includeAgents = document.getElementById('includeAgents').checked;
+  state.includeBgSkills = document.getElementById('includeBgSkills').checked;
+  state.baselineRerun = document.getElementById('baselineRerun').checked;
+  state.reps = +document.getElementById('reps').value;
+  state.bgCases = +document.getElementById('bgCases').value;
+  state.agentCases = +document.getElementById('agentCases').value;
+  state.rateLimit = +document.getElementById('rateLimit').value;
+}
+
+function computeBudget() {
+  const b = { phases: [] };
+  const bgSkillCount = SKILLS_BG.length - SKIP_SKILLS.length;
+  const baselineMult = state.skipBaseline ? 1 : 2;
+
+  // Phase 1: existing 17 skills
+  const p1Captures = EXISTING_CASES * baselineMult;
+  const p1Gradings = EXISTING_CASES * state.reps;
+  b.phases.push({ name: 'Existing 17 skills', type: 'run', captures: p1Captures, gradings: p1Gradings, total: p1Captures + p1Gradings, day: 1, hours: Math.round((p1Captures * 45 + p1Gradings * 30) / 3600 * 10) / 10 });
+
+  // Phase 2: author bg skill evals (0 CLI)
+  if (state.includeBgSkills) {
+    b.phases.push({ name: `Author ${bgSkillCount} bg evals`, type: 'author', captures: 0, gradings: 0, total: 0, day: 2, hours: 5 });
+  }
+
+  // Phase 3: run bg skill evals
+  if (state.includeBgSkills) {
+    const bgTotalCases = bgSkillCount * state.bgCases;
+    const p3Captures = bgTotalCases * baselineMult;
+    const p3Gradings = bgTotalCases * state.reps;
+    b.phases.push({ name: `Run ${bgSkillCount} bg skills`, type: 'run', captures: p3Captures, gradings: p3Gradings, total: p3Captures + p3Gradings, day: state.includeBgSkills ? 4 : 3, hours: Math.round((p3Captures * 45 + p3Gradings * 30) / 3600 * 10) / 10 });
+  }
+
+  // Phase 4: author agent evals (0 CLI)
+  if (state.includeAgents) {
+    b.phases.push({ name: 'Build agent runner + YAMLs', type: 'build', captures: 0, gradings: 0, total: 0, day: state.includeBgSkills ? 5 : 3, hours: 5 });
+  }
+
+  // Phase 5: run agent evals
+  if (state.includeAgents) {
+    const agentTotalCases = AGENTS.length * state.agentCases;
+    const p5Captures = agentTotalCases; // no baseline for agents
+    const p5Gradings = agentTotalCases * state.reps;
+    b.phases.push({ name: `Run ${AGENTS.length} agents`, type: 'run', captures: p5Captures, gradings: p5Gradings, total: p5Captures + p5Gradings, day: state.includeBgSkills ? 7 : 4, hours: Math.round((p5Captures * 60 + p5Gradings * 30) / 3600 * 10) / 10 });
+  }
+
+  // Phase 6: baseline re-runs
+  if (state.baselineRerun) {
+    const neutralCases = 10 * 2; // 10 neutral skills, ~2 eval entries each
+    const p6Total = neutralCases * 2 + neutralCases * 3; // with+baseline + 3x grading
+    b.phases.push({ name: 'Re-run NEUTRAL w/ baseline', type: 'run', captures: neutralCases * 2, gradings: neutralCases * 3, total: p6Total, day: (state.includeAgents ? (state.includeBgSkills ? 8 : 5) : (state.includeBgSkills ? 5 : 2)), hours: Math.round(p6Total * 40 / 3600 * 10) / 10 });
+  }
+
+  b.totalCalls = b.phases.reduce((s, p) => s + p.total, 0);
+  b.totalCaptures = b.phases.reduce((s, p) => s + p.captures, 0);
+  b.totalGradings = b.phases.reduce((s, p) => s + p.gradings, 0);
+  b.totalHours = b.phases.filter(p => p.type === 'run').reduce((s, p) => s + p.hours, 0);
+  b.totalDays = b.phases.length > 0 ? b.phases[b.phases.length - 1].day : 0;
+  b.windowsNeeded = Math.ceil(b.totalCalls / state.rateLimit);
+
+  // Coverage
+  const coveredSkills = SKILLS_WITH_EVAL.length + (state.includeBgSkills ? bgSkillCount : 0);
+  const totalSkills = SKILLS_INVOCABLE.length + SKILLS_BG.length;
+  b.skillCoverage = Math.round(coveredSkills / totalSkills * 100);
+  b.skillsCovered = coveredSkills;
+  b.skillsTotal = totalSkills;
+  b.agentsCovered = state.includeAgents ? AGENTS.length : 0;
+  b.agentsTotal = AGENTS.length;
+
+  return b;
+}
+
+function renderStatCards(b) {
+  document.getElementById('statCards').innerHTML = `
+    <div class="stat-card blue"><div class="label">Total CLI Calls</div><div class="value">${b.totalCalls.toLocaleString()}</div><div class="sub">${b.totalCaptures} captures + ${b.totalGradings} gradings</div></div>
+    <div class="stat-card green"><div class="label">Skill Coverage</div><div class="value">${b.skillsCovered}/${b.skillsTotal}</div><div class="sub">${b.skillCoverage}% of all skills</div></div>
+    <div class="stat-card ${b.agentsCovered > 0 ? 'green' : 'red'}"><div class="label">Agent Coverage</div><div class="value">${b.agentsCovered}/${b.agentsTotal}</div><div class="sub">${b.agentsCovered > 0 ? '100' : '0'}% of agents</div></div>
+    <div class="stat-card yellow"><div class="label">Wall Clock</div><div class="value">${Math.round(b.totalHours)}h</div><div class="sub">${b.totalDays} days · ${b.windowsNeeded} rate windows</div></div>
+  `;
+
+  document.getElementById('overviewSummary').innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:16px;">
+      <h3 style="font-size:14px;margin-bottom:12px;">Configuration Summary</h3>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        <tr><td style="padding:4px 8px;color:var(--text2)">Model</td><td style="padding:4px 8px;font-weight:600">${state.model}</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">Skip baseline</td><td style="padding:4px 8px;font-weight:600">${state.skipBaseline ? 'Yes (saves ~50% CLI calls)' : 'No (full A/B comparison)'}</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">Grading reps</td><td style="padding:4px 8px;font-weight:600">${state.reps}x ${state.reps > 1 ? '(majority vote)' : '(single pass)'}</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">Background skills</td><td style="padding:4px 8px;font-weight:600">${state.includeBgSkills ? `${SKILLS_BG.length - SKIP_SKILLS.length} skills, ${state.bgCases} cases each` : 'Skipped'}</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">Agents</td><td style="padding:4px 8px;font-weight:600">${state.includeAgents ? `${AGENTS.length} agents, ${state.agentCases} cases each` : 'Skipped'}</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">API cost</td><td style="padding:4px 8px;font-weight:600;color:var(--green)">$0 (Max 20x plan)</td></tr>
+        <tr><td style="padding:4px 8px;color:var(--text2)">Rate limit headroom</td><td style="padding:4px 8px;font-weight:600;color:${b.totalCalls / (b.windowsNeeded * state.rateLimit) > 0.9 ? 'var(--red)' : 'var(--green)'}">${Math.round((1 - b.totalCalls / (b.windowsNeeded * state.rateLimit)) * 100)}% spare per window</td></tr>
+      </table>
+    </div>
+  `;
+}
+
+function renderTimeline(b) {
+  const phases = [
+    { day: 'Day 1', title: 'Phase 0: Infrastructure', desc: 'Add --skip-baseline flag, build orchestrator script, create agent eval runner', tags: ['build'] },
+    { day: 'Day 1', title: 'Phase 1: Run 17 Existing Skill Evals', desc: `${b.phases[0]?.total || 0} CLI calls, ~${b.phases[0]?.hours || 0}h`, tags: ['run'] },
+  ];
+
+  if (state.includeBgSkills) {
+    phases.push({ day: 'Day 2-3', title: `Phase 2: Author ${SKILLS_BG.length - SKIP_SKILLS.length} Background Skill Evals`, desc: `Write eval YAMLs by category batch. 0 CLI calls. ~5h authoring.`, tags: ['author'] });
+    phases.push({ day: 'Day 4', title: `Phase 3: Run Background Skill Evals`, desc: `${b.phases[2]?.total || 0} CLI calls, ~${b.phases[2]?.hours || 0}h (overnight)`, tags: ['run'] });
+  }
+
+  if (state.includeAgents) {
+    const agentPhase = b.phases.find(p => p.name.includes('agent runner'));
+    const agentRun = b.phases.find(p => p.name.includes('agents'));
+    phases.push({ day: state.includeBgSkills ? 'Day 5-6' : 'Day 2-3', title: 'Phase 4: Build Agent Runner + Author Evals', desc: `Fork quality runner. Write 31 agent eval YAMLs. 0 CLI calls.`, tags: ['build', 'author'] });
+    phases.push({ day: state.includeBgSkills ? 'Day 7' : 'Day 4', title: `Phase 5: Run Agent Evals`, desc: `${agentRun?.total || 0} CLI calls, ~${agentRun?.hours || 0}h (overnight)`, tags: ['run'] });
+  }
+
+  if (state.baselineRerun) {
+    const rerunPhase = b.phases.find(p => p.name.includes('NEUTRAL'));
+    phases.push({ day: `Day ${b.totalDays}`, title: 'Phase 6: Re-run NEUTRAL with Baseline', desc: `${rerunPhase?.total || 0} CLI calls, ~${rerunPhase?.hours || 0}h. Full A/B + 3x grading reps.`, tags: ['run'] });
+  }
+
+  document.getElementById('timeline').innerHTML = phases.map((p, i) => `
+    <div class="timeline-phase">
+      <div class="timeline-day">${p.day}</div>
+      <div class="timeline-dot ${i === 0 ? 'active' : ''}"><div class="dot"></div><div class="line"></div></div>
+      <div class="timeline-content">
+        <h4>${p.title}</h4>
+        <p>${p.desc}</p>
+        <div>${p.tags.map(t => `<span class="tag tag-${t}">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCoverageMap(b) {
+  const evalSet = new Set(SKILLS_WITH_EVAL);
+  const skipSet = new Set(SKIP_SKILLS);
+
+  let html = `
+    <div class="coverage-section">
+      <h3>User-Invocable Skills <span class="count">${SKILLS_INVOCABLE.length} skills — all have evals</span></h3>
+      <div class="skill-grid">
+        ${SKILLS_INVOCABLE.map(s => `<span class="skill-chip has-eval" title="${s}">${s}</span>`).join('')}
+      </div>
+    </div>
+    <div class="coverage-section">
+      <h3>Background Skills <span class="count">${SKILLS_BG.length} skills — ${state.includeBgSkills ? 'targeted in Phase 2-3' : 'excluded'}</span></h3>
+      <div class="skill-grid">
+        ${SKILLS_BG.map(s => {
+          if (skipSet.has(s)) return `<span class="skill-chip no-eval" title="${s} (skipped)" style="opacity:0.3;text-decoration:line-through">${s}</span>`;
+          if (evalSet.has(s)) return `<span class="skill-chip has-eval" title="${s}">${s}</span>`;
+          return `<span class="skill-chip ${state.includeBgSkills ? 'phase-target' : 'no-eval'}" title="${s}">${s}</span>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="coverage-section">
+      <h3>Agents <span class="count">${AGENTS.length} agents — ${state.includeAgents ? 'targeted in Phase 4-5' : 'excluded'}</span></h3>
+      <div class="skill-grid">
+        ${AGENTS.map(a => `<span class="skill-chip ${state.includeAgents ? 'phase-target' : 'no-eval'}" title="${a}">${a}</span>`).join('')}
+      </div>
+    </div>
+  `;
+
+  html += `<div style="margin-top:16px;font-size:12px;color:var(--text2);display:flex;gap:16px;">
+    <span><span class="skill-chip has-eval" style="font-size:10px">name</span> Has eval</span>
+    <span><span class="skill-chip phase-target" style="font-size:10px">name</span> Planned</span>
+    <span><span class="skill-chip no-eval" style="font-size:10px">name</span> No eval</span>
+  </div>`;
+
+  document.getElementById('coverageMap').innerHTML = html;
+}
+
+function renderBudgetChart(b) {
+  const maxCalls = Math.max(...b.phases.map(p => p.total), 1);
+  const colors = { run: 'var(--green)', author: 'var(--yellow)', build: 'var(--purple)' };
+
+  let html = `<h3 style="font-size:14px;margin-bottom:16px;">CLI Calls by Phase</h3>`;
+  b.phases.forEach(p => {
+    const pct = Math.max(p.total / maxCalls * 100, p.total > 0 ? 3 : 0);
+    html += `
+      <div class="budget-bar">
+        <span style="font-size:12px;color:var(--text2)">${p.name}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${colors[p.type] || 'var(--blue)'}">
+            ${p.total > 50 ? p.total : ''}
+          </div>
+        </div>
+        <span class="bar-calls">${p.total}</span>
+      </div>
+    `;
+  });
+
+  html += `
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:grid;grid-template-columns:120px 1fr 60px;font-size:13px;font-weight:600;">
+      <span>TOTAL</span>
+      <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--accent)">${b.totalCalls}</div></div>
+      <span class="bar-calls" style="font-weight:700">${b.totalCalls}</span>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:24px;font-size:12px;color:var(--text2);">
+      <span>Captures: ${b.totalCaptures}</span>
+      <span>Gradings: ${b.totalGradings}</span>
+      <span>Wall clock: ~${Math.round(b.totalHours)}h</span>
+    </div>
+  `;
+
+  document.getElementById('budgetChart').innerHTML = html;
+}
+
+function renderRateViz(b) {
+  const windowCap = state.rateLimit;
+  const runPhases = b.phases.filter(p => p.total > 0);
+
+  // Simulate filling windows
+  const windows = [];
+  let remaining = 0;
+  let windowIdx = 0;
+
+  for (const p of runPhases) {
+    let calls = p.total;
+    while (calls > 0) {
+      if (!windows[windowIdx]) windows[windowIdx] = { calls: 0, phases: [], cap: windowCap };
+      const space = windowCap - windows[windowIdx].calls;
+      const take = Math.min(calls, space);
+      windows[windowIdx].calls += take;
+      if (!windows[windowIdx].phases.includes(p.name)) windows[windowIdx].phases.push(p.name);
+      calls -= take;
+      if (windows[windowIdx].calls >= windowCap) windowIdx++;
+    }
+  }
+
+  let html = `<h3>Rate Limit Windows (${windowCap} msgs / 5h)</h3>
+    <p style="font-size:12px;color:var(--text2);margin:8px 0 16px;">Each block = one 5-hour window. Green = within limits.</p>
+    <div class="window-grid">`;
+
+  windows.forEach((w, i) => {
+    const pct = Math.round(w.calls / w.cap * 100);
+    const color = pct > 95 ? 'var(--red)' : pct > 75 ? 'var(--yellow)' : 'var(--green)';
+    html += `
+      <div class="window-block">
+        <div class="fill" style="height:${pct}%;background:${color};opacity:0.15;"></div>
+        <div class="label">Window ${i + 1}</div>
+        <div class="pct" style="color:${color}">${pct}%</div>
+        <div class="calls">${w.calls}/${w.cap}</div>
+      </div>
+    `;
+  });
+
+  if (windows.length === 0) {
+    html += `<div style="color:var(--text2);font-size:13px;padding:20px;">No CLI calls configured</div>`;
+  }
+
+  html += `</div>
+    <div style="margin-top:16px;font-size:12px;color:var(--text2);">
+      ${windows.length} windows needed = ${windows.length * 5}h minimum elapsed time (can run overnight)
+    </div>
+  `;
+
+  document.getElementById('rateViz').innerHTML = html;
+}
+
+function updatePrompt() {
+  const b = computeBudget();
+  const parts = [];
+
+  parts.push(`Run OrchestKit eval suite: ${b.skillsCovered} skills + ${b.agentsCovered} agents.`);
+  parts.push(`Model: ${state.model}. ${state.skipBaseline ? 'Skip baseline (quality-only).' : 'Full A/B with baseline.'}`);
+
+  if (state.includeBgSkills) parts.push(`Author ${SKILLS_BG.length - SKIP_SKILLS.length} background skill eval YAMLs (${state.bgCases} cases each).`);
+  if (state.includeAgents) parts.push(`Build agent eval runner + author ${AGENTS.length} agent eval YAMLs (${state.agentCases} cases each).`);
+  if (state.baselineRerun) parts.push(`Re-run 10 NEUTRAL skills with baseline + 3x grading reps.`);
+
+  parts.push(`\nTotal: ${b.totalCalls} CLI calls, ~${Math.round(b.totalHours)}h wall clock, ${b.totalDays} days, $0 cost on Max 20x.`);
+  parts.push(`Rate: ${b.windowsNeeded} five-hour windows at ${state.rateLimit} msgs/window.`);
+
+  if (state.reps > 1) parts.push(`Grading: ${state.reps}x reps with majority voting.`);
+
+  document.getElementById('promptOutput').textContent = parts.join('\n');
+}
+
+function update() {
+  readControls();
+
+  // Update labels
+  document.getElementById('modelLabel').textContent = state.model;
+  document.getElementById('skillTurnsLabel').textContent = state.skillTurns;
+  document.getElementById('agentTurnsLabel').textContent = state.agentTurns;
+  document.getElementById('timeoutLabel').textContent = state.timeout + 's';
+  document.getElementById('repsLabel').textContent = state.reps + 'x';
+  document.getElementById('bgCasesLabel').textContent = state.bgCases;
+  document.getElementById('agentCasesLabel').textContent = state.agentCases;
+  document.getElementById('rateLimitLabel').textContent = state.rateLimit;
+
+  const b = computeBudget();
+  renderStatCards(b);
+  renderTimeline(b);
+  renderCoverageMap(b);
+  renderBudgetChart(b);
+  renderRateViz(b);
+  updatePrompt();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+function applyPreset(name) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.preset-btn').classList.add('active');
+
+  const presets = {
+    recommended: { model: 'sonnet', skillTurns: 10, agentTurns: 15, timeout: 180, skipBaseline: true, includeAgents: true, includeBgSkills: true, baselineRerun: true, reps: 1, bgCases: 3, agentCases: 5, rateLimit: 900 },
+    aggressive: { model: 'sonnet', skillTurns: 8, agentTurns: 12, timeout: 120, skipBaseline: true, includeAgents: true, includeBgSkills: true, baselineRerun: false, reps: 1, bgCases: 3, agentCases: 3, rateLimit: 900 },
+    conservative: { model: 'sonnet', skillTurns: 12, agentTurns: 20, timeout: 300, skipBaseline: false, includeAgents: true, includeBgSkills: true, baselineRerun: true, reps: 3, bgCases: 5, agentCases: 7, rateLimit: 900 },
+    'skills-only': { model: 'sonnet', skillTurns: 10, agentTurns: 15, timeout: 180, skipBaseline: true, includeAgents: false, includeBgSkills: true, baselineRerun: true, reps: 1, bgCases: 4, agentCases: 5, rateLimit: 900 },
+  };
+
+  const p = presets[name];
+  document.getElementById('model').value = p.model;
+  document.getElementById('skillTurns').value = p.skillTurns;
+  document.getElementById('agentTurns').value = p.agentTurns;
+  document.getElementById('timeout').value = p.timeout;
+  document.getElementById('skipBaseline').checked = p.skipBaseline;
+  document.getElementById('includeAgents').checked = p.includeAgents;
+  document.getElementById('includeBgSkills').checked = p.includeBgSkills;
+  document.getElementById('baselineRerun').checked = p.baselineRerun;
+  document.getElementById('reps').value = p.reps;
+  document.getElementById('bgCases').value = p.bgCases;
+  document.getElementById('agentCases').value = p.agentCases;
+  document.getElementById('rateLimit').value = p.rateLimit;
+
+  update();
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Plan'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Init
+update();
+</script>
+</body>
+</html>

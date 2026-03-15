@@ -67,6 +67,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-figma-detached-styles",
+      "query": "Half the components in our Figma file use detached styles with hardcoded hex values instead of Figma Variables. How do I handle the handoff?",
+      "expected_behavior": [
+        "Identifies detached styles as a design-side issue that requires mapping hardcoded values to the closest existing design tokens",
+        "Does not blindly convert hardcoded hex values into new tokens without checking for existing equivalents",
+        "Recommends flagging detached styles back to the design team for resolution before code implementation",
+        "Provides a mapping strategy to approximate hardcoded values to the nearest semantic token"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-figma-api-token-expired",
+      "query": "Our Figma token export pipeline fails with a 403 error. The REST API returns 'invalid token' but we haven't changed the token.",
+      "expected_behavior": [
+        "Checks whether the Figma personal access token has expired or been revoked by an admin",
+        "Recommends verifying the token's file access scope matches the target Figma file",
+        "Does not suggest hardcoding a new token directly in the pipeline script or CI config",
+        "Advises storing the Figma API token in a secrets manager or CI environment variable with rotation"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-figma-api-token-in-repo",
+      "query": "Our developer committed the Figma REST API access token directly in the design token sync script checked into the repo",
+      "expected_behavior": [
+        "Warns that the committed token must be revoked immediately since it is exposed in git history",
+        "Recommends moving the token to an environment variable or CI secrets, never inline in source code",
+        "Advises using git filter-branch or BFG Repo Cleaner to remove the token from git history",
+        "Suggests adding a pre-commit hook to scan for token patterns and block accidental credential commits"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

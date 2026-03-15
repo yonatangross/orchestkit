@@ -87,6 +87,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-flaky-network-timeout",
+      "query": "My Playwright E2E tests pass locally but fail in CI with timeout errors on network requests",
+      "expected_behavior": [
+        "Recommends increasing the default navigation timeout and using waitForResponse for specific API calls",
+        "Suggests using Playwright route() to intercept and mock slow or unreliable external API dependencies",
+        "Advises adding retry logic at the test runner level with retries config rather than hardcoded sleeps"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-missing-browser-binary",
+      "query": "Playwright tests fail with 'browserType.launch: Executable doesn't exist' error in CI",
+      "expected_behavior": [
+        "Identifies that Playwright browser binaries are not installed in the CI environment",
+        "Recommends running npx playwright install --with-deps in the CI setup step before tests",
+        "Suggests caching the browser binaries directory to avoid re-downloading on every CI run"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-e2e-credential-exposure",
+      "query": "Write E2E tests for the login flow that uses real user credentials stored in .env",
+      "expected_behavior": [
+        "Never hardcodes real credentials in test files or commits them to version control",
+        "Uses CI secret variables or a dedicated test account with minimal permissions for E2E auth flows",
+        "Masks sensitive values in Playwright trace files and screenshots to prevent credential leakage in artifacts"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

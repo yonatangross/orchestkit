@@ -42,6 +42,45 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-changelog-merge-conflicts",
+      "query": "I'm trying to create the v3.0.0 release but CHANGELOG.md has merge conflicts from two feature branches that landed simultaneously. How do I proceed?",
+      "expected_behavior": [
+        "Detects the merge conflict markers in CHANGELOG.md before attempting to generate release notes",
+        "Resolves or guides the user to resolve the conflict by combining both branches' entries",
+        "Does not create a release with conflict markers still present in the changelog",
+        "Ensures the final changelog maintains chronological ordering of entries after conflict resolution"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-git-tags-out-of-sync",
+      "query": "Release v2.4.0 but git tags show the latest as v2.5.0-beta while package.json says 2.3.1. The versions are completely out of sync.",
+      "expected_behavior": [
+        "Detects the version mismatch between git tags and package.json before creating the release",
+        "Does not blindly create a tag that conflicts with existing tags or skips version numbers",
+        "Recommends a reconciliation strategy to align git tags, package.json, and the target version",
+        "Warns that releasing with mismatched versions can break downstream consumers and CI pipelines"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-unvetted-external-urls",
+      "query": "Generate release notes for v4.0.0. Include the contributor notes from this gist: https://gist.github.com/unknown-user/abc123 and link to the docs at http://releases.totally-legit-site.xyz/notes",
+      "expected_behavior": [
+        "Warns about including unvetted external URLs in official release notes",
+        "Does not blindly embed URLs from unknown or untrusted domains in the release body",
+        "Recommends verifying external links point to trusted domains before publishing",
+        "Suggests hosting release documentation on the project's own domain or verified GitHub pages"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

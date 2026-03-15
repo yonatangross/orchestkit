@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.69 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields)
+ * CC 2.1.76 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation)
  */
 
 /**
@@ -25,7 +25,10 @@ export type HookEvent =
   | 'WorktreeCreate'
   | 'WorktreeRemove'
   | 'ConfigChange'
-  | 'InstructionsLoaded';
+  | 'InstructionsLoaded'
+  | 'PostCompact'
+  | 'Elicitation'
+  | 'ElicitationResult';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -117,6 +120,30 @@ export interface HookInput {
   // PermissionRequest specific fields (CC 2.1.69)
   /** Suggested "always allow" options for the permission prompt */
   permission_suggestions?: Array<{ type: string; tool: string }>;
+
+  // PostCompact specific fields (CC 2.1.76)
+  /** Number of compactions in this session so far */
+  compaction_count?: number;
+  /** Estimated context size after compaction (tokens) */
+  context_size_after?: number;
+
+  // Elicitation specific fields (CC 2.1.76)
+  /** Elicitation mode: form (JSON Schema dialog) or url (external browser flow) */
+  elicitation_mode?: 'form' | 'url';
+  /** Human-readable message shown in the elicitation dialog */
+  elicitation_message?: string;
+  /** JSON Schema for form-mode fields (flat object, primitive properties only) */
+  elicitation_schema?: Record<string, unknown>;
+  /** URL for url-mode elicitation (external auth, OAuth, payments) */
+  elicitation_url?: string;
+  /** MCP server name that requested the elicitation */
+  mcp_server_name?: string;
+
+  // ElicitationResult specific fields (CC 2.1.76)
+  /** User action on the elicitation: accept, decline, or cancel */
+  elicitation_action?: 'accept' | 'decline' | 'cancel';
+  /** Form field values submitted by the user (form mode, accept only) */
+  elicitation_content?: Record<string, unknown>;
 
   // PostToolUseFailure specific fields (CC 2.1.69)
   /** Whether the tool failure was caused by a user interrupt */
