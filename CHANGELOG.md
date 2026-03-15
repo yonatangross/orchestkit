@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.9.1] - 2026-03-15
 
-### Fixed
+### Added
 
-- TODO: Describe your changes here
+- Integrate `@yonatan-hq/analytics` for cross-project page view tracking in docs site
+- Add Edge route handler for HMAC-signed analytics event forwarding to HQ API
 
 ---
 
