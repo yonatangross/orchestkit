@@ -21,9 +21,7 @@ await build({
   sourcemap: true,
   external: [],
   banner: {
-    js: `// OrchestKit MCP Server — ork-elicit
-// Generated: ${new Date().toISOString()}
-`,
+    js: `// OrchestKit MCP Server — ork-elicit`,
   },
 });
 
