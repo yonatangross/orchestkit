@@ -66,7 +66,7 @@ TaskCreate(subject="Extract design context: {INPUT}", description="Extract desig
 
 **For URLs:**
 ```python
-# If stitch-mcp available: use get_screen_image + get_screen_code
+# If stitch available: use get_screen + get_project
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -81,13 +81,13 @@ Glob("**/theme.*")
 
 ## Step 2: Extract Design Context
 
-**If stitch-mcp is available:**
+**If stitch MCP is available:**
 ```python
-# Use extract_design_context tool
+# Use official Stitch MCP tools: get_screen, get_project, list_screens
 # Returns structured design data: colors, typography, layout, components
 ```
 
-**If stitch-mcp is NOT available (fallback):**
+**If stitch MCP is NOT available (fallback):**
 ```python
 # Multimodal analysis of screenshot:
 # - Identify dominant colors (sample from regions)

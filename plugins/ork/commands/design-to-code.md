@@ -68,17 +68,17 @@ Glob("**/.tokens.json")
 
 ## Stage 1: Extract Design Context
 
-**If stitch-mcp is available:**
+**If stitch MCP is available:**
 ```python
 # For screenshot/URL input:
-# Use Stitch MCP tools to extract design HTML and context
-# Tools: get_screen_code, get_screen_image, build_site
+# Use official Stitch MCP tools to extract design HTML and context
+# Tools: get_screen, list_screens, get_project
 
 # For description input:
-# Generate a Stitch project from description, then extract
+# generate_screen_from_text to create design, then get_screen to extract
 ```
 
-**If stitch-mcp is NOT available (fallback):**
+**If stitch MCP is NOT available (fallback):**
 ```python
 # For screenshot: Read the image file directly (Claude is multimodal)
 # Analyze layout, colors, typography, spacing from the image
@@ -147,7 +147,7 @@ src/components/
 
 ## Graceful Degradation
 
-| stitch-mcp | 21st-dev-magic | Behavior |
+| stitch | 21st-dev-magic | Behavior |
 |------------|----------------|----------|
 | Available | Available | Full pipeline: extract + match + adapt |
 | Available | Unavailable | Extract design, generate components from scratch |

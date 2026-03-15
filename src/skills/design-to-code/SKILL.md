@@ -1,7 +1,7 @@
 ---
 name: design-to-code
 license: MIT
-compatibility: "Claude Code 2.1.75+. Optional: stitch-mcp, 21st-dev-magic MCP servers."
+compatibility: "Claude Code 2.1.75+. Optional: stitch (official Google Stitch), 21st-dev-magic MCP servers."
 description: "Mockup-to-component pipeline using Google Stitch and 21st.dev. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, and adaptation to project design tokens. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots."
 argument-hint: "[screenshot-path | description | url]"
 tags: [design-to-code, stitch, 21st-dev, ui-generation, mockup, component, react, frontend]
@@ -33,7 +33,7 @@ skills:
   - memory
 metadata:
   category: workflow-automation
-  mcp-server: stitch-mcp, 21st-dev-magic
+  mcp-server: stitch, 21st-dev-magic
 ---
 
 # Design to Code
@@ -97,17 +97,17 @@ Glob("**/.tokens.json")
 
 ## Stage 1: Extract Design Context
 
-**If stitch-mcp is available:**
+**If stitch MCP is available:**
 ```python
 # For screenshot/URL input:
-# Use Stitch MCP tools to extract design HTML and context
-# Tools: get_screen_code, get_screen_image, build_site
+# Use official Stitch MCP tools to extract design HTML and context
+# Tools: get_screen, list_screens, get_project
 
 # For description input:
-# Generate a Stitch project from description, then extract
+# generate_screen_from_text to create design, then get_screen to extract
 ```
 
-**If stitch-mcp is NOT available (fallback):**
+**If stitch MCP is NOT available (fallback):**
 ```python
 # For screenshot: Read the image file directly (Claude is multimodal)
 # Analyze layout, colors, typography, spacing from the image
@@ -176,7 +176,7 @@ src/components/
 
 ## Graceful Degradation
 
-| stitch-mcp | 21st-dev-magic | Behavior |
+| stitch | 21st-dev-magic | Behavior |
 |------------|----------------|----------|
 | Available | Available | Full pipeline: extract + match + adapt |
 | Available | Unavailable | Extract design, generate components from scratch |

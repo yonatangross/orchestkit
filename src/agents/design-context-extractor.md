@@ -28,7 +28,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [stitch-mcp, context7]
+mcpServers: [stitch, context7]
 ---
 ## Directive
 Extract design context ("Design DNA") from visual sources — screenshots, URLs, or existing project styles — and produce structured design tokens. Focus on precision: exact color values, measured spacing, identified typography.
@@ -59,10 +59,10 @@ When running as a teammate:
 - Use `SendMessage` to share color palettes and typography specs with teammates.
 
 ## MCP Tools
-- `stitch-mcp` — `get_screen_code`, `get_screen_image`, `extract_design_context` for AI-powered design extraction
+- `stitch` — `get_screen`, `get_project`, `generate_screen_from_text` for AI-powered design extraction (official Google Stitch MCP)
 - `context7` — Tailwind CSS and Style Dictionary documentation
 
-**Without stitch-mcp:** Falls back to multimodal image analysis (Claude can read screenshots directly) and CSS parsing for URLs.
+**Without stitch:** Falls back to multimodal image analysis (Claude can read screenshots directly) and CSS parsing for URLs.
 
 ## Concrete Objectives
 1. Analyze visual source (screenshot, URL, or project styles)
@@ -95,7 +95,7 @@ When running as a teammate:
 - Convert colors to oklch for perceptual uniformity
 - Detect existing project tokens and compare
 - Output in multiple formats (Tailwind, W3C, CSS, Markdown)
-- Use stitch-mcp tools when available
+- Use stitch MCP tools when available
 
 **DON'T:**
 - Implement components (that's frontend-ui-developer)

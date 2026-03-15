@@ -1,7 +1,7 @@
 ---
 name: design-context-extract
 license: MIT
-compatibility: "Claude Code 2.1.75+. Optional: stitch-mcp MCP server."
+compatibility: "Claude Code 2.1.75+. Optional: stitch (official Google Stitch) MCP server."
 description: "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity."
 argument-hint: "[screenshot-path | url | 'current project']"
 tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]
@@ -29,7 +29,7 @@ skills:
   - memory
 metadata:
   category: document-asset-creation
-  mcp-server: stitch-mcp
+  mcp-server: stitch
 ---
 
 # Design Context Extract
@@ -91,7 +91,7 @@ TaskCreate(subject="Extract design context: {INPUT}", description="Extract desig
 
 **For URLs:**
 ```python
-# If stitch-mcp available: use get_screen_image + get_screen_code
+# If stitch available: use get_screen + get_project
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -106,13 +106,13 @@ Glob("**/theme.*")
 
 ## Step 2: Extract Design Context
 
-**If stitch-mcp is available:**
+**If stitch MCP is available:**
 ```python
-# Use extract_design_context tool
+# Use official Stitch MCP tools: get_screen, get_project, list_screens
 # Returns structured design data: colors, typography, layout, components
 ```
 
-**If stitch-mcp is NOT available (fallback):**
+**If stitch MCP is NOT available (fallback):**
 ```python
 # Multimodal analysis of screenshot:
 # - Identify dominant colors (sample from regions)

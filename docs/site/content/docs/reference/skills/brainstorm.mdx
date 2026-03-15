@@ -246,6 +246,20 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 | **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
 | **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
 
+### Progressive Output (CC 2.1.76)
+
+Output results **incrementally** after each phase — don't batch everything until the end:
+
+| After Phase | Show User |
+|-------------|-----------|
+| 0. Topic Analysis | Selected agents, tier classification |
+| 1. Memory + Context | Prior decisions, relevant patterns |
+| 2. Divergent Exploration | Each agent's ideas as they return (don't wait for all) |
+| 3. Feasibility | Filtered viable ideas with pass/fail |
+| 4. Evaluation | Top-rated ideas with scores |
+
+For Phase 2 parallel agents, output each agent's ideas **as soon as it returns** — don't wait for all agents. This lets users see early ideas and redirect the exploration if needed. Showing ideas incrementally also helps users build a mental model of the solution space faster than a final dump.
+
 Load the phase workflow for detailed instructions:
 ```
 Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")
@@ -394,7 +408,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
-**Version:** 4.6.0 (March 2026) — Added product/event-driven/devops/data-pipeline domains, browser-tools + web-research-analyst for research, design pipeline agents (7.7.0), /effort scaling, CC 2.1.76 partial results + PostCompact recovery (7.8.0)
+**Version:** 4.7.0 (March 2026) — Added progressive output for incremental phase results (7.9.0)
 
 
 ---

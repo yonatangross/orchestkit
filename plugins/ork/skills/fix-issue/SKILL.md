@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server, context7 MCP se
 description: "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
-version: 2.3.0
+version: 2.4.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
@@ -79,7 +79,31 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify fix approach using AskUserQuestion. Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for the full prompt template and workflow adjustments per approach (Proper fix, Quick fix, Investigate first, Hotfix).
+**BEFORE creating tasks**, clarify fix approach:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "How do you want to approach this fix?",
+    "header": "Fix Approach",
+    "options": [
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, regression test, prevention plan", "markdown": "```\nProper Fix (11 phases)\n──────────────────────\n  Understand ──▶ Hypothesize ──▶ RCA\n       │              │           │\n       ▼              ▼           ▼\n  5 parallel     Ranked       Confirmed\n  agents         hypotheses   root cause\n       │\n       ▼\n  Fix ──▶ Validate ──▶ Prevent ──▶ PR\n  + regression test   + runbook\n```"},
+      {"label": "Quick fix", "description": "Minimal investigation, fix and test", "markdown": "```\nQuick Fix (~10 min)\n───────────────────\n  Read issue ──▶ Fix ──▶ Test ──▶ PR\n\n  Skip: full RCA, prevention plan,\n  runbook, lessons learned\n  Keep: regression test (mandatory)\n```"},
+      {"label": "Investigate first", "description": "Deep analysis before deciding on approach", "markdown": "```\nInvestigate First\n─────────────────\n  Read issue ──▶ 5 parallel agents ──▶ Report\n\n  Output: Root cause analysis\n  + hypothesis ranking\n  + recommended approach\n  No code changes yet\n```"},
+      {"label": "Hotfix", "description": "Emergency fix, minimal process", "markdown": "```\nHotfix (emergency)\n──────────────────\n  Read issue ──▶ Fix ──▶ Push\n\n  Skip: agents, RCA, prevention\n  Keep: basic test verification\n  Post-fix: schedule proper RCA\n```"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Proper fix**: All 11 phases, 5 parallel RCA agents
+- **Quick fix**: Phases 1, 6, 7, 11 only — skip RCA agents and prevention
+- **Investigate first**: Phases 1-4 only — stop after RCA report
+- **Hotfix**: Phases 1, 6, 11 only — emergency path
+
+Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for detailed workflow adjustments per approach.
 
 ## STEP 0b: Select Orchestration Mode
 
@@ -100,6 +124,20 @@ Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKIL
 | **9. Runbook** | Create/update runbook entry | Runbook |
 | **10. Lessons Learned** | Capture knowledge | Persisted learnings |
 | **11. Commit and PR** | Create PR with fix | Merged PR |
+
+### Progressive Output (CC 2.1.76)
+
+Output results **incrementally** as each phase completes — don't batch until the PR:
+
+| After Phase | Show User |
+|-------------|-----------|
+| 1. Understand Issue | Problem statement, affected files |
+| 3. Hypothesis Formation | Ranked hypotheses with confidence scores |
+| 4. RCA | Confirmed root cause, evidence chain |
+| 6. Implementation | Fix description, files changed |
+| 7. Validation | Test results, before/after behavior |
+
+For the proper fix path with 5 parallel RCA agents, output each agent's findings **as they return** — don't wait for all 5. If one agent identifies the root cause with high confidence early, flag it immediately so the user can confirm and skip remaining agents.
 
 ### Phase Handoffs (CC 2.1.71)
 
@@ -204,4 +242,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ---
 
-**Version:** 2.3.0 (March 2026) — Added ExitWorktree cleanup in Phase 8
+**Version:** 2.4.0 (March 2026) — Rich elicitation with options for fix approach, progressive output for incremental phase results

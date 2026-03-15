@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork
-version: 2.2.0
+version: 2.3.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
@@ -145,6 +145,19 @@ TaskCreate(subject="Generate exploration report", activeForm="Generating report"
 | **7. Product Perspective** | Business context | Findability suggestions |
 | **8. Report Generation** | Compile findings | Actionable report |
 
+### Progressive Output (CC 2.1.76)
+
+Output findings **incrementally** as each phase completes — don't batch until the report:
+
+| After Phase | Show User |
+|-------------|-----------|
+| 1. Initial Search | File matches, grep results |
+| 2. Memory Check | Prior decisions and relevant context |
+| 3. Deep Exploration | Each explorer agent's findings as they return |
+| 5. Code Health | Health score with dimension breakdown |
+
+For Phase 3 parallel agents, output each agent's findings **as soon as it returns** — don't wait for all 4 explorers. Early findings from one agent may answer the user's question before remaining agents complete, allowing early termination.
+
 ---
 
 ### Phase 1: Initial Search
@@ -199,4 +212,4 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
 - `ork:implement`: Implement after exploration
 ---
 
-**Version:** 2.2.0 (March 2026)
+**Version:** 2.3.0 (March 2026) — Added progressive output for incremental exploration results

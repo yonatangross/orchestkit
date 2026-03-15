@@ -110,6 +110,16 @@ Key analysis patterns:
 4. **Transitive risk**: Identify deep dependency chains
 5. **Unused dependencies**: Detect installed but never imported packages
 
+### Progressive Output (CC 2.1.76)
+
+Output findings **incrementally** as each audit mode completes — don't batch until the report:
+
+1. **Security findings first** — show critical/high vulnerabilities immediately, don't wait for architecture review
+2. **Architecture findings** — show dependency direction violations, circular deps as they surface
+3. **Dependency findings** — show CVE matches, license compliance issues
+
+For multi-mode audits (Full), each mode's findings appear as they complete. This lets users act on critical security findings while architecture analysis is still running.
+
 ---
 
 ## STEP 4: Generate Report

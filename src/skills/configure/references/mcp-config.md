@@ -12,7 +12,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
 | **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
-| **stitch-mcp** | Google Stitch AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
+| **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
 | **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
 
@@ -119,11 +119,6 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
       "args": ["-y", "agentation-mcp", "server"],
       "disabled": false
     },
-    "stitch-mcp": {
-      "command": "npx",
-      "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
-      "disabled": false
-    },
     "21st-dev-magic": {
       "command": "npx",
       "args": ["-y", "@21st-dev/magic@latest"],
@@ -196,7 +191,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | tavily | 1Password: `op read 'op://Private/Tavily API Key/API Key'` (free: https://app.tavily.com) |
 | agentation | `npm install -D agentation-mcp` in project |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
-| stitch-mcp | Google account auth via `npx @_davideast/stitch-mcp login` (free: https://stitch.withgoogle.com) |
+| stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
 
 ## Plugin Integration
@@ -211,7 +206,7 @@ OrchestKit agents and skills integrate with these MCPs:
 | ui-feedback | agentation | Browser UI annotations → code fixes |
 | notebooklm (skill) | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
-| /ork:design-to-code, design-context-extractor | stitch-mcp | AI design → HTML, screenshot extraction, design context |
+| /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |
 | /ork:component-search, component-curator | 21st-dev-magic | Search + retrieve production React components |
 
 ## Without MCPs

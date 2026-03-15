@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 argument-hint: "[scope]"
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: false
@@ -115,6 +115,16 @@ Key analysis patterns:
 3. **Version currency**: Flag significantly outdated dependencies
 4. **Transitive risk**: Identify deep dependency chains
 5. **Unused dependencies**: Detect installed but never imported packages
+
+### Progressive Output (CC 2.1.76)
+
+Output findings **incrementally** as each audit mode completes — don't batch until the report:
+
+1. **Security findings first** — show critical/high vulnerabilities immediately, don't wait for architecture review
+2. **Architecture findings** — show dependency direction violations, circular deps as they surface
+3. **Dependency findings** — show CVE matches, license compliance issues
+
+For multi-mode audits (Full), each mode's findings appear as they complete. This lets users act on critical security findings while architecture analysis is still running.
 
 ---
 

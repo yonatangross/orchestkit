@@ -181,6 +181,18 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/verification-phases.md")` 
 
 Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
+### Progressive Output (CC 2.1.76)
+
+Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents:
+
+```
+Security:     8.2/10 — No critical vulnerabilities found
+Code Quality: 7.5/10 — 3 complexity hotspots identified
+[...remaining agents still running...]
+```
+
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/visual-capture.md")` for auto-detection, route discovery, screenshot capture, and AI vision evaluation.
@@ -284,7 +296,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
 
 ---
 
-**Version:** 4.1.0 (March 2026) — Added `model: sonnet` frontmatter, `--model=opus` override, model param on all Agent() spawns
+**Version:** 4.2.0 (March 2026) — Added progressive output for incremental agent scores
 
 
 ---

@@ -457,7 +457,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -568,7 +568,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "audit-full": {
     "name": "audit-full",
     "description": "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -667,7 +667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.6.0",
+    "version": "4.7.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1091,7 +1091,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
-    "version": "2.4.0",
+    "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1686,7 +1686,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "explore": {
     "name": "explore",
     "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -1824,7 +1824,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2078,7 +2078,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
-    "version": "2.5.0",
+    "version": "2.6.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3434,7 +3434,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "review-pr": {
     "name": "review-pr",
     "description": "PR review with parallel specialized agents. Use when reviewing pull requests or code.",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -3624,7 +3624,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "mcp__memory__search_nodes",
       "mcp__memory__create_entities",
-      "mcp__memory__create_relations"
+      "mcp__memory__create_relations",
+      "mcp__ork-elicit__ork_elicit"
     ],
     "skills": [
       "doctor",
@@ -4247,7 +4248,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
-    "version": "4.1.0",
+    "version": "4.2.0",
     "author": "OrchestKit",
     "tags": [
       "verification",

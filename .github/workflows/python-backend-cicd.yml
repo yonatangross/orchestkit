@@ -1,0 +1,226 @@
+name: Python Backend CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel in-progress runs on new commits to same branch
+concurrency:
+  group: python-cicd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions: {}
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Lint & Type Check (< 2m)
+  # ============================================================================
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install lint dependencies
+        run: pip install ruff mypy
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Type check
+        run: mypy . --ignore-missing-imports
+
+  # ============================================================================
+  # STAGE 2: Tests with Coverage (< 5m)
+  # ============================================================================
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest --cov=. --cov-report=xml --cov-report=term-missing -q
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v4
+        if: matrix.python-version == env.PYTHON_VERSION
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 3: Build & Push Docker Image
+  # Runs only on push to main, after lint + tests pass
+  # ============================================================================
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [lint, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write  # needed to push to GHCR
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # GITHUB_TOKEN is scoped to this repo — no PAT needed
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=staging
+            type=raw,value=latest
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Layer cache from GHCR — avoids rebuilding unchanged layers
+          cache-from: type=registry,ref=ghcr.io/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+  # ============================================================================
+  # STAGE 4: Deploy to Staging (automatic)
+  # Requires the "staging" GitHub Environment to exist
+  # ============================================================================
+  deploy-staging:
+    name: Deploy → Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    environment:
+      name: staging
+      url: https://staging.your-domain.com
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Deploy to staging
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+          DEPLOY_TOKEN: ${{ secrets.STAGING_DEPLOY_TOKEN }}
+        # Replace this block with your actual deploy command:
+        # e.g. kubectl set image, fly deploy, render webhook, etc.
+        # Never use set -x here — DEPLOY_TOKEN would leak into logs
+        run: |
+          echo "Deploying image to staging..."
+          echo "Image: ghcr.io/${{ env.IMAGE_NAME }}:sha-$(echo '${{ github.sha }}' | cut -c1-7)"
+          # Example: kubectl set image deployment/app app=ghcr.io/${{ env.IMAGE_NAME }}:sha-$(echo '${{ github.sha }}' | cut -c1-7)
+          # Example: fly deploy --image ghcr.io/${{ env.IMAGE_NAME }}:sha-$(echo '${{ github.sha }}' | cut -c1-7)
+
+      - name: Smoke test staging
+        run: |
+          # Basic health check after deploy — adjust URL and retry logic as needed
+          for i in {1..5}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://staging.your-domain.com/health)
+            if [ "$STATUS" = "200" ]; then
+              echo "Staging healthy (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $STATUS — retrying in 10s..."
+            sleep 10
+          done
+          echo "Staging health check failed after 5 attempts"
+          exit 1
+
+  # ============================================================================
+  # STAGE 5: Deploy to Production (manual approval required)
+  # Configure the "production" GitHub Environment with required reviewers:
+  #   Repo Settings → Environments → production → Required reviewers
+  # GitHub will pause here until an authorized reviewer approves.
+  # ============================================================================
+  deploy-production:
+    name: Deploy → Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: deploy-staging
+    environment:
+      name: production
+      url: https://your-domain.com
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Deploy to production
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+          DEPLOY_TOKEN: ${{ secrets.PROD_DEPLOY_TOKEN }}
+        # Never use set -x here — DEPLOY_TOKEN would leak into logs
+        run: |
+          echo "Deploying image to production..."
+          echo "Image: ghcr.io/${{ env.IMAGE_NAME }}:sha-$(echo '${{ github.sha }}' | cut -c1-7)"
+          # Same deploy command as staging, pointing at prod cluster/env
+
+      - name: Smoke test production
+        run: |
+          for i in {1..5}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://your-domain.com/health)
+            if [ "$STATUS" = "200" ]; then
+              echo "Production healthy (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $STATUS — retrying in 10s..."
+            sleep 10
+          done
+          echo "Production health check failed after 5 attempts"
+          exit 1

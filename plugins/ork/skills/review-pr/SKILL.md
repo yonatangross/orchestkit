@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
-version: 1.6.0
+version: 1.7.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
@@ -217,6 +217,16 @@ Only spawn agents relevant to the PR's changed domains:
 | AI/LLM code | All 6 + optional llm-integrator (7th) |
 
 Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
+
+### Progressive Output (CC 2.1.76)
+
+Output each agent's findings **as they complete** — don't batch until synthesis:
+
+- **Security findings** → show blockers and critical issues first
+- **Code quality** → show pattern violations, complexity hotspots
+- **Test coverage gaps** → show missing test cases
+
+This lets the PR author start addressing blocking issues while remaining agents are still analyzing. Only the final synthesis (Phase 5) requires all agents to have completed.
 
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 

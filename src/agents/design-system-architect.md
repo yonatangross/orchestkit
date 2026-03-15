@@ -39,7 +39,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7, stitch-mcp]
+mcpServers: [context7, stitch]
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.
@@ -87,7 +87,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
-- `stitch-mcp` — Extract design context from screenshots/URLs via Google Stitch. Use `extract_design_context` to analyze existing designs and `get_screen_code` to pull HTML from Stitch projects.
+- `stitch` — Extract design context from screenshots/URLs via official Google Stitch MCP. Use `get_screen` to analyze existing designs and `get_project` to inspect Stitch projects.
 - **Opus 4.6 adaptive thinking** — Complex token hierarchy decisions, theming strategy evaluation. Native feature for multi-step reasoning — no MCP calls needed.
 
 ## Opus 4.6: 128K Output Tokens
