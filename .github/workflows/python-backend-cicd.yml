@@ -30,10 +30,35 @@ permissions: {}
 
 jobs:
   # ============================================================================
+  # STAGE 0: Check if Python code exists (skip entire workflow if not)
+  # ============================================================================
+  check-python:
+    name: Check Python Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions:
+      contents: read
+    outputs:
+      has-python: ${{ steps.check.outputs.has-python }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+      - name: Check for Python files
+        id: check
+        run: |
+          if find . -name "*.py" -not -path "./node_modules/*" -not -path "./.git/*" | head -1 | grep -q .; then
+            echo "has-python=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-python=false" >> "$GITHUB_OUTPUT"
+            echo "No Python files found — skipping all jobs"
+          fi
+
+  # ============================================================================
   # STAGE 1: Lint & Type Check (< 2m)
   # ============================================================================
   lint:
     name: Lint & Type Check
+    needs: check-python
+    if: needs.check-python.outputs.has-python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -64,6 +89,8 @@ jobs:
   # ============================================================================
   test:
     name: Tests (Python ${{ matrix.python-version }})
+    needs: check-python
+    if: needs.check-python.outputs.has-python == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
