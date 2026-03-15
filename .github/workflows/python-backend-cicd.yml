@@ -3,8 +3,20 @@ name: Python Backend CI/CD
 on:
   push:
     branches: [main]
+    paths:
+      - '**.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - '.github/workflows/python-backend-cicd.yml'
   pull_request:
     branches: [main]
+    paths:
+      - '**.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - '.github/workflows/python-backend-cicd.yml'
   workflow_dispatch:
 
 # Cancel in-progress runs on new commits to same branch
