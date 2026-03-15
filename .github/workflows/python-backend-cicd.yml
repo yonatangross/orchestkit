@@ -42,14 +42,16 @@ jobs:
       has-python: ${{ steps.check.outputs.has-python }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
-      - name: Check for Python files
+      - name: Check for Python project
         id: check
         run: |
-          if find . -name "*.py" -not -path "./node_modules/*" -not -path "./.git/*" | head -1 | grep -q .; then
+          # Only run if a real Python project exists (requirements.txt or pyproject.toml)
+          # Skill example scripts (*.py in plugins/) don't count
+          if [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
             echo "has-python=true" >> "$GITHUB_OUTPUT"
           else
             echo "has-python=false" >> "$GITHUB_OUTPUT"
-            echo "No Python files found — skipping all jobs"
+            echo "No Python project found (no requirements.txt or pyproject.toml) — skipping"
           fi
 
   # ============================================================================
