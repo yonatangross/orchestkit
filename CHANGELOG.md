@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.9.0] - 2026-03-15
+
+### Added
+
+- **monitoring-observability:** Langfuse Python SDK v4 coverage — `as_type` semantic types (generation, retriever, chain, embedding, agent, guardrail, evaluator), `score_current_span()` / `score_current_trace()`, `should_export_span` filter, `LangfuseMedia` attachments, `run_experiment()` batch evaluation
+- **monitoring-observability:** Python v3→v4 migration guide section with breaking changes checklist, code examples, and version pin guidance (`langfuse>=4.0.0`)
+
+### Changed
+
+- **monitoring-observability:** v2.0.0→3.0.0 — all code examples updated from v3 to v4 patterns across rules, scripts, checklists, and references
+- **monitoring-observability:** Setup checklist updated with v4 version pins and migration steps
+- **brainstorm:** v4.4.0→4.6.0 — added product/event-driven/devops/data-pipeline domain detection, design pipeline agents, `/effort` scaling, CC 2.1.76 partial results + PostCompact recovery
+
 ## [7.8.0] - 2026-03-14
 
 ### Added
@@ -24,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **hooks:** PostCompact and Elicitation hooks registered in `entries/lifecycle.ts` split bundle (lifecycle.mjs grew 77→80KB)
 - **compatibility:** All 78 skill `compatibility:` fields updated from 2.1.74+ to 2.1.76+
 - **counts:** 99→104 hooks (33→36 global), MIN_CC_VERSION 2.1.74→2.1.76
-- **brainstorm:** v4.4.0→4.6.0 — added product/event-driven/devops/data-pipeline domain detection, design pipeline agents (design-context-extractor, component-curator), `/effort` phase scaling, CC 2.1.76 `[PARTIAL RESULT]` handling, PostCompact recovery, browser-tools + web-research-analyst for research phases
 
 ### Fixed
 

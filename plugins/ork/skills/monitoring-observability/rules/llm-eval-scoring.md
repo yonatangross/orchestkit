@@ -7,26 +7,31 @@ tags: [langfuse, scoring, evaluation, g-eval, multi-judge, quality, datasets]
 
 # LLM Evaluation Scoring
 
-## Basic Scoring (Langfuse v3)
+## Basic Scoring (Langfuse v4)
 
 ```python
 from langfuse import observe, get_client, Langfuse
 
 langfuse = Langfuse()
 
-@observe()
+# ❌ v3 — manual trace_id + scoring
+trace_id = get_current_trace_id()
+if trace_id:
+    submit_trace_quality_score(name="relevance", value=0.85, trace_id=trace_id)
+
+# ✅ v4 — score the active span directly
+@observe(as_type="chain")
 async def analyze_and_score(query: str):
     response = await llm.generate(query)
 
-    # Score within @observe context
-    get_client().score_current_trace(
+    get_client().score_current_span(
         name="relevance",
         value=0.85,
         comment="Response addresses query but lacks depth",
     )
     return response
 
-# Or score by trace_id directly
+# Or score by trace_id directly (still supported)
 langfuse.score(
     trace_id="trace_123",
     name="factuality",
@@ -55,7 +60,7 @@ Each evaluator run creates its own inspectable trace:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     score = await llm_judge.evaluate(
         criteria="relevance", query=query, response=response,
@@ -93,9 +98,40 @@ async def analyze_with_scoring(query: str):
     )
 
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
 
     return response
+```
+
+## Batch Evaluation with run_experiment() (v4)
+
+Use `run_experiment()` to evaluate a pipeline against a dataset with multiple evaluators:
+
+```python
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+async def relevance_eval(run_output, expected_output):
+    return await llm_judge.evaluate(
+        criteria="relevance", output=run_output, expected=expected_output,
+    )
+
+async def coherence_eval(run_output, expected_output):
+    return await llm_judge.evaluate(
+        criteria="coherence", output=run_output, expected=expected_output,
+    )
+
+result = langfuse.run_experiment(
+    dataset_name="golden_set",
+    experiment_name="quality_v4",
+    run_fn=your_pipeline,
+    evaluators=[
+        {"name": "relevance", "fn": relevance_eval},
+        {"name": "coherence", "fn": coherence_eval},
+    ],
+)
+# Results visible in Langfuse Experiments UI with per-row scores
 ```
 
 ## Common Evaluation Metrics
@@ -119,7 +155,7 @@ async def quality_gate_node(state):
     scores = await run_quality_evaluators(state)
 
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
 
     avg_score = sum(scores.values()) / len(scores)
     return {"quality_gate_passed": avg_score >= 0.7, "quality_scores": scores}
@@ -142,7 +178,7 @@ ORDER BY date;
 ## Best Practices
 
 1. **Score all production traces** for quality monitoring
-2. **Use evaluator type** (`@observe(type="evaluator")`) for inspectable judge traces
+2. **Use evaluator type** (`@observe(as_type="evaluator")`) for inspectable judge traces
 3. **Use consistent criteria** across all evaluations
 4. **Automate scoring** with G-Eval or similar frameworks
 5. **Set quality thresholds** (e.g., avg_relevance > 0.7)
@@ -158,13 +194,13 @@ async def analyze(query: str):
     return response  # No quality metrics
 ```
 
-**Correct — automated quality scoring:**
+**Correct — automated quality scoring (v4):**
 ```python
-@observe()
+@observe(as_type="chain")
 async def analyze(query: str):
     response = await llm.generate(query)
     scores = await scorer.score(query, response, ["relevance", "depth"])
     for criterion, score in scores.items():
-        get_client().score_current_trace(name=criterion, value=score)
+        get_client().score_current_span(name=criterion, value=score)
     return response
 ```

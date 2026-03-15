@@ -17,6 +17,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.9.0",
+    "date": "2026-03-15",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**monitoring-observability:** Langfuse Python SDK v4 coverage — `as_type` semantic types (generation, retriever, chain, embedding, agent, guardrail, evaluator), `score_current_span()` / `score_current_trace()`, `should_export_span` filter, `LangfuseMedia` attachments, `run_experiment()` batch evaluation",
+          "**monitoring-observability:** Python v3→v4 migration guide section with breaking changes checklist, code examples, and version pin guidance (`langfuse>=4.0.0`)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**monitoring-observability:** v2.0.0→3.0.0 — all code examples updated from v3 to v4 patterns across rules, scripts, checklists, and references",
+          "**monitoring-observability:** Setup checklist updated with v4 version pins and migration steps",
+          "**brainstorm:** v4.4.0→4.6.0 — added product/event-driven/devops/data-pipeline domain detection, design pipeline agents, `/effort` scaling, CC 2.1.76 partial results + PostCompact recovery"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.8.0",
     "date": "2026-03-14",
     "compareUrl": "",
