@@ -1,6 +1,6 @@
 ---
 title: NotebookLM Rule Categories
-version: 1.0.0
+version: 1.1.0
 spec-version: "2025-11-25"
 ---
 
@@ -12,21 +12,22 @@ Authentication, MCP configuration, and session management for notebooklm-mcp-cli
 
 - `setup-quickstart.md` — Auth, MCP config, session lifetime, verification
 
-## 2. Workflows (workflow) — HIGH/MEDIUM — 4 rules
+## 2. Workflows (workflow) — HIGH/MEDIUM — 5 rules
 
 Patterns for using NotebookLM as an external knowledge tool.
 
 - `workflow-second-brain.md` — Decision documentation, project hub, agent interop
 - `workflow-research-offload.md` — Research synthesis, codebase onboarding, token savings
 - `workflow-knowledge-base.md` — Debugging KB, security handbook, grounded queries
-- `workflow-studio-content.md` — All 9 studio artifact types, download, export
+- `workflow-studio-content.md` — All 9 studio artifact types, multilingual generation, download, export
+- `workflow-batch-pipelines.md` — Cross-notebook queries, batch ops, pipelines, tagging (v0.4.6+)
 
 ## 3. Research (research) — HIGH/MEDIUM — 2 rules
 
 Discovery, collaboration, and sharing patterns.
 
 - `workflow-research-discovery.md` — Web/Drive research async flow (start -> status -> import)
-- `workflow-sharing-collaboration.md` — Public links, collaborator invites, access control
+- `workflow-sharing-collaboration.md` — Public links, collaborator invites, batch sharing, access control
 
 ## 4. Release (release) — HIGH — 1 rule
 

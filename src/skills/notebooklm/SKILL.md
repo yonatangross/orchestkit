@@ -34,9 +34,9 @@ NotebookLM = external RAG engine that offloads reading from your context window.
 
 1. **Install**: `uv tool install notebooklm-mcp-cli` (or `pip install notebooklm-mcp-cli`)
 2. **Authenticate**: `nlm login` (opens browser, session ~20 min)
-3. **Configure MCP**: `nlm setup add claude-code` (auto-configures `.mcp.json`)
-4. **Alternative**: `nlm skill install` for guided setup with verification
-5. **Verify**: `nlm login --check` to confirm active session
+3. **Configure MCP**: `nlm setup add claude-code` (auto-configures `.mcp.json`) or `nlm setup add all` for multi-tool setup
+4. **Verify**: `nlm login --check` to confirm active session
+5. **Upgrade**: `uv tool upgrade notebooklm-mcp-cli` — restart MCP server after upgrade
 
 ## Decision Tree — Which Rule to Read
 

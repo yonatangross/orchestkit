@@ -36,9 +36,24 @@ notebook_share_invite(
 notebook_share_public(notebook_id="...", enabled=true)
 ```
 
+**Batch sharing — invite multiple collaborators at once:**
+```
+# Single call for multiple invites with mixed roles
+notebook_share_batch(
+    notebook_id="...",
+    invitations=[
+        {"email": "dev@company.com", "role": "editor"},
+        {"email": "pm@company.com", "role": "reader"},
+        {"email": "lead@company.com", "role": "editor"}
+    ],
+    confirm=True
+)
+```
+
 **Key rules:**
 - Always call `notebook_share_status` before modifying sharing settings
-- Prefer `notebook_share_invite` with specific collaborators over public links
+- Prefer `notebook_share_invite` (or `notebook_share_batch` for multiple) over public links
 - Review notebook content for sensitive material before enabling public access
 - Use `role="reader"` by default -- only grant `"editor"` when collaboration is needed
+- Use `notebook_share_batch` for 3+ collaborators -- single API call vs. multiple invites
 - Disable public links when no longer needed: `notebook_share_public(enabled=false)`

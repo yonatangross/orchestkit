@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.76+."
 author: OrchestKit
 description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
-version: 1.0.0
+version: 1.1.0
 tags: [notebooklm, mcp, rag, google, podcast, research, knowledge-management]
 user-invocable: false
 disable-model-invocation: true
@@ -26,7 +26,7 @@ allowed-tools:
 
 # NotebookLM
 
-NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI) to create notebooks, manage sources, generate content, and query with grounded AI responses.
+NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI, v0.4.8+) to create notebooks, manage sources, generate content, and query with grounded AI responses. Supports batch operations across notebooks, pipelines, and multilingual content generation.
 
 > **Disclaimer**: Uses internal undocumented Google APIs via browser authentication. Sessions last ~20 minutes. API may change without notice.
 
@@ -34,9 +34,9 @@ NotebookLM = external RAG engine that offloads reading from your context window.
 
 1. **Install**: `uv tool install notebooklm-mcp-cli` (or `pip install notebooklm-mcp-cli`)
 2. **Authenticate**: `nlm login` (opens browser, session ~20 min)
-3. **Configure MCP**: `nlm setup add claude-code` (auto-configures `.mcp.json`)
-4. **Alternative**: `nlm skill install` for guided setup with verification
-5. **Verify**: `nlm login --check` to confirm active session
+3. **Configure MCP**: `nlm setup add claude-code` (auto-configures `.mcp.json`) or `nlm setup add all` for multi-tool setup
+4. **Verify**: `nlm login --check` to confirm active session
+5. **Upgrade**: `uv tool upgrade notebooklm-mcp-cli` — restart MCP server after upgrade
 
 ## Decision Tree — Which Rule to Read
 
@@ -72,7 +72,15 @@ What are you trying to do?
 │   └── Create/list/update/delete ► note (unified tool)
 │
 ├── Sharing & collaboration
-│   └── Public links / invites ──► rules/workflow-sharing-collaboration.md
+│   └── Public links / invites / batch ► rules/workflow-sharing-collaboration.md
+│
+├── Batch & cross-notebook
+│   ├── Query across notebooks ────► cross_notebook_query
+│   ├── Bulk operations ───────────► batch (query, add-source, create, studio)
+│   └── Multi-step pipelines ──────► rules/workflow-batch-pipelines.md
+│
+├── Organization
+│   └── Tag notebooks ─────────────► tags
 │
 └── Workflow patterns
     ├── Second brain ─────────────► rules/workflow-second-brain.md
@@ -90,27 +98,31 @@ What are you trying to do?
 | **Workflows** | `workflow-knowledge-base.md` | HIGH | Debugging KB, security handbook, team knowledge |
 | **Workflows** | `workflow-studio-content.md` | MEDIUM | 9 artifact types (audio overview, deep dive, slides...) |
 | **Research** | `workflow-research-discovery.md` | HIGH | Web/Drive research async flow |
-| **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites |
+| **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites, batch sharing |
+| **Batch** | `workflow-batch-pipelines.md` | HIGH | Cross-notebook queries, batch ops, pipelines |
 | **Release** | `workflow-versioned-notebooks.md` | HIGH | Per-release notebooks with changelog + diffs |
 
-**Total: 8 rules across 4 categories**
+**Total: 9 rules across 5 categories**
 
 ## MCP Tools by API Group
 
 | Group | Tools | Count |
 |-------|-------|-------|
 | Notebooks | notebook_list, notebook_create, notebook_get, notebook_describe, notebook_rename, notebook_delete | 6 |
-| Sources | source_list, source_add, source_rename, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 8 |
+| Sources | source_add, source_rename, source_list_drive, source_sync_drive, source_delete, source_describe, source_get_content | 7 |
 | Querying | notebook_query, chat_configure | 2 |
-| Studio | studio_create, studio_status, studio_revise, studio_delete | 4 |
+| Studio | studio_create, studio_status, studio_list_types, studio_revise, studio_delete | 5 |
 | Research | research_start, research_status, research_import | 3 |
-| Sharing | notebook_share_status, notebook_share_public, notebook_share_invite | 3 |
+| Sharing | notebook_share_status, notebook_share_public, notebook_share_invite, notebook_share_batch | 4 |
 | Notes | note (unified: list/create/update/delete) | 1 (4 actions) |
 | Downloads | download_artifact | 1 |
 | Export | export_artifact (Google Docs/Sheets) | 1 |
-| Auth | save_auth_tokens, refresh_auth | 2 |
+| Batch | batch (multi-notebook ops), cross_notebook_query | 2 |
+| Pipelines | pipelines (ingest-and-podcast, research-and-report, multi-format) | 1 |
+| Tags | tags (organize and smart-select notebooks) | 1 |
+| Auth | save_auth_tokens, refresh_auth, server_info | 3 |
 
-**Total: 32 tools across 10 groups**
+**Total: 37 tools across 13 groups** (v0.4.8+)
 
 ## Key Decisions
 
@@ -128,6 +140,9 @@ What are you trying to do?
 | Infographic style | 11 visual styles via `infographic_style` param on studio_create |
 | Slide revision | Use `studio_revise` to edit individual slides (creates a new deck) |
 | Export artifacts | `export_artifact` sends reports → Google Docs, data tables → Sheets |
+| Language | `language` param on studio_create accepts BCP-47 codes (e.g., `he` for Hebrew, `en`, `es`, `ja`) |
+| Batch operations | Use `batch` for multi-notebook ops; `cross_notebook_query` for aggregated answers |
+| Pipelines | `ingest-and-podcast` / `research-and-report` / `multi-format` for multi-step workflows |
 
 ## Example
 
@@ -143,8 +158,8 @@ source_add(notebook_id="...", type="file", path="/docs/auth-design.md")
 # 3. Query with grounded AI responses
 notebook_query(notebook_id="...", query="What are the key differences between OAuth 2.0 and 2.1?")
 
-# 4. Generate a deep dive audio overview
-studio_create(notebook_id="...", type="deep_dive")
+# 4. Generate a deep dive audio overview (supports language param)
+studio_create(notebook_id="...", artifact_type="audio", audio_format="deep_dive", language="he", confirm=True)
 studio_status(notebook_id="...")  # Poll until complete
 
 # 5. Capture insights as notes
@@ -158,9 +173,11 @@ note(notebook_id="...", action="create", content="Key takeaway: PKCE is mandator
 - **Huge single sources** — Split documents >50K characters into logical sections for better chunking and retrieval.
 - **Not polling studio_status** — Studio content generation takes 2-5 minutes. Poll `studio_status` instead of assuming instant results.
 - **Ignoring source types** — Use `type=url` for web pages (auto-extracts), `type=file` for local files. Using `type=text` for a URL gives you the URL string, not the page content.
-- **Deleting notebooks without checking** — `notebook_delete` is irreversible. List contents with `source_list` and `note(action=list)` first.
+- **Deleting notebooks without checking** — `notebook_delete` is irreversible. List contents with `source_list_drive` and `note(action=list)` first.
 - **Skipping research_import** — `research_start` discovers content but does not add it. Use `research_import` to actually add findings as sources.
 - **Raw queries on empty notebooks** — `notebook_query` returns poor results with no sources. Add sources before querying.
+- **Ignoring language param** — `studio_create` supports BCP-47 `language` codes (e.g., `he`, `ar`, `ja`). Defaults to English if omitted.
+- **Batch without purpose** — `batch` and `cross_notebook_query` are powerful but add latency. Use for multi-project synthesis, not single-notebook tasks.
 
 ## Related Skills
 
