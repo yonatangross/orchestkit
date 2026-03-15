@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.9.1",
+    "date": "2026-03-15",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "Integrate `@yonatan-hq/analytics` for cross-project page view tracking in docs site",
+          "Add Edge route handler for HMAC-signed analytics event forwarding to HQ API"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.9.0",
     "date": "2026-03-15",
     "compareUrl": "",

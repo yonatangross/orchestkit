@@ -86,6 +86,37 @@ export_artifact(notebook_id="...", artifact_id="...", export_type="docs")
 export_artifact(notebook_id="...", artifact_id="...", export_type="sheets")
 ```
 
+**Multilingual content generation:**
+```
+# Generate a Hebrew infographic
+studio_create(
+    notebook_id="...", artifact_type="infographic",
+    infographic_style="bento_grid", language="he", confirm=True
+)
+
+# Generate a Japanese audio overview
+studio_create(
+    notebook_id="...", artifact_type="audio",
+    audio_format="deep_dive", language="ja", confirm=True
+)
+```
+
+Supported `language` values (BCP-47): `en`, `he`, `ar`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `zh`, `ru`, `hi`, and more. Defaults to `en` or `NOTEBOOKLM_HL` env var.
+
+**Audio format options:**
+| Format | Description |
+|--------|-------------|
+| `deep_dive` | Extended conversational podcast (default) |
+| `brief` | Short summary podcast |
+| `critique` | Critical analysis format |
+| `debate` | Two-sided debate format |
+
+**Video format and visual style options:**
+| Video format | Style options |
+|-------------|--------------|
+| `explainer` | auto_select, classic, whiteboard, kawaii, anime, watercolor, retro_print, heritage, paper_craft |
+| `brief` | Same style options |
+
 **Key rules:**
 - Always use the poll pattern: `studio_create` -> `studio_status` -> `download_artifact`
 - Generation takes 2-5 minutes -- inform the user and poll periodically
@@ -94,3 +125,5 @@ export_artifact(notebook_id="...", artifact_id="...", export_type="sheets")
 - All artifact types require at least one source in the notebook
 - `studio_revise` only works on slide decks -- it creates a new artifact, preserving the original
 - Use `export_artifact` to push reports to Google Docs or data tables to Google Sheets
+- Set `language` for non-English content -- affects generated text, narration, and labels
+- Use `confirm=True` on all studio_create calls (required parameter)

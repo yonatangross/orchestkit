@@ -2637,7 +2637,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "notebooklm": {
     "name": "notebooklm",
     "description": "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "notebooklm",
