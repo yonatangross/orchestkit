@@ -4,8 +4,7 @@ import { Banner } from "fumadocs-ui/components/banner";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-// Analytics stub (no-op)
-function HQAnalytics(_props: { projectId: string }) { return null; }
+import { HQAnalytics } from "@yonatan-hq/analytics";
 import { SITE, COUNTS, BANNER_TEXT } from "@/lib/constants";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
 
