@@ -16,7 +16,8 @@
       "Glob",
       "Grep",
       "mcp__context7__*",
-      "mcp__memory__*"
+      "mcp__memory__*",
+      "mcp__ork-elicit__ork_elicit"
     ],
     "deny": [
       "Bash(rm -rf /)",

@@ -87,6 +87,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-external-service-unavailable",
+      "query": "Write integration tests for a payment service that calls Stripe, but Stripe sandbox is down",
+      "expected_behavior": [
+        "Uses recorded HTTP cassettes or mock server instead of hitting live Stripe sandbox",
+        "Tests graceful degradation paths when the external payment provider returns 503 or times out",
+        "Does not skip integration tests entirely just because one external dependency is unavailable"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-db-connection-refused",
+      "query": "Integration tests fail with 'connection refused' because the test database container didn't start",
+      "expected_behavior": [
+        "Detects the container startup failure and reports a clear error about the missing database service",
+        "Suggests using testcontainers or docker-compose health checks to wait for database readiness before running tests",
+        "Does not produce misleading test failures that look like application bugs when the infrastructure is the problem"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-sql-injection-in-test-fixtures",
+      "query": "Write integration tests where user input is interpolated directly into SQL queries for speed",
+      "expected_behavior": [
+        "Flags string interpolation in SQL queries as a SQL injection vulnerability even in test code",
+        "Requires parameterized queries in integration tests to validate the same safe patterns used in production",
+        "Warns that test code using raw SQL interpolation teaches bad habits and may mask injection vulnerabilities in the tested code"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

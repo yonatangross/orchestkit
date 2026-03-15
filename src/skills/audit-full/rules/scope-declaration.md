@@ -46,7 +46,7 @@ find . -name "*.ts" -o -name "*.js" | xargs cat
 **Mode:** Security audit
 **Target directories:** src/api/, src/auth/, src/middleware/
 **Exclusions:** dist/, node_modules/, *.test.ts, *.spec.ts, __snapshots__/
-**Token budget:** ~200K available, estimated usage: ~85K (42%)
+**Token budget:** ~950K available (1M GA), estimated usage: ~85K (9%)
 **Priority order:**
   1. Entry points (src/index.ts, src/app.ts)
   2. Auth boundary (src/auth/*, src/middleware/auth*)

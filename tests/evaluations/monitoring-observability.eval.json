@@ -158,6 +158,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-high-cardinality-labels",
+      "query": "I added user_id and request_path as Prometheus label values and now my metrics endpoint takes 30 seconds to scrape",
+      "expected_behavior": [
+        "Identifies user_id and raw request_path as high-cardinality labels that cause metric explosion",
+        "Recommends grouping paths by route pattern instead of using raw URL paths as label values",
+        "Suggests using histograms or logs for per-user attribution instead of per-user metric labels",
+        "Does not suggest simply increasing scrape timeout as a fix for cardinality-caused performance issues"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-langfuse-unavailable",
+      "query": "Our Langfuse self-hosted instance went down and now all LLM calls in production are failing with connection errors",
+      "expected_behavior": [
+        "Configures Langfuse client to fail open so tracing failures never block LLM call execution",
+        "Wraps observe decorator calls with error handling that logs locally when Langfuse is unreachable",
+        "Uses async flush mode so trace submission does not add latency to the critical request path",
+        "Does not make LLM functionality dependent on observability infrastructure availability"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-pii-in-traces",
+      "query": "I discovered that our Langfuse traces contain full user credit card numbers and SSNs from the LLM input prompts",
+      "expected_behavior": [
+        "Applies PII redaction in the Langfuse mask callback before trace data leaves the application",
+        "Scans both input prompts and output completions for PII patterns before sending to Langfuse",
+        "Replaces detected PII with typed redaction tokens like [REDACTED_CC] and [REDACTED_SSN]",
+        "Does not rely on Langfuse server-side filtering since PII should never be transmitted unmasked"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

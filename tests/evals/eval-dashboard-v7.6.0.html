@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit v7.6.0 — Eval Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--green:#3fb950;--green-bg:rgba(63,185,80,.12);--yellow:#d29922;--yellow-bg:rgba(210,153,34,.12);--red:#f85149;--red-bg:rgba(248,81,73,.12);--blue:#58a6ff;--purple:#bc8cff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:24px;max-width:1200px;margin:0 auto}
+h1{font-size:24px;font-weight:600;margin-bottom:4px}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:24px}
+.subtitle span{color:var(--text);font-weight:500}
+
+/* Summary cards */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.card .num{font-size:32px;font-weight:700;line-height:1.2}
+.card .label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.card.green .num{color:var(--green)}.card.yellow .num{color:var(--yellow)}.card.red .num{color:var(--red)}.card.blue .num{color:var(--blue)}
+
+/* Filters */
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filters button{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .15s}
+.filters button:hover{border-color:var(--text2)}
+.filters button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Sort */
+.sort-bar{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.sort-bar span{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.sort-bar select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:13px;cursor:pointer}
+
+/* Skill rows */
+.skill{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.skill:hover{border-color:var(--text2)}
+.skill-header{display:grid;grid-template-columns:160px 1fr 80px 80px 80px 120px;align-items:center;padding:12px 16px;cursor:pointer;gap:8px}
+.skill-name{font-weight:600;font-size:14px}
+.bar-cell{position:relative;height:24px}
+.bar-bg{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--surface2);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .3s ease}
+.bar-fill.with{background:var(--blue);opacity:.8}
+.bar-fill.base{background:var(--text2);opacity:.4}
+.bar-stack{position:relative;height:24px}
+.bar-label{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:600;z-index:1}
+.score{font-size:13px;text-align:center;font-variant-numeric:tabular-nums}
+.delta{font-size:13px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.delta.pos{color:var(--green)}.delta.neg{color:var(--red)}.delta.zero{color:var(--text2)}
+.verdict{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding:4px 10px;border-radius:12px;text-align:center;white-space:nowrap}
+.verdict.adds{background:var(--green-bg);color:var(--green)}
+.verdict.neutral{background:var(--yellow-bg);color:var(--yellow)}
+.verdict.regresses{background:var(--red-bg);color:var(--red)}
+.expand-icon{color:var(--text2);font-size:12px;text-align:right;transition:transform .2s}
+.skill.open .expand-icon{transform:rotate(90deg)}
+
+/* Detail panel */
+.skill-detail{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.skill.open .skill-detail{display:block}
+.assertion-row{display:grid;grid-template-columns:1fr 80px 80px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--surface2)}
+.assertion-row:last-child{border-bottom:none}
+.assertion-name{color:var(--text2)}
+.assertion-result{text-align:center;font-weight:600;font-size:12px}
+.assertion-result.pass{color:var(--green)}.assertion-result.fail{color:var(--red)}.assertion-result.eq{color:var(--text2)}
+.detail-header{display:grid;grid-template-columns:1fr 80px 80px;padding:8px 0;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.eval-label{font-size:12px;color:var(--purple);font-weight:600;padding:12px 0 4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Col headers */
+.col-headers{display:grid;grid-template-columns:160px 1fr 80px 80px 80px 120px;padding:4px 16px;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;gap:8px}
+.col-headers>div:nth-child(3),.col-headers>div:nth-child(4),.col-headers>div:nth-child(5){text-align:center}
+
+/* Prompt output */
+.prompt-section{margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.prompt-section h3{font-size:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.prompt-text{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.copy-btn{background:var(--blue);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:opacity .15s}
+.copy-btn:hover{opacity:.85}
+.copy-btn.copied{background:var(--green)}
+</style>
+</head>
+<body>
+<h1>OrchestKit v7.6.0 — Eval Dashboard</h1>
+<p class="subtitle">Quality evaluation: <span>17 skills</span> &middot; with-skill vs baseline &middot; Claude-as-judge &middot; <span>2026-03-14</span></p>
+
+<div class="summary">
+  <div class="card blue"><div class="num">17</div><div class="label">Skills Evaluated</div></div>
+  <div class="card green"><div class="num">4</div><div class="label">Adds Value</div></div>
+  <div class="card yellow"><div class="num">9</div><div class="label">Neutral</div></div>
+  <div class="card red"><div class="num">4</div><div class="label">Regresses</div></div>
+</div>
+
+<div class="filters">
+  <button class="active" data-filter="all">All (17)</button>
+  <button data-filter="adds">Adds Value (4)</button>
+  <button data-filter="neutral">Neutral (9)</button>
+  <button data-filter="regresses">Regresses (4)</button>
+</div>
+
+<div class="sort-bar">
+  <span>Sort by</span>
+  <select id="sortSelect">
+    <option value="name">Name</option>
+    <option value="delta-desc">Delta (best first)</option>
+    <option value="delta-asc">Delta (worst first)</option>
+    <option value="with-desc">With-Skill Score</option>
+    <option value="verdict">Verdict</option>
+  </select>
+</div>
+
+<div class="col-headers">
+  <div>Skill</div>
+  <div>Score Comparison</div>
+  <div>With</div>
+  <div>Base</div>
+  <div>Delta</div>
+  <div>Verdict</div>
+</div>
+
+<div id="skillList"></div>
+
+<div class="prompt-section">
+  <h3>Summary Prompt <button class="copy-btn" onclick="copyPrompt()">Copy</button></h3>
+  <div class="prompt-text" id="promptOutput"></div>
+</div>
+
+<script>
+const DATA = [
+  {name:"api-design",with:100,base:100,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: REST API design",assertions:[
+     {name:"RFC 9457 error format",w:"pass",b:"pass"},{name:"versioning strategy",w:"pass",b:"pass"},
+     {name:"pagination pattern",w:"pass",b:"pass"},{name:"resource relationships",w:"pass",b:"pass"},
+     {name:"HTTP methods correct",w:"pass",b:"pass"},{name:"no verb-based URLs",w:"pass",b:"pass"}]},
+   {label:"Eval 2: error format migration",assertions:[
+     {name:"proper status codes",w:"pass",b:"pass"},{name:"structured error format",w:"pass",b:"pass"},
+     {name:"no 200-for-errors",w:"pass",b:"pass"}]}]},
+  {name:"assess",with:100,base:100,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: API quality assessment",assertions:[
+     {name:"0-10 score",w:"pass",b:"pass"},{name:"dimension breakdown",w:"pass",b:"pass"},
+     {name:"identifies error handling gap",w:"pass",b:"pass"},{name:"identifies versioning gap",w:"pass",b:"pass"},
+     {name:"actionable recommendations",w:"pass",b:"pass"},{name:"no unsubstantiated scores",w:"pass",b:"pass"},
+     {name:"no missing dimensions",w:"pass",b:"pass"}]}]},
+  {name:"brainstorm",with:57,base:37,delta:20,verdict:"adds",
+   evals:[{label:"Eval 1: real-time collaboration",assertions:[
+     {name:"generates multiple alternatives",w:"fail",b:"fail"},{name:"includes trade-off comparison",w:"fail",b:"fail"},
+     {name:"considers existing stack",w:"pass",b:"fail"},{name:"asks clarifying questions",w:"pass",b:"fail"},
+     {name:"no single option",w:"fail",b:"fail"}]},
+   {label:"Eval 2: full-text search",assertions:[
+     {name:"respects quick ideation mode",w:"pass",b:"pass"},{name:"covers all three options",w:"pass",b:"pass"},
+     {name:"provides a recommendation",w:"pass",b:"pass"},{name:"no unsupported claims",w:"fail",b:"fail"}]}]},
+  {name:"commit",with:25,base:25,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: connection pool refactor",assertions:[
+     {name:"conventional format",w:"fail",b:"fail"},{name:"Co-Authored-By",w:"fail",b:"fail"},
+     {name:"mentions both changes",w:"fail",b:"fail"},{name:"runs tests first",w:"fail",b:"fail"},
+     {name:"no WIP commit",w:"pass",b:"pass"}]},
+   {label:"Eval 2: typo fix",assertions:[
+     {name:"appropriate scope",w:"fail",b:"fail"},{name:"concise message",w:"fail",b:"fail"},
+     {name:"no scope creep",w:"pass",b:"pass"}]}]},
+  {name:"create-pr",with:22,base:22,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: user invitation",assertions:[
+     {name:"validates branch",w:"fail",b:"fail"},{name:"references issue",w:"fail",b:"fail"},
+     {name:"structured PR body",w:"fail",b:"fail"},{name:"runs pre-flight checks",w:"fail",b:"fail"},
+     {name:"no direct push to main",w:"pass",b:"pass"}]},
+   {label:"Eval 2: docs update",assertions:[
+     {name:"appropriate scope",w:"fail",b:"fail"},{name:"lightweight validation",w:"pass",b:"pass"},
+     {name:"creates PR via gh",w:"fail",b:"fail"},{name:"no empty description",w:"fail",b:"fail"}]}]},
+  {name:"doctor",with:22,base:22,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: full health check",assertions:[
+     {name:"checks multiple categories",w:"fail",b:"fail"},{name:"reports status per category",w:"fail",b:"fail"},
+     {name:"checks CC version",w:"fail",b:"fail"},{name:"actionable remediation",w:"fail",b:"fail"},
+     {name:"no false positives",w:"pass",b:"pass"}]},
+   {label:"Eval 2: hooks only",assertions:[
+     {name:"scoped to hooks",w:"fail",b:"fail"},{name:"reports hook status",w:"fail",b:"fail"},
+     {name:"quick format",w:"pass",b:"pass"},{name:"no unrelated checks",w:"fail",b:"fail"}]}]},
+  {name:"explore",with:100,base:83,delta:17,verdict:"adds",
+   evals:[{label:"Eval 1: codebase architecture",assertions:[
+     {name:"multi-file exploration",w:"pass",b:"pass"},{name:"architecture summary",w:"pass",b:"pass"},
+     {name:"file path citations",w:"pass",b:"pass"},{name:"data flow description",w:"pass",b:"fail"},
+     {name:"no fabricated paths",w:"pass",b:"pass"},{name:"no shallow listing",w:"pass",b:"pass"}]}]},
+  {name:"fix-issue",with:30,base:30,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: 403 error fix",assertions:[
+     {name:"reads issue from GitHub",w:"fail",b:"fail"},{name:"forms hypotheses",w:"fail",b:"fail"},
+     {name:"writes regression test first",w:"fail",b:"fail"},{name:"commits on feature branch",w:"fail",b:"fail"},
+     {name:"includes prevention plan",w:"fail",b:"fail"},{name:"no direct main commit",w:"pass",b:"pass"}]},
+   {label:"Eval 2: memory leak",assertions:[
+     {name:"respects quick fix mode",w:"pass",b:"pass"},{name:"identifies leak pattern",w:"fail",b:"fail"},
+     {name:"adds cleanup logic",w:"fail",b:"fail"},{name:"no blind fix",w:"pass",b:"pass"}]}]},
+  {name:"help",with:44,base:33,delta:20,verdict:"adds",
+   evals:[{label:"Eval 1: skill listing",assertions:[
+     {name:"dynamic discovery",w:"fail",b:"fail"},{name:"categorized output",w:"fail",b:"pass"},
+     {name:"includes usage examples",w:"fail",b:"pass"},{name:"covers user-invocable skills",w:"fail",b:"pass"},
+     {name:"no stale skill list",w:"fail",b:"fail"}]},
+   {label:"Eval 2: git filtering",assertions:[
+     {name:"filters to git category",w:"pass",b:"fail"},{name:"includes descriptions",w:"pass",b:"fail"},
+     {name:"shows invocation syntax",w:"pass",b:"fail"},{name:"no non-invocable skills",w:"pass",b:"fail"}]}]},
+  {name:"implement",with:22,base:22,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: health check endpoint",assertions:[
+     {name:"endpoint created",w:"fail",b:"fail"},{name:"returns required fields",w:"fail",b:"fail"},
+     {name:"test included",w:"fail",b:"fail"},{name:"error handling",w:"fail",b:"fail"},
+     {name:"no placeholder code",w:"pass",b:"pass"}]},
+   {label:"Eval 2: search feature",assertions:[
+     {name:"debounce implemented",w:"fail",b:"fail"},{name:"loading state",w:"fail",b:"fail"},
+     {name:"empty state",w:"fail",b:"fail"},{name:"no hardcoded values",w:"pass",b:"pass"}]}]},
+  {name:"memory",with:12,base:50,delta:-37,verdict:"regresses",
+   evals:[{label:"Eval 1: auth decisions search",assertions:[
+     {name:"uses knowledge graph",w:"fail",b:"fail"},{name:"filters by relevant topic",w:"fail",b:"pass"},
+     {name:"formats results clearly",w:"fail",b:"pass"},{name:"no fabricated memories",w:"pass",b:"pass"}]},
+   {label:"Eval 2: graph visualization",assertions:[
+     {name:"renders Mermaid diagram",w:"fail",b:"fail"},{name:"includes entity types",w:"fail",b:"fail"},
+     {name:"handles empty graph",w:"fail",b:"fail"},{name:"no raw JSON dump",w:"fail",b:"pass"}]}]},
+  {name:"remember",with:0,base:8,delta:-8,verdict:"regresses",
+   evals:[{label:"Eval 1: success pattern",assertions:[
+     {name:"stores as success pattern",w:"fail",b:"fail"},{name:"extracts entities",w:"fail",b:"fail"},
+     {name:"creates relationships",w:"fail",b:"fail"},{name:"auto-detects category",w:"fail",b:"fail"},
+     {name:"confirms storage",w:"fail",b:"fail"},{name:"no silent storage",w:"fail",b:"pass"}]},
+   {label:"Eval 2: anti-pattern",assertions:[
+     {name:"stores as anti-pattern",w:"fail",b:"fail"},{name:"extracts lesson",w:"fail",b:"fail"},
+     {name:"categorizes correctly",w:"fail",b:"fail"},{name:"no lost lesson",w:"fail",b:"fail"}]}]},
+  {name:"review-pr",with:8,base:8,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: payment webhook",assertions:[
+     {name:"fetches PR diff",w:"fail",b:"fail"},{name:"launches parallel agents",w:"fail",b:"fail"},
+     {name:"uses conventional comments",w:"fail",b:"fail"},{name:"checks security",w:"fail",b:"fail"},
+     {name:"submits review via gh",w:"fail",b:"fail"},{name:"no rubber stamp",w:"pass",b:"pass"}]},
+   {label:"Eval 2: dependency bump",assertions:[
+     {name:"adapts scope",w:"fail",b:"fail"},{name:"checks for breaking changes",w:"fail",b:"fail"},
+     {name:"provides verdict",w:"fail",b:"fail"},{name:"no missed security check",w:"fail",b:"fail"}]}]},
+  {name:"setup",with:22,base:44,delta:-33,verdict:"regresses",
+   evals:[{label:"Eval 1: TS Next.js onboarding",assertions:[
+     {name:"scans codebase",w:"fail",b:"fail"},{name:"detects stack",w:"fail",b:"fail"},
+     {name:"recommends relevant skills",w:"fail",b:"fail"},{name:"computes readiness score",w:"fail",b:"fail"},
+     {name:"generates improvement plan",w:"fail",b:"fail"},{name:"no wrong stack detection",w:"pass",b:"pass"}]},
+   {label:"Eval 2: score only",assertions:[
+     {name:"respects score-only flag",w:"fail",b:"pass"},{name:"shows dimensional breakdown",w:"fail",b:"pass"},
+     {name:"no full wizard output",w:"pass",b:"pass"}]}]},
+  {name:"verify",with:8,base:8,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: registration flow",assertions:[
+     {name:"launches parallel agents",w:"fail",b:"fail"},{name:"runs test suite",w:"fail",b:"fail"},
+     {name:"produces composite score",w:"fail",b:"fail"},{name:"assigns letter grade",w:"fail",b:"fail"},
+     {name:"generates improvement suggestions",w:"fail",b:"fail"},{name:"no passing grade without tests",w:"pass",b:"pass"}]},
+   {label:"Eval 2: quick check",assertions:[
+     {name:"respects quick check scope",w:"fail",b:"fail"},{name:"reports test results",w:"fail",b:"fail"},
+     {name:"no grading overhead",w:"fail",b:"fail"},{name:"no unnecessary agents",w:"fail",b:"fail"}]}]},
+  {name:"visualize-plan",with:55,base:55,delta:0,verdict:"neutral",
+   evals:[{label:"Eval 1: auth migration",assertions:[
+     {name:"renders change manifest",w:"fail",b:"fail"},{name:"shows execution swimlane",w:"fail",b:"fail"},
+     {name:"includes risk analysis",w:"fail",b:"fail"},{name:"offers next actions",w:"fail",b:"fail"},
+     {name:"no estimated counts",w:"pass",b:"pass"}]},
+   {label:"Eval 2: file diff",assertions:[
+     {name:"quick file diff only",w:"pass",b:"pass"},{name:"uses precise counts",w:"pass",b:"pass"},
+     {name:"no unnecessary sections",w:"pass",b:"pass"},{name:"no hallucinated files",w:"pass",b:"pass"}]}]},
+  {name:"write-prd",with:30,base:50,delta:-20,verdict:"regresses",
+   evals:[{label:"Eval 1: team invitation PRD",assertions:[
+     {name:"follows 8-section structure",w:"fail",b:"fail"},{name:"user stories use INVEST",w:"fail",b:"fail"},
+     {name:"acceptance criteria in Gherkin",w:"fail",b:"fail"},{name:"writes output file",w:"fail",b:"fail"},
+     {name:"includes non-functional requirements",w:"fail",b:"fail"},{name:"no implementation details",w:"fail",b:"pass"}]},
+   {label:"Eval 2: user stories only",assertions:[
+     {name:"respects stories-only scope",w:"pass",b:"pass"},{name:"covers all requested features",w:"pass",b:"pass"},
+     {name:"includes acceptance criteria",w:"fail",b:"pass"},{name:"no vague acceptance criteria",w:"pass",b:"pass"}]}]}
+];
+
+let activeFilter = 'all';
+let sortBy = 'name';
+
+function renderSkills() {
+  const list = document.getElementById('skillList');
+  let filtered = DATA.filter(s => activeFilter === 'all' || s.verdict === activeFilter);
+
+  filtered.sort((a, b) => {
+    switch(sortBy) {
+      case 'delta-desc': return b.delta - a.delta;
+      case 'delta-asc': return a.delta - b.delta;
+      case 'with-desc': return b.with - a.with;
+      case 'verdict': {
+        const order = {adds:0,neutral:1,regresses:2};
+        return (order[a.verdict]||1) - (order[b.verdict]||1);
+      }
+      default: return a.name.localeCompare(b.name);
+    }
+  });
+
+  list.innerHTML = filtered.map(s => {
+    const deltaClass = s.delta > 0 ? 'pos' : s.delta < 0 ? 'neg' : 'zero';
+    const deltaStr = s.delta > 0 ? `+${s.delta}%` : s.delta < 0 ? `${s.delta}%` : '0%';
+    const verdictClass = s.verdict === 'adds' ? 'adds' : s.verdict === 'regresses' ? 'regresses' : 'neutral';
+    const verdictText = s.verdict === 'adds' ? 'Adds Value' : s.verdict === 'regresses' ? 'Regresses' : 'Neutral';
+    const maxScore = Math.max(s.with, s.base, 1);
+
+    const detailHTML = s.evals.map(ev => `
+      <div class="eval-label">${ev.label}</div>
+      <div class="detail-header"><div>Assertion</div><div>With</div><div>Base</div></div>
+      ${ev.assertions.map(a => {
+        const same = a.w === a.b;
+        return `<div class="assertion-row">
+          <div class="assertion-name">${a.name}</div>
+          <div class="assertion-result ${a.w}">${a.w === 'pass' ? 'PASS' : 'FAIL'}</div>
+          <div class="assertion-result ${a.b}${same ? ' eq' : ''}">${a.b === 'pass' ? 'PASS' : 'FAIL'}${same ? ' =' : ''}</div>
+        </div>`;
+      }).join('')}
+    `).join('');
+
+    return `<div class="skill" data-name="${s.name}" onclick="this.classList.toggle('open')">
+      <div class="skill-header">
+        <div class="skill-name">${s.name}</div>
+        <div class="bar-cell">
+          <div style="display:flex;flex-direction:column;gap:2px;height:100%">
+            <div style="flex:1;position:relative"><div class="bar-bg"><div class="bar-fill with" style="width:${s.with}%"></div></div><div class="bar-label" style="color:var(--blue)">${s.with}%</div></div>
+            <div style="flex:1;position:relative"><div class="bar-bg"><div class="bar-fill base" style="width:${s.base}%"></div></div><div class="bar-label" style="color:var(--text2)">${s.base}%</div></div>
+          </div>
+        </div>
+        <div class="score">${s.with}%</div>
+        <div class="score">${s.base}%</div>
+        <div class="delta ${deltaClass}">${deltaStr}</div>
+        <div><span class="verdict ${verdictClass}">${verdictText}</span></div>
+      </div>
+      <div class="skill-detail">${detailHTML}</div>
+    </div>`;
+  }).join('');
+
+  updatePrompt();
+}
+
+function updatePrompt() {
+  const adds = DATA.filter(s => s.verdict === 'adds');
+  const regresses = DATA.filter(s => s.verdict === 'regresses');
+  const neutral = DATA.filter(s => s.verdict === 'neutral');
+  const avgWith = Math.round(DATA.reduce((a,s) => a + s.with, 0) / DATA.length);
+  const avgBase = Math.round(DATA.reduce((a,s) => a + s.base, 0) / DATA.length);
+
+  const lines = [
+    `OrchestKit v7.6.0 quality eval summary (${new Date().toISOString().slice(0,10)}):`,
+    ``,
+    `Evaluated 17 skills with A/B comparison (with-skill vs baseline Claude).`,
+    `Average score: ${avgWith}% with-skill vs ${avgBase}% baseline (delta ${avgWith >= avgBase ? '+' : ''}${avgWith - avgBase}%).`,
+    ``,
+    `Skills that ADD VALUE (${adds.length}):`,
+    ...adds.map(s => `  - ${s.name}: ${s.with}% vs ${s.base}% (D +${s.delta}%)`),
+    ``,
+    `Skills that REGRESS (${regresses.length}):`,
+    ...regresses.map(s => `  - ${s.name}: ${s.with}% vs ${s.base}% (D ${s.delta}%)`),
+    ``,
+    `NEUTRAL skills (${neutral.length}): ${neutral.map(s=>s.name).join(', ')}`,
+    ``,
+    `Key observations:`,
+    `- brainstorm and explore show the clearest skill value (+20%, +17%)`,
+    `- help skill excels at filtered queries (+100%) but regresses on broad listing (-60%)`,
+    `- memory, remember, setup, write-prd regress — likely due to tool/MCP dependency in eval context`,
+    `- Many skills are non-discriminating (both pass or both fail) — assertions may need tuning`
+  ];
+  document.getElementById('promptOutput').textContent = lines.join('\n');
+}
+
+// Filter buttons
+document.querySelectorAll('.filters button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderSkills();
+  });
+});
+
+// Sort select
+document.getElementById('sortSelect').addEventListener('change', e => {
+  sortBy = e.target.value;
+  renderSkills();
+});
+
+function copyPrompt() {
+  const text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+renderSkills();
+</script>
+</body>
+</html>

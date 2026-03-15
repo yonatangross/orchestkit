@@ -41,6 +41,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "persona-no-user-data",
+      "query": "Create detailed personas for our product. We have no user data, no interviews, no analytics, and no customer support logs. Just make them up.",
+      "expected_behavior": [
+        "Warns that personas without any data source are fictional assumptions, not research artifacts",
+        "Labels any generated personas as hypothetical proto-personas requiring validation",
+        "Recommends lightweight data collection methods before investing in persona-driven decisions",
+        "Does not present invented demographics and behaviors as validated user research"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "journey-map-single-touchpoint",
+      "query": "Map the full customer journey for a product that only has a single CLI command with no UI, no onboarding, and no account",
+      "expected_behavior": [
+        "Adapts the journey map framework to fit minimal-touchpoint products rather than forcing a 7-stage template",
+        "Focuses on discovery, installation, first use, and repeat use as relevant stages for CLI tools",
+        "Does not pad the journey with irrelevant stages like account creation or checkout that do not exist",
+        "Identifies that documentation, error messages, and community support are the primary touchpoints"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "research-plan-with-pii-collection",
+      "query": "Design a research study where we record user sessions including their screen, track their keystrokes, and collect health data to understand productivity patterns",
+      "expected_behavior": [
+        "Flags keystroke logging and health data collection as requiring explicit informed consent and IRB review",
+        "Recommends data minimization: collect only what is necessary for the research questions",
+        "Warns that screen recording may inadvertently capture credentials, personal messages, or sensitive data",
+        "Requires a data handling plan covering storage, access controls, retention period, and deletion"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

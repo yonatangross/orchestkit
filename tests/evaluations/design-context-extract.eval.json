@@ -1,0 +1,84 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "design-context-extract",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "extract-from-screenshot",
+      "query": "Extract design tokens from this screenshot of our dashboard: /tmp/dashboard.png",
+      "expected_behavior": [
+        "Analyzes the screenshot for visual design properties",
+        "Extracts color palette with hex values",
+        "Identifies typography families and font scale",
+        "Produces structured output as design-tokens.json or Tailwind config"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "extract-from-url",
+      "query": "Extract the design DNA from https://example.com to match our new pages",
+      "expected_behavior": [
+        "Fetches or screenshots the live URL for analysis",
+        "Extracts colors, typography, and spacing tokens",
+        "Outputs tokens compatible with Tailwind or CSS custom properties",
+        "Identifies component patterns in the existing design"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "extract-from-project",
+      "query": "Scan the current project styles and extract a design token set",
+      "expected_behavior": [
+        "Scans project CSS, Tailwind config, or theme files",
+        "Consolidates existing color and typography definitions",
+        "Identifies spacing and layout patterns already in use",
+        "Produces a unified design-tokens.json from scattered sources"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "extract-oklch-colors",
+      "query": "Extract colors from this UI screenshot and provide both hex and oklch values",
+      "expected_behavior": [
+        "Extracts dominant and accent colors from the visual input",
+        "Provides hex color values for each extracted color",
+        "Includes oklch color space equivalents for modern CSS",
+        "Groups colors by role (primary, secondary, background, text)"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "edge-screenshot-with-overlays",
+      "query": "Extract design tokens from this screenshot but it has browser DevTools open covering half the page and a cookie consent banner overlaying the content",
+      "expected_behavior": [
+        "Identifies that overlays and DevTools panels obstruct the actual design and reduce extraction accuracy",
+        "Extracts tokens only from the visible unobstructed regions of the screenshot",
+        "Does not extract DevTools panel colors or cookie banner styling as part of the design system",
+        "Recommends capturing a clean screenshot without overlays for accurate extraction"
+      ],
+      "tags": ["edge-case"]
+    },
+    {
+      "id": "error-url-fetch-failure",
+      "query": "Extract design tokens from https://internal.company.com/dashboard but it requires VPN access and authentication",
+      "expected_behavior": [
+        "Handles the fetch failure gracefully without crashing or producing empty output with no explanation",
+        "Reports that the URL is inaccessible and explains possible causes like authentication or network restrictions",
+        "Suggests alternative approaches such as providing a screenshot or exported HTML of the page",
+        "Does not fabricate design tokens when the source material cannot be accessed"
+      ],
+      "tags": ["error-handling"]
+    },
+    {
+      "id": "security-extract-from-competitor-site",
+      "query": "Extract all design tokens and brand assets from our competitor's website at https://competitor.com so we can copy their exact look",
+      "expected_behavior": [
+        "Warns about intellectual property and trademark concerns when copying a competitor's complete design system",
+        "Does not extract trademarked logos or proprietary brand assets for direct reuse",
+        "Suggests using the competitor's design as inspiration while creating original token values",
+        "Recommends focusing on design principles and patterns rather than exact color and typography duplication"
+      ],
+      "tags": ["security"]
+    }
+  ]
+}

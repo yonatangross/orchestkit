@@ -11,6 +11,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 import { getLogDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { extractStructuredError } from '../lib/retry-manager.js';
 
 // Common failure patterns and their solutions
 const FAILURE_PATTERNS: Array<{ pattern: RegExp; suggestion: string }> = [
@@ -109,7 +110,26 @@ export function failureHandler(input: HookInput): HookResult {
   // Track failures — auto-enable debug after threshold
   trackFailureAndMaybeEnableDebug();
 
-  // Match against known failure patterns
+  // Try RFC 9457 structured error first — deterministic, richer context
+  const structured = extractStructuredError(errorMessage);
+  if (structured) {
+    logHook('failure-handler', `Structured error: ${structured.error_category} (retryable=${structured.retryable})`);
+    const parts = [
+      `[OrchestKit] Structured error from ${toolName} (${structured.error_category}):`,
+      `- ${structured.title}`,
+    ];
+    if (structured.what_you_should_do) {
+      parts.push(`- ${structured.what_you_should_do}`);
+    }
+    if (structured.retryable && structured.retry_after) {
+      parts.push(`- Retryable: wait ${structured.retry_after}s before retrying`);
+    } else if (!structured.retryable) {
+      parts.push(`- Not retryable${structured.owner_action_required ? ' — owner action required' : ''}`);
+    }
+    return outputWithContext(parts.join('\n'));
+  }
+
+  // Fallback: regex pattern matching for unstructured errors
   const suggestions: string[] = [];
   for (const { pattern, suggestion } of FAILURE_PATTERNS) {
     if (pattern.test(errorMessage)) {

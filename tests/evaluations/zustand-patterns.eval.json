@@ -81,6 +81,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-persist-ssr-hydration-mismatch",
+      "query": "My Zustand persist store causes a hydration mismatch in Next.js because the server renders default state while the client loads persisted localStorage state",
+      "expected_behavior": [
+        "Recommends using the onRehydrateStorage callback or skipHydration option to delay hydration until client mount",
+        "Does not suggest disabling SSR or removing persist middleware as the primary solution",
+        "Shows the pattern of initializing with default state on server and rehydrating in useEffect on client",
+        "Explains that the mismatch occurs because localStorage is not available during server-side rendering"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-immer-non-serializable-state",
+      "query": "I'm storing a WebSocket instance and a Map object in my Zustand store with persist and getting a serialization error on page reload",
+      "expected_behavior": [
+        "Explains that persist middleware serializes state to JSON and non-serializable values like WebSocket and Map cannot be stored",
+        "Recommends using the partialize option to exclude non-serializable values from persistence",
+        "Does not suggest using JSON.stringify replacers as a reliable fix for class instances",
+        "Advises keeping runtime-only state like connections and subscriptions outside the persisted store"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-persist-sensitive-data",
+      "query": "Our Zustand store persists the entire auth slice including the JWT access token and refresh token to localStorage",
+      "expected_behavior": [
+        "Warns that localStorage is accessible to any JavaScript on the page including XSS payloads",
+        "Recommends storing tokens in httpOnly cookies instead of client-accessible storage for security",
+        "Does not validate persisting raw JWT tokens to localStorage as a safe practice",
+        "Advises using the partialize option to exclude sensitive auth tokens from the persisted state"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

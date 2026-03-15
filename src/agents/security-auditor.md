@@ -3,7 +3,7 @@ name: security-auditor
 description: "Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, remediation."
 category: security
 model: opus
-maxTurns: 40
+maxTurns: 60
 context: fork
 color: red
 memory: local

@@ -141,7 +141,7 @@ export function DemoGallery() {
                 aria-pressed={active}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
-                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                     : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
@@ -165,7 +165,7 @@ export function DemoGallery() {
             aria-pressed={categoryFilter === "all"}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
               categoryFilter === "all"
-                ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                 : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
             }`}
           >

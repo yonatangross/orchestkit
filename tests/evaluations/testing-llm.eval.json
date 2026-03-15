@@ -50,6 +50,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-llm-empty-response",
+      "query": "Test what happens when the LLM returns an empty string or null content field",
+      "expected_behavior": [
+        "Tests that the application handles empty string responses without crashing or producing undefined behavior",
+        "Validates that null or missing content fields in the LLM response trigger a retry or fallback mechanism",
+        "Asserts that downstream consumers receive a meaningful error or default value rather than propagating null"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-llm-rate-limit-429",
+      "query": "Test handling when the LLM API returns 429 Too Many Requests during a test run",
+      "expected_behavior": [
+        "Mocks 429 responses with Retry-After headers to test exponential backoff implementation",
+        "Verifies the client respects the Retry-After header value instead of retrying immediately",
+        "Tests that after max retries are exhausted the error surfaces clearly rather than hanging indefinitely"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-llm-api-key-in-cassette",
+      "query": "Our VCR cassettes for LLM API tests were committed with the real API key in the Authorization header",
+      "expected_behavior": [
+        "Flags this as a credential leak requiring immediate key rotation regardless of repository visibility",
+        "Requires filter_headers configuration in VCR to scrub Authorization and x-api-key headers before recording",
+        "Recommends adding a CI check that scans cassette YAML files for patterns matching real API key formats"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

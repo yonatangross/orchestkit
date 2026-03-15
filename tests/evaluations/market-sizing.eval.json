@@ -15,6 +15,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "market-sizing-novel-category",
+      "query": "Size the market for a product that creates a completely new category. There are no existing analyst reports, no comparable products, and no established market data.",
+      "expected_behavior": [
+        "Acknowledges that top-down analysis is impossible without existing market reports for a new category",
+        "Relies primarily on bottom-up estimation counting potential customers and willingness to pay",
+        "Uses proxy markets and adjacent category data as analogies rather than claiming precision",
+        "Clearly labels all estimates as speculative with wide confidence intervals"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "market-sizing-absurd-scope",
+      "query": "Size the market for our todo app. TAM should include every human on earth because everyone has tasks.",
+      "expected_behavior": [
+        "Rejects an 8-billion-person TAM as meaningless for business planning and investor credibility",
+        "Explains that TAM must be scoped to people who would realistically pay for the specific product",
+        "Applies addressable market filters: internet access, smartphone ownership, app spending behavior",
+        "Demonstrates how an inflated TAM undermines rather than strengthens a business case"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "market-sizing-with-stale-data",
+      "query": "Size our market using this 2015 Gartner report as the only data source. The market has changed dramatically since then.",
+      "expected_behavior": [
+        "Warns that 2015 data is likely stale and unreliable for a fast-moving technology market",
+        "Recommends applying growth rate adjustments or CAGR projections to extrapolate forward",
+        "Suggests supplementing with more recent data sources even if less authoritative",
+        "Does not present decade-old figures as current market reality without explicit caveats"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

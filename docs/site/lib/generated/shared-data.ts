@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 89,
-  "agents": 31,
-  "hooks": 99,
-  "commands": 16,
+  "skills": 92,
+  "agents": 33,
+  "hooks": 104,
+  "commands": 19,
   "compositions": 14
 };
 
@@ -59,6 +59,15 @@ export const AGENTS: AgentSummary[] = [
     "category": "testing"
   },
   {
+    "name": "component-curator",
+    "description": "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "inherit",
+    "category": "development"
+  },
+  {
     "name": "data-pipeline-engineer",
     "description": "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption.",
     "plugins": [
@@ -102,6 +111,15 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "haiku",
     "category": "devops"
+  },
+  {
+    "name": "design-context-extractor",
+    "description": "Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, spacing, and component patterns as structured design tokens.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "inherit",
+    "category": "development"
   },
   {
     "name": "design-system-architect",
@@ -413,6 +431,8 @@ export const SKILLS_SUMMARY = {
     ],
     "react": [
       "accessibility",
+      "component-search",
+      "design-to-code",
       "i18n-date-patterns",
       "performance",
       "react-server-components-framework",

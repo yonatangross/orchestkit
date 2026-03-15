@@ -143,6 +143,15 @@ export function retryHandler(input: HookInput): HookResult {
 
   logHook('retry-handler', `Agent ${agentType} completed with outcome: ${outcome}`);
 
+  // Partial results (CC 2.1.76): tag context but don't retry — agent was killed
+  // mid-work and its partial output is already in the conversation context.
+  if (outcome === 'partial') {
+    return outputWithContext(
+      `[PARTIAL RESULT] Agent \`${agentType}\` returned partial results (likely killed or timed out). ` +
+      `Verify completeness before proceeding — do NOT auto-spawn replacement agents on partial output.`
+    );
+  }
+
   // Load config and state
   const config = loadConfig();
   const state = loadState();

@@ -536,6 +536,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-state-initialization",
+      "query": "My LangGraph workflow crashes on the first node because the state has no messages yet and I'm accessing state['messages'][-1]. How do I handle empty initial state?",
+      "expected_behavior": [
+        "Claude adds a guard check for empty lists before accessing the last element of state fields",
+        "Claude uses default values in TypedDict or Pydantic model for fields that may be empty at startup",
+        "Claude does not assume state fields are populated when the first node runs after graph initialization",
+        "Claude shows a pattern for initializing required state fields in the entry node before downstream access"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-node-exception-recovery",
+      "query": "One of my LangGraph nodes calls an external API that sometimes throws ConnectionError. The entire workflow crashes and I lose all progress. How do I add fault tolerance?",
+      "expected_behavior": [
+        "Claude wraps the external API call in try/except inside the node function to catch transient errors",
+        "Claude writes an error status to state so downstream nodes can detect and handle the failure gracefully",
+        "Claude uses checkpointing so that progress is saved before the failing node and can be resumed",
+        "Claude does not let unhandled exceptions propagate and destroy the entire workflow execution state"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-tool-injection-via-user-input",
+      "query": "My LangGraph agent takes free-form user input and passes it directly to a tool node. A user submitted input that tricked the LLM into calling a delete tool. How do I prevent this?",
+      "expected_behavior": [
+        "Claude implements a tool allowlist that restricts which tools the agent can invoke per conversation context",
+        "Claude adds human-in-the-loop approval via interrupt() before executing any destructive tool operations",
+        "Claude validates tool call arguments against expected schemas before forwarding to the ToolNode",
+        "Claude does not pass raw unvalidated user input directly into tool descriptions or function arguments"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

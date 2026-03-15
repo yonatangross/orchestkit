@@ -49,6 +49,13 @@ import { settingsReload } from '../config-change/settings-reload.js';
 // InstructionsLoaded hooks (CC 2.1.69)
 import { instructionsLoadedDispatcher } from '../instructions-loaded/instructions-loaded-dispatcher.js';
 
+// PostCompact hooks (CC 2.1.76)
+import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
+
+// Elicitation hooks (CC 2.1.76)
+import { elicitationGuard } from '../elicitation/elicitation-guard.js';
+import { elicitationResultLogger } from '../elicitation/elicitation-result-logger.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -92,6 +99,13 @@ export const hooks: Record<string, HookFn> = {
 
   // InstructionsLoaded hooks (CC 2.1.69)
   'instructions-loaded/instructions-loaded-dispatcher': instructionsLoadedDispatcher,
+
+  // PostCompact hooks (CC 2.1.76)
+  'lifecycle/post-compact-recovery': postCompactRecovery,
+
+  // Elicitation hooks (CC 2.1.76)
+  'elicitation/elicitation-guard': elicitationGuard,
+  'elicitation/elicitation-result-logger': elicitationResultLogger,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -110,7 +110,7 @@ Violations: {list any dependency direction violations}
 {list of all files loaded into context}
 
 ### Methodology
-- Single-pass analysis using Opus 4.6 extended context
+- Single-pass analysis using Opus 4.6 1M context (GA)
 - Cross-file data flow tracing
 - OWASP Top 10 mapping
 - Clean architecture layering check

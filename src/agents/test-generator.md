@@ -4,7 +4,7 @@ description: "Test specialist: coverage gap analysis, unit/integration test gene
 model: inherit
 category: testing
 isolation: worktree
-maxTurns: 30
+maxTurns: 50
 context: fork
 color: green
 memory: project

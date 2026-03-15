@@ -17,6 +17,158 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.9.0",
+    "date": "2026-03-15",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**monitoring-observability:** Langfuse Python SDK v4 coverage — `as_type` semantic types (generation, retriever, chain, embedding, agent, guardrail, evaluator), `score_current_span()` / `score_current_trace()`, `should_export_span` filter, `LangfuseMedia` attachments, `run_experiment()` batch evaluation",
+          "**monitoring-observability:** Python v3→v4 migration guide section with breaking changes checklist, code examples, and version pin guidance (`langfuse>=4.0.0`)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**monitoring-observability:** v2.0.0→3.0.0 — all code examples updated from v3 to v4 patterns across rules, scripts, checklists, and references",
+          "**monitoring-observability:** Setup checklist updated with v4 version pins and migration steps",
+          "**brainstorm:** v4.4.0→4.6.0 — added product/event-driven/devops/data-pipeline domain detection, design pipeline agents, `/effort` scaling, CC 2.1.76 partial results + PostCompact recovery"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.8.0",
+    "date": "2026-03-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** PostCompact recovery hook — re-injects branch, tasks, decisions after compaction using CC-provided `compaction_count` and `context_size_after` fields",
+          "**hooks:** Elicitation guard — blocks form-mode MCP elicitations requesting secret fields (api_key, password, token), forces URL mode",
+          "**hooks:** ElicitationResult logger — tracks accept/decline/cancel outcomes for analytics, injects alternative suggestions on decline",
+          "**hooks:** Effort-aware context budgeting — `detectEffortLevel()` reads `/effort` setting, adjusts prompt dispatcher token budget (low=200t, medium=800t, high=1200t), skips heavy context at low effort",
+          "**hooks:** Monorepo sparse paths advisory — WorktreeCreate detects monorepo (pnpm-workspace, nx, lerna, turbo, workspaces) and suggests `worktree.sparsePaths` config",
+          "**types:** `PostCompact`, `Elicitation`, `ElicitationResult` added to HookEvent union with typed input fields",
+          "**version-matrix:** 23 new feature entries covering CC 2.1.75 and 2.1.76 (elicitation, sparse paths, /effort, bg agent partial results, compaction circuit breaker, etc.)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** MIN_CC_VERSION bumped from 2.1.74 to 2.1.76 — backward compatibility dropped",
+          "**hooks:** SubagentStop retry-handler now returns early with `[PARTIAL RESULT]` tag for killed background agents instead of entering retry logic (CC 2.1.76 partial results)",
+          "**hooks:** PostCompact and Elicitation hooks registered in `entries/lifecycle.ts` split bundle (lifecycle.mjs grew 77→80KB)",
+          "**compatibility:** All 78 skill `compatibility:` fields updated from 2.1.74+ to 2.1.76+",
+          "**counts:** 99→104 hooks (33→36 global), MIN_CC_VERSION 2.1.74→2.1.76"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** Missing v7.7.x row in version history table (between v7.8.x and v7.5.x)",
+          "**docs:** Stale \"CC 2.1.74 format\" agent reference in CLAUDE.md directory structure",
+          "**docs:** README badge and requirement updated from ≥2.1.74 to ≥2.1.76",
+          "**docs:** hooks README footer CC requirement updated to >= 2.1.76"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.7.0",
+    "date": "2026-03-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**design-to-code:** New user-invocable skill (`/ork:design-to-code`) — mockup-to-component pipeline using Google Stitch MCP and 21st.dev component registry",
+          "**component-search:** New user-invocable skill (`/ork:component-search`) — search 21st.dev registry for production-ready React components",
+          "**design-context-extract:** New user-invocable skill (`/ork:design-context-extract`) — extract design DNA (colors, typography, spacing) from screenshots or URLs",
+          "**design-context-extractor:** New agent for autonomous design context extraction with stitch-mcp integration",
+          "**component-curator:** New background agent that audits project component usage and recommends 21st.dev upgrades",
+          "**MCP:** Added stitch-mcp (Google Stitch) and 21st-dev-magic (21st.dev component registry) to MCP configuration docs"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**frontend-ui-developer:** Added 21st-dev-magic MCP scope + component-search, design-to-code, design-context-extract skills",
+          "**design-system-architect:** Added stitch-mcp MCP scope + design-context-extract, component-search skills",
+          "**counts:** 89→92 skills, 31→33 agents, 99→101 hooks, 16→19 user-invocable"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.6.0",
+    "date": "2026-03-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**api-design:** Agent-facing RFC 9457 error patterns with structured retry signals — `retryable`, `error_category`, `retry_after`, `owner_action_required` extensions for deterministic AI agent error handling",
+          "**api-design:** Content negotiation middleware pattern (JSON/Markdown/HTML via Accept header) with token efficiency budget (<300 tokens)",
+          "**api-design:** Error category taxonomy (10 categories) with agent action mapping table",
+          "**types:** `StructuredError` and `ErrorCategory` types in orchestration-types.ts for structured error handling in hooks",
+          "**testing-integration:** RFC 9457 error response assertion patterns (Python + TypeScript)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** retry-manager now extracts RFC 9457 structured errors before regex fallback — uses server-provided `retry_after` instead of calculated backoff",
+          "**hooks:** failure-handler detects structured errors for richer context injection with `error_category` and `what_you_should_do`"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**python-backend:** Updated stale RFC 7807 reference to RFC 9457 (the active standard)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.5.3",
+    "date": "2026-03-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**eval:** Quality evaluation runner (`npm run eval:quality`) — A/B skill vs baseline grading with Claude-as-judge",
+          "**eval:** Seed eval YAMLs for all 16 user-invocable skills with trigger + quality assertions",
+          "**eval:** Shared eval library (`lib/eval-common.sh`) — colors, cleanup, deps, portable timeout",
+          "**eval:** `--grade-only`, `--tag`, `--max-turns`, `--timeout` flags for both eval runners",
+          "**eval:** Batch assertion grading (A3) reduces Claude calls ~60%",
+          "**eval:** Parallel with-skill + baseline execution (A4) for faster evals",
+          "**eval:** Scaffold field support — quality evals can declare project scaffolds (e.g., `typescript-nextjs`)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**eval:** SEC-001 path traversal in skill name input validation",
+          "**eval:** SEC-002 JSON injection via unsanitized YAML-sourced strings",
+          "**eval:** PASS/FAIL grading anchored to first token to prevent false matches",
+          "**eval:** Silent claude CLI crashes now emit warnings",
+          "**eval:** `grep -w` with multi-word patterns replaced by ERE"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**eval:** Trigger runner refactored to source shared `eval-common.sh`",
+          "**eval:** All 17 eval YAMLs hardened with adversarial prompts, confusion pairs, and negative assertions"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.5.2",
     "date": "2026-03-12",
     "compareUrl": "",

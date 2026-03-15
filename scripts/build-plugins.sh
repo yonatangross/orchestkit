@@ -235,6 +235,22 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
     fi
 
+    # Build MCP server if source exists
+    if [[ -d "$SRC_DIR/mcp-server" ]] && [[ -f "$SRC_DIR/mcp-server/package.json" ]]; then
+        pushd "$SRC_DIR/mcp-server" > /dev/null
+        [[ ! -d "node_modules" ]] && npm install --ignore-scripts 2>/dev/null
+        node esbuild.config.mjs
+        popd > /dev/null
+    fi
+
+    # Copy MCP server dist
+    if [[ -f "$SRC_DIR/mcp-server/dist/server.mjs" ]]; then
+        mkdir -p "$PLUGIN_DIR/mcp-server"
+        cp "$SRC_DIR/mcp-server/dist/server.mjs" "$PLUGIN_DIR/mcp-server/"
+        cp "$SRC_DIR/mcp-server/dist/server.mjs.map" "$PLUGIN_DIR/mcp-server/" 2>/dev/null || true
+        echo -e "    ${GREEN}Copied MCP server${NC}"
+    fi
+
     # Copy shared resources if they exist
     if [[ -d "$SRC_DIR/shared" ]]; then
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"

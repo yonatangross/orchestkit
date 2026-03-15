@@ -1,10 +1,10 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.74+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
-version: 1.3.0
+version: 1.4.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
@@ -178,6 +178,19 @@ mcp__memory__search_nodes(query="$ARGUMENTS[0]")  # Past decisions
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
+### Progressive Output (CC 2.1.76)
+
+Output results **incrementally** as each evaluation phase completes:
+
+| After Phase | Show User |
+|-------------|-----------|
+| 1. Target Understanding | Scope summary, file list, context |
+| 1.5. Scope Discovery | Bounded file list (max 30 files) |
+| 2. Quality Rating | Each dimension's score as the evaluating agent returns |
+| 3. Pros/Cons | Balanced evaluation summary |
+
+For Phase 2 parallel agents, show each dimension's score **as soon as the evaluating agent returns** — don't wait for all 4 agents. If any dimension scores below 4/10, flag it immediately as a priority concern requiring user attention.
+
 ---
 
 ## Phase 2: Quality Rating (7 Dimensions)
@@ -231,4 +244,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ---
 
-**Version:** 1.3.0 (March 2026) — Added `--model=opus` override, argument resolution section, model param on Agent() spawns
+**Version:** 1.4.0 (March 2026) — Added progressive output for incremental evaluation results

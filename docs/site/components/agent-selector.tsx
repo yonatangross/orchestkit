@@ -49,12 +49,14 @@ const TASK_ICON_MAP: Record<TaskType, typeof Hammer> = {
 const MODEL_LABELS: Record<string, string> = {
   opus: "Opus",
   sonnet: "Sonnet",
+  haiku: "Haiku",
   inherit: "Inherit",
 };
 
 const MODEL_STYLES: Record<string, string> = {
   opus: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
   sonnet: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
+  haiku: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
   inherit:
     "bg-fd-muted text-fd-muted-foreground",
 };
@@ -180,7 +182,7 @@ export function AgentSelector() {
           ref={quizTriggerRef}
           type="button"
           onClick={startQuiz}
-          className="inline-flex items-center gap-2 rounded-lg border border-fd-primary/30 bg-fd-primary/10 px-4 py-2 text-sm font-medium text-fd-primary transition-all hover:bg-fd-primary/20 hover:shadow-sm"
+          className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] px-4 py-2 text-sm font-medium text-fd-primary transition-all hover:bg-[var(--color-fd-primary-20)] hover:shadow-sm"
         >
           <Sparkles className="h-4 w-4" />
           Help me choose
@@ -202,7 +204,7 @@ export function AgentSelector() {
                 }
                 className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                     : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
                 aria-pressed={active}
@@ -214,7 +216,7 @@ export function AgentSelector() {
                 <span
                   className={`hidden text-[11px] font-normal sm:inline ${
                     active
-                      ? "text-fd-primary/60"
+                      ? "text-[var(--color-fd-primary-50)]"
                       : "text-fd-muted-foreground"
                   }`}
                 >
@@ -302,7 +304,7 @@ export function AgentSelector() {
                 aria-pressed={active}
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
-                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    ? "border-[var(--color-fd-primary-30)] bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
                     : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
@@ -595,7 +597,7 @@ function QuizModal({
                         key={tt}
                         type="button"
                         onClick={() => onSelectTaskType(tt)}
-                        className="flex flex-col items-center gap-1.5 rounded-lg border border-fd-border p-3 text-center transition-all hover:border-fd-primary/40 hover:bg-fd-primary/10"
+                        className="flex flex-col items-center gap-1.5 rounded-lg border border-fd-border p-3 text-center transition-all hover:border-[var(--color-fd-primary-30)] hover:bg-[var(--color-fd-primary-10)]"
                       >
                         <Icon className="h-5 w-5 text-fd-muted-foreground" />
                         <span className="text-xs font-medium text-fd-foreground">
@@ -715,7 +717,7 @@ function QuizModal({
                   <button
                     type="button"
                     onClick={onApply}
-                    className="flex-1 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-sm transition-all hover:bg-fd-primary/90 hover:shadow"
+                    className="flex-1 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-sm transition-all hover:bg-[var(--color-fd-primary-50)] hover:shadow"
                   >
                     Apply to grid
                   </button>

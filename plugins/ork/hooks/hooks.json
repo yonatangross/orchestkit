@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 33 global + 45 agent-scoped + 21 skill-scoped = 99 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 36 global + 47 agent-scoped + 21 skill-scoped = 104 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -242,6 +242,41 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver",
             "timeout": 10,
             "statusMessage": "Saving context before compact..."
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/post-compact-recovery",
+            "timeout": 10,
+            "statusMessage": "Recovering context after compact..."
+          }
+        ]
+      }
+    ],
+    "Elicitation": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard",
+            "timeout": 5,
+            "statusMessage": "Checking elicitation safety..."
+          }
+        ]
+      }
+    ],
+    "ElicitationResult": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-result-logger",
+            "timeout": 5
           }
         ]
       }

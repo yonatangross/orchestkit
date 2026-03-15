@@ -1,7 +1,7 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.74+."
+compatibility: "Claude Code 2.1.76+."
 description: "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
 skills: [doctor, configure, remember, explore, help]
 complexity: medium
 hooks:
@@ -163,7 +163,21 @@ If streaming selected:
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for setup steps.
 
-Covers Agentation UI annotation tool and CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs).
+Covers Agentation UI annotation tool, CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs), and monorepo worktree optimization.
+
+### Monorepo Sparse Paths (CC 2.1.76+)
+
+If Phase 1 scan detected a monorepo (pnpm-workspace.yaml, nx.json, lerna.json, turbo.json, or package.json workspaces), suggest configuring `worktree.sparsePaths` in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "sparsePaths": ["src/", "packages/core/", "tests/", "scripts/"]
+  }
+}
+```
+
+This makes `--worktree` and agent `isolation: worktree` check out only the listed directories via git sparse-checkout — significantly faster in large monorepos.
 
 ## CLI Flags
 

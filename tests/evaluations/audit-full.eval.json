@@ -45,6 +45,34 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-monorepo-multiple-languages",
+      "query": "Run a full security audit on our monorepo that has a Python FastAPI backend in services/api/, a TypeScript Next.js frontend in apps/web/, a Go CLI tool in tools/cli/, and shared Protobuf definitions in proto/.",
+      "expected_behavior": [
+        "Scans all language-specific directories rather than only analyzing one language",
+        "Applies language-appropriate security checks: SQL injection for Python, XSS for TypeScript, memory safety for Go",
+        "Checks cross-boundary risks such as shared proto definitions and API contract mismatches",
+        "Reports findings grouped by service or language to aid triage by different teams",
+        "Does not skip a language directory due to unfamiliarity or token budget limitations without disclosing the gap"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-self-injection-vector-detection",
+      "query": "Audit this codebase for prompt injection vulnerabilities, including in any AI skill definitions or hook configurations that could be manipulated by untrusted input.",
+      "expected_behavior": [
+        "Examines skill SKILL.md files and hook configurations for potential prompt injection surfaces",
+        "Checks whether user-supplied input flows into skill prompts or hook parameters without sanitization",
+        "Identifies any hooks that execute shell commands with unsanitized user input",
+        "Reports on whether AI-generated output is treated as trusted input in downstream hooks or skills",
+        "Does not exempt its own plugin files from the audit scope"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

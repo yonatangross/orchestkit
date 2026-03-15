@@ -1,0 +1,64 @@
+---
+title: Pipeline Gallery
+description: Before/after showcase of the design-to-code pipeline in action
+icon: Sparkles
+---
+
+import { LazyPipelineGallery, LazyComponentDNA } from "@/components/lazy";
+
+# Pipeline Gallery
+
+Real examples of the `/ork:design-to-code` pipeline transforming inputs into production components.
+
+Every entry below was produced by OrchestKit's three-stage pipeline:
+**Extract** (Stitch MCP) → **Match** (21st.dev) → **Adapt** (project tokens).
+
+<LazyPipelineGallery />
+
+<LazyComponentDNA
+  name="PipelineGallery"
+  sources={[
+    { name: "expandable-card", registry: "21st.dev", url: "https://21st.dev/s/features" },
+    { name: "step-indicator", registry: "21st.dev", url: "https://21st.dev/s/features" },
+  ]}
+  tokens={["fd-primary-10", "fd-primary-20", "fd-surface-sunken", "fd-glow", "fd-muted"]}
+  forkCommand='/ork:design-to-code expandable card gallery with pipeline stages and MCP badges'
+/>
+
+## How It Works
+
+```
+Screenshot / Description / URL
+  │
+  ├── Stage 1: EXTRACT ──── Stitch MCP analyzes design context
+  │   Colors, typography, spacing, component structure
+  │
+  ├── Stage 2: MATCH ────── 21st.dev searches 284+ hero components
+  │   Finds production-ready React matches
+  │
+  └── Stage 3: ADAPT ────── Merges with project design tokens
+      oklch colors, Tailwind utilities, TypeScript types
+```
+
+## Try It Yourself
+
+```bash
+# Extract design DNA from any site
+/ork:design-context-extract https://your-app.com
+
+# Search for components
+/ork:component-search animated pricing table
+
+# Full pipeline
+/ork:design-to-code screenshot of hero section
+```
+
+## Submit Your Own
+
+Built something with the pipeline? Submit a before/after pair:
+
+1. Run `/ork:design-to-code` on your input
+2. Screenshot the before (input) and after (output)
+3. Open a PR adding your entry to `docs/site/lib/generated/pipeline-gallery-data.ts`
+
+Every submission gets reviewed and added with attribution.

@@ -132,6 +132,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-single-agent-system",
+      "query": "I only have one specialist agent. Should I still use a supervisor pattern or multi-agent orchestration?",
+      "expected_behavior": [
+        "Claude recommends against supervisor overhead for a single-agent system",
+        "Claude suggests a simple ReAct loop or plan-execute pattern instead of multi-agent orchestration",
+        "Claude does not add unnecessary coordination layers when there is only one agent to coordinate",
+        "Claude explains that multi-agent patterns add latency and cost that are unjustified for single-agent use"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-agent-infinite-loop",
+      "query": "My ReAct agent keeps calling the same tool in a loop and never produces a final answer. It ran for 50 iterations before I killed it. How do I prevent this?",
+      "expected_behavior": [
+        "Claude implements a maximum step limit that forces termination after a configurable number of iterations",
+        "Claude detects repeated identical tool calls as a loop indicator and breaks out with a summary of progress",
+        "Claude does not allow unbounded ReAct loops without a circuit breaker or step counter",
+        "Claude logs the loop detection event with the repeated action for debugging the stuck behavior"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-agent-tool-escalation",
+      "query": "My supervisor agent delegates to a code-execution agent that has shell access. A malicious user prompt could trick it into running destructive commands like rm -rf. How do I sandbox it?",
+      "expected_behavior": [
+        "Claude restricts each agent's available tools to only those needed for its specific role",
+        "Claude implements a command allowlist for code-execution agents that blocks destructive shell operations",
+        "Claude requires human approval before executing any irreversible or destructive operations",
+        "Claude does not give agents broad unrestricted tool access regardless of the user input content"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

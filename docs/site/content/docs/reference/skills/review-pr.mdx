@@ -208,6 +208,16 @@ Only spawn agents relevant to the PR's changed domains:
 
 Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
 
+### Progressive Output (CC 2.1.76)
+
+Output each agent's findings **as they complete** — don't batch until synthesis:
+
+- **Security findings** → show blockers and critical issues first
+- **Code quality** → show pattern violations, complexity hotspots
+- **Test coverage gaps** → show missing test cases
+
+This lets the PR author start addressing blocking issues while remaining agents are still analyzing. Only the final synthesis (Phase 5) requires all agents to have completed.
+
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
 See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.

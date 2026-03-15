@@ -54,6 +54,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-zero-skills-directory-empty",
+      "query": "Validate counts but src/skills/ directory is completely empty",
+      "expected_behavior": [
+        "Reports 0 skills found in src/skills/ and flags a massive drift against CLAUDE.md and manifest counts",
+        "Does not treat an empty directory as a passing state when manifests declare non-zero skill counts",
+        "Warns that this likely indicates a broken checkout or accidentally deleted source files"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-manifest-json-malformed",
+      "query": "Validate counts but manifests/ork.json has a JSON syntax error and cannot be parsed",
+      "expected_behavior": [
+        "Reports the JSON parse error with the specific line and character position from the parser",
+        "Does not silently skip manifest validation or report counts as 0 due to the parse failure",
+        "Suggests fixing the JSON syntax error in manifests/ork.json before re-running count validation"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "edge-hooks-subcategory-mismatch",
+      "query": "Total hooks count matches but global vs agent-scoped vs skill-scoped subcategory counts are wrong in CLAUDE.md",
+      "expected_behavior": [
+        "Validates subcategory counts individually rather than only checking the total hook count",
+        "Flags drift in specific subcategories even when the aggregate total happens to match",
+        "Reports which subcategory (global, agent-scoped, or skill-scoped) is off and by how many"
+      ],
+      "tags": [
+        "edge-case"
+      ]
     }
   ]
 }

@@ -28,7 +28,54 @@ current_env = existing_settings.get("env", {})
 
 Show the user what's already set so they aren't surprised by overwrites.
 
-## Step 1: Branch Strategy
+## Step 0.5: Check elicitation availability
+
+Check if the `mcp__ork-elicit__ork_elicit` tool is available in the current session. This determines whether to use the single-form elicitation path (steps 1-5 consolidated) or the legacy 5x AskUserQuestion fallback.
+
+```python
+# The tool is available if ork-elicit MCP server is registered in .mcp.json
+# and the CC version supports elicitation (>= 2.1.76).
+# Check by looking at available tools — if mcp__ork-elicit__ork_elicit is NOT
+# in the tool list, fall through to legacy.
+elicit_available = "mcp__ork-elicit__ork_elicit" in available_tools
+```
+
+## Steps 1-5: Elicitation Path (preferred)
+
+If `elicit_available` is true, consolidate steps 1-5 into a single form dialog:
+
+```python
+if elicit_available:
+    result = mcp__ork-elicit__ork_elicit(preset="project-config")
+    parsed = json.loads(result)
+
+    if parsed.get("action") == "accept":
+        # Use the mapped env vars directly
+        env_from_wizard = parsed["env_vars"]
+        # env_from_wizard contains:
+        #   ORCHESTKIT_PROTECTED_BRANCHES
+        #   ORCHESTKIT_COMMIT_SCOPE
+        #   ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST
+        #   ORCHESTKIT_PERF_SNAPSHOT_ENABLED
+        #   ORCHESTKIT_LOG_LEVEL
+    elif parsed.get("action") in ("decline", "cancel"):
+        # User declined — use current defaults, skip to step 6
+        env_from_wizard = {}
+    elif parsed.get("fallback"):
+        # Elicitation failed (e.g. CC version mismatch) — fall through to legacy
+        elicit_available = false
+    else:
+        # Error — fall through to legacy
+        elicit_available = false
+```
+
+If the elicitation result has `action: "accept"`, skip directly to Step 6 (webhooks).
+
+## Steps 1-5: Legacy Fallback (AskUserQuestion)
+
+If `elicit_available` is false (server not registered, CC < 2.1.76, or elicitation failed), use the existing 5-step AskUserQuestion flow:
+
+### Step 1: Branch Strategy
 
 ```python
 AskUserQuestion(questions=[{
@@ -63,7 +110,7 @@ If **Custom** selected: ask for the comma-separated list inline.
 
 Generated env var: `ORCHESTKIT_PROTECTED_BRANCHES=<value>`
 
-## Step 2: Commit Format Enforcement
+### Step 2: Commit Format Enforcement
 
 ```python
 AskUserQuestion(questions=[{
@@ -92,7 +139,7 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_COMMIT_SCOPE=<value>`
 
-## Step 3: Local Dev Browser Access
+### Step 3: Local Dev Browser Access
 
 ```python
 AskUserQuestion(questions=[{
@@ -116,7 +163,7 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=<value>`
 
-## Step 4: Performance Telemetry
+### Step 4: Performance Telemetry
 
 ```python
 AskUserQuestion(questions=[{
@@ -140,7 +187,7 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_PERF_SNAPSHOT_ENABLED=<value>`
 
-## Step 5: Log Verbosity
+### Step 5: Log Verbosity
 
 ```python
 AskUserQuestion(questions=[{
@@ -170,6 +217,8 @@ AskUserQuestion(questions=[{
 Generated env var: `ORCHESTKIT_LOG_LEVEL=<value>`
 
 ## Step 6: Webhook Telemetry (HTTP Hooks)
+
+> This step always uses AskUserQuestion — the conditional webhook URL follow-up requires interactive flow that elicitation cannot handle.
 
 ```python
 AskUserQuestion(questions=[{
@@ -232,18 +281,24 @@ Set ORCHESTKIT_HOOK_TOKEN in your shell:
 
 ## Writing the Configuration
 
-After all 6 steps, write (or merge) the env block into `config_target` (set in Step 0):
+After all steps complete (whether via elicitation or legacy), write (or merge) the env block into `config_target` (set in Step 0):
 
 ```python
 # Merge new env values (preserving existing keys not in wizard scope)
 new_env = {
   **current_env,  # preserve all keys we didn't ask about (e.g. ENABLE_TOOL_SEARCH)
-  "ORCHESTKIT_PROTECTED_BRANCHES": <from step 1>,
-  "ORCHESTKIT_COMMIT_SCOPE": <from step 2>,
-  "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": <from step 3>,
-  "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": <from step 4>,
-  "ORCHESTKIT_LOG_LEVEL": <from step 5>,
+  **env_from_wizard,  # from elicitation path or legacy AskUserQuestion steps
 }
+
+# If legacy path was used, env_from_wizard was built step-by-step:
+# env_from_wizard = {
+#   "ORCHESTKIT_PROTECTED_BRANCHES": <from step 1>,
+#   "ORCHESTKIT_COMMIT_SCOPE": <from step 2>,
+#   "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": <from step 3>,
+#   "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": <from step 4>,
+#   "ORCHESTKIT_LOG_LEVEL": <from step 5>,
+# }
+
 updated_settings = {**existing_settings, "env": new_env}
 
 Write(file_path=config_target, content=json.dumps(updated_settings, indent=2))

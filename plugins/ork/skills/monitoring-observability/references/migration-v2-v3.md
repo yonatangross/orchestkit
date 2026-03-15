@@ -1,4 +1,4 @@
-# Migration Guide: v2 → v3 (Python) / v3 → v4 (JS)
+# Migration Guide: v2 → v4 (Python) / v3 → v4 (JS)
 
 ## Python SDK: v2 → v3
 
@@ -105,6 +105,109 @@ langfuse = Langfuse()
 dataset = langfuse.create_dataset(name="golden-v1")
 langfuse.score(trace_id="...", name="quality", value=0.85)
 ```
+
+## Python SDK: v3 → v4
+
+### API Removals
+
+| v3 (Removed) | v4 (Current) |
+|--------------|-------------|
+| `langfuse.start_span(name=...)` | `langfuse.start_observation(name=..., as_type="span")` |
+| `langfuse.start_generation(name=...)` | `langfuse.start_observation(name=..., as_type="generation")` |
+| `span.start_generation(name=...)` | `span.start_observation(name=..., as_type="generation")` |
+| `langfuse.trace(name=...)` | `langfuse.start_observation(name=...)` |
+| `.score(name=..., value=...)` on trace | `langfuse.create_score(trace_id=..., name=..., value=...)` |
+| `@observe(type="agent")` | `@observe(as_type="agent")` |
+
+### New v4 APIs
+
+- `get_client().score_current_span(name=..., value=...)` — score the active span without trace_id lookup
+- `get_client().score_current_trace(name=..., value=...)` — score the active trace
+- `should_export_span` — filter noisy spans (sqlalchemy, httpx, asyncpg, redis)
+- `LangfuseMedia(content_bytes=..., content_type=...)` — attach images/audio to spans
+- `as_type` parameter with 7 semantic types: span, generation, agent, retriever, embedding, guardrail, chain, evaluator
+- `run_experiment()` — unified experiment runner for batch evaluation
+
+### Migration Example
+
+```python
+# ❌ v3 (DEPRECATED)
+from langfuse import Langfuse
+langfuse = Langfuse()
+root = langfuse.start_span(name="pipeline")
+gen = root.start_generation(name="llm_call", model="claude-sonnet-4-6")
+gen.end(output=response)
+root.end()
+
+# ✅ v4 (CURRENT)
+from langfuse import Langfuse
+langfuse = Langfuse()
+root = langfuse.start_observation(name="pipeline", as_type="span")
+gen = root.start_observation(name="llm_call", as_type="generation", model="claude-sonnet-4-6")
+gen.end(output=response)
+root.end()
+```
+
+### score_current_span Example
+
+```python
+# ❌ v3 pattern (3 lines, needs trace_id)
+trace_id = get_current_trace_id()
+if trace_id:
+    submit_trace_quality_score(name="relevance", value=0.85, trace_id=trace_id)
+
+# ✅ v4 pattern (1 line, auto-resolves context)
+get_client().score_current_span(name="relevance", value=0.85)
+```
+
+### should_export_span Example
+
+```python
+from langfuse.span_filter import is_default_export_span
+
+_NOISY_SCOPES = frozenset({"sqlalchemy", "asyncpg", "redis", "httpx", "urllib3"})
+
+def _should_export(span) -> bool:
+    if is_default_export_span(span):
+        scope = span.instrumentation_scope.name if span.instrumentation_scope else ""
+        return not any(scope.startswith(s) for s in _NOISY_SCOPES)
+    return False
+
+client = Langfuse(..., should_export_span=_should_export)
+```
+
+### LangfuseMedia Example
+
+```python
+from langfuse.media import LangfuseMedia
+
+media = LangfuseMedia(content_bytes=image_bytes, content_type="image/png")
+get_client().update_current_span(input={"screenshot": media})
+```
+
+### Semantic as_type Values
+
+| as_type | Use For |
+|---------|---------|
+| `"generation"` | LLM calls (chat completion, text generation) |
+| `"retriever"` | Vector search, knowledge retrieval |
+| `"chain"` | Multi-step orchestration pipelines |
+| `"embedding"` | Embedding generation calls |
+| `"agent"` | Agent executor / supervisor |
+| `"guardrail"` | Safety checks, content filtering |
+| `"evaluator"` | LLM-as-judge scoring |
+
+### Breaking Changes Checklist (Python v3 → v4)
+
+- [ ] Replace `start_span(name=...)` → `start_observation(name=..., as_type="span")`
+- [ ] Replace `start_generation(name=...)` → `start_observation(name=..., as_type="generation")`
+- [ ] Replace `.trace(name=...)` → `start_observation(name=...)`
+- [ ] Replace `.score(name=..., value=...)` → `create_score(trace_id=..., name=..., value=...)`
+- [ ] Replace `@observe(type=...)` → `@observe(as_type=...)`
+- [ ] Add `as_type=` to `@observe()` decorators for semantic classification
+- [ ] Migrate `submit_trace_quality_score()` callers to `score_current_span()`
+- [ ] Add `should_export_span` filter to suppress noisy infrastructure spans
+- [ ] Update `requirements.txt`: `langfuse>=4.0.0`
 
 ## JavaScript/TypeScript SDK: v3 → v4
 
@@ -283,7 +386,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 
 ## Breaking Changes Checklist
 
-### Python v2 → v3
+### Python v2 → v3 (then v3 → v4)
 
 - [ ] Replace `from langfuse.decorators import observe` → `from langfuse import observe`
 - [ ] Replace `from langfuse.decorators import langfuse_context` → `from langfuse import get_client`
@@ -305,6 +408,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 ## References
 
 - [Python SDK v3 Migration](https://langfuse.com/docs/sdk/python/v3-migration)
+- [Python SDK v4 Migration](https://langfuse.com/docs/sdk/python/v4-migration)
 - [JS SDK v4 Migration](https://langfuse.com/docs/sdk/typescript/v4-migration)
 - [Self-Hosting Guide](https://langfuse.com/docs/deployment/self-host)
 - [ClickHouse Acquisition](https://langfuse.com/blog/clickhouse-acquisition)

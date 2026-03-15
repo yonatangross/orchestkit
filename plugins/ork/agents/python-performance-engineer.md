@@ -3,7 +3,7 @@ name: python-performance-engineer
 description: "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing."
 model: inherit
 category: backend
-maxTurns: 30
+maxTurns: 50
 context: fork
 color: orange
 memory: project

@@ -1,12 +1,12 @@
 ---
 name: create-pr
 license: MIT
-compatibility: "Claude Code 2.1.74+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.76+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
 agent: git-operations-engineer
-version: 2.4.0
+version: 2.5.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
@@ -42,12 +42,42 @@ TITLE = "$ARGUMENTS"  # Optional PR title, e.g., "Add user authentication"
 
 ## STEP 0: Verify User Intent
 
-**BEFORE creating tasks**, clarify PR type with AskUserQuestion:
+**BEFORE creating tasks**, clarify PR type:
 
-- **Feature**: Full validation with all agents
-- **Bug fix**: Focus on test verification
-- **Refactor**: Skip new feature validation
-- **Quick**: Skip all validation, just create PR
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What type of PR is this?",
+    "header": "PR Type",
+    "options": [
+      {"label": "Feature (Recommended)", "description": "Full validation: security + quality + tests", "markdown": "```\nFeature PR\n──────────\n  Pre-flight ──▶ 3 agents ──▶ Tests ──▶ PR\n  ┌────────────┐ ┌─────────────────────┐\n  │ Branch OK? │ │ security-auditor    │\n  │ Clean tree?│ │ test-generator      │\n  │ Remote?    │ │ code-quality-review │\n  └────────────┘ └─────────────────────┘\n  Full validation, ~5 min\n```"},
+      {"label": "Bug fix", "description": "Focus on test verification", "markdown": "```\nBug Fix PR\n──────────\n  Pre-flight ──▶ test-generator ──▶ Tests ──▶ PR\n\n  Agent: test-generator only\n  Verifies regression test exists\n  ~2 min\n```"},
+      {"label": "Refactor", "description": "Code quality review, skip security", "markdown": "```\nRefactor PR\n───────────\n  Pre-flight ──▶ code-quality ──▶ Tests ──▶ PR\n\n  Agent: code-quality-reviewer only\n  Checks: no behavior change,\n  complexity reduction, patterns\n  ~2 min\n```"},
+      {"label": "Quick", "description": "Skip validation, just create PR", "markdown": "```\nQuick PR (~30s)\n───────────────\n  Pre-flight ──▶ PR\n\n  No agents, no tests\n  Just create the PR\n```"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Feature**: Full Phase 2 with 3 parallel agents + local tests
+- **Bug fix**: Phase 2 with test-generator only + local tests
+- **Refactor**: Phase 2 with code-quality-reviewer only + local tests
+- **Quick**: Skip Phase 2, jump to Phase 3
+
+### Progressive Output (CC 2.1.76)
+
+Output results **incrementally** during PR creation:
+
+| After Step | Show User |
+|------------|-----------|
+| Pre-flight | Branch status, remote sync result |
+| Each agent | Agent validation result as it returns |
+| Tests | Test results, lint/typecheck status |
+| PR created | PR URL, CI status link |
+
+For feature PRs with 3 parallel agents, show each agent's result **as it returns** — don't wait for all agents before running local tests.
 
 ---
 

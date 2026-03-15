@@ -7,12 +7,12 @@ tags: [langfuse, cost, tokens, pricing, spend-alerts, metrics-api, budget]
 
 # LLM Cost Tracking
 
-## Basic Cost Tracking (Langfuse v3)
+## Basic Cost Tracking (Langfuse v4)
 
 ```python
 from langfuse import observe, get_client
 
-@observe(name="security_audit")
+@observe(as_type="chain", name="security_audit")
 async def run_audit(content: str):
     response = await llm.generate(
         model="claude-sonnet-4-6",
@@ -44,6 +44,44 @@ langfuse.create_model(
     unit="TOKENS",
     input_price=0.000003,   # $3/MTok
     output_price=0.000015,  # $15/MTok
+)
+```
+
+## Reducing Tracing Costs with should_export_span (v4)
+
+OTel auto-instrumentation exports many infra spans (HTTP, DNS, DB drivers)
+that inflate Langfuse ingestion costs without adding LLM-relevant insight.
+Use `should_export_span` to filter out noisy spans:
+
+```python
+from langfuse.opentelemetry import LangfuseSpanProcessor
+
+def cost_relevant_only(span) -> bool:
+    """Only export spans that contribute to LLM cost attribution."""
+    skip_libs = {"urllib3", "httpcore", "dns", "ssl", "sqlalchemy"}
+    lib = span.attributes.get("otel.library.name", "")
+    return lib not in skip_libs
+
+langfuse_processor = LangfuseSpanProcessor(
+    public_key="pk-...",
+    secret_key="sk-...",
+    should_export_span=cost_relevant_only,
+)
+```
+
+## Cost Sampling (v4)
+
+v4 adds cost sampling to reduce tracing overhead in high-throughput systems.
+Configure a sample rate to trace a percentage of requests while preserving
+accurate cost estimates via extrapolation:
+
+```python
+from langfuse.opentelemetry import LangfuseSpanProcessor
+
+langfuse_processor = LangfuseSpanProcessor(
+    public_key="pk-...",
+    secret_key="sk-...",
+    sample_rate=0.1,  # Trace 10% of requests, extrapolate costs
 )
 ```
 
@@ -164,6 +202,8 @@ GROUP BY DATE(timestamp) ORDER BY date;
 5. **Group by metadata** (agent_type, operation) for cost attribution
 6. **Use custom pricing** for self-hosted models
 7. **Use Metrics API** for programmatic queries instead of raw SQL
+8. **Use `should_export_span`** to skip noisy infra spans and reduce ingestion costs
+9. **Use `sample_rate`** in high-throughput systems to control tracing overhead
 
 **Incorrect — no cost tracking in LLM calls:**
 ```python
@@ -173,9 +213,9 @@ async def analyze(content: str):
     return response  # Cost visibility lost
 ```
 
-**Correct — tracking usage for cost attribution:**
+**Correct — tracking usage for cost attribution (v4):**
 ```python
-@observe()
+@observe(as_type="chain")
 async def analyze(content: str):
     response = await llm.generate(content)
     get_client().update_current_observation(

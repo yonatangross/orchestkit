@@ -1,11 +1,11 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.74+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.76+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 argument-hint: "[feature-description]"
 context: fork
-version: 2.5.0
+version: 2.6.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
@@ -167,6 +167,19 @@ Write handoff JSON after major phases. See `chain-patterns` skill for schema.
 | 4. Architecture | `04-architecture.json` | Decisions, patterns chosen, agent results |
 | 5. Implementation | `05-implementation.json` | Files created/modified, test results |
 | 7. Scope Creep | `07-scope.json` | Planned vs actual, PR split recommendation |
+
+### Progressive Output (CC 2.1.76)
+
+Output results **incrementally** after each phase — don't batch everything until the end:
+
+| After Phase | Show User |
+|-------------|-----------|
+| 1. Discovery | Key findings, library recommendations, task breakdown |
+| 4. Architecture | Each agent's design decisions as they return |
+| 5. Implementation | Files created/modified per agent, test results |
+| 7. Scope Creep | Planned vs actual delta, PR split recommendation |
+
+When agents run with `run_in_background=true`, output each agent's findings **as soon as it returns** — don't wait for all agents to finish. This gives users ~60% faster perceived feedback and enables early intervention if an agent's approach diverges from the plan.
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 

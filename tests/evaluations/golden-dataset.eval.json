@@ -132,6 +132,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-near-duplicate-0.88-similarity",
+      "query": "Add a document that scores 0.88 semantic similarity with an existing entry but covers a different subtopic",
+      "expected_behavior": [
+        "Triggers the warning threshold (>=0.85) but does not auto-block since it is below the 0.90 hard duplicate cutoff",
+        "Flags the entry for manual review with a side-by-side comparison of the similar existing document",
+        "Requires explicit human confirmation before accepting the document into the dataset"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-backup-restore-missing-embeddings",
+      "query": "Restore a golden dataset backup but the embedding model endpoint is unreachable",
+      "expected_behavior": [
+        "Restores all non-embedding data (analyses, chunks, metadata) successfully despite the embedding service failure",
+        "Clearly reports which documents are missing embeddings and marks them as requiring re-embedding",
+        "Does not silently serve documents with missing embeddings for similarity search without warning"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-malicious-url-in-source",
+      "query": "Add a document with source_url pointing to a javascript: URI or a data: URL containing embedded script",
+      "expected_behavior": [
+        "Rejects non-http/https URLs during source_url validation to prevent protocol-based injection attacks",
+        "Validates URL format against an allowlist of safe protocols before storing in source_url_map.json",
+        "Logs the rejected URL attempt for audit purposes without executing or rendering the malicious URI"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

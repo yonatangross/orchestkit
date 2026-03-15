@@ -67,6 +67,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "okr-output-disguised-as-outcome",
+      "query": "Write OKRs for my team. Key results should be: ship 5 features, write 200 tests, deploy 10 times per sprint, and attend 3 conferences.",
+      "expected_behavior": [
+        "Identifies that all four proposed key results are output metrics, not outcome metrics",
+        "Explains the distinction between outputs (ship features) and outcomes (improve retention by X%)",
+        "Rewrites or suggests outcome-focused alternatives that measure business or user impact",
+        "Warns that output-based OKRs incentivize busywork rather than meaningful progress"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "kpi-tree-circular-dependencies",
+      "query": "Build a KPI tree where revenue drives NPS, NPS drives retention, retention drives revenue. It's a virtuous cycle.",
+      "expected_behavior": [
+        "Identifies the circular dependency in the proposed metric hierarchy",
+        "Explains that KPI trees require a directed acyclic structure with clear cause-effect direction",
+        "Suggests breaking the cycle by identifying which relationship is the primary driver versus feedback loop",
+        "Recommends modeling the feedback loop separately from the hierarchical KPI decomposition"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "experiment-design-no-control-group",
+      "query": "We rolled out the new checkout flow to 100% of users yesterday. Now design an A/B test to measure if it works better than the old one.",
+      "expected_behavior": [
+        "Warns that a proper A/B test is impossible after a 100% rollout with no holdback control group",
+        "Suggests pre/post analysis with caveats about confounding variables like seasonality",
+        "Recommends reverting a percentage of traffic to create a concurrent control group if possible",
+        "Explains that without a concurrent control, causal attribution is unreliable"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

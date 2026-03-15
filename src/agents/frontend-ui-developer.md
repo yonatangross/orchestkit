@@ -35,13 +35,16 @@ skills:
   - zustand-patterns
   - architecture-patterns
   - task-dependency-patterns
+  - component-search
+  - design-to-code
+  - design-context-extract
   - remember
   - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7]
+mcpServers: [context7, 21st-dev-magic]
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
@@ -84,6 +87,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
+- `21st-dev-magic` - Search 21st.dev registry for production-ready React components. Prefer registry components over generating from scratch when a good match exists.
 - **Opus 4.6 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens

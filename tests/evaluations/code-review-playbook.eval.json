@@ -114,6 +114,43 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-diff-pr",
+      "query": "Review this PR that has 0 changed files but updates the CI workflow configuration only.",
+      "expected_behavior": [
+        "Does not skip the review just because there are no source code changes in the diff",
+        "Reviews CI/workflow changes for misconfigurations like missing environment variables or wrong branch triggers",
+        "Checks that workflow changes do not weaken existing security gates like skipping test steps"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-unresolvable-diff",
+      "query": "Review this PR but the branch has merge conflicts and git diff fails to produce clean output.",
+      "expected_behavior": [
+        "Detects the merge conflict state and reports that the review cannot proceed on a conflicted branch",
+        "Does not attempt to review partial or corrupted diff output that may miss conflicted file sections",
+        "Instructs the author to resolve merge conflicts and force-push before requesting re-review"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-review-secrets-in-diff",
+      "query": "Review this PR where a developer accidentally committed an .env file with database credentials and API keys.",
+      "expected_behavior": [
+        "Immediately flags the committed secrets as a CRITICAL blocking finding requiring Request Changes",
+        "Warns that removing the file in a follow-up commit does not purge it from git history",
+        "Recommends rotating all exposed credentials immediately and using git-filter-repo or BFG to scrub history",
+        "Suggests adding .env to .gitignore and configuring pre-commit hooks to prevent future secret commits"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

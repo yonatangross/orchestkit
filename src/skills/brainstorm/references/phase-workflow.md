@@ -34,7 +34,11 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | **AI/LLM** | AI, LLM, RAG, embeddings, prompt, agent, workflow |
 | **Performance** | performance, slow, optimize, cache, speed, latency |
 | **Testing** | test, coverage, quality, e2e, unit, integration |
-| **DevOps** | deploy, CI/CD, Docker, Kubernetes, infrastructure |
+| **DevOps/Infra** | deploy, CI/CD, Docker, Kubernetes, infrastructure, terraform, pipeline |
+| **Design/UI System** | design system, tokens, theme, component library, Stitch, Figma, mockup, palette |
+| **Product/Business** | product, strategy, pricing, business model, market, prd, roadmap, competitive, growth |
+| **Event-Driven** | event, event-driven, kafka, stream, pubsub, event-sourcing, cqrs, saga, queue |
+| **Data Pipeline** | data pipeline, etl, batch, ingestion, embeddings pipeline, chunking, vector |
 
 ### Step 2: Select Agents
 
@@ -46,6 +50,11 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
 | Performance | `frontend-performance-engineer` | performance |
+| Design/UI System | `design-context-extractor`, `component-curator`, `frontend-ui-developer` | design-to-code, component-search, design-context-extract |
+| DevOps/Infra | `infrastructure-architect`, `ci-cd-engineer` | devops-deployment |
+| Product/Business | `product-strategist`, `web-research-analyst` | competitive-analysis, user-research, browser-tools |
+| Event-Driven | `event-driven-architect`, `backend-system-architect` | database-patterns |
+| Data Pipeline | `data-pipeline-engineer`, `llm-integrator` | database-patterns |
 
 **Always include:** `workflow-architect` (system design perspective) + `test-generator` (testability assessment)
 
@@ -74,6 +83,8 @@ Agent(subagent_type="workflow-architect", prompt="...", run_in_background=True)
 Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
 Agent(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
 ```
+
+**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3.
 
 **Divergent mindset instruction for agents:**
 ```

@@ -41,6 +41,34 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-cascading-hook-failures",
+      "query": "Three hooks failed in sequence during my last session — the pretool hook threw an error, which caused the posttool hook to receive invalid context, which then crashed the stop hook. Analyze the cascading failure chain.",
+      "expected_behavior": [
+        "Identifies the root cause hook failure that initiated the cascade",
+        "Traces the error propagation path across pretool, posttool, and stop hook boundaries",
+        "Distinguishes between primary failures and secondary failures caused by corrupted upstream state",
+        "Recommends isolation or circuit-breaker patterns to prevent one hook failure from cascading",
+        "Checks whether hooks.json registers error handlers or fallback behavior for each hook type"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-truncated-stack-traces",
+      "query": "My error log has stack traces that are cut off mid-line. The errors.jsonl entries show '... 15 more frames' at the bottom. Can you still analyze these?",
+      "expected_behavior": [
+        "Parses truncated stack traces and extracts available frame information despite incomplete data",
+        "Uses the visible frames to identify the failing module and approximate call path",
+        "Cross-references partial traces with known error patterns to improve diagnosis accuracy",
+        "Reports confidence level when analysis is based on incomplete stack trace data",
+        "Suggests enabling full stack trace capture by adjusting Error.stackTraceLimit or logging configuration"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

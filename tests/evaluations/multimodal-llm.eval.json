@@ -157,6 +157,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-corrupt-image-input",
+      "query": "Users sometimes upload truncated or corrupt JPEG files to our image analysis pipeline. The vision API returns cryptic errors. How should I handle malformed image inputs?",
+      "expected_behavior": [
+        "Claude validates image file headers and dimensions before sending to the vision API",
+        "Claude returns a user-friendly error message explaining the image could not be processed",
+        "Claude does not pass corrupt or zero-byte images to the vision model which wastes API credits",
+        "Claude checks that base64 encoding produces valid data and the image meets minimum dimension requirements"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-video-generation-task-stuck",
+      "query": "My Kling video generation task has been in 'processing' status for over 30 minutes and the polling loop is running forever. How do I handle stuck generation tasks?",
+      "expected_behavior": [
+        "Claude implements a maximum polling timeout that aborts after a configurable duration",
+        "Claude does not poll indefinitely without a circuit breaker for stuck or failed backend tasks",
+        "Claude stores the task_id so the user can manually check status later after timeout",
+        "Claude distinguishes between 'still processing' and 'silently failed' states using task metadata"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-exif-metadata-leakage",
+      "query": "Our image upload pipeline sends user photos to the vision API for analysis. I'm worried about GPS coordinates and personal info in EXIF metadata being processed or stored. How do I strip it?",
+      "expected_behavior": [
+        "Claude strips EXIF metadata from uploaded images before sending them to any external API",
+        "Claude specifically removes GPS coordinates, camera serial numbers, and software version tags",
+        "Claude does not rely on the vision API provider to strip metadata on their side",
+        "Claude warns that base64 encoding preserves all EXIF data and does not sanitize it automatically"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

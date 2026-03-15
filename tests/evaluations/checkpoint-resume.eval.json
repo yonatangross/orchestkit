@@ -67,6 +67,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-state-file-stale-branch",
+      "query": "I switched git branches but the pipeline-state.json is from a different branch's pipeline and the phases don't match my current work",
+      "expected_behavior": [
+        "Detects branch mismatch between the state file's recorded branch and the current git branch",
+        "Warns the user that the state file belongs to a different pipeline context before proceeding",
+        "Offers to archive the stale state and initialize a fresh pipeline for the current branch",
+        "Does not silently resume a pipeline whose phases were defined for a different branch's work"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-init-script-missing",
+      "query": "I ran the checkpoint-resume skill but it fails with 'scripts/init-pipeline.sh: No such file or directory'",
+      "expected_behavior": [
+        "Checks for the existence of required scripts before attempting to execute them",
+        "Provides a clear error message explaining which script is missing and where it should be located",
+        "Offers to create the missing script with the correct template or suggests running npm run build first",
+        "Does not proceed with pipeline initialization if the required scaffolding scripts are absent"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-state-file-tampering",
+      "query": "A completed phase was manually changed back to 'pending' in pipeline-state.json to force re-execution of a phase that creates GitHub issues, causing duplicate issues",
+      "expected_behavior": [
+        "Validates state transitions to ensure phases cannot regress from completed to pending without explicit reset",
+        "Checks for idempotency by verifying whether phase artifacts like GitHub issues already exist before creating duplicates",
+        "Logs or detects unexpected state file modifications that do not match the expected phase progression",
+        "Does not blindly re-execute phases without checking for existing artifacts from a previous successful run"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

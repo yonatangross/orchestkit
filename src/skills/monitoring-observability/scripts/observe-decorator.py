@@ -8,7 +8,7 @@ to automatically trace async functions with nested operations.
 from langfuse import observe, get_client
 
 
-@observe()  # Automatic tracing for top-level function
+@observe(as_type="span")  # Automatic tracing for top-level function
 async def analyze_content(content: str, agent_type: str) -> dict:
     """
     Analyze content with automatic Langfuse tracing.
@@ -37,7 +37,7 @@ async def analyze_content(content: str, agent_type: str) -> dict:
     return {"analysis": analysis, "context_used": len(context)}
 
 
-@observe(name="retrieval")  # Named span
+@observe(name="retrieval", as_type="retriever")  # Named span with v4 type
 async def retrieve_context(content: str) -> list[str]:
     """
     Retrieve relevant context chunks.
@@ -55,7 +55,7 @@ async def retrieve_context(content: str) -> list[str]:
     return chunks
 
 
-@observe(name="generation")
+@observe(name="generation", as_type="generation")
 async def generate_analysis(content: str, context: list[str]) -> str:
     """
     Generate analysis using LLM.
@@ -72,7 +72,7 @@ async def generate_analysis(content: str, context: list[str]) -> str:
         input={"content": content[:500], "context": context},  # Truncated
         output=response_text[:500],  # Truncated
         model="claude-sonnet-4-6",
-        usage={"input_tokens": input_tokens, "output_tokens": output_tokens},
+        usage={"input_tokens": input_tokens, "output_tokens": output_tokens, "unit": "TOKENS"},
         metadata={"temperature": 1.0, "max_tokens": 4096},
     )
 
@@ -80,12 +80,15 @@ async def generate_analysis(content: str, context: list[str]) -> str:
 
 
 # Example: Error handling with @observe
-@observe(name="risky_operation")
+# In v4, use capture_exceptions=True for automatic exception capture without re-raising
+@observe(name="risky_operation", as_type="span", capture_exceptions=True)
 async def operation_that_might_fail(data: str) -> dict:
     """
     Operations that raise exceptions are automatically logged.
 
     Langfuse captures the exception and marks the span as failed.
+    In v4, `capture_exceptions=True` ensures exceptions are recorded even
+    if caught and handled within the function.
     """
     try:
         # Risky operation
@@ -106,7 +109,7 @@ async def operation_that_might_fail(data: str) -> dict:
 
 
 # Example: Conditional tracing
-@observe(name="conditional_operation")
+@observe(name="conditional_operation", as_type="chain")
 async def operation_with_early_return(condition: bool) -> str:
     """
     Early returns are handled correctly by @observe.
@@ -124,6 +127,39 @@ async def operation_with_early_return(condition: bool) -> str:
     )
 
     return result
+
+
+# Example: v4 scoring with score_current_span()
+@observe(name="scored_generation", as_type="generation")
+async def generate_with_scoring(content: str) -> str:
+    """
+    Use v4's score_current_span() for simpler in-context scoring.
+
+    Instead of fetching the trace ID and calling lf.score(), v4 lets you
+    score the current span directly from within the decorated function.
+    """
+    response_text = "Generated analysis..."
+
+    get_client().update_current_observation(
+        input=content[:500],
+        output=response_text[:500],
+        model="claude-sonnet-4-6",
+        usage={"input_tokens": 800, "output_tokens": 400, "unit": "TOKENS"},
+    )
+
+    # v4: Score the current span directly (no need to look up trace_id)
+    get_client().score_current_span(
+        name="relevance",
+        value=0.92,
+        comment="High relevance to input query",
+    )
+    get_client().score_current_span(
+        name="coherence",
+        value=0.88,
+        comment="Well-structured response",
+    )
+
+    return response_text
 
 
 # Helper (not traced)

@@ -87,6 +87,42 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-zero-concurrent-users",
+      "query": "Run a k6 load test with 0 virtual users to establish a baseline",
+      "expected_behavior": [
+        "Warns that 0 VUs will produce no load and no meaningful results",
+        "Recommends starting with at least 1 VU for baseline latency measurement under no-contention conditions",
+        "Suggests using k6 options with a minimum ramp-up stage starting from 1 VU"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-target-server-unreachable",
+      "query": "k6 load test fails immediately with 'connection refused' on every request",
+      "expected_behavior": [
+        "Identifies that the target server is not running or is unreachable at the configured base URL",
+        "Recommends verifying the server is up and the BASE_URL environment variable points to the correct host and port",
+        "Suggests adding a setup() function with a health check request to fail fast with a clear error before ramping load"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-perf-test-prod-traffic",
+      "query": "Run a stress test against the production API to see how it handles peak load",
+      "expected_behavior": [
+        "Warns against running stress tests directly against production without explicit approval and safeguards",
+        "Recommends using a staging environment that mirrors production for stress testing",
+        "If production testing is required, insists on rate limiting, kill switches, and coordination with the ops team to prevent outages"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

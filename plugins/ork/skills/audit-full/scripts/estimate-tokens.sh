@@ -82,23 +82,21 @@ echo "------------------------------------------------------------"
 printf "  %-20s %35s\n" "TOTAL" "$TOTAL tokens"
 echo ""
 
-# Context fit assessment
-echo "=== Context Fit Assessment ==="
+# Context fit assessment (1M GA is now the standard context window)
+echo "=== Context Fit Assessment (1M GA) ==="
 if [ "$TOTAL" -lt 150000 ]; then
-  echo "  200K context: YES (standard)"
-elif [ "$TOTAL" -lt 450000 ]; then
-  echo "  200K context: NO"
-  echo "  500K context: YES"
+  echo "  1M context:   YES — tiny footprint (< 16% of budget)"
+  echo "  Single-pass:  Full codebase audit with room to spare"
+elif [ "$TOTAL" -lt 500000 ]; then
+  echo "  1M context:   YES — comfortable fit (< 53% of budget)"
+  echo "  Single-pass:  Full codebase audit recommended"
 elif [ "$TOTAL" -lt 950000 ]; then
-  echo "  200K context: NO"
-  echo "  500K context: NO"
-  echo "  1M context:   YES (beta, Tier 4+)"
+  echo "  1M context:   YES — tight fit (scope non-essential files)"
+  echo "  Single-pass:  Exclude tests/fixtures to fit comfortably"
 else
-  echo "  200K context: NO"
-  echo "  500K context: NO"
   echo "  1M context:   PARTIAL (need directory scoping)"
   echo ""
-  echo "  Recommendation: Use /ork:verify for chunked multi-agent approach"
-  echo "  or scope to specific directories with /audit-full"
+  echo "  Recommendation: Scope to specific directories with /audit-full"
+  echo "  or use /ork:verify for multi-agent approach"
 fi
 echo ""

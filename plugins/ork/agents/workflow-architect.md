@@ -3,7 +3,7 @@ name: workflow-architect
 description: "Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration."
 category: llm
 model: opus
-maxTurns: 40
+maxTurns: 60
 permissionMode: plan
 context: fork
 color: blue

@@ -245,6 +245,76 @@ test('rejects invalid email', async () => {
 });
 ```
 
+## RFC 9457 Error Response Assertions
+
+When APIs return RFC 9457 Problem Details, assert the structured fields — not just status codes:
+
+```typescript
+// Assert RFC 9457 structure on error responses
+function assertProblemDetail(response: request.Response, expectedStatus: number) {
+  expect(response.status).toBe(expectedStatus);
+  expect(response.headers['content-type']).toContain('application/problem+json');
+  expect(response.body.type).toBeDefined();
+  expect(response.body.status).toBe(expectedStatus);
+  expect(response.body.title).toBeDefined();
+  // Agent-facing extensions
+  expect(response.body.error_category).toBeDefined();
+  expect(typeof response.body.retryable).toBe('boolean');
+}
+
+test('rate limit returns structured error with retry_after', async () => {
+  const response = await request(app).get('/api/data').set('Accept', 'application/problem+json');
+  assertProblemDetail(response, 429);
+  expect(response.body.retryable).toBe(true);
+  expect(response.body.retry_after).toBeGreaterThan(0);
+  expect(response.body.error_category).toBe('rate_limit');
+});
+```
+
+```python
+# Python: RFC 9457 error structure assertions
+def assert_problem_detail(response, expected_status: int):
+    assert response.status_code == expected_status
+    assert "application/problem+json" in response.headers.get("content-type", "")
+    body = response.json()
+    assert "type" in body
+    assert body["status"] == expected_status
+    assert "title" in body
+    assert "error_category" in body
+    assert isinstance(body["retryable"], bool)
+    if body["retryable"]:
+        assert "retry_after" in body
+
+@pytest.mark.asyncio
+async def test_rate_limit_returns_structured_error(client: AsyncClient):
+    response = await client.get(
+        "/api/data",
+        headers={"Accept": "application/problem+json"},
+    )
+    assert_problem_detail(response, 429)
+    assert response.json()["error_category"] == "rate_limit"
+    assert response.json()["retry_after"] > 0
+```
+
+**Incorrect — asserting only status code:**
+```typescript
+test('returns 429', async () => {
+  const response = await request(app).get('/api/data');
+  expect(response.status).toBe(429);
+  // Missing: no check for structured fields, agent can't branch deterministically
+});
+```
+
+**Correct — asserting RFC 9457 structure for agent consumers:**
+```typescript
+test('returns structured 429 with retry signal', async () => {
+  const response = await request(app).get('/api/data');
+  assertProblemDetail(response, 429);
+  expect(response.body.retryable).toBe(true);
+  expect(response.body.retry_after).toBeGreaterThan(0);
+});
+```
+
 
 ### Test React components with providers and user interactions for realistic integration coverage — HIGH
 

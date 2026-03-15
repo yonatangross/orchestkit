@@ -45,7 +45,7 @@ function VersionCard({ entry, isLatest }: { entry: ChangelogEntry; isLatest: boo
             {formatDate(entry.date)}
           </span>
           {isLatest && (
-            <span className="rounded-sm bg-fd-primary/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-fd-primary">
+            <span className="rounded-sm bg-[var(--color-fd-primary-20)] px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-fd-primary">
               Latest
             </span>
           )}
@@ -134,7 +134,7 @@ export function ChangelogTimeline() {
       {!showAll && hiddenCount > 0 && (
         <button
           onClick={() => setShowAll(true)}
-          className="w-full rounded-md border border-dashed border-fd-border py-2 text-[13px] text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-primary"
+          className="w-full rounded-md border border-dashed border-fd-border py-2 text-[13px] text-fd-muted-foreground transition-colors hover:border-[var(--color-fd-primary-30)] hover:text-fd-primary"
         >
           {hiddenCount} older releases
         </button>

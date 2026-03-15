@@ -41,6 +41,32 @@
       "tags": [
         "negative"
       ]
+    },
+    {
+      "id": "edge-monorepo-multiple-package-managers",
+      "query": "/ork:setup in a monorepo that has a root pnpm-workspace.yaml, packages/backend using pip/pyproject.toml, and packages/mobile using flutter/pubspec.yaml",
+      "expected_behavior": [
+        "Detects all three package managers during Phase 1 scanning: pnpm, pip, and flutter",
+        "Presents a unified stack profile in Phase 2 that covers all workspace packages without merging them",
+        "Does not assume a single package manager for the entire monorepo",
+        "Generates per-workspace improvement recommendations rather than a single flat list"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-claude-code-version-below-minimum",
+      "query": "/ork:setup but my Claude Code version is 1.0.5 which is well below the minimum required version",
+      "expected_behavior": [
+        "Detects that the Claude Code version is below the minimum supported version during setup",
+        "Warns the user clearly that OrchestKit requires a newer Claude Code version before proceeding",
+        "Does not silently continue setup with an incompatible Claude Code version",
+        "Provides the minimum required version number and instructions to upgrade Claude Code"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

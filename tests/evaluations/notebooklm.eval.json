@@ -144,6 +144,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-notebook-with-no-sources",
+      "query": "I created a NotebookLM notebook but forgot to add sources. When I run notebook_query it returns empty or generic answers. What's going wrong?",
+      "expected_behavior": [
+        "Claude checks source count before querying and warns that a notebook with zero sources cannot produce grounded answers",
+        "Claude does not attempt notebook_query on an empty notebook without first verifying sources exist",
+        "Claude suggests adding relevant sources with source_add before running any queries",
+        "Claude explains that NotebookLM queries are grounded in sources and will not use general knowledge"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-auth-session-expired-mid-workflow",
+      "query": "I'm in the middle of a multi-step NotebookLM workflow and suddenly all MCP tool calls start failing silently. No error message, just empty responses.",
+      "expected_behavior": [
+        "Claude detects the pattern of silent failures as a likely authentication session expiry",
+        "Claude runs nlm login --check to verify session status before retrying the failed operation",
+        "Claude warns that NotebookLM sessions expire after approximately 20 minutes of inactivity",
+        "Claude does not retry the failed tool calls in a loop without first re-authenticating"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-sensitive-source-sharing",
+      "query": "I accidentally shared a notebook publicly that contains internal API documentation with endpoint URLs and authentication headers. How do I revoke access and prevent this?",
+      "expected_behavior": [
+        "Claude immediately revokes public sharing using notebook_share_public with enabled false",
+        "Claude checks notebook_share_status to confirm sharing was actually disabled after the revocation",
+        "Claude recommends reviewing notebook sources for sensitive content before enabling any sharing",
+        "Claude prefers notebook_share_invite with specific collaborators over public link sharing for sensitive content"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

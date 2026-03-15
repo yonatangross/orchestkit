@@ -4,7 +4,8 @@ description: Install OrchestKit in Claude Code — marketplace, CLI, or manual s
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
-import { SetupWizard } from '@/components/setup-wizard';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { LazySetupWizard } from '@/components/lazy';
 
 ## From Claude Code Marketplace (Recommended)
 
@@ -12,11 +13,11 @@ import { SetupWizard } from '@/components/setup-wizard';
 claude install orchestkit/ork
 ```
 
-This installs all 89 skills, 31 agents, and 99 hooks.
+This installs all 92 skills, 33 agents, and 104 hooks.
 
 ## Interactive Setup
 
-<SetupWizard />
+<LazySetupWizard />
 
 ## Verify Installation
 
@@ -32,9 +33,9 @@ Expected output:
 OrchestKit Health Check
 =======================
 Plugin:     ork v7.1.4
-Skills:     89 loaded (16 commands, 73 reference)
-Agents:     31 registered
-Hooks:      101 active (33 global, 45 agent, 23 skill-scoped)
+Skills:     92 loaded (19 commands, 73 reference)
+Agents:     33 registered
+Hooks:      104 active (36 global, 47 agent, 21 skill-scoped)
 Memory:     Graph ✓  Local ✓  CC Native ✓
 MCP:        context7 ✓  memory ✓  tavily ○  agentation ○
 
@@ -42,6 +43,20 @@ Status: Healthy
 ```
 
 `○` means optional and not configured. `✓` means active. `✗` means enabled but misconfigured.
+
+### If You See Errors
+
+| Status | Meaning | Fix |
+|---|---|---|
+| `✗ Memory: Graph ✗` | MCP memory server not responding | Check Node.js >= 18 is installed, restart Claude Code |
+| `✗ Hooks: 0 active` | Hook compilation failed | Run `node --version` (must be >= 18). If OK, reinstall: `claude uninstall ork && claude install orchestkit/ork` |
+| `✗ Skills: 0 loaded` | Plugin not found by Claude Code | Check `claude plugins` shows `ork`. Try closing and reopening Claude Code |
+| `○ tavily ○` | **Not an error** — Tavily is optional | See setup below if you want web research |
+| `○ agentation ○` | **Not an error** — Agentation is optional | Only needed for UI annotation workflows |
+
+<Callout type="info">
+Most issues are fixed by ensuring Node.js >= 18 is installed and restarting Claude Code. If problems persist, run `/ork:doctor --verbose` for detailed diagnostics.
+</Callout>
 
 ## Optional: Web Research (Tavily)
 
@@ -69,7 +84,7 @@ Without Tavily, web research falls back to WebFetch → agent-browser automatica
 
 ## Requirements
 
-- **Claude Code** >= 2.1.74
+- **Claude Code** >= 2.1.75
 - **Node.js** >= 18 (for hooks)
 - **Git** (for commit/PR workflows)
 

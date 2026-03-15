@@ -158,6 +158,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-empty-migration-history",
+      "query": "I ran alembic upgrade head on a fresh database but it says there are no migrations to apply even though I have migration files",
+      "expected_behavior": [
+        "Checks that alembic_version table exists and contains the correct head revision",
+        "Verifies that env.py target_metadata points to the correct Base.metadata with all models imported",
+        "Identifies common causes like missing model imports or incorrect script_location in alembic.ini",
+        "Does not suggest running autogenerate as a fix when the issue is configuration not schema drift"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-concurrent-migration-conflict",
+      "query": "Two developers created Alembic migrations on different branches and both point to the same down_revision. What happens when we merge?",
+      "expected_behavior": [
+        "Explains that Alembic will detect multiple heads and refuse to run upgrade without a merge",
+        "Recommends using alembic merge heads to create a merge migration that resolves the conflict",
+        "Warns against manually editing down_revision as it can break the migration dependency chain",
+        "Suggests a CI check that detects multiple Alembic heads before merging to main"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-sql-in-migration",
+      "query": "Write an Alembic migration that backfills user emails by running: UPDATE users SET email = name || '@' || company FROM user_input_table",
+      "expected_behavior": [
+        "Warns against using unsanitized data from user-controlled tables in migration SQL",
+        "Uses parameterized queries or ORM operations even within Alembic migration scripts",
+        "Validates data before backfill to prevent injection through stored user input values",
+        "Recommends batched updates with explicit WHERE clauses to limit blast radius of bad data"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

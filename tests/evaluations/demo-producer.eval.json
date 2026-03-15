@@ -102,6 +102,34 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-cli-interactive-prompts",
+      "query": "Create a demo video for a CLI tool that has interactive prompts (yes/no confirmations, multi-select menus, password inputs). How should the VHS script handle these?",
+      "expected_behavior": [
+        "Generates VHS tape script with Type and Enter commands to simulate interactive prompt responses",
+        "Handles multi-select menus by scripting arrow key navigation and space bar selections",
+        "Masks or skips password input prompts to avoid displaying sensitive keystrokes on screen",
+        "Adds realistic pause durations between interactive steps to maintain natural pacing",
+        "Documents which prompts are simulated so the recording can be reproduced consistently"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "error-tooling-not-installed",
+      "query": "I want to create a demo video but I don't have VHS or Remotion installed on my machine. What happens?",
+      "expected_behavior": [
+        "Detects that VHS and Remotion binaries are missing from the system PATH",
+        "Provides clear installation instructions for VHS (brew install charmbracelet/tap/vhs) and Remotion (npx remotion)",
+        "Does not attempt to run recording commands that would fail without the tooling",
+        "Offers to generate the VHS tape script and Remotion composition files even without the tools installed",
+        "Suggests alternative approaches if installation is not possible in the current environment"
+      ],
+      "tags": [
+        "error-handling"
+      ]
     }
   ]
 }

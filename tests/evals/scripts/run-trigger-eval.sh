@@ -3,50 +3,53 @@
 # OrchestKit Skill Trigger Evaluation Runner
 # =============================================================================
 # Tests whether skill descriptions correctly trigger for eval prompts.
-# Uses claude -p locally with CC Max (free, 5x per query by default).
+# Uses CC 2.1.74+ --json-schema for structured classification:
+#   1. Extracts user-invocable skill names + descriptions from plugin frontmatter
+#   2. Sends classification prompt via claude -p with --json-schema
+#   3. Parses structured_output from JSON response for skill match
+# No --plugin-dir or --dangerously-skip-permissions needed.
 #
 # Usage:
 #   npm run eval:trigger -- commit           # one skill
 #   npm run eval:trigger -- --all            # all skills with .eval.yaml
 #   npm run eval:trigger -- --tag core       # filter by tag
 #   npm run eval:trigger -- --reps 3         # override repetitions
+#   npm run eval:trigger -- --max-turns N    # override max turns (default 2)
+#   npm run eval:trigger -- --timeout N      # override timeout (seconds)
 #   npm run eval:trigger -- --dry-run        # validate YAML only
 #
 # Requirements:
 #   - yq for YAML parsing
-#   - jq for JSON escaping
+#   - jq for JSON parsing (structured_output extraction)
 #   - bc for arithmetic (precision/recall)
-#   - Claude Code CLI (skipped in --dry-run mode)
+#   - Claude Code CLI >= 2.1.74 (--json-schema support, tested on 2.1.75)
 #   - Run OUTSIDE Claude Code session (unsets CLAUDECODE)
 # =============================================================================
 
-set -uo pipefail
-
-# Cleanup temp files on exit (Ctrl+C safe)
-CLEANUP_FILES=()
-cleanup() { rm -f "${CLEANUP_FILES[@]}" 2>/dev/null; }
-trap cleanup EXIT INT TERM
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-# Configuration
+# Configuration (set BEFORE sourcing common lib so check_deps can use DRY_RUN)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DRY_RUN=false
+
+# Source shared library (A1)
+# shellcheck source=lib/eval-common.sh
+source "$SCRIPT_DIR/lib/eval-common.sh"
+
+# Runner-specific configuration
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 SKILLS_EVAL_DIR="$EVALS_DIR/skills"
 RESULTS_DIR="$EVALS_DIR/results/skills"
 PLUGIN_DIR="plugins/ork"
 REPS=5
-DRY_RUN=false
 SKILL_FILTER=""
 TAG_FILTER=""
 PASS_THRESHOLD=80  # Minimum recall % to pass
+MAX_TURNS=2        # json-schema uses tool_use internally, needs 2 turns
+GEN_TIMEOUT=120
+SKILLS_CATALOG=""  # Built at startup from plugin skill frontmatter
+
+# JSON schema for structured trigger detection (CC 2.1.74+)
+TRIGGER_SCHEMA='{"type":"object","properties":{"skill_triggered":{"type":"boolean"},"skill_name":{"type":"string"},"confidence":{"type":"number"}},"required":["skill_triggered","skill_name","confidence"]}'
+CLASSIFIER_SYSTEM_PROMPT="You are a skill classifier. Given a list of available skills and a user prompt, determine which skill best matches the user's intent. If no skill matches, set skill_triggered to false. Respond with the JSON schema output."
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -70,9 +73,27 @@ while [[ $# -gt 0 ]]; do
             fi
             REPS="$2"; shift 2
             ;;
+        --max-turns)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --max-turns requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --max-turns must be a positive integer${NC}"; exit 1
+            fi
+            MAX_TURNS="$2"; shift 2
+            ;;
+        --timeout)
+            if [[ $# -lt 2 ]]; then
+                echo -e "${RED}Error: --timeout requires a positive integer${NC}"; exit 1
+            fi
+            if ! [[ "$2" =~ ^[1-9][0-9]*$ ]]; then
+                echo -e "${RED}Error: --timeout must be a positive integer (seconds)${NC}"; exit 1
+            fi
+            GEN_TIMEOUT="$2"; shift 2
+            ;;
         --dry-run) DRY_RUN=true; shift ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--dry-run]"
+            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run]"
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -82,32 +103,17 @@ done
 
 if [[ -z "$SKILL_FILTER" ]]; then
     echo -e "${RED}Error: specify a skill name or --all${NC}"
-    echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--dry-run]"
+    echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run]"
     exit 1
 fi
 
-# Ensure we're not inside a Claude Code session
-unset CLAUDECODE 2>/dev/null || true
+# Validate skill name to prevent path traversal
+if [[ "$SKILL_FILTER" != "__all__" ]] && ! [[ "$SKILL_FILTER" =~ $SKILL_NAME_RE ]]; then
+    echo -e "${RED}Error: invalid skill name (lowercase alphanumeric and hyphens only)${NC}"
+    exit 1
+fi
 
-# Check dependencies
-check_deps() {
-    if ! command -v yq &> /dev/null; then
-        echo -e "${RED}Error: yq is required (brew install yq)${NC}"
-        exit 1
-    fi
-    if ! command -v jq &> /dev/null; then
-        echo -e "${RED}Error: jq is required (brew install jq)${NC}"
-        exit 1
-    fi
-    if ! command -v bc &> /dev/null; then
-        echo -e "${RED}Error: bc is required (brew install bc)${NC}"
-        exit 1
-    fi
-    if [[ "$DRY_RUN" == "false" ]] && ! command -v claude &> /dev/null; then
-        echo -e "${YELLOW}Warning: Claude CLI not found — switching to dry-run mode${NC}"
-        DRY_RUN=true
-    fi
-}
+# ─── Functions ────────────────────────────────────────────────────────────────
 
 # Validate eval YAML schema
 validate_yaml() {
@@ -136,29 +142,41 @@ validate_yaml() {
     return "$errors"
 }
 
-# Detect skill trigger from stream-json output
+# Build skills catalog from plugin skill frontmatter (run once at startup)
+build_skills_catalog() {
+    local catalog=""
+    for skill_dir in "$PLUGIN_DIR"/skills/*/; do
+        local skill_file="$skill_dir/SKILL.md"
+        [[ -f "$skill_file" ]] || continue
+        local name; name=$(grep '^name:' "$skill_file" | head -1 | sed 's/name: *//' | tr -d '"')
+        local desc; desc=$(grep '^description:' "$skill_file" | head -1 | sed 's/description: *//' | tr -d '"')
+        local invocable; invocable=$(grep '^user-invocable:' "$skill_file" | head -1 | sed 's/user-invocable: *//' | tr -d '"')
+        [[ "$invocable" == "true" ]] && catalog="$catalog- ork:$name: $desc\n"
+    done
+    SKILLS_CATALOG="$catalog"
+}
+
+# Detect skill trigger from --json-schema structured output (CC 2.1.74+)
+# Uses structured_output field from --output-format json response.
 detect_trigger() {
     local output_file="$1"
     local skill_name="$2"
 
-    # Primary: check stream-json for Skill tool invocation
-    if grep -qi "\"tool\".*\"Skill\"\|\"name\".*\"Skill\"\|\"skill\".*\"$skill_name\"" "$output_file" 2>/dev/null; then
-        echo "true"
-        return
-    fi
+    # Parse structured_output from JSON response
+    local triggered_skill
+    triggered_skill=$(jq -r '.structured_output.skill_name // empty' "$output_file" 2>/dev/null)
+    local was_triggered
+    was_triggered=$(jq -r '.structured_output.skill_triggered // false' "$output_file" 2>/dev/null)
 
-    # Fallback: check for exact "ork:<skill>" reference
-    # Uses grep -w for word boundary (portable, works on BSD/GNU grep)
-    # to prevent "commit" matching "committed" or "committee"
-    if grep -qiw "ork:$skill_name" "$output_file" 2>/dev/null; then
+    if [[ "$was_triggered" == "true" && "$triggered_skill" == "ork:$skill_name" ]]; then
         echo "true"
-        return
+    else
+        echo "false"
     fi
-
-    echo "false"
 }
 
-# Run one prompt N times and return trigger count
+# Run one prompt N times and return trigger count (A6: timeout)
+# Uses --json-schema for structured classification instead of plugin execution.
 run_prompt() {
     local prompt="$1"
     local skill_name="$2"
@@ -167,13 +185,19 @@ run_prompt() {
     local tmpfile; tmpfile=$(mktemp)
     CLEANUP_FILES+=("$tmpfile")
 
+    local classification_prompt
+    classification_prompt="Which skill would be triggered by this user prompt: \"$prompt\"
+
+Available skills:
+$(echo -e "$SKILLS_CATALOG")"
+
     for ((i=1; i<=reps; i++)); do
-        claude -p "$prompt" \
-            --plugin-dir "$PLUGIN_DIR" \
-            --dangerously-skip-permissions \
-            --max-turns 1 \
-            --output-format stream-json \
-            > "$tmpfile" 2>/dev/null
+        run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
+            --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
+            --output-format json \
+            --json-schema "$TRIGGER_SCHEMA" \
+            --max-turns "$MAX_TURNS" \
+            > "$tmpfile" 2>/dev/null || true
 
         local result; result=$(detect_trigger "$tmpfile" "$skill_name")
         if [[ "$result" == "true" ]]; then
@@ -212,10 +236,9 @@ eval_skill() {
         return 0
     fi
 
-    # Run trigger evals — two-pass: positives first, then negatives
-    # Flaky results count as partial TP/FP (weighted by trigger rate)
+    # Run trigger evals -- two-pass: positives first, then negatives
     local tp=0 fp=0 tn=0 fn=0 flaky=0
-    local tp_partial="0" fp_partial="0"  # bc-compatible decimal accumulators
+    local tp_partial="0" fp_partial="0"
     local results_json="["
     local first_result=true
 
@@ -232,24 +255,22 @@ eval_skill() {
         local symbol=""
         if [[ "$should_trigger" == "true" ]]; then
             if [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="OK"; symbol="${GREEN}✓${NC}"; ((tp++))
+                verdict="OK"; symbol="${GREEN}v${NC}"; ((tp++))
                 tp_partial=$(echo "$tp_partial + 1" | bc)
             elif [[ "$triggered" -eq 0 ]]; then
-                verdict="MISS"; symbol="${RED}✗${NC}"; ((fn++))
+                verdict="MISS"; symbol="${RED}x${NC}"; ((fn++))
             else
-                verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
-                # Count flaky positives as partial TP weighted by rate
+                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
                 tp_partial=$(echo "$tp_partial + $rate" | bc)
             fi
         else
             if [[ "$triggered" -eq 0 ]]; then
-                verdict="OK"; symbol="${GREEN}✓${NC}"; ((tn++))
+                verdict="OK"; symbol="${GREEN}v${NC}"; ((tn++))
             elif [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="FALSE+"; symbol="${RED}✗${NC}"; ((fp++))
+                verdict="FALSE+"; symbol="${RED}x${NC}"; ((fp++))
                 fp_partial=$(echo "$fp_partial + 1" | bc)
             else
-                verdict="FLAKY"; symbol="${YELLOW}⚠${NC}"; ((flaky++))
-                # Count flaky negatives as partial FP weighted by rate
+                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
                 fp_partial=$(echo "$fp_partial + $rate" | bc)
             fi
         fi
@@ -282,8 +303,6 @@ eval_skill() {
     results_json+="]"
 
     # Calculate effective precision and recall (flaky = partial weight)
-    # effective_recall = tp_partial / (tp_partial + fn) * 100
-    # effective_precision = tp_partial / (tp_partial + fp_partial) * 100
     local precision=0 recall=0 eff_recall=0 eff_precision=0
     if [[ $((tp + fp)) -gt 0 ]]; then
         precision=$(echo "scale=1; $tp * 100 / ($tp + $fp)" | bc)
@@ -291,7 +310,6 @@ eval_skill() {
     if [[ $((tp + fn)) -gt 0 ]]; then
         recall=$(echo "scale=1; $tp * 100 / ($tp + $fn)" | bc)
     fi
-    # Effective metrics include partial flaky weight
     local tp_fn_partial; tp_fn_partial=$(echo "$tp_partial + $fn" | bc)
     if [[ $(echo "$tp_fn_partial > 0" | bc) -eq 1 ]]; then
         eff_recall=$(echo "scale=1; $tp_partial * 100 / $tp_fn_partial" | bc)
@@ -336,8 +354,6 @@ eval_skill() {
 ENDJSON
 
     # Return pass/fail based on effective recall threshold
-    # Uses effective recall (flaky-weighted) so partially-working skills
-    # get credit rather than being treated as completely broken
     local eff_recall_int=${eff_recall%.*}
     [[ -z "$eff_recall_int" ]] && eff_recall_int=0
     if [[ "$eff_recall_int" -lt "$PASS_THRESHOLD" ]]; then
@@ -350,12 +366,24 @@ ENDJSON
 
 check_deps
 
+# Build skills catalog for --json-schema classification
+if [[ "$DRY_RUN" == "false" ]]; then
+    echo -e "${CYAN}  Building skills catalog...${NC}"
+    build_skills_catalog
+    skill_count=$(echo -e "$SKILLS_CATALOG" | grep -c "^- ork:" || true)
+    if [[ "$skill_count" -eq 0 ]]; then
+        echo -e "${RED}Error: No user-invocable skills found in $PLUGIN_DIR/skills/${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}  Found $skill_count user-invocable skills${NC}"
+fi
+
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}  OrchestKit Skill Trigger Evaluation${NC}"
 if [[ "$DRY_RUN" == "true" ]]; then
     echo -e "${BLUE}  Mode: ${YELLOW}DRY-RUN (YAML validation only)${NC}"
 else
-    echo -e "${BLUE}  Mode: ${GREEN}LIVE (${REPS}x reps per prompt)${NC}"
+    echo -e "${BLUE}  Mode: ${GREEN}LIVE (${REPS}x reps, --json-schema classifier)${NC}"
 fi
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 

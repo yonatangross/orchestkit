@@ -241,6 +241,45 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-jwt-algorithm-none",
+      "query": "My JWT verification works in tests but tokens from other services fail validation. They use algorithm 'none' for internal service-to-service calls.",
+      "expected_behavior": [
+        "Rejects algorithm none as it bypasses signature verification entirely",
+        "Never allows the algorithm to be read from the JWT header to prevent algorithm confusion attacks",
+        "Requires an explicit allowlist of algorithms passed to the verification function",
+        "Recommends asymmetric keys (RS256/ES256) for cross-service JWT verification instead of disabling signatures"
+      ],
+      "tags": [
+        "security"
+      ]
+    },
+    {
+      "id": "error-missing-env-secrets",
+      "query": "My app starts without errors but authentication always fails because JWT_SECRET is not set in the environment",
+      "expected_behavior": [
+        "Validates all required security-critical environment variables at startup before serving requests",
+        "Fails fast with a clear error message naming the missing variable instead of silently using a default",
+        "Never falls back to a hardcoded default secret for JWT_SECRET or similar credentials",
+        "Distinguishes between optional config and required secrets in the validation logic"
+      ],
+      "tags": [
+        "error-handling"
+      ]
+    },
+    {
+      "id": "security-tenant-id-bypass",
+      "query": "A user sends a request with X-Tenant-ID header set to a different tenant's ID to access their data",
+      "expected_behavior": [
+        "Never trusts tenant identity from client-supplied headers or request parameters",
+        "Derives tenant_id exclusively from the verified JWT claims or authenticated session",
+        "Ignores or rejects any client-provided tenant_id that conflicts with the token-derived value",
+        "Applies tenant_id filter at the repository or query layer so individual endpoints cannot bypass it"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }

@@ -55,6 +55,34 @@
       "tags": [
         "happy-path"
       ]
+    },
+    {
+      "id": "edge-hq-api-unreachable",
+      "query": "I'm trying to submit feedback but the HQ API endpoint is unreachable — I'm behind a corporate firewall with no external internet access. What happens to my feedback?",
+      "expected_behavior": [
+        "Detects the network failure and does not silently discard the feedback submission",
+        "Queues the feedback locally in a pending file for retry when connectivity is restored",
+        "Informs the user that feedback was saved locally and will be submitted when the API is reachable",
+        "Does not block the session or crash due to a failed network request",
+        "Provides a manual export option so the user can transfer feedback data through alternative channels"
+      ],
+      "tags": [
+        "edge-case"
+      ]
+    },
+    {
+      "id": "security-pii-redaction",
+      "query": "My feedback accidentally contains my email address, phone number, and a database connection string with credentials. Make sure PII is stripped before submission.",
+      "expected_behavior": [
+        "Scans feedback content for PII patterns including email addresses, phone numbers, and credentials",
+        "Redacts detected PII by replacing sensitive values with placeholder tokens before submission",
+        "Identifies connection strings and strips embedded passwords or authentication tokens",
+        "Logs what was redacted so the user can verify the sanitization was correct",
+        "Never transmits raw PII to external endpoints regardless of user consent settings"
+      ],
+      "tags": [
+        "security"
+      ]
     }
   ]
 }
