@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.11.1](https://github.com/yonatangross/orchestkit/compare/v7.11.0...v7.11.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* **security:** resolve yauzl CVE and pinned-dependencies alert ([#1101](https://github.com/yonatangross/orchestkit/issues/1101)) ([d96d68d](https://github.com/yonatangross/orchestkit/commit/d96d68d1bbaf55a8f41e982b0debfcf71fc792a6))
+
+
+### Miscellaneous
+
+* remove release-as pin after 7.11.0 release ([#1103](https://github.com/yonatangross/orchestkit/issues/1103)) ([5fd681c](https://github.com/yonatangross/orchestkit/commit/5fd681cf73bf1362c4b4fd254c4100e86185f51e))
+
 ## [7.11.0](https://github.com/yonatangross/orchestkit/compare/v7.11.0...v7.11.0) (2026-03-16)
 
 
