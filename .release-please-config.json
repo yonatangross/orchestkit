@@ -14,7 +14,6 @@
   "bootstrap-sha": "c5fbeca5028a6cb309cef3bb1f2d6cc7c2f2ddfa",
   "packages": {
     ".": {
-      "release-as": "7.11.0",
       "extra-files": [
         {
           "type": "json",
