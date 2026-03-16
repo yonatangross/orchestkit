@@ -14,7 +14,7 @@
 # 7. Token budget between 300-1500 tokens (chars/4)
 # 8. Has "Related Skills" or "Key Decisions" section
 # 9. No broken internal links to references/, scripts/, or assets/
-# 10. user-invocable field validation (18 commands, 73 internal)
+# 10. user-invocable field validation (20 commands, 73 internal)
 #
 # Usage: ./test-skill-md.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -507,7 +507,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=19
+EXPECTED_USER_INVOCABLE=20
 EXPECTED_INTERNAL=73
 
 missing_user_invocable=()
