@@ -216,6 +216,7 @@ if "unit" in TIERS:
         - Target: 90%+ business logic coverage""",
         isolation="worktree",
         run_in_background=True,
+        max_turns=50,
         model=MODEL_OVERRIDE
     )
 
@@ -237,6 +238,7 @@ if "integration" in TIERS:
         - Target: all API endpoints and service boundaries""",
         isolation="worktree",
         run_in_background=True,
+        max_turns=50,
         model=MODEL_OVERRIDE
     )
 
@@ -257,6 +259,7 @@ if "e2e" in TIERS:
         - No hardcoded waits (use auto-wait)""",
         isolation="worktree",
         run_in_background=True,
+        max_turns=50,
         model=MODEL_OVERRIDE
     )
 ```
