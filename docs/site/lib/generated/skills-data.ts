@@ -1088,6 +1088,65 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "cover": {
+    "name": "cover",
+    "description": "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly).",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "coverage",
+      "unit",
+      "integration",
+      "e2e",
+      "test-generation",
+      "real-services",
+      "testcontainers"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Task",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskOutput",
+      "TaskStop",
+      "ToolSearch",
+      "mcp__memory__search_nodes",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
+    ],
+    "skills": [
+      "testing-unit",
+      "testing-integration",
+      "testing-e2e",
+      "testing-perf",
+      "testing-llm",
+      "chain-patterns",
+      "memory",
+      "quality-gates"
+    ],
+    "agent": null,
+    "structure": {
+      "references": [
+        "coverage-report-template.md",
+        "heal-loop-strategy.md",
+        "real-service-detection.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
@@ -3690,7 +3749,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "storybook-testing": {
     "name": "storybook-testing",
-    "description": "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.",
+    "description": "Storybook 10 testing patterns with Vitest 4 integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 10.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
