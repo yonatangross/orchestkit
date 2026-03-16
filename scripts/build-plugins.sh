@@ -238,7 +238,13 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Build MCP server if source exists
     if [[ -d "$SRC_DIR/mcp-server" ]] && [[ -f "$SRC_DIR/mcp-server/package.json" ]]; then
         pushd "$SRC_DIR/mcp-server" > /dev/null
-        [[ ! -d "node_modules" ]] && npm install --ignore-scripts 2>/dev/null
+        if [[ ! -d "node_modules" ]]; then
+            if [[ -f "package-lock.json" ]]; then
+                npm ci --ignore-scripts 2>/dev/null
+            else
+                npm install --ignore-scripts 2>/dev/null
+            fi
+        fi
         node esbuild.config.mjs
         popd > /dev/null
     fi

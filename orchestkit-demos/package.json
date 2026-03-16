@@ -66,7 +66,8 @@
   },
   "overrides": {
     "webpack": "^5.104.1",
-    "ajv": "^8.17.1"
+    "ajv": "^8.17.1",
+    "yauzl": "^3.2.1"
   },
   "private": true
 }
