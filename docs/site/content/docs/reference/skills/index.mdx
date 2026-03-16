@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 92 OrchestKit skills."
+description: "Complete reference for all 93 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **92 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **93 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -32,6 +32,7 @@ OrchestKit includes **92 skills** — reusable knowledge modules that provide pa
 | [Competitive Analysis](/docs/reference/skills/competitive-analysis) | Reference | medium | Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics. |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks. |
 | [Configure](/docs/reference/skills/configure) | Reference | low | Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings. |
+| [Cover](/docs/reference/skills/cover) | Command | high | Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly). |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review. |
 | [Database Patterns](/docs/reference/skills/database-patterns) | Reference | medium | Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift. |
 | [Demo Producer](/docs/reference/skills/demo-producer) | Reference | low | Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings. |
@@ -83,7 +84,7 @@ OrchestKit includes **92 skills** — reusable knowledge modules that provide pa
 | [Security Patterns](/docs/reference/skills/security-patterns) | Reference | high | Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction. |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan. |
 | [Skill Evolution](/docs/reference/skills/skill-evolution) | Reference | medium | Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions. |
-| [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10. |
+| [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest 4 integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 10. |
 | [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status. |
 | [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility. |
 | [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration. |
