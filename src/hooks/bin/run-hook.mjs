@@ -11,7 +11,7 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, mkdirSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 
@@ -105,10 +105,61 @@ if (!hookName) {
   process.exit(0);
 }
 
+/**
+ * Attempt to resolve a working dist directory.
+ * If the current pluginRoot's dist/ doesn't exist (stale cache after plugin update),
+ * scan the cache directory for the latest version that has hooks/dist/.
+ * Returns the resolved dist path, or null if no fallback found.
+ */
+function resolveDistDir(primaryDist) {
+  if (existsSync(primaryDist)) return primaryDist;
+
+  // pluginRoot is .../cache/orchestkit/ork/<version>/
+  // Walk up to .../cache/orchestkit/ork/ and find the latest version with hooks/dist/
+  const orkCacheDir = join(pluginRoot, '..');
+  try {
+    const versions = readdirSync(orkCacheDir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && /^\d+\.\d+\.\d+/.test(e.name))
+      .map(e => e.name)
+      .sort((a, b) => {
+        const pa = a.split('.').map(Number);
+        const pb = b.split('.').map(Number);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+          if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+        }
+        return 0;
+      })
+      .reverse(); // latest first
+
+    for (const ver of versions) {
+      const candidate = join(orkCacheDir, ver, 'hooks', 'dist');
+      if (existsSync(candidate)) return candidate;
+    }
+  } catch {
+    // Can't read cache dir — no fallback available
+  }
+  return null;
+}
+
+// Resolve dist directory (with fallback for stale plugin cache)
+const resolvedDist = resolveDistDir(distDir);
+const effectiveDistDir = resolvedDist || distDir;
+
+// Override loadBundle to use the resolved dist directory
+async function loadBundleFallback(hookName) {
+  const bundleName = getBundleName(hookName);
+  if (!bundleName) return null;
+
+  const bundlePath = join(effectiveDistDir, `${bundleName}.mjs`);
+  if (!existsSync(bundlePath)) return null;
+
+  return await import(bundlePath);
+}
+
 // Load the appropriate bundle
 let hooks;
 try {
-  hooks = await loadBundle(hookName);
+  hooks = await loadBundleFallback(hookName);
 } catch (err) {
   // Bundle not found - likely not built yet
   // Output silent success to not block Claude Code

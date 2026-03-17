@@ -42,11 +42,12 @@ describe('Dispatcher Registry Wiring', () => {
 
   describe('lifecycle/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // After #897 slimming: 4 hooks (removed session-tracking, memory-metrics-collector)
+      // After #897 slimming + stale-cache-cleanup: 5 hooks
       expect(lifecycleHooks()).toEqual([
         'pattern-sync-pull',
         'session-env-setup',
         'stale-team-cleanup',
+        'stale-cache-cleanup',
         'type-error-indexer',
       ]);
     });
@@ -139,8 +140,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 4, lifecycle: 4, stop: 8, subagent-stop: 2, notification: 2, setup: 1
-      expect(total).toBe(21);
+      // posttool: 4, lifecycle: 5, stop: 8, subagent-stop: 2, notification: 2, setup: 1
+      expect(total).toBe(22);
     });
   });
 });

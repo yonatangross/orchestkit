@@ -184,12 +184,12 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('type-error-indexer');
     });
 
-    test('returns exactly 4 registered hooks', () => {
+    test('returns exactly 5 registered hooks', () => {
       // Act
       const names = registeredHookNames();
 
-      // Assert — after #897 slimming: 4 hooks
-      expect(names.length).toBe(4);
+      // Assert — after #897 slimming + stale-cache-cleanup: 5 hooks
+      expect(names.length).toBe(5);
     });
   });
 
