@@ -132,6 +132,48 @@ CronCreate(
 
 Load patterns: `Read("${CLAUDE_SKILL_DIR}/references/cron-monitoring.md")`
 
+## Pattern 6: Progressive Output (CC 2.1.76)
+
+Launch agents with `run_in_background=true` and output results as each returns — don't wait for all agents to finish. Gives ~60% faster perceived feedback.
+
+```python
+# Launch all agents in ONE message with run_in_background=true
+Agent(subagent_type="backend-system-architect",
+  prompt="...", run_in_background=true, name="backend")
+Agent(subagent_type="frontend-ui-developer",
+  prompt="...", run_in_background=true, name="frontend")
+Agent(subagent_type="test-generator",
+  prompt="...", run_in_background=true, name="tests")
+
+# As each agent completes, output its findings immediately.
+# CC delivers background agent results as notifications —
+# present each result to the user as it arrives.
+# If any agent scores below threshold, flag it before others finish.
+```
+
+**Key rules:**
+- Launch ALL independent agents in a single message (parallel)
+- Output each result incrementally — don't batch
+- Flag critical findings immediately (don't wait for stragglers)
+- Background bash tasks are killed at 5GB output (CC 2.1.77) — pipe verbose output to files
+
+## Pattern 7: SendMessage Agent Resume (CC 2.1.77)
+
+Continue a previously spawned agent using `SendMessage`. CC 2.1.77 auto-resumes stopped agents — no error handling needed.
+
+```python
+# Spawn agent
+Agent(subagent_type="backend-system-architect",
+  prompt="Design the API schema", name="api-designer")
+
+# Later, continue the same agent with new context
+SendMessage(to="api-designer", content="Now implement the schema you designed")
+
+# CC 2.1.77: SendMessage auto-resumes stopped agents.
+# No need to check agent state or handle "agent stopped" errors.
+# NEVER use Agent(resume=...) — removed in 2.1.77.
+```
+
 ## Rules
 
 | Rule | Impact | Key Pattern |
@@ -151,6 +193,8 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `checkpoint-resume.md` | state.json schema + resume protocol |
 | `worktree-agent-pattern.md` | `isolation: "worktree"` usage guide |
 | `cron-monitoring.md` | CronCreate patterns for post-task health |
+| `progressive-output.md` | Progressive output with run_in_background |
+| `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
 
 ## Related Skills

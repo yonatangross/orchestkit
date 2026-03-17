@@ -383,6 +383,19 @@ Skills that spawn background agents or teams **must** include cleanup guidance:
 
 Agent definitions can include `background: true` in frontmatter for agents that never need interactive results. When referencing these agents from skills, note they always run in background.
 
+### Background Bash Output Limit (CC 2.1.77)
+
+CC 2.1.77 kills background bash tasks if their output exceeds **5GB**. This prevents runaway processes from filling disk. Skills that spawn long-running background commands should:
+
+- **Pipe verbose output to files** instead of capturing in CC: `npm test -- --verbose > /tmp/test-output.log 2>&1`
+- **Use `tail -f`** to monitor log files rather than capturing full streams
+- **Avoid `--verbose` flags** on commands with large output (test suites, builds) when running in background
+- Reference: `chain-patterns` Pattern 6 (Progressive Output)
+
+### SendMessage Auto-Resume (CC 2.1.77)
+
+`SendMessage` now auto-resumes stopped agents — no error handling needed. The `resume` parameter on the Agent tool has been **removed**. Always use `SendMessage({to: agentId})` to continue a previously spawned agent. See `chain-patterns` Pattern 7.
+
 ### Plugin Settings
 
 OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
