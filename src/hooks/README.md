@@ -468,6 +468,52 @@ Use `"async": true` for hooks that:
 
 ---
 
+## HTTP Hooks (CC 2.1.63+)
+
+### Overview
+
+CC supports `type: "http"` hooks that POST JSON directly to a URL instead of spawning a shell command. Zero process overhead.
+
+### Why OrchestKit Has Zero HTTP Hooks in hooks.json
+
+OrchestKit originally shipped 12 `type: "http"` hooks in plugin `hooks.json` using env var placeholders:
+
+```json
+{
+  "type": "http",
+  "url": "${ORCHESTKIT_HOOK_URL}",
+  "headers": { "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN" }
+}
+```
+
+**CC 2.1.71 broke this.** CC validates `url` fields as proper URLs *before* expanding environment variables. `${ORCHESTKIT_HOOK_URL}` fails URL format validation, causing ALL hooks (including command hooks) to fail to load — breaking the entire plugin for every user.
+
+### The Constraint (Still Active)
+
+```
+URL field:     "${ENV_VAR}"                    ❌ Broken (validated before expansion)
+URL field:     "https://real-domain.com/path"  ✅ Works (valid URL at parse time)
+Header field:  "Bearer $ORCHESTKIT_HOOK_TOKEN" ✅ Works (headers not URL-validated)
+```
+
+This means HTTP hooks cannot use env var placeholders in URLs at the plugin level. They must contain real URLs — which vary per user.
+
+### Solution: User-Level Generation
+
+HTTP hooks live in `.claude/settings.local.json` (per-user, not committed), generated with real URLs via CLI:
+
+```bash
+npm run generate:http-hooks -- https://your-api.com/hooks --write
+```
+
+See `src/skills/configure/references/http-hooks.md` for full setup guide.
+
+### Do NOT Re-Add HTTP Hooks to Plugin hooks.json
+
+Any `type: "http"` entry in plugin-level `hooks.json` must use a hardcoded URL. Env var placeholders in the `url` field will break the entire plugin. Use the generator CLI for user-specific endpoints.
+
+---
+
 ## Async Hooks (CC 2.1.19+)
 
 ### Overview
