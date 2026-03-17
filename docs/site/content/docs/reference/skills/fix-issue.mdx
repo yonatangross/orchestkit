@@ -92,8 +92,33 @@ AskUserQuestion(
 **Based on answer, adjust workflow:**
 - **Proper fix**: All 11 phases, 5 parallel RCA agents
 - **Quick fix**: Phases 1, 6, 7, 11 only — skip RCA agents and prevention
-- **Investigate first**: Phases 1-4 only — stop after RCA report
+- **Investigate first**: Enter plan mode for read-only analysis, then decide
 - **Hotfix**: Phases 1, 6, 11 only — emergency path
+
+**If 'Investigate first' selected:**
+
+```python
+# 1. Enter read-only plan mode
+EnterPlanMode("Investigate issue: $ISSUE_REF")
+
+# 2. Investigation phase — Read/Grep/Glob ONLY, no Write/Edit
+#    - Read the issue description and linked context
+#    - Trace the error path through relevant code
+#    - Search for related issues, past fixes, test failures
+#    - Build hypothesis list with evidence
+
+# 3. Produce RCA report:
+#    - Root cause hypothesis (ranked by confidence)
+#    - Affected files and blast radius
+#    - Recommended approach (proper fix vs quick fix)
+#    - Risk assessment
+
+# 4. Exit plan mode — returns analysis for user decision
+ExitPlanMode()
+
+# 5. User reviews RCA. If "proceed with fix" → continue to Phase 5 (Fix).
+#    If "need more info" → re-enter investigation.
+```
 
 Load `Read("$\{CLAUDE_SKILL_DIR\}/rules/evidence-gathering.md")` for detailed workflow adjustments per approach.
 

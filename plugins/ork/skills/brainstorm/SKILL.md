@@ -162,7 +162,28 @@ AskUserQuestion(
 )
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode("Brainstorm exploration: $TOPIC")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:**
+
+```python
+# 1. Enter read-only plan mode
+EnterPlanMode("Brainstorm exploration: $TOPIC")
+
+# 2. Research phase — Read/Grep/Glob ONLY, no Write/Edit
+#    - Scan existing codebase for related patterns
+#    - Search for prior decisions on this topic (memory graph)
+#    - Identify constraints, dependencies, and trade-offs
+
+# 3. Produce structured exploration plan:
+#    - Key questions to answer
+#    - Dimensions to explore
+#    - Agents to spawn and their focus areas
+#    - Evaluation criteria
+
+# 4. Exit plan mode — returns plan for user approval
+ExitPlanMode()
+
+# 5. User reviews. If approved → continue to Phase 1 with plan as input.
+```
 
 **Based on answers, adjust workflow:**
 - **Open exploration**: Full 7-phase process with all agents

@@ -109,7 +109,30 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:**
+
+```python
+# 1. Enter read-only plan mode
+EnterPlanMode("Research and design: $ARGUMENTS")
+
+# 2. Research phase — Read/Grep/Glob ONLY, no Write/Edit
+#    - Read existing code in the target area
+#    - Grep for related patterns, imports, dependencies
+#    - Check tests, configs, and integration points
+#    - If context7 available: query library docs
+
+# 3. Design the plan — produce:
+#    - File map: which files to create/modify
+#    - Architecture decisions with rationale
+#    - Task breakdown with acceptance criteria
+#    - Risk assessment and edge cases
+
+# 4. Exit plan mode — returns plan to user for approval
+ExitPlanMode()
+
+# 5. User reviews plan. If approved → continue to Phase 1 (Discovery)
+#    with the plan as input. If rejected → revise or stop.
+```
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch

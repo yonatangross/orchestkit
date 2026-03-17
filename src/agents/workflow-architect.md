@@ -294,5 +294,5 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning
-- Higher max_tokens (32000) for comprehensive workflow designs
+- Higher max_tokens (64000 default, 128000 upper bound with CC 2.1.77+) for comprehensive workflow designs
 - Always design with checkpointing for production resilience

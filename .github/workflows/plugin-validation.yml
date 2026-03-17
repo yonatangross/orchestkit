@@ -261,7 +261,55 @@ jobs:
 
           echo "All hook paths are valid!"
 
-  # Job 6: Component Counts Validation
+  # Job 6: Claude Code Plugin Validate (CC 2.1.77+)
+  cc-plugin-validate:
+    name: CC Plugin Validate
+    permissions:
+      contents: read
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true  # Advisory — don't block if CC CLI unavailable
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Download built plugins
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
+
+      - name: Install Claude Code CLI
+        id: install-cc
+        run: |
+          npm install -g @anthropic-ai/claude-code@latest 2>/dev/null || true
+          if command -v claude &>/dev/null; then
+            CC_VERSION=$(claude --version 2>/dev/null || echo "unknown")
+            echo "cc_available=true" >> "$GITHUB_OUTPUT"
+            echo "Claude Code CLI installed: ${CC_VERSION}"
+          else
+            echo "cc_available=false" >> "$GITHUB_OUTPUT"
+            echo "Claude Code CLI not available — skipping plugin validate"
+          fi
+
+      - name: Validate plugin with claude CLI
+        if: steps.install-cc.outputs.cc_available == 'true'
+        shell: bash
+        run: |
+          echo "Running: claude plugin validate"
+          claude plugin validate 2>&1 || {
+            echo "::warning::claude plugin validate reported issues"
+            exit 1
+          }
+          echo "Plugin validation passed!"
+
+  # Job 7: Component Counts Validation
   counts-validation:
     name: Component Counts
     permissions:
@@ -387,7 +435,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation, skill-sync-validation]
+    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, cc-plugin-validate, counts-validation, skills-validation, skill-sync-validation]
     if: always()
     steps:
       - name: Check results
@@ -401,6 +449,7 @@ jobs:
           echo "Hook Unit Tests:       ${{ needs.hook-unit-tests.result }}"
           echo "Integration Tests:     ${{ needs.integration-tests.result }}"
           echo "Manifest Validation:   ${{ needs.manifest-validation.result }}"
+          echo "CC Plugin Validate:    ${{ needs.cc-plugin-validate.result }} (advisory)"
           echo "Counts Validation:     ${{ needs.counts-validation.result }}"
           echo "Skills Validation:     ${{ needs.skills-validation.result }}"
           echo "Skill Sync Validation: ${{ needs.skill-sync-validation.result }}"
