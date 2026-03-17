@@ -329,7 +329,8 @@ describe('Cross-Bundle Consistency', () => {
     // 171 -> 175: CC 2.1.72 cache-opt — added 4 once:true standards loaders (implement, review, verify, brainstorm)
     // 176: #1007 — replaced session-end-reporter with usage-summary-reporter (net 0)
     // 176 -> 179: CC 2.1.76 — added post-compact-recovery (lifecycle), elicitation-guard + elicitation-result-logger (lifecycle)
-    expect(totalHooks).toBe(179);
+    // 179 -> 180: stale-cache-cleanup (lifecycle)
+    expect(totalHooks).toBe(180);
   });
 });
 
