@@ -9,7 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
 complexity: high
 model: sonnet
@@ -373,6 +373,21 @@ Next Steps
 ──────────
   /ork:verify {SCOPE}    # Grade the implementation + tests
   /ork:commit             # Commit generated tests
+```
+
+### Coverage Drift Monitor (CC 2.1.71)
+
+Optionally schedule weekly coverage drift detection:
+
+```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
+CronCreate(
+  schedule="0 2 * * 0",
+  prompt="Weekly coverage drift check for {SCOPE}: npm test -- --coverage.
+    If coverage >= baseline → CronDelete.
+    If coverage drops > 5% → alert with regression details and recommendation."
+)
 ```
 
 ---

@@ -102,6 +102,17 @@ OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC featur
 | Compaction circuit breaker | 2.1.76 | Auto-compaction stops after 3 consecutive failures | Compaction retries indefinitely |
 | Stale worktree cleanup | 2.1.76 | Worktrees from interrupted parallel runs auto-cleaned | Stale worktrees accumulate |
 | Worktree startup performance | 2.1.76 | Direct ref reads, skip redundant fetch | Slower worktree startup |
+| Opus 4.6 64k default output | 2.1.77 | 64k default, 128k upper bound for Opus+Sonnet | 32k output limit |
+| `allowRead` sandbox setting | 2.1.77 | Re-allow read access within denyRead regions | No granular read exceptions |
+| `claude plugin validate` | 2.1.77 | Official frontmatter + hooks.json validation | Manual/custom validation only |
+| SendMessage auto-resume | 2.1.77 | Stopped agents auto-resume on SendMessage | SendMessage returns error for stopped agents |
+| Agent `resume` param removed | 2.1.77 | Must use SendMessage({to: id}) to continue agents | Agent(resume=...) silently ignored |
+| Background bash 5GB limit | 2.1.77 | Tasks killed at 5GB output to prevent disk fill | Unbounded background output |
+| `/fork` renamed to `/branch` | 2.1.77 | `/fork` still works as alias | Only `/fork` available |
+| PreToolUse allow/deny fix | 2.1.77 | "allow" no longer bypasses deny rules (security fix) | allow hooks could bypass deny rules |
+| Worktree race condition fix | 2.1.77 | Stale cleanup no longer deletes resumed agent worktrees | Race between cleanup and agent resume |
+| --resume performance | 2.1.77 | 45% faster loading, ~100-150MB less peak memory | Slower fork-heavy session resume |
+| Progress message memory fix | 2.1.77 | Progress messages cleaned up during compaction | Memory growth from accumulated progress messages |
 
 ## Version Detection
 
@@ -131,6 +142,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.74 | Full+++++ | SessionEnd timeout fix, managed policy precedence, full model IDs, memory leak fixes, /context hints |
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
+| >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
 
 ## Doctor Check Implementation
 
@@ -209,6 +221,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.12.x | 2.1.77 | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
 | v7.8.x | 2.1.76 | PostCompact hook, Elicitation hooks, sparse paths, /effort, bg agent partial results |
 | v7.7.x | 2.1.75 | 1M context default, memory timestamps, hook source display, token estimation fix |
 | v7.5.x | 2.1.74 | SessionEnd timeout fix, managed policy precedence, full model IDs, memory fixes |

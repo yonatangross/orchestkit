@@ -369,6 +369,21 @@ Next Steps
   /ork:commit             # Commit generated tests
 ```
 
+### Coverage Drift Monitor (CC 2.1.71)
+
+Optionally schedule weekly coverage drift detection:
+
+```python
+# Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
+# if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
+CronCreate(
+  schedule="0 2 * * 0",
+  prompt="Weekly coverage drift check for {SCOPE}: npm test -- --coverage.
+    If coverage >= baseline → CronDelete.
+    If coverage drops > 5% → alert with regression details and recommendation."
+)
+```
+
 ---
 
 ## Key Principles

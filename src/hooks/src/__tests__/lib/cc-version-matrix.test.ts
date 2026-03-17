@@ -72,7 +72,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.76');
+      const features = getAvailableFeatures('2.1.77');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -98,8 +98,8 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.76', () => {
-      const missing = getMissingFeatures('2.1.76');
+    test('no missing features at 2.1.77', () => {
+      const missing = getMissingFeatures('2.1.77');
       expect(missing.length).toBe(0);
     });
 
@@ -145,6 +145,18 @@ describe('cc-version-matrix', () => {
 
     test('full_model_ids_agent available at 2.1.76', () => {
       expect(hasFeature('2.1.76', 'full_model_ids_agent')).toBe(true);
+    });
+
+    test('pretooluse_allow_deny_fix available at 2.1.77', () => {
+      expect(hasFeature('2.1.77', 'pretooluse_allow_deny_fix')).toBe(true);
+    });
+
+    test('pretooluse_allow_deny_fix not available at 2.1.76', () => {
+      expect(hasFeature('2.1.76', 'pretooluse_allow_deny_fix')).toBe(false);
+    });
+
+    test('opus_64k_default available at 2.1.77', () => {
+      expect(hasFeature('2.1.77', 'opus_64k_default')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {
