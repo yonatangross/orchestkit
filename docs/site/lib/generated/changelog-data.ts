@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.11.2",
+    "date": "2026-03-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "TODO: Describe your changes here"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.9.1",
     "date": "2026-03-15",
     "compareUrl": "",
