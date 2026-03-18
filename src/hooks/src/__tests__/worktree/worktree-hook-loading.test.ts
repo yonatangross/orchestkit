@@ -67,16 +67,16 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
     });
 
     it('should use worktree-lifecycle-logger for WorktreeCreate', () => {
-      const hooks = hooksJson.hooks.WorktreeCreate.flatMap(g => g.hooks ?? []);
-      const hasLogger = hooks.some(h =>
+      const hooks = hooksJson.hooks.WorktreeCreate.flatMap((g: Record<string, unknown>) => (g.hooks as unknown[]) ?? []);
+      const hasLogger = hooks.some((h: Record<string, unknown>) =>
         typeof h.command === 'string' && h.command.includes('worktree-lifecycle-logger')
       );
       expect(hasLogger).toBe(true);
     });
 
     it('should use worktree-lifecycle-logger for WorktreeRemove', () => {
-      const hooks = hooksJson.hooks.WorktreeRemove.flatMap(g => g.hooks ?? []);
-      const hasLogger = hooks.some(h =>
+      const hooks = hooksJson.hooks.WorktreeRemove.flatMap((g: Record<string, unknown>) => (g.hooks as unknown[]) ?? []);
+      const hasLogger = hooks.some((h: Record<string, unknown>) =>
         typeof h.command === 'string' && h.command.includes('worktree-lifecycle-logger')
       );
       expect(hasLogger).toBe(true);
