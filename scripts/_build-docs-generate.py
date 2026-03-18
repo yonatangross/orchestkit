@@ -929,12 +929,12 @@ CATEGORY_RULES = {
         "label": "AI & LLM",
         "desc": "LLM integration, RAG, agent orchestration, MCP, embeddings.",
         "tags": {
-            "llm", "rag", "agent", "mcp", "embedding", "vector",
-            "langchain", "langgraph", "multimodal", "evaluation",
+            "llm", "rag", "mcp", "embedding", "vector",
+            "langchain", "langgraph", "multimodal",
+            "function-calling", "streaming", "prompt",
         },
         "agents": {
-            "llm-integrator", "workflow-architect",
-            "multimodal-specialist", "data-pipeline-engineer",
+            "llm-integrator", "multimodal-specialist",
         },
     },
     "devops": {
@@ -954,8 +954,8 @@ CATEGORY_RULES = {
         "desc": "PRDs, market sizing, competitive analysis, OKRs, user research.",
         "tags": {
             "prd", "product", "roi", "persona", "market", "competitive",
-            "okr", "prioritization", "analytics", "user-research",
-            "business-case",
+            "okr", "prioritization", "user-research",
+            "business-case", "strategy",
         },
         "agents": {"product-strategist", "market-intelligence"},
     },

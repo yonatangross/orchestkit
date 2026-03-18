@@ -553,7 +553,7 @@ function generateSplitModules(data) {
     frontend: ['react', 'ui', 'component', 'design-tokens', 'css', 'animation', 'responsive', 'storybook', 'zustand', 'figma', 'vite'],
     testing: ['testing', 'unit', 'integration', 'e2e', 'playwright', 'vitest', 'jest', 'pytest', 'coverage', 'mocking'],
     security: ['security', 'owasp', 'authentication', 'pii', 'vulnerability', 'audit'],
-    'ai-llm': ['llm', 'rag', 'agent', 'mcp', 'embedding', 'vector', 'langgraph', 'multimodal', 'evaluation'],
+    'ai-llm': ['llm', 'rag', 'mcp', 'embedding', 'vector', 'langgraph', 'multimodal', 'function-calling', 'streaming', 'prompt'],
     devops: ['devops', 'ci-cd', 'docker', 'kubernetes', 'terraform', 'monitoring', 'observability', 'deployment'],
     product: ['prd', 'product', 'roi', 'persona', 'market', 'competitive', 'okr', 'prioritization', 'user-research'],
   };

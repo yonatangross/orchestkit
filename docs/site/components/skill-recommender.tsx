@@ -112,7 +112,8 @@ export function SkillRecommender() {
     const next = [...selections];
     next[step] = optionId;
     setSelections(next);
-    setStep(step + 1);
+    // Brief highlight before advancing
+    setTimeout(() => setStep(step + 1), 200);
   }
 
   function back() {

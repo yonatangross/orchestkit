@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -8,190 +8,160 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  ReactFlowProvider,
   type Node,
   type Edge,
   type NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import Dagre from "@dagrejs/dagre";
 import { useRouter } from "next/navigation";
 import { GRAPH_NODES, GRAPH_EDGES } from "@/lib/generated/skill-graph-data";
+import {
+  CATEGORY_HEX,
+  NODE_W,
+  layoutGraph,
+  FOCUS_TARGETS,
+  getConnectedIds,
+  getNeighborIds,
+  LEGEND_ITEMS,
+} from "@/lib/graph-layout";
 
-// Category -> hex color
-const CATEGORY_HEX: Record<string, string> = {
-  backend: "#f59e0b",
-  frontend: "#3b82f6",
-  testing: "#22c55e",
-  security: "#ef4444",
-  "ai-llm": "#06b6d4",
-  devops: "#f97316",
-  product: "#ec4899",
-  workflow: "#8b5cf6",
-  other: "#64748b",
-};
-
-const NODE_W = 160;
-const NODE_H = 40;
-
-function layoutGraph(
-  nodes: Node[],
-  edges: Edge[],
-  direction: "TB" | "LR" = "TB"
-) {
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 60 });
-
-  nodes.forEach((n) => g.setNode(n.id, { width: NODE_W, height: NODE_H }));
-  edges.forEach((e) => g.setEdge(e.source, e.target));
-
-  Dagre.layout(g);
-
-  return nodes.map((n) => {
-    const pos = g.node(n.id);
-    return {
-      ...n,
-      position: { x: pos.x - NODE_W / 2, y: pos.y - NODE_H / 2 },
-    };
-  });
-}
-
-export function SkillDependencyGraph() {
+function GraphInner() {
   const router = useRouter();
+  const reactFlow = useReactFlow();
   const [showIsolated, setShowIsolated] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const initialFit = useRef(false);
 
-  const { initialNodes, initialEdges, connectedCount, isolatedCount } =
-    useMemo(() => {
-      const connectedIds = new Set<string>();
-      GRAPH_EDGES.forEach((e) => {
-        connectedIds.add(e.source);
-        connectedIds.add(e.target);
-      });
+  const connectedIds = useMemo(() => getConnectedIds(), []);
 
-      const filteredNodes = GRAPH_NODES.filter(
-        (n) => showIsolated || connectedIds.has(n.id)
-      );
+  const { initialNodes, initialEdges } = useMemo(() => {
+    const filtered = GRAPH_NODES.filter(
+      (n) => showIsolated || connectedIds.has(n.id)
+    );
 
-      const rfNodes: Node[] = filteredNodes.map((n) => ({
-        id: n.id,
-        type: "default",
-        data: { label: n.label },
-        position: { x: 0, y: 0 },
-        style: {
-          background: CATEGORY_HEX[n.category] || CATEGORY_HEX.other,
-          color: "#fff",
-          border: n.type === "command" ? "2px solid #fff" : "1px solid rgba(255,255,255,0.3)",
-          borderRadius: n.type === "command" ? "8px" : "16px",
-          fontSize: "11px",
-          fontWeight: n.type === "command" ? 700 : 400,
-          padding: "6px 12px",
-          width: NODE_W,
-          textAlign: "center" as const,
-        },
-      }));
+    const rfNodes: Node[] = filtered.map((n) => ({
+      id: n.id,
+      type: "default",
+      data: { label: n.label },
+      position: { x: 0, y: 0 },
+      style: {
+        background: CATEGORY_HEX[n.category] || CATEGORY_HEX.other,
+        color: "#fff",
+        border: n.type === "command" ? "2px solid #fff" : "1px solid rgba(255,255,255,0.3)",
+        borderRadius: n.type === "command" ? "8px" : "16px",
+        fontSize: "12px",
+        fontWeight: n.type === "command" ? 700 : 400,
+        padding: "8px 12px",
+        width: NODE_W,
+        textAlign: "center" as const,
+        cursor: "pointer",
+      },
+    }));
 
-      const rfEdges: Edge[] = GRAPH_EDGES.filter(
-        (e) =>
-          filteredNodes.some((n) => n.id === e.source) &&
-          filteredNodes.some((n) => n.id === e.target)
-      ).map((e, i) => ({
-        id: `e-${i}`,
-        source: e.source,
-        target: e.target,
-        animated: false,
-        style: { stroke: "#475569", strokeWidth: 1.5 },
-      }));
+    const rfEdges: Edge[] = GRAPH_EDGES.filter(
+      (e) => filtered.some((n) => n.id === e.source) && filtered.some((n) => n.id === e.target)
+    ).map((e, i) => ({
+      id: `e-${i}`,
+      source: e.source,
+      target: e.target,
+      animated: false,
+      style: { stroke: "#475569", strokeWidth: 1.5 },
+    }));
 
-      const laid = layoutGraph(rfNodes, rfEdges);
-      return {
-        initialNodes: laid,
-        initialEdges: rfEdges,
-        connectedCount: connectedIds.size,
-        isolatedCount: GRAPH_NODES.length - connectedIds.size,
-      };
-    }, [showIsolated]);
+    return { initialNodes: layoutGraph(rfNodes, rfEdges), initialEdges: rfEdges };
+  }, [showIsolated, connectedIds]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // Re-layout when toggle changes
   useMemo(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
-  const onNodeClick: NodeMouseHandler = useCallback(
-    (_, node) => {
-      router.push(`/docs/reference/skills/${node.id}`);
+  const focusOn = useCallback(
+    (skillId: string | null) => {
+      setFocusedId(skillId);
+      if (!skillId) {
+        setTimeout(() => reactFlow.fitView({ padding: 0.3, duration: 400 }), 50);
+        return;
+      }
+      const neighborIds = getNeighborIds(skillId);
+      const targetNodes = nodes.filter((n) => neighborIds.has(n.id));
+      if (targetNodes.length > 0) {
+        setTimeout(
+          () => reactFlow.fitView({ nodes: targetNodes, padding: 0.5, duration: 400, maxZoom: 1.2 }),
+          50
+        );
+      }
     },
-    [router]
+    [nodes, reactFlow]
   );
 
-  const onNodeMouseEnter: NodeMouseHandler = useCallback((_, node) => {
-    setHoveredId(node.id);
-  }, []);
+  const onNodeClick: NodeMouseHandler = useCallback(
+    (_, node) => router.push(`/docs/reference/skills/${node.id}`),
+    [router]
+  );
+  const onNodeMouseEnter: NodeMouseHandler = useCallback((_, node) => setHoveredId(node.id), []);
+  const onNodeMouseLeave: NodeMouseHandler = useCallback(() => setHoveredId(null), []);
 
-  const onNodeMouseLeave: NodeMouseHandler = useCallback(() => {
-    setHoveredId(null);
-  }, []);
+  // Dim non-focused nodes, highlight hovered edges
+  const activeId = hoveredId || focusedId;
+  const neighborSet = useMemo(() => (activeId ? getNeighborIds(activeId) : null), [activeId]);
 
-  // Highlight connected edges on hover
-  const styledEdges = useMemo(() => {
-    if (!hoveredId) return edges;
-    return edges.map((e) => ({
-      ...e,
-      animated: e.source === hoveredId || e.target === hoveredId,
-      style: {
-        ...e.style,
-        stroke:
-          e.source === hoveredId || e.target === hoveredId
-            ? "#58a6ff"
-            : "#475569",
-        strokeWidth:
-          e.source === hoveredId || e.target === hoveredId ? 2.5 : 1.5,
-      },
+  const styledNodes = useMemo(() => {
+    if (!neighborSet) return nodes;
+    return nodes.map((n) => ({
+      ...n,
+      style: { ...n.style, opacity: neighborSet.has(n.id) ? 1 : 0.2, transition: "opacity 0.2s" },
     }));
-  }, [edges, hoveredId]);
+  }, [nodes, neighborSet]);
 
-  // Legend
-  const legendItems = [
-    { label: "Backend", color: CATEGORY_HEX.backend },
-    { label: "Frontend", color: CATEGORY_HEX.frontend },
-    { label: "Testing", color: CATEGORY_HEX.testing },
-    { label: "Security", color: CATEGORY_HEX.security },
-    { label: "AI/LLM", color: CATEGORY_HEX["ai-llm"] },
-    { label: "DevOps", color: CATEGORY_HEX.devops },
-    { label: "Product", color: CATEGORY_HEX.product },
-    { label: "Workflow", color: CATEGORY_HEX.workflow },
-    { label: "Other", color: CATEGORY_HEX.other },
-  ];
+  const styledEdges = useMemo(() => {
+    if (!activeId) return edges;
+    return edges.map((e) => {
+      const hit = e.source === activeId || e.target === activeId;
+      return {
+        ...e,
+        animated: hit,
+        style: {
+          ...e.style,
+          stroke: hit ? "#58a6ff" : "#475569",
+          strokeWidth: hit ? 2.5 : 1,
+          opacity: hit ? 1 : 0.15,
+          transition: "opacity 0.2s",
+        },
+      };
+    });
+  }, [edges, activeId]);
 
   return (
     <div className="not-prose">
-      {/* Controls bar */}
       <div className="mb-3 flex flex-wrap items-center gap-4 text-sm">
         <label className="flex items-center gap-2 text-fd-muted-foreground">
-          <input
-            type="checkbox"
-            checked={showIsolated}
-            onChange={(e) => setShowIsolated(e.target.checked)}
-            className="rounded"
-          />
-          Show isolated skills ({isolatedCount})
+          <input type="checkbox" checked={showIsolated} onChange={(e) => setShowIsolated(e.target.checked)} className="rounded" />
+          Show isolated skills ({GRAPH_NODES.length - connectedIds.size})
         </label>
-        <span className="text-fd-muted-foreground">
-          {connectedCount} connected &middot; {GRAPH_EDGES.length} dependencies
-        </span>
+        <select
+          value={focusedId || ""}
+          onChange={(e) => focusOn(e.target.value || null)}
+          className="rounded border border-fd-border bg-fd-card px-2 py-1 text-xs text-fd-foreground"
+        >
+          <option value="">Focus: All skills</option>
+          {FOCUS_TARGETS.map((id) => (
+            <option key={id} value={id}>{GRAPH_NODES.find((g) => g.id === id)?.label || id}</option>
+          ))}
+        </select>
+        <span className="text-fd-muted-foreground">{connectedIds.size} connected &middot; {GRAPH_EDGES.length} deps</span>
       </div>
 
-      {/* Legend */}
       <div className="mb-3 flex flex-wrap gap-3">
-        {legendItems.map((item) => (
+        {LEGEND_ITEMS.map((item) => (
           <div key={item.label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-            <div
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ background: item.color }}
-            />
+            <div className="h-2.5 w-2.5 rounded-full" style={{ background: item.color }} />
             {item.label}
           </div>
         ))}
@@ -205,35 +175,44 @@ export function SkillDependencyGraph() {
         </div>
       </div>
 
-      {/* Graph */}
-      <div className="h-[600px] w-full rounded-lg border border-fd-border bg-fd-card">
+      <div className="h-[800px] w-full rounded-lg border border-fd-border bg-fd-card">
         <ReactFlow
-          nodes={nodes}
+          nodes={styledNodes}
           edges={styledEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
+          onInit={() => {
+            if (!initialFit.current) {
+              initialFit.current = true;
+              setTimeout(() => focusOn("memory"), 100);
+            }
+          }}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.3}
+          fitViewOptions={{ padding: 0.4, maxZoom: 1 }}
+          minZoom={0.2}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
         >
-          <Background gap={16} size={1} />
+          <Background gap={20} size={1} />
           <Controls showInteractive={false} />
-          <MiniMap
-            nodeColor={(n) => (n.style?.background as string) || "#64748b"}
-            style={{ background: "var(--fd-card)" }}
-          />
+          <MiniMap nodeColor={(n) => (n.style?.background as string) || "#64748b"} style={{ background: "var(--fd-card)" }} />
         </ReactFlow>
       </div>
 
       <p className="mt-2 text-xs text-fd-muted-foreground">
-        Click a node to view its reference page. Hover to highlight connections.
-        Drag to pan, scroll to zoom.
+        Click a node to view its reference page. Hover to highlight connections. Use the focus dropdown to zoom into a skill&apos;s neighborhood.
       </p>
     </div>
+  );
+}
+
+export function SkillDependencyGraph() {
+  return (
+    <ReactFlowProvider>
+      <GraphInner />
+    </ReactFlowProvider>
   );
 }

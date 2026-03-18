@@ -99,7 +99,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Assess",
     "type": "command",
     "complexity": "low",
-    "category": "ai-llm",
+    "category": "workflow",
     "hasDeps": true,
     "depCount": 5,
     "usedByCount": 0
@@ -419,7 +419,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Golden Dataset",
     "type": "reference",
     "complexity": "low",
-    "category": "ai-llm",
+    "category": "other",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
