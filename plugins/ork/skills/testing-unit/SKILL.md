@@ -3,10 +3,10 @@ name: testing-unit
 license: MIT
 compatibility: "Claude Code 2.1.76+."
 description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
-tags: [testing, unit, mocking, msw, vcr, fixtures, factories]
+tags: [testing, unit, mocking, msw, vcr, fixtures, factories, vitest-4, aroundEach]
 context: fork
 agent: test-generator
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -169,11 +169,77 @@ class TestUserService:
         assert result == can_edit
 ```
 
+## Vitest 4.1 Features
+
+### aroundEach / aroundAll (preferred for DB transactions)
+
+Wraps each test in setup/teardown — cleaner than separate `beforeEach`/`afterEach` for transactions:
+
+```typescript
+test.aroundEach(async (runTest, { db }) => {
+  await db.transaction(runTest)  // auto-rollback on test end
+})
+
+test('insert user', async ({ db }) => {
+  await db.insert({ name: 'Alice' })
+  // transaction auto-rolls back — no cleanup needed
+})
+```
+
+`aroundAll` wraps entire suites the same way.
+
+### mockThrow / mockThrowOnce
+
+Replaces the verbose `mockImplementation(() => { throw err })` pattern:
+
+```typescript
+const fn = vi.fn()
+fn.mockThrow(new Error('connection lost'))  // always throws
+fn.mockThrowOnce(new Error('timeout'))      // throws once, then normal
+```
+
+### vi.defineHelper (clean stack traces)
+
+Custom assertion helpers that point errors to the call site, not the helper internals:
+
+```typescript
+const assertPair = vi.defineHelper((a, b) => {
+  expect(a).toEqual(b)  // error points to where assertPair() was CALLED
+})
+```
+
+### Test Tags
+
+Filter tests by tags in CLI — useful for CI fast paths:
+
+```typescript
+// vitest.config.ts
+test: {
+  tags: {
+    unit: { timeout: 5000 },
+    flaky: { retry: 3 },
+  }
+}
+```
+
+```bash
+vitest --tags-filter="unit and !flaky"
+vitest --tags-filter="(unit or integration) and !slow"
+```
+
+### Agent Reporter
+
+Minimal output (failures only) — use in AI agent / CI contexts:
+
+```bash
+AI_AGENT=copilot vitest    # auto-detect agent mode
+```
+
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| Test framework (TS) | Vitest (modern, fast) or Jest (mature ecosystem) |
+| Test framework (TS) | Vitest 4.1+ (modern, fast, aroundEach, test tags) or Jest (mature ecosystem) |
 | Test framework (Python) | pytest with plugins (parametrize, asyncio, cov) |
 | HTTP mocking (TS) | MSW 2.x at network level, never mock fetch/axios directly |
 | HTTP mocking (Python) | VCR.py with cassettes, filter sensitive data |
@@ -190,6 +256,7 @@ class TestUserService:
 4. **Hard-coded test data** with duplicate IDs (test conflicts in parallel runs)
 5. **No cleanup** after database seeding (state leaks between tests)
 6. **Over-mocking** — testing your mocks instead of your code (false confidence)
+7. **Verbose throw mocking** — `mockImplementation(() => { throw err })` instead of `mockThrow(err)` (Vitest 4.1+)
 
 ## Scripts
 

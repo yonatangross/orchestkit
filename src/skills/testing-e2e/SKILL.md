@@ -85,7 +85,7 @@ await checkout.expectConfirmation();
 
 ## AI Agents
 
-Playwright 1.58+ AI agent framework for test planning, generation, and self-healing.
+Playwright 1.58+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -94,6 +94,8 @@ Playwright 1.58+ AI agent framework for test planning, generation, and self-heal
 ```bash
 npx playwright init-agents --loop=claude    # For Claude Code
 ```
+
+**Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output — use this when running Playwright from AI agents to minimize token consumption.
 
 Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests live app) -> Healer (fixes failures, updates selectors).
 
