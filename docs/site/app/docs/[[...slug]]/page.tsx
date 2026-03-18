@@ -12,6 +12,7 @@ import defaultMdxComponents from "fumadocs-ui/mdx";
 import { SITE } from "@/lib/constants";
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
+import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -67,6 +68,7 @@ export default async function Page(props: {
             ...defaultMdxComponents,
             ContextualSkillSidebar: LazyContextualSkillSidebar,
             SkillDependencyGraph: LazySkillDependencyGraph,
+            SkillRecommender: LazySkillRecommender,
           }}
         />
       </DocsBody>
