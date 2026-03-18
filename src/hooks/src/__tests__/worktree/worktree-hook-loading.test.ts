@@ -14,7 +14,7 @@
  * the CC runtime in unit tests.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import type { HookInput } from '../../types.js';
 
 // Mock fs operations to avoid real filesystem reads
@@ -35,11 +35,17 @@ vi.mock('../../lib/common.js', async () => {
 
 import { worktreeLifecycleLogger } from '../../worktree/worktree-lifecycle-logger.js';
 
-// Also validate hooks.json registration
-// biome-ignore lint/complexity/noUselessLoneBlockStatements: import assertion syntax
-import hooksJson from '../../../hooks.json' assert { type: 'json' };
+// Also validate hooks.json registration — use actual fs (not mocked) to read hooks.json
+import { resolve } from 'node:path';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let hooksJson: any;
 
 describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
+  beforeAll(async () => {
+    const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs');
+    hooksJson = JSON.parse(actualFs.readFileSync(resolve(__dirname, '..', '..', '..', 'hooks.json'), 'utf-8'));
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
