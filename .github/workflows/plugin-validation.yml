@@ -302,8 +302,8 @@ jobs:
         if: steps.install-cc.outputs.cc_available == 'true'
         shell: bash
         run: |
-          echo "Running: claude plugin validate"
-          claude plugin validate 2>&1 || {
+          echo "Running: claude plugin validate ./plugins/ork"
+          claude plugin validate ./plugins/ork 2>&1 || {
             echo "::warning::claude plugin validate reported issues"
             exit 1
           }
