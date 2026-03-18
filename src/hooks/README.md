@@ -18,6 +18,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - 89% per-load savings (~35KB average vs 324KB unified)
 - Zero dependencies in production bundles
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
+- CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 
 ---
 
@@ -146,7 +147,8 @@ Session and instance lifecycle management.
 **Events:**
 - `SessionStart` - Initialize session, load context
 - `SessionEnd` - Save state, cleanup (CC 2.1.74: `hook.timeout` now respected; env override: `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`)
-- `Stop` - User stops conversation, trigger compaction
+- `Stop` - User stops conversation, trigger compaction. **Error-loop safety:** all hooks return silent success (CC 2.1.78)
+- `StopFailure` - API error termination (CC 2.1.78). Flushes state, writes emergency handoff. **Must be async.** See `stop/stop-failure-handler.ts`
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation
 - `SubagentStop` - Subagent completion tracking
@@ -157,6 +159,45 @@ Handle notifications and alerts.
 **Examples:**
 - `notification/desktop` - Desktop notifications for completion
 - `notification/sound` - Sound alerts for errors
+
+---
+
+## Persistent Storage (CC 2.1.78)
+
+CC 2.1.78 introduced `CLAUDE_PLUGIN_DATA` — a persistent directory that survives plugin updates (`/plugin uninstall` prompts before deleting it).
+
+### Path Resolution
+
+All session-scoped storage uses `lib/paths.ts` which checks `CLAUDE_PLUGIN_DATA` first:
+
+```
+CLAUDE_PLUGIN_DATA set:
+  sessions  → $CLAUDE_PLUGIN_DATA/sessions/{session_id}/
+  analytics → $CLAUDE_PLUGIN_DATA/analytics/
+  once-flags→ $CLAUDE_PLUGIN_DATA/sessions/{session_id}/once-flags/
+
+CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
+  sessions  → {project}/.claude/memory/sessions/{session_id}/
+  analytics → {project}/.claude/memory/analytics/
+  once-flags→ {project}/.claude/memory/sessions/{session_id}/once-flags/
+```
+
+### Key Functions
+
+| Function | Location | Returns |
+|----------|----------|---------|
+| `getPluginDataDir()` | `lib/paths.ts` | `CLAUDE_PLUGIN_DATA` value or `null` |
+| `getSessionStorageDir()` | `lib/paths.ts` | `PLUGIN_DATA/sessions` or `.claude/memory/sessions` |
+| `getAnalyticsStorageDir()` | `lib/paths.ts` | `PLUGIN_DATA/analytics` or `.claude/memory/analytics` |
+| `getPluginDataDir()` | `lib/common.ts` | Re-export from `paths.ts` |
+
+### Consumers
+
+- `lib/session-tracker.ts` — event JSONL + counter persistence
+- `prompt/unified-dispatcher.ts` — once-per-session flags + prompt hash delta detection
+- `stop/stop-failure-handler.ts` — emergency handoff file (uses `project_dir` directly, not PLUGIN_DATA)
+
+**Rule:** Never hardcode `.claude/memory/sessions/` — always use `getSessionStorageDir()` or `getPromptSessionDir()` to respect PLUGIN_DATA.
 
 ---
 

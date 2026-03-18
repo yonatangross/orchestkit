@@ -639,7 +639,7 @@ def _extract_jsdoc_description(source: str) -> str:
 
     Skips the title line (typically 'Name - HookType Hook') and CC compliance lines.
     """
-    match = re.match(r"/\*\*(.*?)\*/", source, re.DOTALL)
+    match = re.search(r"/\*\*(.*?)\*/", source, re.DOTALL)
     if not match:
         return ""
 
@@ -695,20 +695,30 @@ def _detect_behavior(source: str, command: str) -> str:
 
     Returns: 'blocks', 'injects', 'silent', or 'fire-and-forget'.
     """
+    # Explicit TSDoc override: @behavior silent|blocks|injects|fire-and-forget
+    override_match = re.search(r"@behavior\s+(blocks|injects|silent|fire-and-forget)", source)
+    if override_match:
+        return override_match.group(1)
+
     # Fire-and-forget: uses run-hook-silent.mjs
     if "run-hook-silent.mjs" in command:
         return "fire-and-forget"
 
+    # Strip comments before pattern matching to avoid false positives
+    # (e.g., "never produce additionalContext" in a comment)
+    code_only = re.sub(r"/\*\*[\s\S]*?\*/", "", source)  # block comments
+    code_only = re.sub(r"//.*$", "", code_only, flags=re.MULTILINE)  # line comments
+
     # Blocks: has continue: false or outputDeny
-    if re.search(r"continue\s*:\s*false", source) or "outputDeny" in source:
+    if re.search(r"continue\s*:\s*false", code_only) or "outputDeny" in code_only:
         return "blocks"
 
     # Injects: produces additionalContext
-    if "additionalContext" in source or "outputAllowWithContext" in source:
+    if "additionalContext" in code_only or "outputAllowWithContext" in code_only:
         return "injects"
 
     # Silent: suppressOutput or outputSilentSuccess without blocking/injecting
-    if "suppressOutput" in source or "outputSilentSuccess" in source:
+    if "suppressOutput" in code_only or "outputSilentSuccess" in code_only:
         return "silent"
 
     return "silent"

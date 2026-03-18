@@ -10,5 +10,5 @@ description: "Hooks triggered on SessionStart events (3 hooks)."
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `*` | 🔇 Silent | Consolidates session-specific async hooks into a single dispatcher. |
-| `sync-session-dispatcher` | `*` | 💡 Injects | — |
-| `session-handoff-injector` | `*` | 💡 Injects | — |
+| `sync-session-dispatcher` | `*` | 💡 Injects | Consolidates 4 synchronous SessionStart hooks into a single dispatcher. |
+| `session-handoff-injector` | `*` | 💡 Injects | Session Handoff Injector — Injects previous session context at SessionStart |

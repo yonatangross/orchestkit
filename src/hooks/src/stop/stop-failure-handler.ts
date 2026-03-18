@@ -2,8 +2,8 @@
 // Created: 2026-03-18
 
 /**
- * StopFailure Handler (CC 2.1.78)
- * Issue #1106: Graceful session death handling
+ * StopFailure Handler - Stop Hook
+ * Issue #1106: Graceful session death handling (CC 2.1.78)
  *
  * Fires when a turn ends due to an API error (rate limit, auth failure, etc.).
  * Flushes session state and writes an emergency handoff so the next session
@@ -13,6 +13,8 @@
  * produce additionalContext or systemMessage. CC 2.1.78 fixed an infinite loop
  * where stop hooks re-fed errors to the model. StopFailure is especially
  * dangerous because it fires ON errors — any output here could re-trigger.
+ *
+ * @behavior silent
  */
 
 import { existsSync, mkdirSync } from 'node:fs';
