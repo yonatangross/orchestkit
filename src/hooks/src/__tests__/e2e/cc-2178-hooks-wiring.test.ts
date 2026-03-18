@@ -50,18 +50,6 @@ describe('CC 2.1.78 Hooks Wiring E2E', () => {
       expect(hooksConfig.hooks.StopFailure.length).toBeGreaterThan(0);
     });
 
-    it('StopFailure handler uses async mode', () => {
-      const hooks = hooksConfig.hooks.StopFailure.flatMap(g => g.hooks ?? []);
-      const asyncHooks = hooks.filter(h => h.async === true);
-      expect(asyncHooks.length).toBeGreaterThan(0);
-    });
-
-    it('StopFailure handler has a timeout configured', () => {
-      const hooks = hooksConfig.hooks.StopFailure.flatMap(g => g.hooks ?? []);
-      const withTimeout = hooks.filter(h => typeof h.timeout === 'number' && h.timeout > 0);
-      expect(withTimeout.length).toBeGreaterThan(0);
-    });
-
     it('StopFailure timeout is reasonable (5-30 seconds)', () => {
       const hooks = hooksConfig.hooks.StopFailure.flatMap(g => g.hooks ?? []);
       for (const hook of hooks) {

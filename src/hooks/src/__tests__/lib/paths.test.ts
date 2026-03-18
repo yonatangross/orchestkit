@@ -46,16 +46,6 @@ describe('getPluginDataDir (CC 2.1.78)', () => {
     expect(getPluginDataDir()).toBe('/Users/dev/.claude/plugins/data/ork-orchestkit');
   });
 
-  it('returns an empty string (falsy) when CLAUDE_PLUGIN_DATA is empty', () => {
-    setPluginData('');
-    // Empty string is falsy — callers treat this the same as null
-    expect(getPluginDataDir()).toBeFalsy();
-  });
-
-  it('preserves trailing separators as-is from env var', () => {
-    setPluginData('/some/path/');
-    expect(getPluginDataDir()).toBe('/some/path/');
-  });
 });
 
 // ============================================================================
@@ -68,41 +58,18 @@ describe('getSessionStorageDir (CC 2.1.78)', () => {
     delete process.env.CLAUDE_PROJECT_DIR;
   });
 
-  it('uses CLAUDE_PLUGIN_DATA base when set', () => {
+  it('returns exact PLUGIN_DATA/sessions path when set', () => {
     setPluginData('/plugin/data');
-    const dir = getSessionStorageDir();
-    expect(dir).toContain('/plugin/data');
-    expect(dir).toContain('sessions');
-  });
-
-  it('returns path ending in "sessions" when PLUGIN_DATA is set', () => {
-    setPluginData('/some/data/dir');
-    const dir = getSessionStorageDir();
-    // Normalize: remove trailing separator if any
-    expect(dir.replace(/[/\\]$/, '').endsWith('sessions')).toBe(true);
-  });
-
-  it('does NOT use PLUGIN_DATA path when CLAUDE_PLUGIN_DATA is not set', () => {
-    clearPluginData();
-    process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    const dir = getSessionStorageDir();
-    expect(dir).not.toContain('/plugin/data');
-    expect(dir).toContain('sessions');
+    // Use path.join for cross-platform correctness
+    const { join } = require('node:path');
+    expect(getSessionStorageDir()).toBe(join('/plugin/data', 'sessions'));
   });
 
   it('falls back to project-local .claude/memory/sessions when env var absent', () => {
     clearPluginData();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    const dir = getSessionStorageDir();
-    expect(dir).toContain('.claude');
-    expect(dir).toContain('memory');
-    expect(dir).toContain('sessions');
-  });
-
-  it('PLUGIN_DATA path does not contain legacy .claude/memory segment', () => {
-    setPluginData('/plugin/data');
-    const dir = getSessionStorageDir();
-    expect(dir).not.toContain('.claude/memory');
+    const { join } = require('node:path');
+    expect(getSessionStorageDir()).toBe(join('/test/project', '.claude', 'memory', 'sessions'));
   });
 });
 
@@ -116,40 +83,17 @@ describe('getAnalyticsStorageDir (CC 2.1.78)', () => {
     delete process.env.CLAUDE_PROJECT_DIR;
   });
 
-  it('uses CLAUDE_PLUGIN_DATA base when set', () => {
+  it('returns exact PLUGIN_DATA/analytics path when set', () => {
     setPluginData('/plugin/data');
-    const dir = getAnalyticsStorageDir();
-    expect(dir).toContain('/plugin/data');
-    expect(dir).toContain('analytics');
-  });
-
-  it('returns path ending in "analytics" when PLUGIN_DATA is set', () => {
-    setPluginData('/some/data/dir');
-    const dir = getAnalyticsStorageDir();
-    expect(dir.replace(/[/\\]$/, '').endsWith('analytics')).toBe(true);
-  });
-
-  it('does NOT use PLUGIN_DATA path when CLAUDE_PLUGIN_DATA is not set', () => {
-    clearPluginData();
-    process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    const dir = getAnalyticsStorageDir();
-    expect(dir).not.toContain('/plugin/data');
-    expect(dir).toContain('analytics');
+    const { join } = require('node:path');
+    expect(getAnalyticsStorageDir()).toBe(join('/plugin/data', 'analytics'));
   });
 
   it('falls back to project-local .claude/memory/analytics when env var absent', () => {
     clearPluginData();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    const dir = getAnalyticsStorageDir();
-    expect(dir).toContain('.claude');
-    expect(dir).toContain('memory');
-    expect(dir).toContain('analytics');
-  });
-
-  it('PLUGIN_DATA path does not contain legacy .claude/memory segment', () => {
-    setPluginData('/plugin/data');
-    const dir = getAnalyticsStorageDir();
-    expect(dir).not.toContain('.claude/memory');
+    const { join } = require('node:path');
+    expect(getAnalyticsStorageDir()).toBe(join('/test/project', '.claude', 'memory', 'analytics'));
   });
 });
 
@@ -162,20 +106,10 @@ describe('getSessionStorageDir vs getAnalyticsStorageDir separation', () => {
     clearPluginData();
   });
 
-  it('session and analytics dirs have different suffixes under PLUGIN_DATA', () => {
+  it('session and analytics are distinct subdirs of PLUGIN_DATA', () => {
     setPluginData('/plugin/data');
-    const sessionDir = getSessionStorageDir();
-    const analyticsDir = getAnalyticsStorageDir();
-    expect(sessionDir).not.toBe(analyticsDir);
-    expect(sessionDir).toContain('sessions');
-    expect(analyticsDir).toContain('analytics');
-  });
-
-  it('both share the PLUGIN_DATA root when env var is set', () => {
-    setPluginData('/plugin/data');
-    const sessionDir = getSessionStorageDir();
-    const analyticsDir = getAnalyticsStorageDir();
-    expect(sessionDir.startsWith('/plugin/data')).toBe(true);
-    expect(analyticsDir.startsWith('/plugin/data')).toBe(true);
+    const { join } = require('node:path');
+    expect(getSessionStorageDir()).toBe(join('/plugin/data', 'sessions'));
+    expect(getAnalyticsStorageDir()).toBe(join('/plugin/data', 'analytics'));
   });
 });

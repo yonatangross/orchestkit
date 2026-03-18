@@ -695,38 +695,14 @@ describe('Session Event Tracker', () => {
       delete process.env.CLAUDE_PLUGIN_DATA;
     });
 
-    it('uses PLUGIN_DATA-based path for session directory creation', () => {
-      trackEvent('skill_invoked', 'commit', { success: true });
-
-      expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('/plugin/persistent/data'),
-        { recursive: true }
-      );
-    });
-
-    it('session path contains the session ID under PLUGIN_DATA', () => {
-      trackEvent('skill_invoked', 'commit', { success: true });
-
-      expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('test-session-456'),
-        { recursive: true }
-      );
-    });
-
-    it('session path contains "sessions" segment under PLUGIN_DATA', () => {
-      trackEvent('skill_invoked', 'commit', { success: true });
-
-      expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('sessions'),
-        { recursive: true }
-      );
-    });
-
-    it('does NOT use legacy .claude/memory/sessions when PLUGIN_DATA is set', () => {
+    it('creates session dir under PLUGIN_DATA/sessions/{sid}, not legacy path', () => {
       trackEvent('skill_invoked', 'commit', { success: true });
 
       const mkdirCall = mockMkdirSync.mock.calls[0][0] as string;
-      // Should not fall back to the project-local legacy path
+      // Must contain all three segments: PLUGIN_DATA root, sessions, session ID
+      expect(mkdirCall).toContain('/plugin/persistent/data');
+      expect(mkdirCall).toMatch(/sessions[/\\]test-session-456/);
+      // Must NOT use legacy path
       expect(mkdirCall).not.toContain('.claude/memory/sessions');
     });
   });

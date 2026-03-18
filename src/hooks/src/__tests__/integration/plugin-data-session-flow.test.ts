@@ -39,7 +39,6 @@ vi.mock('../../lib/common.js', async () => {
   };
 });
 
-import { getSessionStorageDir, getAnalyticsStorageDir, getPluginDataDir } from '../../lib/paths.js';
 import { trackEvent, resetEventCounter, flushEventCounter } from '../../lib/session-tracker.js';
 import { flush as flushAnalytics } from '../../lib/analytics-buffer.js';
 
@@ -94,31 +93,7 @@ describe('PLUGIN_DATA → session-tracker integration (real filesystem)', () => 
     }
   });
 
-  // ===========================================================================
-  // Path resolution
-  // ===========================================================================
-  describe('path resolution with PLUGIN_DATA', () => {
-    it('getPluginDataDir returns the CLAUDE_PLUGIN_DATA value', () => {
-      expect(getPluginDataDir()).toBe(pluginDataDir);
-    });
-
-    it('getSessionStorageDir returns PLUGIN_DATA/sessions', () => {
-      const dir = getSessionStorageDir();
-      expect(dir).toBe(path.join(pluginDataDir, 'sessions'));
-    });
-
-    it('getAnalyticsStorageDir returns PLUGIN_DATA/analytics', () => {
-      const dir = getAnalyticsStorageDir();
-      expect(dir).toBe(path.join(pluginDataDir, 'analytics'));
-    });
-
-    it('session and analytics dirs are siblings under PLUGIN_DATA', () => {
-      const sessionDir = getSessionStorageDir();
-      const analyticsDir = getAnalyticsStorageDir();
-      expect(path.dirname(sessionDir)).toBe(path.dirname(analyticsDir));
-      expect(path.dirname(sessionDir)).toBe(pluginDataDir);
-    });
-  });
+  // Path resolution tested in paths.test.ts (unit) — here we test real I/O
 
   // ===========================================================================
   // Real file creation via trackEvent
@@ -182,25 +157,5 @@ describe('PLUGIN_DATA → session-tracker integration (real filesystem)', () => 
     });
   });
 
-  // ===========================================================================
-  // Fallback when PLUGIN_DATA is absent
-  // ===========================================================================
-  describe('legacy fallback when PLUGIN_DATA is absent', () => {
-    it('getSessionStorageDir falls back to project-local path', () => {
-      delete process.env.CLAUDE_PLUGIN_DATA;
-      const dir = getSessionStorageDir();
-      expect(dir).toContain('.claude');
-      expect(dir).toContain('memory');
-      expect(dir).toContain('sessions');
-      expect(dir).not.toContain('plugin-data');
-    });
-
-    it('getAnalyticsStorageDir falls back to project-local path', () => {
-      delete process.env.CLAUDE_PLUGIN_DATA;
-      const dir = getAnalyticsStorageDir();
-      expect(dir).toContain('.claude');
-      expect(dir).toContain('memory');
-      expect(dir).toContain('analytics');
-    });
-  });
+  // Legacy fallback tested in paths.test.ts (unit) — integration only tests real I/O
 });
