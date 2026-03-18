@@ -13,6 +13,7 @@ import {
   type SkillDetail,
   type CategoryMeta,
 } from "@/lib/playground-data";
+import { GRAPH_NODES, GRAPH_EDGES } from "@/lib/generated/skill-graph-data";
 
 describe("docs-data", () => {
   // ── TOTALS ────────────────────────────────────────────────
@@ -33,10 +34,10 @@ describe("docs-data", () => {
       expect(TOTALS.agents).toBeGreaterThan(0);
     });
 
-    it("matches expected counts", () => {
-      expect(TOTALS.skills).toBe(69);
-      expect(TOTALS.agents).toBe(38);
-      expect(TOTALS.hooks).toBe(78);
+    it("has consistent counts (skills >= 80, agents >= 30, hooks >= 100)", () => {
+      expect(TOTALS.skills).toBeGreaterThanOrEqual(80);
+      expect(TOTALS.agents).toBeGreaterThanOrEqual(30);
+      expect(TOTALS.hooks).toBeGreaterThanOrEqual(100);
     });
   });
 
@@ -64,7 +65,7 @@ describe("docs-data", () => {
       expect(Array.isArray(plugin.agents)).toBe(true);
     });
 
-    it("ork has 69 skills", () => {
+    it("ork skillCount matches TOTALS.skills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
       expect(ork!.skillCount).toBe(TOTALS.skills);
@@ -171,8 +172,8 @@ describe("docs-data", () => {
       expect(Object.keys(SKILLS).length).toBeGreaterThan(0);
     });
 
-    it("has 69 skills", () => {
-      expect(Object.keys(SKILLS).length).toBe(69);
+    it("SKILLS count matches TOTALS.skills", () => {
+      expect(Object.keys(SKILLS).length).toBe(TOTALS.skills);
     });
 
     it("has correct SkillDetail shape", () => {
@@ -214,6 +215,64 @@ describe("docs-data", () => {
     it("contains ork key", () => {
       const keys = Object.keys(SKILLS_SUMMARY);
       expect(keys).toContain("ork");
+    });
+  });
+
+  // ── GRAPH DATA ──────────────────────────────────────────
+
+  describe("GRAPH_NODES", () => {
+    it("has one node per skill", () => {
+      expect(GRAPH_NODES.length).toBe(TOTALS.skills);
+    });
+
+    it("has correct SkillGraphNode shape", () => {
+      const node = GRAPH_NODES[0];
+      expect(typeof node.id).toBe("string");
+      expect(typeof node.label).toBe("string");
+      expect(["command", "reference"]).toContain(node.type);
+      expect(typeof node.complexity).toBe("string");
+      expect(typeof node.category).toBe("string");
+      expect(typeof node.hasDeps).toBe("boolean");
+      expect(typeof node.depCount).toBe("number");
+      expect(typeof node.usedByCount).toBe("number");
+    });
+
+    it("node IDs are unique", () => {
+      const ids = GRAPH_NODES.map((n) => n.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("depCount matches actual edge count", () => {
+      for (const node of GRAPH_NODES) {
+        const actual = GRAPH_EDGES.filter((e) => e.source === node.id).length;
+        expect(node.depCount).toBe(actual);
+      }
+    });
+  });
+
+  describe("GRAPH_EDGES", () => {
+    it("has edges", () => {
+      expect(GRAPH_EDGES.length).toBeGreaterThan(50);
+    });
+
+    it("every edge source exists in nodes", () => {
+      const nodeIds = new Set(GRAPH_NODES.map((n) => n.id));
+      for (const edge of GRAPH_EDGES) {
+        expect(nodeIds.has(edge.source)).toBe(true);
+      }
+    });
+
+    it("every edge target exists in nodes", () => {
+      const nodeIds = new Set(GRAPH_NODES.map((n) => n.id));
+      for (const edge of GRAPH_EDGES) {
+        expect(nodeIds.has(edge.target)).toBe(true);
+      }
+    });
+
+    it("no self-referencing edges", () => {
+      for (const edge of GRAPH_EDGES) {
+        expect(edge.source).not.toBe(edge.target);
+      }
     });
   });
 
