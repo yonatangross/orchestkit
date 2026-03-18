@@ -278,7 +278,6 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         description = meta.get("description", "")
         user_invocable = meta.get("user-invocable", False)
         complexity = meta.get("complexity", "")
-        agent_field = meta.get("agent", "")
         skills_list = meta.get("skills", [])
         if isinstance(skills_list, str):
             skills_list = [skills_list]
@@ -325,20 +324,9 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
             )
             lines.append("")
 
-        if agent_field:
-            lines.append(
-                f"**Primary Agent:** [{agent_field}](/docs/reference/agents/{agent_field})"
-            )
-            lines.append("")
-
-        if skills_list:
-            lines.append("## Related Skills")
-            lines.append("")
-            for sk in skills_list:
-                sk = sk.strip()
-                if sk:
-                    lines.append(f"- [{sk}](/docs/reference/skills/{sk})")
-            lines.append("")
+        # Contextual sidebar (#1080)
+        lines.append(f'<ContextualSkillSidebar slug="{slug}" />')
+        lines.append("")
 
         lines.append(sanitize_mdx_body(body))
 
