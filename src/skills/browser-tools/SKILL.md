@@ -40,6 +40,18 @@ OrchestKit security wrapper for `agent-browser`. **For command reference and usa
 # 5. If dynamic -> wait @element or wait --text
 ```
 
+## Local Dev URLs
+
+Use **Portless** (`npm i -g portless`) for stable local dev URLs instead of guessing ports. When Portless is running, navigate to `myapp.localhost:1355` instead of `localhost:3000`. Our safety hook already allows `*.localhost` subdomains via `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST`.
+
+```bash
+# With Portless: stable, named URLs
+agent-browser open "http://myapp.localhost:1355"
+
+# Without: fragile port guessing
+agent-browser open "http://localhost:3000"  # which app is this?
+```
+
 ## Safety Guardrails (6 rules + hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
@@ -113,6 +125,7 @@ agent-browser cookies set token "$SECRET" --url https://prod.com # Never set pro
 ## Related Skills
 
 - `agent-browser` (upstream) — Full command reference and usage patterns
+- `portless` (upstream) — Stable named `.localhost` URLs for local dev servers
 - `ork:web-research-workflow` — Unified decision tree for web research
 - `ork:testing-e2e` — E2E testing patterns including Playwright and webapp testing
 - `ork:api-design` — API design patterns for endpoints discovered during scraping
