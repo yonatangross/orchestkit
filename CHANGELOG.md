@@ -5,6 +5,70 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.13.0](https://github.com/yonatangross/orchestkit/compare/v7.12.0...v7.13.0) (2026-03-18)
+
+
+### Features
+
+* add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))
+* CC 2.1.78 adoption — StopFailure, PLUGIN_DATA, effort frontmatter, worktree ([#1104](https://github.com/yonatangross/orchestkit/issues/1104)) ([de50151](https://github.com/yonatangross/orchestkit/commit/de501510ea39940312a74efe30270c634332f413))
+* **cover:** add /ork:cover skill + bump to 7.11.0 ([#1096](https://github.com/yonatangross/orchestkit/issues/1096)) ([36f14c6](https://github.com/yonatangross/orchestkit/commit/36f14c6f3266460a5a1afe14e1927bba2fa0a948))
+* **docs:** integrate @yonatan-hq/analytics for cross-project tracking ([#1090](https://github.com/yonatangross/orchestkit/issues/1090)) ([3e294dc](https://github.com/yonatangross/orchestkit/commit/3e294dce69fbf112d48b4b1521383c398e871f29))
+* **eval:** Sprint 1 — trigger runner + CONTRIBUTING-SKILLS eval docs ([#1065](https://github.com/yonatangross/orchestkit/issues/1065)) ([8d845c7](https://github.com/yonatangross/orchestkit/commit/8d845c7090ff8d799789ff1b24c34360261c8f49))
+* **notebooklm:** update skill for notebooklm-mcp-cli v0.4.8 ([#1094](https://github.com/yonatangross/orchestkit/issues/1094)) ([0b72024](https://github.com/yonatangross/orchestkit/commit/0b72024d3a866bd4fb43daa2ed2f6bc79e1e9c07))
+* **skills:** add 13 cognitive-science UX rules across 5 existing skills ([#1011](https://github.com/yonatangross/orchestkit/issues/1011)) ([91b62ac](https://github.com/yonatangross/orchestkit/commit/91b62ac1ab43a1d3296b84e05b402d0102600531))
+* **skills:** adopt CC 2.1.72 features — ExitWorktree, model override ([#1036](https://github.com/yonatangross/orchestkit/issues/1036)) ([#1060](https://github.com/yonatangross/orchestkit/issues/1060)) ([96fd3a0](https://github.com/yonatangross/orchestkit/commit/96fd3a0ece399e3f843b11d3f018a0792eea9d46))
+* **skills:** skills health — CC 2.1.72 alignment (all phases) ([#1040](https://github.com/yonatangross/orchestkit/issues/1040)) ([b9db695](https://github.com/yonatangross/orchestkit/commit/b9db695763654ade01009ad439a16b7cd6179121))
+* Sprint 2 Wave A — eval runner, 1M context GA, RFC 9457 agent errors (v7.6.0) ([#1067](https://github.com/yonatangross/orchestkit/issues/1067)) ([12968a5](https://github.com/yonatangross/orchestkit/commit/12968a54e86446bf83773f0e098cf48f3c95ae9d))
+
+
+### Bug Fixes
+
+* **ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))
+* **ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))
+* **docs:** replace broken ASCII diagrams with fumadocs Steps ([#999](https://github.com/yonatangross/orchestkit/issues/999)) ([2c1b6fe](https://github.com/yonatangross/orchestkit/commit/2c1b6fee670c4e1c8be2855bb23596792f354874))
+* **docs:** update CC version requirement from 2.1.72 to 2.1.74 ([#1062](https://github.com/yonatangross/orchestkit/issues/1062)) ([622ba4c](https://github.com/yonatangross/orchestkit/commit/622ba4cfa0d5d4b9b1707c2f93897a311b3a1586))
+* **docs:** update generated plugins-data version to 7.2.0 ([#1012](https://github.com/yonatangross/orchestkit/issues/1012)) ([dca7243](https://github.com/yonatangross/orchestkit/commit/dca72432fd9982b3457d3423aad1124155a94584))
+* **docs:** update generated plugins-data version to 7.4.0 ([#1058](https://github.com/yonatangross/orchestkit/issues/1058)) ([e2693b1](https://github.com/yonatangross/orchestkit/commit/e2693b16b3f8cddb40348b5790611a004f37009e))
+* **security:** resolve CodeQL and Scorecard alerts ([#1027](https://github.com/yonatangross/orchestkit/issues/1027)) ([ab9136c](https://github.com/yonatangross/orchestkit/commit/ab9136c09593632a9c10a7d44ca4c9799df297ed))
+* **security:** resolve yauzl CVE and pinned-dependencies alert ([#1101](https://github.com/yonatangross/orchestkit/issues/1101)) ([d96d68d](https://github.com/yonatangross/orchestkit/commit/d96d68d1bbaf55a8f41e982b0debfcf71fc792a6))
+* **skills:** add ExitWorktree + model override to Agent Teams teardown paths ([#1061](https://github.com/yonatangross/orchestkit/issues/1061)) ([c326666](https://github.com/yonatangross/orchestkit/commit/c3266663634912450ed965fae5ca6df752019705))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))
+* fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))
+* **main:** release 7.1.10 ([#1000](https://github.com/yonatangross/orchestkit/issues/1000)) ([d0c48a1](https://github.com/yonatangross/orchestkit/commit/d0c48a1f8f135fa741bb16a39166c1f0e5ebc965))
+* **main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))
+* **main:** release 7.11.0 ([#1099](https://github.com/yonatangross/orchestkit/issues/1099)) ([d20b85d](https://github.com/yonatangross/orchestkit/commit/d20b85dc2391eeeb32f3c140900ab38ff83e901b))
+* **main:** release 7.11.1 ([#1102](https://github.com/yonatangross/orchestkit/issues/1102)) ([4716cfe](https://github.com/yonatangross/orchestkit/commit/4716cfe837663fc7170b8e6bcb19d585bb05e6ce))
+* **main:** release 7.2.0 ([#1010](https://github.com/yonatangross/orchestkit/issues/1010)) ([a6420bb](https://github.com/yonatangross/orchestkit/commit/a6420bbd4c50e234ccad3eeba676846e36b68a3d))
+* **main:** release 7.2.1 ([#1013](https://github.com/yonatangross/orchestkit/issues/1013)) ([2a83685](https://github.com/yonatangross/orchestkit/commit/2a8368559de636960593f3258e79afeb511d3311))
+* **main:** release 7.3.0 ([#1024](https://github.com/yonatangross/orchestkit/issues/1024)) ([490317f](https://github.com/yonatangross/orchestkit/commit/490317fdc2c397f54a9bd067edc7ecd4043b0777))
+* **main:** release 7.3.1 ([#1026](https://github.com/yonatangross/orchestkit/issues/1026)) ([363a44f](https://github.com/yonatangross/orchestkit/commit/363a44fcb9f69c4866a6e3fa7bde9ee4be4b2b26))
+* **main:** release 7.3.2 ([#1028](https://github.com/yonatangross/orchestkit/issues/1028)) ([9f67f37](https://github.com/yonatangross/orchestkit/commit/9f67f378c1aa81a9653b5c6a1a482eba7870d4de))
+* **main:** release 7.4.0 ([#1057](https://github.com/yonatangross/orchestkit/issues/1057)) ([f8a7bfd](https://github.com/yonatangross/orchestkit/commit/f8a7bfde3221cf196bc7ec8678d7301278777ce3))
+* **main:** release 7.5.0 ([#1059](https://github.com/yonatangross/orchestkit/issues/1059)) ([059f43d](https://github.com/yonatangross/orchestkit/commit/059f43d19db7fa61d4a01eafadc73077e615e248))
+* **main:** release 7.5.1 ([#1063](https://github.com/yonatangross/orchestkit/issues/1063)) ([6c14540](https://github.com/yonatangross/orchestkit/commit/6c145408a4f3bda6cc6f74c403b33a0622f4c024))
+* **main:** release 7.9.0 ([#1066](https://github.com/yonatangross/orchestkit/issues/1066)) ([8aa0b27](https://github.com/yonatangross/orchestkit/commit/8aa0b2763d9f458680fba777905414ee83a252f8))
+* override release-please to 7.9.1 ([#1093](https://github.com/yonatangross/orchestkit/issues/1093)) ([caa4efd](https://github.com/yonatangross/orchestkit/commit/caa4efd87a0afa640f2e63d7c2aecc508dcf3f33))
+* pin release-as to 7.11.0 ([#1100](https://github.com/yonatangross/orchestkit/issues/1100)) ([06acb3f](https://github.com/yonatangross/orchestkit/commit/06acb3fdf8e7bc3020bae216e8c94d5af3887ad5))
+* remove release-as pin after 7.11.0 release ([#1103](https://github.com/yonatangross/orchestkit/issues/1103)) ([5fd681c](https://github.com/yonatangross/orchestkit/commit/5fd681cf73bf1362c4b4fd254c4100e86185f51e))
+
+
+### Code Refactoring
+
+* split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))
+
+
+### CI/CD
+
+* bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))
+* bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))
+* bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))
+* update anthropics/claude-code-action requirement to 26ec041249acb0a944c0a47b6c0c13f05dbc5b44 ([#1098](https://github.com/yonatangross/orchestkit/issues/1098)) ([8a7600e](https://github.com/yonatangross/orchestkit/commit/8a7600e2b9270547dcfc522d95dde26e9b8f3bc3))
+
 ## [7.12.0] - 2026-03-18
 
 ### Features
