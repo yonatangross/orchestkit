@@ -36,6 +36,7 @@ vi.mock('../../lib/common.js', async () => {
 import { worktreeLifecycleLogger } from '../../worktree/worktree-lifecycle-logger.js';
 
 // Also validate hooks.json registration
+// biome-ignore lint/complexity/noUselessLoneBlockStatements: import assertion syntax
 import hooksJson from '../../../hooks.json' assert { type: 'json' };
 
 describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {

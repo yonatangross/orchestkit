@@ -8,7 +8,7 @@ user-invocable: false
 disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, ToolSearch]
-complexity: low
+complexity: medium
 model: haiku
 ---
 
