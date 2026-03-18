@@ -17,6 +17,7 @@
 
 import { existsSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import {
   outputSilentSuccess,
@@ -80,8 +81,8 @@ export async function stopFailureHandler(input: HookInput): Promise<HookResult> 
     const projectDir = input.project_dir || getProjectDir();
     const sessionId = input.session_id || getSessionId();
     const branch = getCachedBranch(projectDir);
-    const handoffDir = `${projectDir}/.claude`;
-    const handoffPath = `${handoffDir}/HANDOFF.md`;
+    const handoffDir = path.join(projectDir, '.claude');
+    const handoffPath = path.join(handoffDir, 'HANDOFF.md');
 
     if (!existsSync(handoffDir)) {
       mkdirSync(handoffDir, { recursive: true });
