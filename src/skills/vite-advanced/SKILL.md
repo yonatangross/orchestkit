@@ -59,7 +59,7 @@ Vite 8 introduces declarative chunk grouping with priority control and size cons
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [

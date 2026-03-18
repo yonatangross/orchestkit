@@ -42,7 +42,7 @@ Vite 8 introduces `advancedChunks` with declarative grouping, priority control, 
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [

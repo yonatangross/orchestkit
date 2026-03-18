@@ -33,7 +33,7 @@ Storybook 10 unifies component testing into a single workflow: **interaction tes
 - **Module automocking (`sb.mock`)** — build-time module mocking, scoped per-project in preview.ts
 - **CSF factories (React, preview)** — `defineMain` → `definePreview` → `preview.meta()` → `meta.story()` chain
 - **Essential addons in core** — viewport, controls, interactions, actions no longer separate deps
-- **Import path changes** — `@storybook/test` → `storybook/test`, `@storybook/addon-actions` → `storybook/actions`
+- **Import path changes** — `@storybook/test` → `storybook/test` (old paths still work as aliases)
 - **React Server Component story support** — test RSC in isolation
 - **Vitest 4 support** — `experimental-addon-test` renamed to `addon-vitest`
 
@@ -152,7 +152,7 @@ export default defineConfig({
 
 | Anti-Pattern | Why It Fails | Use Instead |
 |-------------|-------------|-------------|
-| CSF2 `Template.bind({})` | Removed in Storybook 10, no type inference | CSF3 object stories with `satisfies` |
+| CSF2 `Template.bind({})` | Deprecated, no type inference, will be removed in SB 11 | CSF3 object stories with `satisfies` |
 | `@storybook/test-runner` package | Deprecated since Storybook 9 | `@storybook/addon-vitest` |
 | `vi.mock()` in story files | Leaks between stories, breaks isolation | Register `sb.mock(import(...))` in preview.ts, configure with `mocked()` in beforeEach |
 | Full Chromatic snapshots on every PR | Expensive and slow | TurboSnap with `onlyChanged: true` |

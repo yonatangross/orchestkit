@@ -52,7 +52,7 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## Safety Guardrails (6 rules + hook)
+## Safety Guardrails (6 rules + 11-check hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
 

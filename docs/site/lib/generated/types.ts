@@ -22,6 +22,22 @@ export interface SkillDetail {
 /** Skill metadata without content fields — used by skill-browser */  
 export type SkillMeta = Omit<SkillDetail, "content" | "contentTruncated">;
 
+export interface SkillGraphNode {
+  id: string;
+  label: string;
+  type: "command" | "reference";
+  complexity: string;
+  category: string;
+  hasDeps: boolean;
+  depCount: number;
+  usedByCount: number;
+}
+
+export interface SkillGraphEdge {
+  source: string;
+  target: string;
+}
+
 export interface Plugin {
   name: string;
   description: string;

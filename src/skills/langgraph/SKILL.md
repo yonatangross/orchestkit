@@ -41,7 +41,7 @@ Comprehensive patterns for building production LangGraph workflows. **LangGraph 
 | [Functional API](#functional-api) | 3 | MEDIUM | @entrypoint/@task decorators, migration from StateGraph |
 | [Platform](#platform) | 3 | HIGH | Deployment, RemoteGraph, double-texting strategies |
 
-**Total: 36 rules across 11 categories**
+**Total: 37 rules across 11 categories**
 
 ## State Management
 

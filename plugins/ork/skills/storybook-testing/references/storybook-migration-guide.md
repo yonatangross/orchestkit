@@ -4,18 +4,18 @@
 
 ### Breaking Changes in Storybook 10
 
-#### 1. CSF2 Support Removed
+#### 1. CSF2 Deprecated (Still Works)
 
-CSF2 `Template.bind({})` is no longer supported. All stories must use CSF3 object format:
+CSF2 `Template.bind({})` still works in SB 10 for backwards compatibility, but is deprecated and will be removed in SB 11. Migrate to CSF3 object format:
 
 ```tsx
-// CSF3 (required)
+// CSF3 (recommended)
 export const Primary: Story = {
   args: { label: 'Click me' },
 }
 ```
 
-Run the codemod if you have remaining CSF2 stories:
+Run the codemod to migrate:
 ```bash
 npx storybook@latest migrate csf-2-to-3 --glob="src/**/*.stories.tsx"
 ```

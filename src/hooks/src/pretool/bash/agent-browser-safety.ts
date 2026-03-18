@@ -640,14 +640,15 @@ Never log or transmit clipboard contents to external services.`;
     return outputAllowWithContext(context);
   }
 
-  // Check 8: HAR capture — sensitive network data (v0.21+)
-  if (/\bnetwork\s+har\b/.test(command)) {
+  // Check 8: HAR capture stop — sensitive network data (v0.21+)
+  // Only warn on 'stop' which writes the HAR file; 'start' is harmless
+  if (/\bnetwork\s+har\s+stop\b/.test(command)) {
     const context = `WARNING: HAR capture records full request/response bodies including auth tokens, cookies, and POST data.
 Treat HAR output files as credentials — never commit to git or share publicly.
 Clean up HAR files after use.`;
 
     logPermissionFeedback('allow', 'HAR capture warning', input);
-    logHook('agent-browser-safety', 'network har detected');
+    logHook('agent-browser-safety', 'network har stop detected');
     return outputAllowWithContext(context);
   }
 

@@ -215,10 +215,17 @@ describe('agent-browser-safety', () => {
     expect(result.hookSpecificOutput?.additionalContext).toContain('clipboard');
   });
 
-  it('warns about HAR capture (v0.21+)', () => {
+  it('warns about HAR capture stop (v0.21+)', () => {
     const input = createBashInput('agent-browser network har stop /tmp/trace.har');
     const result = agentBrowserSafety(input);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('HAR');
+  });
+
+  it('allows HAR capture start without warning (v0.21+)', () => {
+    const input = createBashInput('agent-browser network har start');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
   });
 });
