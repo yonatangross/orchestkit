@@ -419,6 +419,7 @@ export const SKILLS_SUMMARY = {
     ],
     "security": [
       "audit-full",
+      "browser-tools",
       "mcp-patterns",
       "review-pr",
       "security-patterns"

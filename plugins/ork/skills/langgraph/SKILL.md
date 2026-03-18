@@ -2,11 +2,11 @@
 name: langgraph
 license: MIT
 compatibility: "Claude Code 2.1.76+."
-description: LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
-tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, subgraphs, functional]
+description: LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
+tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts]
 context: fork
 agent: workflow-architect
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -23,7 +23,7 @@ allowed-tools:
 
 # LangGraph Workflow Patterns
 
-Comprehensive patterns for building production LangGraph workflows. Each category has individual rule files in `rules/` loaded on-demand.
+Comprehensive patterns for building production LangGraph workflows. **LangGraph 1.x is LTS** (Long Term Support) — the first stable major release, powering agents at Uber, LinkedIn, and Klarna. Each category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
@@ -118,13 +118,14 @@ Pause workflows for human intervention. Requires checkpointer for state persiste
 
 ## Streaming
 
-Real-time updates and progress tracking for workflows.
+Real-time updates and progress tracking for workflows. **LangGraph 1.1 introduces `version="v2"`** — an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Stream Modes | `rules/streaming-modes.md` | 5 modes: values, updates, messages, custom, debug |
 | Token Streaming | `rules/streaming-tokens.md` | `messages` mode with node/tag filtering |
 | Custom Events | `rules/streaming-custom-events.md` | `get_stream_writer()` for progress events |
+| Streaming v2 | `rules/streaming-v2-format.md` | `version="v2"` for typed streaming (LG 1.1+) |
 
 ## Subgraphs
 
@@ -186,6 +187,7 @@ app = graph.compile()
 
 ## 2026 Key Patterns
 
+- **Streaming v2 (LG 1.1)**: Use `version="v2"` for type-safe streaming — fully typed `stream()` and `astream()` returns. Default remains `"v1"` for backwards compat.
 - **Command API**: Use `Command(update=..., goto=...)` when updating state AND routing together
 - **context_schema**: Pass runtime config (temperature, provider) without polluting state
 - **CachePolicy**: Cache expensive node results with TTL via `InMemoryCache`
@@ -193,6 +195,7 @@ app = graph.compile()
 - **Store**: Cross-thread memory separate from Checkpointer (thread-scoped)
 - **interrupt()**: Dynamic interrupts inside node logic (replaces `interrupt_before` for conditional cases)
 - **add_edge(START, node)**: Not `set_entry_point()` (deprecated)
+- **LTS release**: LangGraph 1.x is LTS — will remain ACTIVE until v2.0
 
 ## Key Decisions
 

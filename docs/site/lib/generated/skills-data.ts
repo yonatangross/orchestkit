@@ -745,16 +745,15 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "browser-tools": {
     "name": "browser-tools",
-    "description": "OrchestKit orchestration wrapper for browser automation. Adds security rules, rate limiting, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.",
-    "version": "3.0.0",
+    "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
+    "version": "4.0.0",
     "author": "OrchestKit",
     "tags": [
       "browser",
       "automation",
-      "playwright",
-      "puppeteer",
-      "scraping",
-      "content-capture"
+      "security",
+      "rate-limiting",
+      "scraping-ethics"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -2287,8 +2286,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "langgraph": {
     "name": "langgraph",
-    "description": "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
-    "version": "2.0.0",
+    "description": "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -2300,8 +2299,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tools",
       "checkpoints",
       "streaming",
+      "streaming-v2",
       "subgraphs",
-      "functional"
+      "functional",
+      "lts"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3751,8 +3752,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "storybook-testing": {
     "name": "storybook-testing",
-    "description": "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.",
-    "version": "1.0.0",
+    "description": "Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "storybook",
@@ -3764,7 +3765,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "play-functions",
       "component-testing",
       "a11y-testing",
-      "autodocs"
+      "autodocs",
+      "esm-only",
+      "module-automocking"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -4451,18 +4454,21 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "vite-advanced": {
     "name": "vite-advanced",
-    "description": "Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
-    "version": "1.0.0",
+    "description": "Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "vite",
+      "vite8",
+      "rolldown",
       "build",
       "bundler",
       "plugins",
       "ssr",
       "library-mode",
       "environment-api",
-      "optimization"
+      "optimization",
+      "advancedchunks"
     ],
     "userInvocable": false,
     "context": "fork",

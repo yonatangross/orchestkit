@@ -193,4 +193,32 @@ describe('agent-browser-safety', () => {
     expect(result.hookSpecificOutput?.additionalContext).toContain('--user-agent');
     expect(result.hookSpecificOutput?.additionalContext).toContain('spoof');
   });
+
+  it('warns about DevTools inspect command (v0.18+)', () => {
+    const input = createBashInput('agent-browser inspect');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('DevTools');
+  });
+
+  it('warns about get cdp-url command (v0.18+)', () => {
+    const input = createBashInput('agent-browser get cdp-url');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('CDP');
+  });
+
+  it('warns about clipboard read (v0.19+)', () => {
+    const input = createBashInput('agent-browser clipboard read');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('clipboard');
+  });
+
+  it('warns about HAR capture (v0.21+)', () => {
+    const input = createBashInput('agent-browser network har stop /tmp/trace.har');
+    const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('HAR');
+  });
 });

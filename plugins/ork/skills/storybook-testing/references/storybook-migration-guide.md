@@ -1,16 +1,28 @@
-# Storybook Migration Guide: 7/8 to 9/10
+# Storybook Migration Guide
 
-## Overview
+## Storybook 9 → 10 (Current)
 
-Storybook 9 introduces breaking changes: ESM-only packages, CSF3 as the default format, Vitest replacing test-runner, and new module mocking APIs. Storybook 10 continues this direction with stricter defaults.
+### Breaking Changes in Storybook 10
 
----
+#### 1. CSF2 Support Removed
 
-## Breaking Changes in Storybook 9
+CSF2 `Template.bind({})` is no longer supported. All stories must use CSF3 object format:
 
-### 1. ESM-Only Packages
+```tsx
+// CSF3 (required)
+export const Primary: Story = {
+  args: { label: 'Click me' },
+}
+```
 
-All Storybook packages are ESM-only. Update `tsconfig.json`:
+Run the codemod if you have remaining CSF2 stories:
+```bash
+npx storybook@latest migrate csf-2-to-3 --glob="src/**/*.stories.tsx"
+```
+
+#### 2. ESM-Only Enforced
+
+All Storybook packages are ESM-only. Ensure your `tsconfig.json` is configured:
 
 ```json
 {
@@ -21,38 +33,90 @@ All Storybook packages are ESM-only. Update `tsconfig.json`:
 }
 ```
 
-### 2. CSF3 is Default
+#### 3. Module Automocking
 
-CSF2 `Template.bind({})` still works but is deprecated. Migrate to object stories:
+Storybook 10 introduces automatic module mocking. For explicit per-story overrides, use the two-part pattern:
 
+1. Register mocks in `.storybook/preview.ts`:
+```ts
+import { sb } from '@storybook/test'
+sb.mock(import('../src/api/client'), { spy: true })
+```
+
+2. Configure per-story with `mocked()` in `beforeEach`:
 ```tsx
-// Before (CSF2)
-const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />
-export const Primary = Template.bind({})
-Primary.args = { label: 'Click me' }
+import { mocked } from '@storybook/test'
+import { fetchUser } from '../src/api/client'
 
-// After (CSF3)
-export const Primary: Story = {
-  args: { label: 'Click me' },
+export const WithUser: Story = {
+  beforeEach: () => {
+    mocked(fetchUser).mockResolvedValue({ id: '1', name: 'Test' })
+  },
 }
 ```
 
-### 3. Test Runner Replaced by Vitest Addon
+#### 4. React Server Component Support
+
+Stories can now render React Server Components in isolation:
+```tsx
+import type { Meta, StoryObj } from '@storybook/react'
+import { ServerComponent } from './ServerComponent'
+
+const meta = {
+  component: ServerComponent,
+  // RSC stories work without additional configuration in SB 10
+} satisfies Meta<typeof ServerComponent>
+```
+
+#### 5. Parallel Browser Tests
+
+Vitest integration now runs stories in parallel browser contexts for faster CI:
+```ts
+// vitest.config.ts
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+
+export default defineConfig({
+  plugins: [storybookTest({ parallel: true })],
+})
+```
+
+### Migration Steps
 
 ```bash
-# Remove deprecated test-runner
-npm uninstall @storybook/test-runner
+# 1. Upgrade
+npx storybook@latest upgrade
 
-# Install Vitest addon
+# 2. Run codemods (handles most breaking changes)
+npx storybook@latest automigrate
+
+# 3. Verify
+npm run storybook        # visual check
+npx vitest               # run story tests
+npx chromatic            # visual regression baseline
+```
+
+---
+
+## Storybook 7/8 → 9 (Legacy)
+
+### Breaking Changes in Storybook 9
+
+#### 1. ESM-Only Packages
+All Storybook packages became ESM-only.
+
+#### 2. CSF3 is Default
+CSF2 still works but deprecated.
+
+#### 3. Test Runner Replaced by Vitest Addon
+```bash
+npm uninstall @storybook/test-runner
 npm install -D @storybook/addon-vitest
 ```
 
-### 4. Module Mocking: vi.mock to sb.mock (Two-Part Pattern)
+#### 4. Module Mocking: vi.mock → sb.mock
+Two-part pattern: register in preview.ts, configure per-story.
 
-Module mocking now uses a two-part pattern: (1) register mocks in `.storybook/preview.ts` with `sb.mock(import(...), { spy: true })`, then (2) configure per-story with `mocked(namedExport).mockResolvedValue(...)` in `beforeEach`. Never call `sb.mock()` in story files — it only works in project-level configuration.
-
-### 5. Actions: action() to fn()
-
+#### 5. Actions: action() → fn()
 ```tsx
 // Before
 import { action } from '@storybook/addon-actions'
@@ -63,35 +127,7 @@ import { fn } from '@storybook/test'
 args: { onClick: fn() }
 ```
 
----
-
-## Migration Steps
-
-### Step 1: Update Dependencies
-
-```bash
-npx storybook@latest upgrade
-```
-
-This runs codemods for common migrations automatically.
-
-### Step 2: Update Story Files
-
-Run the CSF3 codemod:
-
-```bash
-npx storybook@latest migrate csf-2-to-3 --glob="src/**/*.stories.tsx"
-```
-
-### Step 3: Replace Test Runner
-
-1. Remove `@storybook/test-runner` from `package.json`
-2. Add `@storybook/addon-vitest` to `.storybook/main.ts` addons
-3. Add `storybookTest()` plugin to `vitest.config.ts`
-4. Remove any `test-runner-jest.config.js`
-
-### Step 4: Update Imports
-
+#### 6. Unified Imports
 ```tsx
 // Before (scattered imports)
 import { action } from '@storybook/addon-actions'
@@ -100,20 +136,3 @@ import { within, userEvent } from '@storybook/testing-library'
 // After (unified under @storybook/test)
 import { fn, within, userEvent, expect } from '@storybook/test'
 ```
-
-### Step 5: Verify
-
-```bash
-npm run storybook        # visual check
-npx vitest               # run story tests
-npx chromatic            # visual regression baseline
-```
-
----
-
-## Storybook 10 Preview
-
-- Stricter CSF3 enforcement — CSF2 support removed
-- React Server Component story support
-- Improved Vitest integration with parallel browser tests
-- Native CSS-in-JS support without extra configuration
