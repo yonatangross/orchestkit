@@ -4,6 +4,7 @@ description: "PostgreSQL specialist: schema design, migrations, query optimizati
 category: backend
 model: sonnet
 maxTurns: 30
+effort: medium
 context: fork
 color: green
 memory: project

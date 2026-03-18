@@ -44,6 +44,7 @@ const SIDE_EFFECT_STUBS = {
   getProjectDir: vi.fn(() => '/test/project'),
   getPluginRoot: vi.fn(() => '/test/plugin-root'),
   getLogDir: vi.fn(() => '/test/logs'),
+  getPluginDataDir: vi.fn(() => null),
   getSessionId: vi.fn(() => 'test-session-123'),
   getEnvFile: vi.fn(() => '/test/plugin-root/.claude/.instance_env'),
   getCachedBranch: vi.fn(() => 'main'),

@@ -191,6 +191,14 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 3. **All content goes to GitHub** — PR body via `gh pr create --body`
 4. **Keep it simple** — One command to create PR
 
+## Next Steps (suggest to user after PR creation)
+
+```
+/ork:review-pr {PR_NUMBER}                # Self-review before requesting reviews
+/loop 5m gh pr checks {PR_NUMBER}         # Watch CI until green
+/loop 1h gh pr view {PR_NUMBER} --json reviewDecision  # Monitor review status
+```
+
 ## Related Skills
 
 - `ork:commit` — Create commits before PRs

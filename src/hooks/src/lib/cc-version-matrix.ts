@@ -124,6 +124,19 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'stale_worktree_cleanup',   minVersion: '2.1.76', description: 'Stale worktrees from interrupted parallel runs auto-cleaned on next launch' },
   { feature: 'model_fallback_visible',   minVersion: '2.1.76', description: 'Model fallback notifications always visible with human-friendly model names' },
   { feature: 'plugin_dir_single_path',   minVersion: '2.1.76', description: '--plugin-dir accepts one path per flag (use repeated flags for multiple)' },
+  // 2.1.77
+  { feature: 'opus_64k_default',         minVersion: '2.1.77', description: 'Opus 4.6 default output 64k tokens, upper bound 128k for Opus+Sonnet' },
+  { feature: 'allow_read_sandbox',       minVersion: '2.1.77', description: 'allowRead sandbox setting re-allows read access within denyRead regions' },
+  { feature: 'plugin_validate_frontmatter', minVersion: '2.1.77', description: 'claude plugin validate checks skill/agent/command frontmatter + hooks.json' },
+  { feature: 'sendmessage_auto_resume',  minVersion: '2.1.77', description: 'SendMessage auto-resumes stopped agents instead of returning error' },
+  { feature: 'agent_resume_removed',     minVersion: '2.1.77', description: 'Agent tool no longer accepts resume parameter — use SendMessage({to: id})' },
+  { feature: 'bg_bash_5gb_limit',        minVersion: '2.1.77', description: 'Background bash tasks killed if output exceeds 5GB' },
+  { feature: 'fork_renamed_branch',      minVersion: '2.1.77', description: '/fork renamed to /branch (/fork still works as alias)' },
+  { feature: 'pretooluse_allow_deny_fix', minVersion: '2.1.77', description: 'PreToolUse "allow" no longer bypasses deny permission rules' },
+  { feature: 'worktree_race_fix',        minVersion: '2.1.77', description: 'Stale-worktree cleanup race condition fixed (no longer deletes resumed agent worktrees)' },
+  { feature: 'resume_memory_perf',       minVersion: '2.1.77', description: '--resume 45% faster loading, ~100-150MB less peak memory' },
+  { feature: 'macos_startup_perf',       minVersion: '2.1.77', description: '~60ms faster macOS startup via parallel keychain reads' },
+  { feature: 'progress_msg_memory_fix',  minVersion: '2.1.77', description: 'Progress messages no longer survive compaction (memory growth fix)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

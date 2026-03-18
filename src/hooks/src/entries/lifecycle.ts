@@ -51,6 +51,7 @@ import { instructionsLoadedDispatcher } from '../instructions-loaded/instruction
 
 // PostCompact hooks (CC 2.1.76)
 import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
+import { staleCacheCleanup } from '../lifecycle/stale-cache-cleanup.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -99,6 +100,9 @@ export const hooks: Record<string, HookFn> = {
 
   // InstructionsLoaded hooks (CC 2.1.69)
   'instructions-loaded/instructions-loaded-dispatcher': instructionsLoadedDispatcher,
+
+  // Cache management
+  'lifecycle/stale-cache-cleanup': staleCacheCleanup,
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,

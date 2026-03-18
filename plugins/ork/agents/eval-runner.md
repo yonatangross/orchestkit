@@ -4,6 +4,7 @@ description: "LLM evaluation specialist who runs structured eval datasets, compu
 model: haiku
 background: true
 maxTurns: 20
+effort: low
 context: fork
 category: testing
 color: green

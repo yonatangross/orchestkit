@@ -620,6 +620,8 @@ export ORCHESTKIT_HOOK_TOKEN=your-secret-token
 
 This writes to `.claude/settings.local.json` (not committed). CC merges plugin `hooks.json` + user `settings.local.json` — both channels fire in parallel.
 
+> **Known Limitation (CC 2.1.71+):** HTTP hooks must use real URLs, not env var placeholders. CC validates `url` fields as proper URLs *before* expanding `$\{ENV_VAR\}` — so `"url": "$\{ORCHESTKIT_HOOK_URL\}"` fails validation and breaks ALL hooks. This is why HTTP hooks are generated per-user with real URLs (not shipped in the plugin). Env var expansion in `headers` (e.g., `$ORCHESTKIT_HOOK_TOKEN`) works fine — only the `url` field is affected.
+
 ## User Tiers
 
 | Tier | Setup | What You Get |

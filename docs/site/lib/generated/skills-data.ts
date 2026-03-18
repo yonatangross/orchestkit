@@ -1120,6 +1120,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "ToolSearch",
+      "CronCreate",
+      "CronDelete",
       "mcp__memory__search_nodes",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs"
@@ -3749,7 +3751,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "storybook-testing": {
     "name": "storybook-testing",
-    "description": "Storybook 10 testing patterns with Vitest 4 integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 10.",
+    "description": "Storybook 9/10 testing patterns with Vitest integration, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, sb.mock isolation, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating to Storybook 9/10.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [

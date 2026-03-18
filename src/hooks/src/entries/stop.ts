@@ -9,13 +9,14 @@
 export * from '../types.js';
 export * from '../lib/common.js';
 
-// Stop hooks (9)
+// Stop hooks (9) + StopFailure handler (CC 2.1.78)
 import { handoffWriter } from '../stop/handoff-writer.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
+import { stopFailureHandler } from '../stop/stop-failure-handler.js';
 
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
@@ -35,6 +36,7 @@ export const hooks: Record<string, HookFn> = {
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/task-completion-check': taskCompletionCheck,
   'stop/unified-dispatcher': unifiedStopDispatcher,
+  'stop/stop-failure-handler': stopFailureHandler,
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
   'stop/session-end-tracking': sessionEndTracking,

@@ -4,6 +4,7 @@ description: "Vision, audio, video generation, and multimodal processing special
 category: llm
 model: sonnet
 maxTurns: 30
+effort: medium
 context: fork
 color: magenta
 memory: project

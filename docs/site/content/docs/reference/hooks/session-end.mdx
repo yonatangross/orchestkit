@@ -9,6 +9,6 @@ description: "Hooks triggered on SessionEnd events (3 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `sync-session-end-dispatcher` | `*` | 🛑 Blocks | — |
-| `session-handoff-generator` | `*` | 🔇 Silent | — |
+| `sync-session-end-dispatcher` | `*` | 🛑 Blocks | Consolidates 2 synchronous SessionEnd hooks into a single dispatcher. |
+| `session-handoff-generator` | `*` | 🔇 Silent | Session Handoff Generator — Writes a structured handoff YAML at session end |
 | `usage-summary-reporter` | `*` | 🔇 Silent | Posts OrchestKit-specific session data to HQ API that CC's native |

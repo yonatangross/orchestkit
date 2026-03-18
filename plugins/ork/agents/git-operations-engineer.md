@@ -4,6 +4,7 @@ description: "Git operations: branch management, rebases, merges, stacked PRs, r
 category: git
 model: haiku
 maxTurns: 20
+effort: low
 isolation: worktree
 memory: project
 context: fork

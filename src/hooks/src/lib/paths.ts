@@ -40,6 +40,41 @@ export function getPluginRoot(): string {
 }
 
 /**
+ * Get the plugin persistent data directory (CC 2.1.78)
+ * CLAUDE_PLUGIN_DATA survives plugin updates; /plugin uninstall prompts before deleting.
+ * Falls back to project .claude/memory for CC < 2.1.78.
+ */
+export function getPluginDataDir(): string | null {
+  return process.env.CLAUDE_PLUGIN_DATA || null;
+}
+
+/**
+ * Get the session storage base directory.
+ * Prefers CLAUDE_PLUGIN_DATA (CC 2.1.78) for persistence across plugin updates.
+ * Falls back to project-local .claude/memory for older CC versions.
+ */
+export function getSessionStorageDir(): string {
+  const pluginData = getPluginDataDir();
+  if (pluginData) {
+    return path.join(pluginData, 'sessions');
+  }
+  return path.join(getProjectDir(), '.claude', 'memory', 'sessions');
+}
+
+/**
+ * Get the analytics storage base directory.
+ * Prefers CLAUDE_PLUGIN_DATA (CC 2.1.78) for persistence across plugin updates.
+ * Falls back to project-local .claude/memory for older CC versions.
+ */
+export function getAnalyticsStorageDir(): string {
+  const pluginData = getPluginDataDir();
+  if (pluginData) {
+    return path.join(pluginData, 'analytics');
+  }
+  return path.join(getProjectDir(), '.claude', 'memory', 'analytics');
+}
+
+/**
  * Get the log directory path (cross-platform)
  * Uses path.join() for correct separators on all platforms
  */

@@ -10,6 +10,7 @@
     "session-start",
     "session-end",
     "stop",
+    "stop-failure",
     "subagent-start",
     "subagent-stop",
     "notification",

@@ -21,9 +21,9 @@ const mocks = vi.hoisted(() => {
     logHook: vi.fn(),
     // posttool (3) — after #897 slimming
     redactSecrets: fn(), configChangeAuditor: fn(), teamMemberStart: fn(),
-    // lifecycle (4) — after #897 slimming
+    // lifecycle (5) — after #897 slimming + stale-cache-cleanup
     patternSyncPull: fn(), sessionEnvSetup: fn(),
-    staleTeamCleanup: fn(), typeErrorIndexer: fn(),
+    staleTeamCleanup: fn(), staleCacheCleanup: fn(), typeErrorIndexer: fn(),
     // stop (7) — handoff-writer + 6 skill-scoped hooks
     handoffWriter: fn(), taskCompletionCheck: fn(), securityScanAggregator: fn(),
     coverageCheck: fn(), evidenceCollector: fn(), coverageThresholdGate: fn(),
@@ -57,6 +57,7 @@ vi.mock('../../posttool/task/team-member-start.js', () => ({ teamMemberStart: mo
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
 vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({ staleTeamCleanup: mocks.staleTeamCleanup }));
+vi.mock('../../lifecycle/stale-cache-cleanup.js', () => ({ staleCacheCleanup: mocks.staleCacheCleanup }));
 vi.mock('../../lifecycle/type-error-indexer.js', () => ({ typeErrorIndexer: mocks.typeErrorIndexer }));
 
 // stop hooks (7)
@@ -127,6 +128,7 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'pattern-sync-pull': mocks.patternSyncPull,
   'session-env-setup': mocks.sessionEnvSetup,
   'stale-team-cleanup': mocks.staleTeamCleanup,
+  'stale-cache-cleanup': mocks.staleCacheCleanup,
   'type-error-indexer': mocks.typeErrorIndexer,
 };
 
@@ -239,7 +241,7 @@ describe('Dispatcher Functional Tests', () => {
   // =========================================================================
 
   describe('lifecycle/unified-dispatcher', () => {
-    it('calls all 4 registered hooks', async () => {
+    it('calls all 5 registered hooks', async () => {
       await unifiedSessionStartDispatcher(input());
       expect(called(lifecycleMap)).toEqual(Object.keys(lifecycleMap).sort());
     });
@@ -260,7 +262,7 @@ describe('Dispatcher Functional Tests', () => {
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/4 hooks failed'),
+        expect.stringContaining('1/5 hooks failed'),
       );
     });
 

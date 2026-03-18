@@ -25,6 +25,7 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { patternSyncPull } from './pattern-sync-pull.js';
 import { sessionEnvSetup } from './session-env-setup.js';
 import { staleTeamCleanup } from './stale-team-cleanup.js';
+import { staleCacheCleanup } from './stale-cache-cleanup.js';
 import { typeErrorIndexer } from './type-error-indexer.js';
 
 // -----------------------------------------------------------------------------
@@ -43,7 +44,7 @@ interface HookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 4 session-specific async SessionStart hooks (local state + setup).
+ * Registry of 5 session-specific async SessionStart hooks (local state + setup).
  * Analytics hooks (session-tracking, memory-metrics-collector) removed — now handled by HQ.
  * One-time initialization hooks moved to Setup dispatcher (Issue #239).
  */
@@ -51,6 +52,7 @@ const HOOKS: HookConfig[] = [
   { name: 'pattern-sync-pull', fn: patternSyncPull },
   { name: 'session-env-setup', fn: sessionEnvSetup },
   { name: 'stale-team-cleanup', fn: staleTeamCleanup },
+  { name: 'stale-cache-cleanup', fn: staleCacheCleanup },
   { name: 'type-error-indexer', fn: typeErrorIndexer },
 ];
 

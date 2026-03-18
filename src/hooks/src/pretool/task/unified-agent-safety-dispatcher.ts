@@ -21,7 +21,7 @@
 import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
+  outputWithContext,
   logHook,
   estimateTokenCount,
   extractContext,
@@ -125,5 +125,5 @@ export function unifiedAgentSafetyDispatcher(input: HookInput): HookResult {
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
   logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
-  return outputAllowWithContext(consolidated);
+  return outputWithContext(consolidated);
 }

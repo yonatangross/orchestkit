@@ -3,7 +3,7 @@
  * Tests event tracking, session summaries, and cross-session queries
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
 const { _mockAppendFileSync } = vi.hoisted(() => ({
@@ -677,6 +677,33 @@ describe('Session Event Tracker', () => {
 
       // Should start from 1 when counter file is corrupted
       expect(event.event_id).toMatch(/^evt-\d+-1$/);
+    });
+  });
+
+  // ===========================================================================
+  // CLAUDE_PLUGIN_DATA path branch (CC 2.1.78)
+  // ===========================================================================
+  describe('getSessionDir with CLAUDE_PLUGIN_DATA (CC 2.1.78)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetEventCounter();
+      process.env.CLAUDE_PLUGIN_DATA = '/plugin/persistent/data';
+      mockExistsSync.mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      delete process.env.CLAUDE_PLUGIN_DATA;
+    });
+
+    it('creates session dir under PLUGIN_DATA/sessions/{sid}, not legacy path', () => {
+      trackEvent('skill_invoked', 'commit', { success: true });
+
+      const mkdirCall = mockMkdirSync.mock.calls[0][0] as string;
+      // Must contain all three segments: PLUGIN_DATA root, sessions, session ID
+      expect(mkdirCall).toContain('/plugin/persistent/data');
+      expect(mkdirCall).toMatch(/sessions[/\\]test-session-456/);
+      // Must NOT use legacy path
+      expect(mkdirCall).not.toContain('.claude/memory/sessions');
     });
   });
 });

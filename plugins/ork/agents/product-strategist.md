@@ -4,6 +4,7 @@ description: "Product strategist: value proposition validation, feature-business
 model: inherit
 category: product
 maxTurns: 30
+effort: medium
 context: fork
 color: purple
 memory: project

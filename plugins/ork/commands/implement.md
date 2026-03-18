@@ -69,7 +69,19 @@ Write(".claude/chain/state.json", JSON.stringify({
 > Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
 
 
-## Step 0: Project Context Discovery
+## Step 0: Effort-Aware Phase Scaling (CC 2.1.76)
+
+Read the `/effort` setting to scale implementation depth. The effort-aware context budgeting hook detects effort level automatically — adapt the phase plan accordingly:
+
+| Effort Level | Phases Run | Agents | Token Budget |
+|-------------|------------|--------|--------------|
+| **low** | 1 (Discovery) → 5 (Implement) → 10 (Reflect) | 2 max | ~50K |
+| **medium** | 1 → 2 → 5 → 7 (Scope Creep) → 10 | 3 max | ~150K |
+| **high** (default) | All 10 phases | 4-7 | ~400K |
+
+> **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level.
+
+## Step 0a: Project Context Discovery
 
 **BEFORE any work**, detect the project tier. This becomes the complexity ceiling for all patterns.
 
@@ -94,7 +106,30 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode("Research and design: $ARGUMENTS")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Plan first' selected:**
+
+```python
+# 1. Enter read-only plan mode
+EnterPlanMode("Research and design: $ARGUMENTS")
+
+# 2. Research phase — Read/Grep/Glob ONLY, no Write/Edit
+#    - Read existing code in the target area
+#    - Grep for related patterns, imports, dependencies
+#    - Check tests, configs, and integration points
+#    - If context7 available: query library docs
+
+# 3. Design the plan — produce:
+#    - File map: which files to create/modify
+#    - Architecture decisions with rationale
+#    - Task breakdown with acceptance criteria
+#    - Risk assessment and edge cases
+
+# 4. Exit plan mode — returns plan to user for approval
+ExitPlanMode()
+
+# 5. User reviews plan. If approved → continue to Phase 1 (Discovery)
+#    with the plan as input. If rejected → revise or stop.
+```
 
 If worktree selected:
 1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch
@@ -223,6 +258,16 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 - **Clean up agents** — use `TeamDelete()` after completion; press `Ctrl+F` twice as manual fallback. Note: `/clear` (CC 2.1.72+) preserves background agents
 - **Exit worktrees** — call `ExitWorktree(action: "keep")` in Phase 10 if worktree was entered in Step 0; never leave orphaned worktrees
 
+
+## Next Steps (suggest to user after implementation)
+
+```
+/ork:verify {FEATURE}              # Grade the implementation
+/ork:cover {FEATURE}               # Generate test suite
+/ork:commit                        # Commit changes
+/loop 10m npm test                 # Watch tests while iterating
+/loop 30m /ork:verify {FEATURE}    # Periodic quality gate
+```
 
 ## Related Skills
 

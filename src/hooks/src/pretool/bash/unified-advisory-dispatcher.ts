@@ -24,7 +24,7 @@
 import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
+  outputWithContext,
   outputWithUpdatedInput,
   logHook,
   estimateTokenCount,
@@ -199,7 +199,7 @@ function mergeAdvisoryContext(
   if (contextParts.length > 0) {
     const consolidated = contextParts.join('\n\n---\n\n');
     logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
-    return outputAllowWithContext(consolidated);
+    return outputWithContext(consolidated);
   }
 
   // Case 4: Nothing produced

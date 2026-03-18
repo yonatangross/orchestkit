@@ -59,7 +59,19 @@ Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. 
 
 ---
 
-## STEP 0: Verify User Intent with AskUserQuestion
+## STEP 0: Effort-Aware Verification Scaling (CC 2.1.76)
+
+Scale verification depth based on `/effort` level:
+
+| Effort Level | Phases Run | Agents | Output |
+|-------------|------------|--------|--------|
+| **low** | Run tests only → pass/fail | 0 agents | Quick check |
+| **medium** | Tests + code quality + security | 3 agents | Score + top issues |
+| **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
+
+> **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
+
+## STEP 0a: Verify User Intent with AskUserQuestion
 
 **BEFORE creating tasks**, clarify verification scope:
 

@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.76 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation)
+ * CC 2.1.78 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure)
  */
 
 /**
@@ -15,6 +15,7 @@ export type HookEvent =
   | 'SessionStart'
   | 'SessionEnd'
   | 'Stop'
+  | 'StopFailure'
   | 'SubagentStart'
   | 'SubagentStop'
   | 'Setup'
@@ -109,9 +110,15 @@ export interface HookInput {
   /** Notification type */
   notification_type?: string;
 
-  // Stop/SubagentStop specific fields (CC 2.1.47)
+  // Stop/StopFailure/SubagentStop specific fields (CC 2.1.47, 2.1.78)
   /** The final assistant message text (Stop and SubagentStop, CC 2.1.47+) */
   last_assistant_message?: string;
+
+  // StopFailure specific fields (CC 2.1.78)
+  /** Error type that caused the failure (e.g., 'rate_limit', 'auth_failure', 'api_error') */
+  stop_failure_reason?: string;
+  /** HTTP status code from the API error, if applicable */
+  api_status_code?: number;
 
   // Workspace/statusline fields (CC 2.1.47)
   /** Directories added via /add-dir, from statusline workspace section (CC 2.1.47+) */

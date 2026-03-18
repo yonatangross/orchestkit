@@ -4,6 +4,7 @@ description: "Market research: competitive landscapes, market trends, TAM/SAM/SO
 category: product
 model: haiku
 maxTurns: 20
+effort: low
 context: fork
 color: violet
 memory: project

@@ -4,6 +4,7 @@ description: Observability and monitoring specialist. Prometheus metrics, Grafan
 category: devops
 model: haiku
 maxTurns: 20
+effort: low
 context: fork
 color: orange
 memory: project

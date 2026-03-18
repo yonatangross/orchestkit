@@ -79,7 +79,8 @@ describe('Async Hooks Registry', () => {
       // 8 -> 5: #897 slimming removed capture-user-intent, settings-reload, release-notebook-trigger
       // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
-      expect(asyncHooks.length, 'Should have exactly 7 async hooks').toBe(7);
+      // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
+      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

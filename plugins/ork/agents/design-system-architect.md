@@ -4,6 +4,7 @@ description: "Design system architect: token hierarchies, theming strategies, co
 model: inherit
 category: frontend
 maxTurns: 30
+effort: medium
 context: fork
 isolation: worktree
 color: teal

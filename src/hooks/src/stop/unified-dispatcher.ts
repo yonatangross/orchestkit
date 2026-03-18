@@ -6,6 +6,13 @@
  * Reduces "Async hook Stop completed" messages to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
+ *
+ * ERROR-LOOP SAFETY (CC 2.1.78):
+ * This dispatcher MUST always return outputSilentSuccess() — never produce
+ * additionalContext, systemMessage, or blocking output. CC 2.1.78 fixed an
+ * infinite loop where API errors triggered stop hooks that re-fed errors to
+ * the model. All hooks in HOOKS[] are fire-and-forget; failures are logged
+ * but never surfaced. The same constraint applies to StopFailure handlers.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -42,8 +49,12 @@ interface HookConfig {
 
 /**
  * Registry of all Stop hooks consolidated into dispatcher
- * Issue #243: Fire-and-forget pattern - all 8 hooks run in background
+ * Issue #243: Fire-and-forget pattern - all hooks run in background
  * Analytics hooks removed — now handled by HQ content pipeline
+ *
+ * SAFETY: Every hook here MUST return outputSilentSuccess() or equivalent.
+ * Never return additionalContext or systemMessage — this prevents the
+ * error-loop bug fixed in CC 2.1.78 (stop hooks re-feeding errors to model).
  */
 const HOOKS: HookConfig[] = [
   // --- Core session hooks ---
@@ -112,5 +123,7 @@ export async function unifiedStopDispatcher(input: HookInput): Promise<HookResul
     logHook('stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
   }
 
+  // CRITICAL: Always return silent success — never produce output that could
+  // trigger an error-loop (CC 2.1.78 fix). This is the ONLY safe return value.
   return outputSilentSuccess();
 }

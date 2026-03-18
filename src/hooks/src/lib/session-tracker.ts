@@ -13,6 +13,7 @@ import { atomicWriteSync } from './atomic-write.js';
 import { bufferWrite } from './analytics-buffer.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import { getIdentityContext, type IdentityContext } from './user-identity.js';
+import { getSessionStorageDir } from './paths.js';
 
 // =============================================================================
 // TYPES
@@ -100,16 +101,28 @@ function isValidSessionId(sessionId: string): boolean {
 
 /**
  * Get session storage directory
+ * Uses CLAUDE_PLUGIN_DATA (CC 2.1.78) when available for persistence
+ * across plugin updates. Falls back to project-local path for older CC.
+ *
  * @param sessionId - Optional session ID (defaults to env var)
  * @param projectDir - Optional project directory (defaults to env var)
  */
 function getSessionDir(sessionId?: string, projectDir?: string): string {
   const sid = sessionId || getSessionId();
-  const pDir = projectDir || getProjectDir();
   // Validate session ID to prevent path traversal (SEC-002)
   if (!isValidSessionId(sid)) {
     throw new Error(`Invalid session ID format`);
   }
+
+  // CC 2.1.78: Use CLAUDE_PLUGIN_DATA for persistent storage
+  const baseDir = getSessionStorageDir();
+  // If getSessionStorageDir already uses PLUGIN_DATA, use it directly
+  if (process.env.CLAUDE_PLUGIN_DATA) {
+    return `${baseDir}/${sid}`;
+  }
+
+  // Legacy fallback: project-local path
+  const pDir = projectDir || getProjectDir();
   return `${pDir}/.claude/memory/sessions/${sid}`;
 }
 

@@ -18,6 +18,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - 89% per-load savings (~35KB average vs 324KB unified)
 - Zero dependencies in production bundles
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
+- CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 
 ---
 
@@ -99,7 +100,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->36<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->106<!--/ork--> hooks (<!--ork:hooks-global-->37<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -146,7 +147,8 @@ Session and instance lifecycle management.
 **Events:**
 - `SessionStart` - Initialize session, load context
 - `SessionEnd` - Save state, cleanup (CC 2.1.74: `hook.timeout` now respected; env override: `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`)
-- `Stop` - User stops conversation, trigger compaction
+- `Stop` - User stops conversation, trigger compaction. **Error-loop safety:** all hooks return silent success (CC 2.1.78)
+- `StopFailure` - API error termination (CC 2.1.78). Flushes state, writes emergency handoff. **Must be async.** See `stop/stop-failure-handler.ts`
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation
 - `SubagentStop` - Subagent completion tracking
@@ -157,6 +159,45 @@ Handle notifications and alerts.
 **Examples:**
 - `notification/desktop` - Desktop notifications for completion
 - `notification/sound` - Sound alerts for errors
+
+---
+
+## Persistent Storage (CC 2.1.78)
+
+CC 2.1.78 introduced `CLAUDE_PLUGIN_DATA` — a persistent directory that survives plugin updates (`/plugin uninstall` prompts before deleting it).
+
+### Path Resolution
+
+All session-scoped storage uses `lib/paths.ts` which checks `CLAUDE_PLUGIN_DATA` first:
+
+```
+CLAUDE_PLUGIN_DATA set:
+  sessions  → $CLAUDE_PLUGIN_DATA/sessions/{session_id}/
+  analytics → $CLAUDE_PLUGIN_DATA/analytics/
+  once-flags→ $CLAUDE_PLUGIN_DATA/sessions/{session_id}/once-flags/
+
+CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
+  sessions  → {project}/.claude/memory/sessions/{session_id}/
+  analytics → {project}/.claude/memory/analytics/
+  once-flags→ {project}/.claude/memory/sessions/{session_id}/once-flags/
+```
+
+### Key Functions
+
+| Function | Location | Returns |
+|----------|----------|---------|
+| `getPluginDataDir()` | `lib/paths.ts` | `CLAUDE_PLUGIN_DATA` value or `null` |
+| `getSessionStorageDir()` | `lib/paths.ts` | `PLUGIN_DATA/sessions` or `.claude/memory/sessions` |
+| `getAnalyticsStorageDir()` | `lib/paths.ts` | `PLUGIN_DATA/analytics` or `.claude/memory/analytics` |
+| `getPluginDataDir()` | `lib/common.ts` | Re-export from `paths.ts` |
+
+### Consumers
+
+- `lib/session-tracker.ts` — event JSONL + counter persistence
+- `prompt/unified-dispatcher.ts` — once-per-session flags + prompt hash delta detection
+- `stop/stop-failure-handler.ts` — emergency handoff file (uses `project_dir` directly, not PLUGIN_DATA)
+
+**Rule:** Never hardcode `.claude/memory/sessions/` — always use `getSessionStorageDir()` or `getPromptSessionDir()` to respect PLUGIN_DATA.
 
 ---
 
@@ -465,6 +506,52 @@ Use `"async": true` for hooks that:
 - Can fail silently without impact
 - Perform analytics, metrics, or cleanup operations
 - Run at session exit (Stop event)
+
+---
+
+## HTTP Hooks (CC 2.1.63+)
+
+### Overview
+
+CC supports `type: "http"` hooks that POST JSON directly to a URL instead of spawning a shell command. Zero process overhead.
+
+### Why OrchestKit Has Zero HTTP Hooks in hooks.json
+
+OrchestKit originally shipped 12 `type: "http"` hooks in plugin `hooks.json` using env var placeholders:
+
+```json
+{
+  "type": "http",
+  "url": "${ORCHESTKIT_HOOK_URL}",
+  "headers": { "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN" }
+}
+```
+
+**CC 2.1.71 broke this.** CC validates `url` fields as proper URLs *before* expanding environment variables. `${ORCHESTKIT_HOOK_URL}` fails URL format validation, causing ALL hooks (including command hooks) to fail to load — breaking the entire plugin for every user.
+
+### The Constraint (Still Active)
+
+```
+URL field:     "${ENV_VAR}"                    ❌ Broken (validated before expansion)
+URL field:     "https://real-domain.com/path"  ✅ Works (valid URL at parse time)
+Header field:  "Bearer $ORCHESTKIT_HOOK_TOKEN" ✅ Works (headers not URL-validated)
+```
+
+This means HTTP hooks cannot use env var placeholders in URLs at the plugin level. They must contain real URLs — which vary per user.
+
+### Solution: User-Level Generation
+
+HTTP hooks live in `.claude/settings.local.json` (per-user, not committed), generated with real URLs via CLI:
+
+```bash
+npm run generate:http-hooks -- https://your-api.com/hooks --write
+```
+
+See `src/skills/configure/references/http-hooks.md` for full setup guide.
+
+### Do NOT Re-Add HTTP Hooks to Plugin hooks.json
+
+Any `type: "http"` entry in plugin-level `hooks.json` must use a hardcoded URL. Env var placeholders in the `url` field will break the entire plugin. Use the generator CLI for user-specific endpoints.
 
 ---
 
@@ -1030,7 +1117,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->105<!--/ork--> hooks (<!--ork:hooks-global-->36<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->106<!--/ork--> hooks (<!--ork:hooks-global-->37<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.76
 

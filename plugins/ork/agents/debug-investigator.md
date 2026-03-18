@@ -4,6 +4,7 @@ description: "Debug specialist: systematic root cause analysis, execution path t
 category: testing
 model: sonnet
 maxTurns: 30
+effort: medium
 context: inherit
 color: orange
 memory: local

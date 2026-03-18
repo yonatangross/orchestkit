@@ -4,6 +4,7 @@ description: "Design context extraction: analyzes screenshots, URLs, or live app
 model: inherit
 category: frontend
 maxTurns: 20
+effort: low
 context: fork
 color: cyan
 memory: project

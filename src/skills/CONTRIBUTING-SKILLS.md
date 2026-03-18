@@ -383,6 +383,45 @@ Skills that spawn background agents or teams **must** include cleanup guidance:
 
 Agent definitions can include `background: true` in frontmatter for agents that never need interactive results. When referencing these agents from skills, note they always run in background.
 
+### Background Bash Output Limit (CC 2.1.77)
+
+CC 2.1.77 kills background bash tasks if their output exceeds **5GB**. This prevents runaway processes from filling disk. Skills that spawn long-running background commands should:
+
+- **Pipe verbose output to files** instead of capturing in CC: `npm test -- --verbose > /tmp/test-output.log 2>&1`
+- **Use `tail -f`** to monitor log files rather than capturing full streams
+- **Avoid `--verbose` flags** on commands with large output (test suites, builds) when running in background
+- Reference: `chain-patterns` Pattern 6 (Progressive Output)
+
+### SendMessage Auto-Resume (CC 2.1.77)
+
+`SendMessage` now auto-resumes stopped agents — no error handling needed. The `resume` parameter on the Agent tool has been **removed**. Always use `SendMessage({to: agentId})` to continue a previously spawned agent. See `chain-patterns` Pattern 7.
+
+### Effort-Aware Skill Design (CC 2.1.76)
+
+Skills with multi-phase workflows should include an **effort-scaling table** that maps `/effort` levels to reduced phases and agent counts. This is soft guidance — Claude reads the table and adapts, but it's not enforced in code. The hook layer handles token budget scaling separately.
+
+**Reference pattern** (from brainstorm STEP 0c):
+
+```markdown
+## STEP 0: Effort-Aware Scaling (CC 2.1.76)
+
+| Effort Level | Phases Run | Agents | Token Budget |
+|-------------|------------|--------|--------------|
+| **low** | Phase 1 → Phase 5 only | 2 max | ~50K |
+| **medium** | Phase 1 → 2 → 5 → 7 | 3 max | ~150K |
+| **high** (default) | All phases | 4-7 | ~400K |
+
+> Override: Explicit user selection overrides /effort downscaling.
+```
+
+Place effort tables **before** the AskUserQuestion step so Claude reads them before asking the user. Include an override note — if the user explicitly requests full analysis, respect that regardless of effort level.
+
+Skills that already have effort tables: brainstorm, implement, verify, cover, fix-issue.
+
+### /loop Suggestions in Next Steps (CC 2.1.71)
+
+Skills that produce artifacts users may want to monitor should include `/loop` suggestions in their "Next Steps" section. `/loop` can chain other skills (`/loop 20m /ork:verify`) — this is unique to `/loop` (CronCreate takes raw prompts only). See `chain-patterns` Pattern 8.
+
 ### Plugin Settings
 
 OrchestKit ships `settings.json` per plugin (`src/settings/<plugin>.settings.json`). Skills can reference default permissions and keybindings defined there. The `chat:newline` keybinding (Shift+Enter) is available via settings.
