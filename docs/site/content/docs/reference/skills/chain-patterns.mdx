@@ -168,6 +168,30 @@ SendMessage(to="api-designer", content="Now implement the schema you designed")
 # NEVER use Agent(resume=...) — removed in 2.1.77.
 ```
 
+## Pattern 8: /loop Skill Chaining (CC 2.1.71)
+
+`/loop` runs a prompt or skill on a recurring interval — session-scoped, dies on exit, 3-day auto-expiry. Unlike `CronCreate` (agent-initiated), `/loop` is user-invoked and can chain other skills.
+
+```text
+# User types these — skills suggest them in "Next Steps"
+/loop 5m gh pr checks 42                    # Watch CI after push
+/loop 20m /ork:verify authentication        # Periodic quality gate
+/loop 10m npm test -- --coverage            # Coverage drift watch
+/loop 1h check deployment health at /api/health  # Post-deploy monitor
+```
+
+**Key difference from CronCreate:**
+- `/loop` can invoke skills: `/loop 20m /ork:verify` (CronCreate can't)
+- Both use the same underlying scheduler (50-task limit, 3-day expiry)
+- Skills use `CronCreate` for agent-initiated scheduling
+- Skills suggest `/loop` in "Next Steps" for user-initiated monitoring
+
+**When to suggest /loop in Next Steps:**
+- After creating a PR → `/loop 5m gh pr checks \{pr_number\}`
+- After running tests → `/loop 10m npm test`
+- After deployment → `/loop 1h check health at \{endpoint\}`
+- After verification → `/loop 30m /ork:verify \{scope\}`
+
 ## Rules
 
 | Rule | Impact | Key Pattern |

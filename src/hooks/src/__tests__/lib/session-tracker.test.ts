@@ -3,7 +3,7 @@
  * Tests event tracking, session summaries, and cross-session queries
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
 const { _mockAppendFileSync } = vi.hoisted(() => ({
@@ -677,6 +677,57 @@ describe('Session Event Tracker', () => {
 
       // Should start from 1 when counter file is corrupted
       expect(event.event_id).toMatch(/^evt-\d+-1$/);
+    });
+  });
+
+  // ===========================================================================
+  // CLAUDE_PLUGIN_DATA path branch (CC 2.1.78)
+  // ===========================================================================
+  describe('getSessionDir with CLAUDE_PLUGIN_DATA (CC 2.1.78)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetEventCounter();
+      process.env.CLAUDE_PLUGIN_DATA = '/plugin/persistent/data';
+      mockExistsSync.mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      delete process.env.CLAUDE_PLUGIN_DATA;
+    });
+
+    it('uses PLUGIN_DATA-based path for session directory creation', () => {
+      trackEvent('skill_invoked', 'commit', { success: true });
+
+      expect(mockMkdirSync).toHaveBeenCalledWith(
+        expect.stringContaining('/plugin/persistent/data'),
+        { recursive: true }
+      );
+    });
+
+    it('session path contains the session ID under PLUGIN_DATA', () => {
+      trackEvent('skill_invoked', 'commit', { success: true });
+
+      expect(mockMkdirSync).toHaveBeenCalledWith(
+        expect.stringContaining('test-session-456'),
+        { recursive: true }
+      );
+    });
+
+    it('session path contains "sessions" segment under PLUGIN_DATA', () => {
+      trackEvent('skill_invoked', 'commit', { success: true });
+
+      expect(mockMkdirSync).toHaveBeenCalledWith(
+        expect.stringContaining('sessions'),
+        { recursive: true }
+      );
+    });
+
+    it('does NOT use legacy .claude/memory/sessions when PLUGIN_DATA is set', () => {
+      trackEvent('skill_invoked', 'commit', { success: true });
+
+      const mkdirCall = mockMkdirSync.mock.calls[0][0] as string;
+      // Should not fall back to the project-local legacy path
+      expect(mkdirCall).not.toContain('.claude/memory/sessions');
     });
   });
 });

@@ -54,6 +54,18 @@ for token in "$ARGUMENTS".split():
 
 ---
 
+## Step -0.5: Effort-Aware Coverage Scaling (CC 2.1.76)
+
+Scale test generation depth based on `/effort` level:
+
+| Effort Level | Tiers Generated | Agents | Heal Iterations |
+|-------------|----------------|--------|-----------------|
+| **low** | Unit only | 1 agent | 1 max |
+| **medium** | Unit + Integration | 2 agents | 2 max |
+| **high** (default) | Unit + Integration + E2E | 3 agents | 3 max |
+
+> **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
+
 ## Step -1: MCP Probe + Resume Check
 
 ```python
@@ -367,6 +379,7 @@ Next Steps
 ──────────
   /ork:verify {SCOPE}    # Grade the implementation + tests
   /ork:commit             # Commit generated tests
+  /loop 10m npm test -- --coverage  # Watch coverage while coding
 ```
 
 ### Coverage Drift Monitor (CC 2.1.71)
