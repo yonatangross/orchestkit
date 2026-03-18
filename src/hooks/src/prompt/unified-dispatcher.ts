@@ -37,6 +37,7 @@ import {
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 import { detectEffortLevel, effortTokenBudget } from '../lib/effort-detector.js';
+import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -104,11 +105,22 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
 // -----------------------------------------------------------------------------
 
 /**
+ * Get session directory, preferring CLAUDE_PLUGIN_DATA (CC 2.1.78).
+ * Mirrors session-tracker.ts logic so once-flags and events share the same tree.
+ */
+function getPromptSessionDir(sessionId: string, projectDir: string): string {
+  if (process.env.CLAUDE_PLUGIN_DATA) {
+    return join(getSessionStorageDir(), sessionId);
+  }
+  return join(projectDir, '.claude', 'memory', 'sessions', sessionId);
+}
+
+/**
  * Check if a once-per-session hook has already run.
- * Uses file-based flags at: {project}/.claude/memory/sessions/{session_id}/once-flags/{hook}.done
+ * Uses file-based flags at: {sessionDir}/once-flags/{hook}.done
  */
 function hasOnceFlagRun(hookName: string, sessionId: string, projectDir: string): boolean {
-  const flagPath = join(projectDir, '.claude', 'memory', 'sessions', sessionId, 'once-flags', `${hookName}.done`);
+  const flagPath = join(getPromptSessionDir(sessionId, projectDir), 'once-flags', `${hookName}.done`);
   return existsSync(flagPath);
 }
 
@@ -116,7 +128,7 @@ function hasOnceFlagRun(hookName: string, sessionId: string, projectDir: string)
  * Mark a once-per-session hook as having run.
  */
 function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string): void {
-  const flagDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId, 'once-flags');
+  const flagDir = join(getPromptSessionDir(sessionId, projectDir), 'once-flags');
   if (!existsSync(flagDir)) {
     mkdirSync(flagDir, { recursive: true });
   }
@@ -256,7 +268,7 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
 
   // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
   const consolidatedHash = fnv1aHash(consolidated);
-  const hashDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId);
+  const hashDir = getPromptSessionDir(sessionId, projectDir);
   const hashFile = join(hashDir, 'prompt-hash.txt');
 
   try {
