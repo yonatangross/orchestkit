@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.12.0] - 2026-03-18
+
+### Features
+
+- **StopFailure hook** (CC 2.1.78): new `stop/stop-failure-handler.ts` flushes state and writes emergency handoff on API error/rate limit — error-loop safe by design (#1106)
+- **CLAUDE_PLUGIN_DATA persistence** (CC 2.1.78): `getPluginDataDir/getSessionStorageDir/getAnalyticsStorageDir` in `paths.ts`; session storage migrates to persistent directory that survives plugin updates (#1107)
+- **effort frontmatter defaults**: 21 agents annotated with `effort: low/medium`; remaining 12 default to `high` (#1108)
+- **worktree hook validation**: tests confirming `WorktreeCreate/WorktreeRemove` registration and handler correctness after CC 2.1.78 `--worktree` flag fix (#1109)
+
+### Changed
+
+- Minimum Claude Code engine bumped to `>= 2.1.78`
+- Hook count: 105 → 106
+
+---
+
 ## [7.11.2] - 2026-03-17
 
 ### Fixed
