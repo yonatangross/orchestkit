@@ -84,6 +84,7 @@ function extractSkillMetadata(skillName, skillPath) {
     allowedTools: frontmatter['allowed-tools'] || [],
     skills: frontmatter.skills || [],
     agent: frontmatter.agent || null,
+    complexity: frontmatter.complexity || 'low',
     structure: structure,
     content: truncatedBody,
     contentTruncated: bodyTruncated

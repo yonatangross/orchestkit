@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { SKILLS } from "@/lib/generated/skills-data";
 
@@ -56,8 +56,8 @@ const STEPS: Step[] = [
 
 function scoreSkills(selections: string[]) {
   const selectedOptions = STEPS.map(
-    (step, i) => step.options.find((o) => o.id === selections[i])!
-  ).filter(Boolean);
+    (step, i) => step.options.find((o) => o.id === selections[i])
+  ).filter((o): o is Option => o !== undefined);
 
   const allTags = new Set(selectedOptions.flatMap((o) => o.tags));
 
@@ -97,6 +97,7 @@ function titleCase(slug: string): string {
 export function SkillRecommender() {
   const [step, setStep] = useState(0);
   const [selections, setSelections] = useState<string[]>([]);
+  const advancing = useRef(false);
 
   const isComplete = step >= STEPS.length;
 
@@ -109,11 +110,16 @@ export function SkillRecommender() {
   const reference = results.filter((r) => !r.skill.userInvocable);
 
   function select(optionId: string) {
+    if (advancing.current) return; // guard against double-click
+    advancing.current = true;
     const next = [...selections];
     next[step] = optionId;
     setSelections(next);
     // Brief highlight before advancing
-    setTimeout(() => setStep(step + 1), 200);
+    setTimeout(() => {
+      setStep(step + 1);
+      advancing.current = false;
+    }, 200);
   }
 
   function back() {

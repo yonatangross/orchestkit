@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -61,8 +61,9 @@ function GraphInner() {
       },
     }));
 
+    const filteredIds = new Set(filtered.map((n) => n.id));
     const rfEdges: Edge[] = GRAPH_EDGES.filter(
-      (e) => filtered.some((n) => n.id === e.source) && filtered.some((n) => n.id === e.target)
+      (e) => filteredIds.has(e.source) && filteredIds.has(e.target)
     ).map((e, i) => ({
       id: `e-${i}`,
       source: e.source,
@@ -77,7 +78,8 @@ function GraphInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  useMemo(() => {
+  // Sync ReactFlow state when layout changes (e.g. toggle isolated)
+  useEffect(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
@@ -90,7 +92,8 @@ function GraphInner() {
         return;
       }
       const neighborIds = getNeighborIds(skillId);
-      const targetNodes = nodes.filter((n) => neighborIds.has(n.id));
+      const currentNodes = reactFlow.getNodes();
+      const targetNodes = currentNodes.filter((n) => neighborIds.has(n.id));
       if (targetNodes.length > 0) {
         setTimeout(
           () => reactFlow.fitView({ nodes: targetNodes, padding: 0.5, duration: 400, maxZoom: 1.2 }),
@@ -98,7 +101,7 @@ function GraphInner() {
         );
       }
     },
-    [nodes, reactFlow]
+    [reactFlow]
   );
 
   const onNodeClick: NodeMouseHandler = useCallback(
