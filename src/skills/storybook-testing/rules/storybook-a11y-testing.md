@@ -7,7 +7,7 @@ tags: [storybook, accessibility, a11y, axe-core, wcag, ci, addon-a11y]
 
 ## Storybook: Accessibility Testing with addon-a11y
 
-The `@storybook/addon-a11y` addon runs axe-core scans on every story, surfacing WCAG violations in the Storybook panel and failing CI pipelines. In Storybook 9/10, a11y checks integrate directly with the Vitest addon — accessibility violations become test failures.
+The `@storybook/addon-a11y` addon runs axe-core scans on every story, surfacing WCAG violations in the Storybook panel and failing CI pipelines. In Storybook 10, a11y checks integrate directly with the Vitest addon — accessibility violations become test failures.
 
 **Incorrect:**
 ```tsx

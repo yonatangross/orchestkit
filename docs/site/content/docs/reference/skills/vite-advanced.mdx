@@ -157,7 +157,7 @@ Use `advancedChunks` (Vite 8+) or `manualChunks` (Vite 7) to split vendor and ap
 ```typescript
 // No chunk config — everything in a single monolithic bundle
 export default defineConfig({
-  build: { rollupOptions: {} },  // No advancedChunks or manualChunks
+  build: { rolldownOptions: {} },  // No advancedChunks or manualChunks
 })
 ```
 
@@ -165,7 +165,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -235,7 +235,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'node20',                            // Wrong for client!
-    rollupOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
+    rolldownOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
   },
   ssr: { noExternal: ['some-package'] },  // Legacy SSR config
 })
@@ -254,14 +254,14 @@ export default defineConfig({
       build: {
         outDir: 'dist/server',
         target: 'node20',
-        rollupOptions: { output: { format: 'esm' } },
+        rolldownOptions: { output: { format: 'esm' } },
       },
     },
     edge: {
       resolve: { noExternal: true, conditions: ['edge', 'worker'] },
       build: {
         outDir: 'dist/edge',
-        rollupOptions: { external: ['cloudflare:workers'] },
+        rolldownOptions: { external: ['cloudflare:workers'] },
       },
     },
   },
@@ -306,7 +306,7 @@ Configure `build.lib` with proper entry points, externalize peer dependencies, a
 export default defineConfig({
   build: {
     lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
-    // Missing rollupOptions.external — peer deps are bundled
+    // Missing rolldownOptions.external — peer deps are bundled
   },
 })
 ```
@@ -325,7 +325,7 @@ export default defineConfig({
       name: 'MyLib',
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         globals: { react: 'React', 'react-dom': 'ReactDOM' },
@@ -359,7 +359,7 @@ export default defineConfig({
 ```
 
 **Key rules:**
-- Always externalize peer dependencies via `rollupOptions.external` — never bundle them.
+- Always externalize peer dependencies via `rolldownOptions.external` — never bundle them.
 - Provide dual formats: ESM (`module`) for bundlers and UMD/CJS (`main`) for legacy consumers; use `exports` map.
 - Generate TypeScript declarations with `vite-plugin-dts`; set `"types"` in top-level and each `exports` entry.
 - Mark CSS in `"sideEffects"` so bundlers preserve styles during tree-shaking.
@@ -465,7 +465,7 @@ Vite 8 introduces `advancedChunks` as the recommended approach for chunk splitti
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -513,7 +513,7 @@ export default defineConfig({
 // vite.config.ts - Production-ready advancedChunks
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -603,7 +603,7 @@ Split large dependencies into separate chunks:
 // vite.config.ts
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks: {
           // Vendor chunk for React
@@ -629,7 +629,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks(id) {
           // All node_modules in vendor chunk
@@ -1234,7 +1234,7 @@ export default defineConfig({
       name: 'MyLib', // Global variable name for UMD
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       // Externalize dependencies that shouldn't be bundled
       external: ['react', 'react-dom'],
       output: {
@@ -1304,7 +1304,7 @@ export default defineConfig({
       },
       formats: ['es', 'cjs'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -1345,7 +1345,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
     },
     cssCodeSplit: false, // Bundle all CSS into one file
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -1375,7 +1375,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         preserveModules: true, // Keep file structure

@@ -7,7 +7,7 @@ tags: [storybook, mocking, sb-mock, isolation, vitest, testing, mocked]
 
 ## Storybook: sb.mock for Story-Level Isolation
 
-Storybook 9/10 provides `sb.mock()` for module mocking with story-level isolation. It uses a two-part pattern: **register** mocks in `.storybook/preview.ts`, then **configure** per-story behavior using the `mocked()` utility in `beforeEach`. Unlike `vi.mock()`, which leaks between test files, `sb.mock` is automatically cleaned up between stories.
+Storybook 10 provides `sb.mock()` for module mocking with story-level isolation. It uses a two-part pattern: **register** mocks in `.storybook/preview.ts`, then **configure** per-story behavior using the `mocked()` utility in `beforeEach`. Unlike `vi.mock()`, which leaks between test files, `sb.mock` is automatically cleaned up between stories.
 
 **Incorrect:**
 ```tsx

@@ -11,7 +11,7 @@ Vite 8 introduces `advancedChunks` as the recommended approach for chunk splitti
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -59,7 +59,7 @@ export default defineConfig({
 // vite.config.ts - Production-ready advancedChunks
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -149,7 +149,7 @@ Split large dependencies into separate chunks:
 // vite.config.ts
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks: {
           // Vendor chunk for React
@@ -175,7 +175,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks(id) {
           // All node_modules in vendor chunk

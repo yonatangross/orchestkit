@@ -7,7 +7,7 @@ tags: [storybook, csf3, typescript, type-safety, stories]
 
 ## Storybook: CSF3 Typesafe Story Factories
 
-Storybook 9/10 uses Component Story Format 3 (CSF3) where stories are plain objects instead of template-bound functions. Use `satisfies Meta<typeof Component>` on the meta export for full TypeScript inference on args, decorators, and play functions.
+Storybook 10 uses Component Story Format 3 (CSF3) where stories are plain objects instead of template-bound functions. Use `satisfies Meta<typeof Component>` on the meta export for full TypeScript inference on args, decorators, and play functions.
 
 **Incorrect:**
 ```tsx
@@ -34,7 +34,7 @@ Primary.args = {
 ```tsx
 // CSF3 pattern — full type inference via satisfies
 import type { Meta, StoryObj } from '@storybook/react'
-import { fn } from '@storybook/test'
+import { fn } from 'storybook/test'
 import { Button } from './Button'
 
 const meta = {

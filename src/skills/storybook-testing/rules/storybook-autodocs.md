@@ -7,7 +7,7 @@ tags: [storybook, autodocs, documentation, prop-tables, living-docs]
 
 ## Storybook: Autodocs for Living Documentation
 
-Storybook 9/10 generates documentation pages automatically from stories tagged with `autodocs`. Prop tables are derived from TypeScript types, code examples from story definitions, and usage descriptions from JSDoc comments. No separate documentation tool needed.
+Storybook 10 generates documentation pages automatically from stories tagged with `autodocs`. Prop tables are derived from TypeScript types, code examples from story definitions, and usage descriptions from JSDoc comments. No separate documentation tool needed.
 
 **Incorrect:**
 ```tsx
@@ -31,7 +31,7 @@ import { Button } from '../components/Button'
 ```tsx
 // Button.stories.tsx — autodocs generates the docs page
 import type { Meta, StoryObj } from '@storybook/react'
-import { fn } from '@storybook/test'
+import { fn } from 'storybook/test'
 import { Button } from './Button'
 
 const meta = {
