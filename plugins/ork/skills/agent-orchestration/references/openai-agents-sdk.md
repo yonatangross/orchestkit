@@ -1,12 +1,12 @@
 # OpenAI Agents SDK
 
-OpenAI Agents SDK (v0.7.0) patterns for handoffs, guardrails, agents-as-tools, sessions, MCP servers, and tracing.
+OpenAI Agents SDK (v0.12+) patterns for handoffs, guardrails, agents-as-tools, sessions, MCP servers, tool search, and tracing. Provider-agnostic — supports 100+ LLMs via LiteLLM.
 
 ## Requirements
 
 ```bash
-# Install (requires Python 3.9+, supports up to 3.14)
-pip install openai-agents>=0.7.0
+# Install (requires Python 3.10+, supports up to 3.14)
+pip install openai-agents>=0.12.0
 
 # Note: Requires openai v2.x (v1.x no longer supported)
 # openai>=2.9.0,<3 is required
@@ -476,6 +476,8 @@ agent = Agent(
 
 ## Version History
 
+- **v0.12.3** (Mar 2026): Tool search with namespaces, gpt-5.4 computer use support
+- **v0.12.0** (Mar 2026): Provider-agnostic (100+ LLMs via LiteLLM), tool search tool
 - **v0.7.0** (Jan 2026): MCPServerManager, opt-in nested handoffs, session input auto-append
 - **v0.6.6** (Jan 2026): Auto-compaction, AsyncSQLiteSession
 - **v0.6.5** (Jan 2026): Per-run tracing, tool guardrails decorator

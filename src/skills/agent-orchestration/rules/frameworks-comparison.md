@@ -16,7 +16,7 @@ Decision matrix for choosing between multi-agent frameworks.
 |-----------|----------|--------------|--------|
 | LangGraph 1.0.6 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
 | CrewAI 1.8.x | Role-based collaboration | Flows, hierarchical crews, a2a, HITL | Production |
-| OpenAI Agents SDK 0.7.0 | OpenAI ecosystem | Handoffs, guardrails, MCPServerManager | Production |
+| OpenAI Agents SDK 0.12+ | Provider-agnostic (100+ LLMs) | Handoffs, guardrails, tool search, MCPServerManager | Production |
 | GPT-5.2-Codex | Long-horizon coding | Context compaction, project-scale, security | Production |
 | MS Agent Framework | Enterprise | AutoGen+SK merger, A2A, compliance | Public Preview |
 | AG2 | Open-source, flexible | Community fork of AutoGen | Active |
@@ -84,7 +84,7 @@ Start
 |-----------|-----------|------------|----------|
 | LangGraph | MIT | Self-host / LangGraph Cloud | Any LLM |
 | CrewAI | MIT | Self-host | Any LLM |
-| OpenAI SDK | MIT | Self-host | OpenAI only |
+| OpenAI SDK | MIT | Self-host | Any LLM (via LiteLLM) |
 | MS Agent | MIT | Self-host / Azure | Any LLM |
 | AG2 | Apache 2.0 | Self-host | Any LLM |
 

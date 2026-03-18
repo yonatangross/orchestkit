@@ -143,7 +143,7 @@ async for message in team.run_stream(task="Analyze this data"):
     print(f"{message.source}: {message.content}")
 ```
 
-## OpenAI Agents SDK (0.7.0)
+## OpenAI Agents SDK (0.12+)
 
 Alternative for OpenAI-native ecosystems:
 

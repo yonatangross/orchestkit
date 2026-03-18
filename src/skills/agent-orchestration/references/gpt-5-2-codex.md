@@ -334,7 +334,7 @@ async def refactor_project(modules: list[str]):
 
 ## Integration with Agents SDK
 
-GPT-5.2-Codex integrates seamlessly with OpenAI Agents SDK 0.6.x:
+GPT-5.2-Codex integrates seamlessly with OpenAI Agents SDK 0.12+:
 
 ```python
 from agents import Agent, Runner, handoff, tool
