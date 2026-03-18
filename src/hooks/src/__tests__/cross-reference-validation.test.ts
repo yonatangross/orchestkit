@@ -227,6 +227,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       SessionStart: ['lifecycle'],
       SessionEnd: ['lifecycle'],
       Stop: ['stop'],
+      StopFailure: ['stop'],
       SubagentStart: ['subagent-start'],
       SubagentStop: ['subagent-stop'],
       Notification: ['notification'],

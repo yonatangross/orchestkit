@@ -13,6 +13,7 @@ import {
   getLogDir as getLogDirFromPaths,
   getProjectDir as getProjectDirFromPaths,
   getPluginRoot as getPluginRootFromPaths,
+  getPluginDataDir as getPluginDataDirFromPaths,
 } from './paths.js';
 import { getOrGenerateSessionId } from './session-id-generator.js';
 
@@ -44,6 +45,14 @@ export function getProjectDir(): string {
  */
 export function getPluginRoot(): string {
   return getPluginRootFromPaths();
+}
+
+/**
+ * Get the plugin persistent data directory (CC 2.1.78)
+ * Returns null if CLAUDE_PLUGIN_DATA is not set (CC < 2.1.78)
+ */
+export function getPluginDataDir(): string | null {
+  return getPluginDataDirFromPaths();
 }
 
 /**

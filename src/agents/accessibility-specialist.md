@@ -4,6 +4,7 @@ description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keybo
 category: frontend
 model: sonnet
 maxTurns: 30
+effort: medium
 context: fork
 color: blue
 memory: project

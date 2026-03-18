@@ -4,6 +4,7 @@ description: "Deployment specialist: production releases, rollback procedures, f
 category: devops
 model: haiku
 maxTurns: 20
+effort: low
 memory: project
 context: fork
 isolation: worktree

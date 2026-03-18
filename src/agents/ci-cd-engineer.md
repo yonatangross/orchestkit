@@ -4,6 +4,7 @@ description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment 
 model: inherit
 category: devops
 maxTurns: 30
+effort: medium
 context: fork
 isolation: worktree
 color: orange

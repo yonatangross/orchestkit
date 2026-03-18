@@ -4,6 +4,7 @@ description: "Web research: browser automation, Tavily API, competitive intellig
 category: research
 model: sonnet
 maxTurns: 30
+effort: medium
 context: fork
 color: cyan
 memory: project

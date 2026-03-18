@@ -77,7 +77,19 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 > Load pattern details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
 
-## STEP 0: Verify User Intent
+## STEP 0: Effort-Aware Fix Scaling (CC 2.1.76)
+
+Scale investigation depth based on `/effort` level:
+
+| Effort Level | Approach | Agents | Phases |
+|-------------|----------|--------|--------|
+| **low** | Quick fix: read → fix → test → done | 0 agents | 1, 6, 7, 11 |
+| **medium** | Standard: investigate → fix → test → prevent | 2-3 agents | 1-4, 6-8, 11 |
+| **high** (default) | Full RCA: 5 parallel agents → fix → prevent → lessons | 5 agents | All 11 phases |
+
+> **Override:** Explicit user selection (e.g., "Proper fix") overrides `/effort` downscaling. Hotfix always uses minimal phases regardless of effort.
+
+## STEP 0a: Verify User Intent
 
 **BEFORE creating tasks**, clarify fix approach:
 

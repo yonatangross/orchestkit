@@ -4,6 +4,7 @@ description: Processes UI annotations from agentation. Watches for new annotatio
 category: frontend
 model: sonnet
 maxTurns: 20
+effort: low
 context: fork
 color: teal
 memory: project

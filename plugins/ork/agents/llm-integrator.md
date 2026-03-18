@@ -4,6 +4,7 @@ description: "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, f
 category: llm
 model: sonnet
 maxTurns: 30
+effort: medium
 context: fork
 color: orange
 memory: project

@@ -4,6 +4,7 @@ description: "Data pipeline specialist: embeddings, chunking strategies, vector 
 category: data
 model: haiku
 maxTurns: 20
+effort: low
 context: fork
 color: green
 memory: project

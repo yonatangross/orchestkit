@@ -4,6 +4,7 @@ description: "Component library curator: audits project component usage, searche
 model: inherit
 category: frontend
 maxTurns: 25
+effort: low
 context: fork
 background: true
 color: pink

@@ -5,6 +5,7 @@ category: devops
 model: haiku
 background: true
 maxTurns: 20
+effort: low
 memory: project
 context: fork
 color: purple

@@ -4,6 +4,7 @@ description: "Frontend developer: React 19/TypeScript components, optimistic upd
 model: inherit
 category: frontend
 maxTurns: 30
+effort: medium
 context: fork
 isolation: worktree
 color: purple
