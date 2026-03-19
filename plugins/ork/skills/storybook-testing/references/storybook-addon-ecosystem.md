@@ -2,7 +2,7 @@
 
 ## Overview
 
-Storybook 9/10 consolidates its addon ecosystem around first-party addons. The testing utilities previously spread across multiple packages are now unified under `@storybook/test` and dedicated addons.
+Storybook 10 consolidates its addon ecosystem around first-party addons. Essential addons (viewport, controls, interactions, actions) are now bundled in core — remove them as separate dependencies. Testing utilities are unified under `storybook/test`.
 
 ---
 
@@ -67,21 +67,25 @@ export default config
 
 ---
 
-## Deprecated / Removed in Storybook 9
+## Deprecated / Removed
 
-| Removed | Replacement |
-|---------|-------------|
-| `@storybook/test-runner` | `@storybook/addon-vitest` |
-| `@storybook/testing-library` | `@storybook/test` (unified) |
-| `@storybook/addon-actions` | `fn()` from `@storybook/test` |
-| `@storybook/addon-knobs` | `@storybook/addon-controls` (default) |
-| `@storybook/addon-jest` | `@storybook/addon-vitest` |
+| Removed | Replacement | Since |
+|---------|-------------|-------|
+| `@storybook/test-runner` | `@storybook/addon-vitest` | SB 9 |
+| `@storybook/testing-library` | `storybook/test` (unified) | SB 9 |
+| `@storybook/addon-actions` | `fn()` from `storybook/test` | SB 9 |
+| `@storybook/addon-knobs` | `@storybook/addon-controls` (default) | SB 7 |
+| `@storybook/addon-jest` | `@storybook/addon-vitest` | SB 9 |
+| `@storybook/addon-viewport` (separate) | Bundled in core | SB 10 |
+| `@storybook/addon-controls` (separate) | Bundled in core | SB 10 |
+| `@storybook/addon-interactions` (separate) | Bundled in core | SB 10 |
+| `experimental-addon-test` | `@storybook/addon-vitest` | SB 10 |
 
 ---
 
 ## Version Compatibility
 
-- Storybook 9: React 18+, Vue 3.4+, Angular 17+, Svelte 4+
-- Storybook 10: React 19+, Vue 3.5+, Angular 18+, Svelte 5+
-- Node.js: 20+ required (ESM-only packages)
-- Bundler: Vite 6+ recommended, Webpack 5 supported
+- Storybook 10: React 18+, Vue 3.5+, Angular 18+, Svelte 5+
+- Node.js: 20.16+ / 22.19+ / 24+ required (ESM-only)
+- Bundler: Vite 8 recommended, Webpack 5 supported
+- Vitest: 4.1+ supported

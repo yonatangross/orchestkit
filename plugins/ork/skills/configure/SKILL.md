@@ -141,13 +141,13 @@ export ENABLE_CLAUDEAI_MCP_SERVERS=false
 
 Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions. This only affects MCP servers sourced from claude.ai — locally-configured MCPs in `.mcp.json` and `~/.claude/mcp.json` are unaffected.
 
-## Steps 6-8: CC Version-Specific Settings
+## Steps 6-9: CC Version-Specific Settings
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/cc-version-settings.md")` for full configuration options.
 
-Covers CC 2.1.7 (turn duration, MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), and CC 2.1.23 (spinner verbs customization).
+Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
 
-## Step 9: Webhook & Telemetry Configuration
+## Step 10: Webhook & Telemetry Configuration
 
 Configure dual-channel telemetry for streaming session data to HQ or your own API.
 
@@ -205,13 +205,13 @@ Save webhookUrl to config and remind about env var (same as above, skip generato
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/http-hooks.md")` for architecture details.
 
-## Step 10: Optional Integrations
+## Step 11: Optional Integrations
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/integrations.md")` for full integration setup steps.
 
 Covers Agentation UI annotation tool (npm install, MCP config, component scaffold, CSP updates). All steps are idempotent.
 
-## Step 11: Preview & Save
+## Step 12: Preview & Save
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
 
@@ -228,6 +228,10 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 }
 ```
 
+## VSCode: Remote Control (CC 2.1.79+)
+
+VSCode users can run `/remote-control` to bridge their terminal session to `claude.ai/code`. This lets you continue the same session from a browser or phone — useful for monitoring long-running configurations or agent tasks away from your desk.
+
 ## Related Skills
 - `ork:doctor`: Diagnose configuration issues
 ## References
@@ -238,5 +242,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `references/presets.md` | Preset definitions |
 | `references/mcp-config.md` | MCP configuration |
 | `references/http-hooks.md` | CC 2.1.63+ observability hooks (Langfuse, Datadog, custom endpoints) |
-| `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23 version-specific settings |
+| `references/cc-version-settings.md` | CC 2.1.7, 2.1.20, 2.1.23, 2.1.79 version-specific settings |
 | `references/integrations.md` | Optional third-party integrations (Agentation) |

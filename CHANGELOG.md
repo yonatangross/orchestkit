@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.13.0] - 2026-03-18
+
+### Added
+
+- Invocation CTA on all 93 skill reference pages — copy-to-clipboard `/ork:skillname` for commands, auto-activated notice for reference skills (#1082)
+- 8 category index pages at `/skills/by-category/` — backend, frontend, testing, security, AI/LLM, devops, product, workflows (#1082)
+- ContextualSkillSidebar on all skill reference pages — shows dependencies, reverse deps, related skills, agent link (#1080)
+- Skill dependency graph data generation from frontmatter `skills:` field — 93 nodes, 101 edges (#1084)
+- SkillRecommender quiz on skills overview — 3-step role/task/stack flow with tag-based scoring (#1079)
+
+### Fixed
+
+- Dependency graph readability — 800px viewport, LR layout, focus dropdown, auto-focus on hub nodes, node dimming on hover
+- Category false positives — removed overly broad tags from AI/LLM and product categories
+- Quiz UX — added 200ms selection feedback delay before step advancement
+
+---
+
+
 ## [7.12.0] - 2026-03-18
 
 ### Features

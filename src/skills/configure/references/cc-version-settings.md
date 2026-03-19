@@ -4,21 +4,6 @@
 
 Configure CC 2.1.7-specific features:
 
-### Turn Duration Display
-
-```
-Enable turn duration in statusline? [y/N]: y
-```
-
-Adds to settings.json:
-```json
-{
-  "statusline": {
-    "showTurnDuration": true
-  }
-}
-```
-
 ### MCP Auto-Deferral Threshold
 
 ```
@@ -155,3 +140,26 @@ Adds to `.claude/settings.json`:
 - `mode: "append"` - Add your verbs to the defaults
 
 **OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
+
+## Step 9: CC 2.1.79 Settings
+
+Configure CC 2.1.79-specific features:
+
+### Turn Duration Display
+
+The `/config` menu now includes a "Show turn duration" toggle.
+
+```
+Enable turn duration in statusline? [y/N]: y
+```
+
+Adds to settings.json:
+```json
+{
+  "statusline": {
+    "showTurnDuration": true
+  }
+}
+```
+
+Shows elapsed time per turn in the statusline — useful for profiling slow tool calls and understanding agent performance.

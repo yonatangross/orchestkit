@@ -17,7 +17,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'node20',                            // Wrong for client!
-    rollupOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
+    rolldownOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
   },
   ssr: { noExternal: ['some-package'] },  // Legacy SSR config
 })
@@ -36,14 +36,14 @@ export default defineConfig({
       build: {
         outDir: 'dist/server',
         target: 'node20',
-        rollupOptions: { output: { format: 'esm' } },
+        rolldownOptions: { output: { format: 'esm' } },
       },
     },
     edge: {
       resolve: { noExternal: true, conditions: ['edge', 'worker'] },
       build: {
         outDir: 'dist/edge',
-        rollupOptions: { external: ['cloudflare:workers'] },
+        rolldownOptions: { external: ['cloudflare:workers'] },
       },
     },
   },

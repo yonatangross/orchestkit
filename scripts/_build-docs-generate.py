@@ -278,7 +278,6 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         description = meta.get("description", "")
         user_invocable = meta.get("user-invocable", False)
         complexity = meta.get("complexity", "")
-        agent_field = meta.get("agent", "")
         skills_list = meta.get("skills", [])
         if isinstance(skills_list, str):
             skills_list = [skills_list]
@@ -312,20 +311,22 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         lines.append(f"{type_badge} {complexity_badge}")
         lines.append("")
 
-        if agent_field:
+        # Invocation CTA (#1082)
+        if user_invocable:
+            lines.append(f'```bash title="Invoke"')
+            lines.append(f"/ork:{slug}")
+            lines.append("```")
+            lines.append("")
+        else:
             lines.append(
-                f"**Primary Agent:** [{agent_field}](/docs/reference/agents/{agent_field})"
+                "> **Auto-activated** \u2014 this skill loads automatically "
+                "when Claude detects matching context."
             )
             lines.append("")
 
-        if skills_list:
-            lines.append("## Related Skills")
-            lines.append("")
-            for sk in skills_list:
-                sk = sk.strip()
-                if sk:
-                    lines.append(f"- [{sk}](/docs/reference/skills/{sk})")
-            lines.append("")
+        # Contextual sidebar (#1080)
+        lines.append(f'<ContextualSkillSidebar slug="{slug}" />')
+        lines.append("")
 
         lines.append(sanitize_mdx_body(body))
 
@@ -872,6 +873,216 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
 
 
 # ---------------------------------------------------------------------------
+# CATEGORY INDEX PAGES
+# ---------------------------------------------------------------------------
+
+CATEGORY_RULES = {
+    "backend": {
+        "label": "Backend",
+        "desc": "API design, databases, Python, async patterns, distributed systems.",
+        "tags": {
+            "rest", "fastapi", "database", "sqlalchemy", "postgresql",
+            "graphql", "grpc", "asyncio", "python", "api-design",
+            "distributed-systems", "domain-driven-design", "event-driven",
+            "microservices", "cqrs",
+        },
+        "agents": {
+            "backend-system-architect", "database-engineer",
+            "event-driven-architect", "python-performance-engineer",
+        },
+    },
+    "frontend": {
+        "label": "Frontend",
+        "desc": "React, components, design systems, animations, responsive patterns.",
+        "tags": {
+            "react", "ui", "component", "design-tokens", "css",
+            "animation", "framer-motion", "responsive", "storybook",
+            "zustand", "figma", "shadcn", "vite", "next",
+        },
+        "agents": {
+            "frontend-ui-developer", "design-system-architect",
+            "accessibility-specialist", "component-curator",
+            "frontend-performance-engineer",
+        },
+    },
+    "testing": {
+        "label": "Testing",
+        "desc": "Unit, integration, E2E, performance, and LLM testing patterns.",
+        "tags": {
+            "testing", "unit", "integration", "e2e", "playwright",
+            "vitest", "jest", "pytest", "coverage", "mocking", "msw",
+        },
+        "agents": {"test-generator", "code-quality-reviewer"},
+    },
+    "security": {
+        "label": "Security",
+        "desc": "OWASP, auth patterns, defense-in-depth, vulnerability scanning.",
+        "tags": {
+            "security", "owasp", "authentication", "pii",
+            "vulnerability", "audit",
+        },
+        "agents": {
+            "security-auditor", "security-layer-auditor", "ai-safety-auditor",
+        },
+    },
+    "ai-llm": {
+        "label": "AI & LLM",
+        "desc": "LLM integration, RAG, agent orchestration, MCP, embeddings.",
+        "tags": {
+            "llm", "rag", "mcp", "embedding", "vector",
+            "langchain", "langgraph", "multimodal",
+            "function-calling", "streaming", "prompt",
+        },
+        "agents": {
+            "llm-integrator", "multimodal-specialist",
+        },
+    },
+    "devops": {
+        "label": "DevOps",
+        "desc": "CI/CD, deployment, monitoring, infrastructure, containers.",
+        "tags": {
+            "devops", "ci-cd", "docker", "kubernetes", "terraform",
+            "monitoring", "observability", "deployment", "github-actions",
+        },
+        "agents": {
+            "ci-cd-engineer", "deployment-manager",
+            "infrastructure-architect", "monitoring-engineer",
+        },
+    },
+    "product": {
+        "label": "Product",
+        "desc": "PRDs, market sizing, competitive analysis, OKRs, user research.",
+        "tags": {
+            "prd", "product", "roi", "persona", "market", "competitive",
+            "okr", "prioritization", "user-research",
+            "business-case", "strategy",
+        },
+        "agents": {"product-strategist", "market-intelligence"},
+    },
+    "workflows": {
+        "label": "Workflows",
+        "desc": "User-invocable commands for common development workflows.",
+        "tags": set(),
+        "agents": set(),
+        "match_invocable": True,
+    },
+}
+
+
+def _collect_skill_metadata(skills_src: str) -> list[dict]:
+    """Read all SKILL.md frontmatter and return metadata list."""
+    skills_dir = Path(skills_src)
+    results = []
+    for skill_dir in sorted(d for d in skills_dir.iterdir() if d.is_dir()):
+        skill_file = skill_dir / "SKILL.md"
+        if not skill_file.exists():
+            continue
+        text = skill_file.read_text(encoding="utf-8")
+        meta, _ = parse_frontmatter(text)
+        slug = skill_dir.name
+        tags = meta.get("tags", [])
+        if isinstance(tags, str):
+            tags = [tags]
+        results.append({
+            "slug": slug,
+            "title": title_case(slug),
+            "description": meta.get("description", ""),
+            "tags": set(tags),
+            "user_invocable": meta.get("user-invocable", False),
+            "complexity": meta.get("complexity", ""),
+            "agent": meta.get("agent", ""),
+        })
+    return results
+
+
+def _match_category(skill: dict, rule: dict) -> bool:
+    """Check if a skill matches a category rule."""
+    # Match by user-invocable flag
+    if rule.get("match_invocable") and skill["user_invocable"]:
+        return True
+    # Match by tag overlap
+    if skill["tags"] & rule.get("tags", set()):
+        return True
+    # Match by agent
+    if skill["agent"] and skill["agent"] in rule.get("agents", set()):
+        return True
+    return False
+
+
+def generate_categories(skills_src: str, categories_out: str) -> int:
+    """Generate category index MDX pages. Returns count of categories."""
+    out_dir = Path(categories_out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    skills = _collect_skill_metadata(skills_src)
+    cat_slugs = []
+    print(f"Generating {len(CATEGORY_RULES)} category pages...")
+
+    for cat_slug, rule in CATEGORY_RULES.items():
+        matched = [s for s in skills if _match_category(s, rule)]
+        matched.sort(key=lambda s: s["slug"])
+
+        cat_slugs.append(cat_slug)
+        label = rule["label"]
+        desc = rule["desc"]
+        count = len(matched)
+
+        lines = [
+            "---",
+            f"title: {quote_yaml_value(f'{label} Skills')}",
+            f"description: {quote_yaml_value(desc)}",
+            "---",
+            "",
+            f"# {label} Skills",
+            "",
+            f"**{count} skills** for {desc.lower().rstrip('.')}.",
+            "",
+        ]
+
+        if matched:
+            lines.append("| Skill | Type | Complexity | Description |")
+            lines.append("|-------|------|------------|-------------|")
+            for s in matched:
+                type_label = "Command" if s["user_invocable"] else "Reference"
+                cplx = s["complexity"] or "\u2014"
+                safe_desc = s["description"].replace("|", "\\|")
+                # Truncate long descriptions for the table
+                if len(safe_desc) > 120:
+                    safe_desc = safe_desc[:117] + "..."
+                lines.append(
+                    f"| [{s['title']}](/docs/reference/skills/{s['slug']}) "
+                    f"| {type_label} | {cplx} | {safe_desc} |"
+                )
+            lines.append("")
+
+        # Related agents section
+        related_agents = rule.get("agents", set())
+        if related_agents:
+            lines.append("## Related Agents")
+            lines.append("")
+            for agent_slug in sorted(related_agents):
+                lines.append(
+                    f"- [{title_case(agent_slug)}]"
+                    f"(/docs/reference/agents/{agent_slug})"
+                )
+            lines.append("")
+
+        (out_dir / f"{cat_slug}.mdx").write_text(
+            "\n".join(lines), encoding="utf-8"
+        )
+
+    # Write meta.json
+    (out_dir / "meta.json").write_text(
+        json.dumps({"title": "By Category", "pages": cat_slugs}, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+
+    print(f"  -> {len(cat_slugs)} category pages written to {categories_out}")
+    return len(cat_slugs)
+
+
+# ---------------------------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------------------------
 
@@ -887,6 +1098,11 @@ def main():
     generate_skills(skills_src, skills_out)
     generate_agents(agents_src, agents_out)
     generate_hooks(hooks_json, hooks_out)
+
+    # Category index pages (#9003)
+    categories_out = os.environ.get("CATEGORIES_OUT", "")
+    if categories_out:
+        generate_categories(skills_src, categories_out)
 
     # Update reference meta.json
     print("Updating reference meta.json...")

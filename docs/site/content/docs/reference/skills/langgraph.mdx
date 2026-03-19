@@ -1,16 +1,18 @@
 ---
 title: "Langgraph"
-description: "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
+description: "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-**Primary Agent:** [workflow-architect](/docs/reference/agents/workflow-architect)
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="langgraph" />
 
 
 # LangGraph Workflow Patterns
 
-Comprehensive patterns for building production LangGraph workflows. Each category has individual rule files in `rules/` loaded on-demand.
+Comprehensive patterns for building production LangGraph workflows. **LangGraph 1.x is LTS** (Long Term Support) — the first stable major release, powering agents at Uber, LinkedIn, and Klarna. Each category has individual rule files in `rules/` loaded on-demand.
 
 ## Quick Reference
 
@@ -28,7 +30,7 @@ Comprehensive patterns for building production LangGraph workflows. Each categor
 | [Functional API](#functional-api) | 3 | MEDIUM | @entrypoint/@task decorators, migration from StateGraph |
 | [Platform](#platform) | 3 | HIGH | Deployment, RemoteGraph, double-texting strategies |
 
-**Total: 36 rules across 11 categories**
+**Total: 37 rules across 11 categories**
 
 ## State Management
 
@@ -105,13 +107,14 @@ Pause workflows for human intervention. Requires checkpointer for state persiste
 
 ## Streaming
 
-Real-time updates and progress tracking for workflows.
+Real-time updates and progress tracking for workflows. **LangGraph 1.1 introduces `version="v2"`** — an opt-in streaming format with full type safety on `stream()`, `astream()`, `invoke()`, and `ainvoke()`.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
 | Stream Modes | `rules/streaming-modes.md` | 5 modes: values, updates, messages, custom, debug |
 | Token Streaming | `rules/streaming-tokens.md` | `messages` mode with node/tag filtering |
 | Custom Events | `rules/streaming-custom-events.md` | `get_stream_writer()` for progress events |
+| Streaming v2 | `rules/streaming-v2-format.md` | `version="v2"` for typed streaming (LG 1.1+) |
 
 ## Subgraphs
 
@@ -173,6 +176,7 @@ app = graph.compile()
 
 ## 2026 Key Patterns
 
+- **Streaming v2 (LG 1.1)**: Use `version="v2"` for type-safe streaming — fully typed `stream()` and `astream()` returns. Default remains `"v1"` for backwards compat.
 - **Command API**: Use `Command(update=..., goto=...)` when updating state AND routing together
 - **context_schema**: Pass runtime config (temperature, provider) without polluting state
 - **CachePolicy**: Cache expensive node results with TTL via `InMemoryCache`
@@ -180,6 +184,7 @@ app = graph.compile()
 - **Store**: Cross-thread memory separate from Checkpointer (thread-scoped)
 - **interrupt()**: Dynamic interrupts inside node logic (replaces `interrupt_before` for conditional cases)
 - **add_edge(START, node)**: Not `set_entry_point()` (deprecated)
+- **LTS release**: LangGraph 1.x is LTS — will remain ACTIVE until v2.0
 
 ## Key Decisions
 
@@ -230,7 +235,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ---
 
-## Rules (36)
+## Rules (37)
 
 ### Recover interrupted workflow state and debug checkpoint history — HIGH
 
@@ -1954,6 +1959,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 - Use `"messages"` for chat interfaces
 - Enable `subgraphs=True` for complex nested workflows
 - Combine multiple modes in a list for comprehensive output
+- **LangGraph 1.1+**: Add `version="v2"` for fully typed streaming output (see `streaming-v2-format.md`)
 
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
@@ -2005,6 +2011,68 @@ def call_custom_llm(state):
 - Use `get_stream_writer()` for non-LangChain LLM APIs
 
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
+
+
+### Use streaming v2 format for type-safe real-time output — MEDIUM
+
+
+## Streaming v2 Format (LangGraph 1.1+)
+
+LangGraph 1.1 introduces `version="v2"` — an opt-in streaming format that brings full type safety to all streaming and invocation methods. Default remains `"v1"` for backwards compatibility.
+
+**Incorrect — untyped v1 invoke (default):**
+```python
+result = graph.invoke({"input": "hello"})
+output = result["output"]  # Any — no type info
+interrupts = result.get("__interrupt__")  # magic key
+```
+
+**Correct — typed v2 invoke:**
+```python
+from langgraph.types import GraphOutput
+
+result = graph.invoke({"input": "hello"}, version="v2")
+result.value       # OutputT — auto-coerced to Pydantic/dataclass if typed
+result.interrupts  # tuple[Interrupt, ...] — replaces __interrupt__ key
+```
+
+**Correct — typed v2 streaming:**
+```python
+async for part in graph.astream(
+    inputs,
+    stream_mode=["updates", "messages"],
+    version="v2",
+):
+    # part is a typed StreamPart discriminated union
+    if part["type"] == "updates":
+        handle_state_update(part["data"])  # dict[str, Any]
+    elif part["type"] == "messages":
+        msg, metadata = part["data"]       # tuple[AnyMessage, dict]
+    elif part["type"] == "custom":
+        show_progress(part["data"])        # Any — StreamWriter content
+```
+
+**StreamPart types** (importable from `langgraph.types`):
+`ValuesStreamPart`, `UpdatesStreamPart`, `MessagesStreamPart`, `CustomStreamPart`, `CheckpointStreamPart`, `TasksStreamPart`, `DebugStreamPart`. All share `type`, `ns`, `data` fields.
+
+**Pydantic auto-coercion:**
+```python
+class MyState(BaseModel):
+    answer: str
+
+result = compiled.invoke({...}, version="v2")
+assert isinstance(result.value, MyState)  # auto-coerced — not a plain dict
+```
+
+**Key rules:**
+- Default remains `version="v1"` — existing code is unaffected
+- Opt in with `version="v2"` on `stream()`, `astream()`, `invoke()`, `ainvoke()`
+- Replace `result["key"]` with `result.value` (dict access emits deprecation warnings in v2)
+- Replace `result["__interrupt__"]` with `result.interrupts`
+- Graph construction, checkpointers, and tool calling are **unchanged**
+- Future major version will default to v2
+
+Reference: [LangGraph 1.1 Release Notes](https://github.com/langchain-ai/langgraph/releases)
 
 
 ### Add subgraph directly as node when parent and child share the same state — MEDIUM

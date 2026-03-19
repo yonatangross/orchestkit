@@ -23,7 +23,7 @@ export default defineConfig({
       name: 'MyLib', // Global variable name for UMD
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       // Externalize dependencies that shouldn't be bundled
       external: ['react', 'react-dom'],
       output: {
@@ -93,7 +93,7 @@ export default defineConfig({
       },
       formats: ['es', 'cjs'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -134,7 +134,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
     },
     cssCodeSplit: false, // Bundle all CSS into one file
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -164,7 +164,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         preserveModules: true, // Keep file structure

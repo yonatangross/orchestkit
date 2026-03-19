@@ -1,0 +1,13 @@
+{
+  "title": "By Category",
+  "pages": [
+    "backend",
+    "frontend",
+    "testing",
+    "security",
+    "ai-llm",
+    "devops",
+    "product",
+    "workflows"
+  ]
+}

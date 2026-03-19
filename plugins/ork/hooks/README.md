@@ -1119,6 +1119,6 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** <!--ork:hooks-->106<!--/ork--> hooks (<!--ork:hooks-global-->37<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.76
+**Claude Code Requirement:** >= 2.1.78
 
 See the async hooks section above for detailed async hook patterns.

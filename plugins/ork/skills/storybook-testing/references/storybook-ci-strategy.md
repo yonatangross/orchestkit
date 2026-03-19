@@ -1,8 +1,8 @@
-# Storybook CI Strategy
+# Storybook CI Strategy (Storybook 10)
 
 ## Overview
 
-A complete Storybook CI pipeline combines three layers: **Vitest** for interaction tests, **Chromatic** for visual regression, and **addon-a11y** for accessibility — all running in parallel for fast feedback.
+A complete Storybook 10 CI pipeline combines three layers: **Vitest 4.1+** for interaction tests, **Chromatic** for visual regression, and **addon-a11y** for accessibility — all running in parallel for fast feedback.
 
 ---
 

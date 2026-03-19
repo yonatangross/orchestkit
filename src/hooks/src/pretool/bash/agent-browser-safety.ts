@@ -2,9 +2,13 @@
  * Agent Browser Safety Hook
  * Validates agent-browser CLI commands for safety
  *
+ * Tested with agent-browser v0.13–v0.21.
+ * Command docs are in the upstream agent-browser skill — this hook
+ * focuses purely on safety guardrails.
+ *
  * Features:
- * - URL blocklist (internal, OAuth providers)
- * - Sensitive action warnings
+ * - URL blocklist (internal, OAuth providers, SSRF endpoints, RFC 1918)
+ * - Sensitive action warnings with native confirmation (v0.15+)
  * - Per-domain rate limiting (#318)
  * - robots.txt enforcement (#319)
  * - --allow-file-access warning (v0.16)
@@ -612,7 +616,43 @@ Use 'agent-browser network unroute' to clean up after testing.`;
     }
   }
 
-  // Check 6: --user-agent spoofing warning (v0.16)
+  // Check 6: inspect / get cdp-url — new attack surface (v0.18+)
+  if (/\b(inspect|get\s+cdp-url)\b/.test(command)) {
+    const context = `WARNING: DevTools inspection detected.
+'inspect' opens a local proxy forwarding the Chrome DevTools frontend to the CDP WebSocket.
+'get cdp-url' exposes the CDP URL for external debugger attachment.
+These commands create a local network attack surface — avoid in shared/CI environments.
+Never expose the CDP port beyond localhost.`;
+
+    logPermissionFeedback('allow', 'DevTools inspect warning', input);
+    logHook('agent-browser-safety', 'inspect/cdp-url detected');
+    return outputAllowWithContext(context);
+  }
+
+  // Check 7: clipboard read — host clipboard access (v0.19+)
+  if (/\bclipboard\s+read\b/.test(command)) {
+    const context = `WARNING: clipboard read accesses the host clipboard without user prompt.
+Clipboard may contain sensitive data (passwords, tokens, personal information).
+Never log or transmit clipboard contents to external services.`;
+
+    logPermissionFeedback('allow', 'Clipboard read warning', input);
+    logHook('agent-browser-safety', 'clipboard read detected');
+    return outputAllowWithContext(context);
+  }
+
+  // Check 8: HAR capture stop — sensitive network data (v0.21+)
+  // Only warn on 'stop' which writes the HAR file; 'start' is harmless
+  if (/\bnetwork\s+har\s+stop\b/.test(command)) {
+    const context = `WARNING: HAR capture records full request/response bodies including auth tokens, cookies, and POST data.
+Treat HAR output files as credentials — never commit to git or share publicly.
+Clean up HAR files after use.`;
+
+    logPermissionFeedback('allow', 'HAR capture warning', input);
+    logHook('agent-browser-safety', 'network har stop detected');
+    return outputAllowWithContext(context);
+  }
+
+  // Check 9: --user-agent spoofing warning (v0.16)
   if (/--user-agent\s/.test(command)) {
     const context = `WARNING: Custom --user-agent detected.
 Use --user-agent only to identify your automation tool (e.g., "MyBot/1.0").

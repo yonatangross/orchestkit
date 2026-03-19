@@ -19,7 +19,7 @@ FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 13 categories:
 
 1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -33,6 +33,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
+13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 
 ## When to Use
 
@@ -93,13 +94,14 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |
 
-### Categories 10-12: Environment
+### Categories 10-13: Environment
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
 | **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` |
+| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 
 ## Report Format
 

@@ -42,7 +42,7 @@ Vite 8 introduces `advancedChunks` with declarative grouping, priority control, 
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -109,26 +109,68 @@ export default defineConfig({
 
 Benefits: Single unified bundle (no code splitting), optimal for small apps/libraries/embedded contexts, eliminates chunk loading overhead, better for offline-first applications.
 
+## Breaking Changes from Vite 7
+
+### Config Renames
+```js
+build.rollupOptions      → build.rolldownOptions      // auto-converted w/ deprecation
+worker.rollupOptions     → worker.rolldownOptions
+transformWithEsbuild     → transformWithOxc
+esbuild.jsx              → oxc.jsx
+esbuild.define           → oxc.define
+```
+
+### Plugin API Changes
+```js
+// Plugins converting non-JS to JS MUST add moduleType
+transform(code, id) {
+  return { code: transformedCode, moduleType: 'js' }  // NEW — required in v8
+}
+```
+
+Removed hooks: `shouldTransformCachedModule`, `resolveImportMeta`, `renderDynamicImport`, `resolveFileUrl`
+
+### Other Breaking Changes
+- `manualChunks` object form removed — use function form or `advancedChunks`
+- `'system'` / `'amd'` output formats removed
+- `import.meta.hot.accept(url)` → `accept(id)` (relative module id, not full URL)
+- Lightning CSS is now standard (replaces esbuild for CSS minification)
+- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
+- `@vitejs/plugin-react` v6: Babel removed, Oxc handles transforms
+
+### New Config Options
+```js
+export default {
+  devtools: true,                     // built-in Vite Devtools
+  resolve: { tsconfigPaths: true },   // auto-resolve tsconfig paths
+  server: { forwardConsole: true },   // forward browser console to CLI
+}
+```
+
 ## Oxc Integration Benefits
 
 Rolldown is built on **Oxc** (Oxidation Compiler), providing:
 
 - **Parsing**: 3x faster than SWC, 100x faster than Babel
-- **Transformation**: Unified transform pipeline
+- **Transformation**: Unified transform pipeline (replaces Babel in plugin-react v6)
 - **Tree-shaking**: More aggressive dead code elimination
 - **Scope hoisting**: Better than Rollup's implementation
-- **Minification**: Oxc minifier (optional, in development)
+- **Minification**: Oxc minifier (replaces esbuild minifier)
 
 ## Migration Checklist
 
 ```
-[ ] Review plugin compatibility (most work unchanged)
+[ ] build.rollupOptions → build.rolldownOptions
+[ ] Plugin transform() returning JS: add moduleType: 'js'
+[ ] Remove plugins using deleted hooks (shouldTransformCachedModule, etc.)
+[ ] manualChunks object form → function form or advancedChunks
+[ ] Remove 'system'/'amd' format usage
+[ ] transformWithEsbuild → transformWithOxc
+[ ] @vitejs/plugin-react → v6 (Babel config changes if using React Compiler)
+[ ] Browser target: Chrome 111+, Firefox 114+, Safari 16.4+
 [ ] Test with rolldown-vite first if risk-averse
-[ ] Replace manualChunks with advancedChunks
-[ ] Remove esbuild-specific workarounds (no longer needed)
 [ ] Update CI/CD build time expectations
-[ ] Test HMR behavior (should be faster, same API)
 [ ] Verify source maps work correctly
 ```
 
-**Status:** Vite 8 stable as of Feb 2026. Recommended for new projects; evaluate for existing production apps.
+**Status:** Vite 8.0.0 stable as of Mar 12, 2026. Recommended for all new projects; evaluate for existing production apps.

@@ -49,5 +49,6 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 - Use `"messages"` for chat interfaces
 - Enable `subgraphs=True` for complex nested workflows
 - Combine multiple modes in a list for comprehensive output
+- **LangGraph 1.1+**: Add `version="v2"` for fully typed streaming output (see `streaming-v2-format.md`)
 
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)

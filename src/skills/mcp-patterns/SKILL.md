@@ -105,11 +105,12 @@ What are you building?
 
 ## Spec & Governance
 
-- **Protocol**: Model Context Protocol, spec version **2025-11-25**
+- **Protocol**: Model Context Protocol, spec version **2025-11-25** (latest stable)
 - **Governance**: Agentic AI Foundation (Linux Foundation, Dec 2025)
 - **Platinum members**: AWS, Anthropic, Block, Bloomberg, Cloudflare, Google, Microsoft, OpenAI
 - **Adoption**: 10,000+ servers; Claude, Cursor, Copilot, Gemini, ChatGPT, VS Code
 - **Spec URL**: https://modelcontextprotocol.io/specification/2025-11-25
+- **2026 model**: Working Groups and Interest Groups are now the primary vehicle for protocol evolution (no more milestone-based releases). Enterprise readiness lands as extensions, not core spec changes.
 
 ### Feature Maturity
 

@@ -4,6 +4,7 @@ description: AI safety and security auditor for LLM systems. Red teaming, prompt
 category: security
 model: opus
 maxTurns: 60
+effort: medium
 context: fork
 color: red
 memory: local
@@ -18,6 +19,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - mcp-patterns
   - security-patterns

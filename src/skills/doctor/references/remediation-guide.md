@@ -13,6 +13,7 @@ Quick remediation steps for common `/ork:doctor` findings.
 | Memory warning | Graph unavailable | Check .claude/memory/ directory |
 | Build warning | Out of sync | Run `npm run build` |
 | Permission warning | Unreachable rules | Review `.claude/settings.json` |
+| Plugin validate error | CC frontmatter/hooks.json invalid | Run `claude plugin validate` and fix reported errors |
 
 ## Troubleshooting
 
@@ -36,4 +37,15 @@ npm run build
 ```bash
 # Check graph memory
 ls -la .claude/memory/
+```
+
+### "Plugin validate failed"
+
+```bash
+# Run CC's official validator (requires CC >= 2.1.77)
+claude plugin validate
+
+# Fix reported errors, then rebuild and re-validate
+npm run build
+claude plugin validate
 ```

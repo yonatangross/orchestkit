@@ -5,7 +5,9 @@ description: "End-to-end testing patterns with Playwright — page objects, AI a
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-**Primary Agent:** [test-generator](/docs/reference/agents/test-generator)
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="testing-e2e" />
 
 
 # E2E Testing Patterns
@@ -72,7 +74,7 @@ await checkout.expectConfirmation();
 
 ## AI Agents
 
-Playwright 1.58+ AI agent framework for test planning, generation, and self-healing.
+Playwright 1.58+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -81,6 +83,8 @@ Playwright 1.58+ AI agent framework for test planning, generation, and self-heal
 ```bash
 npx playwright init-agents --loop=claude    # For Claude Code
 ```
+
+**Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output — use this when running Playwright from AI agents to minimize token consumption.
 
 Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests live app) -> Healer (fixes failures, updates selectors).
 
@@ -184,6 +188,7 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 - `testing-unit` - Unit testing patterns with mocking, fixtures, and data factories
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
+- `portless` (upstream) - Stable `baseURL` for local E2E tests (`myapp.localhost:1355` instead of port guessing)
 
 
 ---
@@ -4381,12 +4386,12 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm ci

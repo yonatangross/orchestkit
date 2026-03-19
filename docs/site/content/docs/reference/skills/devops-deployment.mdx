@@ -5,7 +5,9 @@ description: "Use when setting up CI/CD pipelines, containerizing applications, 
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-**Primary Agent:** [data-pipeline-engineer](/docs/reference/agents/data-pipeline-engineer)
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="devops-deployment" />
 
 
 # DevOps & Deployment Skill
@@ -184,6 +186,7 @@ Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/checklists-and-templates.md")` for
 - `security-scanning` - Security scanning integration for CI/CD pipelines
 - `ork:monitoring-observability` - Monitoring and alerting for deployed applications
 - `ork:database-patterns` - Python/Alembic migration workflow for backend deployments
+- `portless` (upstream) - Named `.localhost` URLs for multi-service local dev (`portless alias api 8080`)
 
 ## Key Decisions
 
@@ -831,7 +834,7 @@ feature/* ─────────●────────┘
 ```yaml
 strategy:
   matrix:
-    node-version: [18, 20, 22]
+    node-version: [20, 22, 24]
     os: [ubuntu-latest, windows-latest]
 jobs:
   test:

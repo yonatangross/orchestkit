@@ -16,7 +16,7 @@ Configure `build.lib` with proper entry points, externalize peer dependencies, a
 export default defineConfig({
   build: {
     lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
-    // Missing rollupOptions.external — peer deps are bundled
+    // Missing rolldownOptions.external — peer deps are bundled
   },
 })
 ```
@@ -35,7 +35,7 @@ export default defineConfig({
       name: 'MyLib',
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         globals: { react: 'React', 'react-dom': 'ReactDOM' },
@@ -69,7 +69,7 @@ export default defineConfig({
 ```
 
 **Key rules:**
-- Always externalize peer dependencies via `rollupOptions.external` — never bundle them.
+- Always externalize peer dependencies via `rolldownOptions.external` — never bundle them.
 - Provide dual formats: ESM (`module`) for bundlers and UMD/CJS (`main`) for legacy consumers; use `exports` map.
 - Generate TypeScript declarations with `vite-plugin-dts`; set `"types"` in top-level and each `exports` entry.
 - Mark CSS in `"sideEffects"` so bundlers preserve styles during tree-shaking.

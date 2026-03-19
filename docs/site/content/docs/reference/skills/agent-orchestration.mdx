@@ -5,7 +5,9 @@ description: "Agent orchestration patterns for agentic loops, multi-agent coordi
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-**Primary Agent:** [workflow-architect](/docs/reference/agents/workflow-architect)
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="agent-orchestration" />
 
 
 # Agent Orchestration
@@ -63,7 +65,7 @@ Fan-out/fan-in parallelism, supervisor routing with dependency ordering, conflic
 
 ## Alternative Frameworks
 
-CrewAI hierarchical crews with Flows (1.8+), OpenAI Agents SDK handoffs and guardrails (0.7.0), Microsoft Agent Framework (AutoGen + SK merger), GPT-5.2-Codex for long-horizon coding, and AG2 for open-source flexibility.
+CrewAI hierarchical crews with Flows (1.8+), OpenAI Agents SDK handoffs and guardrails (0.12+), Microsoft Agent Framework (AutoGen + SK merger), GPT-5.2-Codex for long-horizon coding, and AG2 for open-source flexibility.
 
 **Key decisions:** Match framework to team expertise + use case. LangGraph for state machines, CrewAI for role-based teams, OpenAI SDK for handoff workflows, MS Agent for enterprise compliance.
 
@@ -317,7 +319,7 @@ async for message in team.run_stream(task="Analyze this data"):
     print(f"{message.source}: {message.content}")
 ```
 
-## OpenAI Agents SDK (0.7.0)
+## OpenAI Agents SDK (0.12+)
 
 Alternative for OpenAI-native ecosystems:
 
@@ -417,7 +419,7 @@ Decision matrix for choosing between multi-agent frameworks.
 |-----------|----------|--------------|--------|
 | LangGraph 1.0.6 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
 | CrewAI 1.8.x | Role-based collaboration | Flows, hierarchical crews, a2a, HITL | Production |
-| OpenAI Agents SDK 0.7.0 | OpenAI ecosystem | Handoffs, guardrails, MCPServerManager | Production |
+| OpenAI Agents SDK 0.12+ | Provider-agnostic (100+ LLMs) | Handoffs, guardrails, tool search, MCPServerManager | Production |
 | GPT-5.2-Codex | Long-horizon coding | Context compaction, project-scale, security | Production |
 | MS Agent Framework | Enterprise | AutoGen+SK merger, A2A, compliance | Public Preview |
 | AG2 | Open-source, flexible | Community fork of AutoGen | Active |
@@ -485,7 +487,7 @@ Start
 |-----------|-----------|------------|----------|
 | LangGraph | MIT | Self-host / LangGraph Cloud | Any LLM |
 | CrewAI | MIT | Self-host | Any LLM |
-| OpenAI SDK | MIT | Self-host | OpenAI only |
+| OpenAI SDK | MIT | Self-host | Any LLM (via LiteLLM) |
 | MS Agent | MIT | Self-host / Azure | Any LLM |
 | AG2 | Apache 2.0 | Self-host | Any LLM |
 
@@ -4574,7 +4576,7 @@ async def refactor_project(modules: list[str]):
 
 ## Integration with Agents SDK
 
-GPT-5.2-Codex integrates seamlessly with OpenAI Agents SDK 0.6.x:
+GPT-5.2-Codex integrates seamlessly with OpenAI Agents SDK 0.12+:
 
 ```python
 from agents import Agent, Runner, handoff, tool
@@ -5765,13 +5767,13 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 
 # OpenAI Agents SDK
 
-OpenAI Agents SDK (v0.7.0) patterns for handoffs, guardrails, agents-as-tools, sessions, MCP servers, and tracing.
+OpenAI Agents SDK (v0.12+) patterns for handoffs, guardrails, agents-as-tools, sessions, MCP servers, tool search, and tracing. Provider-agnostic — supports 100+ LLMs via LiteLLM.
 
 ## Requirements
 
 ```bash
-# Install (requires Python 3.9+, supports up to 3.14)
-pip install openai-agents>=0.7.0
+# Install (requires Python 3.10+, supports up to 3.14)
+pip install openai-agents>=0.12.0
 
 # Note: Requires openai v2.x (v1.x no longer supported)
 # openai>=2.9.0,<3 is required
@@ -6241,6 +6243,8 @@ agent = Agent(
 
 ## Version History
 
+- **v0.12.3** (Mar 2026): Tool search with namespaces, gpt-5.4 computer use support
+- **v0.12.0** (Mar 2026): Provider-agnostic (100+ LLMs via LiteLLM), tool search tool
 - **v0.7.0** (Jan 2026): MCPServerManager, opt-in nested handoffs, session input auto-append
 - **v0.6.6** (Jan 2026): Auto-compaction, AsyncSQLiteSession
 - **v0.6.5** (Jan 2026): Per-run tracing, tool guardrails decorator

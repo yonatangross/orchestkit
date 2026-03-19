@@ -17,7 +17,7 @@ Always respond in English. Never Hebrew. No exceptions.
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 92 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 33 agents (CC 2.1.76 format)
+├── agents/<name>.md          # 33 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
@@ -79,6 +79,6 @@ Single plugin `ork`: <!--ork:skills-->93<!--/ork--> skills, <!--ork:agents-->33<
 
 ## Version
 
-- **Current**: 7.12.0 · **Claude Code**: >= 2.1.78 <!-- x-release-please-version -->
+- **Current**: 7.13.0 · **Claude Code**: >= 2.1.78 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

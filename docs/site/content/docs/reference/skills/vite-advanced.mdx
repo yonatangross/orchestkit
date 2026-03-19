@@ -1,20 +1,72 @@
 ---
 title: "Vite Advanced"
-description: "Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds."
+description: "Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-**Primary Agent:** [frontend-ui-developer](/docs/reference/agents/frontend-ui-developer)
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="vite-advanced" />
 
 
 # Vite Advanced Patterns
 
-Advanced configuration for Vite 7+ including Environment API.
+Advanced configuration for **Vite 8** (Rolldown-powered, stable Mar 2026) with Environment API from Vite 7.
 
-## Vite 7 Environment API (Key 2026 Feature)
+## Vite 8: Rolldown-Powered Builds (Default)
 
-Multi-environment support (client/SSR/edge) is now first-class:
+Vite 8 replaces esbuild+Rollup with **Rolldown** (Rust-based unified bundler), delivering 7.7x faster builds and 50% less memory. This is now the default for all new projects.
+
+```bash
+npm install vite@8  # Direct upgrade
+```
+
+**Key improvements:**
+
+| Metric | Vite 7 | Vite 8 | Improvement |
+|--------|--------|--------|-------------|
+| Build time (Linear) | 46s | 6s | **7.7x faster** |
+| Dev server startup | ~3s | ~1s | **3x faster** |
+| HMR updates | ~100ms | ~60ms | **40% faster** |
+| Memory usage | ~800MB | ~400MB | **50% reduction** |
+
+**Breaking changes from Vite 7:**
+- `build.rollupOptions` → `build.rolldownOptions` (auto-converted with deprecation warning)
+- `transformWithEsbuild` → `transformWithOxc`
+- Plugin `transform()` returning JS must add `moduleType: 'js'` to return value
+- `manualChunks` object form removed — use function form or `advancedChunks`
+- `'system'` / `'amd'` output formats no longer supported
+- Lightning CSS is now standard (replaces esbuild for CSS minification)
+- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
+
+### advancedChunks (Replaces manualChunks)
+
+Vite 8 introduces declarative chunk grouping with priority control and size constraints:
+
+```typescript
+export default defineConfig({
+  build: {
+    rolldownOptions: {
+      output: {
+        advancedChunks: {
+          groups: [
+            { name: 'react-vendor', test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/, priority: 20 },
+            { name: 'ui-vendor', test: /[\\/]node_modules[\\/]@radix-ui[\\/]/, priority: 15, minShareCount: 2 },
+            { name: 'vendor', test: /[\\/]node_modules[\\/]/, priority: 10, maxSize: 500000 },
+          ],
+        },
+      },
+    },
+  },
+})
+```
+
+Load Read("$\{CLAUDE_SKILL_DIR\}/references/vite8-rolldown.md") for full migration options, benchmarks, advancedChunks syntax, Oxc benefits, and migration checklist.
+
+## Environment API (from Vite 7, stable)
+
+Multi-environment support (client/SSR/edge) is first-class:
 
 ```typescript
 export default defineConfig({
@@ -41,40 +93,40 @@ Load Read("$\{CLAUDE_SKILL_DIR\}/references/ssr-configuration.md") for entry poi
 
 ## Build Optimization
 
-Chunk splitting with `manualChunks` (Vite 7) or `advancedChunks` (Vite 8+), tree shaking, minification, and bundle analysis.
+Chunk splitting with `advancedChunks` (Vite 8, preferred) or `manualChunks` (Vite 7 legacy), tree shaking, minification, and bundle analysis.
 
 Load Read("$\{CLAUDE_SKILL_DIR\}/references/chunk-optimization.md") for chunk strategies, build targets, and optimization checklist.
 
 ## Quick Reference
 
-| Feature | Vite 7 Status |
+| Feature | Vite 8 Status |
 |---------|---------------|
-| Environment API | Stable |
+| Rolldown bundler | **Default** (replaces esbuild+Rollup) |
+| Environment API | Stable (from Vite 7) |
 | ESM-only distribution | Default |
 | Node.js requirement | 20.19+ or 22.12+ |
-| `buildApp` hook | New for plugins |
+| `advancedChunks` | New (replaces `manualChunks`) |
+| `buildApp` hook | Stable (for multi-env plugins) |
 | `createBuilder` | Multi-env builds |
-
-## Vite 8: Rolldown-Powered Builds
-
-Vite 8 replaces esbuild+Rollup with Rolldown (Rust-based), delivering 7.7x faster builds and 50% less memory. Introduces `advancedChunks` with declarative grouping, priority control, and size constraints. Stable as of Feb 2026.
-
-Load Read("$\{CLAUDE_SKILL_DIR\}/references/vite8-rolldown.md") for migration options, benchmarks, advancedChunks syntax, and migration checklist.
+| Oxc integration | Parsing 3x faster than SWC |
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| Multi-env builds | Use Vite 7 Environment API |
+| New projects | **Vite 8** (default) |
+| Existing production apps | Evaluate Vite 8, use `rolldown-vite` for gradual migration |
+| Multi-env builds | Environment API (`environments` config) |
 | Plugin scope | Use `this.environment` for env-aware plugins |
 | SSR | Middleware mode for dev, separate builds for prod |
-| Chunks | Manual chunks for vendor/router separation |
+| Chunks | `advancedChunks` for Vite 8, `manualChunks` for Vite 7 compat |
 
 ## Related Skills
 
 - `biome-linting` - Fast linting alongside Vite
 - `ork:react-server-components-framework` - SSR integration
 - `edge-computing-patterns` - Edge environment builds
+- `ork:storybook-testing` - Component testing with Vitest
 
 ## References
 
@@ -82,12 +134,12 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
+| `vite8-rolldown.md` | Rolldown migration, benchmarks, advancedChunks, Oxc benefits |
 | `environment-api.md` | Multi-environment builds, Builder API, per-env plugins |
 | `plugin-development.md` | Plugin hooks, virtual modules, HMR, env-aware transforms |
 | `ssr-configuration.md` | Entry points, dev/prod servers, streaming SSR |
 | `library-mode.md` | Building publishable npm packages |
 | `chunk-optimization.md` | advancedChunks, manualChunks, tree shaking, bundle analysis |
-| `vite8-rolldown.md` | Rolldown migration, benchmarks, advancedChunks, Oxc benefits |
 
 
 ---
@@ -105,7 +157,7 @@ Use `advancedChunks` (Vite 8+) or `manualChunks` (Vite 7) to split vendor and ap
 ```typescript
 // No chunk config — everything in a single monolithic bundle
 export default defineConfig({
-  build: { rollupOptions: {} },  // No advancedChunks or manualChunks
+  build: { rolldownOptions: {} },  // No advancedChunks or manualChunks
 })
 ```
 
@@ -113,7 +165,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -183,7 +235,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'node20',                            // Wrong for client!
-    rollupOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
+    rolldownOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
   },
   ssr: { noExternal: ['some-package'] },  // Legacy SSR config
 })
@@ -202,14 +254,14 @@ export default defineConfig({
       build: {
         outDir: 'dist/server',
         target: 'node20',
-        rollupOptions: { output: { format: 'esm' } },
+        rolldownOptions: { output: { format: 'esm' } },
       },
     },
     edge: {
       resolve: { noExternal: true, conditions: ['edge', 'worker'] },
       build: {
         outDir: 'dist/edge',
-        rollupOptions: { external: ['cloudflare:workers'] },
+        rolldownOptions: { external: ['cloudflare:workers'] },
       },
     },
   },
@@ -254,7 +306,7 @@ Configure `build.lib` with proper entry points, externalize peer dependencies, a
 export default defineConfig({
   build: {
     lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
-    // Missing rollupOptions.external — peer deps are bundled
+    // Missing rolldownOptions.external — peer deps are bundled
   },
 })
 ```
@@ -273,7 +325,7 @@ export default defineConfig({
       name: 'MyLib',
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         globals: { react: 'React', 'react-dom': 'ReactDOM' },
@@ -307,7 +359,7 @@ export default defineConfig({
 ```
 
 **Key rules:**
-- Always externalize peer dependencies via `rollupOptions.external` — never bundle them.
+- Always externalize peer dependencies via `rolldownOptions.external` — never bundle them.
 - Provide dual formats: ESM (`module`) for bundlers and UMD/CJS (`main`) for legacy consumers; use `exports` map.
 - Generate TypeScript declarations with `vite-plugin-dts`; set `"types"` in top-level and each `exports` entry.
 - Mark CSS in `"sideEffects"` so bundlers preserve styles during tree-shaking.
@@ -413,7 +465,7 @@ Vite 8 introduces `advancedChunks` as the recommended approach for chunk splitti
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -461,7 +513,7 @@ export default defineConfig({
 // vite.config.ts - Production-ready advancedChunks
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -551,7 +603,7 @@ Split large dependencies into separate chunks:
 // vite.config.ts
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks: {
           // Vendor chunk for React
@@ -577,7 +629,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks(id) {
           // All node_modules in vendor chunk
@@ -1182,7 +1234,7 @@ export default defineConfig({
       name: 'MyLib', // Global variable name for UMD
       fileName: (format) => `my-lib.${format}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       // Externalize dependencies that shouldn't be bundled
       external: ['react', 'react-dom'],
       output: {
@@ -1252,7 +1304,7 @@ export default defineConfig({
       },
       formats: ['es', 'cjs'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -1293,7 +1345,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
     },
     cssCodeSplit: false, // Bundle all CSS into one file
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
     },
   },
@@ -1323,7 +1375,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react-dom'],
       output: {
         preserveModules: true, // Keep file structure
@@ -1955,7 +2007,7 @@ Vite 8 introduces `advancedChunks` with declarative grouping, priority control, 
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [
@@ -2022,29 +2074,71 @@ export default defineConfig({
 
 Benefits: Single unified bundle (no code splitting), optimal for small apps/libraries/embedded contexts, eliminates chunk loading overhead, better for offline-first applications.
 
+## Breaking Changes from Vite 7
+
+### Config Renames
+```js
+build.rollupOptions      → build.rolldownOptions      // auto-converted w/ deprecation
+worker.rollupOptions     → worker.rolldownOptions
+transformWithEsbuild     → transformWithOxc
+esbuild.jsx              → oxc.jsx
+esbuild.define           → oxc.define
+```
+
+### Plugin API Changes
+```js
+// Plugins converting non-JS to JS MUST add moduleType
+transform(code, id) {
+  return { code: transformedCode, moduleType: 'js' }  // NEW — required in v8
+}
+```
+
+Removed hooks: `shouldTransformCachedModule`, `resolveImportMeta`, `renderDynamicImport`, `resolveFileUrl`
+
+### Other Breaking Changes
+- `manualChunks` object form removed — use function form or `advancedChunks`
+- `'system'` / `'amd'` output formats removed
+- `import.meta.hot.accept(url)` → `accept(id)` (relative module id, not full URL)
+- Lightning CSS is now standard (replaces esbuild for CSS minification)
+- Browser target bump: Chrome 107→111, Firefox 104→114, Safari 16.0→16.4
+- `@vitejs/plugin-react` v6: Babel removed, Oxc handles transforms
+
+### New Config Options
+```js
+export default {
+  devtools: true,                     // built-in Vite Devtools
+  resolve: { tsconfigPaths: true },   // auto-resolve tsconfig paths
+  server: { forwardConsole: true },   // forward browser console to CLI
+}
+```
+
 ## Oxc Integration Benefits
 
 Rolldown is built on **Oxc** (Oxidation Compiler), providing:
 
 - **Parsing**: 3x faster than SWC, 100x faster than Babel
-- **Transformation**: Unified transform pipeline
+- **Transformation**: Unified transform pipeline (replaces Babel in plugin-react v6)
 - **Tree-shaking**: More aggressive dead code elimination
 - **Scope hoisting**: Better than Rollup's implementation
-- **Minification**: Oxc minifier (optional, in development)
+- **Minification**: Oxc minifier (replaces esbuild minifier)
 
 ## Migration Checklist
 
 ```
-[ ] Review plugin compatibility (most work unchanged)
+[ ] build.rollupOptions → build.rolldownOptions
+[ ] Plugin transform() returning JS: add moduleType: 'js'
+[ ] Remove plugins using deleted hooks (shouldTransformCachedModule, etc.)
+[ ] manualChunks object form → function form or advancedChunks
+[ ] Remove 'system'/'amd' format usage
+[ ] transformWithEsbuild → transformWithOxc
+[ ] @vitejs/plugin-react → v6 (Babel config changes if using React Compiler)
+[ ] Browser target: Chrome 111+, Firefox 114+, Safari 16.4+
 [ ] Test with rolldown-vite first if risk-averse
-[ ] Replace manualChunks with advancedChunks
-[ ] Remove esbuild-specific workarounds (no longer needed)
 [ ] Update CI/CD build time expectations
-[ ] Test HMR behavior (should be faster, same API)
 [ ] Verify source maps work correctly
 ```
 
-**Status:** Vite 8 stable as of Feb 2026. Recommended for new projects; evaluate for existing production apps.
+**Status:** Vite 8.0.0 stable as of Mar 12, 2026. Recommended for all new projects; evaluate for existing production apps.
 
 
 

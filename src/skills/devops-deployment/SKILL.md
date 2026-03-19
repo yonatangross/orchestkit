@@ -197,6 +197,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/checklists-and-templates.md")` for p
 - `security-scanning` - Security scanning integration for CI/CD pipelines
 - `ork:monitoring-observability` - Monitoring and alerting for deployed applications
 - `ork:database-patterns` - Python/Alembic migration workflow for backend deployments
+- `portless` (upstream) - Named `.localhost` URLs for multi-service local dev (`portless alias api 8080`)
 
 ## Key Decisions
 

@@ -28,13 +28,16 @@ SKILLS_OUT="$DOCS_OUT/skills"
 AGENTS_OUT="$DOCS_OUT/agents"
 HOOKS_OUT="$DOCS_OUT/hooks"
 
+# Category index pages (lives under skills section, not reference)
+CATEGORIES_OUT="$PROJECT_ROOT/docs/site/content/docs/skills/by-category"
+
 # -- Clean output directories ------------------------------------------------
 echo "Cleaning output directories..."
-rm -rf "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT"
-mkdir -p "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT"
+rm -rf "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT" "$CATEGORIES_OUT"
+mkdir -p "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT" "$CATEGORIES_OUT"
 
 # -- Run Python generator (handles all three: skills, agents, hooks) ---------
-export PROJECT_ROOT SKILLS_SRC AGENTS_SRC HOOKS_JSON DOCS_OUT SKILLS_OUT AGENTS_OUT HOOKS_OUT
+export PROJECT_ROOT SKILLS_SRC AGENTS_SRC HOOKS_JSON DOCS_OUT SKILLS_OUT AGENTS_OUT HOOKS_OUT CATEGORIES_OUT
 python3 "$PROJECT_ROOT/scripts/_build-docs-generate.py"
 
 # -- Timing -------------------------------------------------------------------

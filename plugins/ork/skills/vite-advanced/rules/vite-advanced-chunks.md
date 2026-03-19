@@ -14,7 +14,7 @@ Use `advancedChunks` (Vite 8+) or `manualChunks` (Vite 7) to split vendor and ap
 ```typescript
 // No chunk config — everything in a single monolithic bundle
 export default defineConfig({
-  build: { rollupOptions: {} },  // No advancedChunks or manualChunks
+  build: { rolldownOptions: {} },  // No advancedChunks or manualChunks
 })
 ```
 
@@ -22,7 +22,7 @@ export default defineConfig({
 ```typescript
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         advancedChunks: {
           groups: [

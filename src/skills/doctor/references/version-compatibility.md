@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.78. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -113,6 +113,18 @@ OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC featur
 | Worktree race condition fix | 2.1.77 | Stale cleanup no longer deletes resumed agent worktrees | Race between cleanup and agent resume |
 | --resume performance | 2.1.77 | 45% faster loading, ~100-150MB less peak memory | Slower fork-heavy session resume |
 | Progress message memory fix | 2.1.77 | Progress messages cleaned up during compaction | Memory growth from accumulated progress messages |
+| `StopFailure` hook event | 2.1.78 | Hooks fire on API errors (rate limit, auth failure) | No hook on API errors |
+| `${CLAUDE_PLUGIN_DATA}` | 2.1.78 | Plugin persistent state survives plugin updates | State lost on plugin update |
+| Agent `effort`/`maxTurns`/`disallowedTools` frontmatter | 2.1.78 | Plugin agents support effort, turn limits, tool restrictions | No agent-level frontmatter controls |
+| PreToolUse allow bypass fix | 2.1.78 | "allow" hooks no longer bypass deny permission rules | allow hooks could bypass deny rules |
+| `claude plugin validate` enhanced | 2.1.78 | Validates skill, agent, command frontmatter + hooks.json | Basic validation only |
+| Worktree skills/hooks loading fix | 2.1.78 | --worktree flag loads skills and hooks from worktree dir | Skills/hooks loaded from original dir |
+| `--console` auth flag | 2.1.79 | `claude auth login --console` for API billing auth | Only OAuth/API key auth |
+| "Show turn duration" toggle | 2.1.79 | Turn duration visible in /config menu | No turn duration display |
+| `/remote-control` (VSCode) | 2.1.79 | Bridge session to claude.ai/code from browser/phone | VSCode-only sessions |
+| Multi-dir `PLUGIN_SEED_DIR` | 2.1.79 | Multiple seed dirs separated by platform path delimiter | Single seed directory only |
+| `-p` mode Ctrl+C fix | 2.1.79 | Ctrl+C works in print mode | Ctrl+C ignored in -p mode |
+| Startup memory reduction | 2.1.79 | ~18MB less memory on startup | Higher startup memory |
 
 ## Version Detection
 
@@ -143,6 +155,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
+| >= 2.1.78 | Full+++++++++ | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
+| >= 2.1.79 | Full++++++++++ | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 
 ## Doctor Check Implementation
 
@@ -221,6 +235,8 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.14.x | 2.1.79 | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
+| v7.14.x | 2.1.78 | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
 | v7.12.x | 2.1.77 | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
 | v7.8.x | 2.1.76 | PostCompact hook, Elicitation hooks, sparse paths, /effort, bg agent partial results |
 | v7.7.x | 2.1.75 | 1M context default, memory timestamps, hook source display, token estimation fix |
