@@ -1,0 +1,64 @@
+---
+title: "Memory Validator"
+description: "Validates MCP memory operations to prevent accidental data loss"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-blue">Injects</span> <span className="badge badge-gray">Global</span>
+
+> Monitors MCP knowledge graph operations and warns before bulk deletions or malformed entity/relation creation.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `mcp__memory__*` · **Bundle:** `pretool.mjs`
+
+The hook checks the tool name prefix `mcp__memory__` and only activates for memory MCP tool calls. All other tools pass through silently.
+
+## What It Does
+
+The memory validator acts as a safety net for the MCP knowledge graph. It inspects each memory operation and either allows it silently, or emits a warning for operations that could cause data loss or produce invalid data.
+
+The hook **warns but does not block** --- the user still sees a confirmation prompt for flagged operations, giving them a chance to review before proceeding.
+
+## Validated Operations
+
+### Bulk Entity Deletion (`mcp__memory__delete_entities`)
+
+If more than **5 entities** are being deleted in a single call, the hook emits a warning:
+
+```
+Deleting 12 entities from knowledge graph
+```
+
+Deletions of 5 or fewer entities pass through without warning.
+
+### Bulk Relation Deletion (`mcp__memory__delete_relations`)
+
+If more than **10 relations** are being deleted in a single call, the hook emits a warning. Smaller deletions pass silently.
+
+### Entity Creation Validation (`mcp__memory__create_entities`)
+
+Every entity in the batch is checked for required fields. If any entity is missing `name` or `entityType`, the hook warns:
+
+```
+3 entities missing required fields (name, entityType)
+```
+
+Valid entity batches are logged and allowed.
+
+### Relation Creation Validation (`mcp__memory__create_relations`)
+
+Every relation is checked for `from`, `to`, and `relationType` fields. Missing fields trigger a warning with the count of invalid relations.
+
+### Read Operations
+
+All read operations (`read_graph`, `search_nodes`, `open_nodes`, `add_observations`, `delete_observations`) are always allowed without inspection.
+
+## Configuration
+
+This hook has no user-configurable options. The bulk deletion thresholds (5 entities, 10 relations) are defined in source code.
+
+## Related Hooks
+
+- [file-guard](/docs/hooks/spotlights/file-guard) --- similar protective pattern for filesystem operations
