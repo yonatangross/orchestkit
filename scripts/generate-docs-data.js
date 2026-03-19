@@ -384,6 +384,7 @@ function generateSplitModules(data) {
     '  context: string;',
     '  allowedTools: string[];',
     '  skills: string[];',
+    '  complexity: string;',
     '  agent: string | null;',
     '  structure: Record<string, string[]>;',
     '  content: string;',
