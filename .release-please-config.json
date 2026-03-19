@@ -47,6 +47,10 @@
         {
           "type": "generic",
           "path": "CLAUDE.md"
+        },
+        {
+          "type": "generic",
+          "path": "docs/site/lib/generated/plugins-data.ts"
         }
       ]
     }
