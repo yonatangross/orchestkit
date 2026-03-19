@@ -250,7 +250,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
-- **128K output** — generate complete artifacts in a single pass, don't split unnecessarily
+- **Output limits (CC 2.1.77+):** Opus 4.6 defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
 - **Micro-plan before implementing** — scope boundaries, file list, acceptance criteria
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6

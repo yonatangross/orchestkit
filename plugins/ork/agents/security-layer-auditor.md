@@ -4,6 +4,7 @@ description: Security layer auditor who verifies defense-in-depth implementation
 category: security
 model: opus
 maxTurns: 60
+effort: medium
 context: fork
 color: red
 memory: local

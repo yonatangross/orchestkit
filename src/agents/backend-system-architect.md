@@ -4,6 +4,7 @@ description: "Backend architect: REST/GraphQL APIs, database schemas, microservi
 model: inherit
 category: backend
 maxTurns: 50
+effort: medium
 permissionMode: plan
 context: fork
 color: yellow

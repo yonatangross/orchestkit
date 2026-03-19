@@ -17,7 +17,7 @@ Always respond in English. Never Hebrew. No exceptions.
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 92 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 33 agents (CC 2.1.76 format)
+├── agents/<name>.md          # 33 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)

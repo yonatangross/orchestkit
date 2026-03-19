@@ -4,6 +4,7 @@ description: "Python performance: profiling, memory optimization, async performa
 model: inherit
 category: backend
 maxTurns: 50
+effort: medium
 context: fork
 color: orange
 memory: project

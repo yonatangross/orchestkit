@@ -4,6 +4,7 @@ description: "Multi-agent workflow: LangGraph pipelines, supervisor-worker patte
 category: llm
 model: opus
 maxTurns: 60
+effort: high
 permissionMode: plan
 context: fork
 color: blue

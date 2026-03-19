@@ -4,6 +4,7 @@ description: Infrastructure as Code specialist who designs Terraform modules, Ku
 model: inherit
 category: devops
 maxTurns: 50
+effort: medium
 permissionMode: plan
 context: fork
 color: cyan

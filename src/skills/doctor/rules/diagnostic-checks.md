@@ -152,3 +152,25 @@ Checks optional tool availability:
 # - agent-browser: installed globally via skills CLI
 # - Validates symlink exists at ~/.claude/skills/agent-browser
 ```
+
+---
+
+## 13. Plugin Validate (CC >= 2.1.77)
+
+Runs `claude plugin validate` for official CC validation of frontmatter and hooks.json. This complements OrchestKit's custom checks (categories 1-3) with CC's built-in validator.
+
+```bash
+# Check CC version supports plugin validate (>= 2.1.77)
+# If CC < 2.1.77, skip with: "Plugin validate: SKIPPED (requires CC >= 2.1.77)"
+
+# Run official validation from plugin root
+claude plugin validate
+
+# Checks performed by CC:
+# - SKILL.md frontmatter schema (required fields, types, allowed values)
+# - hooks.json schema (event types, matchers, command paths)
+# - Agent frontmatter schema (model, tools, skills fields)
+# - File path resolution (command paths in hooks exist)
+```
+
+**Relationship to OrchestKit checks:** `claude plugin validate` performs structural/schema validation at the CC level. OrchestKit's categories 1-3 perform deeper semantic checks (token budgets, cross-references, async patterns) that CC does not cover. Both should pass for a fully healthy plugin.

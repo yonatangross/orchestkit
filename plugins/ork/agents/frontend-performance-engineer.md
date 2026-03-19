@@ -4,6 +4,7 @@ description: Performance engineer who optimizes Core Web Vitals, analyzes bundle
 category: frontend
 model: sonnet
 maxTurns: 50
+effort: medium
 context: fork
 color: green
 memory: project

@@ -4,6 +4,7 @@ description: "Security auditor: vulnerability scanning, dependency audits, OWASP
 category: security
 model: opus
 maxTurns: 60
+effort: medium
 context: fork
 color: red
 memory: local

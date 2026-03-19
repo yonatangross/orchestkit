@@ -385,6 +385,7 @@ CronCreate(
 
 ## Key Principles
 
+- **Output limits (CC 2.1.77+):** Opus 4.6 defaults to 64k output tokens (128k upper bound). For large test suites, chunk generation across multiple agent turns if output approaches the limit.
 - **Tests only** — never modify production source code, only generate test files
 - **Real services when available** — prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
 - **Parallel generation** — spawn one test-generator agent per tier in ONE message

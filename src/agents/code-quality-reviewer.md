@@ -4,6 +4,7 @@ description: "Code quality reviewer: bug detection, security vulnerabilities, pe
 model: inherit
 category: testing
 maxTurns: 50
+effort: medium
 context: inherit
 color: green
 memory: project

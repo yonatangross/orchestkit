@@ -8,7 +8,7 @@
       "query": "/ork:doctor",
       "expectedBehavior": [
         "Auto-detects installed ork plugin and its version from the manifest",
-        "Validates all 12 health check categories in sequence",
+        "Validates all 13 health check categories in sequence",
         "Checks skills frontmatter, agents validation, hook registration",
         "Verifies permission rules for unreachable entries",
         "Checks Claude Code version meets minimum >= 2.1.59",
@@ -25,7 +25,7 @@
         "Validates hooks.json schema compliance against expected structure and fields",
         "Checks hook bundles exist and are compiled",
         "Verifies async hook patterns are correct",
-        "Skips all other 11 categories for faster execution",
+        "Skips all other 12 categories for faster execution",
         "Reports hook-specific pass/warn/fail results in a formatted summary"
       ]
     },

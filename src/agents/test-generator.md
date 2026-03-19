@@ -5,6 +5,7 @@ model: inherit
 category: testing
 isolation: worktree
 maxTurns: 50
+effort: medium
 context: fork
 color: green
 memory: project

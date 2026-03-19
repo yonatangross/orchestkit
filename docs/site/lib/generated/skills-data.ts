@@ -30,6 +30,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "accessibility-specialist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "focus-patterns.md",
@@ -84,6 +85,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "workflow-architect",
+    "complexity": "high",
     "structure": {
       "references": [
         "architectural-patterns.md",
@@ -143,6 +145,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "ai-ui-failure-modes.md",
@@ -189,6 +192,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "cost-estimation.md",
@@ -231,6 +235,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "animation-presets-library.md",
@@ -272,6 +277,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "backend-system-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "frontend-integration.md",
@@ -335,6 +341,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "backend-system-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "adr-best-practices.md"
@@ -390,6 +397,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scope-appropriate-architecture"
     ],
     "agent": "backend-system-architect",
+    "complexity": "high",
     "structure": {
       "references": [
         "backend-dependency-injection.md",
@@ -448,6 +456,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -490,6 +499,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "agent-spawn-definitions.md",
@@ -539,6 +549,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "python-performance-engineer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "anti-patterns.md",
@@ -598,6 +609,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "quality-gates"
     ],
     "agent": null,
+    "complexity": "max",
     "structure": {
       "references": [
         "architecture-review-guide.md",
@@ -650,6 +662,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "edge-cases.md",
@@ -712,6 +725,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "browser-tools"
     ],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "common-pitfalls.md",
@@ -766,6 +780,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "web-research-analyst",
+    "complexity": "medium",
     "structure": {},
     "plugins": [
       "ork"
@@ -801,6 +816,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "build-buy-partner-decision.md",
@@ -832,6 +848,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "checkpoint-resume.md",
@@ -874,6 +891,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "pipeline-state-schema.md",
@@ -912,6 +930,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "code-quality-reviewer",
+    "complexity": "low",
     "structure": {
       "references": [
         "conventional-comments.md",
@@ -960,6 +979,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": "git-operations-engineer",
+    "complexity": "low",
     "structure": {
       "references": [
         "conventional-commits.md",
@@ -1001,6 +1021,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "competitive-analysis-guide.md"
@@ -1041,6 +1062,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "simple",
     "structure": {},
     "plugins": [
       "ork"
@@ -1073,6 +1095,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "cc-version-settings.md",
@@ -1136,6 +1159,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "quality-gates"
     ],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "coverage-report-template.md",
@@ -1179,6 +1203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": "git-operations-engineer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "ci-integration.md",
@@ -1221,6 +1246,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "database-engineer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "alembic-advanced.md",
@@ -1285,6 +1311,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "content-types.md",
@@ -1343,6 +1370,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory"
     ],
     "agent": "design-context-extractor",
+    "complexity": "medium",
     "structure": {},
     "plugins": [
       "ork"
@@ -1381,6 +1409,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "style-dictionary-config.md",
@@ -1438,6 +1467,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory"
     ],
     "agent": null,
+    "complexity": "complex",
     "structure": {
       "references": []
     },
@@ -1471,6 +1501,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "data-pipeline-engineer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "capability-details.md",
@@ -1546,6 +1577,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "backend-system-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "bulkhead-pattern.md",
@@ -1616,6 +1648,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "configure"
     ],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "agents-validation.md",
@@ -1662,6 +1695,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -1692,6 +1726,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "backend-system-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "bounded-contexts.md",
@@ -1735,6 +1770,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "debug-investigator",
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -1779,6 +1815,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "code-health-rubric.md",
@@ -1826,6 +1863,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "bug-report-reference.md",
@@ -1867,6 +1905,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "applitools-figma-plugin.md",
@@ -1924,6 +1963,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "agent-selection.md",
@@ -1984,6 +2024,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "cli-vs-api-identifiers.md",
@@ -2030,6 +2071,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "data-pipeline-engineer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "annotation-patterns.md",
@@ -2079,6 +2121,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "cc-keyboard-shortcuts.md"
@@ -2118,6 +2161,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "low",
     "structure": {
       "references": [
         "formatting-utilities.md",
@@ -2182,6 +2226,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "agent-phases.md",
@@ -2245,6 +2290,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "interaction-pattern-catalog.md",
@@ -2276,6 +2322,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -2315,6 +2362,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "workflow-architect",
+    "complexity": "high",
     "structure": {},
     "plugins": [
       "ork"
@@ -2349,6 +2397,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "llm-integrator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "dpo-alignment.md",
@@ -2404,6 +2453,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "tam-sam-som-guide.md"
@@ -2442,6 +2492,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "checklists": [
         "mcp-server-checklist.md"
@@ -2484,6 +2535,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "memory-commands.md",
@@ -2559,6 +2611,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "entity-extraction.md",
@@ -2599,6 +2652,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "agent-observability.md",
@@ -2688,6 +2742,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "high",
     "structure": {},
     "plugins": [
       "ork"
@@ -2725,6 +2780,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {},
     "plugins": [
       "ork"
@@ -2757,6 +2813,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "okr-workshop-guide.md"
@@ -2809,6 +2866,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "high",
     "structure": {
       "references": [
         "caching-strategies.md",
@@ -2896,6 +2954,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "pptx-conversion.md",
@@ -2933,6 +2992,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "rice-scoring-guide.md",
@@ -2970,6 +3030,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "stats-cheat-sheet.md"
@@ -3010,6 +3071,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "build-buy-partner-decision.md",
@@ -3080,6 +3142,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "backend-system-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "eager-loading.md",
@@ -3145,6 +3208,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scope-appropriate-architecture"
     ],
     "agent": "code-quality-reviewer",
+    "complexity": "max",
     "structure": {
       "references": [
         "blocking-thresholds.md",
@@ -3201,6 +3265,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "data-pipeline-engineer",
+    "complexity": "high",
     "structure": {
       "scripts": [
         "chunk-repository.py",
@@ -3248,6 +3313,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "cache-components.md",
@@ -3301,6 +3367,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "release-flow.md"
@@ -3342,6 +3409,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "changelog-generation.md",
@@ -3390,6 +3458,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "category-detection.md",
@@ -3478,6 +3547,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "container-queries.md",
@@ -3532,6 +3602,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "chain-patterns"
     ],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "orchestration-mode-selection.md",
@@ -3569,6 +3640,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "enterprise.md",
@@ -3610,6 +3682,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "security-auditor",
+    "complexity": "high",
     "structure": {
       "references": [
         "audit-logging.md",
@@ -3697,6 +3770,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "help"
     ],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "claude-md-health.md",
@@ -3738,6 +3812,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "medium",
     "structure": {
       "references": [
         "evolution-analysis.md",
@@ -3780,6 +3855,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "storybook-addon-ecosystem.md",
@@ -3816,6 +3892,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "workflow-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "dependency-tracking.md",
@@ -3882,6 +3959,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "test-generator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "a11y-testing-tools.md",
@@ -3933,6 +4011,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "test-generator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "consumer-tests.md",
@@ -3984,6 +4063,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "test-generator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "deepeval-ragas-api.md",
@@ -4018,6 +4098,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {},
     "plugins": [
       "ork"
@@ -4049,6 +4130,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "test-generator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "custom-plugins.md",
@@ -4099,6 +4181,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "test-generator",
+    "complexity": "medium",
     "structure": {
       "references": [
         "aaa-pattern.md",
@@ -4158,6 +4241,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "aschild-composition.md",
@@ -4226,6 +4310,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory"
     ],
     "agent": null,
+    "complexity": "max",
     "structure": {
       "references": [
         "cc-2.1.47-upgrade-guide.md",
@@ -4265,6 +4350,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "interview-guide-template.md",
@@ -4297,6 +4383,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": null,
+    "complexity": "low",
     "structure": {
       "references": [
         "count-locations.md"
@@ -4362,6 +4449,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "browser-tools"
     ],
     "agent": null,
+    "complexity": "high",
     "structure": {
       "references": [
         "alternative-comparison.md",
@@ -4427,6 +4515,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "remember"
     ],
     "agent": "workflow-architect",
+    "complexity": "medium",
     "structure": {
       "references": [
         "blast-radius-patterns.md",
@@ -4483,6 +4572,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "medium",
     "structure": {
       "references": [
         "chunk-optimization.md",
@@ -4535,6 +4625,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "web-research-analyst",
+    "complexity": "low",
     "structure": {
       "references": [
         "tavily-api.md"
@@ -4583,6 +4674,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "product-strategist",
+    "complexity": "medium",
     "structure": {
       "references": [
         "output-templates.md",
@@ -4620,6 +4712,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
+    "complexity": "low",
     "structure": {
       "references": [
         "anti-patterns-and-integration.md",

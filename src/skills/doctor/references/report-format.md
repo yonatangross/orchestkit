@@ -19,8 +19,9 @@
 | Context          | 1850/2200 tokens (84%)                         |
 | Coordination     | 0 stale locks                                  |
 | CC Version       | {cc_version} (OK)                              |
+| Plugin Validate  | PASSED (0 errors)                                |
 +===================================================================+
-| Status: HEALTHY (10/10 checks passed)                             |
+| Status: HEALTHY (11/11 checks passed)                             |
 +===================================================================+
 ```
 
@@ -52,7 +53,8 @@
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.47"}
+    "ccVersion": {"passed": true, "version": "2.1.47"},
+    "pluginValidate": {"passed": true, "errors": 0, "warnings": 0, "skipped": false}
   },
   "exitCode": 0
 }

@@ -80,6 +80,8 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/safety-check.md")` for the
 
 Offers three install scopes: User-only (recommended, invisible to teammates), Project-wide (committed to repo), or Already installed (skip to configure). Checks for existing OrchestKit installs and conflicting plugins.
 
+> **Console auth (CC 2.1.79+):** Users authenticating via Anthropic Console (API billing) can run `claude auth login --console` instead of the default OAuth flow. Useful for teams on usage-based API billing rather than Pro/Team subscriptions.
+
 ## Phase 3.5: Project Configuration Wizard
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
@@ -152,7 +154,7 @@ If streaming selected:
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/integrations.md")` for setup steps.
 
-Covers Agentation UI annotation tool, CC version-specific settings (CC 2.1.7 turn duration, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs), and monorepo worktree optimization.
+Covers Agentation UI annotation tool, CC version-specific settings (CC 2.1.7 MCP deferral, CC 2.1.20 task deletion, CC 2.1.23 spinner verbs, CC 2.1.79 turn duration display), and monorepo worktree optimization.
 
 ### Monorepo Sparse Paths (CC 2.1.76+)
 
@@ -167,6 +169,16 @@ If Phase 1 scan detected a monorepo (pnpm-workspace.yaml, nx.json, lerna.json, t
 ```
 
 This makes `--worktree` and agent `isolation: worktree` check out only the listed directories via git sparse-checkout — significantly faster in large monorepos.
+
+### Multi-Directory Plugin Seeding (CC 2.1.79+)
+
+`CLAUDE_CODE_PLUGIN_SEED_DIR` now supports multiple directories separated by the platform path delimiter (`:` on Unix, `;` on Windows):
+
+```bash
+export CLAUDE_CODE_PLUGIN_SEED_DIR="/shared/team/plugins:/shared/org/plugins"
+```
+
+This is useful for teams with multiple plugin sources — e.g., a shared org-wide plugin directory alongside a team-specific one. Claude Code scans all listed directories for plugin definitions at startup.
 
 ## CLI Flags
 

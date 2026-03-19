@@ -131,3 +131,26 @@ External Dependencies:
 External Dependencies:
 - agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
 ```
+
+## Plugin Validate
+
+**Pass (CC >= 2.1.77):**
+```
+Plugin Validate: PASSED
+- claude plugin validate: 0 errors, 0 warnings
+```
+
+**Fail (CC >= 2.1.77):**
+```
+Plugin Validate: FAILED
+- claude plugin validate: 2 errors
+  - src/skills/broken/SKILL.md: missing required field "description"
+  - src/hooks/hooks.json: invalid matcher pattern at hooks[3]
+- Fix errors and re-run: npm run build && claude plugin validate
+```
+
+**Skipped (CC < 2.1.77):**
+```
+Plugin Validate: SKIPPED (requires CC >= 2.1.77)
+- Falling back to OrchestKit custom validation only
+```

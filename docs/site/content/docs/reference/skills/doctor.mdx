@@ -24,7 +24,7 @@ FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 12 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 13 categories:
 
 1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -38,6 +38,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
+13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 
 ## When to Use
 
@@ -98,13 +99,14 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |
 
-### Categories 10-12: Environment
+### Categories 10-13: Environment
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
 | **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `$\{CLAUDE_SKILL_DIR\}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks | load `$\{CLAUDE_SKILL_DIR\}/rules/mcp-status-checks.md` |
+| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 
 ## Report Format
 
@@ -293,6 +295,28 @@ Checks optional tool availability:
 # - agent-browser: installed globally via skills CLI
 # - Validates symlink exists at ~/.claude/skills/agent-browser
 ```
+
+---
+
+## 13. Plugin Validate (CC >= 2.1.77)
+
+Runs `claude plugin validate` for official CC validation of frontmatter and hooks.json. This complements OrchestKit's custom checks (categories 1-3) with CC's built-in validator.
+
+```bash
+# Check CC version supports plugin validate (>= 2.1.77)
+# If CC < 2.1.77, skip with: "Plugin validate: SKIPPED (requires CC >= 2.1.77)"
+
+# Run official validation from plugin root
+claude plugin validate
+
+# Checks performed by CC:
+# - SKILL.md frontmatter schema (required fields, types, allowed values)
+# - hooks.json schema (event types, matchers, command paths)
+# - Agent frontmatter schema (model, tools, skills fields)
+# - File path resolution (command paths in hooks exist)
+```
+
+**Relationship to OrchestKit checks:** `claude plugin validate` performs structural/schema validation at the CC level. OrchestKit's categories 1-3 perform deeper semantic checks (token budgets, cross-references, async patterns) that CC does not cover. Both should pass for a fully healthy plugin.
 
 
 ### MCP Status Checks — HIGH
@@ -622,6 +646,29 @@ External Dependencies:
 ```
 External Dependencies:
 - agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
+```
+
+## Plugin Validate
+
+**Pass (CC >= 2.1.77):**
+```
+Plugin Validate: PASSED
+- claude plugin validate: 0 errors, 0 warnings
+```
+
+**Fail (CC >= 2.1.77):**
+```
+Plugin Validate: FAILED
+- claude plugin validate: 2 errors
+  - src/skills/broken/SKILL.md: missing required field "description"
+  - src/hooks/hooks.json: invalid matcher pattern at hooks[3]
+- Fix errors and re-run: npm run build && claude plugin validate
+```
+
+**Skipped (CC &lt; 2.1.77):**
+```
+Plugin Validate: SKIPPED (requires CC >= 2.1.77)
+- Falling back to OrchestKit custom validation only
 ```
 
 
@@ -1023,6 +1070,7 @@ Quick remediation steps for common `/ork:doctor` findings.
 | Memory warning | Graph unavailable | Check .claude/memory/ directory |
 | Build warning | Out of sync | Run `npm run build` |
 | Permission warning | Unreachable rules | Review `.claude/settings.json` |
+| Plugin validate error | CC frontmatter/hooks.json invalid | Run `claude plugin validate` and fix reported errors |
 
 ## Troubleshooting
 
@@ -1046,6 +1094,17 @@ npm run build
 ```bash
 # Check graph memory
 ls -la .claude/memory/
+```
+
+### "Plugin validate failed"
+
+```bash
+# Run CC's official validator (requires CC >= 2.1.77)
+claude plugin validate
+
+# Fix reported errors, then rebuild and re-validate
+npm run build
+claude plugin validate
 ```
 
 
@@ -1072,8 +1131,9 @@ ls -la .claude/memory/
 | Context          | 1850/2200 tokens (84%)                         |
 | Coordination     | 0 stale locks                                  |
 | CC Version       | {cc_version} (OK)                              |
+| Plugin Validate  | PASSED (0 errors)                                |
 +===================================================================+
-| Status: HEALTHY (10/10 checks passed)                             |
+| Status: HEALTHY (11/11 checks passed)                             |
 +===================================================================+
 ```
 
@@ -1105,7 +1165,8 @@ ls -la .claude/memory/
     "schemas": {"passed": true, "count": 15},
     "context": {"passed": true, "usage": 0.84},
     "coordination": {"passed": true, "staleLocks": 0},
-    "ccVersion": {"passed": true, "version": "2.1.47"}
+    "ccVersion": {"passed": true, "version": "2.1.47"},
+    "pluginValidate": {"passed": true, "errors": 0, "warnings": 0, "skipped": false}
   },
   "exitCode": 0
 }
@@ -1343,7 +1404,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.78. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1454,6 +1515,18 @@ OrchestKit requires Claude Code >= 2.1.76. This matrix documents which CC featur
 | Worktree race condition fix | 2.1.77 | Stale cleanup no longer deletes resumed agent worktrees | Race between cleanup and agent resume |
 | --resume performance | 2.1.77 | 45% faster loading, ~100-150MB less peak memory | Slower fork-heavy session resume |
 | Progress message memory fix | 2.1.77 | Progress messages cleaned up during compaction | Memory growth from accumulated progress messages |
+| `StopFailure` hook event | 2.1.78 | Hooks fire on API errors (rate limit, auth failure) | No hook on API errors |
+| `$\{CLAUDE_PLUGIN_DATA\}` | 2.1.78 | Plugin persistent state survives plugin updates | State lost on plugin update |
+| Agent `effort`/`maxTurns`/`disallowedTools` frontmatter | 2.1.78 | Plugin agents support effort, turn limits, tool restrictions | No agent-level frontmatter controls |
+| PreToolUse allow bypass fix | 2.1.78 | "allow" hooks no longer bypass deny permission rules | allow hooks could bypass deny rules |
+| `claude plugin validate` enhanced | 2.1.78 | Validates skill, agent, command frontmatter + hooks.json | Basic validation only |
+| Worktree skills/hooks loading fix | 2.1.78 | --worktree flag loads skills and hooks from worktree dir | Skills/hooks loaded from original dir |
+| `--console` auth flag | 2.1.79 | `claude auth login --console` for API billing auth | Only OAuth/API key auth |
+| "Show turn duration" toggle | 2.1.79 | Turn duration visible in /config menu | No turn duration display |
+| `/remote-control` (VSCode) | 2.1.79 | Bridge session to claude.ai/code from browser/phone | VSCode-only sessions |
+| Multi-dir `PLUGIN_SEED_DIR` | 2.1.79 | Multiple seed dirs separated by platform path delimiter | Single seed directory only |
+| `-p` mode Ctrl+C fix | 2.1.79 | Ctrl+C works in print mode | Ctrl+C ignored in -p mode |
+| Startup memory reduction | 2.1.79 | ~18MB less memory on startup | Higher startup memory |
 
 ## Version Detection
 
@@ -1484,6 +1557,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
+| >= 2.1.78 | Full+++++++++ | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
+| >= 2.1.79 | Full++++++++++ | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 
 ## Doctor Check Implementation
 
@@ -1562,6 +1637,8 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.14.x | 2.1.79 | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
+| v7.14.x | 2.1.78 | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
 | v7.12.x | 2.1.77 | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
 | v7.8.x | 2.1.76 | PostCompact hook, Elicitation hooks, sparse paths, /effort, bg agent partial results |
 | v7.7.x | 2.1.75 | 1M context default, memory timestamps, hook source display, token estimation fix |

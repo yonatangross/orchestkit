@@ -4,6 +4,7 @@ description: Event-driven architecture specialist who designs event sourcing sys
 category: backend
 model: opus
 maxTurns: 60
+effort: medium
 permissionMode: plan
 context: fork
 color: purple
