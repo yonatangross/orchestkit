@@ -1404,7 +1404,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.78. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.80. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1527,6 +1527,18 @@ OrchestKit requires Claude Code >= 2.1.78. This matrix documents which CC featur
 | Multi-dir `PLUGIN_SEED_DIR` | 2.1.79 | Multiple seed dirs separated by platform path delimiter | Single seed directory only |
 | `-p` mode Ctrl+C fix | 2.1.79 | Ctrl+C works in print mode | Ctrl+C ignored in -p mode |
 | Startup memory reduction | 2.1.79 | ~18MB less memory on startup | Higher startup memory |
+| `rate_limits` statusline field | 2.1.80 | Statusline scripts receive rate limit usage (5h/7d windows, `used_percentage`, `resets_at`) | No rate limit visibility |
+| `source: 'settings'` marketplace | 2.1.80 | Declare plugin entries inline in settings.json | Marketplace JSON files only |
+| CLI tool usage detection for tips | 2.1.80 | Plugin tips detect CLI tool usage, not just file patterns | File pattern matching only |
+| `effort` frontmatter for skills | 2.1.80 | Skills declare effort level (low/high) to override model effort | No per-skill effort control |
+| `--channels` (research preview) | 2.1.80 | MCP servers push messages into active session | Pull-only MCP communication |
+| `--resume` parallel tool fix | 2.1.80 | Sessions with parallel tool calls restore all tool_use/tool_result pairs | `[Tool result missing]` on resume |
+| Voice mode WebSocket fix | 2.1.80 | Fixes Cloudflare bot detection on non-browser TLS fingerprints | Voice mode connection failures |
+| Fine-grained tool streaming fix | 2.1.80 | Fixes 400 errors through API proxies, Bedrock, or Vertex | Streaming failures on proxied deployments |
+| `/effort` shows auto resolution | 2.1.80 | Shows what "auto" resolves to, matching status bar | Opaque auto effort |
+| Simplified plugin install tips | 2.1.80 | Single `/plugin install` command instead of two-step flow | Two-step marketplace add + install |
+| Startup memory reduction (250k repos) | 2.1.80 | ~80 MB saved on startup in large repositories | Higher startup memory on large repos |
+| Managed settings cache fix | 2.1.80 | `enabledPlugins`, `permissions.defaultMode`, policy env vars applied at startup | Stale remote-settings.json from prior session |
 
 ## Version Detection
 
@@ -1559,6 +1571,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
 | >= 2.1.78 | Full+++++++++ | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
 | >= 2.1.79 | Full++++++++++ | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
+| >= 2.1.80 | Full+++++++++++ | rate_limits statusline, effort frontmatter, --channels, source:settings marketplace, --resume parallel fix |
 
 ## Doctor Check Implementation
 
@@ -1637,6 +1650,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.15.x | 2.1.80 | effort frontmatter, rate_limits statusline, --channels, source:settings, simplified plugin tips |
 | v7.14.x | 2.1.79 | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 | v7.14.x | 2.1.78 | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
 | v7.12.x | 2.1.77 | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
