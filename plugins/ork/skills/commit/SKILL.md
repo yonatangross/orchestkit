@@ -14,6 +14,7 @@ disable-model-invocation: true
 allowed-tools: [Bash]
 skills: [chain-patterns]
 complexity: low
+effort: low
 hooks:
   PreToolUse:
     - matcher: "Bash"

@@ -10,6 +10,7 @@ user-invocable: false
 disable-model-invocation: true
 context: inherit
 complexity: low
+effort: low
 allowed-tools:
   - Read
   - Glob

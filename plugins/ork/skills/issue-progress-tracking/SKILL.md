@@ -11,6 +11,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Bash]
 complexity: low
+effort: low
 model: haiku
 metadata:
   category: workflow-automation

@@ -11,6 +11,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Read, Bash, mcp__memory__search_nodes]
 complexity: high
+effort: high
 metadata:
   category: mcp-enhancement
   mcp-server: memory

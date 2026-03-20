@@ -12,6 +12,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: low
+effort: low
 model: haiku
 metadata:
   category: document-asset-creation

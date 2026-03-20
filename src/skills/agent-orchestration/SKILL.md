@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: high
+effort: high
 metadata:
   category: workflow-automation
 allowed-tools:

@@ -9,6 +9,7 @@ disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, Bash, Grep, Glob]
 complexity: low
+effort: low
 model: haiku
 ---
 
