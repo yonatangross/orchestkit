@@ -10,6 +10,7 @@ user-invocable: false
 disable-model-invocation: true
 context: fork
 complexity: high
+effort: high
 metadata:
   category: mcp-enhancement
   spec-version: "2025-11-25"

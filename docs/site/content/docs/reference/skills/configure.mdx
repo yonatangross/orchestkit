@@ -612,6 +612,36 @@ Adds to settings.json:
 }
 ```
 
+## Step 10: CC 2.1.80 Settings
+
+Configure CC 2.1.80-specific features:
+
+### Effort Frontmatter
+
+Skills can now declare `effort:` in frontmatter to override the model effort level when invoked. OrchestKit sets effort on 40 skills (18 high, 22 low).
+
+### Rate Limits Statusline
+
+The statusline now receives `rate_limits` with 5-hour and 7-day usage windows. OrchestKit surfaces this in the status bar.
+
+### Source: Settings Marketplace
+
+Plugin entries can be declared inline in settings.json:
+
+```json
+{
+  "plugins": {
+    "sources": [
+      { "type": "settings", "url": "github:yonatangross/orchestkit" }
+    ]
+  }
+}
+```
+
+### Channels (Research Preview)
+
+MCP servers can push messages into sessions via `--channels`. Experimental — monitor for GA.
+
 Shows elapsed time per turn in the statusline — useful for profiling slow tool calls and understanding agent performance.
 
 

@@ -13,6 +13,7 @@ disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
+effort: low
 model: haiku
 hooks:
   PreToolUse:

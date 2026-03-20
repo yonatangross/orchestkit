@@ -12,6 +12,7 @@ skills: [scope-appropriate-architecture]
 user-invocable: false
 disable-model-invocation: false
 complexity: max
+effort: high
 hooks:
   PreToolUse:
     - matcher: "Read"

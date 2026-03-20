@@ -35,9 +35,10 @@ Stable is the default when you install OrchestKit. Thoroughly tested and recomme
 ### Install stable
 
 ```bash
-claude plugin marketplace add yonatangross/orchestkit
-claude plugin install ork
+/plugin install yonatangross/orchestkit
 ```
+
+> **CC < 2.1.80:** Use `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork`
 </Step>
 <Step>
 ### Verify installation
@@ -53,7 +54,7 @@ Look for: `Plugin: ork v7.2.0 (stable)`
 **What you get:**
 - Fully tested features across macOS, Ubuntu, Windows
 - Regular bug fixes and security patches
-- Compatible with Claude Code >= 2.1.75
+- Compatible with Claude Code >= 2.1.80
 
 **Update frequency:** Weekly or as needed for bug fixes.
 
@@ -63,18 +64,13 @@ Beta contains upcoming features that are largely functional but may have rough e
 
 <Steps>
 <Step>
-### Add the beta marketplace
+### Install beta
 
 ```bash
-claude plugin marketplace add yonatangross/orchestkit@beta
+/plugin install yonatangross/orchestkit@beta
 ```
-</Step>
-<Step>
-### Install from beta
 
-```bash
-claude plugin install ork
-```
+> **CC < 2.1.80:** Use `claude plugin marketplace add yonatangross/orchestkit@beta && claude plugin install ork`
 </Step>
 <Step>
 ### Verify channel
@@ -95,18 +91,13 @@ Alpha is cutting-edge and experimental. For contributors and advanced users only
 
 <Steps>
 <Step>
-### Add the alpha marketplace
+### Install alpha
 
 ```bash
-claude plugin marketplace add yonatangross/orchestkit@alpha
+/plugin install yonatangross/orchestkit@alpha
 ```
-</Step>
-<Step>
-### Install from alpha
 
-```bash
-claude plugin install ork
-```
+> **CC < 2.1.80:** Use `claude plugin marketplace add yonatangross/orchestkit@alpha && claude plugin install ork`
 </Step>
 </Steps>
 
@@ -117,19 +108,15 @@ claude plugin install ork
 ### From Stable to Beta
 
 ```bash
-claude plugin marketplace remove orchestkit
-claude plugin marketplace add yonatangross/orchestkit@beta
 claude plugin uninstall ork
-claude plugin install ork
+/plugin install yonatangross/orchestkit@beta
 ```
 
 ### From Beta/Alpha Back to Stable
 
 ```bash
-claude plugin marketplace remove orchestkit
-claude plugin marketplace add yonatangross/orchestkit
 claude plugin uninstall ork
-claude plugin install ork
+/plugin install yonatangross/orchestkit
 ```
 
 **Note:** Restart Claude Code after switching channels for the change to take effect.

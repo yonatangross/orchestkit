@@ -11,6 +11,7 @@ tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob]
 complexity: low
+effort: low
 model: haiku
 metadata:
   category: document-asset-creation

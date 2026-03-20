@@ -1,52 +1,23 @@
 # Session Handoff
 
-**Branch**: feat/sprint2-wave-a
-**When**: 2026-03-15 09:03:17 UTC
-**Session**: 5e36b9d6-e090-4ac8-8808-2ec0b978d5a9
+**Branch**: ci/docs-version-sync
+**When**: 2026-03-19 16:13:01 UTC
+**Session**: e1b3a471-fd98-4097-8c15-e0e38939bcde
 
 ## Summary
-The 7.8.0 cache was cleaned up but CC's hook registry still points there. The 7.9.0 cache has the file. This is a CC session-level cache — hooks registered at session start keep their resolved paths for the entire session. 
+Pushed to PR #1117. The `reference/hooks/spotlights/` directory was a hollow shell — `meta.json` had `"pages": []` and no `.mdx` files. Now it has all 8 spotlight pages (dangerous-command-blocker, file-guard, unified-advisory-dispatcher, etc.).
 
-You need to **restart the session** for CC to resolve hooks against the 7.9.0 cache.
+This will show up once #1117 is merged and Vercel redeploys.
 
 ## Modified Files
 - .claude/HANDOFF.md.consumed
-- docs/site/content/docs/reference/skills/assess.mdx
-- docs/site/content/docs/reference/skills/audit-full.mdx
-- docs/site/content/docs/reference/skills/brainstorm.mdx
-- docs/site/content/docs/reference/skills/create-pr.mdx
-- docs/site/content/docs/reference/skills/explore.mdx
-- docs/site/content/docs/reference/skills/fix-issue.mdx
-- docs/site/content/docs/reference/skills/implement.mdx
-- docs/site/content/docs/reference/skills/review-pr.mdx
-- docs/site/content/docs/reference/skills/setup.mdx
-- docs/site/content/docs/reference/skills/verify.mdx
-- docs/site/lib/generated/plugins-data.ts
-- docs/site/lib/generated/skill-content-data.ts
-- docs/site/lib/generated/skills-data.ts
-- plugins/ork/commands/assess.md
-- plugins/ork/commands/brainstorm.md
-- plugins/ork/commands/create-pr.md
-- plugins/ork/commands/explore.md
-- plugins/ork/commands/fix-issue.md
-- plugins/ork/commands/implement.md
-- plugins/ork/commands/review-pr.md
-- plugins/ork/commands/verify.md
-- plugins/ork/mcp-server/server.mjs
-- plugins/ork/skills/assess/SKILL.md
-- plugins/ork/skills/audit-full/SKILL.md
-- plugins/ork/skills/brainstorm/SKILL.md
-- plugins/ork/skills/create-pr/SKILL.md
-- plugins/ork/skills/explore/SKILL.md
-- plugins/ork/skills/fix-issue/SKILL.md
-- plugins/ork/skills/implement/SKILL.md
 
 ## Recent Tasks
-- Add /effort scaling to brainstorm [completed]
-- Update phase-workflow.md agent selection table [completed]
-- Update partial result handling for CC 2.1.76 [completed]
-- Build and test [completed]
-- Security audit of ork-elicit MCP server [completed]
-- Code quality review of ork-elicit MCP server [completed]
-- Synthesize review findings [completed]
-- Review PR #1067 — MCP elicitation commit [completed]
+- P1.2+P3.9: Add effort + disallowedTools to 12 agents [completed]
+- P3.10: Add 128k output token awareness to relevant skills [completed]
+- P1.1: Fix README badge ≥2.1.76 → ≥2.1.78 [completed]
+- P1.3: Update version-compat table for 2.1.78 + 2.1.79 [completed]
+- P2.4-7: Update setup/configure skills for 2.1.79 features [completed]
+- P2.8: Integrate claude plugin validate into doctor skill [completed]
+- Build + test all changes [completed]
+- Verify CC 2.1.77-2.1.79 compatibility updates [completed]

@@ -41,6 +41,7 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false    # true for /slash-command skills
 complexity: low | medium | high
+effort: low | high              # CC 2.1.80+: override model effort level (omit for auto)
 ---
 ```
 

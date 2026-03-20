@@ -10,6 +10,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: true
 complexity: complex
+effort: high
 model: sonnet
 allowed-tools:
   - Read
