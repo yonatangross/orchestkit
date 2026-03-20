@@ -180,6 +180,39 @@ else
     warn "Listed skills may exceed context budget ($listed > 20)"
 fi
 
+# --- Test: Effort frontmatter values are valid (CC 2.1.80) ---
+echo -e "\n${CYAN}Test: Effort Frontmatter Validation (CC 2.1.80)${NC}"
+
+effort_valid=0
+effort_invalid=0
+effort_invalid_list=()
+
+for skill_dir in "$SKILLS_DIR"/*/; do
+    skill_file="$skill_dir/SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    skill_name=$(basename "$skill_dir")
+
+    # Extract effort field from frontmatter
+    effort_val=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep -E '^effort:' | sed 's/^effort:[[:space:]]*//' | tr -d '"'"'" || true)
+
+    if [[ -n "$effort_val" ]]; then
+        if [[ "$effort_val" == "low" || "$effort_val" == "high" ]]; then
+            effort_valid=$((effort_valid + 1))
+        else
+            effort_invalid=$((effort_invalid + 1))
+            effort_invalid_list+=("$skill_name ($effort_val)")
+        fi
+    fi
+done
+
+if [[ ${#effort_invalid_list[@]} -gt 0 ]]; then
+    for bad in "${effort_invalid_list[@]}"; do
+        fail "Invalid effort value: $bad (must be 'low' or 'high')"
+    done
+else
+    pass "All effort frontmatter values valid ($effort_valid skills with effort set)"
+fi
+
 # --- Summary ---
 echo ""
 echo "========================================"
