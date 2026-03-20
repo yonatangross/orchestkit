@@ -1,0 +1,69 @@
+---
+title: "Pattern Consistency Enforcer"
+description: "The only skill-scoped hook --- enforces established code patterns during review"
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+<span className="badge badge-red">Blocks</span> <span className="badge badge-green">Skill-scoped</span>
+
+> Checks written code against a project's established patterns file and blocks commits that violate architectural conventions.
+
+## When It Fires
+
+**Event:** PreToolUse · **Matcher:** `Write`, `Edit` · **Scope:** Skill (`code-review`)
+
+This is OrchestKit's **only skill-scoped hook**. It activates exclusively when the `code-review` skill is loaded, adding pattern enforcement on top of the standard file guard checks.
+
+## What It Does
+
+When code is written or edited during a code review session, the hook reads the project's established patterns file at `.claude/context/knowledge/patterns/established.json`. If the file does not exist, the hook exits silently --- pattern enforcement is opt-in.
+
+The hook then inspects the file content against category-specific rules based on file path and extension. Violations are classified as **errors** (blocking) or **warnings** (non-blocking, logged to stderr).
+
+## Enforced Patterns
+
+### Backend (Python)
+
+| Pattern | What It Catches |
+|---------|----------------|
+| **Clean Architecture layers** | Router importing directly from repositories (should go through services) |
+| **Circular dependencies** | Service importing from routers |
+| **Async SQLAlchemy** | Using sync `Session`/`sessionmaker` instead of `AsyncSession` |
+| **Pydantic v2** | Using `@validator` (v1) instead of `@field_validator` (v2) |
+| **Pydantic v2** | Using `@root_validator` (v1) instead of `@model_validator` (v2) |
+
+### Frontend (TypeScript/JavaScript)
+
+| Pattern | What It Catches |
+|---------|----------------|
+| **React 19 components** | Using `React.FC<>` instead of explicit props type |
+| **Zod validation** | API calls (`fetch`, `axios`) without Zod response validation |
+| **React 19 forms** | Form elements without `useFormStatus`/`useActionState`/`useOptimistic` (warning only) |
+| **Date formatting** | Direct `toLocaleDateString` instead of centralized `@/lib/dates` helpers |
+
+### Testing
+
+| Pattern | What It Catches |
+|---------|----------------|
+| **AAA comments** | Missing Arrange-Act-Assert comments in tests (warning only) |
+| **MSW for mocking** | Using `jest.mock` for fetch instead of MSW |
+| **Pytest fixtures** | Using unittest `setUp` instead of pytest fixtures |
+
+### AI Integration
+
+| Pattern | What It Catches |
+|---------|----------------|
+| **IDs in prompts** | Database IDs passed directly into LLM prompts |
+| **Timeout protection** | LLM calls without `asyncio.timeout` or `Promise.race` wrapping |
+
+## Configuration
+
+Pattern enforcement requires an `established.json` file at `.claude/context/knowledge/patterns/established.json`. Without this file, the hook is inactive.
+
+The patterns checked are defined in source code. To customize which patterns apply to your project, maintain the `established.json` file with your project's conventions.
+
+## Related Hooks
+
+- [file-guard](/docs/hooks/spotlights/file-guard) --- global file protection that runs alongside this hook
+- [unified-quality-dispatcher](/docs/hooks/reference/pretool-write-edit#unified-quality-dispatcher) --- additional write quality checks

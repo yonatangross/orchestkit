@@ -12,6 +12,7 @@ Generates skills, agents, and hooks reference pages.
 import json
 import os
 import re
+import shutil
 
 from pathlib import Path
 
@@ -850,13 +851,19 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
         )
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
-    # Generate spotlights directory structure
+    # Copy spotlights from docs/hooks/spotlights/ source directory
     spotlights_dir = out_dir / "spotlights"
     spotlights_dir.mkdir(parents=True, exist_ok=True)
-    spotlights_meta = {"title": "Spotlights", "pages": []}
-    (spotlights_dir / "meta.json").write_text(
-        json.dumps(spotlights_meta, indent=2) + "\n", encoding="utf-8"
-    )
+    spotlights_src = Path(project_root) / "docs" / "site" / "content" / "docs" / "hooks" / "spotlights"
+    if spotlights_src.exists():
+        for src_file in spotlights_src.iterdir():
+            shutil.copy2(src_file, spotlights_dir / src_file.name)
+    else:
+        # Fallback: empty spotlights if source doesn't exist
+        spotlights_meta = {"title": "Spotlights", "pages": []}
+        (spotlights_dir / "meta.json").write_text(
+            json.dumps(spotlights_meta, indent=2) + "\n", encoding="utf-8"
+        )
 
     # meta.json — include spotlights section
     pages = ["index"] + [s for s, _, _ in cat_slugs] + ["spotlights"]
