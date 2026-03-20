@@ -30,14 +30,27 @@ const SECTION_TYPES = new Set([
   "security",
 ]);
 
+// Map release-please section names to Keep a Changelog types
+const SECTION_ALIASES = {
+  features: "added",
+  "bug fixes": "fixed",
+  miscellaneous: "changed",
+  documentation: "changed",
+  "code refactoring": "changed",
+  performance: "changed",
+  "ci/cd": "changed",
+};
+
 const entries = [];
 let current = null;
 let currentSection = null;
 
 for (const line of lines) {
-  // Version header: ## [6.0.16] - 2026-02-16
+  // Version header — two formats:
+  //   Keep a Changelog: ## [6.0.16] - 2026-02-16
+  //   Release-please:   ## [7.16.0](https://...) (2026-03-20)
   const versionMatch = line.match(
-    /^## \[([^\]]+)\]\s*-\s*(\d{4}-\d{2}-\d{2})/
+    /^## \[([^\]]+)\](?:\([^)]*\))?\s*[-–—]?\s*\(?(\d{4}-\d{2}-\d{2})\)?/
   );
   if (versionMatch) {
     if (current) entries.push(current);
@@ -52,10 +65,11 @@ for (const line of lines) {
     continue;
   }
 
-  // Section header: ### Added, ### Fixed, etc.
-  const sectionMatch = line.match(/^### (\w+)/);
+  // Section header: ### Added, ### Fixed, ### Features, ### Bug Fixes, etc.
+  const sectionMatch = line.match(/^### (.+)$/);
   if (sectionMatch && current) {
-    const type = sectionMatch[1].toLowerCase();
+    const rawType = sectionMatch[1].toLowerCase().trim();
+    const type = SECTION_ALIASES[rawType] || rawType;
     if (SECTION_TYPES.has(type)) {
       currentSection = { type, items: [] };
       current.sections.push(currentSection);
@@ -65,10 +79,11 @@ for (const line of lines) {
     continue;
   }
 
-  // Bullet item
-  if (line.match(/^- /) && currentSection) {
-    currentSection.items.push(line.slice(2));
-  } else if (line.match(/^\s+- /) && currentSection && currentSection.items.length > 0) {
+  // Bullet item (- or * prefix)
+  const bulletMatch = line.match(/^[-*] (.+)/);
+  if (bulletMatch && currentSection) {
+    currentSection.items.push(bulletMatch[1]);
+  } else if (line.match(/^\s+[-*] /) && currentSection && currentSection.items.length > 0) {
     // Sub-bullet — append to last item
     currentSection.items[currentSection.items.length - 1] += "\n" + line;
   }
