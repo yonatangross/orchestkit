@@ -31,9 +31,17 @@ task = research_start(
 status = research_status(task_id=task.id)
 # status: "searching" | "analyzing" | "completed"
 
-# 3. Import discovered sources into notebook
-research_import(task_id=task.id, notebook_id="...")
+# 3. Import discovered sources into notebook (v0.5.0+: timeout configurable)
+research_import(task_id=task.id, notebook_id="...", timeout=300)
 # Adds the most relevant discovered sources automatically
+# Default timeout is 300s (was 120s pre-0.5.0). Use --timeout in CLI.
+```
+
+**Deep research mode** (v0.5.1+):
+```
+# Deep research for comprehensive multi-source synthesis
+research_start(notebook_id="...", topic="...", mode="deep")
+# Transient API errors now auto-retry with RPCError handling
 ```
 
 **Key rules:**
@@ -41,5 +49,7 @@ research_import(task_id=task.id, notebook_id="...")
 - Always poll with `research_status` -- research takes 1-3 minutes
 - Research uses Google API quota -- avoid running many parallel research tasks
 - Import results with `research_import` to add discovered sources to your notebook
+- For notebooks with many sources, increase `timeout` on `research_import` (default 300s, was 120s)
+- Use `mode="deep"` for comprehensive synthesis -- transient errors are now auto-retried (v0.5.1+)
 - Combine web and Drive sources for comprehensive coverage
 - Follow up with `notebook_query` to synthesize the newly imported sources

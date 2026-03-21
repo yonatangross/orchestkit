@@ -3,9 +3,9 @@ name: notebooklm
 license: MIT
 compatibility: "Claude Code 2.1.76+."
 author: OrchestKit
-description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation, and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
-version: 1.1.0
-tags: [notebooklm, mcp, rag, google, podcast, research, knowledge-management]
+description: "NotebookLM integration patterns for external RAG, research synthesis, studio content generation (audio, cinematic video, slides, infographics, mind maps), and knowledge management. Use when creating notebooks, adding sources, generating audio/video, or querying NotebookLM via MCP."
+version: 1.2.0
+tags: [notebooklm, mcp, rag, google, podcast, video, cinematic, research, knowledge-management]
 user-invocable: false
 disable-model-invocation: true
 context: fork
@@ -26,9 +26,19 @@ allowed-tools:
 
 # NotebookLM
 
-NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI, v0.4.8+) to create notebooks, manage sources, generate content, and query with grounded AI responses. Supports batch operations across notebooks, pipelines, and multilingual content generation.
+NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI, v0.5.0+) to create notebooks, manage sources, generate content, and query with grounded AI responses. Supports batch operations across notebooks, pipelines, and multilingual content generation.
 
 > **Disclaimer**: Uses internal undocumented Google APIs via browser authentication. Sessions last ~20 minutes. API may change without notice.
+
+### What's New (March 2026)
+
+- **Cinematic Video Overviews** (Mar 4) — fully animated narrated videos powered by Gemini 3 + Veo 3. Google AI Ultra only, 20/day limit, English only.
+- **4 Audio Formats** — Brief, Critique, Debate, Deep Dive (was single podcast style)
+- **8x Source Capacity** — 8x more source material per conversation, 6x extended memory
+- **Per-Slide Editing** — `studio_revise` edits individual slides without regenerating the full deck
+- **3-Panel UI** — Sources / Chat / Studio layout on notebooklm.google.com
+- **Research timeout** (v0.5.0) — `research_import` now configurable via `--timeout` / `timeout` param (default 300s, was 120s)
+- **Deep research errors** (v0.5.1) — `RPCError` class with error codes, auto-retry on transient API failures
 
 ## Prerequisites
 
@@ -61,7 +71,7 @@ What are you trying to do?
 │   └── Configure chat style ────► chat_configure
 │
 ├── Generate studio content
-│   ├── 9 artifact types ────────► rules/workflow-studio-content.md
+│   ├── 10 artifact types ───────► rules/workflow-studio-content.md
 │   ├── Revise slides ───────────► studio_revise (creates new deck)
 │   └── Export to Docs/Sheets ──► export_artifact
 │
@@ -96,7 +106,7 @@ What are you trying to do?
 | **Workflows** | `workflow-second-brain.md` | HIGH | Decision docs, project hub, agent interop |
 | **Workflows** | `workflow-research-offload.md` | HIGH | Synthesis, onboarding, token savings |
 | **Workflows** | `workflow-knowledge-base.md` | HIGH | Debugging KB, security handbook, team knowledge |
-| **Workflows** | `workflow-studio-content.md` | MEDIUM | 9 artifact types (audio overview, deep dive, slides...) |
+| **Workflows** | `workflow-studio-content.md` | HIGH | 10 artifact types (audio, cinematic video, slides, infographics, mind maps...) |
 | **Research** | `workflow-research-discovery.md` | HIGH | Web/Drive research async flow |
 | **Collaboration** | `workflow-sharing-collaboration.md` | MEDIUM | Public links, collaborator invites, batch sharing |
 | **Batch** | `workflow-batch-pipelines.md` | HIGH | Cross-notebook queries, batch ops, pipelines |
@@ -122,7 +132,7 @@ What are you trying to do?
 | Tags | tags (organize and smart-select notebooks) | 1 |
 | Auth | save_auth_tokens, refresh_auth, server_info | 3 |
 
-**Total: 37 tools across 13 groups** (v0.4.8+)
+**Total: 37 tools across 13 groups** (v0.5.0+)
 
 ## Key Decisions
 
@@ -133,7 +143,10 @@ What are you trying to do?
 | Large sources | Split >50K chars into multiple sources for better retrieval |
 | Auth expired? | `nlm login --check`; sessions last ~20 min, re-auth with `nlm login` |
 | Studio content | Use studio_create, poll with studio_status (generation takes 2-5 min) |
-| Research discovery | research_start for web/Drive discovery, then research_import to add findings |
+| Cinematic video | `studio_create(artifact_type="cinematic_video")` — requires Ultra, English only, 20/day |
+| Audio format | Choose brief/critique/debate/deep_dive via `audio_format` param |
+| Research discovery | research_start for web/Drive discovery, then research_import (timeout=300s default) |
+| Deep research | `research_start(mode="deep")` for multi-source synthesis (v0.5.1+, auto-retries) |
 | Release notebooks | One notebook per minor version; upload CHANGELOG + key skill diffs as sources |
 | Query vs search | notebook_query for AI-grounded answers; source_get_content for raw text |
 | Notes vs sources | Notes for your insights/annotations; sources for external documents |
@@ -162,7 +175,11 @@ notebook_query(notebook_id="...", query="What are the key differences between OA
 studio_create(notebook_id="...", artifact_type="audio", audio_format="deep_dive", language="he", confirm=True)
 studio_status(notebook_id="...")  # Poll until complete
 
-# 5. Capture insights as notes
+# 5. Generate a cinematic video overview (Ultra only, English)
+studio_create(notebook_id="...", artifact_type="cinematic_video", confirm=True)
+studio_status(notebook_id="...")  # Poll — takes 3-8 minutes
+
+# 6. Capture insights as notes
 note(notebook_id="...", action="create", content="Key takeaway: PKCE is mandatory in 2.1")
 ```
 
