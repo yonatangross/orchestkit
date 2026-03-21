@@ -393,7 +393,8 @@ export const SKILLS_SUMMARY = {
     ],
     "video": [
       "demo-producer",
-      "multimodal-llm"
+      "multimodal-llm",
+      "notebooklm"
     ],
     "accessibility": [
       "accessibility",

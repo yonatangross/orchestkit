@@ -17,6 +17,45 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.17.0",
+    "date": "2026-03-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** update notebooklm skill for v0.5.2 + cinematic video ([#1130](https://github.com/yonatangross/orchestkit/issues/1130)) ([28d3726](https://github.com/yonatangross/orchestkit/commit/28d37263c5fa11257cf781843e1d8b6520ed3adf))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.16.2",
+    "date": "2026-03-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** parse release-please changelog format in data generator ([#1128](https://github.com/yonatangross/orchestkit/issues/1128)) ([6efbf19](https://github.com/yonatangross/orchestkit/commit/6efbf19f62b46ec5123bd44de3754b94136096fb))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.16.1",
+    "date": "2026-03-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.16.0",
     "date": "2026-03-20",
     "compareUrl": "",
