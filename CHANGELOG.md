@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.17.0](https://github.com/yonatangross/orchestkit/compare/v7.16.2...v7.17.0) (2026-03-21)
+
+
+### Features
+
+* **skills:** update notebooklm skill for v0.5.2 + cinematic video ([#1130](https://github.com/yonatangross/orchestkit/issues/1130)) ([28d3726](https://github.com/yonatangross/orchestkit/commit/28d37263c5fa11257cf781843e1d8b6520ed3adf))
+
 ## [7.16.2](https://github.com/yonatangross/orchestkit/compare/v7.16.1...v7.16.2) (2026-03-20)
 
 
