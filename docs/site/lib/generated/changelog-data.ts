@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.20.0",
+    "date": "2026-03-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "feat(eval): unified `npm run eval:skill` command — trigger + quality in one command per skill",
+          "feat(eval): `npm run eval:optimize-desc` — iterative description improvement with train/test split",
+          "feat(eval): `check-eval-regression.sh` — CI regression gate comparing eval baselines (no API calls)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.19.0",
     "date": "2026-03-21",
     "compareUrl": "",

@@ -51,6 +51,15 @@ SKILL_NAME_RE='^[a-z0-9][a-z0-9-]*$'
 unset CLAUDECODE 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
+# Bare mode (CC 2.1.81+): skip hooks/LSP/plugin sync for faster -p calls.
+# Requires ANTHROPIC_API_KEY (OAuth/keychain disabled in bare mode).
+# ---------------------------------------------------------------------------
+BARE_MODE=false
+if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
+    BARE_MODE=true
+fi
+
+# ---------------------------------------------------------------------------
 # Dependency checker
 # ---------------------------------------------------------------------------
 # Requires DRY_RUN to be set by the sourcing script before calling.

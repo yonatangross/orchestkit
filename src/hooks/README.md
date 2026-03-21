@@ -19,6 +19,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - Zero dependencies in production bundles
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 - CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
+- CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
 
 ---
 

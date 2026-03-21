@@ -677,6 +677,37 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "bare-eval": {
+    "name": "bare-eval",
+    "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "eval",
+      "bare",
+      "grading",
+      "pipeline",
+      "testing",
+      "ci"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "grading-schemas.md",
+        "invocation-patterns.md",
+        "troubleshooting.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",

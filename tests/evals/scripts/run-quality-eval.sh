@@ -209,6 +209,9 @@ build_claude_flags() {
 
     if [[ "$include_plugin" == "true" ]]; then
         flags+=(--plugin-dir "$PLUGIN_DIR")
+    elif [[ "$BARE_MODE" == "true" ]]; then
+        # CC 2.1.81: --bare skips hooks/LSP/plugin sync for faster scripted calls
+        flags+=(--bare)
     fi
     flags+=(--dangerously-skip-permissions)
     flags+=(--max-turns "$MAX_TURNS")
@@ -254,6 +257,11 @@ run_with_forced_skill() {
     flags+=(--no-session-persistence)
     flags+=(--max-budget-usd "$MAX_BUDGET")
     flags+=(--append-system-prompt "$skill_content")
+
+    # CC 2.1.81: --bare skips hooks/LSP/plugin sync for faster isolated eval
+    if [[ "$BARE_MODE" == "true" ]]; then
+        flags+=(--bare)
+    fi
 
     if [[ -n "$EVAL_MODEL" ]]; then
         flags+=(--model "$EVAL_MODEL")
@@ -354,7 +362,12 @@ $assertions_json
 OUTPUT:
 $output_text"
 
+    # CC 2.1.81: --bare for grading calls (no plugins needed)
+    local -a bare_flag=()
+    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
+        "${bare_flag[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true
@@ -393,7 +406,12 @@ ASSERTION: $assertion_check
 OUTPUT:
 $output_text"
 
+    # CC 2.1.81: --bare for grading calls (no plugins needed)
+    local -a bare_flag=()
+    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
+        "${bare_flag[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true

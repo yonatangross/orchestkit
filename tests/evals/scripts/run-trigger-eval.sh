@@ -192,7 +192,12 @@ Available skills:
 $(echo -e "$SKILLS_CATALOG")"
 
     for ((i=1; i<=reps; i++)); do
+        # CC 2.1.81: --bare for trigger classification (no plugins needed)
+        local -a bare_flag=()
+        if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+
         run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
+            "${bare_flag[@]}" \
             --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
             --output-format json \
             --json-schema "$TRIGGER_SCHEMA" \

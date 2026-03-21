@@ -184,7 +184,11 @@ Rules:
 Output ONLY the improved description text, nothing else. No quotes, no explanation."
 
         local new_desc
-        new_desc=$(echo "$improve_prompt" | claude -p --max-turns 1 --output-format text 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+        # CC 2.1.81: --bare for description improvement (no plugins needed)
+        local -a bare_flag=()
+        if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+
+        new_desc=$(echo "$improve_prompt" | claude -p "${bare_flag[@]}" --max-turns 1 --output-format text 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
 
         if [[ -z "$new_desc" || ${#new_desc} -gt 1024 ]]; then
             echo -e "  ${YELLOW}Iter $iter: Bad response (empty or >1024 chars), skipping${NC}"
