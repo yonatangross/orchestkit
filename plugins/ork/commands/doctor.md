@@ -99,7 +99,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
 | **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
-| **11. External Deps** | Optional tools (agent-browser) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 
