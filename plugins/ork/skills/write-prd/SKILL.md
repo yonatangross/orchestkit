@@ -31,6 +31,13 @@ allowed-tools:
   - mcp__memory__create_entities
   - mcp__memory__add_observations
   - mcp__memory__create_relations
+triggers:
+  keywords: [prd, "product requirements", "requirements document", "user stories", "acceptance criteria", "product spec", "formal spec"]
+  examples:
+    - "write a PRD for the SSO invite flow"
+    - "create a product requirements document for billing"
+    - "i need user stories and acceptance criteria for the dashboard"
+  anti-triggers: [implement, build, brainstorm, explore, review]
 ---
 
 # PRD — Product Requirements Document

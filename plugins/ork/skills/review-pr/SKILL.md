@@ -23,6 +23,13 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: ["review pr", "code review", "review pull request", "review the changes", "look over", "check this pr", "before we merge"]
+  examples:
+    - "review PR 123"
+    - "do a code review on this pull request"
+    - "check this PR for issues before we merge"
+  anti-triggers: [create pr, open pr, commit, assess, rate, implement]
 ---
 
 # Review PR

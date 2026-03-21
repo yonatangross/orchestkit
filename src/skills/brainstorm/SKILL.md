@@ -24,6 +24,13 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: [brainstorm, "explore ideas", ideate, "think through", "some approaches", "not sure how to architect", alternatives, "compare strategies"]
+  examples:
+    - "brainstorm how to build the notification system"
+    - "what are some approaches for handling real-time updates"
+    - "im not sure how to architect the billing module"
+  anti-triggers: [implement, build, fix, commit, review, assess, rate]
 ---
 
 # Brainstorming Ideas Into Designs

@@ -21,6 +21,13 @@ hooks:
 metadata:
   category: document-asset-creation
   mcp-server: memory
+triggers:
+  keywords: ["visualize plan", "show diagram", "before and after", "execution order", "risk and impact", swimlane, "what files will change"]
+  examples:
+    - "visualize the plan for the billing module redesign"
+    - "show me a before and after diagram for this migration"
+    - "whats the risk and impact of the changes"
+  anti-triggers: [implement, brainstorm, explore, assess, fix]
 ---
 
 # Plan Visualization

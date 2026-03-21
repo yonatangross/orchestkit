@@ -17,6 +17,13 @@ complexity: medium
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: ["create pr", "pull request", "open pr", "open a pr", "make a pr", "submit pr", "push and pr"]
+  examples:
+    - "create a pull request for this feature"
+    - "open a PR against dev"
+    - "this is ready for review, make a PR"
+  anti-triggers: [commit, review pr, merge, rebase, push]
 ---
 
 # Create Pull Request

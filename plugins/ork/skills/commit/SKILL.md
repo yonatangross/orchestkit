@@ -24,6 +24,13 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-validator"
 metadata:
   category: workflow-automation
+triggers:
+  keywords: [commit, "commit message", "stage and commit", "save progress", "wrap it up", "conventional commit"]
+  examples:
+    - "commit my changes"
+    - "create a conventional commit for these files"
+    - "stage and commit the new tests"
+  anti-triggers: [push, pr, "pull request", review, rebase, merge]
 ---
 
 # Smart Commit
