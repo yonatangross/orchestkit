@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - feat(eval): unified `npm run eval:skill` command — trigger + quality in one command per skill
+- feat(eval): `npm run eval:optimize-desc` — iterative description improvement with train/test split
+- feat(eval): `check-eval-regression.sh` — CI regression gate comparing eval baselines (no API calls)
 
 ---
 
