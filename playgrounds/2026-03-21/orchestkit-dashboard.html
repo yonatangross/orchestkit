@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Project Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #232838;
+    --border: #2a2f3e; --text: #e2e8f0; --text2: #94a3b8;
+    --accent: #06b6d4; --green: #22c55e; --yellow: #eab308;
+    --red: #ef4444; --purple: #a855f7; --orange: #f97316;
+    --blue: #3b82f6;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header h1 span { color: var(--accent); }
+  .header .version { color: var(--text2); font-size: 13px; font-family: monospace; }
+
+  .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 65px); }
+
+  /* Sidebar */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); margin: 16px 0 8px; }
+  .section-title:first-child { margin-top: 0; }
+
+  .view-btn { display: block; width: 100%; padding: 10px 12px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; margin-bottom: 6px; transition: all 0.15s; }
+  .view-btn:hover { background: var(--surface2); border-color: var(--accent); }
+  .view-btn.active { background: rgba(6, 182, 212, 0.1); border-color: var(--accent); color: var(--accent); }
+  .view-btn .badge { float: right; font-size: 11px; padding: 1px 6px; border-radius: 10px; background: var(--surface2); color: var(--text2); }
+  .view-btn.active .badge { background: rgba(6, 182, 212, 0.2); color: var(--accent); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-card { background: var(--surface2); border-radius: 8px; padding: 10px; text-align: center; }
+  .stat-card .num { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-card .label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* Main */
+  .main { padding: 24px; overflow-y: auto; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Milestone bars */
+  .milestone { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.15s; }
+  .milestone:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .milestone.selected { border-color: var(--accent); background: rgba(6, 182, 212, 0.05); }
+  .milestone .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .milestone .name { font-size: 14px; font-weight: 600; }
+  .milestone .pct { font-size: 13px; font-family: monospace; }
+  .milestone .bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .milestone .bar .fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .milestone .meta { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--text2); }
+
+  /* Priority cards */
+  .priority-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .priority-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .priority-card.p1::before { background: var(--red); }
+  .priority-card.p2::before { background: var(--orange); }
+  .priority-card.p3::before { background: var(--yellow); }
+  .priority-card .p-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .priority-card .p-num { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .p1 .p-num { background: rgba(239,68,68,0.15); color: var(--red); }
+  .p2 .p-num { background: rgba(249,115,22,0.15); color: var(--orange); }
+  .p3 .p-num { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .priority-card .p-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .priority-card .p-subtitle { font-size: 13px; color: var(--text2); }
+  .priority-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--surface2); color: var(--text2); }
+  .tag.effort { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .tag.impact { background: rgba(34,197,94,0.15); color: var(--green); }
+  .tag.issues { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+  /* Dep graph */
+  .dep-graph { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .dep-graph h3 { font-size: 14px; margin-bottom: 12px; }
+  .dep-node { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-family: monospace; margin: 4px; border: 1px solid var(--border); }
+  .dep-node.done { background: rgba(34,197,94,0.1); border-color: var(--green); color: var(--green); }
+  .dep-node.active { background: rgba(6,182,212,0.1); border-color: var(--accent); color: var(--accent); }
+  .dep-node.blocked { background: rgba(239,68,68,0.1); border-color: var(--red); color: var(--red); opacity: 0.6; }
+  .dep-arrow { color: var(--text2); font-size: 16px; margin: 0 4px; vertical-align: middle; }
+
+  /* Implementation steps */
+  .impl-steps { list-style: none; }
+  .impl-steps li { padding: 10px 12px; border-left: 2px solid var(--border); margin-left: 8px; margin-bottom: 4px; font-size: 13px; position: relative; }
+  .impl-steps li::before { content: ''; position: absolute; left: -6px; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--border); }
+  .impl-steps li.current::before { background: var(--accent); border-color: var(--accent); }
+  .impl-steps li .step-title { font-weight: 600; }
+  .impl-steps li .step-detail { color: var(--text2); font-size: 12px; margin-top: 2px; }
+
+  /* Execution timeline */
+  .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .timeline-slot { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+  .timeline-slot .session { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .timeline-slot .task { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .timeline-slot .issues-list { font-size: 12px; color: var(--text2); font-family: monospace; }
+  .timeline-slot .outcome { font-size: 11px; margin-top: 8px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+  .timeline-slot .outcome.close-ms { background: rgba(34,197,94,0.15); color: var(--green); }
+  .timeline-slot .outcome.unblock { background: rgba(6,182,212,0.15); color: var(--accent); }
+
+  /* Score gauge */
+  .gauge-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .gauge-label { width: 140px; font-size: 13px; color: var(--text2); }
+  .gauge-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .gauge-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .gauge-value { width: 50px; text-align: right; font-size: 13px; font-family: monospace; font-weight: 600; }
+
+  /* Prompt */
+  .prompt-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 10; }
+  .prompt-bar .prompt-text { flex: 1; font-size: 12px; font-family: monospace; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copy-btn { padding: 6px 16px; background: var(--accent); color: #000; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .copy-btn:hover { opacity: 0.9; }
+
+  .spacer { height: 60px; }
+
+  /* Frontmatter preview */
+  .code-block { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: 'SF Mono', Monaco, monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; margin: 12px 0; color: #c9d1d9; }
+  .code-block .key { color: #7ee787; }
+  .code-block .val { color: #a5d6ff; }
+  .code-block .comment { color: #8b949e; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>OrchestKit</span> Project Dashboard</h1>
+  <div class="version">v7.16.2 &middot; CC &ge; 2.1.80 &middot; 93 skills &middot; 33 agents &middot; 106 hooks</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num">30</div><div class="label">Open</div></div>
+      <div class="stat-card"><div class="num">89</div><div class="label">Closed</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--green)">B+</div><div class="label">Grade</div></div>
+      <div class="stat-card"><div class="num">7.9</div><div class="label">Score</div></div>
+    </div>
+
+    <div class="section-title">Views</div>
+    <button class="view-btn active" onclick="showView('overview')">Overview <span class="badge">scores</span></button>
+    <button class="view-btn" onclick="showView('milestones')">Milestones <span class="badge">10</span></button>
+    <button class="view-btn" onclick="showView('priorities')">Top 3 Priorities <span class="badge">!</span></button>
+    <button class="view-btn" onclick="showView('deps')">Dependency Graph</button>
+    <button class="view-btn" onclick="showView('execution')">Execution Plan</button>
+    <button class="view-btn" onclick="showView('frontmatter')">Frontmatter Preview</button>
+
+    <div class="section-title">Quick Filters</div>
+    <button class="view-btn" onclick="showView('priorities')" style="border-color:var(--red);color:var(--red)">P1: Skill Amendments</button>
+    <button class="view-btn" onclick="showView('priorities')" style="border-color:var(--orange);color:var(--orange)">P2: Version Mgmt</button>
+    <button class="view-btn" onclick="showView('priorities')" style="border-color:var(--yellow);color:var(--yellow)">P3: Eval Pipeline</button>
+  </div>
+
+  <div class="main">
+    <!-- OVERVIEW -->
+    <div class="view active" id="view-overview">
+      <h2 style="margin-bottom:16px">Quality Scores</h2>
+      <div id="gauges"></div>
+
+      <h2 style="margin:24px 0 16px">Strengths</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="priority-card" style="border-color:var(--green)"><div style="font-size:13px"><strong style="color:var(--green)">Shipping Velocity</strong><br><span style="color:var(--text2)">6 releases in 3 days, CC 2.1.80 adopted same day</span></div></div>
+        <div class="priority-card" style="border-color:var(--green)"><div style="font-size:13px"><strong style="color:var(--green)">Security</strong><br><span style="color:var(--text2)">11/11 test suites, zero tolerance policy</span></div></div>
+        <div class="priority-card" style="border-color:var(--green)"><div style="font-size:13px"><strong style="color:var(--green)">Build Automation</strong><br><span style="color:var(--text2)">Version sync, changelog parser, spotlights generation</span></div></div>
+        <div class="priority-card" style="border-color:var(--green)"><div style="font-size:13px"><strong style="color:var(--green)">CC Compatibility</strong><br><span style="color:var(--text2)">Tracking latest CC within hours of release</span></div></div>
+      </div>
+
+      <h2 style="margin:24px 0 16px">Weaknesses</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="priority-card" style="border-color:var(--red)"><div style="font-size:13px"><strong style="color:var(--red)">Eval Pipeline</strong><br><span style="color:var(--text2)">55-60% complete, blocks quality feedback loop</span></div></div>
+        <div class="priority-card" style="border-color:var(--yellow)"><div style="font-size:13px"><strong style="color:var(--yellow)">Docs Site Bugs</strong><br><span style="color:var(--text2)">Build overwrites keep recurring (spotlights, changelog)</span></div></div>
+        <div class="priority-card" style="border-color:var(--yellow)"><div style="font-size:13px"><strong style="color:var(--yellow)">Video Content</strong><br><span style="color:var(--text2)">M76 at 11% — demos barely started</span></div></div>
+        <div class="priority-card" style="border-color:var(--yellow)"><div style="font-size:13px"><strong style="color:var(--yellow)">SEO Phase 3</strong><br><span style="color:var(--text2)">0% — programmatic pages not started</span></div></div>
+      </div>
+    </div>
+
+    <!-- MILESTONES -->
+    <div class="view" id="view-milestones">
+      <h2 style="margin-bottom:16px">Milestone Progress</h2>
+      <div id="milestone-list"></div>
+    </div>
+
+    <!-- PRIORITIES -->
+    <div class="view" id="view-priorities">
+      <h2 style="margin-bottom:16px">Top 3 Priorities (non-video)</h2>
+
+      <div class="priority-card p2">
+        <div class="p-header">
+          <div><div class="p-num">PRIORITY 1 — Recommended Start</div>
+          <div class="p-title">Version Management Triple</div>
+          <div class="p-subtitle">M73 &middot; #1018, #1019, #1020 &middot; Pure frontmatter + tests</div></div>
+        </div>
+        <div class="tags">
+          <span class="tag effort">~4 hours</span>
+          <span class="tag impact">HIGH impact</span>
+          <span class="tag issues">3 issues</span>
+          <span class="tag">closes M73</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          Add three new frontmatter fields to give skills a proper lifecycle:<br>
+          <strong style="color:var(--text)">#1018</strong> <code>deprecated</code> + <code>superseded_by</code> — sunset old skills gracefully<br>
+          <strong style="color:var(--text)">#1019</strong> <code>depends_on</code> — machine-readable skill dependencies<br>
+          <strong style="color:var(--text)">#1020</strong> <code>targets</code> — library version ranges with mismatch warnings
+        </div>
+        <ul class="impl-steps" style="margin-top:12px">
+          <li class="current"><span class="step-title">Step 1: #1018 deprecated/superseded_by (~1h)</span><div class="step-detail">Add fields to CONTRIBUTING-SKILLS.md, add warning test</div></li>
+          <li><span class="step-title">Step 2: #1019 depends_on (~2h)</span><div class="step-detail">Add field, populate ~15 skills, validate deps exist in manifest</div></li>
+          <li><span class="step-title">Step 3: #1020 targets (~2h)</span><div class="step-detail">Add field, populate ~20 skills, hook reads package.json</div></li>
+        </ul>
+      </div>
+
+      <div class="priority-card p1">
+        <div class="p-header">
+          <div><div class="p-num">PRIORITY 2 — Closes Milestone</div>
+          <div class="p-title">Skill Amendment Layer</div>
+          <div class="p-subtitle">M85 &middot; #1016 &middot; Last issue! (31/32 = 97% done)</div></div>
+        </div>
+        <div class="tags">
+          <span class="tag effort">~4 hours</span>
+          <span class="tag impact">HIGH impact</span>
+          <span class="tag issues">1 issue</span>
+          <span class="tag" style="background:rgba(34,197,94,0.15);color:var(--green)">closes M85!</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          Let teams customize skills without forking. A <code>.claude/skill-amendments/</code> directory where override files layer on top of skills via UserPromptSubmit hook injection.
+        </div>
+        <ul class="impl-steps" style="margin-top:12px">
+          <li class="current"><span class="step-title">New hook: skill-amendment.ts (~80 LOC)</span><div class="step-detail">UserPromptSubmit hook, reads .claude/skill-amendments/&lt;name&gt;.md</div></li>
+          <li><span class="step-title">Register in unified-dispatcher</span><div class="step-detail">Add to prompt hook registry, once-per-skill-invocation</div></li>
+          <li><span class="step-title">Update CONTRIBUTING-SKILLS.md</span><div class="step-detail">Document amendment pattern for users</div></li>
+          <li><span class="step-title">Tests (unit + integration)</span><div class="step-detail">Mock file read, verify injection, test missing file gracefully</div></li>
+        </ul>
+      </div>
+
+      <div class="priority-card p3">
+        <div class="p-header">
+          <div><div class="p-num">PRIORITY 3 — Unblocks Pipeline</div>
+          <div class="p-title">Unified Eval Command</div>
+          <div class="p-subtitle">M92 &middot; #1045 &middot; Deps #1042, #1043 both CLOSED</div></div>
+        </div>
+        <div class="tags">
+          <span class="tag effort">~3 hours</span>
+          <span class="tag impact">HIGH impact</span>
+          <span class="tag issues">1 issue</span>
+          <span class="tag" style="background:rgba(6,182,212,0.15);color:var(--accent)">unblocks 3</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          <code>npm run eval:skill -- commit</code> — thin wrapper around trigger + quality runners. Unblocks description optimization (#1044), CI gate (#1046), and cost tracking (#1050).
+        </div>
+        <ul class="impl-steps" style="margin-top:12px">
+          <li class="current"><span class="step-title">Create eval:skill script</span><div class="step-detail">Bash wrapper calling trigger + quality runners sequentially</div></li>
+          <li><span class="step-title">Add --trigger-only / --quality-only flags</span><div class="step-detail">Allow running subsets for faster iteration</div></li>
+          <li><span class="step-title">Add --all flag for full suite</span><div class="step-detail">Run across all 93 skills (batch mode)</div></li>
+          <li><span class="step-title">JSON output for CI consumption</span><div class="step-detail">Results file for downstream #1046 CI gate</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEPENDENCY GRAPH -->
+    <div class="view" id="view-deps">
+      <h2 style="margin-bottom:16px">Issue Dependency Graph</h2>
+
+      <div class="dep-graph">
+        <h3>Eval Pipeline Chain</h3>
+        <div style="padding:12px 0">
+          <span class="dep-node done">#1042 Trigger Runner</span>
+          <span class="dep-arrow">&#8594;</span>
+          <span class="dep-node active">#1045 Unified eval:skill</span>
+          <span class="dep-arrow">&#8594;</span>
+          <span class="dep-node blocked">#1044 Desc Optimization</span>
+          <br><br>
+          <span class="dep-node done">#1043 Quality Runner</span>
+          <span class="dep-arrow">&#8599;</span>
+          <span style="display:inline-block;width:170px"></span>
+          <span class="dep-arrow">&#8594;</span>
+          <span class="dep-node blocked">#1046 CI Gate</span>
+          <br><br>
+          <span style="display:inline-block;width:354px"></span>
+          <span class="dep-arrow">&#8594;</span>
+          <span class="dep-node blocked">#1050 Cost Tracking</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px">
+          <span class="dep-node done" style="font-size:10px;padding:2px 6px">done</span>
+          <span class="dep-node active" style="font-size:10px;padding:2px 6px">ready</span>
+          <span class="dep-node blocked" style="font-size:10px;padding:2px 6px">blocked</span>
+        </div>
+      </div>
+
+      <div class="dep-graph">
+        <h3>Version Management (Independent — No Dependencies)</h3>
+        <div style="padding:12px 0">
+          <span class="dep-node active">#1018 deprecated</span>
+          <span style="margin:0 12px;color:var(--text2)">|</span>
+          <span class="dep-node active">#1019 depends_on</span>
+          <span style="margin:0 12px;color:var(--text2)">|</span>
+          <span class="dep-node active">#1020 targets</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">All three are independent — can be done in any order or parallel</div>
+      </div>
+
+      <div class="dep-graph">
+        <h3>Skill Amendment Layer (Standalone)</h3>
+        <div style="padding:12px 0">
+          <span class="dep-node active">#1016 Amendment Hook</span>
+          <span class="dep-arrow">&#8594;</span>
+          <span class="dep-node blocked" style="opacity:0.4">(future: amendment marketplace)</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">No dependencies — can start immediately</div>
+      </div>
+
+      <div class="dep-graph">
+        <h3>Skill Dependency Graph (#1019 enables)</h3>
+        <div style="padding:12px 0;font-family:monospace;font-size:12px;line-height:2;color:var(--text2)">
+          <span style="color:var(--accent)">implement</span> ───► scope-appropriate-architecture<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├──────► chain-patterns<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└──────► <span style="color:var(--accent)">verify</span> ───► quality-gates<br><br>
+          <span style="color:var(--accent)">brainstorm</span> ──► chain-patterns<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└──────► <span style="color:var(--accent)">assess</span> ───► quality-gates<br><br>
+          <span style="color:var(--accent)">review-pr</span> ──► code-review-playbook<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└──────► security-patterns
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTION PLAN -->
+    <div class="view" id="view-execution">
+      <h2 style="margin-bottom:16px">Execution Plan</h2>
+
+      <div class="timeline">
+        <div class="timeline-slot" style="border-color:var(--orange)">
+          <div class="session">Session 1</div>
+          <div class="task">Version Management</div>
+          <div class="issues-list">#1018, #1019, #1020</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px">Frontmatter + tests only<br>~4 hours</div>
+          <div class="outcome close-ms">Closes M73 (3 issues)</div>
+        </div>
+        <div class="timeline-slot" style="border-color:var(--red)">
+          <div class="session">Session 2</div>
+          <div class="task">Skill Amendments</div>
+          <div class="issues-list">#1016</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px">Hook + tests<br>~4 hours</div>
+          <div class="outcome close-ms">Closes M85! (milestone)</div>
+        </div>
+        <div class="timeline-slot" style="border-color:var(--yellow)">
+          <div class="session">Session 3</div>
+          <div class="task">Eval Pipeline</div>
+          <div class="issues-list">#1045</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px">Script + integration<br>~3 hours</div>
+          <div class="outcome unblock">Unblocks #1044, #1046, #1050</div>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 12px">Impact After 3 Sessions</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div class="stat-card"><div class="num" style="color:var(--green)">5</div><div class="label">Issues Closed</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--green)">2</div><div class="label">Milestones Done</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--accent)">3</div><div class="label">Issues Unblocked</div></div>
+        <div class="stat-card"><div class="num">25</div><div class="label">Issues Remaining</div></div>
+      </div>
+
+      <h3 style="margin:24px 0 12px">Before &rarr; After</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="priority-card" style="border-color:var(--text2)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2)">BEFORE (now)</div>
+          <div style="font-family:monospace;font-size:12px;line-height:1.8;color:var(--text2)">
+            Open issues: 30<br>
+            M85 Context & Perf: 97% (1 open)<br>
+            M73 Version Mgmt: 80% (3 open)<br>
+            M92 Eval Pipeline: 55% (5 open)<br>
+            Composite: 7.9/10 (B+)
+          </div>
+        </div>
+        <div class="priority-card" style="border-color:var(--green)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--green)">AFTER (3 sessions)</div>
+          <div style="font-family:monospace;font-size:12px;line-height:1.8">
+            Open issues: <span style="color:var(--green)">25 (-5)</span><br>
+            M85 Context & Perf: <span style="color:var(--green)">100% CLOSED</span><br>
+            M73 Version Mgmt: <span style="color:var(--green)">100% CLOSED</span><br>
+            M92 Eval Pipeline: <span style="color:var(--accent)">64% (+9%)</span><br>
+            Composite: <span style="color:var(--green)">8.3/10 (A-)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRONTMATTER PREVIEW -->
+    <div class="view" id="view-frontmatter">
+      <h2 style="margin-bottom:16px">New Frontmatter Fields Preview</h2>
+
+      <h3 style="margin-bottom:8px">#1018: Deprecation Annotations</h3>
+      <div class="code-block">
+        <span class="comment">---</span><br>
+        <span class="key">name:</span> <span class="val">old-testing-patterns</span><br>
+        <span class="key">deprecated:</span> <span class="val">true</span><br>
+        <span class="key">superseded_by:</span> <span class="val">testing-unit</span><br>
+        <span class="comment">---</span>
+      </div>
+
+      <h3 style="margin:16px 0 8px">#1019: Dependency Graph</h3>
+      <div class="code-block">
+        <span class="comment">---</span><br>
+        <span class="key">name:</span> <span class="val">implement</span><br>
+        <span class="key">depends_on:</span><br>
+        &nbsp;&nbsp;- <span class="val">scope-appropriate-architecture</span><br>
+        &nbsp;&nbsp;- <span class="val">chain-patterns</span><br>
+        &nbsp;&nbsp;- <span class="val">verify</span><br>
+        <span class="comment">---</span>
+      </div>
+
+      <h3 style="margin:16px 0 8px">#1020: Version Ranges</h3>
+      <div class="code-block">
+        <span class="comment">---</span><br>
+        <span class="key">name:</span> <span class="val">react-server-components-framework</span><br>
+        <span class="key">targets:</span><br>
+        &nbsp;&nbsp;- <span class="key">library:</span> <span class="val">next.js</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">version:</span> <span class="val">">=14.0.0"</span><br>
+        &nbsp;&nbsp;- <span class="key">library:</span> <span class="val">react</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">version:</span> <span class="val">">=18.0.0"</span><br>
+        <span class="comment">---</span>
+      </div>
+
+      <h3 style="margin:16px 0 8px">#1016: Amendment File</h3>
+      <div class="code-block">
+        <span class="comment"># .claude/skill-amendments/implement.amendment.md</span><br><br>
+        <span class="key">## Additional Requirements</span><br>
+        - Always verify PCI DSS compliance for payment code<br>
+        - Check for PII exposure in logs<br>
+        - Require encryption at rest for sensitive data<br>
+        - Run <span class="val">npm audit</span> before committing dependencies
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<div class="prompt-bar">
+  <div class="prompt-text" id="prompt-output">Select a view to generate an action prompt</div>
+  <button class="copy-btn" onclick="copyPrompt()">Copy</button>
+</div>
+
+<script>
+const milestones = [
+  { id: 'M85', name: 'Context & Performance Optimization', open: 1, closed: 31, color: 'var(--green)' },
+  { id: 'M73', name: 'Version Management & Rollback', open: 3, closed: 12, color: 'var(--orange)' },
+  { id: 'M94', name: 'Design-to-Code Pipeline', open: 2, closed: 7, color: 'var(--accent)' },
+  { id: 'M74', name: 'Analytics & Observability', open: 4, closed: 11, color: 'var(--blue)' },
+  { id: 'M88', name: 'Eval Platform & Drift Detection', open: 3, closed: 10, color: 'var(--purple)' },
+  { id: 'M92', name: 'Skill Eval Pipeline', open: 5, closed: 6, color: 'var(--yellow)' },
+  { id: 'M86', name: 'Eval Foundation', open: 4, closed: 6, color: 'var(--yellow)' },
+  { id: 'M95', name: 'Docs Site Overhaul — Show Don\'t Tell', open: 8, closed: 5, color: 'var(--red)' },
+  { id: 'M96', name: 'SEO Phase 3 — Programmatic', open: 2, closed: 0, color: 'var(--red)' },
+  { id: 'M76', name: 'Video Gallery & Demos', open: 8, closed: 1, color: 'var(--text2)' },
+];
+
+const scores = [
+  { label: 'Security', value: 10, color: 'var(--green)' },
+  { label: 'Build Health', value: 10, color: 'var(--green)' },
+  { label: 'CC Compatibility', value: 9, color: 'var(--green)' },
+  { label: 'Test Coverage', value: 8, color: 'var(--accent)' },
+  { label: 'Docs Site', value: 7, color: 'var(--accent)' },
+  { label: 'Version Mgmt', value: 6, color: 'var(--yellow)' },
+  { label: 'Eval Pipeline', value: 5, color: 'var(--orange)' },
+];
+
+const prompts = {
+  overview: 'Assess the current state of OrchestKit v7.16.2. Composite score is 7.9/10 (B+). Key strengths: security (10/10), CC compat (9/10), build health (10/10). Key weaknesses: eval pipeline (5/10), docs site bugs (7/10). 30 open issues across 10 milestones.',
+  milestones: 'Show me the milestone progress for OrchestKit. M85 is at 97% (1 open), M73 at 80% (3 open), M92 at 55% (5 open). Which milestone should we close first?',
+  priorities: 'Implement the top 3 priorities for OrchestKit: (1) Version Management Triple — #1018 deprecated/superseded_by, #1019 depends_on, #1020 targets frontmatter fields. (2) Skill Amendment Layer #1016 — UserPromptSubmit hook that reads .claude/skill-amendments/<name>.amendment.md. (3) Unified eval:skill command #1045 — wrapper around trigger + quality runners.',
+  deps: 'The eval pipeline dependency chain is: #1042 (DONE) + #1043 (DONE) → #1045 (READY) → #1044, #1046, #1050 (BLOCKED). Version management issues #1018, #1019, #1020 are all independent. Skill amendment #1016 is standalone.',
+  execution: 'Execute the 3-session plan: Session 1 — Version Management (#1018, #1019, #1020), closes M73. Session 2 — Skill Amendment Layer (#1016), closes M85. Session 3 — Eval Pipeline (#1045), unblocks #1044, #1046, #1050. Expected outcome: 25 open issues (-5), 2 milestones closed, score 8.3/10 (A-).',
+  frontmatter: 'Add three new frontmatter fields to OrchestKit skills: (1) deprecated: true + superseded_by: new-skill for sunset lifecycle, (2) depends_on: [skill-list] for machine-readable dependencies, (3) targets: [{library, version}] for library version range warnings. Start with #1018 deprecated/superseded_by.',
+};
+
+function renderGauges() {
+  const container = document.getElementById('gauges');
+  container.innerHTML = scores.map(s => `
+    <div class="gauge-row">
+      <div class="gauge-label">${s.label}</div>
+      <div class="gauge-track"><div class="gauge-fill" style="width:${s.value*10}%;background:${s.color}"></div></div>
+      <div class="gauge-value" style="color:${s.color}">${s.value}/10</div>
+    </div>
+  `).join('');
+}
+
+function renderMilestones() {
+  const container = document.getElementById('milestone-list');
+  container.innerHTML = milestones.map(m => {
+    const total = m.open + m.closed;
+    const pct = total ? Math.round((m.closed / total) * 100) : 0;
+    return `
+      <div class="milestone">
+        <div class="top">
+          <div class="name">${m.id} ${m.name}</div>
+          <div class="pct" style="color:${m.color}">${pct}%</div>
+        </div>
+        <div class="bar"><div class="fill" style="width:${pct}%;background:${m.color}"></div></div>
+        <div class="meta">
+          <span>${m.closed} closed</span>
+          <span>${m.open} open</span>
+          <span>${total} total</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.view-btn')[
+    ['overview','milestones','priorities','deps','execution','frontmatter'].indexOf(id)
+  ]?.classList.add('active');
+  document.getElementById('prompt-output').textContent = prompts[id] || '';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+renderGauges();
+renderMilestones();
+</script>
+</body>
+</html>

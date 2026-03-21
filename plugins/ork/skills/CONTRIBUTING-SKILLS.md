@@ -60,6 +60,9 @@ disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
 disable-model-invocation: false  # CC auto-selects via description matching
 allowed-tools: Read, Grep, Glob  # Restrict tools when active
 model: opus              # Model override
+targets:                 # Library version ranges — warns on mismatch (CC 2.1.80+)
+  - library: next.js
+    version: ">=16.0.0"
 ```
 
 **Model invocation guide:**

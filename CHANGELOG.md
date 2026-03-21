@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.18.0] - 2026-03-21
+
+### Added
+
+- feat(skills): `targets` frontmatter with library version ranges on 14 skills
+- test: validate all `skills:` cross-references point to existing skills (93 refs)
+- test: validate `targets:` entries have library declarations
+
+---
+
+
 ## [7.17.0](https://github.com/yonatangross/orchestkit/compare/v7.16.2...v7.17.0) (2026-03-21)
 
 

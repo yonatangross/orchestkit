@@ -11,6 +11,11 @@ tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cac
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+targets:
+  - library: next.js
+    version: ">=16.0.0"
+  - library: react
+    version: ">=19.2.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

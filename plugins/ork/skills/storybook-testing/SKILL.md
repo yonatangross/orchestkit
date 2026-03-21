@@ -11,6 +11,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+targets:
+  - library: storybook
+    version: ">=10.3.0"
 metadata:
   category: document-asset-creation
   storybook-version: "10.3"

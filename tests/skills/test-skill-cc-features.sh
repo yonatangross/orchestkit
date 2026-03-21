@@ -213,6 +213,70 @@ else
     pass "All effort frontmatter values valid ($effort_valid skills with effort set)"
 fi
 
+# --- Test: skills: refs point to existing skills ---
+echo -e "\n${CYAN}Test: skills: Reference Validation${NC}"
+
+broken_refs=()
+checked=0
+for skill_dir in "$SKILLS_DIR"/*/; do
+    skill_file="$skill_dir/SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    skill_name=$(basename "$skill_dir")
+
+    # Extract skills: array from frontmatter (inline YAML array)
+    skills_line=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep -E '^skills:' || true)
+    if [[ -z "$skills_line" ]]; then continue; fi
+
+    # Parse [skill1, skill2, ...] format
+    refs=$(echo "$skills_line" | sed 's/^skills:[[:space:]]*//' | tr -d '[]' | tr ',' '\n' | xargs -n1 2>/dev/null || true)
+    for ref in $refs; do
+        ref=$(echo "$ref" | tr -d '"'"'" | xargs)
+        [[ -z "$ref" ]] && continue
+        checked=$((checked + 1))
+        if [[ ! -d "$SKILLS_DIR/$ref" ]]; then
+            broken_refs+=("$skill_name → $ref (not found)")
+        fi
+    done
+done
+
+if [[ ${#broken_refs[@]} -gt 0 ]]; then
+    for broken in "${broken_refs[@]}"; do
+        fail "Broken skill ref: $broken"
+    done
+else
+    pass "All skills: references valid ($checked refs checked)"
+fi
+
+# --- Test: targets: library values are non-empty ---
+echo -e "\n${CYAN}Test: targets: Validation${NC}"
+
+targets_valid=0
+targets_invalid=()
+for skill_dir in "$SKILLS_DIR"/*/; do
+    skill_file="$skill_dir/SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    skill_name=$(basename "$skill_dir")
+
+    # Check if targets: exists in frontmatter
+    if sed -n '/^---$/,/^---$/p' "$skill_file" | grep -q '^targets:'; then
+        # Verify it has at least one library entry
+        has_library=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep -c 'library:' || true)
+        if [[ "$has_library" -gt 0 ]]; then
+            targets_valid=$((targets_valid + 1))
+        else
+            targets_invalid+=("$skill_name: targets: declared but no library entries")
+        fi
+    fi
+done
+
+if [[ ${#targets_invalid[@]} -gt 0 ]]; then
+    for bad in "${targets_invalid[@]}"; do
+        fail "$bad"
+    done
+else
+    pass "All targets: entries valid ($targets_valid skills with targets)"
+fi
+
 # --- Summary ---
 echo ""
 echo "========================================"

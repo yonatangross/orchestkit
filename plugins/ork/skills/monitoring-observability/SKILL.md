@@ -10,6 +10,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+targets:
+  - library: langfuse
+    version: ">=4.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
