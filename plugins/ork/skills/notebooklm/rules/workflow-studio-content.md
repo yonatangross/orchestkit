@@ -2,12 +2,12 @@
 title: "Studio Content Generation"
 impact: MEDIUM
 impactDescription: "Studio artifacts take 2-5 minutes; without polling pattern, users wait blindly"
-tags: [studio, podcast, video, content-generation]
+tags: [studio, podcast, video, cinematic, content-generation]
 ---
 
 ## Studio Content Generation
 
-NotebookLM Studio generates 9 artifact types from notebook sources. All generation is async -- create, poll status, then download.
+NotebookLM Studio generates 10 artifact types from notebook sources. All generation is async -- create, poll status, then download.
 
 **Incorrect -- calling studio_create and waiting synchronously:**
 ```
@@ -29,11 +29,12 @@ status = studio_status(artifact_id=artifact.id)
 download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
 ```
 
-**All 9 studio artifact types:**
+**All 10 studio artifact types:**
 | Type | Output | Use case |
 |------|--------|----------|
-| `audio_overview` | MP3 podcast | Summarize sources as conversational audio |
-| `video_overview` | MP4 video | Visual summary with narration |
+| `audio_overview` | MP3 podcast | Summarize sources as conversational audio (4 formats: brief, critique, debate, deep_dive) |
+| `video_overview` | MP4 video | Visual summary with narration (slides + voiceover) |
+| `cinematic_video` | MP4 video | Fully animated cinematic video (Gemini 3 + Veo 3). **Requires Google AI Ultra**, English only, max 20/day |
 | `mind_map` | SVG/PNG | Visual topic relationships |
 | `quiz` | JSON | Test comprehension of sources |
 | `flashcards` | JSON | Study aid from source material |
