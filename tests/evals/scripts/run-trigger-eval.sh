@@ -45,7 +45,7 @@ TAG_FILTER=""
 FORCE_EVAL=false
 PASS_THRESHOLD=80  # Minimum recall % to pass
 MAX_TURNS=2        # json-schema uses tool_use internally, needs 2 turns
-GEN_TIMEOUT=120
+GEN_TIMEOUT=60
 SKILLS_CATALOG=""  # Built at startup from plugin skill frontmatter
 
 # JSON schema for structured trigger detection (CC 2.1.74+)
@@ -177,6 +177,10 @@ detect_trigger() {
     fi
 }
 
+# CC 2.1.81: --bare flag (computed once, not per-call)
+BARE_FLAG=()
+if [[ "$BARE_MODE" == "true" ]]; then BARE_FLAG=(--bare); fi
+
 # Run one prompt N times and return trigger count (A6: timeout)
 # Uses --json-schema for structured classification instead of plugin execution.
 run_prompt() {
@@ -194,12 +198,8 @@ Available skills:
 $(echo -e "$SKILLS_CATALOG")"
 
     for ((i=1; i<=reps; i++)); do
-        # CC 2.1.81: --bare for trigger classification (no plugins needed)
-        local -a bare_flag=()
-        if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
-
         run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
-            "${bare_flag[@]}" \
+            "${BARE_FLAG[@]}" \
             --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
             --output-format json \
             --json-schema "$TRIGGER_SCHEMA" \
@@ -216,6 +216,27 @@ $(echo -e "$SKILLS_CATALOG")"
     echo "$triggered"
 }
 
+# Run one eval entry in isolation — writes result to a temp file for parallel collection.
+# Args: eval_file, idx, skill_id, reps, result_dir
+run_prompt_parallel() {
+    local eval_file="$1"
+    local idx="$2"
+    local skill_id="$3"
+    local reps="$4"
+    local result_dir="$5"
+
+    local prompt; prompt=$(yq -r ".trigger_evals[$idx].prompt" "$eval_file")
+    local should_trigger; should_trigger=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
+    local triggered; triggered=$(run_prompt "$prompt" "$skill_id" "$reps")
+    local rate; rate=$(echo "scale=2; $triggered / $reps" | bc)
+
+    # Write result to file for parent to collect
+    echo "${idx}|${should_trigger}|${triggered}|${reps}|${rate}|${prompt}" > "$result_dir/result_${idx}"
+}
+
+# Max parallel prompt workers (controls concurrency)
+MAX_PARALLEL=${EVAL_MAX_PARALLEL:-6}
+
 # Evaluate one skill
 eval_skill() {
     local eval_file="$1"
@@ -223,6 +244,23 @@ eval_skill() {
     local skill_name; skill_name=$(yq -r '.name' "$eval_file")
     local trigger_count; trigger_count=$(yq -r '.trigger_evals | length' "$eval_file")
     local start_time; start_time=$(date +%s)
+
+    # Skip skills with no trigger_evals (don't print noisy empty boxes)
+    if [[ "$trigger_count" -eq 0 && "$DRY_RUN" == "false" ]]; then
+        return 0
+    fi
+
+    # Skip non-invocable skills — trigger eval only tests slash command routing
+    if [[ "$DRY_RUN" == "false" && "$trigger_count" -gt 0 ]]; then
+        local skill_md="src/skills/$skill_id/SKILL.md"
+        if [[ -f "$skill_md" ]]; then
+            local invocable; invocable=$(grep '^user-invocable:' "$skill_md" | awk '{print $2}')
+            if [[ "$invocable" != "true" ]]; then
+                echo -e "  ${CYAN}$skill_id${NC}: ${YELLOW}SKIP (not user-invocable, trigger eval N/A)${NC}"
+                return 0
+            fi
+        fi
+    fi
 
     echo -e "\n${BLUE}╔══════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║  TRIGGER EVAL — ${BOLD}$skill_id${NC}${BLUE}$(printf '%*s' $((36 - ${#skill_id})) '')║${NC}"
@@ -243,71 +281,90 @@ eval_skill() {
         return 0
     fi
 
-    # Run trigger evals -- two-pass: positives first, then negatives
+    # --- Parallel prompt execution ---
+    # Launch all prompts concurrently (up to MAX_PARALLEL), collect results via temp files.
+    local result_dir; result_dir=$(mktemp -d)
+    CLEANUP_DIRS+=("$result_dir")
+    local pids=()
+    local running=0
+
+    echo -e "${BLUE}║${NC}  ${CYAN}Running $trigger_count prompts × $REPS reps (${MAX_PARALLEL} parallel)...${NC}"
+
+    for ((idx=0; idx<trigger_count; idx++)); do
+        run_prompt_parallel "$eval_file" "$idx" "$skill_id" "$REPS" "$result_dir" &
+        pids+=($!)
+        ((running++))
+
+        # Throttle to MAX_PARALLEL
+        if [[ "$running" -ge "$MAX_PARALLEL" ]]; then
+            wait "${pids[0]}" 2>/dev/null || true
+            pids=("${pids[@]:1}")
+            ((running--))
+        fi
+    done
+
+    # Wait for remaining
+    for pid in "${pids[@]}"; do
+        wait "$pid" 2>/dev/null || true
+    done
+
+    # --- Collect results (sorted by index) ---
     local tp=0 fp=0 tn=0 fn=0 flaky=0
     local tp_partial="0" fp_partial="0"
     local results_json="["
     local first_result=true
 
-    # Helper: run one eval entry and print result
-    run_eval_entry() {
-        local idx="$1"
-        local prompt; prompt=$(yq -r ".trigger_evals[$idx].prompt" "$eval_file")
-        local should_trigger; should_trigger=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
-        local triggered; triggered=$(run_prompt "$prompt" "$skill_id" "$REPS")
-        local rate; rate=$(echo "scale=2; $triggered / $REPS" | bc)
-
-        # Determine verdict
-        local verdict=""
-        local symbol=""
-        if [[ "$should_trigger" == "true" ]]; then
-            if [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="OK"; symbol="${GREEN}v${NC}"; ((tp++))
-                tp_partial=$(echo "$tp_partial + 1" | bc)
-            elif [[ "$triggered" -eq 0 ]]; then
-                verdict="MISS"; symbol="${RED}x${NC}"; ((fn++))
-            else
-                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
-                tp_partial=$(echo "$tp_partial + $rate" | bc)
-            fi
+    # Two-pass display: should_trigger=true first, then false
+    for pass in true false; do
+        if [[ "$pass" == "true" ]]; then
+            echo -e "${BLUE}║${NC}  ${BOLD}SHOULD TRIGGER${NC}"
         else
-            if [[ "$triggered" -eq 0 ]]; then
-                verdict="OK"; symbol="${GREEN}v${NC}"; ((tn++))
-            elif [[ "$triggered" -eq "$REPS" ]]; then
-                verdict="FALSE+"; symbol="${RED}x${NC}"; ((fp++))
-                fp_partial=$(echo "$fp_partial + 1" | bc)
-            else
-                verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
-                fp_partial=$(echo "$fp_partial + $rate" | bc)
-            fi
+            echo -e "${BLUE}║${NC}  ${BOLD}SHOULD NOT TRIGGER${NC}"
         fi
 
-        # Truncate prompt for display
-        local display_prompt="${prompt:0:38}"
-        [[ ${#prompt} -gt 38 ]] && display_prompt="${display_prompt}..."
+        for ((idx=0; idx<trigger_count; idx++)); do
+            local rfile="$result_dir/result_${idx}"
+            [[ -f "$rfile" ]] || continue
 
-        printf "${BLUE}║${NC}  %b %-42s %d/%d  %s\n" "$symbol" "\"$display_prompt\"" "$triggered" "$REPS" "$verdict"
+            IFS='|' read -r _idx should_trigger triggered reps rate prompt < "$rfile"
+            [[ "$should_trigger" != "$pass" ]] && continue
 
-        # Accumulate JSON results
-        [[ "$first_result" == "true" ]] && first_result=false || results_json+=","
-        results_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"should_trigger\":$should_trigger,\"triggered\":$triggered,\"reps\":$REPS,\"rate\":$rate,\"verdict\":\"$verdict\"}"
-    }
+            # Determine verdict
+            local verdict="" symbol=""
+            if [[ "$should_trigger" == "true" ]]; then
+                if [[ "$triggered" -eq "$reps" ]]; then
+                    verdict="OK"; symbol="${GREEN}v${NC}"; ((tp++))
+                    tp_partial=$(echo "$tp_partial + 1" | bc)
+                elif [[ "$triggered" -eq 0 ]]; then
+                    verdict="MISS"; symbol="${RED}x${NC}"; ((fn++))
+                else
+                    verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
+                    tp_partial=$(echo "$tp_partial + $rate" | bc)
+                fi
+            else
+                if [[ "$triggered" -eq 0 ]]; then
+                    verdict="OK"; symbol="${GREEN}v${NC}"; ((tn++))
+                elif [[ "$triggered" -eq "$reps" ]]; then
+                    verdict="FALSE+"; symbol="${RED}x${NC}"; ((fp++))
+                    fp_partial=$(echo "$fp_partial + 1" | bc)
+                else
+                    verdict="FLAKY"; symbol="${YELLOW}~${NC}"; ((flaky++))
+                    fp_partial=$(echo "$fp_partial + $rate" | bc)
+                fi
+            fi
 
-    # Pass 1: should_trigger=true entries
-    echo -e "${BLUE}║${NC}  ${BOLD}SHOULD TRIGGER${NC}"
-    for ((idx=0; idx<trigger_count; idx++)); do
-        local st; st=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
-        [[ "$st" == "true" ]] && run_eval_entry "$idx"
-    done
+            local display_prompt="${prompt:0:38}"
+            [[ ${#prompt} -gt 38 ]] && display_prompt="${display_prompt}..."
 
-    # Pass 2: should_trigger=false entries
-    echo -e "${BLUE}║${NC}  ${BOLD}SHOULD NOT TRIGGER${NC}"
-    for ((idx=0; idx<trigger_count; idx++)); do
-        local st; st=$(yq -r ".trigger_evals[$idx].should_trigger" "$eval_file")
-        [[ "$st" == "false" ]] && run_eval_entry "$idx"
+            printf "${BLUE}║${NC}  %b %-42s %d/%d  %s\n" "$symbol" "\"$display_prompt\"" "$triggered" "$reps" "$verdict"
+
+            [[ "$first_result" == "true" ]] && first_result=false || results_json+=","
+            results_json+="{\"prompt\":$(echo "$prompt" | jq -Rs .),\"should_trigger\":$should_trigger,\"triggered\":$triggered,\"reps\":$REPS,\"rate\":$rate,\"verdict\":\"$verdict\"}"
+        done
     done
 
     results_json+="]"
+    rm -rf "$result_dir"
 
     # Calculate effective precision and recall (flaky = partial weight)
     local precision=0 recall=0 eff_recall=0 eff_precision=0
