@@ -221,9 +221,9 @@ build_claude_flags() {
     flags+=(--no-session-persistence)
     flags+=(--max-budget-usd "$MAX_BUDGET")
 
-    if [[ -n "$EVAL_MODEL" ]]; then
-        flags+=(--model "$EVAL_MODEL")
-    fi
+    # Default to Haiku for eval generation (Sonnet/Opus too expensive for batch eval).
+    # Override with --model flag or EVAL_MODEL env var.
+    flags+=(--model "${EVAL_MODEL:-haiku}")
     if [[ -n "$MCP_CONFIG" ]]; then
         flags+=(--mcp-config "$MCP_CONFIG")
     fi
@@ -265,9 +265,8 @@ run_with_forced_skill() {
         flags+=(--bare)
     fi
 
-    if [[ -n "$EVAL_MODEL" ]]; then
-        flags+=(--model "$EVAL_MODEL")
-    fi
+    # Default to Haiku for eval generation
+    flags+=(--model "${EVAL_MODEL:-haiku}")
 
     if [[ -n "$cwd_arg" && "$cwd_arg" != "." ]]; then
         (

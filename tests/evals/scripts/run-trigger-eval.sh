@@ -200,6 +200,7 @@ $(echo -e "$SKILLS_CATALOG")"
     for ((i=1; i<=reps; i++)); do
         run_with_timeout "$GEN_TIMEOUT" claude -p "$classification_prompt" \
             "${BARE_FLAG[@]}" \
+            --model haiku \
             --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
             --output-format json \
             --json-schema "$TRIGGER_SCHEMA" \

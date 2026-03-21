@@ -153,9 +153,8 @@ build_claude_flags() {
     flags+=(--output-format json)
     flags+=(--no-session-persistence)
     flags+=(--max-budget-usd "$MAX_BUDGET")
-    if [[ -n "$EVAL_MODEL" ]]; then
-        flags+=(--model "$EVAL_MODEL")
-    fi
+    # Default to Haiku for eval generation (Sonnet/Opus too expensive for batch eval)
+    flags+=(--model "${EVAL_MODEL:-haiku}")
     echo "${flags[@]}"
 }
 
