@@ -19,6 +19,7 @@
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:hooks": "cd src/hooks && npx vitest run",
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
+    "eval:skill": "bash tests/evals/scripts/run-skill-eval.sh",
     "eval:trigger": "bash tests/evals/scripts/run-trigger-eval.sh",
     "eval:quality": "bash tests/evals/scripts/run-quality-eval.sh",
     "eval:agent": "bash tests/evals/scripts/run-agent-eval.sh",
