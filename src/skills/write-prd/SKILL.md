@@ -32,7 +32,7 @@ allowed-tools:
   - mcp__memory__add_observations
   - mcp__memory__create_relations
 triggers:
-  keywords: [prd, "product requirements", "requirements document", "user stories", "acceptance criteria", "product spec", "formal spec"]
+  keywords: [prd, "product requirements", "requirements document", "requirements for", "define the requirements", "user stories", "acceptance criteria", "product spec", "formal spec"]
   examples:
     - "write a PRD for the SSO invite flow"
     - "create a product requirements document for billing"

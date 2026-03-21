@@ -23,7 +23,7 @@ hooks:
 metadata:
   category: document-asset-creation
 triggers:
-  keywords: [doctor, diagnose, "health check", "hooks configured", "skills showing", "plugin setup", "something broken", troubleshoot]
+  keywords: [doctor, diagnose, "health check", healthy, "hooks configured", "skills showing", "plugin setup", "something broken", troubleshoot, "installation is"]
   examples:
     - "run orchestkit doctor"
     - "are my hooks configured correctly"

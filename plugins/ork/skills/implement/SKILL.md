@@ -28,7 +28,7 @@ metadata:
   category: workflow-automation
   mcp-server: memory, context7
 triggers:
-  keywords: [implement, build, create, add, make, scaffold, "set up", "file upload", "dark mode", "rate limiting"]
+  keywords: [implement, implment, build, create, add, make, scaffold, "set up", "file upload", "dark mode", "rate limiting"]
   examples:
     - "build a user authentication system with JWT"
     - "add dark mode support to the dashboard"

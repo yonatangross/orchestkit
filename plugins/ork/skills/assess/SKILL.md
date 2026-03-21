@@ -23,7 +23,7 @@ metadata:
   category: document-asset-creation
   mcp-server: memory
 triggers:
-  keywords: [assess, rate, evaluate, grade, score, compare, "how good", "how bad", "red flags", "trade-offs", "pros and cons"]
+  keywords: [assess, asses, rate, evaluate, grade, score, compare, "how good", "how bad", "red flags", "trade-offs", "pros and cons", "good enough"]
   examples:
     - "rate this code from 0 to 10"
     - "is this approach good enough for production?"

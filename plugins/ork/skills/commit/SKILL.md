@@ -25,7 +25,7 @@ hooks:
 metadata:
   category: workflow-automation
 triggers:
-  keywords: [commit, "commit message", "stage and commit", "save progress", "wrap it up", "conventional commit"]
+  keywords: [commit, comit, "commit message", "stage and commit", "save progress", "save my progress", "wrap it up", "conventional commit"]
   examples:
     - "commit my changes"
     - "create a conventional commit for these files"

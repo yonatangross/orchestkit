@@ -25,7 +25,7 @@ metadata:
   category: workflow-automation
   mcp-server: memory
 triggers:
-  keywords: [brainstorm, "explore ideas", ideate, "think through", "some approaches", "not sure how to architect", alternatives, "compare strategies"]
+  keywords: [brainstorm, brianstorm, "explore ideas", "explore some ideas", ideate, "think through", "some approaches", "not sure how to architect", alternatives, "compare strategies", "help me compare"]
   examples:
     - "brainstorm how to build the notification system"
     - "what are some approaches for handling real-time updates"

@@ -24,7 +24,7 @@ metadata:
   category: workflow-automation
   mcp-server: memory
 triggers:
-  keywords: ["review pr", "code review", "review pull request", "review the changes", "look over", "check this pr", "before we merge"]
+  keywords: ["review pr", "code review", reveiw, "review pull request", "review the changes", "thorough review", "review of", "look over", "check this pr", "before we merge"]
   examples:
     - "review PR 123"
     - "do a code review on this pull request"

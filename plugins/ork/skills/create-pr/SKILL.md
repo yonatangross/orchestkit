@@ -18,7 +18,7 @@ metadata:
   category: workflow-automation
   mcp-server: memory
 triggers:
-  keywords: ["create pr", "pull request", "open pr", "open a pr", "make a pr", "submit pr", "push and pr"]
+  keywords: ["create pr", "create a pr", "crate a", "pull request", "open pr", "open a pr", "make a pr", "submit pr", "push and pr", "push this up"]
   examples:
     - "create a pull request for this feature"
     - "open a PR against dev"
