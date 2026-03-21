@@ -177,19 +177,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v7.1.0** — Full agent-browser CLI Adoption
+**v7.18.0** — Version Management + Library Targets
 
-- **64 browser commands** documented across 12 categories — interaction, storage, capture, network, cookies, state management
-- **6 agents upgraded** with complete browser automation references
-- **Safety hook enhanced**: native v0.15 action confirmation + network route validation
-- **Setup wizard**: configurable project settings with 5-step interactive wizard
+- **`targets:` frontmatter** on 14 skills — declares library version ranges, warns on mismatch
+- **Skill ref validation** — all 93 `skills:` cross-references verified at build time
+- **CC 2.1.80 fully adopted** — effort frontmatter, rate limits statusline, simplified plugin install
 
-**v7.0.0** — Unified Plugin Architecture
+**v7.17.0** — NotebookLM v0.5.2 + Cinematic Video
 
-- **Simplified**: One plugin for everything. All 89 skills, 31 agents, 99 hooks in `/plugin install ork`.
-- **Setup Wizard**: Run `/ork:setup` for personalized onboarding — stack detection, skill recommendations, MCP configuration, readiness scoring.
+- **Cinematic video overviews** — Gemini 3 + Veo 3 powered, 10 studio artifact types
+- **4 audio formats** — Brief, Critique, Debate, Deep Dive
+- **Research timeout** configurable (300s default), deep research auto-retry
 
-[Full Changelog →](./CHANGELOG.md)
+[Full Changelog →](https://orchestkit.vercel.app/docs/changelog)
 
 ---
 
