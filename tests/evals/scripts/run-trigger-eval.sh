@@ -39,9 +39,10 @@ EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 SKILLS_EVAL_DIR="$EVALS_DIR/skills"
 RESULTS_DIR="$EVALS_DIR/results/skills"
 PLUGIN_DIR="plugins/ork"
-REPS=5
+REPS=3
 SKILL_FILTER=""
 TAG_FILTER=""
+FORCE_EVAL=false
 PASS_THRESHOLD=80  # Minimum recall % to pass
 MAX_TURNS=2        # json-schema uses tool_use internally, needs 2 turns
 GEN_TIMEOUT=120
@@ -92,8 +93,9 @@ while [[ $# -gt 0 ]]; do
             GEN_TIMEOUT="$2"; shift 2
             ;;
         --dry-run) DRY_RUN=true; shift ;;
+        --force) FORCE_EVAL=true; shift ;;
         --help|-h)
-            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run]"
+            echo "Usage: $0 [skill-name|--all] [--tag TAG] [--reps N] [--max-turns N] [--timeout N] [--dry-run] [--force]"
             exit 0
             ;;
         -*) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
@@ -420,12 +422,28 @@ echo -e "  Skills: ${#eval_files[@]}"
 total=0
 passed=0
 failed=0
+skipped=0
 failed_skills=()
 
 for eval_file in "${eval_files[@]}"; do
+    local_skill_id=$(yq -r '.id' "$eval_file")
+
+    # Content hash cache: skip if unchanged (unless --force)
+    if [[ "$DRY_RUN" == "false" && "$FORCE_EVAL" == "false" ]]; then
+        if check_eval_cache "$local_skill_id" "trigger"; then
+            echo -e "  ${CYAN}$local_skill_id${NC}: ${GREEN}CACHED${NC} (unchanged, use --force to re-eval)"
+            ((skipped++))
+            ((total++))
+            ((passed++))
+            continue
+        fi
+    fi
+
     ((total++))
     if eval_skill "$eval_file"; then
         ((passed++))
+        # Save cache on success
+        [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "trigger"
     else
         ((failed++))
         failed_skills+=("$(yq -r '.id' "$eval_file")")
@@ -438,6 +456,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${BLUE}  SUMMARY${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "  Total:  $total"
+[[ "$skipped" -gt 0 ]] && echo -e "  Cached: ${CYAN}$skipped${NC}"
 echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"

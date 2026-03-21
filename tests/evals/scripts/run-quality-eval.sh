@@ -55,6 +55,7 @@ MAX_BUDGET="2.00"
 MCP_CONFIG=""
 SKIP_BASELINE=false
 FORCE_SKILL=false
+FORCE_EVAL=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -64,6 +65,7 @@ while [[ $# -gt 0 ]]; do
         --grade-only) GRADE_ONLY=true; shift ;;
         --skip-baseline) SKIP_BASELINE=true; shift ;;
         --force-skill) FORCE_SKILL=true; SKIP_BASELINE=true; shift ;;
+        --force) FORCE_EVAL=true; shift ;;
         --dry-run) DRY_RUN=true; shift ;;
         --reps)
             if [[ $# -lt 2 ]]; then
@@ -362,12 +364,13 @@ $assertions_json
 OUTPUT:
 $output_text"
 
-    # CC 2.1.81: --bare for grading calls (no plugins needed)
-    local -a bare_flag=()
-    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
 
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
-        "${bare_flag[@]}" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true
@@ -406,12 +409,13 @@ ASSERTION: $assertion_check
 OUTPUT:
 $output_text"
 
-    # CC 2.1.81: --bare for grading calls (no plugins needed)
-    local -a bare_flag=()
-    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
 
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
-        "${bare_flag[@]}" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true
@@ -1031,7 +1035,7 @@ elif [[ "$FORCE_SKILL" == "true" ]]; then
 else
     echo -e "${BLUE}  Mode: ${GREEN}LIVE (grading with ${REPS}x reps)${NC}"
 fi
-echo "  Max turns: $MAX_TURNS  |  Timeout: ${GEN_TIMEOUT}s  |  Budget: \$${MAX_BUDGET}"
+echo "  Max turns: $MAX_TURNS  |  Timeout: ${GEN_TIMEOUT}s  |  Budget: \$${MAX_BUDGET}  |  Grader: $GRADING_MODEL"
 [[ "$SKIP_BASELINE" == "true" ]] && echo -e "  Baseline: ${YELLOW}SKIPPED${NC}"
 [[ -n "$EVAL_MODEL" ]] && echo "  Model: $EVAL_MODEL"
 [[ -n "$MCP_CONFIG" ]] && echo "  MCP config: $MCP_CONFIG"
@@ -1071,10 +1075,26 @@ passed=0
 failed=0
 failed_skills=()
 
+skipped=0
 for eval_file in "${eval_files[@]}"; do
+    local_skill_id=$(yq -r '.id' "$eval_file")
+
+    # Content hash cache: skip if unchanged (unless --force or --grade-only)
+    if [[ "$DRY_RUN" == "false" && "$GRADE_ONLY" == "false" && "${FORCE_EVAL:-false}" == "false" ]]; then
+        if check_eval_cache "$local_skill_id" "quality"; then
+            echo -e "  ${CYAN}$local_skill_id${NC}: ${GREEN}CACHED${NC} (unchanged, use --force to re-eval)"
+            ((skipped++))
+            ((total++))
+            ((passed++))
+            continue
+        fi
+    fi
+
     ((total++))
     if eval_skill "$eval_file"; then
         ((passed++))
+        # Save cache on success
+        [[ "$DRY_RUN" == "false" ]] && save_eval_cache "$local_skill_id" "quality"
     else
         ((failed++))
         failed_skills+=("$(yq -r '.id' "$eval_file")")
@@ -1087,6 +1107,7 @@ echo -e "${BLUE}----------------------------------------------------${NC}"
 echo -e "${BLUE}  SUMMARY${NC}"
 echo -e "${BLUE}----------------------------------------------------${NC}"
 echo -e "  Total:  $total"
+[[ "$skipped" -gt 0 ]] && echo -e "  Cached: ${CYAN}$skipped${NC}"
 echo -e "  Passed: ${GREEN}$passed${NC}"
 if [[ "$failed" -gt 0 ]]; then
     echo -e "  Failed: ${RED}$failed${NC} (${failed_skills[*]})"

@@ -216,12 +216,13 @@ $assertions_json
 OUTPUT:
 $output_text"
 
-    # CC 2.1.81: --bare for grading calls (no plugins needed)
-    local -a bare_flag=()
-    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
 
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
-        "${bare_flag[@]}" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true
@@ -255,12 +256,13 @@ ASSERTION: $assertion_check
 OUTPUT:
 $output_text"
 
-    # CC 2.1.81: --bare for grading calls (no plugins needed)
-    local -a bare_flag=()
-    if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
 
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
-        "${bare_flag[@]}" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true

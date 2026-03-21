@@ -11,6 +11,8 @@
 #   npm run eval:skill -- commit --quality-only
 #   npm run eval:skill -- --all              # all skills with .eval.yaml
 #   npm run eval:skill -- --all --dry-run    # validate YAML only
+#   npm run eval:skill -- --all --force      # bypass content hash cache
+#   npm run eval:skill -- --changed          # only eval skills changed vs main
 #   npm run eval:skill -- --tag core         # filter by tag
 #
 # Requirements:
@@ -34,6 +36,7 @@ QUALITY_RUNNER="$SCRIPT_DIR/run-quality-eval.sh"
 SKILL=""
 RUN_TRIGGER=true
 RUN_QUALITY=true
+USE_CHANGED=false
 PASSTHROUGH_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -41,6 +44,8 @@ while [[ $# -gt 0 ]]; do
         --trigger-only) RUN_QUALITY=false; shift ;;
         --quality-only) RUN_TRIGGER=false; shift ;;
         --dry-run) DRY_RUN=true; PASSTHROUGH_ARGS+=("$1"); shift ;;
+        --changed) USE_CHANGED=true; shift ;;
+        --force) PASSTHROUGH_ARGS+=("$1"); shift ;;
         --all|--tag|--reps|--timeout|--max-turns|--skip-baseline|--force-skill)
             PASSTHROUGH_ARGS+=("$1")
             if [[ "$1" == "--tag" || "$1" == "--reps" || "$1" == "--timeout" || "$1" == "--max-turns" ]]; then
@@ -58,6 +63,42 @@ while [[ $# -gt 0 ]]; do
             shift ;;
     esac
 done
+
+# --- Git-diff mode: only eval skills whose source changed vs main ---
+if [[ "$USE_CHANGED" == "true" ]]; then
+    CHANGED_SKILLS=()
+    declare -A _seen_skills=()
+    while IFS= read -r line; do
+        skill_name=$(echo "$line" | sed 's|src/skills/||;s|tests/evals/skills/||;s|/.*||;s|\.eval\.yaml||')
+        if [[ "$skill_name" =~ $SKILL_NAME_RE && -z "${_seen_skills[$skill_name]:-}" ]]; then
+            CHANGED_SKILLS+=("$skill_name")
+            _seen_skills[$skill_name]=1
+        fi
+    done < <(git diff --name-only origin/main -- src/skills/ tests/evals/skills/ 2>/dev/null | sort -u)
+
+    if [[ ${#CHANGED_SKILLS[@]} -eq 0 ]]; then
+        echo -e "${GREEN}No skill changes detected vs main — nothing to eval.${NC}"
+        exit 0
+    fi
+
+    echo -e "${CYAN}Changed skills: ${CHANGED_SKILLS[*]}${NC}"
+    echo ""
+
+    # Run eval for each changed skill
+    overall_exit=0
+    for skill_name in "${CHANGED_SKILLS[@]}"; do
+        eval_yaml="$EVALS_DIR/skills/${skill_name}.eval.yaml"
+        if [[ ! -f "$eval_yaml" ]]; then
+            echo -e "  ${YELLOW}$skill_name: no .eval.yaml, skipping${NC}"
+            continue
+        fi
+        echo -e "${BLUE}>>> Evaluating changed skill: $skill_name${NC}"
+        if ! bash "$0" "$skill_name" "${PASSTHROUGH_ARGS[@]}"; then
+            overall_exit=1
+        fi
+    done
+    exit $overall_exit
+fi
 
 # Validate skill name if provided
 if [[ -n "$SKILL" && ! "$SKILL" =~ $SKILL_NAME_RE ]]; then

@@ -14,6 +14,9 @@
 #   - unset CLAUDECODE
 #   - SKILL_NAME_RE validation regex
 #   - run_with_timeout() portable timeout wrapper
+#   - BARE_MODE (CC 2.1.81: skip hooks/LSP for -p calls)
+#   - GRADING_MODEL (Haiku by default, 12x cheaper than Sonnet)
+#   - Content hash cache: compute_content_hash(), check_eval_cache(), save_eval_cache()
 # =============================================================================
 
 set -uo pipefail
@@ -58,6 +61,61 @@ BARE_MODE=false
 if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
     BARE_MODE=true
 fi
+
+# ---------------------------------------------------------------------------
+# Grading model: Haiku is 12x cheaper than Sonnet for PASS/FAIL grading.
+# Override with EVAL_GRADING_MODEL env var.
+# ---------------------------------------------------------------------------
+GRADING_MODEL="${EVAL_GRADING_MODEL:-haiku}"
+
+# ---------------------------------------------------------------------------
+# Content hash cache: skip re-eval if SKILL.md + .eval.yaml unchanged.
+# Cache stored in tests/evals/results/skills/{skill}.{type}.hash
+# Use --force to bypass cache.
+# ---------------------------------------------------------------------------
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+CACHE_DIR="$REPO_ROOT/tests/evals/results/skills"
+
+# Compute SHA256 of SKILL.md + .eval.yaml for a skill
+compute_content_hash() {
+    local skill_id="$1"
+    local skill_md="$REPO_ROOT/src/skills/$skill_id/SKILL.md"
+    local eval_yaml="$REPO_ROOT/tests/evals/skills/$skill_id.eval.yaml"
+    local hash_input=""
+
+    if [[ -f "$skill_md" ]]; then
+        hash_input+=$(shasum -a 256 "$skill_md" 2>/dev/null | awk '{print $1}')
+    fi
+    if [[ -f "$eval_yaml" ]]; then
+        hash_input+=$(shasum -a 256 "$eval_yaml" 2>/dev/null | awk '{print $1}')
+    fi
+
+    echo -n "$hash_input" | shasum -a 256 | awk '{print $1}'
+}
+
+# Check if cached result matches current content hash.
+# Returns 0 (cache hit) or 1 (cache miss).
+# Args: skill_id, eval_type (trigger|quality)
+check_eval_cache() {
+    local skill_id="$1"
+    local eval_type="$2"
+    local hash_file="$CACHE_DIR/${skill_id}.${eval_type}.hash"
+
+    [[ -f "$hash_file" ]] || return 1
+
+    local cached_hash; cached_hash=$(cat "$hash_file" 2>/dev/null)
+    local current_hash; current_hash=$(compute_content_hash "$skill_id")
+
+    [[ "$cached_hash" == "$current_hash" ]]
+}
+
+# Save content hash after successful eval.
+save_eval_cache() {
+    local skill_id="$1"
+    local eval_type="$2"
+    mkdir -p "$CACHE_DIR"
+    compute_content_hash "$skill_id" > "$CACHE_DIR/${skill_id}.${eval_type}.hash"
+}
 
 # ---------------------------------------------------------------------------
 # Dependency checker
