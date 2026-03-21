@@ -11,6 +11,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+targets:
+  - library: framer-motion
+    version: ">=11.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

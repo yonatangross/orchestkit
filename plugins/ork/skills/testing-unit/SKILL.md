@@ -11,6 +11,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+targets:
+  - library: vitest
+    version: ">=4.1.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

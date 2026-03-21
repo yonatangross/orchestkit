@@ -11,6 +11,9 @@ disable-model-invocation: true
 context: fork
 complexity: high
 effort: high
+targets:
+  - library: "@modelcontextprotocol/sdk"
+    version: ">=1.0.0"
 metadata:
   category: mcp-enhancement
   spec-version: "2025-11-25"

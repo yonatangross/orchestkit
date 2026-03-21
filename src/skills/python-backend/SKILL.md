@@ -11,6 +11,11 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+targets:
+  - library: fastapi
+    version: ">=0.100.0"
+  - library: sqlalchemy
+    version: ">=2.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

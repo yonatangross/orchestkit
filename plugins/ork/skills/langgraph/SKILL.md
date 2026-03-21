@@ -12,6 +12,9 @@ user-invocable: false
 disable-model-invocation: true
 complexity: high
 effort: high
+targets:
+  - library: "@langchain/langgraph"
+    version: ">=1.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

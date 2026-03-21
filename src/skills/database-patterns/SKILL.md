@@ -11,6 +11,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+targets:
+  - library: sqlalchemy
+    version: ">=2.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:

@@ -11,6 +11,9 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+targets:
+  - library: "@pact-foundation/pact"
+    version: ">=12.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
