@@ -213,45 +213,6 @@ else
     pass "All effort frontmatter values valid ($effort_valid skills with effort set)"
 fi
 
-# --- Test: renamed_from values must NOT exist in manifest ---
-echo -e "\n${CYAN}Test: renamed_from Validation${NC}"
-
-renamed_conflicts=()
-for skill_dir in "$SKILLS_DIR"/*/; do
-    skill_file="$skill_dir/SKILL.md"
-    [[ -f "$skill_file" ]] || continue
-    skill_name=$(basename "$skill_dir")
-
-    # Extract renamed_from entries (YAML array under renamed_from:)
-    in_renamed=false
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^renamed_from: ]]; then
-            in_renamed=true
-            continue
-        fi
-        if $in_renamed; then
-            if [[ "$line" =~ ^[[:space:]]*-[[:space:]]+(.*) ]]; then
-                old_name="${BASH_REMATCH[1]}"
-                old_name=$(echo "$old_name" | tr -d '"'"'" | xargs)
-                # Check old name still exists as a skill directory
-                if [[ -d "$SKILLS_DIR/$old_name" ]]; then
-                    renamed_conflicts+=("$skill_name: renamed_from '$old_name' still exists in src/skills/")
-                fi
-            else
-                in_renamed=false
-            fi
-        fi
-    done < <(sed -n '/^---$/,/^---$/p' "$skill_file")
-done
-
-if [[ ${#renamed_conflicts[@]} -gt 0 ]]; then
-    for conflict in "${renamed_conflicts[@]}"; do
-        fail "$conflict"
-    done
-else
-    pass "No renamed_from conflicts (old skills properly removed)"
-fi
-
 # --- Test: skills: refs point to existing skills ---
 echo -e "\n${CYAN}Test: skills: Reference Validation${NC}"
 

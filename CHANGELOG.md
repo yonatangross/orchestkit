@@ -9,10 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- feat(skills): `renamed_from` frontmatter field for skill rename tracking
 - feat(skills): `targets` frontmatter with library version ranges on 14 skills
 - test: validate all `skills:` cross-references point to existing skills (93 refs)
-- test: validate `renamed_from` entries don't conflict with existing skills
 - test: validate `targets:` entries have library declarations
 
 ---
