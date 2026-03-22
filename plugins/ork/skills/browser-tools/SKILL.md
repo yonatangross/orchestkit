@@ -79,6 +79,7 @@ The hook intercepts all `agent-browser` Bash commands and enforces:
 | Category | Rules | Priority |
 |----------|-------|----------|
 | Ethics & Security | `browser-scraping-ethics.md`, `browser-auth-security.md` | CRITICAL |
+| Local Dev | `browser-portless-local-dev.md` | HIGH |
 | Reliability | `browser-rate-limiting.md`, `browser-snapshot-workflow.md` | HIGH |
 | Debug & Device | `browser-debug-recording.md`, `browser-mobile-testing.md` | HIGH |
 

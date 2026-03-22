@@ -35,6 +35,13 @@ skills:
 metadata:
   category: workflow-automation
   mcp-server: stitch, 21st-dev-magic
+triggers:
+  keywords: ["design to code", "mockup to code", "screenshot to component", "convert design", "implement ui from", "build from mockup"]
+  examples:
+    - "convert this screenshot into a React component"
+    - "implement the UI from this Figma mockup"
+    - "build a component from this design"
+  anti-triggers: [explore, assess, review, brainstorm, extract design]
 ---
 
 # Design to Code

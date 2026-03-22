@@ -19,6 +19,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { getWebhookUrl } from '../lib/orchestration-state.js';
 
 // Import session-specific hook implementations
 // Note: dependency-version-check moved to setup/unified-dispatcher.ts (Issue #239)
@@ -64,9 +65,45 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
 // -----------------------------------------------------------------------------
 
 /**
+ * Check webhook URL reachability once per session.
+ * If configured but unreachable, log a clear warning so the user knows
+ * why usage-summary-reporter and HTTP hooks will fail silently.
+ */
+async function checkWebhookHealth(): Promise<void> {
+  const webhookUrl = getWebhookUrl();
+  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+
+  if (!webhookUrl) return; // Not configured — nothing to check
+
+  if (!hookToken) {
+    logHook('webhook-health', 'webhookUrl is set but ORCHESTKIT_HOOK_TOKEN is missing — webhook hooks will be skipped');
+    return;
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(2000),
+    });
+    if (response.ok || response.status === 405) {
+      // 405 = Method Not Allowed is fine for HEAD — means the server exists
+      logHook('webhook-health', `Webhook endpoint reachable: ${webhookUrl} (${response.status})`);
+    } else {
+      logHook('webhook-health', `Webhook endpoint returned ${response.status}: ${webhookUrl} — session data may be lost. Is the server running?`, 'warn');
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logHook('webhook-health', `Webhook endpoint unreachable: ${webhookUrl} (${msg}) — usage-summary-reporter will fail. Start the server or clear webhookUrl from orchestration config.`, 'warn');
+  }
+}
+
+/**
  * Unified dispatcher that runs all SessionStart hooks in parallel
  */
 export async function unifiedSessionStartDispatcher(input: HookInput): Promise<HookResult> {
+  // Check webhook health once per session (non-blocking, runs alongside hooks)
+  const webhookCheck = checkWebhookHealth().catch(() => {});
+
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
@@ -99,6 +136,9 @@ export async function unifiedSessionStartDispatcher(input: HookInput): Promise<H
   if (failures.length > 0) {
     logHook('session-start-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
   }
+
+  // Wait for webhook health check to complete (non-blocking, errors already caught)
+  await webhookCheck;
 
   // Async hooks always return silent success - CC ignores other fields
   return outputSilentSuccess();

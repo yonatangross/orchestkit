@@ -1,0 +1,538 @@
+---
+title: "Bare Eval"
+description: "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="bare-eval" />
+
+
+# Bare Eval — Isolated Evaluation Calls
+
+Run `claude -p --bare` for fast, clean eval/grading without plugin overhead.
+
+**CC 2.1.81 required.** The `--bare` flag skips hooks, LSP, plugin sync, and skill directory walks.
+
+## When to Use
+
+- Grading skill outputs against assertions
+- Trigger classification (which skill matches a prompt)
+- Description optimization iterations
+- Any scripted `-p` call that doesn't need plugins
+
+## When NOT to Use
+
+- Testing skill routing (needs `--plugin-dir`)
+- Testing agent orchestration (needs full plugin context)
+- Interactive sessions
+
+## Prerequisites
+
+```bash
+# --bare requires ANTHROPIC_API_KEY (OAuth/keychain disabled)
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Verify CC version
+claude --version  # Must be >= 2.1.81
+```
+
+## Quick Reference
+
+| Call Type | Command Pattern |
+|-----------|----------------|
+| Grading | `claude -p "$prompt" --bare --max-turns 1 --output-format text` |
+| Trigger | `claude -p "$prompt" --bare --json-schema "$schema" --output-format json` |
+| Optimize | `echo "$prompt" \| claude -p --bare --max-turns 1 --output-format text` |
+| Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
+
+## Invocation Patterns
+
+Load detailed patterns and examples:
+
+```
+Read("${CLAUDE_SKILL_DIR}/references/invocation-patterns.md")
+```
+
+## Grading Schemas
+
+JSON schemas for structured eval output:
+
+```
+Read("${CLAUDE_SKILL_DIR}/references/grading-schemas.md")
+```
+
+## Pipeline Integration
+
+OrchestKit's eval scripts (`npm run eval:skill`) auto-detect bare mode:
+
+```bash
+# eval-common.sh detects ANTHROPIC_API_KEY → sets BARE_MODE=true
+# Scripts add --bare to all non-plugin calls automatically
+```
+
+**Bare calls:** Trigger classification, force-skill, baseline, all grading.
+**Never bare:** `run_with_skill` (needs plugin context for routing tests).
+
+## Performance
+
+| Scenario | Without --bare | With --bare | Savings |
+|----------|---------------|-------------|---------|
+| Single grading call | ~3-5s startup | ~0.5-1s | 2-4x |
+| Trigger (per prompt) | ~3-5s | ~0.5-1s | 2-4x |
+| Full eval (50 calls) | ~150-250s overhead | ~25-50s | 3-5x |
+
+## Rules
+
+```
+Read("${CLAUDE_SKILL_DIR}/rules/_sections.md")
+```
+
+## Troubleshooting
+
+```
+Read("${CLAUDE_SKILL_DIR}/references/troubleshooting.md")
+```
+
+## Related
+
+- `eval:skill` npm script — unified skill evaluation runner
+- `eval:trigger` — trigger accuracy testing
+- `eval:quality` — A/B quality comparison
+- `optimize-description.sh` — iterative description improvement
+- Version compatibility: `doctor/references/version-compatibility.md`
+
+
+---
+
+## Rules (3)
+
+### Use --bare for grading/classification only — MEDIUM
+
+
+# Use --bare for Grading/Classification Only
+
+`--bare` should only be used for calls that don't need plugin context.
+
+## Bare-Safe Calls
+
+- Assertion grading (batch or per-assertion)
+- Trigger classification (skill matching)
+- Description optimization
+- Force-skill eval (`--append-system-prompt`)
+- Baseline comparison (no plugin)
+
+## Never-Bare Calls
+
+- `run_with_skill` — tests plugin routing and skill loading
+- Agent eval generation — tests agent spawning via plugin
+- Any call using `--plugin-dir`
+
+## Incorrect
+
+```bash
+# BAD: run_with_skill with --bare defeats the purpose of testing plugin routing
+build_claude_flags() {
+    flags+=(--bare)  # Wrong — this function is called with include_plugin=true
+    flags+=(--plugin-dir "$PLUGIN_DIR")
+}
+```
+
+## Correct
+
+```bash
+# GOOD: only add --bare when NOT using plugins
+build_claude_flags() {
+    local include_plugin="$1"
+    if [[ "$include_plugin" == "true" ]]; then
+        flags+=(--plugin-dir "$PLUGIN_DIR")
+    elif [[ "$BARE_MODE" == "true" ]]; then
+        flags+=(--bare)
+    fi
+}
+```
+
+## Why
+
+The eval pipeline's value comes from testing skills in their real environment. `--bare` is for the grading/classification overhead calls, not the core eval itself.
+
+
+### Never combine --bare with --plugin-dir — HIGH
+
+
+# Never Combine --bare with --plugin-dir
+
+`--bare` explicitly skips plugin sync and skill directory walks. Adding `--plugin-dir` alongside it creates a silent conflict — the plugin may not load correctly.
+
+## Incorrect
+
+```bash
+# BAD: --bare + --plugin-dir is contradictory
+claude -p "$prompt" --bare --plugin-dir plugins/ork --output-format json
+```
+
+## Correct
+
+```bash
+# For plugin-routed tests: no --bare
+claude -p "$prompt" --plugin-dir plugins/ork --dangerously-skip-permissions --output-format json
+
+# For grading/classification: --bare, no --plugin-dir
+claude -p "$prompt" --bare --max-turns 1 --output-format text
+```
+
+## Why
+
+The `--bare` flag was designed for scripted `-p` calls that don't need the full Claude Code environment. Using it with `--plugin-dir` defeats the purpose and may cause unpredictable behavior since hooks and skill discovery are disabled.
+
+
+### Always check ANTHROPIC_API_KEY before using --bare — HIGH
+
+
+# Always Check ANTHROPIC_API_KEY Before --bare
+
+`--bare` disables OAuth and keychain auth. If `ANTHROPIC_API_KEY` is not set, the call will fail.
+
+## Incorrect
+
+```bash
+# BAD: no API key check before --bare
+claude -p "$prompt" --bare --max-turns 1 --output-format text
+```
+
+## Correct
+
+```bash
+# GOOD: conditional bare mode
+BARE_MODE=false
+if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
+    BARE_MODE=true
+fi
+
+local -a bare_flag=()
+if [[ "$BARE_MODE" == "true" ]]; then bare_flag=(--bare); fi
+
+claude -p "$prompt" "${bare_flag[@]}" --max-turns 1 --output-format text
+```
+
+## Why
+
+Users authenticating via `claude auth login` (OAuth) or macOS keychain won't have `ANTHROPIC_API_KEY` set. Using `--bare` unconditionally would break their eval pipeline. The conditional pattern degrades gracefully — eval still works, just slower.
+
+
+
+---
+
+## References (3)
+
+### Grading Schemas
+
+# Grading Schemas
+
+JSON schemas for structured eval output with `--json-schema`.
+
+## Batch Assertion Grading
+
+```json
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string", "description": "Assertion name" },
+      "verdict": { "enum": ["PASS", "FAIL"], "description": "Whether the output satisfies the assertion" },
+      "reason": { "type": "string", "description": "One-line explanation" }
+    },
+    "required": ["name", "verdict", "reason"]
+  }
+}
+```
+
+## Trigger Classification
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "skill_name": { "type": "string", "description": "The skill that would be triggered" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "Confidence score 0-1" },
+    "reasoning": { "type": "string", "description": "Why this skill matches" }
+  },
+  "required": ["skill_name", "confidence"]
+}
+```
+
+## Quality Score
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "score": { "type": "integer", "minimum": 0, "maximum": 10 },
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "accuracy": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "completeness": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "actionability": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "format": { "type": "integer", "minimum": 0, "maximum": 10 }
+      }
+    },
+    "verdict": { "enum": ["PASS", "FAIL", "PARTIAL"] },
+    "reason": { "type": "string" }
+  },
+  "required": ["score", "verdict"]
+}
+```
+
+## Description Quality
+
+For `optimize-description.sh` iterations:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "improved_description": { "type": "string", "maxLength": 1024 },
+    "changes_made": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "trigger_keywords_added": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["improved_description"]
+}
+```
+
+## Usage
+
+```bash
+# Save schema to file
+cat > /tmp/grading-schema.json << 'EOF'
+{ ... schema above ... }
+EOF
+
+# Use with --json-schema
+claude -p "$prompt" --bare --json-schema /tmp/grading-schema.json --output-format json
+```
+
+
+### Invocation Patterns
+
+# Bare Eval Invocation Patterns
+
+Detailed patterns for each `--bare` eval scenario.
+
+## 1. Batch Grading (Most Common)
+
+Grade all assertions for an output in a single call:
+
+```bash
+grading_prompt="You are an assertion grader. Grade this output against EACH assertion.
+For each, return: {\"name\": \"...\", \"verdict\": \"PASS\"|\"FAIL\", \"reason\": \"...\"}
+Return ONLY a valid JSON array.
+
+ASSERTIONS:
+$assertions_json
+
+OUTPUT:
+$output_text"
+
+result=$(claude -p "$grading_prompt" --bare --max-turns 1 --output-format text)
+```
+
+### Fallback: Per-Assertion Grading
+
+If batch fails (malformed JSON), fall back to grading one assertion at a time:
+
+```bash
+grading_prompt="Grade this output against the assertion.
+Output ONLY 'PASS' or 'FAIL' followed by a one-line reason.
+
+ASSERTION: $assertion_check
+
+OUTPUT:
+$output_text"
+
+result=$(claude -p "$grading_prompt" --bare --max-turns 1 --output-format text)
+```
+
+## 2. Trigger Classification
+
+Test which skill a prompt would match:
+
+```bash
+classification_prompt="Which skill would be triggered by this user prompt: \"$prompt\"
+
+Available skills:
+$SKILLS_CATALOG"
+
+claude -p "$classification_prompt" \
+    --bare \
+    --system-prompt "$CLASSIFIER_SYSTEM_PROMPT" \
+    --output-format json \
+    --json-schema "$TRIGGER_SCHEMA" \
+    --max-turns 2
+```
+
+### Repetition for Confidence
+
+Run multiple reps and check consistency:
+
+```bash
+for ((i=1; i<=reps; i++)); do
+    result=$(claude -p "$prompt" --bare --json-schema "$schema" --output-format json)
+    # Parse and aggregate
+done
+```
+
+## 3. Description Optimization
+
+Iteratively improve a skill description for better trigger accuracy:
+
+```bash
+improve_prompt="Current description: $current_desc
+
+These prompts SHOULD trigger but DIDN'T:
+$failures
+
+Rules:
+- Under 200 words
+- Include WHAT and WHEN
+- Third person
+- Specific trigger keywords
+
+Output ONLY the improved description."
+
+new_desc=$(echo "$improve_prompt" | claude -p --bare --max-turns 1 --output-format text)
+```
+
+## 4. Force-Skill Eval (Isolated Quality)
+
+Test skill content quality without plugin routing — inject SKILL.md body directly:
+
+```bash
+# Strip YAML frontmatter (macOS-compatible)
+skill_content=$(awk 'BEGIN{skip=0} /^---$/{skip++; next} skip>=2{print}' "$SKILL_PATH")
+
+claude -p "$prompt" \
+    --bare \
+    --print \
+    --no-session-persistence \
+    --max-budget-usd 0.50 \
+    --append-system-prompt "$skill_content"
+```
+
+**Key:** `--print` forces text-only output (no tool calls). Combined with `--bare`, this is the fastest eval mode — pure text generation with skill context.
+
+## 5. Baseline Comparison
+
+Run without any skill context for A/B comparison:
+
+```bash
+claude -p "$prompt" \
+    --bare \
+    --dangerously-skip-permissions \
+    --max-turns 3 \
+    --output-format json \
+    --no-session-persistence \
+    --max-budget-usd 0.50
+```
+
+## Flag Compatibility Matrix
+
+| Flag | Compatible with --bare? | Notes |
+|------|------------------------|-------|
+| `--max-turns` | Yes | Limits turn count |
+| `--output-format` | Yes | json, text, stream-json |
+| `--json-schema` | Yes | Structured output |
+| `--system-prompt` | Yes | Override system prompt |
+| `--append-system-prompt` | Yes | Append to system prompt |
+| `--print` | Yes | Text-only, no tools |
+| `--no-session-persistence` | Yes | No session file |
+| `--max-budget-usd` | Yes | Cost cap |
+| `--model` | Yes | Model override |
+| `--plugin-dir` | **No** | Contradicts --bare |
+| `--mcp-config` | Check | MCP may need network |
+| `--dangerously-skip-permissions` | Yes | Useful for CI |
+| `--settings` | Yes | Custom settings file |
+
+## Timeout Wrapper
+
+Use a portable timeout for CI environments:
+
+```bash
+# eval-common.sh provides run_with_timeout()
+run_with_timeout 120 claude -p "$prompt" --bare --max-turns 1 --output-format text
+```
+
+
+### Troubleshooting
+
+# Bare Eval Troubleshooting
+
+## Common Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `--bare requires ANTHROPIC_API_KEY` | OAuth/keychain not supported in bare mode | Set `ANTHROPIC_API_KEY` env var |
+| `Unknown flag --bare` | CC version &lt; 2.1.81 | Upgrade: `npm i -g @anthropic-ai/claude-code@latest` |
+| Empty response | Model returned empty or budget exceeded | Increase `--max-budget-usd` or check prompt |
+| Malformed JSON from batch grader | Model wrapped JSON in markdown fences | Strip fences: `sed 's/^```json//;s/^```//;s/```$//'` |
+| `BARE_MODE=false` despite key set | `ANTHROPIC_API_KEY` empty string | Ensure key has a value: `echo $ANTHROPIC_API_KEY` |
+| Timeout in CI | Model taking too long | Use `run_with_timeout` with adequate seconds |
+
+## Debugging
+
+### Check if bare mode is active
+
+```bash
+# In eval scripts:
+echo "BARE_MODE=$BARE_MODE"
+
+# Manual test:
+ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" claude -p "Hello" --bare --max-turns 1 --output-format text
+```
+
+### Verbose output
+
+```bash
+# Capture stderr for diagnostics
+claude -p "$prompt" --bare --max-turns 1 --output-format text > output.txt 2> stderr.txt
+cat stderr.txt
+```
+
+### Fallback when --bare unavailable
+
+If CC &lt; 2.1.81, the eval scripts still work — they just don't add `--bare`:
+
+```bash
+# eval-common.sh:
+BARE_MODE=false  # No ANTHROPIC_API_KEY → no bare mode
+# Scripts run normally, just slower (full plugin/hook overhead)
+```
+
+## Performance Profiling
+
+Compare eval times with and without bare:
+
+```bash
+# With bare
+time ANTHROPIC_API_KEY="$KEY" claude -p "test" --bare --max-turns 1 --output-format text > /dev/null
+
+# Without bare (full stack)
+time claude -p "test" --max-turns 1 --output-format text > /dev/null
+```
+
+## Security Notes
+
+- `--bare` disables auto-memory — no session learnings stored
+- `--bare` requires explicit API key — no credential leakage via keychain
+- Eval scripts already run outside Claude Code sessions (`unset CLAUDECODE`)
+- `SKILL_NAME_RE` regex prevents path traversal in eval inputs (SEC-001)
+

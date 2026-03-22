@@ -25,6 +25,13 @@ allowed-tools:
 metadata:
   category: workflow-automation
   mcp-server: 21st-dev-magic
+triggers:
+  keywords: ["component search", "find component", "search components", "ui component", "react component", "21st.dev"]
+  examples:
+    - "search for a date picker component"
+    - "find a modal component for React"
+    - "are there any good table components on 21st.dev"
+  anti-triggers: [implement, build, design, explore, brainstorm]
 ---
 
 # Component Search

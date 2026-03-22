@@ -139,12 +139,39 @@ Return structured investigation report:
 4. Note: frequency, environment, user state
 ```
 
+### 1b. Discover Service URLs
+When the bug involves a running web app, API, or frontend:
+```bash
+# Prefer Portless named URLs over raw port numbers
+portless list 2>/dev/null && echo "Use *.localhost:1355 URLs"
+# Fallback: discover ports from process list
+lsof -iTCP -sTCP:LISTEN -nP | grep -E 'node|python|java|ruby|go'
+```
+Use `myapp.localhost:1355` instead of `localhost:PORT` — named URLs are stable across restarts and self-documenting in investigation reports.
+
+### 1c. Visual Inspection with agent-browser
+For UI bugs, rendering issues, or frontend state problems, use `agent-browser` to visually inspect the running app:
+```bash
+# Open the app at its Portless URL
+agent-browser open "http://myapp.localhost:1355"
+# Screenshot the broken state as evidence
+agent-browser screenshot /tmp/bug-before.png
+# Check console for JS errors
+agent-browser console
+# Inspect network requests for failed API calls
+agent-browser network log
+# Check specific element state
+agent-browser get text @error-message
+```
+Screenshots and console output are first-class evidence — attach them to the investigation report.
+
 ### 2. Gather Evidence
 ```
 1. Read full error message and stack trace
 2. Check application logs around failure time
 3. Identify the execution path taken
 4. Note any recent changes (git log -p --since="2 weeks ago")
+5. If UI bug: use agent-browser to screenshot, check console, inspect network
 ```
 
 ### 3. Form Hypotheses
@@ -188,11 +215,21 @@ Don't just find WHERE, explain WHY:
 ## Example
 Task: "SSE progress events not showing in frontend"
 
-**1. Reproduce:**
+**1. Discover services:**
 ```bash
-# Start analysis and check network tab
-curl -X POST http://localhost:8500/api/v1/analyses -d '{"url": "https://example.com"}'
-# Open http://localhost:5173 - progress stays at 0%
+portless list
+# api → api.localhost:1355 (port 8500)
+# app → app.localhost:1355 (port 5173)
+```
+
+**1b. Reproduce:**
+```bash
+# Use Portless named URLs — stable and self-documenting
+curl -X POST http://api.localhost:1355/api/v1/analyses -d '{"url": "https://example.com"}'
+# Open the frontend via agent-browser
+agent-browser open "http://app.localhost:1355"
+agent-browser screenshot /tmp/sse-bug-before.png  # progress stays at 0%
+agent-browser console  # check for JS errors
 ```
 
 **2. Gather Evidence:**
@@ -202,6 +239,9 @@ grep "SSE\|event\|publish" logs/backend.log
 
 # Found: "Publishing event analysis:123 at T+0"
 # Found: "New subscriber for analysis:123 at T+150ms"
+
+# Check network tab via agent-browser
+agent-browser network log  # verify SSE connection status
 ```
 
 **3. Hypotheses:**
@@ -267,10 +307,14 @@ The debug-investigator agent complements `/debug` by:
 - `/debug` - Real-time diagnostics for current CC session state
 - `debug-investigator` - Systematic RCA for application bugs
 
+## Local Dev Tools
+- **Portless** (`npm i -g portless`): Use named `.localhost:1355` URLs instead of raw port numbers. Run `portless list` to discover available services before constructing any localhost URLs.
+- **agent-browser**: Use for visual inspection, screenshots, console logs, and network monitoring. Essential for UI bugs — don't guess what the user sees, look at it yourself.
+
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
-- **Skill references:** monitoring-observability
+- **Skill references:** monitoring-observability, browser-tools
 
 ## Skill Index
 

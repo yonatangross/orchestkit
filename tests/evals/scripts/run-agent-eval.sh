@@ -153,9 +153,8 @@ build_claude_flags() {
     flags+=(--output-format json)
     flags+=(--no-session-persistence)
     flags+=(--max-budget-usd "$MAX_BUDGET")
-    if [[ -n "$EVAL_MODEL" ]]; then
-        flags+=(--model "$EVAL_MODEL")
-    fi
+    # Default to Haiku for eval generation (Sonnet/Opus too expensive for batch eval)
+    flags+=(--model "${EVAL_MODEL:-haiku}")
     echo "${flags[@]}"
 }
 
@@ -216,7 +215,13 @@ $assertions_json
 OUTPUT:
 $output_text"
 
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
+
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true
@@ -250,7 +255,13 @@ ASSERTION: $assertion_check
 OUTPUT:
 $output_text"
 
+    # CC 2.1.81: --bare + Haiku for grading calls (no plugins needed, 12x cheaper)
+    local -a grade_flags=()
+    if [[ "$BARE_MODE" == "true" ]]; then grade_flags+=(--bare); fi
+    grade_flags+=(--model "$GRADING_MODEL")
+
     run_with_timeout "$GRADE_TIMEOUT" claude -p "$grading_prompt" \
+        "${grade_flags[@]}" \
         --max-turns 1 \
         --output-format text \
         > "$tmpfile" 2>/dev/null || true

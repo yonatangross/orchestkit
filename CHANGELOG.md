@@ -5,6 +5,61 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.21.0] - 2026-03-21
+
+### Added
+
+- **Portless + agent-browser in debug workflows**: all debug-related skills/agents now instruct to use Portless named URLs and agent-browser for visual inspection
+  - `debug-investigator` agent: service discovery step, visual inspection, updated examples
+  - `fix-issue` skill: service discovery + agent-browser phase before hypothesis formation
+  - `errors` skill: ECONNREFUSED/connection refused pattern with Portless fix
+  - `doctor` skill: Portless health check in external dependencies
+  - `performance` skill: local profiling target section with Portless URLs
+  - `browser-tools` skill: new `portless-local-dev` rule file with incorrect/correct patterns
+- **CC 2.1.81 integration**: `--bare` mode for eval pipeline, version-compatibility matrix, configure skill docs
+- **bare-eval skill**: new skill for isolated eval/grading calls using `--bare` (SKILL.md, 3 references, 3 rules, test-cases.json)
+- **triggers: frontmatter**: all 20 user-invocable skills declare keywords, examples, and anti-triggers
+- **test-trigger-keywords.sh**: deterministic keyword-based trigger matching — $0, 5 seconds, 17/17 pass (replaces $3/45min LLM classifier)
+- **Content hash cache**: skip re-eval if SKILL.md + .eval.yaml unchanged (`--force` to bypass)
+- **`--changed` mode**: git-diff eval — only eval skills changed vs main (ideal for CI)
+- **`--skip-baseline --force-skill`**: fastest quality eval mode (1 call per prompt instead of 3)
+
+### Changed
+
+- Default eval model: **Haiku** for all generation AND grading (was Sonnet — 12x cost reduction)
+- Trigger reps: 5→3 (95%+ detection with 40% fewer calls)
+- Trigger eval: parallel prompt execution (6 workers via `EVAL_MAX_PARALLEL`), skip non-invocable skills
+- Trigger timeout: 120s→60s for classification calls
+- agent-browser safety: allow localhost, 127.0.0.1, and *.localhost URLs (dev servers should never be blocked)
+- Min CC version: >= 2.1.81 (was 2.1.80)
+
+### Fixed
+
+- **Hook resilience — 5 fail-silent bugs made visible**:
+  - `run-hook.mjs`: stderr warning when stdin >512KB truncated (was silent data loss)
+  - `run-hook.mjs`: stderr warning when truncated JSON falls back to `{}` (was silent no-op)
+  - `run-hook.mjs`: appendFile error callbacks replace fire-and-forget `() => {}` (was silent write failure)
+  - `run-hook.mjs`: session ID validation strengthened to UUID + smart-ID structural patterns (was permissive regex)
+  - `stop-failure-handler`: tries fallback field names, logs available keys when reason unknown (was always "unknown")
+  - `unified-dispatcher`: webhook health check on SessionStart — warns if endpoint unreachable
+- agent-browser blocking localhost:PORT and 127.0.0.1:PORT URLs
+- Keyword collision: "grade" removed from verify (owned by assess)
+- `set -e` crash on `((x++))` when x=0 in trigger test
+- Agent frontmatter test labels updated from stale "CC 2.1.6 compliant" to "valid"
+
+---
+
+## [7.20.0] - 2026-03-21
+
+### Added
+
+- feat(eval): unified `npm run eval:skill` command — trigger + quality in one command per skill
+- feat(eval): `npm run eval:optimize-desc` — iterative description improvement with train/test split
+- feat(eval): `check-eval-regression.sh` — CI regression gate comparing eval baselines (no API calls)
+
+---
+
+
 ## [7.19.0](https://github.com/yonatangross/orchestkit/compare/v7.18.0...v7.19.0) (2026-03-21)
 
 

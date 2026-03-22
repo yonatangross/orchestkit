@@ -72,16 +72,26 @@ describe('agent-browser-safety', () => {
     expect(result.suppressOutput).toBe(true);
   });
 
-  it('blocks agent-browser navigating to internal admin URLs', () => {
-    // Arrange
+  it('allows agent-browser navigating to localhost dev servers', () => {
     const input = createBashInput('agent-browser navigate "http://localhost:8080/admin"');
-
-    // Act
     const result = agentBrowserSafety(input);
+    expect(result.continue).toBe(true);
+  });
 
-    // Assert
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toContain('blocked');
+  it('allows agent-browser navigating to localhost with any port', () => {
+    const input3000 = createBashInput('agent-browser navigate "http://localhost:3000"');
+    expect(agentBrowserSafety(input3000).continue).toBe(true);
+
+    const input4550 = createBashInput('agent-browser navigate "http://localhost:4550"');
+    expect(agentBrowserSafety(input4550).continue).toBe(true);
+
+    const input5173 = createBashInput('agent-browser navigate "http://localhost:5173/dashboard"');
+    expect(agentBrowserSafety(input5173).continue).toBe(true);
+  });
+
+  it('allows agent-browser navigating to subdomain.localhost', () => {
+    const input = createBashInput('agent-browser navigate "http://hq-web.localhost:1355"');
+    expect(agentBrowserSafety(input).continue).toBe(true);
   });
 
   it('blocks agent-browser navigating to file:// URLs', () => {
@@ -120,11 +130,10 @@ describe('agent-browser-safety', () => {
     expect(result.hookSpecificOutput?.additionalContext).toContain('Sensitive browser action');
   });
 
-  it('blocks 127.0.0.1 on any path, not just /admin', () => {
+  it('allows 127.0.0.1 for local dev servers', () => {
     const input = createBashInput('agent-browser navigate "http://127.0.0.1:3000/api/users"');
     const result = agentBrowserSafety(input);
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toContain('blocked');
+    expect(result.continue).toBe(true);
   });
 
   it('blocks AWS metadata endpoint (SSRF)', () => {

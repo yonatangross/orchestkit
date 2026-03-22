@@ -15,6 +15,13 @@ effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+triggers:
+  keywords: [help, "what skills", "skills can i", "available commands", "which skill", "show me skills", "ork commands", "what can", "whats ork", "skill for"]
+  examples:
+    - "what orchestkit skills can i use"
+    - "show me the available ork commands"
+    - "help me find the right skill for code review"
+  anti-triggers: [fix, implement, doctor, setup, explore, assess]
 ---
 
 # OrchestKit Skill Directory

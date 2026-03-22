@@ -125,6 +125,31 @@ Digital sustainability patterns for reducing carbon footprint and energy usage.
 |------|------|-------------|
 | Sustainability UX | `rules/sustainability-ux.md` | Page weight budgets, AVIF/WebP, lazy loading, dark mode |
 
+## Local Profiling Target
+
+When profiling a local app (Lighthouse, Core Web Vitals, bundle analysis), use Portless named URLs for stable, self-documenting targets:
+
+```bash
+# Discover services
+portless list
+# app → app.localhost:1355 (port 3000)
+
+# Profile with agent-browser (preferred for visual metrics)
+agent-browser open "http://app.localhost:1355"
+agent-browser profiler start
+agent-browser wait --load networkidle
+agent-browser profiler stop /tmp/profile.json
+
+# Lighthouse via agent-browser
+agent-browser open "http://app.localhost:1355"
+agent-browser screenshot /tmp/perf-baseline.png
+
+# Or direct Lighthouse CLI
+npx lighthouse http://app.localhost:1355 --output=json --output-path=/tmp/lighthouse.json
+```
+
+Named URLs are stable across restarts and self-documenting in performance reports. Install Portless with `npm i -g portless`.
+
 ## Quick Start Example
 
 ```tsx
@@ -176,6 +201,7 @@ export default async function Page() {
 
 - `ork:react-server-components-framework` - Server-first rendering
 - `ork:vite-advanced` - Build optimization
+- `browser-tools` - Visual profiling with agent-browser + Portless
 - `caching` - Cache strategies for responses
 - `ork:monitoring-observability` - Production monitoring and alerting
 - `ork:database-patterns` - Query and index optimization

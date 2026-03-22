@@ -644,6 +644,73 @@ MCP servers can push messages into sessions via `--channels`. Experimental — m
 
 Shows elapsed time per turn in the statusline — useful for profiling slow tool calls and understanding agent performance.
 
+## Step 11: CC 2.1.81 Settings
+
+### Bare Mode for Scripted Calls
+
+The `--bare` flag skips hooks, LSP, plugin sync, and skill directory walks for scripted `-p` calls. Ideal for eval pipelines and CI grading where plugin context is unnecessary.
+
+Requirements:
+- `ANTHROPIC_API_KEY` must be set (OAuth and keychain auth disabled in bare mode)
+- Use with `--settings` to provide an apiKeyHelper if not using env var
+
+```bash
+# Fast grading call — no plugin overhead
+claude -p "Grade this output..." --bare --max-turns 1 --output-format text
+
+# With custom settings
+claude -p "Classify..." --bare --settings ./eval-settings.json --json-schema schema.json
+```
+
+### Channels Permission Relay
+
+Channel servers that declare the `permission` capability can forward tool approval prompts to your phone. Useful for long-running multi-agent workflows (brainstorm, implement, verify) where you're away from terminal.
+
+```bash
+# Start session with channels enabled
+claude --channels
+
+# Channel server receives permission prompts and relays approval/denial
+```
+
+Configure channel servers in settings.json:
+
+```json
+{
+  "channels": {
+    "servers": [
+      { "url": "https://your-channel-server.example.com" }
+    ]
+  }
+}
+```
+
+### Plan Mode Context Clearing
+
+Plan mode now hides the "clear context" option by default when accepting a plan. Restore with:
+
+```json
+{
+  "showClearContextOnPlanAccept": true
+}
+```
+
+### Plugin Freshness
+
+Ref-tracked plugins now re-clone on every load to pick up upstream changes. For stability, pin to a specific version tag:
+
+```json
+{
+  "plugins": {
+    "sources": [
+      { "type": "settings", "url": "github:yonatangross/orchestkit@v7.20.0" }
+    ]
+  }
+}
+```
+
+Use `@main` for bleeding edge, `@v7.x.x` for stability.
+
 
 ### Http Hooks
 

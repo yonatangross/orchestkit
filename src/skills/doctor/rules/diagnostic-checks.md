@@ -151,6 +151,10 @@ Checks optional tool availability:
 # Checks performed:
 # - agent-browser: installed globally via skills CLI
 # - Validates symlink exists at ~/.claude/skills/agent-browser
+# - portless: stable named localhost URLs for local dev
+#   which portless 2>/dev/null && portless list 2>/dev/null
+#   If missing: RECOMMEND "npm i -g portless" for stable local dev URLs
+#   If installed but not running: WARN "portless is installed but no services registered"
 ```
 
 ---

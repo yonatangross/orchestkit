@@ -80,6 +80,22 @@ cat .claude/rules/error_rules.json | jq '.rules[] | {id, signature, count: .occu
 
 ## Common Patterns
 
+### Connection Refused / Wrong Port
+
+```
+pattern: ECONNREFUSED|connection refused|ERR_CONNECTION_REFUSED|connect ECONNREFUSED
+fix: The port may have changed or the service isn't running.
+     1. Check services: portless list (if installed)
+     2. Use named URLs: api.localhost:1355 instead of localhost:PORT
+     3. Fallback: lsof -iTCP -sTCP:LISTEN -nP | grep -E 'node|python|java'
+     4. Install Portless to avoid port guessing: npm i -g portless
+
+pattern: ERR_CONNECTION_RESET|ECONNRESET|socket hang up
+fix: Service may have crashed. Check process logs, restart the service,
+     and use agent-browser to verify the app is responding:
+     agent-browser open "http://myapp.localhost:1355"
+```
+
 ### PostgreSQL Connection Errors
 
 ```

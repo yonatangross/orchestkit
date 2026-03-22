@@ -135,6 +135,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "bare-eval",
+    "label": "Bare Eval",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "testing",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "brainstorm",
     "label": "Brainstorm",
     "type": "command",
