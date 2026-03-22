@@ -50,10 +50,23 @@ export async function stopFailureHandler(input: HookInput): Promise<HookResult> 
     return outputSilentSuccess();
   }
 
-  const failureReason = input.stop_failure_reason || 'unknown';
-  const apiStatus = input.api_status_code;
+  // CC 2.1.78 may populate stop_failure_reason and api_status_code, but older
+  // versions or edge cases may not. Extract what we can from the input.
+  const raw = input as unknown as Record<string, unknown>;
+  const failureReason = input.stop_failure_reason
+    || (typeof raw.error_type === 'string' ? raw.error_type : undefined)
+    || (typeof raw.reason === 'string' ? raw.reason : undefined)
+    || 'unknown';
+  const apiStatus = input.api_status_code
+    || (typeof raw.status_code === 'number' ? raw.status_code : undefined);
 
-  logHook(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}`, 'warn');
+  // Log available input keys for debugging when reason is unknown
+  if (failureReason === 'unknown') {
+    const inputKeys = Object.keys(input).filter(k => !['hook_event_name', 'session_id', 'project_dir', 'stop_hook_active'].includes(k));
+    logHook(HOOK_NAME, `StopFailure: reason=unknown (available keys: ${inputKeys.join(', ') || 'none'})`, 'warn');
+  } else {
+    logHook(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}`, 'warn');
+  }
 
   // Track the failure event for analytics
   try {
