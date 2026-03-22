@@ -123,6 +123,20 @@ export function containsDangerousCommand(
 }
 
 /**
+ * Blank out content inside single- and double-quoted strings.
+ * Bash does NOT perform brace expansion, process substitution, etc. inside
+ * quotes, so detection must ignore quoted regions to avoid false positives.
+ * Example: --jq '{title, labels}' → --jq '___'
+ */
+function blankQuotedContent(cmd: string): string {
+  // Single-quoted strings: no escaping possible inside single quotes in bash
+  let result = cmd.replace(/'[^']*'/g, "''");
+  // Double-quoted strings: handle escaped quotes inside
+  result = result.replace(/"(?:[^"\\]|\\.)*"/g, '""');
+  return result;
+}
+
+/**
  * Detect suspicious shell features that bypass simple operator splitting.
  * Returns array of finding descriptions, empty if clean.
  *
@@ -132,9 +146,12 @@ export function containsDangerousCommand(
 export function detectSuspiciousShellFeatures(cmd: string): string[] {
   const findings: string[] = [];
 
+  // Strip quoted string contents — bash doesn't expand inside quotes
+  const unquoted = blankQuotedContent(cmd);
+
   // 1. Process substitution: <(cmd) or >(cmd)
   // Limit content length to avoid ReDoS on untrusted input (CodeQL SEC-003)
-  if (/[<>]\([^)]{1,500}\)/.test(cmd)) {
+  if (/[<>]\([^)]{1,500}\)/.test(unquoted)) {
     findings.push('process substitution detected (<(...) or >(...))');
   }
 
@@ -142,7 +159,7 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
   // Heuristic: flag when the first element looks like a command binary (3+ chars,
   // no dots/slashes, starts alpha). Short elements like {ts,js} are file extensions.
   // Limit quantifiers to avoid ReDoS on untrusted input (CodeQL SEC-003)
-  const braceMatch = cmd.match(/\{([^},]{1,200}),([^}]{1,500})\}/g);
+  const braceMatch = unquoted.match(/\{([^},]{1,200}),([^}]{1,500})\}/g);
   if (braceMatch) {
     for (const m of braceMatch) {
       const inner = m.slice(1, -1);
@@ -151,32 +168,38 @@ export function detectSuspiciousShellFeatures(cmd: string): string[] {
       const isLikelyExtension = firstElement.length <= 2;
       const hasPathChars = firstElement.includes('.') || firstElement.includes('/');
       // Also check if preceded by a dot or glob (*.{ts,js}) — definitely a file glob
-      const braceIdx = cmd.indexOf(m);
-      const charBefore = braceIdx > 0 ? cmd[braceIdx - 1] : '';
+      const braceIdx = unquoted.indexOf(m);
+      const charBefore = braceIdx > 0 ? unquoted[braceIdx - 1] : '';
       const isPrecededByGlob = charBefore === '.' || charBefore === '*' || charBefore === '/';
-      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && /^[a-zA-Z]/.test(firstElement)) {
+      // Bash brace expansion requires NO spaces between elements: {cat,/etc/passwd}
+      // Spaced patterns like {name, os, status} are NOT valid brace expansion —
+      // bash treats the space as a word separator. Also skip JSON/jq object syntax
+      // (contains ':') since it's never brace expansion.
+      const hasSpacedElements = inner.includes(', ');
+      const hasJsonSyntax = inner.includes(':');
+      if (firstElement && !isLikelyExtension && !hasPathChars && !isPrecededByGlob && !hasSpacedElements && !hasJsonSyntax && /^[a-zA-Z]/.test(firstElement)) {
         findings.push(`brace expansion with command-like pattern: ${m}`);
       }
     }
   }
 
   // 3. Here-strings: <<<
-  if (/<<</.test(cmd)) {
+  if (/<<</.test(unquoted)) {
     findings.push('here-string detected (<<<)');
   }
 
   // 4. IFS manipulation: ${IFS} or IFS= assignment
-  if (/\$\{?IFS\}?/.test(cmd) || /\bIFS=/.test(cmd)) {
+  if (/\$\{?IFS\}?/.test(unquoted) || /\bIFS=/.test(unquoted)) {
     findings.push('IFS manipulation detected');
   }
 
   // 5. Nested command substitution: $(echo `cmd`) or $(`cmd`)
   // Use indexOf-based detection to avoid ReDoS (CodeQL SEC-003)
-  const dpIdx = cmd.indexOf('$(');
+  const dpIdx = unquoted.indexOf('$(');
   if (dpIdx >= 0) {
-    const cpIdx = cmd.indexOf(')', dpIdx + 2);
+    const cpIdx = unquoted.indexOf(')', dpIdx + 2);
     if (cpIdx > dpIdx) {
-      const inner = cmd.substring(dpIdx + 2, cpIdx);
+      const inner = unquoted.substring(dpIdx + 2, cpIdx);
       if (inner.includes('`')) {
         findings.push('nested command substitution detected ($(..`..`..))');
       }

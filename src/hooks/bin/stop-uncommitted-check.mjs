@@ -48,7 +48,7 @@ async function main() {
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `Stop says: Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
+          systemMessage: `[ork@7.21.1] Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
         })
       );
     } else {

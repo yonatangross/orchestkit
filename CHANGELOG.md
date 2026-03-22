@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.21.1] - 2026-03-22
+
+### Fixed
+
+- **Brace expansion false positive on jq syntax**: `--jq '{name, os, status}'` was blocked as "brace expansion with command-like pattern". Bash brace expansion requires NO spaces between elements (`{cat,/etc/passwd}`), so spaced patterns (`{name, os}`) and JSON/jq colon syntax (`{key: .value}`) are now correctly allowed.
+
+---
+
 ## [7.21.0] - 2026-03-21
 
 ### Added

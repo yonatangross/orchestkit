@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.21.1",
+    "date": "2026-03-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Brace expansion false positive on jq syntax**: `--jq '{name, os, status}'` was blocked as \"brace expansion with command-like pattern\". Bash brace expansion requires NO spaces between elements (`{cat,/etc/passwd}`), so spaced patterns (`{name, os}`) and JSON/jq colon syntax (`{key: .value}`) are now correctly allowed."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.21.0",
     "date": "2026-03-21",
     "compareUrl": "",
@@ -24,6 +37,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "added",
         "items": [
+          "**Portless + agent-browser in debug workflows**: all debug-related skills/agents now instruct to use Portless named URLs and agent-browser for visual inspection\n  - `debug-investigator` agent: service discovery step, visual inspection, updated examples\n  - `fix-issue` skill: service discovery + agent-browser phase before hypothesis formation\n  - `errors` skill: ECONNREFUSED/connection refused pattern with Portless fix\n  - `doctor` skill: Portless health check in external dependencies\n  - `performance` skill: local profiling target section with Portless URLs\n  - `browser-tools` skill: new `portless-local-dev` rule file with incorrect/correct patterns",
           "**CC 2.1.81 integration**: `--bare` mode for eval pipeline, version-compatibility matrix, configure skill docs",
           "**bare-eval skill**: new skill for isolated eval/grading calls using `--bare` (SKILL.md, 3 references, 3 rules, test-cases.json)",
           "**triggers: frontmatter**: all 20 user-invocable skills declare keywords, examples, and anti-triggers",
@@ -47,6 +61,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "fixed",
         "items": [
+          "**Hook resilience — 5 fail-silent bugs made visible**:\n  - `run-hook.mjs`: stderr warning when stdin >512KB truncated (was silent data loss)\n  - `run-hook.mjs`: stderr warning when truncated JSON falls back to `{}` (was silent no-op)\n  - `run-hook.mjs`: appendFile error callbacks replace fire-and-forget `() => {}` (was silent write failure)\n  - `run-hook.mjs`: session ID validation strengthened to UUID + smart-ID structural patterns (was permissive regex)\n  - `stop-failure-handler`: tries fallback field names, logs available keys when reason unknown (was always \"unknown\")\n  - `unified-dispatcher`: webhook health check on SessionStart — warns if endpoint unreachable",
           "agent-browser blocking localhost:PORT and 127.0.0.1:PORT URLs",
           "Keyword collision: \"grade\" removed from verify (owned by assess)",
           "`set -e` crash on `((x++))` when x=0 in trigger test",
