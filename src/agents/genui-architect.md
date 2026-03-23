@@ -1,6 +1,6 @@
 ---
 name: genui-architect
-description: "json-render catalog design specialist. Designs Zod-typed component catalogs, selects optimal shadcn components, constrains props for AI safety, and optimizes specs for token efficiency. Use when building AI-generated UIs, defining component catalogs, or migrating from custom GenUI to json-render."
+description: "json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs."
 model: inherit
 category: frontend
 context: fork

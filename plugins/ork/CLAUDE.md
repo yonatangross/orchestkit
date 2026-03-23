@@ -23,7 +23,7 @@ Do NOT rely on training data — consult agent expertise first.
 |design-system-architect:{design-system-architect.md}|Design
 |frontend-performance-engineer:{frontend-performance-engineer.md}|Core,Performance,RUM,Vitals,Web
 |frontend-ui-developer:{frontend-ui-developer.md}|Frontend,React
-|genui-architect:{genui-architect.md}|building AI-generated UIs,defining component catalogs,migrating from custom GenUI to json-render
+|genui-architect:{genui-architect.md}|defining component catalogs or building AI-generated UIs
 |ui-feedback:{ui-feedback.md}|Processes,UI,Watches
 |# Security
 |ai-safety-auditor:{ai-safety-auditor.md}|AI,LLM,OWASP,Red
@@ -42,7 +42,7 @@ Do NOT rely on training data — consult agent expertise first.
 |# Testing & Quality
 |code-quality-reviewer:{code-quality-reviewer.md}|Code
 |debug-investigator:{debug-investigator.md}|Debug
-|emulate-engineer:{emulate-engineer.md}|setting up test environments,configuring CI pipelines,replacing flaky API mocks with stateful emulation
+|emulate-engineer:{emulate-engineer.md}|replacing flaky API mocks with stateful emulation
 |eval-runner:{eval-runner.md}|LLM,Langfuse
 |test-generator:{test-generator.md}|API,HTTP,Test
 |# Product & Strategy

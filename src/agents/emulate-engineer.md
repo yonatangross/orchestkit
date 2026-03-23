@@ -1,6 +1,6 @@
 ---
 name: emulate-engineer
-description: "Stateful API emulation specialist using Vercel's emulate. Seeds emulate environments for GitHub, Vercel, and Google APIs. Configures webhook routes, per-worker port isolation for parallel CI, and auth token setup. Use when setting up test environments, configuring CI pipelines, or replacing flaky API mocks with stateful emulation."
+description: "Stateful API emulation with Vercel emulate. Seeds GitHub/Vercel/Google API environments, configures webhooks and port isolation. Use when replacing flaky API mocks with stateful emulation."
 model: inherit
 category: testing
 context: fork

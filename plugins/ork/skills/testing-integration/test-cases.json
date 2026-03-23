@@ -1,67 +1,71 @@
-[
-  {
-    "id": "api-endpoint-testing",
-    "rule": "integration-api",
-    "query": "Write integration tests for my user creation API endpoint",
-    "expectedBehavior": [
-      "Uses Supertest (TS) or httpx (Python) for HTTP-level testing",
-      "Tests both success (201) and validation error (400) paths",
-      "Asserts response body structure, not just status codes",
-      "Includes RFC 9457 Problem Details assertions for error responses"
-    ]
-  },
-  {
-    "id": "contract-testing-pact",
-    "rule": "contract-pact",
-    "query": "Set up contract tests between my frontend and backend services",
-    "expectedBehavior": [
-      "Recommends Pact for consumer-driven contract testing",
-      "Generates consumer test with expected interactions",
-      "Includes provider verification setup",
-      "Publishes contracts to a Pact Broker or file-based sharing"
-    ]
-  },
-  {
-    "id": "database-integration-testing",
-    "rule": "integration-database",
-    "query": "Test my database queries with real PostgreSQL",
-    "expectedBehavior": [
-      "Uses testcontainers or docker-compose for real DB instance",
-      "Runs migrations before tests, rolls back after each test",
-      "Tests queries with realistic seed data, not hardcoded values",
-      "Isolates test state per test case"
-    ]
-  },
-  {
-    "id": "emulate-stateful-testing",
-    "rule": "emulate-stateful-testing",
-    "query": "How do I test GitHub API interactions without hitting the real API?",
-    "expectedBehavior": [
-      "Recommends emulate as first choice for GitHub API testing",
-      "Provides seed config pattern with emulate.config.yaml",
-      "Sets GITHUB_API_BASE=http://localhost:4001 env var",
-      "Shows decision matrix: emulate vs Pact vs MSW vs Nock"
-    ]
-  },
-  {
-    "id": "schema-validation-testing",
-    "rule": "schema-validation",
-    "query": "Test that my API responses match the expected Zod schema",
-    "expectedBehavior": [
-      "Uses Zod schema parsing as test assertions",
-      "Tests both valid and invalid payloads",
-      "Validates nested object structures and arrays",
-      "Catches schema drift between client and server"
-    ]
-  },
-  {
-    "id": "negative-unit-test",
-    "rule": null,
-    "query": "Write unit tests for my pure utility function",
-    "expectedBehavior": [
-      "Should NOT recommend integration testing patterns",
-      "Should redirect to testing-unit skill for isolated business logic",
-      "Does not suggest Supertest, httpx, or Pact for pure functions"
-    ]
-  }
-]
+{
+  "skill": "testing-integration",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "api-endpoint-testing",
+      "rule": "integration-api",
+      "query": "Write integration tests for my user creation API endpoint",
+      "expectedBehavior": [
+        "Uses Supertest (TS) or httpx (Python) for HTTP-level testing",
+        "Tests both success (201) and validation error (400) paths",
+        "Asserts response body structure, not just status codes",
+        "Includes RFC 9457 Problem Details assertions for error responses"
+      ]
+    },
+    {
+      "id": "contract-testing-pact",
+      "rule": "contract-pact",
+      "query": "Set up contract tests between my frontend and backend services",
+      "expectedBehavior": [
+        "Recommends Pact for consumer-driven contract testing",
+        "Generates consumer test with expected interactions",
+        "Includes provider verification setup",
+        "Publishes contracts to a Pact Broker or file-based sharing"
+      ]
+    },
+    {
+      "id": "database-integration-testing",
+      "rule": "integration-database",
+      "query": "Test my database queries with real PostgreSQL",
+      "expectedBehavior": [
+        "Uses testcontainers or docker-compose for real DB instance",
+        "Runs migrations before tests, rolls back after each test",
+        "Tests queries with realistic seed data, not hardcoded values",
+        "Isolates test state per test case"
+      ]
+    },
+    {
+      "id": "emulate-stateful-testing",
+      "rule": "emulate-stateful-testing",
+      "query": "How do I test GitHub API interactions without hitting the real API?",
+      "expectedBehavior": [
+        "Recommends emulate as first choice for GitHub API testing",
+        "Provides seed config pattern with emulate.config.yaml",
+        "Sets GITHUB_API_BASE=http://localhost:4001 env var",
+        "Shows decision matrix: emulate vs Pact vs MSW vs Nock"
+      ]
+    },
+    {
+      "id": "schema-validation-testing",
+      "rule": "schema-validation",
+      "query": "Test that my API responses match the expected Zod schema",
+      "expectedBehavior": [
+        "Uses Zod schema parsing as test assertions",
+        "Tests both valid and invalid payloads",
+        "Validates nested object structures and arrays",
+        "Catches schema drift between client and server"
+      ]
+    },
+    {
+      "id": "negative-unit-test",
+      "rule": null,
+      "query": "Write unit tests for my pure utility function",
+      "expectedBehavior": [
+        "Should NOT recommend integration testing patterns",
+        "Should redirect to testing-unit skill for isolated business logic",
+        "Does not suggest Supertest, httpx, or Pact for pure functions"
+      ]
+    }
+  ]
+}
