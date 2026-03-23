@@ -1,0 +1,74 @@
+{
+  "skill": "mcp-visual-output",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "add-visual-output-to-existing-mcp-server",
+      "rule": "mcp-app-setup",
+      "query": "I have an existing MCP server built with McpServer that returns plain text from its tools. How do I add visual output so the tools can return interactive dashboards?",
+      "expectedBehavior": [
+        "Claude uses registerJsonRenderTool() to add visual output to the existing server",
+        "Claude defines a catalog with defineCatalog() and Zod schemas for component types",
+        "Claude provides a bundled HTML string for the iframe app",
+        "Claude does NOT suggest replacing the entire server with createMcpApp()",
+        "Claude does NOT return raw HTML strings from MCP tools"
+      ]
+    },
+    {
+      "id": "create-eval-results-dashboard",
+      "rule": "dashboard-patterns",
+      "query": "Create a dashboard that shows eval results for our 94 skills -- I need pass rates, scores, and a table of per-skill results displayed in an MCP tool response.",
+      "expectedBehavior": [
+        "Claude generates a json-render spec with StatGrid for summary metrics",
+        "Claude includes a DataTable with columns for skill name, score, and status",
+        "Claude uses a flat element tree with 2-3 levels maximum",
+        "Claude keeps the component count to 3-5 types",
+        "Claude wraps sections in Card components with descriptive titles"
+      ]
+    },
+    {
+      "id": "configure-csp-for-mcp-visual-output",
+      "rule": "sandbox-csp",
+      "query": "My MCP dashboard needs to fetch data from an external API at api.example.com and load fonts from Google Fonts CDN. How do I configure the CSP for the sandboxed iframe?",
+      "expectedBehavior": [
+        "Claude declares connectDomains with the specific API origin",
+        "Claude declares resourceDomains for the Google Fonts CDN",
+        "Claude does NOT use wildcard domains or unsafe-inline",
+        "Claude explains that default CSP blocks all external access",
+        "Claude passes CSP config to createMcpApp() or registerJsonRenderTool()"
+      ]
+    },
+    {
+      "id": "stream-visual-output-progressively",
+      "rule": "streaming-output",
+      "query": "My MCP dashboard takes 10 seconds to render because it waits for the AI to finish generating the entire spec. How do I make it render progressively as components are generated?",
+      "expectedBehavior": [
+        "Claude enables progressive: true in useJsonRenderApp() options",
+        "Claude renders available components immediately without waiting for full spec",
+        "Claude shows a streaming indicator while generation is in progress",
+        "Claude recommends flat element trees for better streaming performance",
+        "Claude does NOT suggest waiting for the complete spec before rendering"
+      ]
+    },
+    {
+      "id": "negative-plain-rest-api",
+      "rule": "",
+      "query": "Build a REST API with Express.js that returns JSON responses for a todo list application with CRUD endpoints.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the mcp-visual-output skill",
+        "Claude builds a standard REST API with JSON responses",
+        "Claude does not use createMcpApp, registerJsonRenderTool, or json-render specs"
+      ]
+    },
+    {
+      "id": "negative-mcp-server-without-ui",
+      "rule": "",
+      "query": "Build an MCP server that exposes a tool for searching documents. The tool should return plain text results.",
+      "expectedBehavior": [
+        "Claude does NOT invoke the mcp-visual-output skill",
+        "Claude builds a standard MCP server with text-based tool responses",
+        "Claude uses mcp-patterns skill instead for basic MCP server setup"
+      ]
+    }
+  ]
+}

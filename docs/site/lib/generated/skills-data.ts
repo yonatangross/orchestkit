@@ -1781,6 +1781,40 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect"
     ]
   },
+  "emulate-seed": {
+    "name": "emulate-seed",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "emulate",
+      "testing",
+      "api-emulation",
+      "github",
+      "vercel",
+      "google",
+      "seed",
+      "ci",
+      "stateful-testing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "api-coverage.md",
+        "cli-reference.md",
+        "sdk-patterns.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "errors": {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.",
@@ -2362,6 +2396,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "git-operations-engineer"
     ]
   },
+  "json-render-catalog": {
+    "name": "json-render-catalog",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "json-render",
+      "genui",
+      "zod",
+      "catalog",
+      "shadcn",
+      "ai-ui",
+      "component-catalog",
+      "vercel"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "migration-from-genui.md",
+        "package-ecosystem.md",
+        "spec-format.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "langgraph": {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
@@ -2537,6 +2604,38 @@ export const SKILLS: Record<string, SkillMeta> = {
       "llm-integrator",
       "security-auditor"
     ]
+  },
+  "mcp-visual-output": {
+    "name": "mcp-visual-output",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "mcp",
+      "json-render",
+      "visual-output",
+      "dashboard",
+      "iframe",
+      "sandbox",
+      "interactive-ui",
+      "genui"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "component-recipes.md",
+        "mcp-integration.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "memory": {
     "name": "memory",
@@ -2742,6 +2841,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer",
       "workflow-architect"
     ]
+  },
+  "multi-surface-render": {
+    "name": "multi-surface-render",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "json-render",
+      "multi-surface",
+      "pdf",
+      "email",
+      "remotion",
+      "video",
+      "image",
+      "react",
+      "rendering"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "renderer-api.md",
+        "target-comparison.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "multimodal-llm": {
     "name": "multimodal-llm",

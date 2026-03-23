@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 94,
+  "skills": 98,
   "agents": 33,
   "hooks": 106,
   "commands": 20,
@@ -393,6 +393,7 @@ export const SKILLS_SUMMARY = {
     ],
     "video": [
       "demo-producer",
+      "multi-surface-render",
       "multimodal-llm",
       "notebooklm"
     ],
@@ -412,11 +413,11 @@ export const SKILLS_SUMMARY = {
       "architecture-patterns",
       "bare-eval",
       "cover",
+      "emulate-seed",
       "golden-dataset",
       "llm-integration",
       "product-analytics",
-      "review-pr",
-      "storybook-testing"
+      "review-pr"
     ],
     "security": [
       "audit-full",
@@ -436,10 +437,10 @@ export const SKILLS_SUMMARY = {
       "component-search",
       "design-to-code",
       "i18n-date-patterns",
+      "multi-surface-render",
       "performance",
       "react-server-components-framework",
-      "ui-components",
-      "zustand-patterns"
+      "ui-components"
     ],
     "llm": [
       "ai-ui-generation",
