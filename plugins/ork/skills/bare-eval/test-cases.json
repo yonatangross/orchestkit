@@ -1,7 +1,7 @@
 {
   "skill": "bare-eval",
   "version": "1.0.0",
-  "test_cases": [
+  "testCases": [
     {
       "id": "bare-grading-pattern",
       "description": "Should recommend --bare for grading calls",
