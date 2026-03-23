@@ -1,0 +1,1060 @@
+---
+title: "Mcp Visual Output"
+description: ">-"
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="mcp-visual-output" />
+
+
+# MCP Visual Output
+
+Upgrade plain MCP tool responses to interactive dashboards rendered inside AI conversations. Built on `@json-render/mcp`, which bridges the json-render spec system with MCP's tool/resource model -- the AI generates a typed JSON spec, and a sandboxed iframe renders it as an interactive UI.
+
+> **Building an MCP server from scratch?** Use `ork:mcp-patterns` for server setup, transport, and security. This skill focuses on the **visual output layer** after your server is running.
+>
+> **Need the full component catalog?** See `ork:json-render-catalog` for all available components, props, and composition patterns.
+
+## Decision Tree -- Which File to Read
+
+```
+What are you doing?
+|
++-- Setting up visual output for the first time
+|   +-- New MCP server -----------> rules/mcp-app-setup.md
+|   +-- Existing MCP server ------> rules/mcp-app-setup.md (registerJsonRenderTool section)
+|
++-- Configuring security / sandbox
+|   +-- CSP declarations ----------> rules/sandbox-csp.md
+|   +-- Iframe permissions --------> rules/sandbox-csp.md
+|
++-- Rendering strategy
+|   +-- Progressive streaming -----> rules/streaming-output.md
+|   +-- Dashboard layouts ----------> rules/dashboard-patterns.md
+|
++-- API reference
+|   +-- Server-side API -----------> references/mcp-integration.md
+|   +-- Component recipes ----------> references/component-recipes.md
+```
+
+## Quick Reference
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| **Setup** | `mcp-app-setup.md` | HIGH | createMcpApp() and registerJsonRenderTool() |
+| **Security** | `sandbox-csp.md` | HIGH | CSP declarations, iframe sandboxing |
+| **Rendering** | `streaming-output.md` | MEDIUM | Progressive rendering via JSON Patch |
+| **Patterns** | `dashboard-patterns.md` | MEDIUM | Stat grids, status badges, data tables |
+
+**Total: 4 rules across 3 categories**
+
+## How It Works
+
+1. **Define a catalog** -- typed component schemas using `defineCatalog()` + Zod
+2. **Register with MCP** -- `createMcpApp()` for new servers or `registerJsonRenderTool()` for existing ones
+3. **AI generates specs** -- the model produces a JSON spec conforming to the catalog
+4. **Iframe renders it** -- a bundled React app inside a sandboxed iframe renders the spec with `useJsonRenderApp()` + `&lt;Renderer /&gt;`
+
+The AI never writes HTML or CSS. It produces a structured JSON spec that references catalog components by type. The iframe app renders those components using a pre-built registry.
+
+## Quick Start -- New MCP Server
+
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+import { catalog } from './catalog'
+import bundledHtml from './app.html'
+
+// 1. Create the MCP app (wraps McpServer + registers the render tool)
+const app = createMcpApp({
+  catalog,           // component schemas the AI can use
+  html: bundledHtml, // pre-built iframe app (single HTML file)
+})
+
+// 2. Start -- works with stdio, Streamable HTTP, or any MCP transport
+app.start()
+```
+
+## Quick Start -- Add to Existing MCP Server
+
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { registerJsonRenderTool } from '@json-render/mcp'
+import { catalog } from './catalog'
+import bundledHtml from './app.html'
+
+const server = new McpServer({ name: 'my-server', version: '1.0.0' })
+
+// Add visual output capability alongside existing tools
+registerJsonRenderTool(server, {
+  catalog,
+  html: bundledHtml,
+})
+```
+
+## Client-Side Iframe App
+
+The iframe app receives specs from the MCP host and renders them:
+
+```typescript
+import { useJsonRenderApp } from '@json-render/mcp/app'
+import { Renderer } from '@json-render/react'
+import { registry } from './registry'
+
+function App() {
+  const { spec, loading } = useJsonRenderApp()
+  if (loading) return <Skeleton />
+  return <Renderer spec={spec} registry={registry} />
+}
+```
+
+## Catalog Definition
+
+Catalogs define what components the AI can use. Each component has typed props via Zod:
+
+```typescript
+import { defineCatalog } from '@json-render/core'
+import { z } from 'zod'
+
+export const dashboardCatalog = defineCatalog({
+  StatGrid: {
+    props: z.object({
+      items: z.array(z.object({
+        label: z.string(),
+        value: z.string(),
+        trend: z.enum(['up', 'down', 'flat']).optional(),
+        color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
+      })),
+    }),
+    children: false,
+  },
+  StatusBadge: {
+    props: z.object({
+      label: z.string(),
+      status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
+    }),
+    children: false,
+  },
+  DataTable: {
+    props: z.object({
+      columns: z.array(z.object({ key: z.string(), label: z.string() })),
+      rows: z.array(z.record(z.string())),
+    }),
+    children: false,
+  },
+})
+```
+
+## Example: Eval Results Dashboard
+
+The AI generates a spec like this -- flat element map, no nesting beyond 2 levels:
+
+```json
+{
+  "root": "dashboard",
+  "elements": {
+    "dashboard": {
+      "type": "Card",
+      "props": { "title": "Eval Results -- v7.21.1" },
+      "children": ["stats", "table"]
+    },
+    "stats": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Skills Evaluated", "value": "94", "trend": "flat" },
+          { "label": "Pass Rate", "value": "97.8%", "trend": "up", "color": "green" },
+          { "label": "Avg Score", "value": "8.2/10", "trend": "up" }
+        ]
+      }
+    },
+    "table": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "skill", "label": "Skill" },
+          { "key": "score", "label": "Score" },
+          { "key": "status", "label": "Status" }
+        ],
+        "rows": [
+          { "skill": "implement", "score": "9.1", "status": "pass" },
+          { "skill": "verify", "score": "8.7", "status": "pass" }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| New vs existing server | `createMcpApp()` for new; `registerJsonRenderTool()` to add to existing |
+| CSP policy | Minimal -- only declare domains you actually need |
+| Streaming | Always enable progressive rendering; never wait for full spec |
+| Dashboard depth | Keep element trees flat (2-3 levels max) for streamability |
+| Component count | 3-5 component types per catalog covers most dashboards |
+| Visual vs text | Use visual output for multi-metric views; plain text for single values |
+
+## When to Use Visual Output vs Plain Text
+
+| Scenario | Use Visual Output | Use Plain Text |
+|----------|------------------|----------------|
+| Multiple metrics at a glance | Yes -- StatGrid | No |
+| Tabular data (5+ rows) | Yes -- DataTable | No |
+| Status of multiple systems | Yes -- StatusBadge grid | No |
+| Single value answer | No | Yes |
+| Error message | No | Yes |
+| File content / code | No | Yes |
+
+## Common Mistakes
+
+1. Returning raw HTML strings from MCP tools instead of json-render specs (breaks type safety, no streaming)
+2. Deeply nested component trees that cannot stream progressively (keep flat)
+3. Using `script-src 'unsafe-inline'` in CSP declarations (security risk, unnecessary)
+4. Waiting for the full spec before rendering (defeats progressive rendering)
+5. Defining 20+ component types in a single catalog (increases prompt token cost)
+6. Missing `html` bundle in `createMcpApp()` config (iframe has nothing to render)
+
+## Related Skills
+
+- `ork:mcp-patterns` -- MCP server building, transport, security
+- `ork:json-render-catalog` -- Full component catalog and composition patterns
+- `ork:multi-surface-render` -- Rendering across Claude, Cursor, ChatGPT, web
+- `ork:ai-ui-generation` -- GenUI patterns for AI-generated interfaces
+
+
+---
+
+## Rules (4)
+
+### Use flat dashboard patterns with 3-5 component types for MCP visual output — MEDIUM
+
+
+## Dashboard Patterns
+
+Most MCP visual dashboards can be built with 3-5 component types: StatGrid, StatusBadge, DataTable, Card, and Stack. Keeping the catalog small reduces prompt tokens and makes AI-generated specs more reliable.
+
+**Incorrect -- overly complex component tree:**
+```json
+{
+  "root": "app",
+  "elements": {
+    "app": { "type": "ThemeProvider", "children": ["router"] },
+    "router": { "type": "Router", "children": ["layout"] },
+    "layout": { "type": "DashboardLayout", "children": ["sidebar", "main"] },
+    "sidebar": { "type": "Sidebar", "children": ["nav", "filters"] },
+    "nav": { "type": "Navigation", "props": { "items": [] } },
+    "filters": { "type": "FilterPanel", "children": ["dateRange", "category"] },
+    "dateRange": { "type": "DateRangePicker", "props": {} },
+    "category": { "type": "Select", "props": {} },
+    "main": { "type": "MainContent", "children": ["header", "body"] },
+    "header": { "type": "PageHeader", "props": {} },
+    "body": { "type": "ScrollArea", "children": ["grid"] },
+    "grid": { "type": "ResponsiveGrid", "children": ["card1"] },
+    "card1": { "type": "MetricCard", "props": {} }
+  }
+}
+```
+
+**Correct -- flat layout with standard dashboard components:**
+```json
+{
+  "root": "dashboard",
+  "elements": {
+    "dashboard": {
+      "type": "Card",
+      "props": { "title": "System Overview" },
+      "children": ["metrics", "services", "logs"]
+    },
+    "metrics": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Uptime", "value": "99.9%", "color": "green" },
+          { "label": "Requests/s", "value": "1,247", "trend": "up" },
+          { "label": "Error Rate", "value": "0.3%", "color": "yellow" },
+          { "label": "P95 Latency", "value": "142ms", "trend": "down" }
+        ]
+      }
+    },
+    "services": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "name", "label": "Service" },
+          { "key": "status", "label": "Status" },
+          { "key": "version", "label": "Version" }
+        ],
+        "rows": [
+          { "name": "api-gateway", "status": "healthy", "version": "2.4.1" },
+          { "name": "auth-service", "status": "healthy", "version": "1.8.0" },
+          { "name": "worker", "status": "degraded", "version": "3.1.2" }
+        ]
+      }
+    },
+    "logs": {
+      "type": "StatusBadge",
+      "props": { "label": "Last deploy", "status": "success" }
+    }
+  }
+}
+```
+
+### Pattern: Multi-Section Dashboard
+
+Use a Stack as root with multiple Cards for sections:
+
+```json
+{
+  "root": "layout",
+  "elements": {
+    "layout": {
+      "type": "Stack",
+      "props": { "gap": "md" },
+      "children": ["overview", "details"]
+    },
+    "overview": {
+      "type": "Card",
+      "props": { "title": "Overview" },
+      "children": ["summary-stats"]
+    },
+    "summary-stats": {
+      "type": "StatGrid",
+      "props": { "items": [] }
+    },
+    "details": {
+      "type": "Card",
+      "props": { "title": "Details" },
+      "children": ["detail-table"]
+    },
+    "detail-table": {
+      "type": "DataTable",
+      "props": { "columns": [], "rows": [] }
+    }
+  }
+}
+```
+
+### Pattern: Status Dashboard
+
+Combine StatusBadge with StatGrid for operational views. Root Card with a StatusBadge for overall health + StatGrid for key metrics:
+
+```json
+{
+  "root": "status",
+  "elements": {
+    "status": { "type": "Card", "props": { "title": "Pipeline Status" }, "children": ["badge", "metrics"] },
+    "badge": { "type": "StatusBadge", "props": { "label": "CI Pipeline", "status": "success" } },
+    "metrics": { "type": "StatGrid", "props": { "items": [
+      { "label": "Tests Passed", "value": "847/850", "color": "green" },
+      { "label": "Build Time", "value": "3m 12s", "trend": "down" },
+      { "label": "Coverage", "value": "94.2%", "trend": "up" }
+    ]}}
+  }
+}
+```
+
+**Key rules:**
+- Limit catalogs to 3-5 component types -- StatGrid, StatusBadge, DataTable, Card, and Stack cover most dashboards
+- Keep element trees at 2-3 levels deep (root -> section -> component)
+- Use Card as a sectioning container with a title prop
+- Use Stack for vertical layouts with gap control
+- StatGrid for multiple metrics at a glance (4-8 items works best visually)
+- DataTable for structured data (paginate at 20 rows for readability)
+- StatusBadge for single-status indicators (success/warning/error/info/pending)
+- Name elements descriptively (e.g., `eval-stats`, `service-table`) -- the AI reads these names to understand structure
+
+Reference: [json-render spec](https://github.com/nichochar/json-render)
+
+
+### Use createMcpApp() or registerJsonRenderTool() for type-safe visual output — HIGH
+
+
+## MCP App Setup
+
+Two entry points: `createMcpApp()` wraps a new MCP server with visual output built in. `registerJsonRenderTool()` adds visual output to an existing server. Both require a catalog (component schemas) and an html bundle (the iframe app).
+
+**Incorrect -- returning raw HTML from an MCP tool:**
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+
+const server = new McpServer({ name: 'dashboard', version: '1.0.0' })
+
+// BAD: raw HTML string -- no type safety, no catalog validation,
+// no streaming, client may not render HTML at all
+server.tool('show-dashboard', {}, async () => ({
+  content: [{
+    type: 'text',
+    text: '<div class="grid"><div class="stat">94 skills</div></div>',
+  }],
+}))
+```
+
+**Correct -- createMcpApp() for a new server:**
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+import { dashboardCatalog } from './catalog'
+import bundledHtml from './app.html'
+
+// Creates McpServer + registers the json-render tool automatically
+const app = createMcpApp({
+  catalog: dashboardCatalog,  // Zod-typed component schemas
+  html: bundledHtml,          // pre-built iframe app as a single HTML string
+  name: 'dashboard-server',   // optional: MCP server name
+  version: '1.0.0',           // optional: MCP server version
+})
+
+// Supports any MCP transport
+app.start()  // stdio by default
+```
+
+**Correct -- registerJsonRenderTool() for an existing server:**
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { registerJsonRenderTool } from '@json-render/mcp'
+import { dashboardCatalog } from './catalog'
+import bundledHtml from './app.html'
+
+const server = new McpServer({ name: 'my-server', version: '1.0.0' })
+
+// Your existing tools remain unchanged
+server.tool('search', { query: z.string() }, async ({ query }) => ({
+  content: [{ type: 'text', text: results }],
+}))
+
+// Add visual output alongside existing tools
+registerJsonRenderTool(server, {
+  catalog: dashboardCatalog,
+  html: bundledHtml,
+  toolName: 'render',       // optional: defaults to 'json-render'
+  toolDescription: 'Render interactive dashboard',  // optional
+})
+```
+
+**Key rules:**
+- Always provide both `catalog` and `html` -- the catalog defines what the AI can generate, the html renders it
+- The html bundle must be a self-contained single-file app (all JS/CSS inlined) because it loads inside a sandboxed iframe with no external script access by default
+- Use `createMcpApp()` when building a server whose primary purpose is visual output
+- Use `registerJsonRenderTool()` when adding visual output to a server that already has text-based tools
+- The registered tool accepts a json-render spec as input and returns the rendered iframe as a UI resource
+- Never return raw HTML strings from MCP tools -- use the catalog/spec pattern for type safety and streaming support
+
+Reference: [@json-render/mcp README](https://github.com/nichochar/json-render)
+
+
+### Configure CSP declarations and iframe sandboxing for MCP visual output — HIGH
+
+
+## Sandbox & CSP
+
+MCP visual output renders inside sandboxed iframes. The host (Claude Desktop, Cursor, ChatGPT) enforces a Content Security Policy. By default, iframes have no external network access -- you must declare exactly which domains are needed.
+
+**Incorrect -- overly permissive CSP:**
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+
+const app = createMcpApp({
+  catalog,
+  html: bundledHtml,
+  csp: {
+    // BAD: wildcard allows any domain -- data exfiltration risk
+    connectDomains: ['*'],
+    // BAD: unsafe-inline allows injected scripts to execute
+    scriptSrc: ["'unsafe-inline'", "'unsafe-eval'"],
+    // BAD: no resource domain restrictions
+    resourceDomains: ['*'],
+  },
+})
+```
+
+**Incorrect -- no CSP at all (default blocks everything):**
+```typescript
+const app = createMcpApp({
+  catalog,
+  html: bundledHtml,
+  // No csp config -- iframe cannot fetch any external resources.
+  // Images, fonts, API calls all fail silently.
+})
+```
+
+**Correct -- minimal CSP with only required domains:**
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+
+const app = createMcpApp({
+  catalog,
+  html: bundledHtml,
+  csp: {
+    // Only the API your dashboard actually calls
+    connectDomains: ['https://api.example.com'],
+    // Only the CDN you load fonts/icons from
+    resourceDomains: ['https://cdn.jsdelivr.net'],
+    // Only if you embed external iframes (e.g., video)
+    frameDomains: ['https://www.youtube.com'],
+  },
+})
+```
+
+**Correct -- registerJsonRenderTool with CSP on existing server:**
+```typescript
+registerJsonRenderTool(server, {
+  catalog,
+  html: bundledHtml,
+  csp: {
+    connectDomains: ['https://api.internal.com'],
+    // No resourceDomains needed if all assets are inlined in html bundle
+    // No frameDomains needed if no nested iframes
+  },
+})
+```
+
+**Key rules:**
+- Default CSP is `connect-src 'none'` -- the iframe cannot make any network requests unless you declare domains
+- Declare only the specific domains your dashboard needs, never use wildcards
+- Never add `'unsafe-inline'` or `'unsafe-eval'` to script-src -- the bundled html app should have all scripts inlined at build time, which the sandbox allows by default
+- `connectDomains` controls fetch/XHR/WebSocket origins
+- `resourceDomains` controls script, image, style, and font origins from CDNs
+- `frameDomains` controls nested iframe origins (only needed for embedded content like videos)
+- If your dashboard is fully self-contained (no external API calls, all assets inlined), you do not need any CSP declarations
+- The host controls the sandbox attribute on the iframe -- your MCP server cannot override sandbox permissions
+
+Reference: [MDN Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+
+
+### Use progressive rendering for MCP visual output instead of waiting for full specs — MEDIUM
+
+
+## Streaming Output
+
+The AI generates json-render specs token by token. Progressive rendering shows components as they complete instead of waiting for the entire spec. The `@json-render/mcp` library handles this via JSON Patch -- partial updates applied to the spec as the AI streams.
+
+**Incorrect -- waiting for full spec before rendering:**
+```typescript
+// Client-side iframe app
+import { useJsonRenderApp } from '@json-render/mcp/app'
+import { Renderer } from '@json-render/react'
+
+function App() {
+  const { spec, loading } = useJsonRenderApp()
+
+  // BAD: shows nothing until the entire spec is complete
+  if (loading || !spec?.elements) return <div>Loading...</div>
+
+  // Only renders after AI is completely done generating
+  return <Renderer spec={spec} registry={registry} />
+}
+```
+
+**Correct -- progressive rendering as elements complete:**
+```typescript
+import { useJsonRenderApp } from '@json-render/mcp/app'
+import { Renderer } from '@json-render/react'
+import { registry } from './registry'
+
+function App() {
+  const { spec, loading, streaming } = useJsonRenderApp({
+    progressive: true,  // enable incremental spec updates
+  })
+
+  // Render whatever is available, even partial specs
+  return (
+    <div>
+      {streaming && <StreamingIndicator />}
+      {spec && <Renderer spec={spec} registry={registry} />}
+      {!spec && loading && <Skeleton />}
+    </div>
+  )
+}
+```
+
+**Correct -- server-side: flat specs stream better than deep trees:**
+```typescript
+// BAD: deeply nested tree -- inner components blocked until parents complete
+const deepSpec = {
+  root: 'page',
+  elements: {
+    page: {
+      type: 'Layout', children: ['section1'],
+    },
+    section1: {
+      type: 'Section', children: ['subsection'],
+    },
+    subsection: {
+      type: 'Card', children: ['content'],
+    },
+    content: {
+      type: 'StatGrid',  // not renderable until 3 ancestors finish
+      props: { items: [...] },
+    },
+  },
+}
+
+// GOOD: flat layout -- each component renderable as soon as it appears
+const flatSpec = {
+  root: 'dashboard',
+  elements: {
+    dashboard: {
+      type: 'Stack', children: ['stats', 'table', 'status'],
+    },
+    stats: {
+      type: 'StatGrid',   // renders immediately when streamed
+      props: { items: [...] },
+    },
+    table: {
+      type: 'DataTable',  // renders as soon as stats is done
+      props: { columns: [...], rows: [...] },
+    },
+    status: {
+      type: 'StatusBadge', // renders independently
+      props: { label: 'Pipeline', status: 'success' },
+    },
+  },
+}
+```
+
+**Key rules:**
+- Always set `progressive: true` in `useJsonRenderApp()` to enable incremental rendering
+- Design specs with flat element trees (2-3 levels max) so components can render as they arrive
+- Show a streaming indicator while the AI is still generating, but render available components immediately
+- The json-render spec uses a flat element map (not nested JSX), which naturally supports progressive updates -- each element is independently addressable
+- Keep individual element props small -- large arrays (100+ row tables) delay that element's first render
+- For large datasets, paginate at the spec level (show first 20 rows, add a "load more" action)
+
+Reference: [JSON Patch RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902)
+
+
+
+---
+
+## References (2)
+
+### Component Recipes
+
+# Component Recipes for MCP Visual Output
+
+OrchestKit-specific recipes for common dashboard use cases. Each recipe shows the catalog definition, a sample spec, and integration notes.
+
+## Recipe 1: Eval Results Dashboard
+
+Display skill evaluation results with pass rates, scores, and per-skill breakdowns.
+
+### Catalog
+
+```typescript
+const evalCatalog = defineCatalog({
+  StatGrid: {
+    props: z.object({
+      items: z.array(z.object({
+        label: z.string(),
+        value: z.string(),
+        trend: z.enum(['up', 'down', 'flat']).optional(),
+        color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
+      })),
+    }),
+    children: false,
+  },
+  DataTable: {
+    props: z.object({
+      columns: z.array(z.object({ key: z.string(), label: z.string() })),
+      rows: z.array(z.record(z.string())),
+      sortable: z.boolean().optional(),
+    }),
+    children: false,
+  },
+  StatusBadge: {
+    props: z.object({
+      label: z.string(),
+      status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
+    }),
+    children: false,
+  },
+})
+```
+
+### Sample Spec
+
+```json
+{
+  "root": "eval-dashboard",
+  "elements": {
+    "eval-dashboard": {
+      "type": "Card",
+      "props": { "title": "Eval Results -- v7.21.1" },
+      "children": ["run-status", "summary", "skill-results"]
+    },
+    "run-status": {
+      "type": "StatusBadge",
+      "props": { "label": "Eval Run #42", "status": "success" }
+    },
+    "summary": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Skills Evaluated", "value": "94", "trend": "flat" },
+          { "label": "Pass Rate", "value": "97.8%", "trend": "up", "color": "green" },
+          { "label": "Avg Score", "value": "8.2/10", "trend": "up" },
+          { "label": "Regressions", "value": "2", "color": "yellow" }
+        ]
+      }
+    },
+    "skill-results": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "skill", "label": "Skill" },
+          { "key": "score", "label": "Score" },
+          { "key": "status", "label": "Status" },
+          { "key": "delta", "label": "vs Previous" }
+        ],
+        "rows": [
+          { "skill": "implement", "score": "9.1", "status": "pass", "delta": "+0.3" },
+          { "skill": "verify", "score": "8.7", "status": "pass", "delta": "+0.1" },
+          { "skill": "commit", "score": "7.2", "status": "pass", "delta": "-0.5" }
+        ],
+        "sortable": true
+      }
+    }
+  }
+}
+```
+
+## Recipe 2: Hook Pipeline Visualization
+
+Show the status of hook execution across global, agent-scoped, and skill-scoped hooks.
+
+### Sample Spec
+
+```json
+{
+  "root": "hook-pipeline",
+  "elements": {
+    "hook-pipeline": {
+      "type": "Stack",
+      "props": { "gap": "md" },
+      "children": ["global-hooks", "agent-hooks", "skill-hooks"]
+    },
+    "global-hooks": {
+      "type": "Card",
+      "props": { "title": "Global Hooks (37)" },
+      "children": ["global-stats", "global-table"]
+    },
+    "global-stats": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Active", "value": "35", "color": "green" },
+          { "label": "Disabled", "value": "2", "color": "yellow" }
+        ]
+      }
+    },
+    "global-table": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "hook", "label": "Hook" },
+          { "key": "event", "label": "Event" },
+          { "key": "status", "label": "Status" },
+          { "key": "lastRun", "label": "Last Run" }
+        ],
+        "rows": [
+          { "hook": "pre-commit-quality", "event": "PreToolUse", "status": "active", "lastRun": "2m ago" },
+          { "hook": "commit-nudge", "event": "PostToolUse", "status": "active", "lastRun": "5m ago" }
+        ]
+      }
+    },
+    "agent-hooks": {
+      "type": "Card",
+      "props": { "title": "Agent-Scoped Hooks (47)" },
+      "children": ["agent-badge"]
+    },
+    "agent-badge": {
+      "type": "StatusBadge",
+      "props": { "label": "All agent hooks healthy", "status": "success" }
+    },
+    "skill-hooks": {
+      "type": "Card",
+      "props": { "title": "Skill-Scoped Hooks (22)" },
+      "children": ["skill-badge"]
+    },
+    "skill-badge": {
+      "type": "StatusBadge",
+      "props": { "label": "All skill hooks healthy", "status": "success" }
+    }
+  }
+}
+```
+
+## Recipe 3: Test Coverage Dashboard
+
+Show test suite results with coverage metrics and failing test details.
+
+### Sample Spec
+
+```json
+{
+  "root": "coverage-dashboard",
+  "elements": {
+    "coverage-dashboard": {
+      "type": "Card",
+      "props": { "title": "Test Coverage Report" },
+      "children": ["coverage-stats", "suite-results"]
+    },
+    "coverage-stats": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Line Coverage", "value": "94.2%", "color": "green" },
+          { "label": "Branch Coverage", "value": "87.1%", "color": "green" },
+          { "label": "Tests Passed", "value": "847/850", "color": "green" },
+          { "label": "Duration", "value": "3m 12s", "trend": "down" }
+        ]
+      }
+    },
+    "suite-results": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "suite", "label": "Suite" },
+          { "key": "tests", "label": "Tests" },
+          { "key": "passed", "label": "Passed" },
+          { "key": "coverage", "label": "Coverage" }
+        ],
+        "rows": [
+          { "suite": "unit", "tests": "620", "passed": "620", "coverage": "96%" },
+          { "suite": "integration", "tests": "180", "passed": "178", "coverage": "89%" },
+          { "suite": "e2e", "tests": "50", "passed": "49", "coverage": "82%" }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Recipe 4: Dependency Graph Summary
+
+Show project dependency health at a glance.
+
+### Sample Spec
+
+```json
+{
+  "root": "deps",
+  "elements": {
+    "deps": {
+      "type": "Card",
+      "props": { "title": "Dependency Health" },
+      "children": ["dep-stats", "outdated"]
+    },
+    "dep-stats": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Total Deps", "value": "142" },
+          { "label": "Up to Date", "value": "128", "color": "green" },
+          { "label": "Minor Behind", "value": "11", "color": "yellow" },
+          { "label": "Major Behind", "value": "3", "color": "red" }
+        ]
+      }
+    },
+    "outdated": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "package", "label": "Package" },
+          { "key": "current", "label": "Current" },
+          { "key": "latest", "label": "Latest" },
+          { "key": "type", "label": "Update Type" }
+        ],
+        "rows": [
+          { "package": "react", "current": "18.2.0", "latest": "19.1.0", "type": "major" },
+          { "package": "typescript", "current": "5.3.0", "latest": "5.7.0", "type": "minor" }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Guidelines for New Recipes
+
+1. Start with a StatGrid summary at the top -- users want the headline numbers first
+2. Follow with a DataTable for drillable details
+3. Use StatusBadge for overall health indicators
+4. Keep specs under 30 elements total for readability and token efficiency
+5. Name elements after their content domain (e.g., `eval-stats`, `hook-table`), not their component type (e.g., `grid1`, `table2`)
+
+
+### Mcp Integration
+
+# @json-render/mcp API Reference
+
+Full API for integrating json-render visual output with MCP servers.
+
+## Server-Side API
+
+### `createMcpApp(config)`
+
+Creates a new MCP server with json-render visual output built in.
+
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+
+const app = createMcpApp({
+  catalog: CatalogDefinition,    // required: component schemas (defineCatalog output)
+  html: string,                  // required: bundled iframe app as HTML string
+  name?: string,                 // MCP server name (default: 'json-render-app')
+  version?: string,              // MCP server version (default: '1.0.0')
+  csp?: CspConfig,               // CSP domain declarations
+  toolName?: string,             // name of the render tool (default: 'json-render')
+  toolDescription?: string,      // description shown to the AI
+})
+```
+
+**Returns:** `McpApp` instance with `.start()`, `.server` (underlying McpServer), and `.close()`.
+
+### `registerJsonRenderTool(server, config)`
+
+Adds a json-render tool to an existing MCP server.
+
+```typescript
+import { registerJsonRenderTool } from '@json-render/mcp'
+
+registerJsonRenderTool(server, {
+  catalog: CatalogDefinition,    // required
+  html: string,                  // required
+  csp?: CspConfig,               // CSP domain declarations
+  toolName?: string,             // default: 'json-render'
+  toolDescription?: string,      // default: auto-generated from catalog
+})
+```
+
+**Returns:** `void`. Mutates the server by registering a new tool and UI resource.
+
+### `CspConfig`
+
+```typescript
+interface CspConfig {
+  connectDomains?: string[]    // fetch/XHR/WebSocket origins
+  resourceDomains?: string[]   // script/image/style/font CDN origins
+  frameDomains?: string[]      // nested iframe origins
+}
+```
+
+## Client-Side API (Iframe App)
+
+### `useJsonRenderApp(options?)`
+
+React hook for the iframe app. Receives specs from the MCP host via postMessage.
+
+```typescript
+import { useJsonRenderApp } from '@json-render/mcp/app'
+
+const { spec, loading, streaming, error } = useJsonRenderApp({
+  progressive?: boolean,    // enable incremental spec updates (default: false)
+  onSpec?: (spec) => void,  // callback when spec updates
+  onError?: (err) => void,  // callback on parse/validation errors
+})
+```
+
+**Returns:**
+- `spec: JsonRenderSpec | null` -- current spec (null before first data)
+- `loading: boolean` -- true before any spec data arrives
+- `streaming: boolean` -- true while the AI is still generating
+- `error: Error | null` -- set if spec parsing or validation fails
+
+### `Renderer` Component
+
+```tsx
+import { Renderer } from '@json-render/react'
+
+<Renderer
+  spec={spec}              // the json-render spec
+  registry={registry}      // component registry (maps type names to React components)
+  fallback?: ReactNode     // rendered for unknown component types
+  onAction?: (action) => void  // callback for component actions (clicks, selections)
+/>
+```
+
+### `defineCatalog(components)`
+
+Defines a type-safe component catalog using Zod schemas.
+
+```typescript
+import { defineCatalog } from '@json-render/core'
+import { z } from 'zod'
+
+const catalog = defineCatalog({
+  ComponentName: {
+    props: z.object({ ... }),       // Zod schema for component props
+    children: boolean | z.ZodType,  // false = no children, true = any, or typed
+  },
+})
+```
+
+## Host Configuration
+
+### Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "my-dashboard": {
+      "command": "node",
+      "args": ["./dist/server.js"],
+      "env": {}
+    }
+  }
+}
+```
+
+### Cursor
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "my-dashboard": {
+        "command": "node",
+        "args": ["./dist/server.js"]
+      }
+    }
+  }
+}
+```
+
+### Streamable HTTP (Remote)
+
+```typescript
+import { createMcpApp } from '@json-render/mcp'
+
+const app = createMcpApp({ catalog, html: bundledHtml })
+
+// For remote deployment, use Streamable HTTP transport
+app.start({
+  transport: 'http',
+  port: 3001,
+  path: '/mcp',
+})
+```
+
+## Spec Format
+
+The json-render spec is a flat element map with a root pointer:
+
+```typescript
+interface JsonRenderSpec {
+  root: string                           // key of the root element
+  elements: Record<string, Element>      // flat map of all elements
+}
+
+interface Element {
+  type: string                           // component type from catalog
+  props?: Record<string, unknown>        // component props (validated against catalog)
+  children?: string[]                    // keys of child elements
+}
+```
+

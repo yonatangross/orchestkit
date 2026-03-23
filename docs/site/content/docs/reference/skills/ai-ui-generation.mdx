@@ -1,6 +1,6 @@
 ---
 title: "Ai Ui Generation"
-description: "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems."
+description: "AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -12,23 +12,27 @@ description: "AI-assisted UI generation patterns for v0, Bolt, and Cursor workfl
 
 # AI UI Generation
 
-Patterns for generating, reviewing, and integrating UI components produced by AI tools (v0, Bolt, Cursor). AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0, Bolt, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
+| [json-render Integration](#json-render-integration) | 1 | HIGH | Multi-surface output, MCP visual output, type-safe catalogs |
 | [Prompt Engineering](#prompt-engineering) | 2 | HIGH | Writing prompts for component generation |
 | [Quality Assurance](#quality-assurance) | 2 | CRITICAL/HIGH | Reviewing and gating AI-generated code |
 | [Design System Integration](#design-system-integration) | 2 | HIGH | Injecting tokens, refactoring for conformance |
 | [Tool Selection & Workflow](#tool-selection--workflow) | 2 | MEDIUM | Choosing the right AI tool, iterating prompts |
 
-**Total: 7 rules across 4 categories**
+**Total: 8 rules across 5 categories**
 
-## Decision Table — v0 vs Bolt vs Cursor
+## Decision Table — json-render vs v0 vs Bolt vs Cursor
 
 | Scenario | Tool | Why |
 |----------|------|-----|
+| Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
+| Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
+| Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y |
 | Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
@@ -62,6 +66,14 @@ Generate a React signup form component using:
 ```
 
 ## Rule Details
+
+### json-render Integration
+
+json-render is the **first choice** for AI UI generation when output must render across multiple surfaces (web, mobile, CLI, MCP). Define a catalog of components once, generate JSON specs from AI, and render on any target surface. See `ork:json-render-catalog` for catalog authoring patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| json-render Patterns | `rules/json-render-patterns.md` | Catalog-first: define once, render anywhere via per-platform registries |
 
 ### Prompt Engineering
 
@@ -122,12 +134,15 @@ Choosing the right AI tool and iterating effectively.
 
 | Resource | Description |
 |----------|-------------|
-| [references/ai-ui-tool-comparison.md](references/ai-ui-tool-comparison.md) | v0 vs Bolt vs Cursor vs Copilot comparison |
+| [references/ai-ui-tool-comparison.md](references/ai-ui-tool-comparison.md) | json-render vs v0 vs Bolt vs Cursor vs Copilot comparison |
 | [references/prompt-templates-library.md](references/prompt-templates-library.md) | Copy-paste prompt templates for common components |
 | [references/ai-ui-failure-modes.md](references/ai-ui-failure-modes.md) | Top 10 failure modes and fixes |
 
 ## Related Skills
 
+- `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
+- `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
+- `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
 - `ork:ui-components` — shadcn/ui component patterns and CVA variants
 - `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
 - `ork:animation-motion-design` — Motion library animation patterns
@@ -137,7 +152,7 @@ Choosing the right AI tool and iterating effectively.
 
 ---
 
-## Rules (7)
+## Rules (8)
 
 ### CI Gate for AI-Generated UI — HIGH
 
@@ -643,7 +658,7 @@ Reference: https://ui.shadcn.com/docs/theming
 
 ## AI Tool Selection for UI Generation
 
-Match the AI tool to the task type. Each tool has a sweet spot — using it outside that range produces poor results or unnecessary rework.
+Match the AI tool to the task type. **json-render is the first choice** for multi-surface, MCP output, and type-safe catalog workflows. Each tool has a sweet spot — using it outside that range produces poor results or unnecessary rework.
 
 **Incorrect:**
 ```
@@ -669,6 +684,9 @@ Prompt to v0: "Fix the pagination bug in our DataTable component"
 
 | Task | Best Tool | Why | Avoid |
 |------|-----------|-----|-------|
+| Multi-surface / MCP output | **json-render** | Single catalog, renders anywhere — FIRST CHOICE | v0 (single-surface only) |
+| Type-safe component catalog | **json-render** | Schema-driven specs with per-platform registries | Bolt (no catalog abstraction) |
+| Streaming UI from AI agents | **json-render** | Structured JSON specs render progressively | Cursor (no streaming output) |
 | New component from scratch | **v0** | Best scaffold quality, shadcn/ui native | Cursor (no visual preview) |
 | Full-stack prototype | **Bolt** | Backend + frontend + deployment in one | v0 (frontend only) |
 | Bug fix in existing code | **Cursor** | Reads project context, inline edits | v0 (generates from scratch) |
@@ -688,13 +706,69 @@ For maximum efficiency, combine tools:
 4. **CI** — Run lint, a11y, visual regression checks
 
 **Key rules:**
+- Use json-render when output must render on multiple surfaces, stream via MCP, or enforce a type-safe catalog — it is the first choice
 - Use v0 for net-new components where visual preview accelerates design decisions
 - Use Cursor for any change that touches existing code — it reads project context
 - Use Bolt only when you need backend + frontend together in a prototype
 - Never use v0 for bug fixes or refactoring — it generates from scratch and ignores your codebase
-- Combine tools: v0 for scaffold, Cursor for integration and refinement
+- Combine tools: json-render for catalog definition, v0 for scaffold, Cursor for integration and refinement
 
 Reference: https://v0.dev, https://bolt.new, https://cursor.com
+
+
+### json-render Integration Patterns — HIGH
+
+
+## json-render Integration Patterns
+
+json-render is the **first choice** when AI-generated UI must render across multiple surfaces, stream through MCP, or enforce type-safe component catalogs. Use v0/Bolt/Cursor when you need quick prototyping (v0), full-stack scaffolding (Bolt), or incremental edits in an existing codebase (Cursor).
+
+### When to Use json-render (FIRST CHOICE)
+
+- **Multi-surface output** — one catalog renders to web, mobile, CLI, or any custom surface
+- **MCP visual output** — structured JSON specs travel over MCP and render on the host surface
+- **Type-safe catalogs** — schema-driven component definitions with compile-time validation
+- **Streaming UI** — AI agents emit JSON specs progressively; renderers display as specs arrive
+
+### When to Use v0 / Bolt / Cursor Instead
+
+- **Quick visual prototyping** — v0 gives instant visual preview with shadcn/ui
+- **Full-stack prototype** — Bolt scaffolds backend + frontend + deployment together
+- **Incremental changes** — Cursor reads your codebase context for inline edits and refactors
+
+### Integration Pattern
+
+1. **Define catalog** — declare component schemas in a json-render catalog (see `ork:json-render-catalog`)
+2. **AI generates spec** — the AI produces a JSON spec conforming to the catalog schema
+3. **Render on target surface** — per-platform registries map specs to native components
+
+**Incorrect:**
+```tsx
+// Building separate component trees per platform — duplicated logic, drift risk
+const WebCard = ({ title, body }) => <div className="card">...</div>;
+const MobileCard = ({ title, body }) => <View style={styles.card}>...</View>;
+const CLICard = ({ title, body }) => chalk.bold(title) + '\n' + body;
+```
+
+**Correct:**
+```tsx
+// Single json-render catalog with per-platform registries
+// 1. Define once
+const catalog = defineCatalog({
+  Card: { props: { title: 'string', body: 'string' } },
+});
+
+// 2. AI generates a spec
+const spec = { type: 'Card', props: { title: 'Hello', body: 'World' } };
+
+// 3. Each platform registers its own renderer
+webRegistry.register('Card', ({ title, body }) => <div>...</div>);
+mobileRegistry.register('Card', ({ title, body }) => <View>...</View>);
+
+// 4. Render on any surface from the same spec
+render(spec, webRegistry);    // React DOM
+render(spec, mobileRegistry); // React Native
+```
 
 
 
@@ -802,7 +876,7 @@ grep -rn "className={['\"]" "$1"
 ```
 
 
-### AI UI Tool Comparison — v0 vs Bolt vs Cursor vs Copilot
+### AI UI Tool Comparison — json-render vs v0 vs Bolt vs Cursor vs Copilot
 
 
 # AI UI Tool Comparison
@@ -811,19 +885,35 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 ## Feature Comparison
 
-| Feature | v0 (Vercel) | Bolt (StackBlitz) | Cursor | GitHub Copilot |
-|---------|-------------|-------------------|--------|----------------|
-| **Primary use** | Component scaffolding | Full-stack prototyping | In-editor coding | Inline autocomplete |
-| **Output** | React + shadcn/ui + Tailwind | Full app (FE + BE + DB) | Inline edits / files | Line/block completions |
-| **Visual preview** | Yes (live) | Yes (full app) | No | No |
-| **Project context** | None (standalone) | Partial (within session) | Full (reads project) | File-level |
-| **Framework** | React/Next.js | React, Vue, Svelte | Any | Any |
-| **Design system aware** | shadcn/ui built-in | Configurable | Reads your codebase | File-level patterns |
-| **Backend support** | No | Yes (Node, Python, etc.) | Yes (via project) | Yes (via file) |
-| **Deployment** | Vercel one-click | StackBlitz preview | N/A (local) | N/A (local) |
-| **Collaboration** | Share via URL | Share via URL | Git-based | Git-based |
+| Feature | json-render | v0 (Vercel) | Bolt (StackBlitz) | Cursor | GitHub Copilot |
+|---------|-------------|-------------|-------------------|--------|----------------|
+| **Primary use** | Multi-surface catalog rendering | Component scaffolding | Full-stack prototyping | In-editor coding | Inline autocomplete |
+| **Output** | JSON spec + per-platform renderers | React + shadcn/ui + Tailwind | Full app (FE + BE + DB) | Inline edits / files | Line/block completions |
+| **Visual preview** | Via target surface renderer | Yes (live) | Yes (full app) | No | No |
+| **Project context** | Catalog-scoped | None (standalone) | Partial (within session) | Full (reads project) | File-level |
+| **Framework** | Any (React, RN, CLI, MCP) | React/Next.js | React, Vue, Svelte | Any | Any |
+| **Design system aware** | Schema-enforced catalogs | shadcn/ui built-in | Configurable | Reads your codebase | File-level patterns |
+| **Backend support** | N/A (render layer) | No | Yes (Node, Python, etc.) | Yes (via project) | Yes (via file) |
+| **Deployment** | Embeds in any host | Vercel one-click | StackBlitz preview | N/A (local) | N/A (local) |
+| **Collaboration** | Catalog as code (Git) | Share via URL | Share via URL | Git-based | Git-based |
 
 ## Strengths and Weaknesses
+
+### json-render (FIRST CHOICE)
+**Strengths:**
+- Single catalog renders to any surface — web, mobile, CLI, MCP
+- Type-safe component specs with schema validation at build time
+- AI agents generate structured JSON specs that render progressively (streaming UI)
+- Platform-agnostic — no framework lock-in, per-platform registries map to native components
+- Ideal for MCP visual output where structured data must travel across tool boundaries
+
+**Weaknesses:**
+- Not a visual prototyping tool — no instant preview like v0
+- Requires upfront catalog definition before rendering
+- No backend scaffolding — focused on the render layer only
+- Learning curve for catalog schema authoring
+
+**When to use:** Multi-surface output, MCP visual rendering, type-safe component catalogs, streaming AI UI. This is the first choice for any workflow where output must render on more than one surface.
 
 ### v0 (Vercel)
 **Strengths:**
@@ -896,6 +986,9 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 | You Need | Use | Why |
 |----------|-----|-----|
+| Multi-surface / MCP visual output | json-render | Single catalog renders anywhere — FIRST CHOICE |
+| Type-safe component catalog | json-render | Schema-driven specs with compile-time validation |
+| Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | A new shadcn/ui component | v0 | Best scaffold quality, visual iteration |
 | A full prototype to demo | Bolt | End-to-end app in minutes |
 | To add a feature to your app | Cursor | Reads your codebase, respects patterns |

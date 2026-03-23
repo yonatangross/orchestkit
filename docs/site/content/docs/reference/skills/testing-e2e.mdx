@@ -18,6 +18,7 @@ End-to-end testing with Playwright 1.58+, visual regression, accessibility, and 
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
+| [**emulate Backends**](#emulate-backends) | `rules/emulate-e2e.md` | **HIGH** | **FIRST CHOICE — deterministic API backends for E2E** |
 | [Playwright Core](#playwright-core) | `rules/e2e-playwright.md` | HIGH | Semantic locators, auto-wait, flaky detection |
 | [Page Objects](#page-objects) | `rules/e2e-page-objects.md` | HIGH | Encapsulate page interactions, visual regression |
 | [AI Agents](#ai-agents) | `rules/e2e-ai-agents.md` | HIGH | Planner/Generator/Healer, init-agents |
@@ -25,7 +26,23 @@ End-to-end testing with Playwright 1.58+, visual regression, accessibility, and 
 | [A11y CI/CD](#accessibility-cicd) | `rules/a11y-testing.md` | MEDIUM | CI gates, jest-axe unit tests, PR blocking |
 | [End-to-End Types](#end-to-end-types) | `rules/validation-end-to-end.md` | HIGH | tRPC, Prisma, Pydantic type safety |
 
-**Total: 6 rules, 4 references, 3 checklists, 3 examples, 1 script**
+**Total: 7 rules, 4 references, 3 checklists, 3 examples, 1 script**
+
+## emulate Backends
+
+For E2E tests that interact with external APIs (GitHub, Vercel, Google), **use emulate as the backend** instead of hitting real APIs. This eliminates flakiness from rate limits, network issues, and non-deterministic data.
+
+| Approach | Result |
+|----------|--------|
+| **emulate backends** (FIRST CHOICE) | Deterministic, fast, CI-friendly |
+| Real APIs | Flaky, rate-limited, slow |
+| MSW/Nock intercepts | No state machines, manual response management |
+
+Key features: seed config for reproducible data, per-worker port isolation for parallel Playwright, full state machine transitions.
+
+See `rules/emulate-e2e.md` for patterns, CI configuration, and per-worker isolation fixtures.
+
+---
 
 ## Playwright Quick Start
 
@@ -188,12 +205,13 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 - `testing-unit` - Unit testing patterns with mocking, fixtures, and data factories
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
+- `emulate-seed` - Seed configuration authoring for emulate providers
 - `portless` (upstream) - Stable `baseURL` for local E2E tests (`myapp.localhost:1355` instead of port guessing)
 
 
 ---
 
-## Rules (6)
+## Rules (7)
 
 ### Validate full-page accessibility compliance through Playwright E2E tests with axe-core — MEDIUM
 
@@ -630,6 +648,117 @@ await expect(page.locator('.success-message')).toBeVisible();
 await page.getByRole('button', { name: 'Submit' }).click();
 await expect(page.getByRole('alert', { name: /success/i })).toBeVisible();
 ```
+
+
+### E2E Testing with emulate Backends — HIGH
+
+
+# E2E Testing with emulate Backends
+
+Use emulate as the backend API layer for Playwright E2E tests. This eliminates flaky real-API calls, rate limiting, and non-deterministic data.
+
+## Pattern: Seed -> Start -> Playwright -> Assert
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { startEmulate, seedConfig } from '@orchestkit/emulate';
+
+let emulate: EmulateInstance;
+
+test.beforeAll(async () => {
+  emulate = await startEmulate({
+    provider: 'github',
+    seed: seedConfig({
+      repos: [{ owner: 'acme', name: 'app', issues: [{ number: 1, title: 'Bug fix', state: 'open' }] }],
+    }),
+  });
+});
+
+test.afterAll(async () => {
+  await emulate.stop();
+});
+
+test('dashboard shows seeded issues', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page.getByRole('cell', { name: 'Bug fix' })).toBeVisible();
+});
+
+test('closing issue updates UI', async ({ page }) => {
+  await page.goto('/issues/1');
+  await page.getByRole('button', { name: 'Close issue' }).click();
+  await expect(page.getByText('Closed')).toBeVisible();
+});
+```
+
+## Per-Worker Port Isolation (Parallel Playwright)
+
+Playwright runs workers in parallel. Each worker needs its own emulate instance on a unique port:
+
+```typescript
+// fixtures/emulate.fixture.ts
+import { test as base } from '@playwright/test';
+import { startEmulate, seedConfig } from '@orchestkit/emulate';
+
+type EmulateFixtures = { emulatePort: number };
+
+export const test = base.extend<EmulateFixtures>({
+  emulatePort: [async ({}, use, workerInfo) => {
+    const port = 4100 + workerInfo.workerIndex;
+    const emulate = await startEmulate({
+      provider: 'github',
+      port,
+      seed: seedConfig({ repos: [{ owner: 'acme', name: 'app' }] }),
+    });
+    await use(port);
+    await emulate.stop();
+  }, { scope: 'worker' }],
+});
+
+// In tests:
+test('worker-isolated test', async ({ page, emulatePort }) => {
+  // App configured to use http://localhost:{emulatePort} as API base
+  await page.goto(`/dashboard?api_port=${emulatePort}`);
+});
+```
+
+## CI Configuration
+
+```yaml
+# .github/workflows/e2e.yml
+jobs:
+  e2e:
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          GITHUB_API_BASE: http://localhost:4100
+          CI: true
+```
+
+**Incorrect -- E2E tests hitting real GitHub/Vercel APIs:**
+```typescript
+test('shows repos from GitHub', async ({ page }) => {
+  // Flaky: depends on real GitHub API, rate-limited, non-deterministic data
+  await page.goto('/repos');
+  await expect(page.getByRole('cell')).toHaveCount(30); // Random count
+});
+```
+
+**Correct -- emulate backends with seeded data:**
+```typescript
+test('shows repos from emulate', async ({ page }) => {
+  // Deterministic: emulate seeded with exactly 3 repos
+  await page.goto('/repos');
+  await expect(page.getByRole('row')).toHaveCount(4); // 3 repos + header
+});
+```
+
+## Related Skills
+
+- `emulate-seed` — Seed configuration authoring for emulate providers
+- `testing-integration` — Integration tests also use emulate as first choice
 
 
 ### Validate end-to-end type safety across API layers to eliminate runtime type errors — HIGH

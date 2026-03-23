@@ -1,0 +1,1031 @@
+---
+title: "Multi Surface Render"
+description: ">-"
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="multi-surface-render" />
+
+
+# Multi-Surface Rendering with json-render
+
+Define once, render everywhere. A single json-render catalog and spec can produce React web UIs, PDF reports, HTML emails, Remotion demo videos, and OG images — each surface gets its own registry that maps catalog types to platform-native components.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Target Selection](#target-selection) | 1 | HIGH | Choosing which renderer for your use case |
+| [React Renderer](#react-renderer) | 1 | MEDIUM | Web apps, SPAs, dashboards |
+| [PDF & Email Renderer](#pdf--email-renderer) | 1 | HIGH | Reports, documents, notifications |
+| [Video & Image Renderer](#video--image-renderer) | 1 | MEDIUM | Demo videos, OG images, social cards |
+| [Registry Mapping](#registry-mapping) | 1 | HIGH | Platform-specific component implementations |
+
+**Total: 5 rules across 5 categories**
+
+## How Multi-Surface Rendering Works
+
+1. **One catalog** — Zod-typed component definitions shared across all surfaces
+2. **One spec** — flat-tree JSON/YAML describing the UI structure
+3. **Many registries** — each surface maps catalog types to its own component implementations
+4. **Many renderers** — each package renders the spec using its registry
+
+The catalog is the contract. The spec is the data. The registry is the platform-specific implementation.
+
+## Quick Start — Same Catalog, Different Renderers
+
+### Shared Catalog (used by all surfaces)
+
+```typescript
+import { defineCatalog } from '@json-render/core'
+import { z } from 'zod'
+
+export const catalog = defineCatalog({
+  Heading: {
+    props: z.object({
+      text: z.string(),
+      level: z.enum(['h1', 'h2', 'h3']),
+    }),
+    children: false,
+  },
+  Paragraph: {
+    props: z.object({ text: z.string() }),
+    children: false,
+  },
+  StatCard: {
+    props: z.object({
+      label: z.string(),
+      value: z.string(),
+      trend: z.enum(['up', 'down', 'flat']).optional(),
+    }),
+    children: false,
+  },
+})
+```
+
+### Render to Web (React)
+
+```tsx
+import { Renderer } from '@json-render/react'
+import { catalog } from './catalog'
+import { webRegistry } from './registries/web'
+
+export const Dashboard = ({ spec }) => (
+  <Renderer spec={spec} catalog={catalog} registry={webRegistry} />
+)
+```
+
+### Render to PDF
+
+```typescript
+import { renderToBuffer, renderToFile } from '@json-render/react-pdf'
+import { catalog } from './catalog'
+import { pdfRegistry } from './registries/pdf'
+
+// Buffer for HTTP response
+const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+
+// Direct file output
+await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+```
+
+### Render to Email
+
+```typescript
+import { renderToHtml } from '@json-render/react-email'
+import { catalog } from './catalog'
+import { emailRegistry } from './registries/email'
+
+const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+await sendEmail({ to: user.email, subject: 'Weekly Report', html })
+```
+
+### Render to OG Image (Satori)
+
+```typescript
+import { renderToSvg, renderToPng } from '@json-render/image'
+import { catalog } from './catalog'
+import { imageRegistry } from './registries/image'
+
+const png = await renderToPng(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+```
+
+### Render to Video (Remotion)
+
+```tsx
+import { JsonRenderComposition } from '@json-render/remotion'
+import { catalog } from './catalog'
+import { remotionRegistry } from './registries/remotion'
+
+export const DemoVideo = () => (
+  <JsonRenderComposition
+    spec={spec}
+    catalog={catalog}
+    registry={remotionRegistry}
+    fps={30}
+    durationInFrames={150}
+  />
+)
+```
+
+## Decision Matrix — When to Use Each Target
+
+| Target | Package | When to Use | Output |
+|--------|---------|-------------|--------|
+| React | `@json-render/react` | Web apps, SPAs | JSX |
+| Vue | `@json-render/vue` | Vue projects | Vue components |
+| Svelte | `@json-render/svelte` | Svelte projects | Svelte components |
+| React Native | `@json-render/react-native` | Mobile apps (25+ components) | Native views |
+| PDF | `@json-render/react-pdf` | Reports, documents | PDF buffer/file |
+| Email | `@json-render/react-email` | Notifications, digests | HTML string |
+| Remotion | `@json-render/remotion` | Demo videos, marketing | MP4/WebM |
+| Image | `@json-render/image` | OG images, social cards | SVG/PNG (Satori) |
+| YAML | `@json-render/yaml` | Token optimization | YAML string |
+| MCP | `@json-render/mcp` | Claude/Cursor conversations | Sandboxed iframe |
+| 3D | `@json-render/react-three-fiber` | 3D scenes (19 components) | Three.js canvas |
+| Codegen | `@json-render/codegen` | Source code from specs | TypeScript/JSX |
+
+Load `rules/target-selection.md` for detailed selection criteria and trade-offs.
+
+## PDF Renderer — Reports and Documents
+
+The `@json-render/react-pdf` package renders specs to PDF using react-pdf under the hood. Three output modes: buffer, file, and stream.
+
+```typescript
+import { renderToBuffer, renderToFile, renderToStream } from '@json-render/react-pdf'
+
+// In-memory buffer (for HTTP responses, S3 upload)
+const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+res.setHeader('Content-Type', 'application/pdf')
+res.send(buffer)
+
+// Direct file write
+await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+
+// Streaming (for large documents)
+const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+stream.pipe(res)
+```
+
+Load `rules/pdf-email-renderer.md` for PDF registry patterns and email rendering.
+
+## Image Renderer — OG Images and Social Cards
+
+The `@json-render/image` package uses Satori to convert specs to SVG, then optionally to PNG. Designed for server-side generation of social media images.
+
+```typescript
+import { renderToSvg, renderToPng } from '@json-render/image'
+
+// SVG output (smaller, scalable)
+const svg = await renderToSvg(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+
+// PNG output (universal compatibility)
+const png = await renderToPng(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+```
+
+Load `rules/video-image-renderer.md` for Satori constraints and Remotion composition patterns.
+
+## Registry Mapping — Same Catalog, Platform-Specific Components
+
+Each surface needs its own registry. The registry maps catalog types to platform-specific component implementations while the catalog and spec stay identical.
+
+```typescript
+// Web registry — uses HTML elements
+const webRegistry = {
+  Heading: ({ text, level }) => {
+    const Tag = level // h1, h2, h3
+    return <Tag className="font-bold">{text}</Tag>
+  },
+  StatCard: ({ label, value, trend }) => (
+    <div className="rounded border p-4">
+      <span className="text-sm text-gray-500">{label}</span>
+      <strong className="text-2xl">{value}</strong>
+    </div>
+  ),
+}
+
+// PDF registry — uses react-pdf primitives
+import { Text, View } from '@react-pdf/renderer'
+const pdfRegistry = {
+  Heading: ({ text, level }) => (
+    <Text style={{ fontSize: level === 'h1' ? 24 : level === 'h2' ? 18 : 14 }}>
+      {text}
+    </Text>
+  ),
+  StatCard: ({ label, value }) => (
+    <View style={{ border: '1pt solid #ccc', padding: 8 }}>
+      <Text style={{ fontSize: 10, color: '#666' }}>{label}</Text>
+      <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{value}</Text>
+    </View>
+  ),
+}
+```
+
+Load `rules/registry-mapping.md` for registry creation patterns and type safety.
+
+## Rule Details
+
+### Target Selection
+
+Decision criteria for choosing the right renderer target.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Target Selection | `rules/target-selection.md` | Use case mapping, output format constraints |
+
+### React Renderer
+
+Web rendering with the `&lt;Renderer&gt;` component.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| React Renderer | `rules/react-renderer.md` | `&lt;Renderer&gt;` component, streaming, error boundaries |
+
+### PDF & Email Renderer
+
+Server-side rendering to PDF buffers/files and HTML email strings.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| PDF & Email | `rules/pdf-email-renderer.md` | renderToBuffer, renderToFile, renderToHtml |
+
+### Video & Image Renderer
+
+Remotion compositions and Satori image generation.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Video & Image | `rules/video-image-renderer.md` | JsonRenderComposition, renderToPng, renderToSvg |
+
+### Registry Mapping
+
+Creating platform-specific registries for a shared catalog.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Registry Mapping | `rules/registry-mapping.md` | Per-platform registries, type-safe mapping |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| PDF library | Use `@json-render/react-pdf` (react-pdf), not Puppeteer screenshots |
+| Email rendering | Use `@json-render/react-email` (react-email), not MJML or custom HTML |
+| OG images | Use `@json-render/image` (Satori), not Puppeteer or canvas |
+| Video | Use `@json-render/remotion` (Remotion), not FFmpeg scripts |
+| Registry per platform | Always separate registries; never one registry for all surfaces |
+| Catalog sharing | One catalog definition shared via import across all registries |
+
+## Common Mistakes
+
+1. Building separate component trees for each surface — defeats the purpose; share the catalog and spec
+2. Using Puppeteer to screenshot React for PDF generation — slow, fragile; use native react-pdf rendering
+3. One giant registry covering all platforms — impossible since PDF uses `&lt;View&gt;`/`&lt;Text&gt;`, web uses `<div>`/`<span>`
+4. Forgetting Satori limitations — no CSS grid, limited flexbox; design image registries with these constraints
+5. Duplicating catalog definitions per surface — one catalog, many registries; the catalog is the contract
+
+## Related Skills
+
+- `ork:json-render-catalog` — Catalog definition patterns with Zod, shadcn components
+- `ork:demo-producer` — Video production pipeline using Remotion
+- `ork:presentation-builder` — Slide deck generation
+- `ork:mcp-visual-output` — Rendering specs in Claude/Cursor via MCP
+
+
+---
+
+## Rules (5)
+
+### Use native react-pdf and react-email renderers instead of browser-based workarounds — HIGH
+
+
+## PDF & Email Renderer
+
+`@json-render/react-pdf` renders specs to PDF using react-pdf primitives (`View`, `Text`, `Image`). `@json-render/react-email` renders specs to HTML email strings using react-email components. Both validate against the same catalog.
+
+**Incorrect — using Puppeteer to screenshot React for PDF:**
+```typescript
+// WRONG: Launches a browser, takes a screenshot, converts to PDF
+import puppeteer from 'puppeteer'
+
+async function generatePdf(spec) {
+  const browser = await puppeteer.launch()
+  const page = await browser.newPage()
+  await page.setContent(renderToString(<Dashboard spec={spec} />))
+  const pdf = await page.pdf({ format: 'A4' })
+  await browser.close()
+  return pdf // slow, ~2s startup, CSS rendering differences, no catalog validation
+}
+```
+
+**Correct — native PDF rendering via react-pdf:**
+```typescript
+import { renderToBuffer, renderToFile, renderToStream } from '@json-render/react-pdf'
+import { catalog } from './catalog'
+import { pdfRegistry } from './registries/pdf'
+
+// Buffer — for HTTP responses, S3 upload, attachments
+const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+
+// File — direct disk write
+await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+
+// Stream — for large documents, pipe to HTTP response
+const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+res.setHeader('Content-Type', 'application/pdf')
+stream.pipe(res)
+```
+
+**Incorrect — manual HTML string for email:**
+```typescript
+// WRONG: Manual HTML, no validation, rendering inconsistencies
+const html = `<table><tr><td>${data.title}</td></tr></table>`
+```
+
+**Correct — react-email rendering:**
+```typescript
+import { renderToHtml } from '@json-render/react-email'
+import { catalog } from './catalog'
+import { emailRegistry } from './registries/email'
+
+const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+await transporter.sendMail({ to: user.email, subject: 'Report', html })
+```
+
+**Key rules:**
+- Use `renderToBuffer` for in-memory PDF (HTTP responses, email attachments, cloud storage upload)
+- Use `renderToFile` for disk output (batch report generation, CI artifacts)
+- Use `renderToStream` for large documents to avoid buffering the entire PDF in memory
+- PDF registry components must use react-pdf primitives (`View`, `Text`, `Image`) — not HTML elements
+- Email registry components must use react-email primitives (`Section`, `Text`, `Heading`) — not arbitrary HTML
+- Both renderers validate specs against the catalog — invalid types or props throw at render time
+
+### PDF Registry Pattern
+
+```typescript
+import { View, Text, StyleSheet } from '@react-pdf/renderer'
+
+const styles = StyleSheet.create({
+  heading: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
+  card: { border: '1pt solid #e5e7eb', padding: 12, borderRadius: 4 },
+})
+
+export const pdfRegistry = {
+  Heading: ({ text, level }) => (
+    <Text style={{ ...styles.heading, fontSize: level === 'h1' ? 24 : level === 'h2' ? 18 : 14 }}>
+      {text}
+    </Text>
+  ),
+  StatCard: ({ label, value }) => (
+    <View style={styles.card}>
+      <Text style={{ fontSize: 10, color: '#6b7280' }}>{label}</Text>
+      <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{value}</Text>
+    </View>
+  ),
+}
+```
+
+
+### Use the Renderer component with catalog validation for web rendering — MEDIUM
+
+
+## React Renderer
+
+The `&lt;Renderer&gt;` component from `@json-render/react` validates specs against the catalog at runtime and renders each element using the registry. Never parse specs manually.
+
+**Incorrect — parsing the spec manually:**
+```tsx
+// WRONG: Manual parsing, no validation, no streaming
+function Dashboard({ spec }) {
+  return (
+    <div>
+      {Object.entries(spec.elements).map(([id, el]) => {
+        const Component = components[el.type] // no catalog validation
+        return <Component key={id} {...el.props} />
+      })}
+    </div>
+  )
+}
+```
+
+**Correct — using the Renderer component:**
+```tsx
+import { Renderer } from '@json-render/react'
+import { catalog } from './catalog'
+import { webRegistry } from './registries/web'
+
+function Dashboard({ spec }) {
+  return (
+    <Renderer
+      spec={spec}
+      catalog={catalog}
+      registry={webRegistry}
+      fallback={<LoadingSkeleton />}
+      onError={(err) => console.error('Render error:', err)}
+    />
+  )
+}
+```
+
+**Key rules:**
+- Always pass `catalog` to `&lt;Renderer&gt;` — it validates that spec types exist in the catalog and props match Zod schemas
+- Use `fallback` prop for loading states during progressive streaming
+- Use `onError` callback or wrap in an error boundary for graceful degradation
+- For streaming specs (AI generating in real-time), the Renderer updates progressively as elements arrive
+- The registry maps catalog types to React components — keep it separate from the catalog definition
+
+### Progressive Streaming Pattern
+
+```tsx
+import { Renderer, useStreamingSpec } from '@json-render/react'
+
+function StreamingDashboard({ specStream }) {
+  const spec = useStreamingSpec(specStream) // updates as patches arrive
+
+  return (
+    <Renderer
+      spec={spec}
+      catalog={catalog}
+      registry={webRegistry}
+      fallback={<Skeleton />}
+    />
+  )
+}
+```
+
+Elements render as soon as their props are complete — the user sees the UI building in real-time.
+
+
+### Create separate registries per platform sharing a single catalog — HIGH
+
+
+## Registry Mapping
+
+A registry maps each catalog type to a platform-specific component implementation. The catalog (Zod schemas) and spec (flat-tree data) stay identical across surfaces. Only the registry changes.
+
+**Incorrect — one giant registry trying to cover all platforms:**
+```typescript
+// WRONG: Impossible — PDF needs View/Text, web needs div/span
+const universalRegistry = {
+  Heading: ({ text, level, platform }) => {
+    if (platform === 'pdf') return <Text style={...}>{text}</Text>
+    if (platform === 'email') return <Heading as={level}>{text}</Heading>
+    return <h1>{text}</h1> // web fallback
+  },
+}
+```
+
+**Correct — separate registries per platform, same catalog:**
+```typescript
+import { catalog } from './catalog' // SHARED — one definition
+
+// Web registry
+export const webRegistry = {
+  Heading: ({ text, level }) => {
+    const Tag = level
+    return <Tag className="font-bold tracking-tight">{text}</Tag>
+  },
+  StatCard: ({ label, value, trend }) => (
+    <div className="rounded-lg border p-4 shadow-sm">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
+      {trend && <TrendIcon direction={trend} />}
+    </div>
+  ),
+}
+
+// PDF registry
+import { View, Text } from '@react-pdf/renderer'
+export const pdfRegistry = {
+  Heading: ({ text, level }) => (
+    <Text style={{ fontSize: level === 'h1' ? 24 : 18, fontWeight: 'bold' }}>
+      {text}
+    </Text>
+  ),
+  StatCard: ({ label, value }) => (
+    <View style={{ border: '1pt solid #ccc', padding: 8 }}>
+      <Text style={{ fontSize: 10, color: '#666' }}>{label}</Text>
+      <Text style={{ fontSize: 18 }}>{value}</Text>
+    </View>
+  ),
+}
+
+// Email registry
+import { Section, Text as EmailText, Heading as EmailHeading } from '@react-email/components'
+export const emailRegistry = {
+  Heading: ({ text, level }) => (
+    <EmailHeading as={level}>{text}</EmailHeading>
+  ),
+  StatCard: ({ label, value }) => (
+    <Section style={{ border: '1px solid #e5e7eb', padding: '12px' }}>
+      <EmailText style={{ fontSize: '12px', color: '#6b7280' }}>{label}</EmailText>
+      <EmailText style={{ fontSize: '20px', fontWeight: 'bold' }}>{value}</EmailText>
+    </Section>
+  ),
+}
+```
+
+**Key rules:**
+- One catalog, many registries — the catalog defines WHAT can be rendered, registries define HOW
+- Every catalog type must have an entry in each registry — missing entries throw at render time
+- Registry components receive the same props defined in the catalog Zod schema
+- Never add platform-specific props to the catalog — the catalog is platform-agnostic
+- Organize registries in `./registries/web.ts`, `./registries/pdf.ts`, `./registries/email.ts`
+- Use `CatalogComponents&lt;typeof catalog&gt;` type to ensure registries match the catalog
+
+### Type-Safe Registry Pattern
+
+```typescript
+import type { CatalogComponents } from '@json-render/react'
+import type { catalog } from './catalog'
+
+// TypeScript ensures every catalog type is implemented
+export const webRegistry: CatalogComponents<typeof catalog> = {
+  Heading: ({ text, level }) => { /* ... */ },
+  StatCard: ({ label, value, trend }) => { /* ... */ },
+  // Missing type → TypeScript error
+}
+```
+
+### File Organization
+
+```
+src/
+  catalog.ts              # Shared catalog (Zod schemas)
+  registries/
+    web.ts                # React/HTML components
+    pdf.ts                # react-pdf View/Text components
+    email.ts              # react-email Section/Text components
+    image.ts              # Satori-compatible inline-style components
+    remotion.ts           # Remotion-animated components
+```
+
+
+### Select renderer target based on output format and platform constraints — HIGH
+
+
+## Target Selection
+
+Choose the renderer target based on what the output is, not what framework you use. Each target maps to a specific `@json-render/*` package with its own rendering pipeline.
+
+**Incorrect — building separate templates for each surface:**
+```typescript
+// WRONG: Separate template systems, no shared catalog
+const webDashboard = buildReactComponents(data)
+const pdfReport = buildPdfWithPuppeteer(data)     // puppeteer screenshot
+const emailDigest = buildMjmlEmail(data)           // separate MJML templates
+const ogImage = buildCanvasImage(data)             // manual canvas drawing
+```
+
+**Correct — one catalog, one spec, multiple registries:**
+```typescript
+import { catalog } from './catalog'
+
+// Same spec, different renderers
+import { Renderer } from '@json-render/react'           // web
+import { renderToBuffer } from '@json-render/react-pdf' // pdf
+import { renderToHtml } from '@json-render/react-email' // email
+import { renderToPng } from '@json-render/image'        // og image
+
+// Each renderer uses the same catalog + spec, different registry
+const webUi = <Renderer spec={spec} catalog={catalog} registry={webRegistry} />
+const pdf = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+const png = await renderToPng(spec, { catalog, registry: imageRegistry, width: 1200, height: 630 })
+```
+
+**Key rules:**
+- Match target to output format: PDF document = `react-pdf`, HTML email = `react-email`, image = `image`
+- Never use Puppeteer/Playwright to screenshot a React page for PDF — use native `@json-render/react-pdf`
+- Never build custom MJML/HTML templates when `@json-render/react-email` exists
+- If output is a file (PDF, PNG, MP4), use the server-side renderer — not the React `&lt;Renderer&gt;` component
+- Multiple targets in one project is the normal case — that is the entire point of json-render
+
+### Selection Checklist
+
+| Need | Target | Package |
+|------|--------|---------|
+| Interactive web UI | React | `@json-render/react` |
+| Downloadable document | PDF | `@json-render/react-pdf` |
+| Transactional email | Email | `@json-render/react-email` |
+| Social preview card | Image | `@json-render/image` |
+| Marketing video | Video | `@json-render/remotion` |
+| Mobile app screen | React Native | `@json-render/react-native` |
+| AI conversation output | MCP | `@json-render/mcp` |
+| Source code generation | Codegen | `@json-render/codegen` |
+
+
+### Use Remotion compositions and Satori for video and image generation from specs — MEDIUM
+
+
+## Video & Image Renderer
+
+`@json-render/remotion` wraps specs into Remotion compositions for MP4/WebM video. `@json-render/image` uses Satori to render specs as SVG, then optionally converts to PNG for OG images and social cards.
+
+**Incorrect — manually creating Remotion timelines:**
+```tsx
+// WRONG: Manual timeline, no catalog validation, duplicated rendering logic
+export const MyVideo = () => (
+  <Composition
+    id="demo"
+    component={() => (
+      <div>
+        <h1>{data.title}</h1>
+        <p>{data.description}</p>
+      </div>
+    )}
+    durationInFrames={150}
+    fps={30}
+    width={1920}
+    height={1080}
+  />
+)
+```
+
+**Correct — JsonRenderComposition from spec:**
+```tsx
+import { JsonRenderComposition } from '@json-render/remotion'
+import { catalog } from './catalog'
+import { remotionRegistry } from './registries/remotion'
+
+export const DemoVideo = () => (
+  <JsonRenderComposition
+    spec={spec}
+    catalog={catalog}
+    registry={remotionRegistry}
+    fps={30}
+    durationInFrames={150}
+    width={1920}
+    height={1080}
+  />
+)
+```
+
+**Incorrect — using Puppeteer for OG images:**
+```typescript
+// WRONG: Launches browser, screenshots a page, saves as PNG
+const browser = await puppeteer.launch()
+const page = await browser.newPage()
+await page.setViewport({ width: 1200, height: 630 })
+await page.setContent(`<div style="...">${title}</div>`)
+const png = await page.screenshot({ type: 'png' })
+```
+
+**Correct — Satori-based image rendering:**
+```typescript
+import { renderToSvg, renderToPng } from '@json-render/image'
+import { catalog } from './catalog'
+import { imageRegistry } from './registries/image'
+
+// SVG (smaller file size, scalable)
+const svg = await renderToSvg(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+
+// PNG (universal compatibility)
+const png = await renderToPng(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+```
+
+**Key rules:**
+- Use `JsonRenderComposition` for Remotion videos — it validates specs against the catalog
+- Use `renderToPng` for OG images (1200x630 standard) — Satori is server-side, no browser needed
+- Satori has CSS limitations: no CSS grid, limited flexbox, no `position: absolute` nesting — design image registries accordingly
+- Image registries must use inline styles only — Satori does not support className or CSS files
+- For Remotion, the registry can use Remotion animation primitives (`useCurrentFrame`, `interpolate`, `spring`)
+
+### Satori CSS Constraints
+
+| Supported | Not Supported |
+|-----------|---------------|
+| Flexbox (basic) | CSS Grid |
+| `border`, `borderRadius` | `box-shadow` |
+| `padding`, `margin` | `position: absolute` (limited) |
+| `fontSize`, `fontWeight` | External CSS, className |
+| `color`, `backgroundColor` | CSS animations |
+| `width`, `height` | Media queries |
+
+### Common OG Image Dimensions
+
+| Platform | Width | Height | Ratio |
+|----------|-------|--------|-------|
+| Open Graph (general) | 1200 | 630 | 1.91:1 |
+| Twitter card | 1200 | 628 | 1.91:1 |
+| LinkedIn share | 1200 | 627 | 1.91:1 |
+| Facebook share | 1200 | 630 | 1.91:1 |
+
+
+
+---
+
+## References (2)
+
+### Renderer Api
+
+# Renderer API Reference
+
+## @json-render/react
+
+### `&lt;Renderer&gt;` Component
+
+```tsx
+import { Renderer } from '@json-render/react'
+
+<Renderer
+  spec={spec}                    // JsonRenderSpec — flat-tree JSON/YAML
+  catalog={catalog}              // Catalog from defineCatalog()
+  registry={registry}            // CatalogComponents<typeof catalog>
+  fallback={<Loading />}         // Optional: shown during streaming
+  onError={(err) => log(err)}    // Optional: error callback
+/>
+```
+
+### `useStreamingSpec` Hook
+
+```tsx
+import { useStreamingSpec } from '@json-render/react'
+
+const spec = useStreamingSpec(stream) // ReadableStream of JSON Patch ops
+```
+
+---
+
+## @json-render/react-pdf
+
+### `renderToBuffer(spec, options): Promise&lt;Buffer&gt;`
+
+Renders spec to an in-memory PDF buffer.
+
+```typescript
+import { renderToBuffer } from '@json-render/react-pdf'
+
+const buffer = await renderToBuffer(spec, {
+  catalog,
+  registry: pdfRegistry,
+  pageSize: 'A4',               // Optional: 'A4' | 'LETTER' | { width, height }
+  orientation: 'portrait',      // Optional: 'portrait' | 'landscape'
+  margins: { top: 40, bottom: 40, left: 40, right: 40 }, // Optional
+})
+```
+
+### `renderToFile(spec, path, options): Promise&lt;void&gt;`
+
+Renders spec directly to a PDF file on disk.
+
+```typescript
+import { renderToFile } from '@json-render/react-pdf'
+
+await renderToFile(spec, './output/report.pdf', {
+  catalog,
+  registry: pdfRegistry,
+  pageSize: 'A4',
+})
+```
+
+### `renderToStream(spec, options): Promise&lt;ReadableStream&gt;`
+
+Renders spec to a readable stream for piping to HTTP responses.
+
+```typescript
+import { renderToStream } from '@json-render/react-pdf'
+
+const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+res.setHeader('Content-Type', 'application/pdf')
+res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"')
+stream.pipe(res)
+```
+
+---
+
+## @json-render/react-email
+
+### `renderToHtml(spec, options): Promise&lt;string&gt;`
+
+Renders spec to an HTML string optimized for email clients.
+
+```typescript
+import { renderToHtml } from '@json-render/react-email'
+
+const html = await renderToHtml(spec, {
+  catalog,
+  registry: emailRegistry,
+  preview: 'Your weekly report is ready', // Optional: email preview text
+  theme: 'light',                          // Optional: 'light' | 'dark'
+})
+```
+
+### `renderToPlainText(spec, options): Promise&lt;string&gt;`
+
+Renders spec to plain text (for text/plain multipart emails).
+
+```typescript
+import { renderToPlainText } from '@json-render/react-email'
+
+const text = await renderToPlainText(spec, { catalog, registry: emailRegistry })
+```
+
+---
+
+## @json-render/image
+
+### `renderToSvg(spec, options): Promise&lt;string&gt;`
+
+Renders spec to an SVG string using Satori.
+
+```typescript
+import { renderToSvg } from '@json-render/image'
+
+const svg = await renderToSvg(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,              // Required
+  height: 630,              // Required
+  fonts: [{                 // Optional: custom fonts
+    name: 'Inter',
+    data: fontBuffer,
+    weight: 400,
+    style: 'normal',
+  }],
+})
+```
+
+### `renderToPng(spec, options): Promise&lt;Buffer&gt;`
+
+Renders spec to a PNG buffer (SVG -> PNG via Resvg).
+
+```typescript
+import { renderToPng } from '@json-render/image'
+
+const png = await renderToPng(spec, {
+  catalog,
+  registry: imageRegistry,
+  width: 1200,
+  height: 630,
+})
+```
+
+---
+
+## @json-render/remotion
+
+### `&lt;JsonRenderComposition&gt;` Component
+
+```tsx
+import { JsonRenderComposition } from '@json-render/remotion'
+
+<JsonRenderComposition
+  spec={spec}                    // JsonRenderSpec
+  catalog={catalog}              // Catalog from defineCatalog()
+  registry={remotionRegistry}    // Registry with Remotion animations
+  fps={30}                       // Frames per second
+  durationInFrames={150}         // Total duration
+  width={1920}                   // Video width
+  height={1080}                  // Video height
+/>
+```
+
+### Remotion Registry with Animations
+
+```tsx
+import { useCurrentFrame, interpolate, spring, useVideoConfig } from 'remotion'
+
+const remotionRegistry = {
+  Heading: ({ text, level }) => {
+    const frame = useCurrentFrame()
+    const opacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: 'clamp' })
+    return <h1 style={{ opacity, fontSize: level === 'h1' ? 48 : 36 }}>{text}</h1>
+  },
+}
+```
+
+---
+
+## Common Options (all renderers)
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `catalog` | `Catalog` | Required. Zod-typed component definitions |
+| `registry` | `CatalogComponents` | Required. Platform-specific component map |
+| `spec` | `JsonRenderSpec` | Required. Flat-tree JSON/YAML spec |
+| `onError` | `(err: Error) => void` | Optional. Error handler |
+
+
+### Target Comparison
+
+# Target Comparison Matrix
+
+## All Targets — Capabilities Overview
+
+| Target | Package | Output | Server-Side | Streaming | File Output | Sizing |
+|--------|---------|--------|-------------|-----------|-------------|--------|
+| React | `@json-render/react` | JSX | No (client) | Yes (progressive) | No | Responsive |
+| Vue | `@json-render/vue` | Vue components | SSR supported | Yes | No | Responsive |
+| Svelte | `@json-render/svelte` | Svelte components | SSR supported | Yes | No | Responsive |
+| React Native | `@json-render/react-native` | Native views | No | Yes | No | Flex-based |
+| PDF | `@json-render/react-pdf` | Buffer/File/Stream | Yes | Via stream | Yes | Fixed (A4, Letter) |
+| Email | `@json-render/react-email` | HTML string | Yes | No | No | 600px max-width |
+| Remotion | `@json-render/remotion` | MP4/WebM | Yes (render) | No | Yes | Fixed (px) |
+| Image | `@json-render/image` | SVG/PNG | Yes | No | Yes (buffer) | Fixed (px) |
+| YAML | `@json-render/yaml` | YAML string | Yes | No | No | N/A |
+| MCP | `@json-render/mcp` | Sandboxed iframe | Yes | Yes | No | Constrained |
+| 3D | `@json-render/react-three-fiber` | Three.js canvas | No | No | No | Canvas-based |
+| Codegen | `@json-render/codegen` | TypeScript/JSX | Yes | No | Yes | N/A |
+
+## Registry Component Primitives by Target
+
+| Target | Base Elements | Styling | Layout |
+|--------|--------------|---------|--------|
+| React | `div`, `span`, `h1`-`h6`, `p`, `img` | className, CSS modules, Tailwind | Flexbox, Grid, any CSS |
+| PDF | `View`, `Text`, `Image` (react-pdf) | StyleSheet.create() | Flexbox only |
+| Email | `Section`, `Text`, `Heading`, `Button` (react-email) | Inline styles | Table-based (email compat) |
+| Image | `div`, `span`, `img` (Satori subset) | Inline styles only | Flexbox only (limited) |
+| Remotion | `div`, `span` + Remotion primitives | Inline styles, CSS | Flexbox, absolute positioning |
+| React Native | `View`, `Text`, `Image` (RN) | StyleSheet.create() | Flexbox only |
+
+## Limitations by Target
+
+### PDF (`@json-render/react-pdf`)
+- No CSS grid — flexbox only
+- No className — use `StyleSheet.create()`
+- No `<div>`/`<span>` — must use `&lt;View&gt;`/`&lt;Text&gt;`
+- Font embedding required for custom fonts
+- No interactive elements (buttons, links are display-only)
+
+### Email (`@json-render/react-email`)
+- 600px max-width (email client constraint)
+- Table-based layout for Outlook compatibility
+- Limited CSS support (no flexbox in Outlook, no grid)
+- Inline styles only for maximum compatibility
+- No JavaScript interactivity
+
+### Image (`@json-render/image` / Satori)
+- No CSS grid
+- Limited flexbox (no `flex-wrap`, limited `align-items`)
+- No `box-shadow`
+- No CSS animations or transitions
+- No external stylesheets — inline styles only
+- `position: absolute` has limited nesting support
+- Custom fonts must be loaded as ArrayBuffer
+
+### Remotion (`@json-render/remotion`)
+- No user interaction (pre-rendered video)
+- Rendering is CPU-intensive — use cloud rendering for production
+- Must specify exact `durationInFrames` and `fps`
+- All animations must be frame-based (`useCurrentFrame`)
+
+### React Native (`@json-render/react-native`)
+- No `div`/`span` — use `View`/`Text`
+- No CSS grid — flexbox only
+- No className — use `StyleSheet.create()`
+- Platform-specific behavior (iOS vs Android)
+
+## Performance Characteristics
+
+| Target | Render Time | Memory | CPU |
+|--------|-------------|--------|-----|
+| React | &lt;50ms (client) | Low | Low |
+| PDF (buffer) | 200-500ms | Medium | Medium |
+| PDF (stream) | 100-300ms start | Low | Medium |
+| Email | 50-100ms | Low | Low |
+| Image (SVG) | 100-200ms | Low | Low |
+| Image (PNG) | 200-400ms | Medium | Medium |
+| Remotion | 10-60s (full render) | High | High |
+| Codegen | 50-100ms | Low | Low |
+
+## When to Use Multiple Targets
+
+Common multi-target combinations:
+
+| Use Case | Targets | Example |
+|----------|---------|---------|
+| Dashboard + PDF export | React + PDF | Web dashboard with "Download PDF" button |
+| Dashboard + email digest | React + Email | Web view + weekly email summary |
+| Blog + social sharing | React + Image | Blog post + OG image preview |
+| Product page + demo | React + Remotion | Landing page + demo video |
+| Full marketing suite | React + PDF + Email + Image + Remotion | All surfaces from one spec |
+

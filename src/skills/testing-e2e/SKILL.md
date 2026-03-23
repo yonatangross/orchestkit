@@ -32,6 +32,7 @@ End-to-end testing with Playwright 1.58+, visual regression, accessibility, and 
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
+| [**emulate Backends**](#emulate-backends) | `rules/emulate-e2e.md` | **HIGH** | **FIRST CHOICE — deterministic API backends for E2E** |
 | [Playwright Core](#playwright-core) | `rules/e2e-playwright.md` | HIGH | Semantic locators, auto-wait, flaky detection |
 | [Page Objects](#page-objects) | `rules/e2e-page-objects.md` | HIGH | Encapsulate page interactions, visual regression |
 | [AI Agents](#ai-agents) | `rules/e2e-ai-agents.md` | HIGH | Planner/Generator/Healer, init-agents |
@@ -39,7 +40,23 @@ End-to-end testing with Playwright 1.58+, visual regression, accessibility, and 
 | [A11y CI/CD](#accessibility-cicd) | `rules/a11y-testing.md` | MEDIUM | CI gates, jest-axe unit tests, PR blocking |
 | [End-to-End Types](#end-to-end-types) | `rules/validation-end-to-end.md` | HIGH | tRPC, Prisma, Pydantic type safety |
 
-**Total: 6 rules, 4 references, 3 checklists, 3 examples, 1 script**
+**Total: 7 rules, 4 references, 3 checklists, 3 examples, 1 script**
+
+## emulate Backends
+
+For E2E tests that interact with external APIs (GitHub, Vercel, Google), **use emulate as the backend** instead of hitting real APIs. This eliminates flakiness from rate limits, network issues, and non-deterministic data.
+
+| Approach | Result |
+|----------|--------|
+| **emulate backends** (FIRST CHOICE) | Deterministic, fast, CI-friendly |
+| Real APIs | Flaky, rate-limited, slow |
+| MSW/Nock intercepts | No state machines, manual response management |
+
+Key features: seed config for reproducible data, per-worker port isolation for parallel Playwright, full state machine transitions.
+
+See `rules/emulate-e2e.md` for patterns, CI configuration, and per-worker isolation fixtures.
+
+---
 
 ## Playwright Quick Start
 
@@ -202,4 +219,5 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 - `testing-unit` - Unit testing patterns with mocking, fixtures, and data factories
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
+- `emulate-seed` - Seed configuration authoring for emulate providers
 - `portless` (upstream) - Stable `baseURL` for local E2E tests (`myapp.localhost:1355` instead of port guessing)

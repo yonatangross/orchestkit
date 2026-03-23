@@ -119,11 +119,12 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ai-ui-generation": {
     "name": "ai-ui-generation",
-    "description": "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems.",
+    "description": "AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
+      "json-render",
       "v0",
       "bolt",
       "cursor",
@@ -1101,7 +1102,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "component-curator",
       "design-system-architect",
-      "frontend-ui-developer"
+      "frontend-ui-developer",
+      "genui-architect"
     ]
   },
   "configure": {
@@ -1813,7 +1815,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "emulate-engineer"
+    ]
   },
   "errors": {
     "name": "errors",
@@ -2427,7 +2431,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "genui-architect"
+    ]
   },
   "langgraph": {
     "name": "langgraph",
@@ -2635,7 +2641,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "genui-architect"
+    ]
   },
   "memory": {
     "name": "memory",
@@ -2873,7 +2881,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "genui-architect"
+    ]
   },
   "multimodal-llm": {
     "name": "multimodal-llm",
@@ -4147,6 +4157,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "design-system-architect",
+      "emulate-engineer",
       "frontend-ui-developer",
       "test-generator"
     ]
@@ -4198,6 +4209,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "code-quality-reviewer",
+      "emulate-engineer",
       "eval-runner",
       "monitoring-engineer",
       "test-generator"
@@ -4371,6 +4383,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "code-quality-reviewer",
       "design-system-architect",
+      "emulate-engineer",
       "frontend-ui-developer",
       "python-performance-engineer",
       "test-generator"
@@ -4441,6 +4454,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "component-curator",
       "design-system-architect",
       "frontend-ui-developer",
+      "genui-architect",
       "ui-feedback"
     ]
   },

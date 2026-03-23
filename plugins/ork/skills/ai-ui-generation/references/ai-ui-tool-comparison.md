@@ -1,5 +1,5 @@
 ---
-title: "AI UI Tool Comparison — v0 vs Bolt vs Cursor vs Copilot"
+title: "AI UI Tool Comparison — json-render vs v0 vs Bolt vs Cursor vs Copilot"
 version: 1.0.0
 ---
 
@@ -9,19 +9,35 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 ## Feature Comparison
 
-| Feature | v0 (Vercel) | Bolt (StackBlitz) | Cursor | GitHub Copilot |
-|---------|-------------|-------------------|--------|----------------|
-| **Primary use** | Component scaffolding | Full-stack prototyping | In-editor coding | Inline autocomplete |
-| **Output** | React + shadcn/ui + Tailwind | Full app (FE + BE + DB) | Inline edits / files | Line/block completions |
-| **Visual preview** | Yes (live) | Yes (full app) | No | No |
-| **Project context** | None (standalone) | Partial (within session) | Full (reads project) | File-level |
-| **Framework** | React/Next.js | React, Vue, Svelte | Any | Any |
-| **Design system aware** | shadcn/ui built-in | Configurable | Reads your codebase | File-level patterns |
-| **Backend support** | No | Yes (Node, Python, etc.) | Yes (via project) | Yes (via file) |
-| **Deployment** | Vercel one-click | StackBlitz preview | N/A (local) | N/A (local) |
-| **Collaboration** | Share via URL | Share via URL | Git-based | Git-based |
+| Feature | json-render | v0 (Vercel) | Bolt (StackBlitz) | Cursor | GitHub Copilot |
+|---------|-------------|-------------|-------------------|--------|----------------|
+| **Primary use** | Multi-surface catalog rendering | Component scaffolding | Full-stack prototyping | In-editor coding | Inline autocomplete |
+| **Output** | JSON spec + per-platform renderers | React + shadcn/ui + Tailwind | Full app (FE + BE + DB) | Inline edits / files | Line/block completions |
+| **Visual preview** | Via target surface renderer | Yes (live) | Yes (full app) | No | No |
+| **Project context** | Catalog-scoped | None (standalone) | Partial (within session) | Full (reads project) | File-level |
+| **Framework** | Any (React, RN, CLI, MCP) | React/Next.js | React, Vue, Svelte | Any | Any |
+| **Design system aware** | Schema-enforced catalogs | shadcn/ui built-in | Configurable | Reads your codebase | File-level patterns |
+| **Backend support** | N/A (render layer) | No | Yes (Node, Python, etc.) | Yes (via project) | Yes (via file) |
+| **Deployment** | Embeds in any host | Vercel one-click | StackBlitz preview | N/A (local) | N/A (local) |
+| **Collaboration** | Catalog as code (Git) | Share via URL | Share via URL | Git-based | Git-based |
 
 ## Strengths and Weaknesses
+
+### json-render (FIRST CHOICE)
+**Strengths:**
+- Single catalog renders to any surface — web, mobile, CLI, MCP
+- Type-safe component specs with schema validation at build time
+- AI agents generate structured JSON specs that render progressively (streaming UI)
+- Platform-agnostic — no framework lock-in, per-platform registries map to native components
+- Ideal for MCP visual output where structured data must travel across tool boundaries
+
+**Weaknesses:**
+- Not a visual prototyping tool — no instant preview like v0
+- Requires upfront catalog definition before rendering
+- No backend scaffolding — focused on the render layer only
+- Learning curve for catalog schema authoring
+
+**When to use:** Multi-surface output, MCP visual rendering, type-safe component catalogs, streaming AI UI. This is the first choice for any workflow where output must render on more than one surface.
 
 ### v0 (Vercel)
 **Strengths:**
@@ -94,6 +110,9 @@ Detailed comparison of AI UI generation tools as of 2026. Each tool excels in a 
 
 | You Need | Use | Why |
 |----------|-----|-----|
+| Multi-surface / MCP visual output | json-render | Single catalog renders anywhere — FIRST CHOICE |
+| Type-safe component catalog | json-render | Schema-driven specs with compile-time validation |
+| Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | A new shadcn/ui component | v0 | Best scaffold quality, visual iteration |
 | A full prototype to demo | Bolt | End-to-end app in minutes |
 | To add a feature to your app | Cursor | Reads your codebase, respects patterns |

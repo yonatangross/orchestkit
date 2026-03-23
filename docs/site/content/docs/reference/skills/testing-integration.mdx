@@ -18,6 +18,7 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 
 | Area | Rule / Reference | Impact |
 |------|-----------------|--------|
+| **Stateful API testing (emulate)** | `rules/emulate-stateful-testing.md` | **HIGH** |
 | API endpoint tests | `rules/integration-api.md` | HIGH |
 | React component integration | `rules/integration-component.md` | HIGH |
 | Database layer testing | `rules/integration-database.md` | HIGH |
@@ -54,6 +55,21 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 | Example | File |
 |---------|------|
 | Full testing strategy | `examples/orchestkit-test-strategy.md` |
+
+---
+
+## Stateful API Testing (emulate — FIRST CHOICE)
+
+For GitHub, Vercel, and Google API integration tests, **emulate is the first choice**. It provides full state machines that model real API behavior — not static mocks.
+
+| Tool | Best For |
+|------|----------|
+| **emulate** | Stateful API tests (GitHub/Vercel/Google) — FIRST CHOICE |
+| Pact | Cross-team contract verification |
+| MSW | Frontend HTTP mocking (simple request/response) |
+| Nock | Node.js unit-level HTTP interception |
+
+See `rules/emulate-stateful-testing.md` for the full decision matrix, seed-start-test-assert pattern, and incorrect/correct examples.
 
 ---
 
@@ -148,13 +164,100 @@ async def test_create_user(client: AsyncClient):
 
 - `ork:testing-unit` — Unit testing patterns, fixtures, mocking
 - `ork:testing-e2e` — End-to-end Playwright tests
+- `ork:emulate-seed` — Seed configuration authoring for emulate providers
 - `ork:database-patterns` — Database schema and migration patterns
 - `ork:api-design` — API design patterns for endpoint testing
 
 
 ---
 
-## Rules (7)
+## Rules (8)
+
+### Stateful API Testing with emulate — HIGH
+
+
+# Stateful API Testing with emulate
+
+## Decision Matrix
+
+| Tool | Use When | Stateful? | API Fidelity |
+|------|----------|-----------|--------------|
+| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google API tests | Yes — full state machines | HIGH — realistic transitions |
+| Pact | Cross-team contract verification | No — contract snapshots | MEDIUM — schema-level |
+| MSW | Frontend HTTP mocking, simple request/response | No — static handlers | LOW — manual stubs |
+| Nock | Node.js HTTP interception, unit-level | No — recorded responses | LOW — replay only |
+
+## Pattern: Seed -> Start -> Test -> Assert State
+
+```typescript
+import { startEmulate, seedConfig } from '@orchestkit/emulate';
+
+describe('GitHub PR workflow', () => {
+  let emulate: EmulateInstance;
+
+  beforeAll(async () => {
+    emulate = await startEmulate({
+      provider: 'github',
+      seed: seedConfig({
+        repos: [{ owner: 'acme', name: 'app', pulls: [{ number: 1, state: 'open' }] }],
+      }),
+    });
+    // Point tests at emulate
+    process.env.GITHUB_API_BASE = `http://localhost:${emulate.port}`;
+  });
+
+  afterAll(() => emulate.stop());
+
+  test('merging PR transitions state correctly', async () => {
+    const octokit = new Octokit({ baseUrl: process.env.GITHUB_API_BASE });
+
+    await octokit.pulls.merge({ owner: 'acme', repo: 'app', pull_number: 1 });
+
+    const pr = await octokit.pulls.get({ owner: 'acme', repo: 'app', pull_number: 1 });
+    expect(pr.data.state).toBe('closed');
+    expect(pr.data.merged).toBe(true);
+  });
+});
+```
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `GITHUB_API_BASE` | Override GitHub API base URL to emulate |
+| `VERCEL_API_BASE` | Override Vercel API base URL to emulate |
+| `GOOGLE_API_BASE` | Override Google API base URL to emulate |
+
+**Incorrect -- mocking GitHub API responses with nock for stateful tests:**
+```typescript
+// Nock cannot model state transitions — merge won't update PR state
+nock('https://api.github.com')
+  .put('/repos/acme/app/pulls/1/merge')
+  .reply(200, { merged: true });
+nock('https://api.github.com')
+  .get('/repos/acme/app/pulls/1')
+  .reply(200, { state: 'closed', merged: true }); // Manually faked — no real state machine
+```
+
+**Correct -- using emulate with seed config for full state machine testing:**
+```typescript
+const emulate = await startEmulate({
+  provider: 'github',
+  seed: seedConfig({
+    repos: [{ owner: 'acme', name: 'app', pulls: [{ number: 1, state: 'open' }] }],
+  }),
+});
+// State transitions happen automatically — merge changes PR state
+await octokit.pulls.merge({ owner: 'acme', repo: 'app', pull_number: 1 });
+const pr = await octokit.pulls.get({ owner: 'acme', repo: 'app', pull_number: 1 });
+expect(pr.data.state).toBe('closed'); // Real state machine, not faked
+```
+
+## Related Skills
+
+- `emulate-seed` — Seed configuration authoring for emulate providers
+- `testing-e2e` — E2E tests can also use emulate backends
+
 
 ### Validate API contract correctness and error handling through HTTP-level integration tests — HIGH
 
