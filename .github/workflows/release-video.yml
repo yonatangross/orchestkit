@@ -124,7 +124,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Cache orchestkit-demos node_modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7  # v5
         with:
           path: orchestkit-demos/node_modules
           key: demos-${{ runner.os }}-${{ hashFiles('orchestkit-demos/package-lock.json') }}
