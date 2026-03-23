@@ -7,7 +7,6 @@
 |# Backend & Data
 |backend-system-architect:{backend-system-architect.md}|Backend
 |database-engineer:{database-engineer.md}|Alembic
-|emulate-engineer:{emulate-engineer.md}|setting up test environments,configuring CI pipelines,replacing flaky API mocks with stateful emulation
 |event-driven-architect:{event-driven-architect.md}|CQRS,Focuses,Kafka,Redis,Streams
 |python-performance-engineer:{python-performance-engineer.md}|Python
 |# Frontend & UI
@@ -36,6 +35,7 @@
 |# Testing & Quality
 |code-quality-reviewer:{code-quality-reviewer.md}|Code
 |debug-investigator:{debug-investigator.md}|Debug
+|emulate-engineer:{emulate-engineer.md}|setting up test environments,configuring CI pipelines,replacing flaky API mocks with stateful emulation
 |eval-runner:{eval-runner.md}|LLM,Langfuse
 |test-generator:{test-generator.md}|API,HTTP,Test
 |# Product & Strategy
