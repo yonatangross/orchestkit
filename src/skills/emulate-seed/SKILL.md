@@ -1,10 +1,6 @@
 ---
 name: emulate-seed
-description: >-
-  Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool
-  for GitHub (repos, PRs, issues, Actions, webhooks), Vercel (projects, deployments, domains),
-  and Google OAuth APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list.
-  Use when setting up test environments, CI pipelines, integration tests, or offline development.
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub (repos, PRs, issues, Actions, webhooks), Vercel (projects, deployments, domains), and Google OAuth APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 tags: [emulate, testing, api-emulation, github, vercel, google, seed, ci, stateful-testing]
 version: 1.0.0
 author: OrchestKit

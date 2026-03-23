@@ -1,11 +1,6 @@
 ---
 name: json-render-catalog
-description: >-
-  json-render component catalog patterns for AI-safe generative UI.
-  Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn
-  for 36 pre-built components, optimize specs for token efficiency with YAML mode.
-  Use when building AI-generated UIs, defining component catalogs, or integrating
-  json-render into React/Vue/Svelte/React Native projects.
+description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
 tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
 version: 1.0.0
 author: OrchestKit

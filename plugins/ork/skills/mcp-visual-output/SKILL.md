@@ -1,11 +1,6 @@
 ---
 name: mcp-visual-output
-description: >-
-  Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to
-  interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, and ChatGPT
-  conversations. Covers createMcpApp(), registerJsonRenderTool(), CSP config, streaming,
-  and dashboard component patterns. Use when building MCP servers that return visual output,
-  upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards.
+description: "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, and ChatGPT conversations. Covers createMcpApp(), registerJsonRenderTool(), CSP config, streaming, and dashboard component patterns. Use when building MCP servers that return visual output, upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards."
 tags: [mcp, json-render, visual-output, dashboard, iframe, sandbox, interactive-ui, genui]
 version: 1.0.0
 author: OrchestKit
@@ -83,7 +78,7 @@ const app = createMcpApp({
 app.start()
 ```
 
-## Quick Start -- Add to Existing MCP Server
+## Quick Start -- Enhance Existing Server with Visual Output
 
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'

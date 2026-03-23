@@ -1,11 +1,6 @@
 ---
 name: multi-surface-render
-description: >-
-  Multi-surface rendering with json-render — same JSON spec produces React components,
-  PDFs, emails, Remotion videos, OG images, and more. Covers renderer target selection,
-  registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile).
-  Use when generating output for multiple platforms, creating PDF reports, email templates,
-  demo videos, or social media images from a single component spec.
+description: "Multi-surface rendering with json-render — same JSON spec produces React components, PDFs, emails, Remotion videos, OG images, and more. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec."
 tags: [json-render, multi-surface, pdf, email, remotion, video, image, react, rendering]
 version: 1.0.0
 author: OrchestKit
