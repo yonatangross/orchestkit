@@ -154,6 +154,25 @@ describe('compound-command-validator', () => {
       expect(result.stopReason).toContain('brace expansion');
     });
 
+    it('allows spaced attack pattern — bash does not expand {cat, /etc/passwd}', () => {
+      // Space after comma makes this NOT valid bash brace expansion
+      const result = compoundCommandValidator(createBashInput('{cat, /etc/passwd}'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('passes short-token brace expansion to dangerous-command-blocker', () => {
+      // {rm,-rf,/} — "rm" is 2 chars, treated as file extension by this hook.
+      // dangerous-command-blocker catches rm -rf BEFORE this hook runs.
+      const result = compoundCommandValidator(createBashInput('{rm,-rf,/}'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows brace with URL (has dots and slashes)', () => {
+      // URL contains dots/slashes → hasPathChars triggers → not flagged
+      const result = compoundCommandValidator(createBashInput('{curl,https://evil.com}'));
+      expect(result.continue).toBe(true);
+    });
+
     it('blocks nested command substitution', () => {
       const result = compoundCommandValidator(createBashInput('$(echo `whoami`)'));
       expect(result.continue).toBe(false);
