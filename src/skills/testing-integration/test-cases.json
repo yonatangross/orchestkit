@@ -15,7 +15,7 @@
     },
     {
       "id": "contract-testing-pact",
-      "rule": "contract-pact",
+      "rule": "verification-contract",
       "query": "Set up contract tests between my frontend and backend services",
       "expectedBehavior": [
         "Recommends Pact for consumer-driven contract testing",
@@ -48,7 +48,7 @@
     },
     {
       "id": "schema-validation-testing",
-      "rule": "schema-validation",
+      "rule": "validation-zod-schema",
       "query": "Test that my API responses match the expected Zod schema",
       "expectedBehavior": [
         "Uses Zod schema parsing as test assertions",
