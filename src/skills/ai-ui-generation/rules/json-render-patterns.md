@@ -1,7 +1,7 @@
 ---
 title: json-render Integration Patterns
 impact: HIGH
-impactDescription: json-render is the first choice for multi-surface, MCP, and type-safe AI UI generation
+impactDescription: "json-render is the first choice for multi-surface, MCP, and type-safe AI UI generation"
 tags: [json-render, genui, catalog, multi-surface, mcp]
 ---
 

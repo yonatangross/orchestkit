@@ -1,7 +1,7 @@
 ---
 title: Stateful API Testing with emulate
 impact: HIGH
-impactDescription: emulate provides full state machines for GitHub/Vercel/Google APIs — first choice for API integration tests
+impactDescription: "emulate provides full state machines for GitHub/Vercel/Google APIs — first choice for API integration tests"
 tags: [emulate, stateful-testing, github, vercel, integration-tests]
 ---
 

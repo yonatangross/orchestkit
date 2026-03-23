@@ -1,7 +1,7 @@
 ---
 title: E2E Testing with emulate Backends
 impact: HIGH
-impactDescription: Replace flaky external APIs with emulate for deterministic E2E tests
+impactDescription: "Replace flaky external APIs with emulate for deterministic E2E tests"
 tags: [emulate, e2e, playwright, stateful-testing, ci]
 ---
 
