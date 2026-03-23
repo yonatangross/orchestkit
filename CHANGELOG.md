@@ -5,6 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.22.0] - 2026-03-23
+
+### Added
+
+- **json-render + emulate integration** (Milestone #98): 4 new skills, 2 agents, 3 skill upgrades wrapping Vercel Labs' json-render (AI-safe GenUI) and emulate (stateful API emulation)
+  - `json-render-catalog` skill: Zod-typed component catalogs for AI-safe UI generation, 36 shadcn components, YAML token optimization
+  - `emulate-seed` skill: stateful API emulation config generation for GitHub (:4001), Vercel (:4000), Google OAuth (:4002)
+  - `mcp-visual-output` skill: interactive dashboards via @json-render/mcp in Claude/Cursor conversations
+  - `multi-surface-render` skill: same JSON spec renders to React, PDF, email, Remotion video, OG images
+  - `genui-architect` agent: json-render catalog design specialist
+  - `emulate-engineer` agent: stateful API emulation specialist
+
+### Changed
+
+- `ai-ui-generation`: json-render added as **first choice** option alongside v0/Bolt/Cursor
+- `testing-integration`: emulate added as **first choice** for GitHub/Vercel/Google API tests (new `emulate-stateful-testing` rule)
+- `testing-e2e`: emulate backends for Playwright E2E (new `emulate-e2e` rule with port isolation)
+- `design-to-code`: Stage 4 RENDER added — register adapted components as json-render catalog entries
+- Component counts: 94→98 skills, 33→35 agents
+
+### Fixed
+
+- `ai-review-checklist.md`: impact value `CRITICAL` → `HIGH` (invalid enum)
+- `integration-api.md`: trimmed from 165 to 140 lines (was over 150 limit)
+- Added missing `test-cases.json` for `testing-integration` and `design-to-code` skills
+- Quoted `impactDescription` in 3 rule files for YAML consistency
+
+---
+
 ## [7.21.1] - 2026-03-22
 
 ### Fixed
