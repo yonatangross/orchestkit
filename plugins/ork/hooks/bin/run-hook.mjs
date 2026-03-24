@@ -217,12 +217,15 @@ process.stdin.on('data', (chunk) => {
   if (inputBytes > MAX_STDIN_BYTES) {
     stdinClosed = true;
     process.stdin.destroy();
+    const truncKB = Math.round(inputBytes / 1024);
+    process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${name}" — large payload (image paste?)\n`);
     try {
       // Try to parse what we have — likely incomplete JSON, so fall back to empty
       const parsedInput = input.trim() ? JSON.parse(input) : {};
       runHook(normalizeInput(parsedInput));
     } catch {
       // JSON incomplete due to truncation — run with empty input (hook will no-op)
+      process.stderr.write(`[orchestkit] WARNING: truncated JSON could not be parsed for hook "${name}" — running with empty input\n`);
       runHook(normalizeInput({}));
     }
   }
@@ -298,17 +301,33 @@ function isHookDisabled(name, overrides) {
 // HOOK TRACKING (Issue #245: Multi-User Intelligent Decision Capture)
 // =============================================================================
 
-/** Session ID validation regex - alphanumeric, dashes, underscores only (SEC-001) */
-const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+/**
+ * Session ID validation (SEC-001).
+ * CC uses UUIDs (e.g. "be33e3e1-5918-4057-904d-89997790dd8b").
+ * OrchestKit smart IDs use "project-branch-MMDD-HHMM-hash4" (5+ dash-separated parts).
+ * Rejects single chars, bare garbage, and path traversal attempts.
+ */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SMART_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]{6,127}$/; // min 7 chars, starts alphanumeric
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/; // fallback for unknown formats
 
 /**
  * Validate session ID to prevent path traversal attacks.
  * Defense-in-depth: Claude Code controls CLAUDE_SESSION_ID, but we validate anyway.
+ * Prefers structural validation (UUID or smart ID), falls back to character-class check.
  * @param {string} sessionId - The session ID to validate
  * @returns {boolean} True if valid, false otherwise
  */
 function isValidSessionId(sessionId) {
-  return typeof sessionId === 'string' && SESSION_ID_PATTERN.test(sessionId);
+  if (typeof sessionId !== 'string') return false;
+  // Structural match: UUID or smart ID (7+ chars starting alphanumeric)
+  if (UUID_PATTERN.test(sessionId) || SMART_ID_PATTERN.test(sessionId)) return true;
+  // Fallback: character-class only (1-6 char IDs are suspicious but allowed for compat)
+  if (SESSION_ID_PATTERN.test(sessionId)) {
+    process.stderr.write(`[orchestkit] WARNING: session ID "${sessionId}" is valid but doesn't match UUID or smart-ID format — possible misconfiguration\n`);
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -357,7 +376,9 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
     // #920: Fire-and-forget async writes — result is already on stdout,
     // so these don't block the tool execution pipeline. Node.js keeps the
     // event loop alive until pending I/O callbacks complete before exiting.
-    appendFile(eventsPath, JSON.stringify(event) + '\n', () => {});
+    appendFile(eventsPath, JSON.stringify(event) + '\n', (err) => {
+      if (err) process.stderr.write(`[orchestkit] WARNING: failed to write hook event to ${eventsPath}: ${err.message}\n`);
+    });
 
     // Cross-project analytics (Issue #459)
     const analyticsDir = join(homedir(), '.claude', 'analytics');
@@ -372,8 +393,11 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
       t_exec_ms: timing.t_exec_ms,
       t_track_ms: t4 !== undefined ? Number(t4 - timing._t3) / 1e6 : undefined,
     } : {};
-    appendFile(join(analyticsDir, 'hook-timing.jsonl'),
-      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', () => {});
+    const timingPath = join(analyticsDir, 'hook-timing.jsonl');
+    appendFile(timingPath,
+      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', (err) => {
+      if (err) process.stderr.write(`[orchestkit] WARNING: failed to write hook timing to ${timingPath}: ${err.message}\n`);
+    });
   } catch {
     // Silent failure - tracking should never break hooks
   }

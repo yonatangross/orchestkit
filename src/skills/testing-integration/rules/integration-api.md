@@ -120,31 +120,6 @@ test('rate limit returns structured error with retry_after', async () => {
 });
 ```
 
-```python
-# Python: RFC 9457 error structure assertions
-def assert_problem_detail(response, expected_status: int):
-    assert response.status_code == expected_status
-    assert "application/problem+json" in response.headers.get("content-type", "")
-    body = response.json()
-    assert "type" in body
-    assert body["status"] == expected_status
-    assert "title" in body
-    assert "error_category" in body
-    assert isinstance(body["retryable"], bool)
-    if body["retryable"]:
-        assert "retry_after" in body
-
-@pytest.mark.asyncio
-async def test_rate_limit_returns_structured_error(client: AsyncClient):
-    response = await client.get(
-        "/api/data",
-        headers={"Accept": "application/problem+json"},
-    )
-    assert_problem_detail(response, 429)
-    assert response.json()["error_category"] == "rate_limit"
-    assert response.json()["retry_after"] > 0
-```
-
 **Incorrect — asserting only status code:**
 ```typescript
 test('returns 429', async () => {

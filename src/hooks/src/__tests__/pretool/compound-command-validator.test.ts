@@ -110,6 +110,69 @@ describe('compound-command-validator', () => {
       expect(result.continue).toBe(true);
     });
 
+    it('allows braces inside single-quoted strings (jq syntax)', () => {
+      const result = compoundCommandValidator(
+        createBashInput("gh issue view 1137 --json title,body,labels,milestone --jq '{title, labels: [.labels[].name], milestone: .milestone.title}'")
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows braces inside double-quoted strings', () => {
+      const result = compoundCommandValidator(
+        createBashInput('echo "{cat,/etc/passwd}"')
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows unquoted jq-style braces with spaces (not valid brace expansion)', () => {
+      // Bash brace expansion requires NO spaces: {cat,/etc/passwd}
+      // Spaced patterns like {name, os} are NOT brace expansion
+      const result = compoundCommandValidator(
+        createBashInput("gh api repos/org/repo/actions/runners --jq '.runners[] | {name, os, status, labels: [.labels[].name]}'")
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows unquoted jq braces even without surrounding quotes', () => {
+      // Model may omit quotes — spaced braces still aren't brace expansion
+      const result = compoundCommandValidator(
+        createBashInput('gh api repos/org/repo/actions/runners --jq .runners[] | {name, os, status}')
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows braces with JSON colon syntax (jq object construction)', () => {
+      const result = compoundCommandValidator(
+        createBashInput('echo test | jq {key: .value}')
+      );
+      expect(result.continue).toBe(true);
+    });
+
+    it('still blocks unquoted brace expansion (no spaces)', () => {
+      const result = compoundCommandValidator(createBashInput('{cat,/etc/passwd}'));
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('brace expansion');
+    });
+
+    it('allows spaced attack pattern — bash does not expand {cat, /etc/passwd}', () => {
+      // Space after comma makes this NOT valid bash brace expansion
+      const result = compoundCommandValidator(createBashInput('{cat, /etc/passwd}'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('passes short-token brace expansion to dangerous-command-blocker', () => {
+      // {rm,-rf,/} — "rm" is 2 chars, treated as file extension by this hook.
+      // dangerous-command-blocker catches rm -rf BEFORE this hook runs.
+      const result = compoundCommandValidator(createBashInput('{rm,-rf,/}'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('allows brace with URL (has dots and slashes)', () => {
+      // URL contains dots/slashes → hasPathChars triggers → not flagged
+      const result = compoundCommandValidator(createBashInput('{curl,https://evil.com}'));
+      expect(result.continue).toBe(true);
+    });
+
     it('blocks nested command substitution', () => {
       const result = compoundCommandValidator(createBashInput('$(echo `whoami`)'));
       expect(result.continue).toBe(false);

@@ -21,6 +21,13 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
+triggers:
+  keywords: [fix, debug, "bug report", broken, "500 errors", investigate, resolve, regression, "track down", "figure out why", "issue #"]
+  examples:
+    - "fix issue #234"
+    - "there's a bug where users can't reset their passwords"
+    - "something's causing 500 errors on the /api/users endpoint"
+  anti-triggers: [implement, build, create, explore, review, brainstorm]
 ---
 
 # Fix Issue
@@ -146,17 +153,41 @@ Load `Read("${CLAUDE_SKILL_DIR}/rules/evidence-gathering.md")` for detailed work
 
 Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("${CLAUDE_SKILL_DIR}/references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
+## Service Discovery & Visual Inspection
+
+When the issue involves a running web app, API, or UI bug, discover services and inspect visually **before** forming hypotheses:
+
+```bash
+# 1. Discover services via Portless (preferred)
+portless list 2>/dev/null
+# api → api.localhost:1355   (port 8080)
+# app → app.localhost:1355   (port 3000)
+
+# 2. Fallback: discover ports manually
+lsof -iTCP -sTCP:LISTEN -nP | grep -E 'node|python|java'
+
+# 3. Visual inspection with agent-browser
+agent-browser open "http://app.localhost:1355"
+agent-browser screenshot /tmp/issue-before.png     # capture broken state
+agent-browser console                              # check for JS errors
+agent-browser network log                          # inspect failed API calls
+agent-browser get text @error-banner               # extract error messages
+```
+
+Use Portless named URLs (`*.localhost:1355`) in all investigation steps — they're stable, self-documenting, and eliminate port-guessing failures. Install with `npm i -g portless`.
+
 ## Workflow Overview
 
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Understand Issue** | Read GitHub issue details | Problem statement |
+| **1b. Service Discovery** | Portless list, agent-browser visual inspection | Service URLs, screenshots |
 | **2. Similar Issue Detection** | Search for related past issues | Related issues list |
 | **3. Hypothesis Formation** | Form hypotheses with confidence scores | Ranked hypotheses |
 | **4. Root Cause Analysis** | 5 parallel agents investigate | Confirmed root cause |
 | **5. Fix Design** | Design approach based on RCA | Fix specification |
 | **6. Implementation** | Apply fix with tests | Working code |
-| **7. Validation** | Verify fix resolves issue | Evidence |
+| **7. Validation** | Verify fix resolves issue, screenshot after state | Evidence |
 | **8. Prevention** | How to prevent recurrence | Prevention plan |
 | **9. Runbook** | Create/update runbook entry | Runbook |
 | **10. Lessons Learned** | Capture knowledge | Persisted learnings |
@@ -261,6 +292,7 @@ if capabilities.memory:
 
 - `ork:commit` - Commit issue fixes
 - `debug-investigator` - Debug complex issues
+- `browser-tools` - Visual inspection with agent-browser + Portless
 - `ork:issue-progress-tracking` - Auto-updates from commits
 - `ork:remember` - Store lessons learned
 

@@ -135,6 +135,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "bare-eval",
+    "label": "Bare Eval",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "testing",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "brainstorm",
     "label": "Brainstorm",
     "type": "command",
@@ -355,6 +365,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "emulate-seed",
+    "label": "Emulate Seed",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "testing",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "errors",
     "label": "Errors",
     "type": "reference",
@@ -475,6 +495,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "json-render-catalog",
+    "label": "Json Render Catalog",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "other",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "langgraph",
     "label": "Langgraph",
     "type": "reference",
@@ -515,6 +545,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "mcp-visual-output",
+    "label": "Mcp Visual Output",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "ai-llm",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "memory",
     "label": "Memory",
     "type": "command",
@@ -540,6 +580,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "type": "reference",
     "complexity": "medium",
     "category": "devops",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "multi-surface-render",
+    "label": "Multi Surface Render",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0

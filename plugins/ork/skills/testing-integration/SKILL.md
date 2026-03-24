@@ -32,6 +32,7 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 
 | Area | Rule / Reference | Impact |
 |------|-----------------|--------|
+| **Stateful API testing (emulate)** | `rules/emulate-stateful-testing.md` | **HIGH** |
 | API endpoint tests | `rules/integration-api.md` | HIGH |
 | React component integration | `rules/integration-component.md` | HIGH |
 | Database layer testing | `rules/integration-database.md` | HIGH |
@@ -68,6 +69,21 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 | Example | File |
 |---------|------|
 | Full testing strategy | `examples/orchestkit-test-strategy.md` |
+
+---
+
+## Stateful API Testing (emulate — FIRST CHOICE)
+
+For GitHub, Vercel, and Google API integration tests, **emulate is the first choice**. It provides full state machines that model real API behavior — not static mocks.
+
+| Tool | Best For |
+|------|----------|
+| **emulate** | Stateful API tests (GitHub/Vercel/Google) — FIRST CHOICE |
+| Pact | Cross-team contract verification |
+| MSW | Frontend HTTP mocking (simple request/response) |
+| Nock | Node.js unit-level HTTP interception |
+
+See `rules/emulate-stateful-testing.md` for the full decision matrix, seed-start-test-assert pattern, and incorrect/correct examples.
 
 ---
 
@@ -162,5 +178,6 @@ async def test_create_user(client: AsyncClient):
 
 - `ork:testing-unit` — Unit testing patterns, fixtures, mocking
 - `ork:testing-e2e` — End-to-end Playwright tests
+- `ork:emulate-seed` — Seed configuration authoring for emulate providers
 - `ork:database-patterns` — Database schema and migration patterns
 - `ork:api-design` — API design patterns for endpoint testing

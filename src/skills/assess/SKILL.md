@@ -22,6 +22,13 @@ hooks:
 metadata:
   category: document-asset-creation
   mcp-server: memory
+triggers:
+  keywords: [assess, asses, rate, evaluate, grade, score, compare, "how good", "how bad", "red flags", "trade-offs", "pros and cons", "good enough"]
+  examples:
+    - "rate this code from 0 to 10"
+    - "is this approach good enough for production?"
+    - "evaluate the trade-offs between Redis vs Postgres"
+  anti-triggers: [fix, implement, build, test, commit, review pr, explore]
 ---
 
 # Assess

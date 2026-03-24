@@ -16,6 +16,13 @@ model: haiku
 metadata:
   category: mcp-enhancement
   mcp-server: memory
+triggers:
+  keywords: [memory, recall, "search memory", "past decisions", "knowledge graph", "load context", "prior decisions", "what did we decide"]
+  examples:
+    - "search my memory for past database decisions"
+    - "what did we decide about pagination last time"
+    - "show me the knowledge graph"
+  anti-triggers: [remember, save, store, commit, implement, explore]
 ---
 
 # Memory - Read & Access Operations

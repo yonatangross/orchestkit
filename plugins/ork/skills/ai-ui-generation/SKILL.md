@@ -2,8 +2,8 @@
 name: ai-ui-generation
 license: MIT
 compatibility: "Claude Code 2.1.76+."
-description: AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems.
-tags: [ai-ui, v0, bolt, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui]
+description: AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
+tags: [ai-ui, json-render, v0, bolt, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui]
 context: fork
 agent: frontend-ui-developer
 version: 1.0.0
@@ -23,23 +23,27 @@ allowed-tools:
 
 # AI UI Generation
 
-Patterns for generating, reviewing, and integrating UI components produced by AI tools (v0, Bolt, Cursor). AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0, Bolt, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
 
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
+| [json-render Integration](#json-render-integration) | 1 | HIGH | Multi-surface output, MCP visual output, type-safe catalogs |
 | [Prompt Engineering](#prompt-engineering) | 2 | HIGH | Writing prompts for component generation |
 | [Quality Assurance](#quality-assurance) | 2 | CRITICAL/HIGH | Reviewing and gating AI-generated code |
 | [Design System Integration](#design-system-integration) | 2 | HIGH | Injecting tokens, refactoring for conformance |
 | [Tool Selection & Workflow](#tool-selection--workflow) | 2 | MEDIUM | Choosing the right AI tool, iterating prompts |
 
-**Total: 7 rules across 4 categories**
+**Total: 8 rules across 5 categories**
 
-## Decision Table — v0 vs Bolt vs Cursor
+## Decision Table — json-render vs v0 vs Bolt vs Cursor
 
 | Scenario | Tool | Why |
 |----------|------|-----|
+| Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
+| Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
+| Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y |
 | Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
@@ -73,6 +77,14 @@ Generate a React signup form component using:
 ```
 
 ## Rule Details
+
+### json-render Integration
+
+json-render is the **first choice** for AI UI generation when output must render across multiple surfaces (web, mobile, CLI, MCP). Define a catalog of components once, generate JSON specs from AI, and render on any target surface. See `ork:json-render-catalog` for catalog authoring patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| json-render Patterns | `rules/json-render-patterns.md` | Catalog-first: define once, render anywhere via per-platform registries |
 
 ### Prompt Engineering
 
@@ -133,12 +145,15 @@ Choosing the right AI tool and iterating effectively.
 
 | Resource | Description |
 |----------|-------------|
-| [references/ai-ui-tool-comparison.md](references/ai-ui-tool-comparison.md) | v0 vs Bolt vs Cursor vs Copilot comparison |
+| [references/ai-ui-tool-comparison.md](references/ai-ui-tool-comparison.md) | json-render vs v0 vs Bolt vs Cursor vs Copilot comparison |
 | [references/prompt-templates-library.md](references/prompt-templates-library.md) | Copy-paste prompt templates for common components |
 | [references/ai-ui-failure-modes.md](references/ai-ui-failure-modes.md) | Top 10 failure modes and fixes |
 
 ## Related Skills
 
+- `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
+- `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
+- `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
 - `ork:ui-components` — shadcn/ui component patterns and CVA variants
 - `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
 - `ork:animation-motion-design` — Motion library animation patterns

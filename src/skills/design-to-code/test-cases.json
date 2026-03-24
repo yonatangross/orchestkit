@@ -1,0 +1,71 @@
+{
+  "skill": "design-to-code",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "screenshot-to-component",
+      "rule": null,
+      "query": "Convert this screenshot of a pricing page into a React component",
+      "expectedBehavior": [
+        "Runs the 4-stage pipeline: EXTRACT, MATCH, ADAPT, RENDER",
+        "Uses Stitch MCP (design-context-extract) for Stage 1 extraction",
+        "Searches 21st.dev registry for matching components in Stage 2",
+        "Adapts to project design tokens in Stage 3"
+      ]
+    },
+    {
+      "id": "url-to-component",
+      "rule": null,
+      "query": "Recreate the hero section from https://example.com as a React component",
+      "expectedBehavior": [
+        "Fetches the URL and extracts design context (colors, typography, spacing)",
+        "Identifies component patterns (hero, CTA, navigation)",
+        "Matches against 21st.dev component registry",
+        "Produces production-ready React component with project tokens"
+      ]
+    },
+    {
+      "id": "description-to-component",
+      "rule": null,
+      "query": "Build a settings dashboard with a sidebar nav, user profile card, and notification preferences",
+      "expectedBehavior": [
+        "Decomposes description into component hierarchy",
+        "Searches component registry for sidebar, card, and toggle components",
+        "Adapts components to project design system tokens",
+        "Generates accessible, responsive React component"
+      ]
+    },
+    {
+      "id": "catalog-registration",
+      "rule": "catalog-registration",
+      "query": "After adapting this component, register it in our json-render catalog",
+      "expectedBehavior": [
+        "Generates Zod schema from the adapted component's props",
+        "Adds entry to the project's defineCatalog() call",
+        "Validates the catalog entry renders correctly",
+        "Enables multi-surface rendering (PDF, email, MCP) via json-render"
+      ]
+    },
+    {
+      "id": "graceful-degradation",
+      "rule": null,
+      "query": "Convert this design but I don't have Stitch MCP installed",
+      "expectedBehavior": [
+        "Detects missing Stitch MCP and degrades gracefully",
+        "Falls back to manual extraction (user describes design tokens)",
+        "Still completes Stage 2 MATCH and Stage 3 ADAPT",
+        "Warns about reduced accuracy without Stitch"
+      ]
+    },
+    {
+      "id": "negative-backend-task",
+      "rule": null,
+      "query": "Build a REST API for user authentication",
+      "expectedBehavior": [
+        "Should NOT use design-to-code pipeline for backend tasks",
+        "Should redirect to api-design or security-patterns skill",
+        "Does not invoke Stitch MCP or 21st.dev for non-UI work"
+      ]
+    }
+  ]
+}

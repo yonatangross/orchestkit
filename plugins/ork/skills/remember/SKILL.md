@@ -16,6 +16,13 @@ model: haiku
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: [remember, save, store, record, "best practice", "anti-pattern", "lets not forget", "mark this"]
+  examples:
+    - "remember that we chose Postgres over MongoDB"
+    - "save this decision: always use cursor-based pagination"
+    - "store this pattern as a best practice"
+  anti-triggers: [recall, search, "show memory", "knowledge graph", "load context", explore]
 ---
 
 # Remember - Store Decisions and Patterns

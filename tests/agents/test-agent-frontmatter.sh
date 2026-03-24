@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test: Validates CC 2.1.6 compliant YAML frontmatter
+# Test: Validates agent YAML frontmatter (format introduced CC 2.1.6)
 # All agents must have: name, description, model, tools, skills
 
 set -euo pipefail
@@ -68,7 +68,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   fi
 
   if [[ $agent_failed -eq 0 ]]; then
-    echo "PASS: $agent_name has CC 2.1.6 compliant frontmatter"
+    echo "PASS: $agent_name has valid frontmatter"
   fi
 done
 
@@ -78,6 +78,6 @@ if [[ $FAILED -eq 1 ]]; then
   echo "❌ Agent frontmatter test FAILED"
   exit 1
 else
-  echo "✅ All agents have CC 2.1.6 compliant frontmatter"
+  echo "✅ All agents have valid frontmatter"
   exit 0
 fi

@@ -1,0 +1,74 @@
+{
+  "skill": "emulate-seed",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "setup-github-testing",
+      "rule": "seed-config",
+      "query": "Set up GitHub API testing for my project with repos, PRs, and issues",
+      "expectedBehavior": [
+        "Recommends emulate as first choice over MSW/Nock for GitHub API testing",
+        "Generates an emulate.config.yaml with tokens, users, and repos sections",
+        "Includes seeded tokens mapped to emulated user logins instead of real credentials",
+        "Shows how to start emulate with --service github --seed flag",
+        "Sets GITHUB_API_BASE env var to point tests at the emulated API"
+      ]
+    },
+    {
+      "id": "parallel-ci-isolation",
+      "rule": "parallel-ci",
+      "query": "How to run tests in parallel in CI without port collisions?",
+      "expectedBehavior": [
+        "Assigns each worker a unique port using base port + VITEST_WORKER_ID offset",
+        "Creates a separate emulator instance per worker to avoid shared state",
+        "Calls github.reset() or github.close() in afterAll to clean up resources",
+        "Does not use a single shared emulator port across parallel workers"
+      ]
+    },
+    {
+      "id": "webhook-delivery-testing",
+      "rule": "webhook-setup",
+      "query": "Test webhook delivery with signature verification",
+      "expectedBehavior": [
+        "Configures a webhook receiver endpoint in the test to accept POST callbacks",
+        "Verifies HMAC-SHA256 signature using crypto.timingSafeEqual for constant-time comparison",
+        "Uses a shared webhook secret between the emulator config and the receiver",
+        "Does not skip signature verification even in test environments"
+      ]
+    },
+    {
+      "id": "generate-emulate-config",
+      "rule": "seed-config",
+      "query": "Generate an emulate config for my project that uses GitHub and Vercel APIs",
+      "expectedBehavior": [
+        "Produces a valid emulate.config.yaml with tokens, github, and vercel sections",
+        "Tokens section maps token names to login and scopes rather than hardcoding real tokens",
+        "GitHub section includes users and repos with owner, name, and default_branch",
+        "Vercel section includes users with username/email and projects with name/framework",
+        "Recommends placing the config in a .emulate/ directory or project root"
+      ]
+    },
+    {
+      "id": "offline-development",
+      "rule": "service-selection",
+      "query": "I want to develop offline without hitting real GitHub APIs",
+      "expectedBehavior": [
+        "Recommends emulate for offline GitHub API development",
+        "Shows npx emulate --service github to start the local emulator",
+        "Explains that state is fully local and persists across API calls",
+        "Mentions that GITHUB_API_BASE env var redirects SDK/CLI calls to localhost"
+      ]
+    },
+    {
+      "id": "token-seeding-patterns",
+      "rule": "auth-tokens",
+      "query": "How should I handle authentication tokens in my emulated test environment?",
+      "expectedBehavior": [
+        "Seeds tokens in emulate.config.yaml mapped to emulated user logins",
+        "Never uses real production tokens or credentials in test configs",
+        "Shows that seeded tokens have configurable scopes for permission testing",
+        "Demonstrates using different tokens (dev_token, ci_token) for different permission levels"
+      ]
+    }
+  ]
+}

@@ -22,6 +22,13 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: [explore, "how does", "walk me through", "big picture", architecture, "trace the", "where is", "find all files", codebase]
+  examples:
+    - "how does the auth system work in this codebase"
+    - "what is the architecture of this repo"
+    - "i just joined this project, walk me through the structure"
+  anti-triggers: [fix, implement, build, commit, review, assess]
 ---
 
 # Codebase Exploration

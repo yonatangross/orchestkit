@@ -5,8 +5,8 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 93,
-  "agents": 33,
+  "skills": 98,
+  "agents": 35,
   "hooks": 106,
   "commands": 20,
   "compositions": 14
@@ -131,6 +131,15 @@ export const AGENTS: AgentSummary[] = [
     "category": "development"
   },
   {
+    "name": "emulate-engineer",
+    "description": "Stateful API emulation specialist using Vercel's emulate. Seeds emulate environments for GitHub, Vercel, and Google APIs. Configures webhook routes, per-worker port isolation for parallel CI, and auth token setup. Use when setting up test environments, configuring CI pipelines, or replacing flaky API mocks with stateful emulation.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
+  },
+  {
     "name": "eval-runner",
     "description": "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring.",
     "plugins": [
@@ -165,6 +174,15 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "inherit",
     "category": "frontend"
+  },
+  {
+    "name": "genui-architect",
+    "description": "json-render catalog design specialist. Designs Zod-typed component catalogs, selects optimal shadcn components, constrains props for AI safety, and optimizes specs for token efficiency. Use when building AI-generated UIs, defining component catalogs, or migrating from custom GenUI to json-render.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
   },
   {
     "name": "git-operations-engineer",
@@ -393,6 +411,7 @@ export const SKILLS_SUMMARY = {
     ],
     "video": [
       "demo-producer",
+      "multi-surface-render",
       "multimodal-llm",
       "notebooklm"
     ],
@@ -410,13 +429,13 @@ export const SKILLS_SUMMARY = {
     ],
     "testing": [
       "architecture-patterns",
+      "bare-eval",
       "cover",
+      "emulate-seed",
       "golden-dataset",
       "llm-integration",
       "product-analytics",
-      "review-pr",
-      "storybook-testing",
-      "testing-e2e"
+      "review-pr"
     ],
     "security": [
       "audit-full",
@@ -436,10 +455,10 @@ export const SKILLS_SUMMARY = {
       "component-search",
       "design-to-code",
       "i18n-date-patterns",
+      "multi-surface-render",
       "performance",
       "react-server-components-framework",
-      "ui-components",
-      "zustand-patterns"
+      "ui-components"
     ],
     "llm": [
       "ai-ui-generation",

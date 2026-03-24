@@ -1,0 +1,41 @@
+{
+  "skill": "bare-eval",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "bare-grading-pattern",
+      "description": "Should recommend --bare for grading calls",
+      "input": "I need to grade LLM output against assertions in my eval pipeline",
+      "expected_patterns": ["--bare", "--max-turns 1", "grading"],
+      "should_trigger": true
+    },
+    {
+      "id": "bare-trigger-pattern",
+      "description": "Should recommend --bare for trigger classification",
+      "input": "Test which skill a prompt triggers without loading all plugins",
+      "expected_patterns": ["--bare", "--json-schema", "classification"],
+      "should_trigger": true
+    },
+    {
+      "id": "bare-not-for-plugins",
+      "description": "Should NOT recommend --bare when plugins needed",
+      "input": "Test skill routing with plugin loaded to verify agent spawning",
+      "expected_patterns": ["--plugin-dir"],
+      "anti_patterns": ["--bare"],
+      "should_trigger": true
+    },
+    {
+      "id": "bare-api-key-check",
+      "description": "Should mention ANTHROPIC_API_KEY requirement",
+      "input": "Set up --bare mode for my CI pipeline",
+      "expected_patterns": ["ANTHROPIC_API_KEY", "BARE_MODE"],
+      "should_trigger": true
+    },
+    {
+      "id": "non-eval-task",
+      "description": "Should NOT trigger for regular development tasks",
+      "input": "Fix the login bug in the auth middleware",
+      "should_trigger": false
+    }
+  ]
+}

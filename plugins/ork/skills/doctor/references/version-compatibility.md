@@ -137,6 +137,23 @@ OrchestKit requires Claude Code >= 2.1.80. This matrix documents which CC featur
 | Simplified plugin install tips | 2.1.80 | Single `/plugin install` command instead of two-step flow | Two-step marketplace add + install |
 | Startup memory reduction (250k repos) | 2.1.80 | ~80 MB saved on startup in large repositories | Higher startup memory on large repos |
 | Managed settings cache fix | 2.1.80 | `enabledPlugins`, `permissions.defaultMode`, policy env vars applied at startup | Stale remote-settings.json from prior session |
+| `--bare` flag for `-p` mode | 2.1.81 | Eval pipeline uses `--bare` to skip hooks/LSP/plugin sync for faster scripted grading | Full plugin/hook overhead on every `-p` call |
+| `--channels` permission relay | 2.1.81 | Channel servers forward tool approval prompts to phone for long-running agents | Must be at terminal for every permission prompt |
+| Plugin freshness re-clone | 2.1.81 | Ref-tracked plugins re-clone on every load for latest upstream | Stale plugins until manual reinstall |
+| Background agent task output race fix | 2.1.81 | Background agent output no longer hangs between polling intervals | Task output could hang indefinitely |
+| Worktree session resume | 2.1.81 | `--resume` of a worktree session switches back to that worktree | Resumed worktree sessions start in main tree |
+| Plugin hooks deleted-dir fix | 2.1.81 | Hooks no longer block prompt submission if plugin directory deleted mid-session | Hook deadlock during `npm run build` |
+| Invisible hook attachment fix | 2.1.81 | Hook attachments no longer inflate message count in transcript mode | Inflated session analytics from hook overhead |
+| MCP tool call collapse | 2.1.81 | MCP read/search calls collapse to single "Queried {server}" line (Ctrl+O to expand) | Verbose MCP tool output |
+| `showClearContextOnPlanAccept` | 2.1.81 | Plan mode hides "clear context" by default; restorable via setting | "Clear context" shown on every plan accept |
+| Concurrent session re-auth fix | 2.1.81 | Multiple CC sessions no longer require repeated re-authentication | Re-auth when one session refreshes OAuth |
+| Dashed-string permission fix | 2.1.81 | Bash commands with dashes in strings no longer trigger false permission prompts | False positives on dashed strings |
+| `! bash` mode discoverability | 2.1.81 | Claude suggests `!` prefix for interactive commands automatically | Must know about `!` prefix |
+| MCP OAuth CIMD/SEP-991 | 2.1.81 | MCP OAuth supports Client ID Metadata Document for servers without DCR | Limited MCP OAuth compatibility |
+| Node.js 18 crash fix | 2.1.81 | Fixed crash on Node.js 18 | Crash on Node.js 18 |
+| Windows line-by-line streaming disabled | 2.1.81 | Disabled line-by-line streaming on Windows/WSL due to rendering issues | Rendering glitches on Windows |
+| Remote Control fixes (4) | 2.1.81 | Session titles, /rename sync, /exit archiving, first-prompt titles fixed | Generic titles, unreliable archiving |
+| Voice mode fixes (2) | 2.1.81 | Retry failure messages and WebSocket recovery fixed | Misleading errors, dropped audio |
 
 ## Version Detection
 
@@ -170,6 +187,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.78 | Full+++++++++ | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |
 | >= 2.1.79 | Full++++++++++ | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 | >= 2.1.80 | Full+++++++++++ | rate_limits statusline, effort frontmatter, --channels, source:settings marketplace, --resume parallel fix |
+| >= 2.1.81 | Full++++++++++++ | --bare eval mode, --channels permission relay, plugin re-clone freshness, worktree resume, bg agent race fix |
 
 ## Doctor Check Implementation
 

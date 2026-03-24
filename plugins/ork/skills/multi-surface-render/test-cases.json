@@ -1,0 +1,77 @@
+{
+  "skill": "multi-surface-render",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "basic-generate-pdf-report",
+      "rule": "",
+      "query": "Generate a PDF report from a dashboard spec using json-render.",
+      "expectedBehavior": [
+        "Recommends @json-render/react-pdf for PDF output",
+        "Shows renderToBuffer or renderToFile API usage",
+        "Creates a PDF-specific registry mapping catalog types to react-pdf primitives (View, Text)",
+        "Shares the same catalog definition used by web rendering",
+        "Does NOT suggest using Puppeteer to screenshot a React page"
+      ]
+    },
+    {
+      "id": "basic-create-og-image",
+      "rule": "",
+      "query": "Create an OG image for a blog post using our json-render catalog.",
+      "expectedBehavior": [
+        "Recommends @json-render/image with Satori for OG image generation",
+        "Shows renderToPng with width 1200 and height 630 for standard OG dimensions",
+        "Creates an image-specific registry respecting Satori CSS limitations",
+        "Uses the shared catalog, not a separate image-specific catalog",
+        "Mentions Satori constraints: no CSS grid, limited flexbox"
+      ]
+    },
+    {
+      "id": "basic-same-component-web-email",
+      "rule": "",
+      "query": "I need the same notification card to render on our web app and in email digests. How do I set this up with json-render?",
+      "expectedBehavior": [
+        "Defines a single catalog with the notification card type",
+        "Creates two registries: web (HTML elements) and email (react-email components)",
+        "Shows renderToHtml from @json-render/react-email for email output",
+        "Shows <Renderer> from @json-render/react for web output",
+        "Same spec works for both surfaces without modification"
+      ]
+    },
+    {
+      "id": "basic-choose-renderer",
+      "rule": "",
+      "query": "How do I choose which json-render renderer to use for my project?",
+      "expectedBehavior": [
+        "References the decision matrix with all 12 targets",
+        "Asks about the output format needed (web, PDF, email, video, image)",
+        "Recommends specific packages based on use case",
+        "Does NOT recommend building a custom renderer when a package exists"
+      ]
+    },
+    {
+      "id": "target-selection",
+      "rule": "target-selection",
+      "query": "We need our dashboard to work as a web app, a weekly PDF email attachment, and a social media preview image. Which json-render targets should we use?",
+      "expectedBehavior": [
+        "Identifies three targets: @json-render/react, @json-render/react-pdf, @json-render/image",
+        "Recommends a single shared catalog for all three surfaces",
+        "Creates three separate registries with platform-specific components",
+        "Does NOT suggest building separate template systems for each output",
+        "Mentions @json-render/react-email if the email body itself needs rendering"
+      ]
+    },
+    {
+      "id": "registry-mapping",
+      "rule": "registry-mapping",
+      "query": "How do I create a PDF registry that maps my existing web catalog components to react-pdf primitives?",
+      "expectedBehavior": [
+        "Imports the existing catalog unchanged",
+        "Creates a new pdfRegistry object mapping each catalog type to react-pdf components",
+        "Uses View and Text from @react-pdf/renderer, not HTML div and span",
+        "Maintains the same prop interface so the spec works without changes",
+        "Does NOT modify the original catalog to accommodate PDF-specific concerns"
+      ]
+    }
+  ]
+}

@@ -5,7 +5,13 @@ version: 2.0.0
 
 # Rule Categories
 
-## 1. API & Component Integration (integration) — HIGH — 3 rules
+## 1. Stateful API Testing (emulate) — HIGH — 1 rule
+
+First-choice pattern for GitHub/Vercel/Google API integration tests using emulate state machines.
+
+- `emulate-stateful-testing.md` — emulate seed-start-test-assert pattern, decision matrix vs Pact/MSW/Nock, env var configuration
+
+## 2. API & Component Integration (integration) — HIGH — 3 rules
 
 Integration testing patterns for API endpoints, components, and databases.
 
@@ -13,7 +19,7 @@ Integration testing patterns for API endpoints, components, and databases.
 - `integration-component.md` — React component tests with providers, userEvent interactions, DOM assertions
 - `integration-database.md` — Database isolation, in-memory SQLite/test containers, transaction rollback
 
-## 2. Contract & Property Testing (verification) — MEDIUM — 3 rules
+## 3. Contract & Property Testing (verification) — MEDIUM — 3 rules
 
 Advanced verification patterns for cross-service contracts and invariant testing.
 
@@ -21,7 +27,7 @@ Advanced verification patterns for cross-service contracts and invariant testing
 - `verification-stateful.md` — Hypothesis RuleBasedStateMachine, state transitions, invariant checks
 - `verification-techniques.md` — Property-based testing with Hypothesis, roundtrip assertions, evidence verification
 
-## 3. Schema Validation (validation) — HIGH — 1 rule
+## 4. Schema Validation (validation) — HIGH — 1 rule
 
 Runtime schema validation for API boundary protection.
 

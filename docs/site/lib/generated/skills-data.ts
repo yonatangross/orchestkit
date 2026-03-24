@@ -119,11 +119,12 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ai-ui-generation": {
     "name": "ai-ui-generation",
-    "description": "AI-assisted UI generation patterns for v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, reviewing AI-generated code, or integrating AI output into design systems.",
+    "description": "AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
+      "json-render",
       "v0",
       "bolt",
       "cursor",
@@ -677,6 +678,37 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "bare-eval": {
+    "name": "bare-eval",
+    "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "eval",
+      "bare",
+      "grading",
+      "pipeline",
+      "testing",
+      "ci"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "grading-schemas.md",
+        "invocation-patterns.md",
+        "troubleshooting.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
@@ -1070,7 +1102,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "component-curator",
       "design-system-architect",
-      "frontend-ui-developer"
+      "frontend-ui-developer",
+      "genui-architect"
     ]
   },
   "configure": {
@@ -1750,6 +1783,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect"
     ]
   },
+  "emulate-seed": {
+    "name": "emulate-seed",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "emulate",
+      "testing",
+      "api-emulation",
+      "github",
+      "vercel",
+      "google",
+      "seed",
+      "ci",
+      "stateful-testing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "api-coverage.md",
+        "cli-reference.md",
+        "sdk-patterns.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "emulate-engineer"
+    ]
+  },
   "errors": {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.",
@@ -2331,6 +2400,41 @@ export const SKILLS: Record<string, SkillMeta> = {
       "git-operations-engineer"
     ]
   },
+  "json-render-catalog": {
+    "name": "json-render-catalog",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "json-render",
+      "genui",
+      "zod",
+      "catalog",
+      "shadcn",
+      "ai-ui",
+      "component-catalog",
+      "vercel"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "migration-from-genui.md",
+        "package-ecosystem.md",
+        "spec-format.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "genui-architect"
+    ]
+  },
   "langgraph": {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
@@ -2505,6 +2609,40 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ai-safety-auditor",
       "llm-integrator",
       "security-auditor"
+    ]
+  },
+  "mcp-visual-output": {
+    "name": "mcp-visual-output",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "mcp",
+      "json-render",
+      "visual-output",
+      "dashboard",
+      "iframe",
+      "sandbox",
+      "interactive-ui",
+      "genui"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "component-recipes.md",
+        "mcp-integration.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "genui-architect"
     ]
   },
   "memory": {
@@ -2710,6 +2848,41 @@ export const SKILLS: Record<string, SkillMeta> = {
       "monitoring-engineer",
       "python-performance-engineer",
       "workflow-architect"
+    ]
+  },
+  "multi-surface-render": {
+    "name": "multi-surface-render",
+    "description": ">-",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "json-render",
+      "multi-surface",
+      "pdf",
+      "email",
+      "remotion",
+      "video",
+      "image",
+      "react",
+      "rendering"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "renderer-api.md",
+        "target-comparison.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "genui-architect"
     ]
   },
   "multimodal-llm": {
@@ -3984,6 +4157,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "accessibility-specialist",
       "design-system-architect",
+      "emulate-engineer",
       "frontend-ui-developer",
       "test-generator"
     ]
@@ -4035,6 +4209,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "code-quality-reviewer",
+      "emulate-engineer",
       "eval-runner",
       "monitoring-engineer",
       "test-generator"
@@ -4208,6 +4383,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "code-quality-reviewer",
       "design-system-architect",
+      "emulate-engineer",
       "frontend-ui-developer",
       "python-performance-engineer",
       "test-generator"
@@ -4278,6 +4454,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "component-curator",
       "design-system-architect",
       "frontend-ui-developer",
+      "genui-architect",
       "ui-feedback"
     ]
   },

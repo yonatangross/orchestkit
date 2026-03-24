@@ -21,6 +21,13 @@ hooks:
 metadata:
   category: configuration
   mcp-server: memory
+triggers:
+  keywords: [setup, onboarding, configure, "just installed", "get orchestkit working", "set up orchestkit", "set up ork", "readiness score", wizard]
+  examples:
+    - "set up orchestkit for this project"
+    - "run the onboarding wizard"
+    - "i just installed orchestkit, what do i do first"
+  anti-triggers: [doctor, help, explore, implement, fix]
 ---
 
 # OrchestKit Setup Wizard

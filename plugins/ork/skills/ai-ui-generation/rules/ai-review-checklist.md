@@ -1,6 +1,6 @@
 ---
 title: "AI-Generated UI Review Checklist"
-impact: "CRITICAL"
+impact: HIGH
 impactDescription: "Accepting AI output without systematic review ships accessibility violations, design system drift, and hardcoded values to production"
 tags: [review, checklist, accessibility, design-tokens, quality, ai-generated]
 ---

@@ -1,0 +1,1072 @@
+---
+title: "Emulate Seed"
+description: ">-"
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="emulate-seed" />
+
+
+# Emulate Seed Configs
+
+Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0) — Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
+
+**Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Seed Config](#seed-config) | 1 | HIGH | Setting up emulate.config.yaml for test environments |
+| [Service Selection](#service-selection) | 1 | MEDIUM | Choosing GitHub/Vercel/Google for your tests |
+| [Webhook Setup](#webhook-setup) | 1 | MEDIUM | Testing webhook delivery with HMAC verification |
+| [Parallel CI](#parallel-ci) | 1 | HIGH | Running tests in parallel without port collisions |
+| [Auth Tokens](#auth-tokens) | 1 | MEDIUM | Seeding tokens mapped to emulated users |
+
+**Total: 5 rules across 5 categories**
+
+## Quick Start
+
+```bash
+# Install
+npm install --save-dev emulate
+
+# Start all services (GitHub :4001, Vercel :4000, Google :4002)
+npx emulate
+
+# Start specific services with seed data
+npx emulate --service github --seed ./emulate.config.yaml
+
+# Generate a starter config
+npx emulate init --service github
+```
+
+## Services
+
+| Service | Default Port | Coverage |
+|---------|-------------|----------|
+| **GitHub** | `:4001` | Repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, teams |
+| **Vercel** | `:4000` | Projects, deployments, domains, env vars, teams |
+| **Google OAuth** | `:4002` | OAuth 2.0 authorize, token exchange, userinfo |
+
+See `references/api-coverage.md` for full endpoint lists.
+
+## Seed Config Structure
+
+A seed config pre-populates the emulator with tokens, users, repos, and projects so tests start from a known state.
+
+```yaml
+# emulate.config.yaml
+tokens:
+  dev_token:
+    login: yonatangross
+    scopes: [repo, workflow, admin:org]
+  ci_token:
+    login: ci-bot
+    scopes: [repo]
+
+github:
+  users:
+    - login: yonatangross
+      name: Yonatan Gross
+    - login: ci-bot
+      name: CI Bot
+  repos:
+    - owner: yonatangross
+      name: my-project
+      private: false
+      default_branch: main
+      topics: [typescript, testing]
+
+vercel:
+  users:
+    - username: yonatangross
+      email: yonaigross@gmail.com
+  projects:
+    - name: my-docs
+      framework: next
+```
+
+See `rules/seed-config.md` for full schema and best practices.
+
+## Programmatic SDK
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const github = await createEmulator({ service: 'github', port: 4001 })
+// github.url -> 'http://localhost:4001'
+
+// State is real — create a PR and it appears in the list
+const res = await fetch(`${github.url}/repos/org/repo/pulls`, {
+  method: 'POST',
+  headers: { Authorization: 'Bearer dev_token' },
+  body: JSON.stringify({ title: 'Test PR', head: 'feature', base: 'main' })
+})
+
+const prs = await fetch(`${github.url}/repos/org/repo/pulls`)
+// -> includes the PR we just created
+
+// Cleanup
+github.reset()       // Synchronous state wipe
+await github.close() // Shut down server
+```
+
+See `references/sdk-patterns.md` for advanced patterns (multi-service, lifecycle hooks).
+
+## Webhook Delivery
+
+Emulate delivers real webhooks with HMAC-SHA256 signatures when state changes:
+
+```typescript
+import crypto from 'crypto'
+
+function verifyWebhook(payload: string, signature: string, secret: string): boolean {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex')
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+}
+```
+
+See `rules/webhook-setup.md` for webhook receiver patterns.
+
+## CI Integration
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start emulate
+        run: npx emulate --service github --seed .emulate/ci.yaml &
+      - name: Wait for emulate
+        run: sleep 2
+      - name: Run tests
+        run: npm test
+        env:
+          GITHUB_API_BASE: http://localhost:4001
+          VERCEL_API_BASE: http://localhost:4000
+```
+
+### Parallel Test Execution
+
+Each test worker gets its own port to avoid race conditions:
+
+```typescript
+// vitest.config.ts
+const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
+```
+
+See `rules/parallel-ci.md` for full parallel isolation patterns.
+
+## Decision Matrix
+
+| Tool | When to Use | Stateful? | Platforms |
+|------|------------|-----------|-----------|
+| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google API testing | YES | GitHub, Vercel, Google |
+| Pact | Contract verification between services | No | Any |
+| MSW | In-browser/Node HTTP mocking | No | Any |
+| Nock | Node.js HTTP intercept | No | Any |
+| WireMock | HTTP stub server | Partial | Any |
+
+**Use emulate when:**
+- Testing code that calls GitHub, Vercel, or Google APIs
+- You need state persistence across multiple API calls in a test
+- You want webhook delivery with real HMAC signatures
+- You need cascading side-effects (delete repo -> PRs cascade-delete)
+
+**Use MSW/Nock when:**
+- Mocking arbitrary HTTP APIs not covered by emulate
+- You need in-browser interception (MSW)
+- Tests only need single request/response pairs
+
+## Related Skills
+
+- `testing-integration` — Integration test patterns (emulate as first choice for API tests)
+- `testing-e2e` — End-to-end test patterns with emulated backends
+- `testing-unit` — Unit test patterns (use emulate for API-dependent units)
+- `security-patterns` — Auth token patterns (emulate token seeding)
+
+## CLI Reference
+
+See `references/cli-reference.md` for all CLI flags and commands.
+
+## SDK Patterns
+
+See `references/sdk-patterns.md` for programmatic `createEmulator()` usage.
+
+
+---
+
+## Rules (5)
+
+### Auth Tokens: Token Seeding and Credential Hygiene — MEDIUM
+
+
+## Auth Token Seeding
+
+Emulate maps token strings to emulated users with configurable scopes. Tests use these seeded token names as Bearer tokens — no real credentials involved.
+
+### Token Configuration
+
+```yaml
+# emulate.config.yaml
+tokens:
+  admin_token:
+    login: admin-user
+    scopes: [repo, admin:org, workflow, delete_repo]
+  dev_token:
+    login: dev-user
+    scopes: [repo, workflow]
+  readonly_token:
+    login: viewer
+    scopes: [repo:read]
+  ci_token:
+    login: ci-bot
+    scopes: [repo, actions]
+```
+
+### Using Seeded Tokens
+
+```typescript
+// The token name IS the Bearer value
+const adminRes = await fetch(`${GITHUB_API_BASE}/orgs/my-org/repos`, {
+  method: 'POST',
+  headers: { Authorization: 'Bearer admin_token' },
+  body: JSON.stringify({ name: 'new-repo' })
+})
+// -> 201 Created (admin_token has admin:org scope)
+
+const readonlyRes = await fetch(`${GITHUB_API_BASE}/orgs/my-org/repos`, {
+  method: 'POST',
+  headers: { Authorization: 'Bearer readonly_token' },
+  body: JSON.stringify({ name: 'new-repo' })
+})
+// -> 403 Forbidden (readonly_token lacks admin:org scope)
+```
+
+**Incorrect — using real tokens in test configs:**
+
+```yaml
+# BAD: real GitHub PAT in test config — leaks if committed
+tokens:
+  my_token:
+    login: yonatangross
+    value: ghp_abc123realtoken456  # NEVER put real tokens here
+```
+
+```typescript
+// BAD: hardcoded real token in test file
+headers: { Authorization: 'Bearer ghp_abc123realtoken456' }
+```
+
+**Correct — descriptive seeded token names:**
+
+```yaml
+# GOOD: token name is the bearer value, no real credentials
+tokens:
+  test_admin:
+    login: admin-user
+    scopes: [repo, admin:org]
+```
+
+```typescript
+// GOOD: seeded token name as bearer value
+headers: { Authorization: 'Bearer test_admin' }
+```
+
+### Permission Testing Pattern
+
+```typescript
+describe('permission checks', () => {
+  it('admin can delete repos', async () => {
+    const res = await fetch(`${GITHUB_API_BASE}/repos/org/repo`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer admin_token' }
+    })
+    expect(res.status).toBe(204)
+  })
+
+  it('readonly user cannot delete repos', async () => {
+    const res = await fetch(`${GITHUB_API_BASE}/repos/org/repo`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer readonly_token' }
+    })
+    expect(res.status).toBe(403)
+  })
+})
+```
+
+**Key rules:**
+- Token names in the config are the literal Bearer strings used in API requests
+- Never put real GitHub PATs, Vercel tokens, or Google credentials in seed configs
+- Use descriptive token names: `admin_token`, `ci_token`, `readonly_token`
+- Map each token to a user login defined in the same config
+- Test permission boundaries by creating tokens with different scope sets
+- Keep token configs in committed files for reproducibility — they contain no secrets
+
+Reference: `rules/seed-config.md`
+
+
+### Parallel CI: Per-Worker Port Isolation — HIGH
+
+
+## Parallel CI Port Isolation
+
+When running tests in parallel (Vitest, Jest workers, CI matrix), each worker needs its own emulator instance on a unique port to prevent shared state and race conditions.
+
+### Per-Worker Port Offset
+
+```typescript
+// vitest.setup.ts — each worker gets a unique port
+import { createEmulator } from 'emulate'
+import type { Emulator } from 'emulate'
+
+let github: Emulator
+
+const BASE_PORT = 4001
+const workerPort = BASE_PORT + parseInt(process.env.VITEST_WORKER_ID || '0')
+
+beforeAll(async () => {
+  github = await createEmulator({
+    service: 'github',
+    port: workerPort,
+    seed: './emulate.config.yaml'
+  })
+  process.env.GITHUB_API_BASE = github.url
+})
+
+afterAll(async () => {
+  await github.close()
+})
+
+beforeEach(() => {
+  github.reset() // Wipe state between tests, keep server running
+})
+```
+
+### Jest Worker Isolation
+
+```typescript
+// jest.setup.ts
+const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
+```
+
+**Incorrect — all workers hitting the same port:**
+
+```typescript
+// BAD: shared port causes race conditions
+const github = await createEmulator({ service: 'github', port: 4001 })
+
+// Worker 1 creates a PR, Worker 2 sees it — non-deterministic
+```
+
+**Correct — per-worker port isolation:**
+
+```typescript
+// GOOD: each worker has isolated state
+const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
+const github = await createEmulator({ service: 'github', port: workerPort })
+
+// Worker 1 on :4002, Worker 2 on :4003 — fully isolated
+```
+
+### CI Matrix Isolation
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start emulate
+        run: |
+          PORT_OFFSET=$((4001 + ${{ matrix.shard }} * 100))
+          npx emulate --service github --port $PORT_OFFSET --seed .emulate/ci.yaml &
+          echo "GITHUB_API_BASE=http://localhost:$PORT_OFFSET" >> $GITHUB_ENV
+      - name: Wait for emulate
+        run: sleep 2
+      - name: Run tests
+        run: npm test -- --shard=${{ matrix.shard }}/4
+```
+
+**Key rules:**
+- Compute port as `BASE_PORT + worker_id` to guarantee uniqueness per worker
+- Create a fresh emulator instance per worker in `beforeAll`, close in `afterAll`
+- Use `github.reset()` in `beforeEach` to wipe state between tests within a worker
+- In CI matrix builds, use shard index with a multiplier (e.g., `* 100`) to avoid port overlap between shards
+- Never rely on a single shared emulator instance for parallel test execution
+- Always set `GITHUB_API_BASE` per worker so test code uses the correct port
+
+Reference: `references/sdk-patterns.md`
+
+
+### Seed Config: emulate.config.yaml Structure — HIGH
+
+
+## Seed Config Structure
+
+The `emulate.config.yaml` file pre-populates the emulator with tokens, users, repos, and projects so every test starts from a known, reproducible state.
+
+### Config Sections
+
+```yaml
+# emulate.config.yaml — full structure
+tokens:
+  dev_token:
+    login: dev-user        # Maps this token string to a user
+    scopes: [repo, workflow, admin:org]
+  read_only_token:
+    login: reader
+    scopes: [repo:read]
+
+github:
+  users:
+    - login: dev-user
+      name: Developer
+    - login: reader
+      name: Read-Only User
+  orgs:
+    - login: my-org
+      name: My Organization
+  repos:
+    - owner: my-org
+      name: backend
+      private: false
+      default_branch: main
+      topics: [api, typescript]
+    - owner: dev-user
+      name: side-project
+      private: true
+      default_branch: main
+
+vercel:
+  users:
+    - username: dev-user
+      email: dev@example.com
+  projects:
+    - name: frontend
+      framework: next
+    - name: docs
+      framework: astro
+
+google:
+  users:
+    - email: dev@example.com
+      name: Developer
+```
+
+**Incorrect — hardcoding tokens in test files:**
+
+```typescript
+// BAD: tokens scattered across test files, no shared state
+const res = await fetch('http://localhost:4001/repos/org/repo', {
+  headers: { Authorization: 'Bearer ghp_realtoken123' }
+})
+```
+
+**Correct — centralized seed config:**
+
+```yaml
+# .emulate/test.config.yaml
+tokens:
+  test_admin:
+    login: admin-user
+    scopes: [repo, admin:org]
+```
+
+```typescript
+// Tests reference seeded token names
+const res = await fetch(`${GITHUB_API_BASE}/repos/org/repo`, {
+  headers: { Authorization: 'Bearer test_admin' }
+})
+```
+
+**Key rules:**
+- Place configs in `.emulate/` directory or project root
+- One config per environment: `ci.config.yaml`, `dev.config.yaml`, `test.config.yaml`
+- Token names are the literal Bearer strings used in requests — keep them descriptive
+- Every token must map to a user defined in the same config's users section
+- Add `.emulate/` to `.gitignore` only if it contains environment-specific overrides
+- Commit shared base configs (e.g., `emulate.config.yaml`) to the repo for reproducibility
+- Use `npx emulate init --service github` to generate a starter config
+
+Reference: `references/cli-reference.md`
+
+
+### Service Selection: GitHub, Vercel, and Google — MEDIUM
+
+
+## Service Selection
+
+Choose the right emulate service based on which APIs your code interacts with. Use emulate as the first choice whenever the target API is covered.
+
+### Service Defaults
+
+| Service | Flag | Port | Use When |
+|---------|------|------|----------|
+| GitHub | `--service github` | `:4001` | Repos, PRs, issues, reviews, Actions, webhooks, orgs |
+| Vercel | `--service vercel` | `:4000` | Projects, deployments, domains, env vars, teams |
+| Google OAuth | `--service google` | `:4002` | OAuth 2.0 flows, token exchange, userinfo |
+
+### Multi-Service
+
+```bash
+# Start GitHub + Vercel together
+npx emulate --service github,vercel --seed ./emulate.config.yaml
+
+# Custom ports
+npx emulate --service github --port 5001
+```
+
+**Incorrect — writing manual GitHub API mocks when emulate covers it:**
+
+```typescript
+// BAD: hand-rolled mock that doesn't maintain state
+const mockListPRs = jest.fn().mockResolvedValue([])
+const mockCreatePR = jest.fn().mockResolvedValue({ number: 1 })
+// After createPR, listPRs still returns [] — not stateful
+```
+
+**Correct — use emulate for stateful GitHub API testing:**
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const github = await createEmulator({ service: 'github', port: 4001 })
+
+// Create PR via API
+await fetch(`${github.url}/repos/org/repo/pulls`, {
+  method: 'POST',
+  headers: { Authorization: 'Bearer dev_token' },
+  body: JSON.stringify({ title: 'Fix bug', head: 'fix', base: 'main' })
+})
+
+// PR now appears in list — state is real
+const prs = await (await fetch(`${github.url}/repos/org/repo/pulls`)).json()
+expect(prs).toHaveLength(1)
+expect(prs[0].title).toBe('Fix bug')
+
+await github.close()
+```
+
+**Key rules:**
+- Use `emulate --service github` whenever testing GitHub API interactions — it covers repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, and teams
+- Use `emulate --service vercel` for Vercel platform API testing — projects, deployments, domains, env vars
+- Use `emulate --service google` for Google OAuth flows — authorize, token exchange, userinfo
+- Combine services with comma separation: `--service github,vercel`
+- Fall back to MSW/Nock only for APIs emulate does not cover
+- Custom ports via `--port` when defaults conflict with existing services
+
+Reference: `references/api-coverage.md`
+
+
+### Webhook Setup: HMAC Delivery and Verification — MEDIUM
+
+
+## Webhook Setup
+
+Emulate delivers real webhooks with HMAC-SHA256 signatures when state changes occur (PR created, issue opened, deployment completed). Configure a webhook receiver in your tests to verify delivery and signatures.
+
+### Webhook Receiver Pattern
+
+```typescript
+import http from 'http'
+import crypto from 'crypto'
+
+const WEBHOOK_SECRET = 'test-webhook-secret'
+const receivedEvents: Array<{ event: string; payload: object }> = []
+
+const webhookServer = http.createServer((req, res) => {
+  let body = ''
+  req.on('data', chunk => { body += chunk })
+  req.on('end', () => {
+    // Verify HMAC signature
+    const signature = req.headers['x-hub-signature-256'] as string
+    const expected = 'sha256=' + crypto
+      .createHmac('sha256', WEBHOOK_SECRET)
+      .update(body)
+      .digest('hex')
+
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+      res.writeHead(401)
+      res.end('Invalid signature')
+      return
+    }
+
+    receivedEvents.push({
+      event: req.headers['x-github-event'] as string,
+      payload: JSON.parse(body)
+    })
+    res.writeHead(200)
+    res.end('OK')
+  })
+})
+
+webhookServer.listen(9876)
+```
+
+**Incorrect — skipping signature verification in tests:**
+
+```typescript
+// BAD: no signature check — production HMAC bugs go undetected
+webhookServer.on('request', (req, res) => {
+  let body = ''
+  req.on('data', chunk => { body += chunk })
+  req.on('end', () => {
+    receivedEvents.push(JSON.parse(body))  // Just trust it
+    res.writeHead(200).end()
+  })
+})
+```
+
+**Correct — verify HMAC even in tests:**
+
+```typescript
+// GOOD: same verification logic as production
+const signature = req.headers['x-hub-signature-256'] as string
+const expected = 'sha256=' + crypto
+  .createHmac('sha256', WEBHOOK_SECRET)
+  .update(body)
+  .digest('hex')
+
+if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+  res.writeHead(401).end('Invalid signature')
+  return
+}
+```
+
+**Key rules:**
+- Always verify HMAC-SHA256 signatures in test webhook receivers — mirrors production behavior
+- Use `crypto.timingSafeEqual` for constant-time comparison to prevent timing attacks
+- Store the webhook secret in the seed config and share it with the receiver
+- Check the `x-github-event` header to route different event types
+- Clean up the webhook server in `afterAll` to prevent port leaks
+- Emulate delivers webhooks on state mutations (create, update, delete) — not on reads
+
+Reference: `references/sdk-patterns.md`
+
+
+
+---
+
+## References (3)
+
+### Api Coverage
+
+# API Coverage
+
+Full list of supported API endpoints per emulate service.
+
+## GitHub API (`:4001`)
+
+### Repositories
+- `GET /repos/:owner/:repo` — Get repository
+- `POST /user/repos` — Create user repository
+- `POST /orgs/:org/repos` — Create org repository
+- `PATCH /repos/:owner/:repo` — Update repository
+- `DELETE /repos/:owner/:repo` — Delete repository (cascading: PRs, issues, webhooks)
+- `GET /repos/:owner/:repo/topics` — List topics
+- `PUT /repos/:owner/:repo/topics` — Replace topics
+
+### Pull Requests
+- `GET /repos/:owner/:repo/pulls` — List PRs (cursor pagination)
+- `POST /repos/:owner/:repo/pulls` — Create PR
+- `GET /repos/:owner/:repo/pulls/:number` — Get PR
+- `PATCH /repos/:owner/:repo/pulls/:number` — Update PR
+- `PUT /repos/:owner/:repo/pulls/:number/merge` — Merge PR
+- `GET /repos/:owner/:repo/pulls/:number/reviews` — List reviews
+- `POST /repos/:owner/:repo/pulls/:number/reviews` — Create review
+- `GET /repos/:owner/:repo/pulls/:number/comments` — List review comments
+- `POST /repos/:owner/:repo/pulls/:number/comments` — Create review comment
+
+### Issues
+- `GET /repos/:owner/:repo/issues` — List issues
+- `POST /repos/:owner/:repo/issues` — Create issue
+- `GET /repos/:owner/:repo/issues/:number` — Get issue
+- `PATCH /repos/:owner/:repo/issues/:number` — Update issue
+- `GET /repos/:owner/:repo/issues/:number/comments` — List comments
+- `POST /repos/:owner/:repo/issues/:number/comments` — Create comment
+
+### Actions / Workflows
+- `GET /repos/:owner/:repo/actions/workflows` — List workflows
+- `POST /repos/:owner/:repo/actions/workflows/:id/dispatches` — Trigger workflow
+- `GET /repos/:owner/:repo/actions/runs` — List workflow runs
+- `GET /repos/:owner/:repo/actions/runs/:id` — Get run
+- `GET /repos/:owner/:repo/actions/runs/:id/jobs` — List jobs
+
+### Webhooks
+- `GET /repos/:owner/:repo/hooks` — List webhooks
+- `POST /repos/:owner/:repo/hooks` — Create webhook
+- `PATCH /repos/:owner/:repo/hooks/:id` — Update webhook
+- `DELETE /repos/:owner/:repo/hooks/:id` — Delete webhook
+
+### Organizations & Teams
+- `GET /orgs/:org` — Get organization
+- `GET /orgs/:org/repos` — List org repos
+- `GET /orgs/:org/teams` — List teams
+- `POST /orgs/:org/teams` — Create team
+- `GET /orgs/:org/members` — List members
+
+### Users
+- `GET /user` — Authenticated user
+- `GET /users/:username` — Get user
+- `GET /users/:username/repos` — List user repos
+
+## Vercel API (`:4000`)
+
+### Projects
+- `GET /v9/projects` — List projects
+- `POST /v9/projects` — Create project
+- `GET /v9/projects/:id` — Get project
+- `PATCH /v9/projects/:id` — Update project
+- `DELETE /v9/projects/:id` — Delete project
+
+### Deployments
+- `GET /v6/deployments` — List deployments
+- `POST /v13/deployments` — Create deployment
+- `GET /v13/deployments/:id` — Get deployment
+- `DELETE /v13/deployments/:id` — Cancel deployment
+
+### Domains
+- `GET /v5/domains` — List domains
+- `POST /v5/domains` — Add domain
+- `DELETE /v5/domains/:name` — Remove domain
+
+### Environment Variables
+- `GET /v9/projects/:id/env` — List env vars
+- `POST /v9/projects/:id/env` — Create env var
+- `PATCH /v9/projects/:id/env/:envId` — Update env var
+- `DELETE /v9/projects/:id/env/:envId` — Delete env var
+
+### Teams
+- `GET /v2/teams` — List teams
+- `POST /v1/teams` — Create team
+- `GET /v2/teams/:id` — Get team
+
+## Google OAuth (`:4002`)
+
+### OAuth 2.0
+- `GET /o/oauth2/v2/auth` — Authorization endpoint
+- `POST /oauth2/v4/token` — Token exchange
+- `GET /oauth2/v2/userinfo` — User info
+- `POST /oauth2/revoke` — Token revocation
+
+## Stateful Behaviors
+
+All services maintain full state:
+- **Cascading deletes**: Delete a repo and its PRs, issues, and webhooks are removed
+- **Cursor pagination**: List endpoints support `?per_page=N&page=N` and Link headers
+- **Auto-incrementing IDs**: PRs, issues, comments get sequential IDs
+- **Webhook delivery**: State mutations trigger webhook POST to configured URLs with HMAC signatures
+- **Scope enforcement**: Token scopes are checked — insufficient scopes return 403
+
+
+### Cli Reference
+
+# CLI Reference
+
+All emulate CLI commands and flags.
+
+## Commands
+
+### `emulate` (default)
+
+Start emulate services.
+
+```bash
+# Start all services with defaults
+npx emulate
+
+# Specific services
+npx emulate --service github
+npx emulate --service github,vercel
+npx emulate --service github,vercel,google
+
+# With seed data
+npx emulate --seed ./emulate.config.yaml
+npx emulate --service github --seed .emulate/dev.yaml
+
+# Custom port (overrides default for first service)
+npx emulate --service github --port 5001
+
+# Combine flags
+npx emulate --service github,vercel --port 3000 --seed ./config.yaml
+```
+
+### `emulate init`
+
+Generate a starter seed config.
+
+```bash
+# Generate config for GitHub
+npx emulate init --service github
+
+# Generate config for all services
+npx emulate init
+
+# Output to specific file
+npx emulate init --service github > .emulate/github.yaml
+```
+
+### `emulate list`
+
+List available services and their default ports.
+
+```bash
+npx emulate list
+# github   :4001
+# vercel   :4000
+# google   :4002
+```
+
+## Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--service` | `-s` | all | Comma-separated services: `github`, `vercel`, `google` |
+| `--port` | `-p` | per-service | Override default port for the first listed service |
+| `--seed` | | none | Path to YAML seed config file |
+| `--help` | `-h` | | Show help |
+| `--version` | `-v` | | Show version |
+
+## Port Defaults
+
+When no `--port` is specified:
+
+| Service | Default Port |
+|---------|-------------|
+| Vercel | 4000 |
+| GitHub | 4001 |
+| Google | 4002 |
+
+When `--port` is specified with multiple services, ports increment from the given base:
+
+```bash
+npx emulate --service github,vercel --port 3000
+# github -> :3000
+# vercel -> :3001
+```
+
+## Environment Variables
+
+Set these in your test runner or CI to redirect API calls to the emulator:
+
+| Variable | Example | SDK/Tool |
+|----------|---------|----------|
+| `GITHUB_API_BASE` | `http://localhost:4001` | Octokit, gh CLI |
+| `VERCEL_API_BASE` | `http://localhost:4000` | Vercel SDK |
+| `GOOGLE_OAUTH_BASE` | `http://localhost:4002` | Google Auth libraries |
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Clean shutdown |
+| 1 | Config parse error or port conflict |
+| 130 | Interrupted (Ctrl+C) |
+
+
+### Sdk Patterns
+
+# SDK Patterns
+
+Programmatic usage of emulate via the `createEmulator()` API.
+
+## Basic Usage
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const github = await createEmulator({
+  service: 'github',
+  port: 4001,
+  seed: './emulate.config.yaml'  // Optional seed file
+})
+
+console.log(github.url) // 'http://localhost:4001'
+
+// Use the emulated API
+const res = await fetch(`${github.url}/repos/org/repo`)
+const repo = await res.json()
+
+// Cleanup
+github.reset()       // Synchronous — wipes all state, keeps server running
+await github.close() // Async — shuts down server and frees port
+```
+
+## Multi-Service Setup
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const [github, vercel] = await Promise.all([
+  createEmulator({ service: 'github', port: 4001, seed: './config.yaml' }),
+  createEmulator({ service: 'vercel', port: 4000, seed: './config.yaml' }),
+])
+
+// Both share the same seed config — tokens, users, projects
+const ghRes = await fetch(`${github.url}/repos/org/repo`)
+const vcRes = await fetch(`${vercel.url}/v9/projects`)
+
+// Cleanup both
+await Promise.all([github.close(), vercel.close()])
+```
+
+## Test Framework Integration
+
+### Vitest
+
+```typescript
+// vitest.setup.ts
+import { createEmulator, type Emulator } from 'emulate'
+
+let github: Emulator
+
+beforeAll(async () => {
+  const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
+  github = await createEmulator({
+    service: 'github',
+    port: workerPort,
+    seed: '.emulate/test.yaml'
+  })
+  process.env.GITHUB_API_BASE = github.url
+})
+
+afterAll(async () => {
+  await github.close()
+})
+
+beforeEach(() => {
+  github.reset() // Fresh state per test
+})
+```
+
+### Jest
+
+```typescript
+// jest.setup.ts
+import { createEmulator, type Emulator } from 'emulate'
+
+let github: Emulator
+
+beforeAll(async () => {
+  const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
+  github = await createEmulator({
+    service: 'github',
+    port: workerPort,
+    seed: '.emulate/test.yaml'
+  })
+  process.env.GITHUB_API_BASE = github.url
+})
+
+afterAll(async () => {
+  await github.close()
+})
+
+beforeEach(() => {
+  github.reset()
+})
+```
+
+## Emulator API
+
+### `createEmulator(options)`
+
+Creates and starts an emulator instance.
+
+```typescript
+interface EmulatorOptions {
+  service: 'github' | 'vercel' | 'google'
+  port?: number      // Default: 4001 (github), 4000 (vercel), 4002 (google)
+  seed?: string      // Path to YAML seed config
+}
+
+const emulator: Emulator = await createEmulator(options)
+```
+
+### `emulator.url`
+
+The base URL of the running emulator.
+
+```typescript
+github.url // 'http://localhost:4001'
+```
+
+### `emulator.reset()`
+
+Synchronously wipes all state and re-applies the seed config. The server stays running — useful for resetting between tests without the overhead of restarting.
+
+```typescript
+github.reset() // Instant — no await needed
+```
+
+### `emulator.close()`
+
+Asynchronously shuts down the server and frees the port. Call in `afterAll`.
+
+```typescript
+await github.close()
+```
+
+## URL Patterns
+
+When using emulate with existing SDKs, set the base URL:
+
+### Octokit
+
+```typescript
+import { Octokit } from '@octokit/rest'
+
+const octokit = new Octokit({
+  baseUrl: process.env.GITHUB_API_BASE || 'https://api.github.com',
+  auth: 'dev_token'  // Seeded token name
+})
+
+const { data: repos } = await octokit.repos.listForOrg({ org: 'my-org' })
+```
+
+### Vercel SDK
+
+```typescript
+import { Vercel } from '@vercel/sdk'
+
+const vercel = new Vercel({
+  baseUrl: process.env.VERCEL_API_BASE || 'https://api.vercel.com',
+  bearerToken: 'dev_token'
+})
+```
+
+### fetch
+
+```typescript
+const base = process.env.GITHUB_API_BASE || 'https://api.github.com'
+
+const res = await fetch(`${base}/repos/org/repo/pulls`, {
+  headers: { Authorization: 'Bearer dev_token' }
+})
+```
+
+## State Lifecycle
+
+```
+createEmulator() -> seed applied -> tests run -> reset() -> tests run -> close()
+                     ^                            ^
+                     |                            |
+                     Initial state                State wiped, seed re-applied
+```
+
+- `createEmulator()` — Starts server, applies seed config
+- Tests run — State accumulates (created PRs, issues, etc.)
+- `reset()` — Wipes state, re-applies seed — server stays up
+- `close()` — Shuts down server, frees port
+

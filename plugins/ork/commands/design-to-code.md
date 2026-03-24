@@ -9,7 +9,7 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 
 # Design to Code
 
-Convert visual designs into production-ready React components using a three-stage pipeline: Extract, Match, Adapt.
+Convert visual designs into production-ready React components using a four-stage pipeline: Extract, Match, Adapt, Render.
 
 ```bash
 /ork:design-to-code screenshot of hero section    # From description
@@ -41,6 +41,13 @@ Input (screenshot/description/URL)
 │ Stage 3: ADAPT           │  Merge extracted design + matched
 │ Apply project tokens     │  components into final implementation
 │ Customize to codebase    │  Tests + types included
+└─────────┬───────────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│ Stage 4: RENDER          │  Register as json-render catalog entry
+│ Generate Zod schema      │  Same component → PDF, email, video
+│ Add to defineCatalog()   │  Multi-surface reuse via MCP output
 └─────────────────────────┘
 ```
 
@@ -57,7 +64,7 @@ INPUT = ""  # Full argument string
 ## Step 0: Detect Input Type and Project Context
 
 ```python
-TaskCreate(subject="Design to code: {INPUT}", description="Three-stage pipeline: extract, match, adapt")
+TaskCreate(subject="Design to code: {INPUT}", description="Four-stage pipeline: extract, match, adapt, render")
 
 # Detect project's design system
 Glob("**/tailwind.config.*")
@@ -145,16 +152,51 @@ src/components/
       └── index.ts                 # Barrel export
 ```
 
+## Stage 4: Register in json-render Catalog
+
+After ADAPT produces a working React component, register it as a json-render catalog entry for multi-surface reuse.
+
+1. **Generate Zod schema** — Derive a Zod schema from the component's TypeScript props
+2. **Add catalog entry** — Register in the project's `defineCatalog()` call with props schema and children declaration
+3. **Verify rendering** — Confirm the component renders correctly through `<Render catalog={catalog} />` path
+
+```typescript
+import { z } from 'zod'
+
+// Zod schema derived from {ComponentName}Props
+const componentSchema = z.object({
+  title: z.string().max(100),
+  variant: z.enum(['default', 'featured']).default('default'),
+  // ... props from the adapted component
+})
+
+// Add to project catalog
+import { defineCatalog, mergeCatalogs } from '@json-render/core'
+import { existingCatalog } from './catalog'
+
+export const catalog = mergeCatalogs(existingCatalog, {
+  {ComponentName}: {
+    props: componentSchema,
+    children: true, // or false for leaf components
+  },
+})
+```
+
+**Enables:** same component output to PDF, email, video, or MCP response — no reimplementation needed.
+
+**Skip condition:** If the project has no json-render dependency or catalog, inform the user and skip Stage 4. The component from Stage 3 is still fully usable standalone.
+
 ## Graceful Degradation
 
-| stitch | 21st-dev-magic | Behavior |
-|------------|----------------|----------|
-| Available | Available | Full pipeline: extract + match + adapt |
-| Available | Unavailable | Extract design, generate components from scratch |
-| Unavailable | Available | Use description/manual analysis, search registry |
-| Unavailable | Unavailable | Manual analysis + generate from scratch (still works) |
+| stitch | 21st-dev-magic | json-render catalog | Behavior |
+|------------|----------------|---------------------|----------|
+| Available | Available | Available | Full pipeline: extract + match + adapt + render |
+| Available | Available | Unavailable | Extract + match + adapt (skip Stage 4) |
+| Available | Unavailable | Available | Extract design, generate + register in catalog |
+| Unavailable | Available | Available | Description-based search + adapt + register |
+| Unavailable | Unavailable | Unavailable | Manual analysis + generate from scratch (still works) |
 
-The skill ALWAYS produces output regardless of MCP availability. MCPs enhance quality and speed.
+The skill ALWAYS produces output regardless of MCP/catalog availability. Stage 4 is additive — skipping it still yields a working component.
 
 ## Anti-Patterns
 
@@ -169,3 +211,5 @@ The skill ALWAYS produces output regardless of MCP availability. MCPs enhance qu
 - `ork:design-context-extract` — Extract design DNA from screenshots
 - `ork:design-system-tokens` — Token architecture and management
 - `ork:frontend-design` — Creative frontend design generation
+- `ork:json-render-catalog` — Catalog definition, Zod schemas, defineCatalog patterns
+- `ork:multi-surface-render` — Render catalog entries to PDF, email, video, MCP

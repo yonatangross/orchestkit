@@ -6,12 +6,12 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "ork",
-    "description": "The complete AI development toolkit — 93 skills, 33 agents, 106 hooks.",
+    "description": "The complete AI development toolkit — 98 skills, 35 agents, 106 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
-    "version": "7.19.0", // x-release-please-version
-    "skillCount": 93,
-    "agentCount": 33,
+    "version": "7.22.0", // x-release-please-version
+    "skillCount": 98,
+    "agentCount": 35,
     "hooks": 106,
     "commandCount": 20,
     "color": "#06b6d4",
@@ -31,6 +31,7 @@ export const PLUGINS: Plugin[] = [
       "async-jobs",
       "audit-full",
       "audit-skills",
+      "bare-eval",
       "brainstorm",
       "browser-tools",
       "business-case",
@@ -40,8 +41,7 @@ export const PLUGINS: Plugin[] = [
       "commit",
       "competitive-analysis",
       "component-search",
-      "configure",
-      "cover"
+      "configure"
     ],
     "agents": [
       "accessibility-specialist",
@@ -57,10 +57,12 @@ export const PLUGINS: Plugin[] = [
       "deployment-manager",
       "design-context-extractor",
       "design-system-architect",
+      "emulate-engineer",
       "eval-runner",
       "event-driven-architect",
       "frontend-performance-engineer",
       "frontend-ui-developer",
+      "genui-architect",
       "git-operations-engineer",
       "infrastructure-architect",
       "llm-integrator",
