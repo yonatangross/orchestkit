@@ -239,9 +239,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     if [[ -d "$SRC_DIR/mcp-server" ]] && [[ -f "$SRC_DIR/mcp-server/package.json" ]]; then
         pushd "$SRC_DIR/mcp-server" > /dev/null
         if [[ ! -d "node_modules" ]]; then
-            if [[ ! -f "package-lock.json" ]]; then
-                npm install --ignore-scripts --package-lock-only 2>/dev/null
-            fi
+            # Use npm ci for deterministic installs (Scorecard #129)
             npm ci --ignore-scripts 2>/dev/null
         fi
         node esbuild.config.mjs
