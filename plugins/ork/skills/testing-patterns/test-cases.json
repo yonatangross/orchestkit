@@ -1,0 +1,56 @@
+{
+  "skill": "testing-patterns",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "redirect-to-unit",
+      "rule": null,
+      "query": "What are the best patterns for writing unit tests?",
+      "expectedBehavior": [
+        "Redirects to testing-unit sub-skill for isolated business logic tests",
+        "Mentions that testing-patterns was split into 5 focused sub-skills in v7.2.0",
+        "Does not provide inline testing guidance — defers to the sub-skill"
+      ]
+    },
+    {
+      "id": "redirect-to-e2e",
+      "rule": null,
+      "query": "Set up Playwright E2E tests with page objects",
+      "expectedBehavior": [
+        "Redirects to testing-e2e sub-skill for Playwright and E2E patterns",
+        "Lists all 5 sub-skills so user can find the right one",
+        "Does not provide Playwright patterns directly"
+      ]
+    },
+    {
+      "id": "redirect-to-perf",
+      "rule": null,
+      "query": "How do I set up load testing with k6?",
+      "expectedBehavior": [
+        "Redirects to testing-perf sub-skill for k6 and load testing patterns",
+        "Clearly indicates testing-patterns is a redirect skill, not a content skill",
+        "Does not attempt to provide k6 configuration inline"
+      ]
+    },
+    {
+      "id": "redirect-to-llm",
+      "rule": null,
+      "query": "How do I test my LLM integration with DeepEval?",
+      "expectedBehavior": [
+        "Redirects to testing-llm sub-skill for LLM evaluation and mocking",
+        "Notes testing-llm covers DeepEval, RAGAS, and structured output validation",
+        "Does not provide DeepEval patterns directly"
+      ]
+    },
+    {
+      "id": "negative-direct-guidance",
+      "rule": null,
+      "query": "Give me detailed pytest fixture scoping advice",
+      "expectedBehavior": [
+        "Should NOT provide detailed testing guidance directly",
+        "Should redirect to the appropriate sub-skill (testing-unit for pytest fixtures)",
+        "The skill itself has disable-model-invocation: true and provides no inline patterns"
+      ]
+    }
+  ]
+}
