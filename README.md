@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->94<!--/ork--> skills · <!--ork:agents-->33<!--/ork--> agents · <!--ork:hooks-->106<!--/ork--> hooks**
+**<!--ork:skills-->98<!--/ork--> skills · <!--ork:agents-->35<!--/ork--> agents · <!--ork:hooks-->106<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.78-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -60,8 +60,8 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->94<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
-| **<!--ork:agents-->33<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **<!--ork:skills-->98<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:agents-->35<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->106<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.

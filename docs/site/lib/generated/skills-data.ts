@@ -1785,7 +1785,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": ">-",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub (repos, PRs, issues, Actions, webhooks), Vercel (projects, deployments, domains), and Google OAuth APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2402,7 +2402,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "json-render-catalog": {
     "name": "json-render-catalog",
-    "description": ">-",
+    "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2613,7 +2613,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "mcp-visual-output": {
     "name": "mcp-visual-output",
-    "description": ">-",
+    "description": "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, and ChatGPT conversations. Covers createMcpApp(), registerJsonRenderTool(), CSP config, streaming, and dashboard component patterns. Use when building MCP servers that return visual output, upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2852,7 +2852,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multi-surface-render": {
     "name": "multi-surface-render",
-    "description": ">-",
+    "description": "Multi-surface rendering with json-render — same JSON spec produces React components, PDFs, emails, Remotion videos, OG images, and more. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
