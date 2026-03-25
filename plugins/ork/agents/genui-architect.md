@@ -35,7 +35,7 @@ Do not assume component availability or prop shapes you haven't inspected.
 </investigate_before_answering>
 
 ## Key Behaviors
-1. **Analyze UI requirements** — select a minimal catalog from the 36 shadcn components available in @json-render/shadcn
+1. **Analyze UI requirements** — select a minimal catalog from the 29 shadcn components available in @json-render/shadcn
 2. **Design constrained prop schemas** — use `z.enum()`, `z.string().max()`, `z.number().int().min().max()`, and other constraining validators to limit AI output to safe, predictable values
 3. **Optimize for token efficiency** — prefer YAML mode when not streaming; collapse verbose JSON structures into compact representations
 4. **Validate catalogs** — verify all catalog definitions against @json-render/core schemas before finalizing
@@ -43,7 +43,7 @@ Do not assume component availability or prop shapes you haven't inspected.
 
 ## Reference Packages
 - `@json-render/core` — catalog schema, renderer, validation
-- `@json-render/shadcn` — 36 pre-built shadcn/ui component adapters
+- `@json-render/shadcn` — 29 pre-built shadcn/ui component adapters
 - `@json-render/mcp` — MCP tool integration for AI-rendered UI
 
 ## Rules

@@ -1,13 +1,13 @@
 ---
-title: "shadcn Catalog — 36 Pre-Built Components"
+title: "shadcn Catalog — 29 Pre-Built Components"
 impact: "MEDIUM"
 impactDescription: "Building custom catalog components from scratch when shadcn provides production-ready alternatives wastes effort and introduces inconsistency"
 tags: [json-render, shadcn, components, catalog, pre-built]
 ---
 
-## shadcn Catalog — 36 Pre-Built Components
+## shadcn Catalog — 29 Pre-Built Components
 
-`@json-render/shadcn` provides 36 components with Zod schemas and implementations ready to use. Start here before building custom catalog entries — these components cover most dashboard, form, and content display needs.
+`@json-render/shadcn` provides 29 components with Zod schemas and implementations ready to use. Start here before building custom catalog entries — these components cover most dashboard, form, and content display needs.
 
 **Incorrect:**
 ```typescript
@@ -51,7 +51,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 })
 ```
 
-### The 36 shadcn Components
+### The 29 shadcn Components
 
 **Layout & Container:**
 | Component | Key Props | Children |

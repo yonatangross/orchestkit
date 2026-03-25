@@ -10,7 +10,7 @@ complexity: medium
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "2.0.0"
+  upstream-version-tested: "0.15.0"
 ---
 
 # Multi-Surface Rendering with json-render

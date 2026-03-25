@@ -1,6 +1,6 @@
 ---
 name: emulate-seed
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub (repos, PRs, issues, Actions, webhooks), Vercel (projects, deployments, domains), and Google OAuth APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 tags: [emulate, testing, api-emulation, github, vercel, google, seed, ci, stateful-testing]
 version: 1.0.0
 author: OrchestKit
@@ -10,7 +10,7 @@ complexity: medium
 metadata:
   category: testing
   upstream-package: emulate
-  upstream-version-tested: "1.0.0"
+  upstream-version-tested: "0.2.0"
 ---
 
 # Emulate Seed Configs
@@ -37,11 +37,11 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 # Install
 npm install --save-dev emulate
 
-# Start all services (GitHub :4001, Vercel :4000, Google :4002)
+# Start all services
 npx emulate
 
 # Start specific services with seed data
-npx emulate --service github --seed ./emulate.config.yaml
+npx emulate --service github,slack --seed ./emulate.config.yaml
 
 # Generate a starter config
 npx emulate init --service github
@@ -54,6 +54,11 @@ npx emulate init --service github
 | **GitHub** | `:4001` | Repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, teams |
 | **Vercel** | `:4000` | Projects, deployments, domains, env vars, teams |
 | **Google OAuth** | `:4002` | OAuth 2.0 authorize, token exchange, userinfo |
+| **Slack** | `:4003` | Chat, conversations, users, reactions, OAuth v2 with consent UI |
+| **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
+| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation |
+| **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
+| **MongoDB Atlas** | `:4007` | Admin API v2 + Data API v1 — query, update, aggregation pipeline |
 
 See `references/api-coverage.md` for full endpoint lists.
 

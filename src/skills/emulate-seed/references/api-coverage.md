@@ -96,6 +96,61 @@ Full list of supported API endpoints per emulate service.
 - `GET /oauth2/v2/userinfo` — User info
 - `POST /oauth2/revoke` — Token revocation
 
+## Slack Web API (`:4003`)
+
+### Chat & Conversations
+- `POST /api/chat.postMessage` — Send message
+- `GET /api/conversations.list` — List conversations
+- `GET /api/conversations.history` — Get messages in channel
+- `POST /api/reactions.add` — Add emoji reaction
+- `GET /api/users.list` — List workspace users
+
+### OAuth
+- `GET /oauth/v2/authorize` — OAuth v2 consent UI
+- `POST /api/oauth.v2.access` — Token exchange
+
+## Apple Authentication (`:4004`)
+
+- `GET /.well-known/openid-configuration` — OIDC discovery
+- `GET /auth/keys` — JWKS endpoint (RS256)
+- `GET /auth/authorize` — Authorization flow
+- `POST /auth/token` — Token exchange
+- `POST /auth/revoke` — Token revocation
+
+## Microsoft Entra ID (`:4005`)
+
+- `GET /{tenant}/v2.0/.well-known/openid-configuration` — OIDC discovery
+- `GET /{tenant}/oauth2/v2.0/authorize` — Authorization code + PKCE
+- `POST /{tenant}/oauth2/v2.0/token` — Token exchange with refresh rotation
+- `GET /{tenant}/oauth2/v2.0/logout` — Logout endpoint
+
+## AWS (`:4006`)
+
+### S3
+- `PUT /{bucket}` — Create bucket
+- `GET /` — List buckets
+- `PUT /{bucket}/{key}` — Put object
+- `GET /{bucket}/{key}` — Get object
+- `DELETE /{bucket}/{key}` — Delete object
+
+### SQS
+- `POST /` — CreateQueue, SendMessage, ReceiveMessage, DeleteMessage
+
+### IAM & STS
+- `POST /` — CreateUser, CreateRole, GetCallerIdentity, AssumeRole
+
+## MongoDB Atlas (`:4007`)
+
+### Admin API v2
+- `GET /api/atlas/v2/groups` — List projects
+- `GET /api/atlas/v2/groups/{id}/clusters` — List clusters
+
+### Data API v1
+- `POST /action/find` — Query with filter, projection, sort
+- `POST /action/insertOne` / `insertMany` — Insert documents
+- `POST /action/updateOne` / `updateMany` — Update with operators
+- `POST /action/aggregate` — Aggregation pipeline
+
 ## Stateful Behaviors
 
 All services maintain full state:

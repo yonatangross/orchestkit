@@ -1,6 +1,6 @@
 ---
 name: json-render-catalog
-description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
+description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 29 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
 tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
 version: 1.0.0
 author: OrchestKit
@@ -10,8 +10,8 @@ complexity: medium
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "2.0.0"
-  shadcn-component-count: 36
+  upstream-version-tested: "0.15.0"
+  shadcn-component-count: 29
 ---
 
 # json-render Component Catalogs
@@ -192,7 +192,7 @@ Elements render as soon as their props are complete — no waiting for the full 
 
 ## @json-render/shadcn — 36 Pre-Built Components
 
-The `@json-render/shadcn` package provides a production-ready catalog of 36 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
+The `@json-render/shadcn` package provides a production-ready catalog of 29 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
 
 ```typescript
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
@@ -247,7 +247,7 @@ Constraining props to prevent AI hallucination.
 
 ### shadcn Catalog
 
-Using the 36 pre-built shadcn components.
+Using the 29 pre-built shadcn components.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|

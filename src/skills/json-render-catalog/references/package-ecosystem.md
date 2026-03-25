@@ -26,7 +26,7 @@ version: 1.0.0
 
 | Package | Components | Notes |
 |---------|------------|-------|
-| `@json-render/shadcn` | 36 | shadcn/ui components with Zod schemas and implementations |
+| `@json-render/shadcn` | 29 | shadcn/ui components with Zod schemas and implementations |
 
 ## Mobile
 
