@@ -190,7 +190,7 @@ json-render supports progressive rendering during streaming. As the AI generates
 
 Elements render as soon as their props are complete — no waiting for the full spec.
 
-## @json-render/shadcn — 36 Pre-Built Components
+## @json-render/shadcn — 29 Pre-Built Components
 
 The `@json-render/shadcn` package provides a production-ready catalog of 29 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
 
