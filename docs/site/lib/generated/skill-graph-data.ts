@@ -806,7 +806,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "storybook-mcp-integration",
-    "label": "Storybook Mcp Integration",
+    "label": "Storybook MCP Integration",
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
