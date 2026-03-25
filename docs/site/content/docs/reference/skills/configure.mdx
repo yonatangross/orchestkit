@@ -898,6 +898,21 @@ Commands work without them - MCPs just add extra capabilities.
 
 > **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
 
+## Recommended MCPs by Project Type
+
+Not sure which MCPs to enable? Match your project type:
+
+| Project Type | Recommended MCPs | Why |
+|---|---|---|
+| **Full-stack React** | context7, memory, storybook-mcp, 21st-dev-magic, stitch | Component reuse, design extraction, latest API docs |
+| **Backend Python/Node** | context7, memory, tavily | Library docs, decision persistence, web research |
+| **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
+| **AI/LLM project** | context7, memory, tavily, sequential-thinking | API docs, pattern memory, research, structured reasoning for subagents |
+| **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
+| **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
+
+All MCPs are optional — OrchestKit works without any. Enable what fits your workflow. See setup instructions for each MCP in the Dependencies section below.
+
 ## Default State
 
 OrchestKit ships **all 5 MCPs enabled** in `.mcp.json`. Tavily requires an API key (`TAVILY_API_KEY` via 1Password) — it connects but tools fail without the key. Agentation requires `npm install -D agentation-mcp`.
