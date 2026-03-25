@@ -1,6 +1,6 @@
 ---
 title: "Json Render Catalog"
-description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
+description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 29 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -186,9 +186,9 @@ json-render supports progressive rendering during streaming. As the AI generates
 
 Elements render as soon as their props are complete — no waiting for the full spec.
 
-## @json-render/shadcn — 36 Pre-Built Components
+## @json-render/shadcn — 29 Pre-Built Components
 
-The `@json-render/shadcn` package provides a production-ready catalog of 36 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
+The `@json-render/shadcn` package provides a production-ready catalog of 29 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
 
 ```typescript
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
@@ -243,7 +243,7 @@ Constraining props to prevent AI hallucination.
 
 ### shadcn Catalog
 
-Using the 36 pre-built shadcn components.
+Using the 29 pre-built shadcn components.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -638,12 +638,12 @@ DateRange: {
 Reference: https://zod.dev
 
 
-### shadcn Catalog — 36 Pre-Built Components — MEDIUM
+### shadcn Catalog — 29 Pre-Built Components — MEDIUM
 
 
-## shadcn Catalog — 36 Pre-Built Components
+## shadcn Catalog — 29 Pre-Built Components
 
-`@json-render/shadcn` provides 36 components with Zod schemas and implementations ready to use. Start here before building custom catalog entries — these components cover most dashboard, form, and content display needs.
+`@json-render/shadcn` provides 29 components with Zod schemas and implementations ready to use. Start here before building custom catalog entries — these components cover most dashboard, form, and content display needs.
 
 **Incorrect:**
 ```typescript
@@ -687,7 +687,7 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 })
 ```
 
-### The 36 shadcn Components
+### The 29 shadcn Components
 
 **Layout & Container:**
 | Component | Key Props | Children |
@@ -1098,7 +1098,7 @@ Include the catalog schema in the system prompt so the AI knows which types and 
 
 | Package | Components | Notes |
 |---------|------------|-------|
-| `@json-render/shadcn` | 36 | shadcn/ui components with Zod schemas and implementations |
+| `@json-render/shadcn` | 29 | shadcn/ui components with Zod schemas and implementations |
 
 ## Mobile
 
