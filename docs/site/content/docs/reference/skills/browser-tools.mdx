@@ -39,7 +39,43 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## Safety Guardrails (6 rules + 11-check hook)
+## What's New (v0.17 → v0.22.2)
+
+**Breaking changes** — update scripts now:
+- `--full` / `-f` moved from global to command-level (v0.21): use `screenshot --full`, NOT `--full screenshot`
+- Node.js/Playwright daemon fully removed (v0.20): `--native` and `AGENT_BROWSER_NATIVE=1` are no-ops
+- `-C` / `--cursor` flag for `snapshot` deprecated (v0.22): cursor-interactive elements included by default
+- Auth encryption format changed (v0.17): saved auth states from v0.16.x may not load
+
+**New commands:**
+
+| Command | Version | Security Note |
+|---------|---------|---------------|
+| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard — hook warns |
+| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy — hook warns |
+| `batch --json [--bail]` | v0.21 | Batch execute commands from stdin |
+| `network har start/stop [file]` | v0.21 | HAR captures auth tokens — hook warns, treat output as sensitive |
+| `network request &lt;id&gt;` | v0.22 | View full request/response detail |
+| `network requests --type/--method/--status` | v0.22 | Filter network requests |
+| `dialog dismiss` / `dialog status` | v0.17/v0.22 | Dismiss or check browser dialogs |
+| `upgrade` | v0.21.1 | Self-update (auto-detects npm/Homebrew/Cargo) |
+
+**New flags:**
+
+| Flag | Scope | Version |
+|------|-------|---------|
+| `--engine lightpanda` | global | v0.17 |
+| `--screenshot-dir/quality/format` | screenshot | v0.19 |
+| `--provider browserless` | global | v0.19 |
+| `--idle-timeout &lt;duration&gt;` | global | v0.20.14 |
+| `--user-data-dir &lt;path&gt;` | Chrome | v0.21 |
+| `set viewport W H [scale]` | viewport | v0.17.1 (retina) |
+
+**Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22).
+
+**Performance (v0.20):** 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
+
+## Safety Guardrails (7 rules + 11-check hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
 
@@ -82,6 +118,8 @@ Rate limits and behavior are configurable via environment variables:
 | `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
 | `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
 | `AGENT_BROWSER_NATIVE_CONFIRM` | 1 | Use native `--confirm-actions` for sensitive ops |
+| `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
+| `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
 
 ## Anti-Patterns (FORBIDDEN)
@@ -108,6 +146,16 @@ agent-browser get text body                    # Prefer targeted ref extraction
 # Network & State
 agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
 agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies
+
+# Deprecated / removed (v0.20+)
+agent-browser --native screenshot              # --native removed, Rust is the ONLY impl
+AGENT_BROWSER_NATIVE=1 agent-browser open ...  # No-op since v0.20
+agent-browser --full screenshot                # BREAKING: --full is now command-level
+agent-browser screenshot --full                # Correct: flag after subcommand
+
+# Sensitive data leaks
+agent-browser network har stop auth-dump.har   # HAR files contain auth tokens — gitignore!
+git add *.har                                  # NEVER commit HAR captures
 ```
 
 ## Related Skills
@@ -236,6 +284,10 @@ agent-browser --confirm-interactive open https://admin.example.com
 - Never echo, log, or pipe `AGENT_BROWSER_ENCRYPTION_KEY` — treat it like a password
 - Use `--confirm-actions` (v0.15) for native CLI-level action gating on sensitive operations
 - Prefer `vault` over `state save` for auth data — vault encrypts at rest, state files are plaintext JSON
+- **v0.17 breaking**: auth encryption format changed — saved auth states from v0.16.x native mode may not load; re-authenticate and re-save
+- **v0.18+**: `KERNEL_API_KEY` is now optional (was required) — remove if not using external credential injection
+- **v0.21+**: HAR captures contain auth tokens — never commit `.har` files, add to `.gitignore`
+- **v0.17+**: auth cookies now persist on browser close — clear cookies explicitly if you need a fresh session
 
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
 
@@ -295,14 +347,61 @@ agent-browser wait --text "Error"
 agent-browser record stop
 ```
 
+## HAR Network Capture (v0.21+)
+
+HAR files capture full request/response bodies including auth tokens, cookies, and POST payloads. Treat them as sensitive.
+
+**Incorrect:**
+```bash
+agent-browser network har start
+agent-browser open https://app.example.com/login
+agent-browser fill @e1 "$EMAIL" && agent-browser fill @e2 "$PASSWORD"
+agent-browser network har stop /tmp/full-capture.har
+git add /tmp/full-capture.har  # Contains credentials in cleartext!
+```
+
+**Correct:**
+```bash
+# Start HAR AFTER authentication
+agent-browser vault load my-session
+agent-browser network har start
+agent-browser open https://app.example.com/api-page
+# ... perform actions to debug ...
+agent-browser network har stop /tmp/api-debug.har
+# Add *.har to .gitignore — never commit
+```
+
+## DevTools Inspect (v0.18+)
+
+The `inspect` command opens a local proxy to Chrome DevTools. This is a new attack surface in shared/CI environments.
+
+```bash
+agent-browser inspect          # Opens DevTools proxy on local port
+agent-browser get cdp-url      # Returns CDP WebSocket URL for external tools
+```
+
+## Clipboard Access (v0.19+)
+
+Clipboard commands access the host clipboard without user interaction — relevant for sandboxed environments.
+
+```bash
+agent-browser clipboard read   # Reads host clipboard contents
+agent-browser clipboard write "text"
+agent-browser clipboard copy   # Copy current selection
+agent-browser clipboard paste  # Paste clipboard contents
+```
+
 **Key rules:**
 - Never trace or record login flows — credentials appear in cleartext in output files
 - Load auth state via `vault load` before starting a trace/recording session
 - Review `console` and `errors` output in terminal before redirecting to files
-- Never commit trace, recording, or profile files to git repositories
+- Never commit trace, recording, profile, or HAR files to git repositories
 - Use `profiler` for performance analysis — it captures execution timing, not credentials
 - Store debug output files in `/tmp/` or ephemeral directories, not project directories
 - Scrub trace files before sharing: remove cookies, localStorage, and network payloads
+- **HAR files contain auth tokens** — add `*.har` to `.gitignore`, treat as sensitive
+- **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
+- **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
 
 Reference: `references/debug-tools.md` (Trace Safety, Recording Best Practices)
 
@@ -660,15 +759,43 @@ agent-browser get text body          # 4. Full body (last resort)
 - Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
 - Verify extracted content is non-empty before saving to avoid capturing blank pages
 
-## Enhanced Screenshot Commands
+## Enhanced Screenshot Commands (v0.19+)
 
 Capture full pages and annotated snapshots for visual debugging:
 
 ```bash
-# Full page and annotated capture
+# Full page and annotated capture (NOTE: --full is command-level since v0.21)
 agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
 agent-browser screenshot --annotate                  # Numbered element labels for debugging
+agent-browser screenshot --screenshot-dir /tmp/shots --screenshot-format webp --screenshot-quality 80
 agent-browser pdf /tmp/page.pdf                      # Save as PDF
+```
+
+## iframe Traversal (v0.21+)
+
+Snapshots and interactions now traverse into iframe content automatically. Cross-origin iframes are supported since v0.22 via `Target.setAutoAttach`.
+
+```bash
+# v0.21+: iframes included in snapshot automatically
+agent-browser snapshot -i
+# Output includes both parent page refs AND iframe content refs
+
+# Pre-v0.21: manual iframe targeting required
+agent-browser frame @e5        # Enter specific iframe
+agent-browser snapshot -i      # Snapshot inside iframe
+agent-browser frame main       # Return to main frame
+```
+
+## Batch Commands (v0.21+)
+
+Execute multiple commands in sequence from stdin:
+
+```bash
+# Pipe JSON array of commands
+echo '[{"command":"open","args":["https://example.com"]},{"command":"screenshot","args":["/tmp/shot.png"]}]' | agent-browser batch --json
+
+# Stop on first failure
+echo '[...]' | agent-browser batch --json --bail
 ```
 
 ## Interaction with Element Refs
@@ -754,6 +881,9 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
 - Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
 - Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
+- **v0.22 breaking**: `-C`/`--cursor` flag is deprecated — cursor-interactive elements are included by default
+- **v0.21+**: iframes are traversed automatically in snapshots — no need for `frame @e1` first
+- **v0.21 breaking**: `--full` is now command-level, not global — use `screenshot --full`, not `--full screenshot`
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
 

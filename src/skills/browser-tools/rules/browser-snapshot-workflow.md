@@ -68,15 +68,43 @@ agent-browser get text body          # 4. Full body (last resort)
 - Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
 - Verify extracted content is non-empty before saving to avoid capturing blank pages
 
-## Enhanced Screenshot Commands
+## Enhanced Screenshot Commands (v0.19+)
 
 Capture full pages and annotated snapshots for visual debugging:
 
 ```bash
-# Full page and annotated capture
+# Full page and annotated capture (NOTE: --full is command-level since v0.21)
 agent-browser screenshot --full /tmp/full-page.png   # Entire scrollable page
 agent-browser screenshot --annotate                  # Numbered element labels for debugging
+agent-browser screenshot --screenshot-dir /tmp/shots --screenshot-format webp --screenshot-quality 80
 agent-browser pdf /tmp/page.pdf                      # Save as PDF
+```
+
+## iframe Traversal (v0.21+)
+
+Snapshots and interactions now traverse into iframe content automatically. Cross-origin iframes are supported since v0.22 via `Target.setAutoAttach`.
+
+```bash
+# v0.21+: iframes included in snapshot automatically
+agent-browser snapshot -i
+# Output includes both parent page refs AND iframe content refs
+
+# Pre-v0.21: manual iframe targeting required
+agent-browser frame @e5        # Enter specific iframe
+agent-browser snapshot -i      # Snapshot inside iframe
+agent-browser frame main       # Return to main frame
+```
+
+## Batch Commands (v0.21+)
+
+Execute multiple commands in sequence from stdin:
+
+```bash
+# Pipe JSON array of commands
+echo '[{"command":"open","args":["https://example.com"]},{"command":"screenshot","args":["/tmp/shot.png"]}]' | agent-browser batch --json
+
+# Stop on first failure
+echo '[...]' | agent-browser batch --json --bail
 ```
 
 ## Interaction with Element Refs
@@ -162,5 +190,8 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
 - Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
 - Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
+- **v0.22 breaking**: `-C`/`--cursor` flag is deprecated — cursor-interactive elements are included by default
+- **v0.21+**: iframes are traversed automatically in snapshots — no need for `frame @e1` first
+- **v0.21 breaking**: `--full` is now command-level, not global — use `screenshot --full`, not `--full screenshot`
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)

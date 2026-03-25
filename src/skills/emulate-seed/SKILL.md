@@ -9,6 +9,8 @@ disable-model-invocation: false
 complexity: medium
 metadata:
   category: testing
+  upstream-package: emulate
+  upstream-version-tested: "1.0.0"
 ---
 
 # Emulate Seed Configs

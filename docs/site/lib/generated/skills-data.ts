@@ -792,7 +792,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "author": "OrchestKit",
     "tags": [
       "browser",

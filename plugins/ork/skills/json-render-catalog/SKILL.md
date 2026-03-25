@@ -9,6 +9,9 @@ disable-model-invocation: false
 complexity: medium
 metadata:
   category: frontend
+  upstream-package: "@json-render/core"
+  upstream-version-tested: "2.0.0"
+  shadcn-component-count: 36
 ---
 
 # json-render Component Catalogs

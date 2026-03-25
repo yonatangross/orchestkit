@@ -9,6 +9,8 @@ disable-model-invocation: false
 complexity: medium
 metadata:
   category: mcp
+  upstream-package: "@json-render/mcp"
+  upstream-version-tested: "2.0.0"
 ---
 
 # MCP Visual Output
