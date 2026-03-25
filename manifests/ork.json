@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "7.22.1",
-  "description": "The Complete AI Development Toolkit — 98 skills, 35 agents, 106 hooks for full-stack development.",
+  "description": "The Complete AI Development Toolkit — 99 skills, 35 agents, 106 hooks for full-stack development.",
   "author": {
     "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross"
@@ -21,5 +21,16 @@
   ],
   "skills": "all",
   "agents": "all",
-  "hooks": "all"
+  "hooks": "all",
+  "userConfig": {
+    "webhookUrl": {
+      "type": "string",
+      "description": "Webhook endpoint URL for usage reports and notifications"
+    },
+    "webhookToken": {
+      "type": "string",
+      "sensitive": true,
+      "description": "Authentication token for webhook endpoint (stored in keychain)"
+    }
+  }
 }

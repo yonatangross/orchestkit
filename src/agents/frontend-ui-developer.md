@@ -37,6 +37,7 @@ skills:
   - architecture-patterns
   - task-dependency-patterns
   - component-search
+  - storybook-mcp-integration
   - design-to-code
   - design-context-extract
   - remember
@@ -45,7 +46,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7, 21st-dev-magic]
+mcpServers: [context7, 21st-dev-magic, storybook-mcp]
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.

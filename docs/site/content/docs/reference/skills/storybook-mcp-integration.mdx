@@ -1,0 +1,333 @@
+---
+title: "Storybook Mcp Integration"
+description: "Storybook MCP server integration for component-aware AI development. Covers 6 tools across 3 toolsets (dev, docs, testing): component discovery via list-all-documentation/get-documentation, story previews via preview-stories, and automated testing via run-story-tests. Use when generating components that should reuse existing Storybook components, running component tests via MCP, or previewing stories in chat."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="storybook-mcp-integration" />
+
+
+# Storybook MCP Integration
+
+Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness of a project's actual component library — props, stories, tests, and live previews.
+
+## When to Use
+
+- **Component generation** — check existing Storybook components before creating new ones
+- **Component testing** — run story tests + a11y audits via MCP instead of CLI
+- **Visual verification** — embed story previews in chat for user confirmation
+- **Component auditing** — inventory components with full metadata via MCP
+
+## Quick Reference — 6 Tools, 3 Toolsets
+
+| Toolset | Tool | Purpose | Key Inputs |
+|---------|------|---------|------------|
+| **dev** | `get-storybook-story-instructions` | Guidance on writing stories + interaction tests | none |
+| **dev** | `preview-stories` | Returns preview URLs for stories (embeddable) | `stories[]: \{storyId\}` or `\{absoluteStoryPath, exportName\}` |
+| **docs** | `list-all-documentation` | Full component + docs manifest index | none |
+| **docs** | `get-documentation` | Props, first 3 stories, story index, docs | `id` (required), `storybookId` (optional) |
+| **docs** | `get-documentation-for-story` | Full story source + component docs | `componentId`, `storyName` (required) |
+| **testing** | `run-story-tests` | Run component + a11y tests, pass/fail + violations | `stories[]` (optional), `a11y` boolean (default true) |
+
+## Prerequisites
+
+```bash
+# Storybook 10.3+ with Vite builder (no webpack)
+npx storybook@latest upgrade
+
+# Install the addon
+npx storybook add @storybook/addon-mcp
+
+# Enable docs toolset (required for component discovery)
+# In .storybook/main.ts:
+#   experimentalComponentsManifest: true
+
+# Enable testing toolset (requires addon-vitest)
+# npx storybook add @storybook/addon-vitest
+
+# Register with Claude Code
+npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
+```
+
+## Detection Pattern
+
+Before using Storybook MCP tools, check availability:
+
+```python
+# Probe for storybook-mcp tools
+ToolSearch(query="+storybook list-all-documentation")
+
+# If tools found → Storybook MCP is available
+# If not found → fallback to filesystem-based component discovery
+```
+
+## Rule Details
+
+Load rules on demand with `Read("$\{CLAUDE_SKILL_DIR\}/rules/&lt;file&gt;")`:
+
+| Rule | Impact | Description |
+|------|--------|-------------|
+| `component-discovery` | HIGH | Use list-all-documentation + get-documentation before generating new components |
+| `story-preview-verification` | HIGH | Embed preview-stories URLs for visual confirmation |
+| `mcp-test-runner` | CRITICAL | Run run-story-tests with a11y:true after component generation |
+
+## Toolset Selection
+
+Filter toolsets via `X-MCP-Toolsets` header to reduce agent context:
+
+| Agent Role | Toolsets | Rationale |
+|------------|----------|-----------|
+| component-curator | `docs` | Inventory + props only, no testing |
+| frontend-ui-developer | `dev,docs,testing` | Full access for gen → verify loop |
+| design-system-architect | `docs` | Component metadata for governance |
+
+## Chromatic Remote Publishing
+
+For teams using Chromatic, the docs toolset is publishable remotely:
+- Published at `https://&lt;chromatic-storybook-url&gt;/mcp`
+- Only docs toolset available remotely (dev + testing need local Storybook)
+- Useful for cross-team design system discovery without running Storybook locally
+
+## Graceful Degradation
+
+| Storybook MCP | Fallback | Behavior |
+|---------------|----------|----------|
+| Available | — | Use MCP tools for component discovery, testing, previews |
+| Unavailable | Filesystem | `Glob("**/components/**/*.tsx")` + `Grep` for component inventory |
+| Unavailable | 21st.dev | Search public registry via 21st-dev-magic MCP |
+| Unavailable | Manual | Claude multimodal analysis of screenshots |
+
+## Related Skills
+
+- `storybook-testing` — CSF3 patterns, Vitest integration, Chromatic TurboSnap
+- `component-search` — 21st.dev registry search (external components)
+- `design-to-code` — Full mockup-to-component pipeline (uses this skill in Stage 2)
+- `ui-components` — shadcn/ui + Radix component patterns
+
+
+---
+
+## Rules (3)
+
+### Component Discovery via Storybook MCP — HIGH
+
+
+# Component Discovery via Storybook MCP
+
+Before generating a new component, check the project's Storybook for existing components that match.
+
+## Pattern: Storybook-First Matching
+
+```python
+# Step 1: Get full component inventory
+inventory = list-all-documentation()
+# Returns: component IDs, doc IDs, story counts
+
+# Step 2: Search for matching component
+for component in inventory.components:
+    if component.name matches target_description:
+        details = get-documentation(id=component.id)
+        # Returns: props schema, first 3 stories, story index, additional docs
+
+# Step 3: Decision
+if match_found:
+    # Reuse existing component — adapt props, skip generation
+    return existing_component
+else:
+    # No local match — fall back to 21st.dev or generate from scratch
+    search_21st_dev(description)
+```
+
+## Incorrect
+
+```typescript
+// BAD: Generating a new Button component without checking Storybook
+// The project may already have a fully-tested Button with variants
+const Button = ({ label, onClick }) => (
+  <button onClick={onClick}>{label}</button>
+);
+```
+
+## Correct
+
+```python
+# GOOD: Check Storybook first
+inventory = list-all-documentation()
+# Found: Button component with 12 stories, 8 variants
+details = get-documentation(id="button")
+# Props: variant (primary|secondary|ghost), size (sm|md|lg), disabled, loading
+# → Reuse existing Button, no generation needed
+```
+
+## When to Skip
+
+- Project has no Storybook MCP configured
+- Building a component explicitly marked as "new" by the user
+- The existing component is fundamentally incompatible with requirements
+
+
+### MCP Test Runner — CRITICAL
+
+
+# MCP Test Runner
+
+Use `run-story-tests` to verify components pass both functional and accessibility tests after generation.
+
+## Pattern: Generate → Test → Self-Heal
+
+```python
+# Step 1: Generate component + story
+Write("src/components/Modal/Modal.tsx", component_code)
+Write("src/components/Modal/Modal.stories.tsx", story_code)
+
+# Step 2: Run tests via MCP (with a11y enabled)
+results = run-story-tests(
+    stories=[{ "storyId": "modal--default" }, { "storyId": "modal--open" }],
+    a11y=True  # default: true
+)
+
+# Step 3: Handle results
+if results.all_passed:
+    # Success — component is verified
+    preview-stories(stories=[...])  # Show user the result
+else:
+    # Self-heal: read violations, fix, retry
+    for failure in results.failures:
+        if failure.type == "a11y":
+            # Fix accessibility violation (e.g., missing aria-label)
+            fix_a11y_violation(failure.violation)
+        elif failure.type == "interaction":
+            # Fix interaction test failure
+            fix_interaction(failure.error)
+
+    # Retry (max 3 attempts)
+    results = run-story-tests(stories=[...], a11y=True)
+```
+
+## Incorrect
+
+```python
+# BAD: Generate component without any verification
+Write("src/components/Modal/Modal.tsx", component_code)
+# "Done! I've created the Modal component."
+# (No tests run, no a11y check, no visual preview)
+```
+
+## Correct
+
+```python
+# GOOD: Full verification loop
+Write("src/components/Modal/Modal.tsx", component_code)
+Write("src/components/Modal/Modal.stories.tsx", story_code)
+
+results = run-story-tests(a11y=True)  # Omit stories[] to run ALL tests
+# Results: 12 passed, 1 failed (a11y: missing aria-label on close button)
+
+# Fix the violation
+Edit("src/components/Modal/Modal.tsx",
+     old_string='<button onClick={onClose}>',
+     new_string='<button onClick={onClose} aria-label="Close modal">')
+
+# Re-run the failing test
+results = run-story-tests(
+    stories=[{ "storyId": "modal--open" }],
+    a11y=True
+)
+# Results: 1 passed
+
+# Show preview
+preview-stories(stories=[{ "storyId": "modal--default" }])
+# "Modal component verified: all tests pass, a11y clean. Preview: [URL]"
+```
+
+## Run All vs Specific Stories
+
+```python
+# Run ALL tests (useful for full verification):
+run-story-tests(a11y=True)
+
+# Run specific stories (useful for targeted re-test after fix):
+run-story-tests(
+    stories=[{ "storyId": "modal--open" }],
+    a11y=True
+)
+```
+
+## Self-Healing Limits
+
+- Max 3 retry attempts per component
+- If still failing after 3 attempts, report failures to user with details
+- Never suppress test failures — always surface them
+
+
+### Story Preview Verification — HIGH
+
+
+# Story Preview Verification
+
+After generating or modifying a component, use `preview-stories` to embed a live preview in the chat for visual confirmation.
+
+## Pattern: Generate → Preview → Confirm
+
+```python
+# Step 1: Write the story file (CSF3 format)
+Write("src/components/Card/Card.stories.tsx", story_content)
+
+# Step 2: Get preview URLs from Storybook MCP
+previews = preview-stories(stories=[
+    { "storyId": "card--default" },
+    { "storyId": "card--with-image" },
+    { "storyId": "card--loading" }
+])
+# Returns: preview URLs for each story
+
+# Step 3: Include preview URLs in response
+# Agent MUST include the URLs in its response for the user to see them
+```
+
+## Incorrect
+
+```python
+# BAD: Generate component and tell user "it should work"
+Write("src/components/Card/Card.tsx", component_code)
+# "I've created the Card component. It should render correctly."
+```
+
+## Correct
+
+```python
+# GOOD: Generate component, write story, show preview
+Write("src/components/Card/Card.tsx", component_code)
+Write("src/components/Card/Card.stories.tsx", story_code)
+previews = preview-stories(stories=[
+    { "absoluteStoryPath": "src/components/Card/Card.stories.tsx", "exportName": "Default" }
+])
+# "Here's the Card component. Preview: [embedded story URL]
+#  Does this match what you expected?"
+```
+
+## Alternative: Story ID vs File Path
+
+Two ways to reference stories:
+
+```python
+# By story ID (if you know it):
+preview-stories(stories=[{ "storyId": "card--default" }])
+
+# By file path + export (if just created):
+preview-stories(stories=[{
+    "absoluteStoryPath": "src/components/Card/Card.stories.tsx",
+    "exportName": "Default"
+}])
+```
+
+## When to Preview
+
+- After generating a new component with stories
+- After modifying an existing component's visual appearance
+- When the user asks "what does it look like?"
+- Before marking a design-to-code task as complete
+

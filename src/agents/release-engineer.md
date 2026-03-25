@@ -4,6 +4,7 @@ description: Release and versioning specialist who manages GitHub releases, mile
 category: devops
 model: haiku
 background: true
+initialPrompt: "Check TaskList for pending release tasks. Analyze commits since last tag to determine version bump type."
 maxTurns: 20
 effort: low
 memory: project
@@ -22,7 +23,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
   - ExitWorktree
 skills:

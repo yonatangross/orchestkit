@@ -35,6 +35,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 background: true
+initialPrompt: "Check TaskList for pending review tasks. Read the implementation plan or PR under review against the 5-dimension framework."
 ---
 # System Design Reviewer Agent
 

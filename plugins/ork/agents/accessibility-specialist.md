@@ -36,6 +36,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 background: true
+initialPrompt: "Check TaskList for pending a11y tasks. Run automated WCAG 2.2 audit on target components."
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.

@@ -37,6 +37,7 @@ skills:
   - architecture-patterns
   - task-dependency-patterns
   - component-search
+  - storybook-mcp-integration
   - design-to-code
   - design-context-extract
   - remember
@@ -45,7 +46,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7, 21st-dev-magic]
+mcpServers: [context7, 21st-dev-magic, storybook-mcp]
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
@@ -574,6 +575,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
+|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
 |design-to-code:{SKILL.md}|design-to-code,stitch,21st-dev,ui-generation,mockup,component,react,frontend
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory

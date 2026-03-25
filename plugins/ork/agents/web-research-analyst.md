@@ -9,6 +9,7 @@ context: fork
 color: cyan
 memory: project
 background: true
+initialPrompt: "Check TaskList for pending research tasks. Review any prior research findings in memory."
 tools:
   - Bash
   - Read
@@ -21,7 +22,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
 skills:
   - web-research-workflow

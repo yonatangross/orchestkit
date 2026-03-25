@@ -311,7 +311,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "complex",
     "category": "frontend",
     "hasDeps": true,
-    "depCount": 5,
+    "depCount": 6,
     "usedByCount": 1
   },
   {
@@ -805,6 +805,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "storybook-mcp-integration",
+    "label": "Storybook Mcp Integration",
+    "type": "reference",
+    "complexity": "medium",
+    "category": "frontend",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 1
+  },
+  {
     "id": "storybook-testing",
     "label": "Storybook Testing",
     "type": "reference",
@@ -1166,6 +1176,10 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "design-to-code",
     "target": "component-search"
+  },
+  {
+    "source": "design-to-code",
+    "target": "storybook-mcp-integration"
   },
   {
     "source": "design-to-code",

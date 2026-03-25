@@ -1,0 +1,62 @@
+{
+  "skill": "storybook-mcp-integration",
+  "version": "1.0.0",
+  "test_cases": [
+    {
+      "id": "sbmcp-trigger-component-generation",
+      "description": "Triggers when generating a React component in a project with Storybook",
+      "input": "Generate a Card component for our design system",
+      "expected_behavior": "Should check Storybook MCP for existing Card components before generating",
+      "tags": ["trigger", "component-discovery"]
+    },
+    {
+      "id": "sbmcp-trigger-component-audit",
+      "description": "Triggers when auditing component library",
+      "input": "Audit our component library for unused or outdated components",
+      "expected_behavior": "Should use list-all-documentation to get full component inventory",
+      "tags": ["trigger", "component-discovery"]
+    },
+    {
+      "id": "sbmcp-trigger-test-verification",
+      "description": "Triggers when verifying component after generation",
+      "input": "Verify the Modal component passes all tests",
+      "expected_behavior": "Should use run-story-tests with a11y:true",
+      "tags": ["trigger", "testing"]
+    },
+    {
+      "id": "sbmcp-trigger-visual-preview",
+      "description": "Triggers when user asks to see component",
+      "input": "Show me what the Button component looks like",
+      "expected_behavior": "Should use preview-stories to embed live preview",
+      "tags": ["trigger", "preview"]
+    },
+    {
+      "id": "sbmcp-anti-trigger-no-storybook",
+      "description": "Should NOT trigger for projects without Storybook",
+      "input": "Generate a Card component",
+      "expected_behavior": "Should fall back to filesystem-based discovery when Storybook MCP unavailable",
+      "tags": ["anti-trigger", "graceful-degradation"]
+    },
+    {
+      "id": "sbmcp-anti-trigger-backend",
+      "description": "Should NOT trigger for backend-only tasks",
+      "input": "Create a REST API endpoint for user authentication",
+      "expected_behavior": "Should not attempt Storybook MCP tools for backend tasks",
+      "tags": ["anti-trigger"]
+    },
+    {
+      "id": "sbmcp-rule-discovery-before-gen",
+      "description": "Component discovery must happen before generation",
+      "input": "I need a data table component with sorting and filtering",
+      "expected_behavior": "Should call list-all-documentation then get-documentation before writing new component code",
+      "tags": ["rule", "component-discovery"]
+    },
+    {
+      "id": "sbmcp-rule-self-heal",
+      "description": "Self-healing on test failure",
+      "input": "The Modal component I just generated fails a11y tests",
+      "expected_behavior": "Should read violations from run-story-tests, fix the issues, and re-run tests (max 3 retries)",
+      "tags": ["rule", "testing", "self-healing"]
+    }
+  ]
+}

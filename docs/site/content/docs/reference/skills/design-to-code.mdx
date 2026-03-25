@@ -1,6 +1,6 @@
 ---
 title: "Design To Code"
-description: "Mockup-to-component pipeline using Google Stitch and 21st.dev. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, and adaptation to project design tokens. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots."
+description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots."
 ---
 
 <span className="badge badge-blue">Command</span> 
@@ -36,9 +36,9 @@ Input (screenshot/description/URL)
           │
           ▼
 ┌─────────────────────────┐
-│ Stage 2: MATCH           │  21st.dev Magic → search components
-│ Search by description    │  Find production-ready matches
-│ Filter by framework      │  React + Tailwind preferred
+│ Stage 2: MATCH           │  1. Storybook MCP → check existing
+│ Storybook-first lookup   │  2. 21st.dev → search public registry
+│ Then 21st.dev fallback   │  3. Filesystem → grep codebase
 └─────────┬───────────────┘
           │
           ▼
@@ -53,6 +53,13 @@ Input (screenshot/description/URL)
 │ Stage 4: RENDER          │  Register as json-render catalog entry
 │ Generate Zod schema      │  Same component → PDF, email, video
 │ Add to defineCatalog()   │  Multi-surface reuse via MCP output
+└─────────┬───────────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│ Stage 4b: VERIFY         │  Storybook MCP → self-healing loop
+│ run-story-tests(a11y)    │  Fix violations, retry (max 3)
+│ preview-stories          │  Embed live preview in chat
 └─────────────────────────┘
 ```
 
@@ -105,9 +112,20 @@ Extract and produce:
 - Component structure (headers, cards, buttons, etc.)
 - Layout pattern (grid, flex, sidebar, etc.)
 
-## Stage 2: Match Components from Registry
+## Stage 2: Match Components (Storybook-First)
 
-**If 21st-dev-magic is available:**
+**Priority 1 — Check project's own Storybook (if storybook-mcp available):**
+```python
+# Search the project's existing component library first
+inventory = list-all-documentation()  # Full component + docs manifest
+for component in inventory.components:
+    if component matches extracted_description:
+        details = get-documentation(id=component.id)
+        # Returns: props schema, stories, usage patterns
+        # → Existing component found — skip external search
+```
+
+**Priority 2 — Search 21st.dev (if no Storybook match and 21st-dev-magic available):**
 ```python
 # Search 21st.dev for matching components
 # Use the component descriptions from Stage 1
@@ -115,7 +133,7 @@ Extract and produce:
 # Filter: React, Tailwind CSS, shadcn/ui compatible
 ```
 
-**If 21st-dev-magic is NOT available (fallback):**
+**Priority 3 — Filesystem fallback (if no MCP servers available):**
 ```python
 # Search for components in the project's existing codebase
 Grep(pattern="export.*function|export.*const", glob="**/*.tsx")
@@ -130,6 +148,7 @@ AskUserQuestion(questions=[{
   "question": "Which component approach for {component_name}?",
   "header": "Component",
   "options": [
+    {"label": "Reuse from Storybook", "description": "{existing_component} — props: {prop_list}"},
     {"label": "Use 21st.dev match", "description": "{matched_component_name} — {match_score}% match"},
     {"label": "Adapt from codebase", "description": "Modify existing {existing_component}"},
     {"label": "Generate from scratch", "description": "Build new component from extracted design"}
@@ -189,19 +208,52 @@ export const catalog = mergeCatalogs(existingCatalog, {
 
 **Enables:** same component output to PDF, email, video, or MCP response — no reimplementation needed.
 
-**Skip condition:** If the project has no json-render dependency or catalog, inform the user and skip Stage 4. The component from Stage 3 is still fully usable standalone.
+**Skip condition:** If the project has no json-render dependency or catalog, inform the user and skip catalog registration. The component from Stage 3 is still fully usable standalone.
+
+### Stage 4b: Self-Healing Verification (if storybook-mcp available)
+
+After generating the component, verify it with Storybook MCP:
+
+```python
+# 1. Write CSF3 story for the new component
+Write("src/components/{Name}/{Name}.stories.tsx", story_code)
+
+# 2. Run tests via MCP (component + a11y)
+results = run-story-tests(
+    stories=[{ "storyId": "{name}--default" }],
+    a11y=True
+)
+
+# 3. Handle failures — self-heal up to 3 attempts
+if not results.all_passed:
+    for failure in results.failures:
+        # Read violation details, fix the component
+        Edit("src/components/{Name}/{Name}.tsx", fix)
+    # Re-run failing tests
+    results = run-story-tests(stories=[...], a11y=True)
+
+# 4. Preview — embed live story in chat for user confirmation
+previews = preview-stories(stories=[
+    { "absoluteStoryPath": "src/components/{Name}/{Name}.stories.tsx",
+      "exportName": "Default" }
+])
+# Include preview URLs in response for visual confirmation
+```
+
+**Skip condition:** If storybook-mcp is not available, skip verification. The component is still usable — just not auto-verified.
 
 ## Graceful Degradation
 
-| stitch | 21st-dev-magic | json-render catalog | Behavior |
-|------------|----------------|---------------------|----------|
-| Available | Available | Available | Full pipeline: extract + match + adapt + render |
-| Available | Available | Unavailable | Extract + match + adapt (skip Stage 4) |
-| Available | Unavailable | Available | Extract design, generate + register in catalog |
-| Unavailable | Available | Available | Description-based search + adapt + register |
+| stitch | 21st-dev-magic | storybook-mcp | Behavior |
+|--------|----------------|---------------|----------|
+| Available | Available | Available | Full pipeline: extract + Storybook-first match + adapt + render + self-heal verify |
+| Available | Available | Unavailable | Extract + 21st.dev match + adapt + render (no verification) |
+| Available | Unavailable | Available | Extract + Storybook match + adapt + verify |
+| Unavailable | Available | Available | Description-based search + Storybook check + adapt + verify |
+| Unavailable | Unavailable | Available | Filesystem search + Storybook verify only |
 | Unavailable | Unavailable | Unavailable | Manual analysis + generate from scratch (still works) |
 
-The skill ALWAYS produces output regardless of MCP/catalog availability. Stage 4 is additive — skipping it still yields a working component.
+The skill ALWAYS produces output regardless of MCP availability. Storybook MCP adds component reuse (Stage 2) and self-healing verification (Stage 4b) — skipping them still yields a working component.
 
 ## Anti-Patterns
 
@@ -212,12 +264,13 @@ The skill ALWAYS produces output regardless of MCP/catalog availability. Stage 4
 
 ## Related Skills
 
-- `ork:component-search` — Search 21st.dev registry standalone
-- `ork:design-context-extract` — Extract design DNA from screenshots
-- `ork:design-system-tokens` — Token architecture and management
-- `ork:frontend-design` — Creative frontend design generation
-- `ork:json-render-catalog` — Catalog definition, Zod schemas, defineCatalog patterns
-- `ork:multi-surface-render` — Render catalog entries to PDF, email, video, MCP
+- `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
+- `component-search` — Search 21st.dev registry standalone
+- `design-context-extract` — Extract design DNA from screenshots
+- `design-system-tokens` — Token architecture and management
+- `storybook-testing` — CSF3 patterns, Vitest integration, Chromatic TurboSnap
+- `json-render-catalog` — Catalog definition, Zod schemas, defineCatalog patterns
+- `multi-surface-render` — Render catalog entries to PDF, email, video, MCP
 
 
 ---

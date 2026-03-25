@@ -151,6 +151,45 @@ export default defineConfig({
 
 ---
 
+## Storybook MCP Integration (addon-mcp)
+
+When `@storybook/addon-mcp` is installed, agents can run tests and preview stories via MCP instead of CLI. This enables the **generate → test → self-heal** loop.
+
+### MCP Tools for Testing
+
+| Tool | Purpose |
+|------|---------|
+| `run-story-tests` | Run component + a11y tests via MCP, returns pass/fail + violation details |
+| `preview-stories` | Returns preview URLs for visual verification in chat |
+| `get-storybook-story-instructions` | Guidance on writing effective stories + interaction tests |
+
+### Agent Testing Loop
+
+```python
+# 1. Generate component + CSF3 story
+# 2. Run tests via MCP
+results = run-story-tests(
+    stories=[{ "storyId": "button--primary" }],
+    a11y=True
+)
+# 3. If failures: read violations, fix, retry (max 3)
+# 4. Preview in chat for visual confirmation
+preview-stories(stories=[{ "storyId": "button--primary" }])
+```
+
+### Setup
+
+```bash
+npx storybook add @storybook/addon-mcp
+# Enable docs toolset in .storybook/main.ts:
+#   experimentalComponentsManifest: true
+npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
+```
+
+See `storybook-mcp-integration` skill for full tool reference and patterns.
+
+---
+
 ## References
 
 - `references/storybook-migration-guide.md` — Migration path from Storybook 9 to 10
@@ -159,6 +198,7 @@ export default defineConfig({
 
 ## Related Skills
 
+- `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
 - `react-server-components-framework` — React 19 + Next.js 16 patterns (component architecture)
 - `accessibility` — Broader accessibility patterns beyond Storybook
 - `devops-deployment` — CI/CD pipeline patterns for automated testing
