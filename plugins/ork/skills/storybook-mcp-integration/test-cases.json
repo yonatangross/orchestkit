@@ -1,7 +1,7 @@
 {
   "skill": "storybook-mcp-integration",
   "version": "1.0.0",
-  "test_cases": [
+  "testCases": [
     {
       "id": "sbmcp-trigger-component-generation",
       "description": "Triggers when generating a React component in a project with Storybook",
