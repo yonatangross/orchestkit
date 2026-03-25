@@ -288,7 +288,8 @@ jobs:
       - name: Install Claude Code CLI
         id: install-cc
         run: |
-          npm install -g @anthropic-ai/claude-code@2.1.78 2>/dev/null || true
+          # Pin to exact version — Scorecard #130
+          npm install -g @anthropic-ai/claude-code@2.1.81 --ignore-scripts 2>/dev/null || true
           if command -v claude &>/dev/null; then
             CC_VERSION=$(claude --version 2>/dev/null || echo "unknown")
             echo "cc_available=true" >> "$GITHUB_OUTPUT"

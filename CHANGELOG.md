@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.22.1] - 2026-03-24
+
+### Fixed
+
+- **YAML parser `>-` folded scalar support**: `parse-frontmatter.js` now handles `>-`, `|-`, `>`, `|` multiline scalars — prevents "description too short (2 chars)" CI failures for new skills/agents
+- **test-cases.json 100% coverage**: created missing test-cases.json for 8 skills (component-search, cover, design-context-extract, testing-e2e, testing-llm, testing-patterns, testing-perf, testing-unit)
+
+### Added
+
+- **Pre-commit frontmatter schema validator**: checks agent required fields (category, context, mcpServers, description ≤250 bytes) and skill required fields before commit
+- **Pre-commit test-case rule validator**: verifies each `rule:` reference in test-cases.json has a matching `rules/*.md` file
+- **MDX count drift scanner** (`bin/validate-mdx-counts.sh`): detects stale hardcoded total counts in docs
+- **Parser test suite**: 10 tests covering all YAML scalar types
+
+---
+
+
 ## [7.22.0] - 2026-03-23
 
 ### Added

@@ -1,0 +1,60 @@
+{
+  "skill": "design-context-extract",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "screenshot-extraction",
+      "rule": null,
+      "query": "Extract the design tokens from this screenshot /tmp/screenshot.png",
+      "expectedBehavior": [
+        "Reads the screenshot using multimodal analysis",
+        "Extracts colors with both hex and oklch equivalents",
+        "Identifies typography families, weights, and size scale",
+        "Asks user for output format (Tailwind, W3C, CSS variables, Markdown)"
+      ]
+    },
+    {
+      "id": "url-extraction",
+      "rule": null,
+      "query": "What colors and fonts does https://example.com use?",
+      "expectedBehavior": [
+        "Uses Stitch MCP if available, falls back to WebFetch if not",
+        "Extracts color palette, typography, and spacing tokens from the URL",
+        "Produces three-tier token hierarchy (global, alias, component)",
+        "Includes oklch conversion for all extracted colors"
+      ]
+    },
+    {
+      "id": "project-scan",
+      "rule": null,
+      "query": "Create a design system from our current project styles",
+      "expectedBehavior": [
+        "Scans project for tailwind.config, tokens.css, theme files, and CSS files",
+        "Reads and analyzes existing style definitions",
+        "Shows diff of new vs existing tokens if project already has token files",
+        "Outputs structured design tokens in the user-selected format"
+      ]
+    },
+    {
+      "id": "stitch-mcp-fallback",
+      "rule": null,
+      "query": "Extract design context from this URL but I don't have Stitch MCP",
+      "expectedBehavior": [
+        "Detects missing Stitch MCP and degrades to multimodal/CSS analysis",
+        "Falls back to WebFetch for URL HTML/CSS parsing",
+        "Still extracts colors, typography, spacing, and component patterns",
+        "Warns about reduced accuracy without Stitch MCP"
+      ]
+    },
+    {
+      "id": "negative-build-request",
+      "rule": null,
+      "query": "Build a React component with a blue color scheme",
+      "expectedBehavior": [
+        "Should NOT build components from a build/implement request",
+        "Should redirect to design-to-code or implement skill for building components",
+        "Does not run the extraction pipeline for implementation tasks"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Git Pre-commit Hook for OrchestKit Plugin
 # Mirrors CI checks - fail fast locally before pushing
-# Version: 2.0.0
+# Version: 3.0.0 — added frontmatter schema + test-case rule validation
 
 set -uo pipefail
 
@@ -76,7 +76,37 @@ else
   echo "SKIP (validator not found)"
 fi
 
-# ===== 5. Quick Lint Tests =====
+# ===== 5. Frontmatter Schema Validation =====
+if echo "$STAGED_FILES" | grep -qE "^(src/skills/|src/agents/)"; then
+  if [[ -x "bin/validate-frontmatter.sh" ]]; then
+    echo -n "  Validating frontmatter schema... "
+    if ! ./bin/validate-frontmatter.sh 2>&1 | tail -1 | grep -q "valid frontmatter"; then
+      echo "FAILED"
+      ./bin/validate-frontmatter.sh 2>&1 | grep "✗" | head -5
+      echo "    Run './bin/validate-frontmatter.sh' for details"
+      ERRORS=$((ERRORS + 1))
+    else
+      echo "OK"
+    fi
+  fi
+fi
+
+# ===== 6. Test-cases.json Rule References =====
+if echo "$STAGED_FILES" | grep -qE "test-cases.json"; then
+  if [[ -x "bin/validate-test-case-rules.sh" ]]; then
+    echo -n "  Validating test-case rule refs... "
+    if ! ./bin/validate-test-case-rules.sh 2>&1 | tail -1 | grep -q "match actual"; then
+      echo "FAILED"
+      ./bin/validate-test-case-rules.sh 2>&1 | grep "✗" | head -5
+      echo "    Run './bin/validate-test-case-rules.sh' for details"
+      ERRORS=$((ERRORS + 1))
+    else
+      echo "OK"
+    fi
+  fi
+fi
+
+# ===== 7. Quick Lint Tests =====
 if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude-plugin/)"; then
   if [[ -x "tests/run-all-tests.sh" ]]; then
     echo -n "  Running quick lint tests... "

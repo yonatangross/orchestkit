@@ -1,0 +1,60 @@
+{
+  "skill": "component-search",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "search-by-description",
+      "rule": null,
+      "query": "Search for a date picker component for my React app",
+      "expectedBehavior": [
+        "Searches 21st.dev registry using the natural language description",
+        "Presents top 3 ranked results with component name, relevance score, and popularity",
+        "Includes install instructions and dependency list for each result",
+        "Detects project framework context from package.json"
+      ]
+    },
+    {
+      "id": "mcp-fallback",
+      "rule": null,
+      "query": "Find a sidebar component with collapsible sections",
+      "expectedBehavior": [
+        "Attempts 21st-dev-magic MCP first for semantic search",
+        "Falls back to WebSearch with site:21st.dev if MCP unavailable",
+        "Still returns ranked results with preview and install commands",
+        "Asks user to select from results or generate from scratch"
+      ]
+    },
+    {
+      "id": "framework-filtering",
+      "rule": null,
+      "query": "Are there any good table components on 21st.dev for my Next.js App Router project?",
+      "expectedBehavior": [
+        "Reads package.json to detect Next.js App Router context",
+        "Filters results for RSC-compatible components",
+        "Checks for 'use client' directives in component source",
+        "Notes framework compatibility in result presentation"
+      ]
+    },
+    {
+      "id": "component-delivery",
+      "rule": null,
+      "query": "I want an animated pricing toggle component, show me the code",
+      "expectedBehavior": [
+        "Searches registry and lets user pick a component",
+        "Shows full source code of the selected component",
+        "Lists npm install commands and peer dependencies",
+        "Highlights customization points (props, tokens, slots)"
+      ]
+    },
+    {
+      "id": "negative-implementation-request",
+      "rule": null,
+      "query": "Build me a custom modal component from scratch",
+      "expectedBehavior": [
+        "Should NOT generate a custom component from scratch",
+        "Should redirect to implement or ui-components skill for building components",
+        "Does not invoke 21st.dev search for build/implement requests"
+      ]
+    }
+  ]
+}

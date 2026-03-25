@@ -1,0 +1,60 @@
+{
+  "skill": "cover",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "full-coverage-generation",
+      "rule": null,
+      "query": "Generate tests for the authentication service",
+      "expectedBehavior": [
+        "Asks user to select test tiers (unit, integration, e2e) and healing strategy",
+        "Runs 6-phase workflow: discovery, coverage analysis, generation, execution, heal, report",
+        "Spawns parallel test-generator agents per selected tier",
+        "Produces a coverage report with before/after delta comparison"
+      ]
+    },
+    {
+      "id": "tier-flag-override",
+      "rule": null,
+      "query": "Cover the payment module with --tier=unit,integration tests",
+      "expectedBehavior": [
+        "Parses --tier flag and limits generation to unit and integration only",
+        "Skips the tier selection prompt since --tier flag is explicit",
+        "Launches 2 parallel agents (unit + integration), not 3",
+        "Reports coverage for unit and integration tiers only"
+      ]
+    },
+    {
+      "id": "real-services-detection",
+      "rule": null,
+      "query": "Cover the checkout pipeline with --real-services",
+      "expectedBehavior": [
+        "Scans for docker-compose.yml or testcontainers in dependencies",
+        "Uses real database and services for integration tests when infrastructure found",
+        "Errors with clear message if --real-services flag used but no docker/testcontainers found",
+        "Reports which real services were used in the final coverage report"
+      ]
+    },
+    {
+      "id": "heal-loop-boundary",
+      "rule": null,
+      "query": "Generate tests for the user service, auto-heal failures",
+      "expectedBehavior": [
+        "Runs generated tests and identifies failures",
+        "Heals failing tests up to 3 iterations maximum",
+        "Fixes only test code, never modifies production source code",
+        "Reports remaining failures if not resolved within 3 iterations"
+      ]
+    },
+    {
+      "id": "negative-verify-request",
+      "rule": null,
+      "query": "Verify my existing tests are good quality",
+      "expectedBehavior": [
+        "Should NOT generate new tests for a verify/grade request",
+        "Should redirect to the verify skill for grading existing tests",
+        "Does not run the 6-phase cover workflow for verification tasks"
+      ]
+    }
+  ]
+}

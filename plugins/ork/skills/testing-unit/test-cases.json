@@ -1,0 +1,71 @@
+{
+  "skill": "testing-unit",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "aaa-pattern-structure",
+      "rule": "unit-aaa-pattern",
+      "query": "Write a unit test for my discount calculation function",
+      "expectedBehavior": [
+        "Structures the test with Arrange, Act, Assert phases and comments",
+        "Tests the public behavior, not implementation details",
+        "Each test has a single logical assertion per Act phase",
+        "Uses descriptive test names that explain the expected behavior"
+      ]
+    },
+    {
+      "id": "parametrized-tests",
+      "rule": "unit-parametrized",
+      "query": "I have 5 different input cases to test for my validation function",
+      "expectedBehavior": [
+        "Uses test.each (Vitest/Jest) or @pytest.mark.parametrize (Python)",
+        "Avoids copy-pasting the same test body with different values",
+        "Includes edge cases: empty input, boundary values, error inputs",
+        "Labels each parametrized case clearly for failure diagnosis"
+      ]
+    },
+    {
+      "id": "msw-network-mocking",
+      "rule": "mocking-msw",
+      "query": "Mock the user API endpoint in my frontend unit tests",
+      "expectedBehavior": [
+        "Uses MSW 2.x http/HttpResponse handlers for network-level mocking",
+        "Sets up server with listen, resetHandlers, and close lifecycle",
+        "Uses onUnhandledRequest: 'error' to catch missing handlers",
+        "Never mocks fetch or axios directly — always intercepts at network level"
+      ]
+    },
+    {
+      "id": "fixture-scoping",
+      "rule": "unit-fixture-scoping",
+      "query": "My tests are flaky when running in parallel, some share database state",
+      "expectedBehavior": [
+        "Recommends scope='function' for mutable data fixtures (default)",
+        "Warns that module/session scope with mutable data causes flaky tests",
+        "Reserves module/session scope for expensive read-only resources only",
+        "Suggests factory-based data generation instead of shared fixtures"
+      ]
+    },
+    {
+      "id": "data-factories",
+      "rule": "data-factories",
+      "query": "Set up test data generation with factories instead of hardcoded values",
+      "expectedBehavior": [
+        "Uses FactoryBoy (Python) or faker-js (TypeScript) for test data builders",
+        "Generates unique data per test to prevent parallel test conflicts",
+        "Supports trait-based variations for different test scenarios",
+        "Avoids hardcoded IDs and values that cause state collisions"
+      ]
+    },
+    {
+      "id": "negative-e2e-request",
+      "rule": null,
+      "query": "Write Playwright browser tests for my login page",
+      "expectedBehavior": [
+        "Should NOT recommend unit testing patterns for E2E browser tests",
+        "Should redirect to testing-e2e skill for Playwright page objects and locators",
+        "Does not suggest MSW, VCR, or AAA pattern for browser automation"
+      ]
+    }
+  ]
+}

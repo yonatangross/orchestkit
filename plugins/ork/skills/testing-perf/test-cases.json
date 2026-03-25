@@ -1,0 +1,71 @@
+{
+  "skill": "testing-perf",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "k6-load-test-setup",
+      "rule": "perf-k6",
+      "query": "Set up a k6 load test for my REST API with thresholds",
+      "expectedBehavior": [
+        "Creates k6 script with staged ramp-up (ramp up, steady state, ramp down)",
+        "Sets p95 response time threshold (< 500ms) and error rate threshold (< 1%)",
+        "Uses check() assertions for status codes and response time",
+        "Outputs results to JSON for CI integration"
+      ]
+    },
+    {
+      "id": "locust-stress-test",
+      "rule": "perf-locust",
+      "query": "Write a Python Locust stress test for my authentication flow",
+      "expectedBehavior": [
+        "Creates Locust test with task weighting for realistic traffic patterns",
+        "Includes authentication flow (login, token refresh, logout) as tasks",
+        "Supports distributed testing mode for higher load generation",
+        "Recommends Locust for Python teams over k6"
+      ]
+    },
+    {
+      "id": "test-type-selection",
+      "rule": "perf-types",
+      "query": "What type of performance test should I run before our product launch?",
+      "expectedBehavior": [
+        "Recommends stress test (2-3x expected traffic) for pre-launch validation",
+        "Explains the 4 test types: load, stress, spike, soak with appropriate durations",
+        "Suggests spike test if expecting sudden traffic surges",
+        "Provides VU counts and duration guidelines per test type"
+      ]
+    },
+    {
+      "id": "pytest-parallel-execution",
+      "rule": "pytest-execution",
+      "query": "My pytest suite takes 20 minutes, how do I speed it up?",
+      "expectedBehavior": [
+        "Recommends pytest-xdist with -n auto for automatic parallel workers",
+        "Suggests --dist loadscope for fixture grouping to prevent flaky tests",
+        "Shows worker database isolation pattern using worker_id fixture",
+        "Provides CI fast path: pytest -m 'not slow' -n auto"
+      ]
+    },
+    {
+      "id": "pytest-plugin-fixtures",
+      "rule": "pytest-plugins",
+      "query": "How do I create reusable pytest fixtures with factory patterns?",
+      "expectedBehavior": [
+        "Shows conftest.py plugin patterns for shared fixtures",
+        "Includes factory fixture patterns using FactoryBoy",
+        "Covers plugin hook reference for custom pytest behavior",
+        "Warns against common anti-patterns in fixture design"
+      ]
+    },
+    {
+      "id": "negative-unit-test-request",
+      "rule": null,
+      "query": "Write unit tests for my pricing calculation function",
+      "expectedBehavior": [
+        "Should NOT recommend performance or load testing for a unit test request",
+        "Should redirect to testing-unit skill for isolated business logic tests",
+        "Does not suggest k6, Locust, or pytest-xdist for pure function testing"
+      ]
+    }
+  ]
+}

@@ -1,23 +1,35 @@
 # Session Handoff
 
-**Branch**: ci/docs-version-sync
-**When**: 2026-03-19 16:13:01 UTC
-**Session**: e1b3a471-fd98-4097-8c15-e0e38939bcde
+**Branch**: main
+**When**: 2026-03-24 18:13:30 UTC
+**Session**: b355a2c8-4a3c-499c-99e4-3064a44b6d29
 
 ## Summary
-Pushed to PR #1117. The `reference/hooks/spotlights/` directory was a hollow shell — `meta.json` had `"pages": []` and no `.mdx` files. Now it has all 8 spotlight pages (dangerous-command-blocker, file-guard, unified-advisory-dispatcher, etc.).
+Found it. Here's what happened:
 
-This will show up once #1117 is merged and Vercel redeploys.
+The **latest commit on main** (`bee9be08`) is a squash-merged PR (#1136) from branch `feat/eval-pipeline-1045`. That PR included version bump commits to 7.22.0 **inside the squash** — you can see commits like `chore: bump to v7.22.0` and `docs: bump to v7.22.0` were part of that branch.
+
+So the version numbers in `package.json`, `CLAUDE.md`, etc. were **manually bumped to 7.22.0** on that feature branch, but **release-please never created releases for 7.20, 7.21, or 7.22**. The last actual release-please release was v7.19.0 (`807ceab5`).
+
+**The gap**: versions 7.20–7.22 were stamped into source files but never went through the release-please flow (no release PR merged, no GitHub release created, no git tag).
+
+**To fix**, you have two options:
+
+1.
 
 ## Modified Files
 - .claude/HANDOFF.md.consumed
 
+## Patterns Noted
+- were **manually bumped to 7.22.0** on that feature branch, but **release-please never created releases for 7.20, 7.21, or 7.22**.
+- **The gap**: versions 7.20–7.22 were stamped into source files but never went through the release-please flow (no release PR merged, no GitHub release created, no git tag).
+
 ## Recent Tasks
-- P1.2+P3.9: Add effort + disallowedTools to 12 agents [completed]
-- P3.10: Add 128k output token awareness to relevant skills [completed]
-- P1.1: Fix README badge ≥2.1.76 → ≥2.1.78 [completed]
-- P1.3: Update version-compat table for 2.1.78 + 2.1.79 [completed]
-- P2.4-7: Update setup/configure skills for 2.1.79 features [completed]
-- P2.8: Integrate claude plugin validate into doctor skill [completed]
-- Build + test all changes [completed]
-- Verify CC 2.1.77-2.1.79 compatibility updates [completed]
+- Create mcp-visual-output skill (#1149) [completed]
+- Create multi-surface-render skill (#1151) [completed]
+- Upgrade ai-ui-generation — json-render first choice (#1153) [completed]
+- Upgrade testing-integration + testing-e2e — emulate first choice (#1154) [completed]
+- Upgrade design-to-code — Stage 4 RENDER (#1155) [completed]
+- Create genui-architect + emulate-engineer agents (#1156, #1157) [completed]
+- Upgrade playground — json-render output mode (#1159) [completed]
+- Update manifests + build + test [completed]

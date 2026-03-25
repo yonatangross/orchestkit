@@ -1,0 +1,60 @@
+{
+  "skill": "testing-llm",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "llm-mock-responses",
+      "rule": "llm-mocking",
+      "query": "How do I mock LLM API calls in my unit tests?",
+      "expectedBehavior": [
+        "Provides AsyncMock pattern for mocking LLM client responses",
+        "Uses unittest.mock.patch to replace the model factory",
+        "Emphasizes NEVER calling live LLM APIs in CI",
+        "Recommends VCR.py for record/replay in integration tests"
+      ]
+    },
+    {
+      "id": "deepeval-quality-metrics",
+      "rule": "llm-evaluation",
+      "query": "Evaluate the quality of my RAG pipeline output",
+      "expectedBehavior": [
+        "Uses DeepEval with multiple quality metrics (relevancy, faithfulness, hallucination)",
+        "Sets appropriate thresholds: relevancy >= 0.7, faithfulness >= 0.8, hallucination <= 0.3",
+        "Tests with LLMTestCase including input, actual_output, and retrieval_context",
+        "Validates structured output with Pydantic schema before quality scoring"
+      ]
+    },
+    {
+      "id": "vcr-integration-testing",
+      "rule": "llm-mocking",
+      "query": "Set up VCR.py for deterministic LLM integration tests in CI",
+      "expectedBehavior": [
+        "Configures VCR with record_mode='none' in CI, 'new_episodes' locally",
+        "Filters sensitive headers (authorization, x-api-key) from cassettes",
+        "Uses pytest.mark.vcr decorator for clean test integration",
+        "Ensures deterministic replay without network access in CI"
+      ]
+    },
+    {
+      "id": "structured-output-validation",
+      "rule": "llm-evaluation",
+      "query": "Test that my LLM always returns valid structured JSON output",
+      "expectedBehavior": [
+        "Validates output with Pydantic BaseModel schema",
+        "Tests field constraints (min_length, ge/le bounds) not just presence",
+        "Covers edge cases: empty input, long input, unicode, schema violations",
+        "Asserts more than 'is not None' — uses full schema validation"
+      ]
+    },
+    {
+      "id": "negative-frontend-e2e",
+      "rule": null,
+      "query": "Write Playwright E2E tests for my checkout page",
+      "expectedBehavior": [
+        "Should NOT apply LLM testing patterns to a browser E2E test",
+        "Should redirect to testing-e2e skill for Playwright-based testing",
+        "Does not suggest DeepEval, VCR.py, or LLM mocking for UI tests"
+      ]
+    }
+  ]
+}

@@ -132,11 +132,11 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "emulate-engineer",
-    "description": "Stateful API emulation specialist using Vercel's emulate. Seeds emulate environments for GitHub, Vercel, and Google APIs. Configures webhook routes, per-worker port isolation for parallel CI, and auth token setup. Use when setting up test environments, configuring CI pipelines, or replacing flaky API mocks with stateful emulation.",
+    "description": "Stateful API emulation with Vercel emulate. Seeds GitHub/Vercel/Google API environments, configures webhooks and port isolation. Use when replacing flaky API mocks with stateful emulation.",
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "development"
   },
   {
@@ -177,11 +177,11 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "genui-architect",
-    "description": "json-render catalog design specialist. Designs Zod-typed component catalogs, selects optimal shadcn components, constrains props for AI safety, and optimizes specs for token efficiency. Use when building AI-generated UIs, defining component catalogs, or migrating from custom GenUI to json-render.",
+    "description": "json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
     "plugins": [
       "ork"
     ],
-    "model": "sonnet",
+    "model": "inherit",
     "category": "development"
   },
   {

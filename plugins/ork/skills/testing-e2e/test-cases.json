@@ -1,0 +1,71 @@
+{
+  "skill": "testing-e2e",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "playwright-semantic-locators",
+      "rule": "e2e-playwright",
+      "query": "Write a Playwright E2E test for the checkout flow",
+      "expectedBehavior": [
+        "Uses semantic locators: getByRole, getByLabel, getByPlaceholder over CSS selectors",
+        "Uses Playwright auto-wait instead of hardcoded waitForTimeout calls",
+        "Follows locator priority: getByRole > getByLabel > getByPlaceholder > getByTestId",
+        "Structures test with clear user flow steps"
+      ]
+    },
+    {
+      "id": "page-object-model",
+      "rule": "e2e-page-objects",
+      "query": "Set up page objects for my Playwright test suite",
+      "expectedBehavior": [
+        "Creates page object classes with locators defined in the constructor",
+        "Includes action methods for user interactions and assertion methods for verification",
+        "Encapsulates page-specific logic to avoid duplication across tests",
+        "Supports visual regression with toHaveScreenshot in page assertions"
+      ]
+    },
+    {
+      "id": "accessibility-axe-core",
+      "rule": "a11y-playwright",
+      "query": "Add accessibility checks to my Playwright E2E tests",
+      "expectedBehavior": [
+        "Uses @axe-core/playwright AxeBuilder for full-page WCAG scanning",
+        "Targets WCAG 2.2 AA compliance with wcag2a, wcag2aa, wcag22aa tags",
+        "Tests interactive states (modals, dropdowns) for accessibility violations",
+        "Asserts results.violations is empty for each page"
+      ]
+    },
+    {
+      "id": "emulate-backend-e2e",
+      "rule": "emulate-e2e",
+      "query": "How should I test GitHub API interactions in my E2E tests without hitting real APIs?",
+      "expectedBehavior": [
+        "Recommends emulate backends as FIRST CHOICE for deterministic E2E",
+        "Provides seed config pattern for reproducible test data",
+        "Shows per-worker port isolation for parallel Playwright execution",
+        "Explains benefits over MSW/Nock: full state machines, CI-friendly"
+      ]
+    },
+    {
+      "id": "ai-agent-test-workflow",
+      "rule": "e2e-ai-agents",
+      "query": "Set up AI-powered test generation with Playwright 1.58",
+      "expectedBehavior": [
+        "Describes the Planner/Generator/Healer three-agent workflow",
+        "References npx playwright init-agents --loop=claude for Claude Code",
+        "Mentions token-efficient CLI mode for reduced context overhead",
+        "Explains Healer auto-fixes: selectors, waits, dynamic content"
+      ]
+    },
+    {
+      "id": "negative-unit-test-request",
+      "rule": null,
+      "query": "Write unit tests for my pure utility function that calculates discounts",
+      "expectedBehavior": [
+        "Should NOT recommend Playwright or E2E patterns for pure logic",
+        "Should redirect to testing-unit skill for isolated business logic tests",
+        "Does not suggest page objects or browser testing for utility functions"
+      ]
+    }
+  ]
+}
