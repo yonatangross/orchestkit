@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.80. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.83. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -154,6 +154,21 @@ OrchestKit requires Claude Code >= 2.1.80. This matrix documents which CC featur
 | Windows line-by-line streaming disabled | 2.1.81 | Disabled line-by-line streaming on Windows/WSL due to rendering issues | Rendering glitches on Windows |
 | Remote Control fixes (4) | 2.1.81 | Session titles, /rename sync, /exit archiving, first-prompt titles fixed | Generic titles, unreliable archiving |
 | Voice mode fixes (2) | 2.1.81 | Retry failure messages and WebSocket recovery fixed | Misleading errors, dropped audio |
+| `managed-settings.d/` drop-in directory | 2.1.83 | Separate teams deploy independent policy fragments, merged alphabetically | Single monolithic managed-settings.json |
+| `CwdChanged` hook event | 2.1.83 | Reactive hooks on working directory change (direnv-like) | No cwd change detection |
+| `FileChanged` hook event | 2.1.83 | Reactive hooks on file changes (cache invalidation, tamper detection) | No file change detection |
+| `sandbox.failIfUnavailable` | 2.1.83 | Fail-fast when sandbox unavailable instead of running unsandboxed | Silently falls back to unsandboxed |
+| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | 2.1.83 | Strip Anthropic/cloud creds from subprocess environments | Creds inherited by subprocesses |
+| Agent `initialPrompt` frontmatter | 2.1.83 | Auto-submit first turn on agent spawn, zero-wasted-turn bootstrap | Agents idle on spawn until first interaction |
+| Plugin `userConfig` with `sensitive:true` | 2.1.83 | Plugin config at enable time, keychain storage for sensitive values | Plain env vars for all secrets |
+| `TaskOutput` deprecated | 2.1.83 | Use `Read` on background task output file instead | `TaskOutput` still functional but deprecated |
+| `--bare -p` 14% faster | 2.1.83 | Faster eval pipeline startup | Slower `--bare` startup |
+| Background agent compaction fix | 2.1.83 | Background agents no longer become invisible after compaction | Duplicate agents spawned post-compaction |
+| Background agent stuck state fix | 2.1.83 | Background tasks no longer stuck "running" when git/API hangs | Stuck tasks require manual cleanup |
+| Uninstalled plugin hooks fix | 2.1.83 | Hooks stop firing immediately after plugin uninstall | Stale hooks fire until next session |
+| Transcript search (`/` in Ctrl+O) | 2.1.83 | Search through transcript with n/N stepping | No transcript search |
+| Plugin disk cache startup | 2.1.83 | Commands/skills/agents load from cache without re-fetching | Slower startup from disk walks |
+| Plugin MCP dedup | 2.1.83 | Plugin MCP servers duplicating org connectors are suppressed | Duplicate MCP connections |
 
 ## Version Detection
 

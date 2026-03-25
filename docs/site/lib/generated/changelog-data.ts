@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.23.0",
+    "date": "2026-03-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.83 adoption — Tier 1 quick wins**:\n  - `sandbox.failIfUnavailable: true` — fail-fast when sandbox runtime unavailable instead of running unsandboxed\n  - `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` — strip Anthropic/cloud credentials from all subprocess environments (Bash, hooks, MCP servers)\n  - `initialPrompt` for all 15 background agents — zero-wasted-turn bootstrap on spawn\n  - `userConfig` with `sensitive:true` — keychain-backed webhook token storage via manifest",
+          "**RTK proxy compatibility** — git-validator and guardGitCommand now strip `rtk ` prefix before pattern matching, ensuring commit/branch validation works with RTK-rewritten commands"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**Deprecated `TaskOutput` removed** from 6 agents (eval-runner, release-engineer, monitoring-engineer, data-pipeline-engineer, market-intelligence, web-research-analyst) — replaced by `Read` on background task output file per CC 2.1.83 deprecation",
+          "**CC version requirement** bumped to >= 2.1.83 (from >= 2.1.81)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.22.1",
     "date": "2026-03-24",
     "compareUrl": "",

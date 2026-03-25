@@ -67,6 +67,14 @@ function extractNewBranchName(command: string): string | null {
   return null;
 }
 
+/**
+ * Strip CLI proxy prefixes (e.g. `rtk git ...` → `git ...`) so pattern
+ * matching works regardless of whether a token-optimizing proxy is active.
+ */
+function stripProxyPrefix(cmd: string): string {
+  return cmd.replace(/^rtk\s+/, '');
+}
+
 // =============================================================================
 // VALIDATION FUNCTIONS
 // =============================================================================
@@ -226,7 +234,7 @@ function validateAtomicCommit(command: string, projectDir?: string): HookResult 
 // =============================================================================
 
 export function gitValidator(input: HookInput): HookResult {
-  const command = input.tool_input.command || '';
+  const command = stripProxyPrefix(input.tool_input.command || '');
 
   if (!command.startsWith('git')) {
     return outputSilentSuccess();
