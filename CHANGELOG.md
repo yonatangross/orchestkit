@@ -5,6 +5,34 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.25.0] - 2026-03-26
+
+### Added
+
+- **`/ork:expect` — Diff-Aware AI Browser Testing** (M99, 18 issues):
+  - Skill scaffold: SKILL.md (301 lines), 13 reference files, 5 rules, 3 scripts, 12 test cases (#1165)
+  - Git diff scanner: 4 target modes (changes/unstaged/branch/commit), 3 data levels (files/stats/preview), magnitude-based 12-file prioritization (#1166)
+  - SHA-256 fingerprint gating: check/save/clear commands, zero-cost skip when unchanged (#1167)
+  - Scope-aware test depth: commit=narrow(2-4), unstaged=exact(2-3), changes=combined(3-5), branch=thorough(5-8) (#1168)
+  - AI test plan generation: 8-section prompt template with coverage context, ARIA-first interaction, anti-rabbit-hole heuristics (#1169)
+  - Machine-parseable status protocol: STEP_START/STEP_DONE/ASSERTION_FAILED/RUN_COMPLETED with parser (#1170)
+  - Failure categorization: 6 types (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread) (#1171)
+  - ARIA snapshot diffing: semantic UI change detection via accessibility tree comparison (#1172)
+  - Saved test flows: Markdown+YAML format_version 1 with adaptive replay (#1173)
+  - Test coverage context: cross-reference changed files with existing tests, 4 patterns (#1174)
+  - Execution engine: agent-browser orchestration, auth profiles, failure decision tree (#1175)
+  - Report generator: terminal/CI/JSON output, GitHub Actions annotations, exit codes (#1176)
+  - `.expect/config.yaml` convention: base_url, route_map, auth, ARIA snapshots, accessibility (#1177)
+  - rrweb session recording: DOM event replay without video encoding (#1178)
+  - Human-in-the-loop plan review: AskUserQuestion gate before execution (#1179)
+  - CI integration: GitHub Actions workflow, pre-push hook, fingerprint-gated zero-cost skip (#1180)
+  - Research reference: millionco/expect architecture analysis + feature comparison (#1181)
+  - `expect-agent`: specialized browser test execution subagent (#1182)
+- **Skill count** 99 → 100, **agent count** 35 → 36, **invocable commands** 20 → 21
+
+---
+
+
 ## [7.24.2] - 2026-03-26
 
 ### Added
