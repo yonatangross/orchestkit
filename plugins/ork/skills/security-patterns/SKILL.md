@@ -25,6 +25,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths: ["src/**/auth/**", "src/**/middleware/**", "**/*security*"]
 ---
 
 # Security Patterns

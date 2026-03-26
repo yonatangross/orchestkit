@@ -7,7 +7,7 @@ export const TOTALS: Totals = {
   "plugins": 1,
   "skills": 99,
   "agents": 35,
-  "hooks": 106,
+  "hooks": 109,
   "commands": 20,
   "compositions": 14
 };

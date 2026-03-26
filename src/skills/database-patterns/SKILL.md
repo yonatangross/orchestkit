@@ -22,6 +22,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths: ["**/migrations/**", "**/models/**", "alembic.ini", "**/schema*"]
 ---
 
 # Database Patterns

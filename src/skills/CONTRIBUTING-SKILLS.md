@@ -63,6 +63,9 @@ model: opus              # Model override
 targets:                 # Library version ranges — warns on mismatch (CC 2.1.80+)
   - library: next.js
     version: ">=16.0.0"
+paths:                   # YAML list of globs — auto-loaded when skill activates (CC 2.1.84+)
+  - "src/**/*.{ts,tsx}"
+  - "package.json"
 ```
 
 **Model invocation guide:**
@@ -351,7 +354,9 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 5. **Don't add MCP servers mid-session.** MCP tools are part of the cached prefix. Adding a server invalidates the cache for the entire conversation.
 
-6. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
+6. **MCP tool descriptions are capped at 2KB** (CC 2.1.84+). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions concise. Local MCP config wins over claude.ai connectors when both define the same server.
+
+7. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
 
 ### Reference
 

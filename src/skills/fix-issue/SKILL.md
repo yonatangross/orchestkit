@@ -28,6 +28,7 @@ triggers:
     - "there's a bug where users can't reset their passwords"
     - "something's causing 500 errors on the /api/users endpoint"
   anti-triggers: [implement, build, create, explore, review, brainstorm]
+paths: ["src/**/*.{ts,tsx,js,jsx}", "package.json", "CLAUDE.md"]
 ---
 
 # Fix Issue

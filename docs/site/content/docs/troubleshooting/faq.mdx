@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 ### What version of Claude Code do I need?
 
-OrchestKit requires Claude Code 2.1.75 or later. Check your version:
+OrchestKit requires Claude Code 2.1.84 or later. Check your version:
 
 ```bash
 claude --version
@@ -23,7 +23,7 @@ npm install -g @anthropic-ai/claude-code@latest
 
 ### How do I install OrchestKit?
 
-OrchestKit is a single plugin: **ork** — 99 skills, 35 agents, 106 hooks. Install with `claude install orchestkit/ork`.
+OrchestKit is a single plugin: **ork** — 99 skills, 35 agents, 109 hooks. Install with `claude install orchestkit/ork`.
 
 ### Can I use OrchestKit with other Claude Code plugins?
 
@@ -43,7 +43,7 @@ This is opt-in via an environment variable. Without it, OrchestKit operates enti
 
 ### How many skills are there?
 
-98 total: 20 command skills (user-invocable via `/ork:skillname`) and 78 reference skills (knowledge modules auto-injected by agents and hooks).
+99 total: 20 command skills (user-invocable via `/ork:skillname`) and 79 reference skills (knowledge modules auto-injected by agents and hooks).
 
 ### What does `complexity: low|medium|high|max` mean?
 
@@ -103,7 +103,7 @@ Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter.
 
 ### How many hooks are there?
 
-106 total: 37 global hooks, 47 agent-scoped hooks, and 22 skill-scoped hooks. They are compiled into 12 split bundles for faster loading.
+109 total: 40 global hooks, 47 agent-scoped hooks, and 22 skill-scoped hooks. They are compiled into 12 split bundles for faster loading.
 
 ### What are fire-and-forget hooks?
 
@@ -162,6 +162,23 @@ This issue is tracked in [#698](https://github.com/yonatangross/orchestkit/issue
 ---
 
 ## Compatibility
+
+### Does OrchestKit work with RTK (Rust Token Killer)?
+
+Yes. Since v7.23.0, OrchestKit automatically strips the `rtk ` prefix from commands before validation. This means git hooks (commit message validation, branch protection, branch naming) work correctly whether you run `git commit` or `rtk git commit`.
+
+[RTK](https://github.com/rtk-ai/rtk) (v0.33.1, MIT, `brew install rtk`) is a Rust-based CLI proxy that compresses shell output, saving 60-90% of tokens. It integrates via a PreToolUse hook — the same mechanism OrchestKit uses. Both coexist without conflicts.
+
+**Recommended setup** when using both:
+
+```bash
+# Use --hook-only to avoid RTK modifying CLAUDE.md (OrchestKit manages it)
+rtk init -g --hook-only
+```
+
+No additional OrchestKit configuration is needed — the proxy prefix stripping runs automatically in the `git-validator` hook and `guardGitCommand()` guard.
+
+See [Safety Hooks — Git Validator](/docs/hooks/safety-hooks#git-validator) for technical details.
 
 ### Does OrchestKit work on Windows?
 

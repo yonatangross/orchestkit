@@ -21,6 +21,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths: ["src/**", "package.json", "tsconfig.json"]
 ---
 
 # Architecture Patterns

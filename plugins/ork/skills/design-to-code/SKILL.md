@@ -43,6 +43,10 @@ triggers:
     - "implement the UI from this Figma mockup"
     - "build a component from this design"
   anti-triggers: [explore, assess, review, brainstorm, extract design]
+paths:
+  - "src/components/**/*.{tsx,css}"
+  - "**/*design-tokens*"
+  - ".storybook/**"
 ---
 
 # Design to Code

@@ -206,6 +206,84 @@ export ORCHESTKIT_MAX_FILE_LINES=500
 export ORCHESTKIT_MAX_TEST_FILE_LINES=800
 ```
 
+## Git Validator
+
+**Hook:** `pretool/bash/git-validator`
+**Event:** PreToolUse (Bash)
+**Behavior:** Validates git operations against project conventions — protected branches, commit message format, branch naming, and atomic commit rules.
+
+### What It Validates
+
+| Check | Description | Example Block |
+|-------|-------------|---------------|
+| **Protected branch** | Blocks direct commits/pushes to `main` or `master` | `git commit` while on `main` |
+| **Commit message** | Enforces conventional commit format: `type(scope): description` | `git commit -m "fixed stuff"` |
+| **Branch naming** | Requires valid prefixes: `feat/`, `fix/`, `issue/`, `chore/`, etc. | `git checkout -b my-branch` |
+| **Atomic commits** | Flags commits touching too many files or mixing concerns | Committing 30 unrelated files |
+
+### CLI Proxy Compatibility (RTK)
+
+[RTK (Rust Token Killer)](https://github.com/rtk-ai/rtk) is a high-performance CLI proxy that compresses shell output before it reaches Claude Code's context window, achieving 60-90% token savings. It works by intercepting commands via a PreToolUse hook — `rtk git status` runs `git status` under the hood and compresses the output.
+
+Because RTK prefixes commands with `rtk ` (e.g., `rtk git commit ...` instead of `git commit ...`), the prefixed command would bypass all git validation without normalization — `/^git\s+commit/` wouldn't match `rtk git commit`.
+
+OrchestKit strips proxy prefixes **before any validation**:
+
+```typescript
+/**
+ * Strip CLI proxy prefixes (e.g. `rtk git ...` → `git ...`) so pattern
+ * matching works regardless of whether a token-optimizing proxy is active.
+ */
+function stripProxyPrefix(cmd: string): string {
+  return cmd.replace(/^rtk\s+/, '');
+}
+```
+
+This runs in two locations:
+- **`git-validator`** — strips before commit message, branch name, and protected branch validation
+- **`guardGitCommand()`** — strips before the guard decides whether to activate git-related hooks
+
+The stripping is **always active** with zero configuration. When RTK is not in use, the regex simply doesn't match — zero overhead.
+
+<Callout type="info">
+Tested with RTK v0.33.1 (March 2026). Added in OrchestKit 7.23.0 (CC 2.1.83). If you use a different CLI proxy that prefixes commands, [open an issue](https://github.com/yonatangross/orchestkit/issues) to add its prefix to the strip pattern.
+</Callout>
+
+### Validation Flow
+
+```
+User runs: rtk git commit -m "bad message"
+         ↓
+Hook receives: "rtk git commit -m 'bad message'"
+         ↓
+stripProxyPrefix() → "git commit -m 'bad message'"
+         ↓
+Pattern /git\s+commit/ matches ✓
+         ↓
+Commit message validation runs correctly
+```
+
+### RTK + OrchestKit Coexistence
+
+Both RTK and OrchestKit use the PreToolUse hook system. They coexist without conflicts — RTK rewrites happen at the Bash execution layer (compressing output), while OrchestKit hooks validate the command _before_ execution.
+
+**Recommended setup:**
+
+```bash
+# Install RTK globally
+brew install rtk
+
+# Initialize RTK hooks globally (recommended over per-project)
+rtk init -g
+
+# Use --hook-only to avoid RTK modifying CLAUDE.md (OrchestKit manages it)
+rtk init -g --hook-only
+```
+
+<Callout type="warn">
+RTK v0.33.0+ replaces git status symbols (`*`, `+`, `~`, `?`) with plain-text labels (`modified`, `added`). If you have hooks or scripts that parse raw `git status` output, verify they handle the compressed format.
+</Callout>
+
 ## Permission Auto-Approve Hooks
 
 OrchestKit includes three permission hooks that reduce friction for safe operations.

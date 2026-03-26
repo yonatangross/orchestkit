@@ -29,6 +29,7 @@ triggers:
     - "cover the payment module with unit and integration tests"
     - "I just finished implementing checkout, now write tests"
   anti-triggers: [verify, run tests, npm test, fix, implement, review]
+paths: ["src/**/*.test.{ts,tsx,js}", "**/.coveragerc", "vitest.config.*", "jest.config.*"]
 ---
 
 # Cover — Test Suite Generator

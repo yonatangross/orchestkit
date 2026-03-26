@@ -5,6 +5,51 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.24.1] - 2026-03-26
+
+### Fixed
+
+- **Stop hook version display** — replaced hardcoded `ork@7.22.0` with build-time injection from `manifests/ork.json` via `__PLUGIN_VERSION__` placeholder
+- **Security: picomatch CVE-2026-33671 + CVE-2026-33672** — bumped picomatch to 4.0.4 across 3 directories; also bumped express-rate-limit (GHSA-46wh-pxpv-q5gq)
+- **Stale counts** — synced hook count (106→109), skill count (94/98→99), CC version (2.1.75→2.1.84) across 6 docs pages
+
+---
+
+## [7.24.0] - 2026-03-26
+
+### Added
+
+- **CC 2.1.84 adoption — Phase 1 quick wins**:
+  - `paths:` YAML glob lists on 13 skills — auto-loads relevant context files when skill activates (implement, design-to-code, memory, storybook-mcp, mcp-patterns, database-patterns, cover, fix-issue, devops-deployment, security-patterns, architecture-patterns, configure, explore)
+  - `CLAUDE_STREAM_IDLE_TIMEOUT_MS=180000` — prevents long-running agents (audit-full, implement) from hitting the 90s default idle timeout
+  - WorktreeCreate `type: "http"` support — returns worktree path via `hookSpecificOutput.worktreePath` for API-driven orchestration
+  - 21 CC 2.1.84 features added to doctor version compatibility matrix
+  - MCP 2KB tool description cap documented in CONTRIBUTING-SKILLS.md
+- **TaskCreated hook event** (CC 2.1.84) — 3 new handlers:
+  - `creation-tracker` — logs task creation events to JSONL + cross-project analytics
+  - `task-context-injector` — enriches tasks with branch/commit context via `additionalContext`
+  - `task-progress-initializer` — detects `[N/M]` numbered task patterns and initializes progress bar state
+- **38 unit tests** for TaskCreated hooks (creation-tracker, task-context-injector, task-progress-initializer)
+- **Fuzzy search with Fuse.js** — replaced `.includes()` substring matching in skill browser and agent selector with Fuse.js fuzzy search:
+  - Typo tolerance (threshold 0.35), multi-word queries, word-order-independent matching
+  - Relevance ranking with field weighting (name 3x, tags 2x, description 1x)
+  - 150ms debounced input to prevent result flashing
+  - `<Highlight>` component renders match ranges with yellow highlights
+  - "Did you mean?" smart empty state with relaxed-threshold suggestions
+  - Shared `useFuzzySearch` hook and `createSearch()` / `createRelaxedSearch()` in `lib/search.ts`
+  - 23 unit tests covering fuzzy matching, relevance ranking, match metadata, and relaxed suggestions
+- **RTK (Rust Token Killer) documentation** — added Git Validator section to safety-hooks docs covering `stripProxyPrefix()` flow, RTK v0.33.1 coexistence guide, `--hook-only` setup, and git status output change warning; added RTK FAQ entry
+
+### Changed
+
+- **CC version requirement** bumped to >= 2.1.84 (from >= 2.1.83)
+- **Hook count** 106 → 109 (37 → 40 global hooks)
+- **HookEvent type** updated: added `TaskCreated` event
+- **HookInput type** updated: added `type` field for WorktreeCreate HTTP, `task_description` for TaskCreated
+- **HookSpecificOutput type** updated: added `worktreePath` field for WorktreeCreate HTTP
+
+---
+
 ## [7.23.0] - 2026-03-25
 
 ### Added

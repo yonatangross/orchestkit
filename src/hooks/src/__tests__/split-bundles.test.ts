@@ -109,7 +109,7 @@ describe('Split Bundle Entry Points', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
       // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
-      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/', 'elicitation/'];
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-created/', 'task-completed/', 'worktree/', 'config-change/', 'instructions-loaded/', 'elicitation/'];
       expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
@@ -331,7 +331,8 @@ describe('Cross-Bundle Consistency', () => {
     // 176 -> 179: CC 2.1.76 — added post-compact-recovery (lifecycle), elicitation-guard + elicitation-result-logger (lifecycle)
     // 179 -> 180: stale-cache-cleanup (lifecycle)
     // 180 -> 181: #1106 — stop-failure-handler (CC 2.1.78 StopFailure event)
-    expect(totalHooks).toBe(181);
+    // 181 -> 184: CC 2.1.84 — added creation-tracker, task-context-injector, task-progress-initializer (TaskCreated hooks)
+    expect(totalHooks).toBe(184);
   });
 });
 

@@ -11,6 +11,9 @@
 
 import { execSync } from 'node:child_process';
 
+// Injected by build-plugins.sh at build time from manifests/ork.json
+const PLUGIN_VERSION = '__PLUGIN_VERSION__';
+
 async function main() {
   // Drain stdin (required by hook protocol)
   const chunks = [];
@@ -48,7 +51,7 @@ async function main() {
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `[ork@7.22.0] Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
+          systemMessage: `[ork@${PLUGIN_VERSION}] Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
         })
       );
     } else {

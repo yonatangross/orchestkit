@@ -1408,7 +1408,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.83. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.84. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1575,6 +1575,26 @@ OrchestKit requires Claude Code >= 2.1.83. This matrix documents which CC featur
 | Transcript search (`/` in Ctrl+O) | 2.1.83 | Search through transcript with n/N stepping | No transcript search |
 | Plugin disk cache startup | 2.1.83 | Commands/skills/agents load from cache without re-fetching | Slower startup from disk walks |
 | Plugin MCP dedup | 2.1.83 | Plugin MCP servers duplicating org connectors are suppressed | Duplicate MCP connections |
+| `TaskCreated` hook event | 2.1.84 | Task initialization tracking, metadata injection, dependency validation | No hook on task creation |
+| WorktreeCreate `type: "http"` | 2.1.84 | Return worktree path via `hookSpecificOutput.worktreePath` for API-driven orchestration | Command hooks only |
+| `paths:` YAML glob list (skills/rules) | 2.1.84 | Auto-load relevant files when skill activates; 15+ skills use this | Manual Read calls for context |
+| `ANTHROPIC_DEFAULT_\{OPUS,SONNET,HAIKU\}_MODEL_SUPPORTS` | 2.1.84 | Override effort/thinking capability detection for Bedrock/Vertex/Foundry | Incorrect capability detection on 3P |
+| `ANTHROPIC_DEFAULT_*_MODEL_NAME/_DESCRIPTION` | 2.1.84 | Customize /model picker labels for custom deployments | Generic model labels |
+| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | 2.1.84 | Configurable streaming idle watchdog (default 90s, OrchestKit sets 180s) | Fixed 90s timeout kills long agents |
+| `allowedChannelPlugins` managed setting | 2.1.84 | Enterprise admin plugin allowlist for channel plugins | No channel plugin governance |
+| `x-client-request-id` header | 2.1.84 | API request correlation ID for debugging timeouts | No request-level tracing |
+| PowerShell tool (Windows opt-in) | 2.1.84 | Native PowerShell as alternative to Git Bash on Windows | Git Bash only on Windows |
+| MCP tool description 2KB cap | 2.1.84 | Prevents OpenAPI-generated servers from bloating context | Unbounded MCP tool descriptions |
+| MCP server deduplication | 2.1.84 | Local MCP config wins over claude.ai connectors | Duplicate MCP connections |
+| Workflow subagent `json-schema` fix | 2.1.84 | Outer session + subagent both specifying schema no longer 400s | API 400 on nested json-schema |
+| System-prompt caching + ToolSearch | 2.1.84 | Global caching works when ToolSearch enabled (incl. MCP users) | Cache misses with ToolSearch |
+| Idle-return prompt (75+ min) | 2.1.84 | Nudges `/clear` after 75+ minutes idle, reduces stale token re-caching | No idle session detection |
+| `owner/repo#123` link format | 2.1.84 | Bare `#123` no longer auto-linked; must use `owner/repo#123` | Bare `#123` was auto-linked |
+| Improved startup parallelism (30ms) | 2.1.84 | `setup()` runs in parallel with slash command and agent loading | Sequential startup |
+| MCP startup non-blocking | 2.1.84 | REPL renders immediately, MCP servers connect in background | REPL blocked until all MCP servers connect |
+| Background bash stuck notification | 2.1.84 | Tasks stuck on interactive prompt surface notification after ~45s | Stuck tasks hang silently |
+| MCP cache leak fix on reconnect | 2.1.84 | Tool/resource cache properly cleaned on server reconnect | Memory leak on MCP reconnect |
+| `p90` prompt cache rate improvement | 2.1.84 | Better prompt caching across sessions | Lower cache hit rate |
 
 ## Version Detection
 
@@ -1609,6 +1629,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.79 | Full++++++++++ | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 | >= 2.1.80 | Full+++++++++++ | rate_limits statusline, effort frontmatter, --channels, source:settings marketplace, --resume parallel fix |
 | >= 2.1.81 | Full++++++++++++ | --bare eval mode, --channels permission relay, plugin re-clone freshness, worktree resume, bg agent race fix |
+| >= 2.1.83 | Full+++++++++++++ | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig, env scrub |
+| >= 2.1.84 | Full++++++++++++++ | TaskCreated hook, WorktreeCreate HTTP, paths: globs, ANTHROPIC_DEFAULT_*, stream timeout, MCP 2KB cap, json-schema fix |
 
 ## Doctor Check Implementation
 
@@ -1687,6 +1709,8 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |
+| v7.23.x | 2.1.83 | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig sensitive, env scrub |
 | v7.15.x | 2.1.80 | effort frontmatter, rate_limits statusline, --channels, source:settings, simplified plugin tips |
 | v7.14.x | 2.1.79 | --console auth, /remote-control, multi-dir PLUGIN_SEED_DIR, turn duration toggle |
 | v7.14.x | 2.1.78 | StopFailure hooks, CLAUDE_PLUGIN_DATA, agent frontmatter, plugin validate, worktree skills fix |

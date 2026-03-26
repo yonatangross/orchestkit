@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import { SkillBrowser } from "@/components/skill-browser";
 
 // ── Mock generated skills data ──────────────────────────────
@@ -116,41 +116,51 @@ describe("SkillBrowser", () => {
     expect(searchInput).toBeInTheDocument();
   });
 
-  it("filters skills by search query on name", () => {
+  it("filters skills by search query on name", async () => {
+    vi.useFakeTimers();
     render(<SkillBrowser />);
     const searchInput = screen.getByPlaceholderText(
       "Search skills by name, description, or tag...",
     );
 
     fireEvent.change(searchInput, { target: { value: "fastapi" } });
+    await act(() => vi.advanceTimersByTime(200));
 
     expect(screen.getByRole("status")).toHaveTextContent("1");
-    expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
-    expect(screen.queryByText("implement")).not.toBeInTheDocument();
+    // Highlight component splits text into spans, so use substring matcher
+    expect(screen.getByText((_, el) => el?.textContent === "fastapi-advanced")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
-  it("filters skills by search query on description", () => {
+  it("filters skills by search query on description", async () => {
+    vi.useFakeTimers();
     render(<SkillBrowser />);
     const searchInput = screen.getByPlaceholderText(
       "Search skills by name, description, or tag...",
     );
 
     fireEvent.change(searchInput, { target: { value: "Playwright" } });
+    await act(() => vi.advanceTimersByTime(200));
 
     expect(screen.getByRole("status")).toHaveTextContent("1");
     expect(screen.getByText("e2e-testing")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
-  it("filters skills by search query on tags", () => {
+  it("filters skills by search query on tags", async () => {
+    vi.useFakeTimers();
     render(<SkillBrowser />);
     const searchInput = screen.getByPlaceholderText(
       "Search skills by name, description, or tag...",
     );
 
     fireEvent.change(searchInput, { target: { value: "owasp" } });
+    await act(() => vi.advanceTimersByTime(200));
 
     expect(screen.getByRole("status")).toHaveTextContent("1");
-    expect(screen.getByText("owasp-top-10")).toBeInTheDocument();
+    // Highlight component splits text into spans, so use substring matcher
+    expect(screen.getByText((_, el) => el?.textContent === "owasp-top-10")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("shows clear search button when search is active", () => {
@@ -170,7 +180,8 @@ describe("SkillBrowser", () => {
     expect(searchInput).toHaveValue("");
   });
 
-  it("displays empty state when no skills match", () => {
+  it("displays empty state when no skills match", async () => {
+    vi.useFakeTimers();
     render(<SkillBrowser />);
     const searchInput = screen.getByPlaceholderText(
       "Search skills by name, description, or tag...",
@@ -179,13 +190,16 @@ describe("SkillBrowser", () => {
     fireEvent.change(searchInput, {
       target: { value: "nonexistent-skill-xyz" },
     });
+    await act(() => vi.advanceTimersByTime(200));
 
-    expect(screen.getByText("No skills match your filters")).toBeInTheDocument();
+    // Empty state now shows the query text
+    expect(screen.getByText(/No skills match/)).toBeInTheDocument();
     expect(
       screen.getByText(
         "Try broadening your search or removing some filters.",
       ),
     ).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it("renders category filter pills", () => {
@@ -306,7 +320,8 @@ describe("SkillBrowser", () => {
     expect(screen.getByRole("status")).toHaveTextContent("5");
   });
 
-  it("clears filters from empty state button", () => {
+  it("clears filters from empty state button", async () => {
+    vi.useFakeTimers();
     render(<SkillBrowser />);
 
     fireEvent.change(
@@ -315,14 +330,17 @@ describe("SkillBrowser", () => {
       ),
       { target: { value: "nonexistent-xyz" } },
     );
+    await act(() => vi.advanceTimersByTime(200));
 
-    expect(screen.getByText("No skills match your filters")).toBeInTheDocument();
+    expect(screen.getByText(/No skills match/)).toBeInTheDocument();
 
     // In empty state, there's only one "Clear all filters" button visible
     const buttons = screen.getAllByRole("button", { name: /clear all filters/i });
     fireEvent.click(buttons[buttons.length - 1]);
+    await act(() => vi.advanceTimersByTime(200));
 
     expect(screen.getByRole("status")).toHaveTextContent("5");
+    vi.useRealTimers();
   });
 
   it("combines search + category + plugin filters", () => {

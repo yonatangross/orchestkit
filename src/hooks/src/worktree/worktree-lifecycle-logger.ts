@@ -5,6 +5,7 @@
  * Worktree Lifecycle Logger
  * Logs worktree creation and removal events, emits advisory context.
  * CC 2.1.76+: Detects monorepo and suggests worktree.sparsePaths.
+ * CC 2.1.84+: Supports type: "http" — returns worktree path via hookSpecificOutput.
  *
  * Hook events: WorktreeCreate, WorktreeRemove
  */
@@ -81,7 +82,8 @@ export function worktreeLifecycleLogger(input: HookInput): HookResult {
   if (event === 'WorktreeCreate') {
     // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth')
     const name = input.name || 'unknown';
-    logHook('worktree-lifecycle', `Worktree creating: name=${name}`);
+    const hookType = input.type;
+    logHook('worktree-lifecycle', `Worktree creating: name=${name}, type=${hookType || 'command'}`);
 
     // CC 2.1.76: Suggest worktree.sparsePaths for monorepos without sparse config
     const projectDir = input.project_dir || getProjectDir();
@@ -97,6 +99,16 @@ export function worktreeLifecycleLogger(input: HookInput): HookResult {
         'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
         'only those directories will be checked out in worktrees (CC 2.1.76+).';
       logHook('worktree-lifecycle', `Monorepo (${topDirCount} dirs) without sparsePaths — advisory injected`);
+    }
+
+    // CC 2.1.84: HTTP type hooks return worktree path via hookSpecificOutput
+    if (hookType === 'http') {
+      const worktreePath = join(projectDir, '.worktrees', name);
+      logHook('worktree-lifecycle', `HTTP type — returning worktreePath: ${worktreePath}`);
+      return {
+        ...outputPromptContext(advisory),
+        hookSpecificOutput: { worktreePath },
+      };
     }
 
     return outputPromptContext(advisory);
