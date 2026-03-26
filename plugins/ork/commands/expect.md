@@ -280,6 +280,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `config-schema.md` | .expect/config.yaml full schema |
 | `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
 | `scope-strategy.md` | Test depth strategy per target mode |
+| `saved-flows.md` | Markdown+YAML flow format, adaptive replay |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
