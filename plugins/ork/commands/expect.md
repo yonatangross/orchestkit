@@ -153,10 +153,14 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/route-map.md")`
 
 ## Phase 4: Test Plan Generation
 
-Build an AI test plan scoped to the diff:
+Build an AI test plan scoped to the diff, using the scope strategy for the current target:
 
 ```python
+scope_strategy = get_scope_strategy(TARGET)  # See references/scope-strategy.md
+
 prompt = f"""
+{scope_strategy}
+
 Changes: {diff_summary}
 Affected pages: {affected_urls}
 Instruction: {INSTRUCTION or "Test that the changes work correctly"}
@@ -275,6 +279,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `report.md` | Report format + artifact storage |
 | `config-schema.md` | .expect/config.yaml full schema |
 | `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
+| `scope-strategy.md` | Test depth strategy per target mode |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
