@@ -1,0 +1,127 @@
+{
+  "skill": "expect",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "trigger-basic",
+      "rule": null,
+      "query": "test my changes",
+      "expectedBehavior": [
+        "Triggers the expect skill, not cover or verify",
+        "Defaults to --target unstaged (git diff)",
+        "Runs the 6-phase pipeline: fingerprint, diff scan, route map, plan, execute, report"
+      ]
+    },
+    {
+      "id": "trigger-explicit",
+      "rule": null,
+      "query": "/ork:expect -m \"test the login flow\"",
+      "expectedBehavior": [
+        "Parses -m flag and sets INSTRUCTION to 'test the login flow'",
+        "Scopes test plan to login-related pages",
+        "Includes the instruction in the AI test plan generation prompt"
+      ]
+    },
+    {
+      "id": "target-branch",
+      "rule": null,
+      "query": "/ork:expect --target branch",
+      "expectedBehavior": [
+        "Uses git diff main...HEAD instead of git diff",
+        "Scans all changes on the current branch vs main",
+        "Maps all branch changes to affected pages"
+      ]
+    },
+    {
+      "id": "saved-flow-replay",
+      "rule": null,
+      "query": "/ork:expect --flow login",
+      "expectedBehavior": [
+        "Loads .expect/flows/login.yaml instead of generating a new plan",
+        "Replays the saved test steps via agent-browser",
+        "Reports pass/fail for each step in the flow"
+      ]
+    },
+    {
+      "id": "skip-review",
+      "rule": null,
+      "query": "/ork:expect -y",
+      "expectedBehavior": [
+        "Skips the plan review AskUserQuestion prompt",
+        "Proceeds directly from plan generation to execution",
+        "Still shows the test plan in output before executing"
+      ]
+    },
+    {
+      "id": "fingerprint-skip",
+      "rule": null,
+      "query": "/ork:expect (no changes since last run)",
+      "expectedBehavior": [
+        "Reads .expect/fingerprints.json and compares SHA-256 hashes",
+        "Detects no changes since last test run",
+        "Reports 'No changes since last test run' and exits without testing"
+      ]
+    },
+    {
+      "id": "no-route-map-inference",
+      "rule": null,
+      "query": "/ork:expect (no .expect/config.yaml)",
+      "expectedBehavior": [
+        "Detects missing .expect/config.yaml",
+        "Infers route map from Next.js App Router or Pages Router conventions",
+        "Falls back to testing base_url root if no framework detected"
+      ]
+    },
+    {
+      "id": "anti-trigger-cover",
+      "rule": null,
+      "query": "generate unit tests for the auth module",
+      "expectedBehavior": [
+        "Does NOT trigger expect — this is a cover/test-generation task",
+        "Should trigger the cover skill instead"
+      ]
+    },
+    {
+      "id": "anti-trigger-verify",
+      "rule": null,
+      "query": "verify the implementation works",
+      "expectedBehavior": [
+        "Does NOT trigger expect — this is a verify task",
+        "Should trigger the verify skill instead"
+      ]
+    },
+    {
+      "id": "diff-classification",
+      "rule": null,
+      "query": "/ork:expect (changed src/components/Button.tsx)",
+      "expectedBehavior": [
+        "Classifies Button.tsx as Direct (level 1)",
+        "Finds files that import Button as Imported (level 2)",
+        "Finds pages that render those files as Routed (level 3)",
+        "Tests all 3 levels with appropriate depth"
+      ]
+    },
+    {
+      "id": "report-format",
+      "rule": null,
+      "query": "/ork:expect (after execution completes)",
+      "expectedBehavior": [
+        "Produces structured report with pass/fail per page",
+        "Saves report to .expect/reports/ with ISO timestamp filename",
+        "Saves failure screenshots to .expect/screenshots/",
+        "Updates .expect/fingerprints.json with current hashes",
+        "Returns non-zero exit suggestion if any tests failed"
+      ]
+    },
+    {
+      "id": "task-tracking",
+      "rule": null,
+      "query": "/ork:expect -m \"test the dashboard\"",
+      "expectedBehavior": [
+        "Creates a main TaskCreate for the expect run",
+        "Updates task status progressively through each phase",
+        "Shows activeForm spinner during execution"
+      ]
+    }
+  ]
+}

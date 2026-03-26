@@ -59,7 +59,7 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=20   # Each adds ~50-100 tokens to system prompt
+MAX_USER_INVOCABLE_SKILLS=21   # Each adds ~50-100 tokens to system prompt
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 TOTAL_SESSION_MAX_TOKENS=5000  # Combined session overhead budget
 

@@ -182,7 +182,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "ai-llm",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 10
+    "usedByCount": 11
   },
   {
     "id": "checkpoint-resume",
@@ -385,6 +385,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "expect",
+    "label": "Expect",
+    "type": "command",
+    "complexity": "high",
+    "category": "testing",
+    "hasDeps": true,
+    "depCount": 4,
+    "usedByCount": 0
+  },
+  {
     "id": "explore",
     "label": "Explore",
     "type": "command",
@@ -562,7 +572,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 13
+    "usedByCount": 14
   },
   {
     "id": "memory-fabric",
@@ -842,7 +852,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 4
+    "usedByCount": 5
   },
   {
     "id": "testing-integration",
@@ -1196,6 +1206,22 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "doctor",
     "target": "configure"
+  },
+  {
+    "source": "expect",
+    "target": "testing-e2e"
+  },
+  {
+    "source": "expect",
+    "target": "chain-patterns"
+  },
+  {
+    "source": "expect",
+    "target": "memory"
+  },
+  {
+    "source": "expect",
+    "target": "agent-browser"
   },
   {
     "source": "explore",

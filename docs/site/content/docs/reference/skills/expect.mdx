@@ -1,0 +1,901 @@
+---
+title: "Expect"
+description: "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser. Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
+---
+
+<span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
+
+```bash title="Invoke"
+/ork:expect
+```
+
+<ContextualSkillSidebar slug="expect" />
+
+
+# Expect — Diff-Aware AI Browser Testing
+
+Analyze git changes, generate targeted test plans, and execute them via AI-driven browser automation.
+
+```bash
+/ork:expect                              # Auto-detect changes, test affected pages
+/ork:expect -m "test the checkout flow"  # Specific instruction
+/ork:expect --flow login                 # Replay a saved test flow
+/ork:expect --target branch              # Test all changes on current branch vs main
+/ork:expect -y                           # Skip plan review, run immediately
+```
+
+**Core principle:** Only test what changed. Git diff drives scope — no wasted cycles on unaffected pages.
+
+
+## Argument Resolution
+
+```python
+ARGS = "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
+
+# Parse from full argument string
+import re
+raw = ""  # Full argument string from CC
+
+INSTRUCTION = None
+TARGET = "unstaged"  # Default: test unstaged changes
+FLOW = None
+SKIP_REVIEW = False
+
+# Extract -m "instruction"
+m_match = re.search(r'-m\s+["\']([^"\']+)["\']|-m\s+(\S+)', raw)
+if m_match:
+    INSTRUCTION = m_match.group(1) or m_match.group(2)
+
+# Extract --target
+t_match = re.search(r'--target\s+(unstaged|branch|commit)', raw)
+if t_match:
+    TARGET = t_match.group(1)
+
+# Extract --flow
+f_match = re.search(r'--flow\s+(\S+)', raw)
+if f_match:
+    FLOW = f_match.group(1)
+
+# Extract -y
+if '-y' in raw.split():
+    SKIP_REVIEW = True
+```
+
+
+## STEP 0: MCP Probe + Prerequisite Check
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")
+
+# Verify agent-browser is available
+Bash("command -v agent-browser || npx agent-browser --version")
+# If missing: "Install agent-browser: npm i -g @anthropic-ai/agent-browser"
+```
+
+
+## CRITICAL: Task Management
+
+```python
+TaskCreate(
+  subject="Expect: test changed code",
+  description="Diff-aware browser testing pipeline",
+  activeForm="Running diff-aware browser tests"
+)
+```
+
+
+## Pipeline Overview
+
+```
+Git Diff → Route Map → Fingerprint Check → Test Plan → Execute → Report
+```
+
+| Phase | What | Output | Reference |
+|-------|------|--------|-----------|
+| **1. Fingerprint** | SHA-256 hash of changed files | Skip if unchanged since last run | `references/fingerprint.md` |
+| **2. Diff Scan** | Parse git diff, classify changes | ChangesFor data (files, components, routes) | `references/diff-scanner.md` |
+| **3. Route Map** | Map changed files to affected pages/URLs | Scoped page list | `references/route-map.md` |
+| **4. Test Plan** | Generate AI test plan from diff + route map | Markdown test plan with steps | `references/test-plan.md` |
+| **5. Execute** | Run test plan via agent-browser | Pass/fail per step, screenshots | `references/execution.md` |
+| **6. Report** | Aggregate results, artifacts, exit code | Structured report + artifacts | `references/report.md` |
+
+
+## Phase 1: Fingerprint Check
+
+Check if the current changes have already been tested:
+
+```python
+Read(".expect/fingerprints.json")  # Previous run hashes
+# Compare SHA-256 of changed files against stored fingerprints
+# If match: "No changes since last test run. Use --force to re-run."
+# If no match or --force: continue to Phase 2
+```
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/fingerprint.md")`
+
+
+## Phase 2: Diff Scan
+
+Analyze git changes based on `--target`:
+
+```python
+if TARGET == "unstaged":
+    diff = Bash("git diff")
+    files = Bash("git diff --name-only")
+elif TARGET == "branch":
+    diff = Bash("git diff main...HEAD")
+    files = Bash("git diff main...HEAD --name-only")
+elif TARGET == "commit":
+    diff = Bash("git diff HEAD~1")
+    files = Bash("git diff HEAD~1 --name-only")
+```
+
+Classify each changed file into 3 levels:
+1. **Direct** — the file itself changed
+2. **Imported** — a file that imports the changed file
+3. **Routed** — the page/route that renders the changed component
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/diff-scanner.md")`
+
+
+## Phase 3: Route Map
+
+Map changed files to testable URLs using `.expect/config.yaml`:
+
+```yaml
+# .expect/config.yaml
+base_url: http://localhost:3000
+route_map:
+  "src/components/Header.tsx": ["/", "/about", "/pricing"]
+  "src/app/auth/**": ["/login", "/signup", "/forgot-password"]
+  "src/app/dashboard/**": ["/dashboard"]
+```
+
+If no route map exists, infer from Next.js App Router / Pages Router conventions.
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/route-map.md")`
+
+
+## Phase 4: Test Plan Generation
+
+Build an AI test plan scoped to the diff:
+
+```python
+prompt = f"""
+Changes: {diff_summary}
+Affected pages: {affected_urls}
+Instruction: {INSTRUCTION or "Test that the changes work correctly"}
+
+Generate a test plan with:
+1. Page-level checks (loads, no console errors, correct content)
+2. Interaction tests (forms, buttons, navigation affected by the diff)
+3. Visual regression (compare ARIA snapshots if saved)
+4. Accessibility (axe-core scan on affected pages)
+"""
+```
+
+If `--flow` specified, load saved flow from `.expect/flows/\{slug\}.yaml` instead of generating.
+
+If NOT `--y`, present plan to user via `AskUserQuestion` for review before executing.
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/test-plan.md")`
+
+
+## Phase 5: Execution
+
+Run the test plan via `agent-browser`:
+
+```python
+Agent(
+  subagent_type="general-purpose",
+  prompt=f"""Execute this test plan using agent-browser:
+  {test_plan}
+
+  For each step:
+  1. Navigate to the URL
+  2. Execute the test action
+  3. Take a screenshot on failure
+  4. Report PASS/FAIL with evidence
+
+  Use the agent-browser skill for all browser interactions.
+  """,
+  run_in_background=True
+)
+```
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/execution.md")`
+
+
+## Phase 6: Report
+
+```
+/ork:expect Report
+═══════════════════════════════════════
+Target: unstaged (3 files changed)
+Pages tested: 4
+Duration: 45s
+
+Results:
+  ✓ /login — form renders, submit works
+  ✓ /signup — validation triggers on empty fields
+  ✗ /dashboard — chart component crashes (TypeError)
+  ✓ /settings — preferences save correctly
+
+3 passed, 1 failed
+
+Artifacts:
+  .expect/reports/2026-03-26T16-30-00.json
+  .expect/screenshots/dashboard-error.png
+```
+
+Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/report.md")`
+
+
+## Saved Flows
+
+Reusable test sequences stored in `.expect/flows/`:
+
+```yaml
+# .expect/flows/login.yaml
+name: Login Flow
+steps:
+  - navigate: /login
+  - fill: { selector: "#email", value: "test@example.com" }
+  - fill: { selector: "#password", value: "password123" }
+  - click: button[type="submit"]
+  - assert: { url: "/dashboard" }
+  - assert: { text: "Welcome back" }
+```
+
+Run with: `/ork:expect --flow login`
+
+
+## When NOT to Use
+
+- **Unit tests** — use `/ork:cover` instead
+- **API-only changes** — no browser UI to test
+- **Generated files** — skip build artifacts, lock files
+- **Docs-only changes** — unless you want to verify docs site rendering
+
+
+## Related Skills
+
+- `agent-browser` — Browser automation engine (required dependency)
+- `ork:cover` — Test suite generation (unit/integration/e2e)
+- `ork:verify` — Grade existing test quality
+- `testing-e2e` — Playwright patterns and best practices
+
+
+## References
+
+Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
+
+| File | Content |
+|------|---------|
+| `fingerprint.md` | SHA-256 gating logic |
+| `diff-scanner.md` | Git diff parsing + 3-level classification |
+| `route-map.md` | File-to-URL mapping conventions |
+| `test-plan.md` | AI test plan generation prompt templates |
+| `execution.md` | agent-browser orchestration patterns |
+| `report.md` | Report format + artifact storage |
+| `config-schema.md` | .expect/config.yaml full schema |
+| `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
+
+
+**Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
+
+
+---
+
+## References (8)
+
+### Aria Diffing
+
+# ARIA Snapshot Diffing
+
+Semantic UI change detection using ARIA tree snapshots instead of pixel-based visual regression.
+
+## Why ARIA Over Screenshots
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| Screenshot diff | Catches visual regressions | Brittle (font rendering, anti-aliasing, viewport), large files |
+| ARIA snapshot | Semantic, tiny diffs, framework-agnostic | Misses purely visual changes (colors, spacing) |
+
+ARIA diffing catches **structural and semantic** changes — missing labels, changed hierarchy, removed interactive elements — which are the changes most likely to break user experience.
+
+## Snapshot Format
+
+```json
+{
+  "page": "/login",
+  "timestamp": "2026-03-26T16:30:00Z",
+  "tree": {
+    "role": "main",
+    "name": "Login",
+    "children": [
+      {
+        "role": "heading",
+        "name": "Sign In",
+        "level": 1
+      },
+      {
+        "role": "form",
+        "name": "Login form",
+        "children": [
+          { "role": "textbox", "name": "Email" },
+          { "role": "textbox", "name": "Password" },
+          { "role": "button", "name": "Sign In" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Capturing Snapshots
+
+Via agent-browser:
+```
+Navigate to /login
+Run: document.querySelector('main').computedRole  // or use axe-core
+Extract ARIA tree as JSON
+Save to .expect/snapshots/login.json
+```
+
+## Diffing Algorithm
+
+1. Load previous snapshot from `.expect/snapshots/\{page-slug\}.json`
+2. Capture current ARIA tree
+3. Compute structural diff:
+   - Added nodes (new elements)
+   - Removed nodes (deleted elements)
+   - Changed names/roles (label changes)
+   - Reordered children (layout changes)
+4. Score the diff as a percentage of total nodes changed
+5. Flag if above `diff_threshold` (default 10%)
+
+## Diff Output
+
+```
+ARIA Diff: /login
+  + Added: textbox "Confirm Password" (new field)
+  - Removed: link "Forgot Password?" (was in form)
+  ~ Changed: button "Sign In" → "Log In" (label changed)
+
+Change score: 15% (threshold: 10%) — FLAGGED
+```
+
+
+### Config Schema
+
+# .expect/config.yaml Schema
+
+Project-level configuration for /ork:expect.
+
+## Full Schema
+
+```yaml
+# .expect/config.yaml
+
+# Base URL for the application under test
+base_url: http://localhost:3000
+
+# Dev server start command (optional — expect can start it for you)
+dev_command: npm run dev
+dev_ready_pattern: "ready on"  # Pattern in stdout that signals server is ready
+dev_timeout: 30                # Seconds to wait for dev server
+
+# File-to-URL route mapping
+route_map:
+  "src/components/Header.tsx": ["/", "/about", "/pricing"]
+  "src/app/auth/**": ["/login", "/signup", "/forgot-password"]
+  "src/app/dashboard/**": ["/dashboard"]
+  "src/app/settings/**": ["/settings"]
+
+# Test parameters for dynamic routes
+test_params:
+  slug: "test-post"
+  id: "1"
+  username: "testuser"
+
+# Auth configuration for protected pages
+auth:
+  strategy: cookie          # cookie | bearer | basic
+  login_url: /login
+  credentials:
+    email: test@example.com
+    password: from_env:TEST_PASSWORD  # Read from environment variable
+
+# ARIA snapshot settings
+aria_snapshots:
+  enabled: true
+  storage: .expect/snapshots/
+  diff_threshold: 0.1  # 10% change tolerance before flagging
+
+# Accessibility settings
+accessibility:
+  enabled: true
+  standard: wcag2aa     # wcag2a | wcag2aa | wcag2aaa
+  ignore_rules: []      # axe-core rule IDs to skip
+
+# Report settings
+reports:
+  storage: .expect/reports/
+  keep_last: 10         # Number of reports to retain
+  screenshots: on_fail  # always | on_fail | never
+
+# Files to ignore in diff scanning
+ignore_patterns:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "*.md"
+  - "*.json"
+  - "package-lock.json"
+  - ".env*"
+```
+
+## Minimal Config
+
+```yaml
+base_url: http://localhost:3000
+```
+
+Everything else has sensible defaults or is inferred from the framework.
+
+## Environment Variable Injection
+
+Use `from_env:VAR_NAME` syntax for sensitive values:
+
+```yaml
+auth:
+  credentials:
+    password: from_env:TEST_PASSWORD
+    api_key: from_env:TEST_API_KEY
+```
+
+
+### Diff Scanner
+
+# Diff Scanner
+
+Parse git diff output and classify changed files into 3 levels for test targeting.
+
+## 3-Level Classification
+
+| Level | Name | Description | Example |
+|-------|------|-------------|---------|
+| 1 | **Direct** | The file itself changed | `src/components/Button.tsx` |
+| 2 | **Imported** | Files that import the changed file | `src/components/Header.tsx` (imports Button) |
+| 3 | **Routed** | Pages/routes that render level 1 or 2 files | `/dashboard` (renders Header → Button) |
+
+## Diff Parsing
+
+```bash
+# Get changed files based on target
+git diff --name-only                    # unstaged
+git diff main...HEAD --name-only        # branch
+git diff HEAD~1 --name-only             # last commit
+
+# Get detailed diff for context
+git diff --stat                         # summary
+git diff -- src/components/Button.tsx   # single file diff
+```
+
+## Import Graph Traversal
+
+To find Level 2 (imported-by) files:
+
+```bash
+# Find all files that import the changed file
+grep -rl "from.*['\"].*Button['\"]" src/ --include="*.tsx" --include="*.ts"
+```
+
+## Change Classification
+
+```python
+def classify_changes(changed_files: list[str]) -> dict:
+    direct = changed_files  # Level 1
+
+    imported = []  # Level 2
+    for f in direct:
+        module = extract_module_name(f)
+        importers = grep(f"from.*{module}", "src/", include="*.tsx,*.ts")
+        imported.extend(importers)
+
+    routed = []  # Level 3
+    for f in direct + imported:
+        routes = route_map.get(f, [])
+        routed.extend(routes)
+
+    return {
+        "direct": dedupe(direct),
+        "imported": dedupe(imported),
+        "routed": dedupe(routed),
+    }
+```
+
+## Test Depth by Level
+
+| Level | Test Depth |
+|-------|------------|
+| Direct (L1) | Full interaction tests — the component itself changed |
+| Imported (L2) | Render check + basic interaction — verify it still works with updated dependency |
+| Routed (L3) | Page load + smoke test — verify the page renders without errors |
+
+
+### Execution
+
+# Execution Engine
+
+Run the test plan via agent-browser orchestration.
+
+## Agent Spawn
+
+```python
+Agent(
+    subagent_type="general-purpose",
+    prompt=f"""Execute this browser test plan using the agent-browser skill.
+
+{test_plan}
+
+Base URL: {base_url}
+
+For each test step:
+1. Execute the action (navigate, click, fill, assert)
+2. Report PASS or FAIL immediately
+3. On FAIL: take a screenshot, capture console errors, note the failure reason
+4. Continue to next step (don't stop on first failure)
+
+Output format per step:
+PASS | Step N: description
+FAIL | Step N: description | Reason: error message
+
+After all steps, output a summary:
+TOTAL: X passed, Y failed
+""",
+    run_in_background=True
+)
+```
+
+## Status Protocol
+
+The agent reports status using a machine-parseable format:
+
+```
+[EXPECT:START] 12 steps across 4 pages
+[EXPECT:STEP:1:PASS] /login — page loads
+[EXPECT:STEP:2:PASS] /login — form renders
+[EXPECT:STEP:3:FAIL] /login — validation error missing | TypeError: Cannot read properties of undefined
+[EXPECT:STEP:4:PASS] /signup — page loads
+...
+[EXPECT:DONE] 10 passed, 2 failed
+```
+
+## Failure Handling
+
+| Failure Type | Action |
+|-------------|--------|
+| Page crash (5xx) | Screenshot + skip remaining steps on that page |
+| Element not found | Screenshot + retry once after 2s wait |
+| Assertion mismatch | Screenshot + continue |
+| Network timeout | Retry once, then fail |
+| Console error | Log but don't fail (unless assertion requires no errors) |
+
+## Concurrency
+
+For multiple pages, test sequentially (not parallel) to avoid port/state conflicts.
+Single browser instance, sequential navigation.
+
+## Artifacts
+
+Store all artifacts in `.expect/`:
+```
+.expect/
+├── reports/2026-03-26T16-30-00.json
+├── screenshots/
+│   ├── login-step3-fail.png
+│   └── dashboard-step7-fail.png
+└── fingerprints.json  (updated after run)
+```
+
+
+### Fingerprint
+
+# Fingerprint Gating
+
+SHA-256 fingerprint system to skip redundant test runs when files haven't changed.
+
+## How It Works
+
+```
+Changed files → SHA-256 each → Compare against .expect/fingerprints.json → Skip or Run
+```
+
+## Fingerprint Storage
+
+```json
+// .expect/fingerprints.json
+{
+  "lastRun": "2026-03-26T16:30:00Z",
+  "target": "unstaged",
+  "hashes": {
+    "src/components/Button.tsx": "a1b2c3d4...",
+    "src/app/login/page.tsx": "e5f6g7h8..."
+  },
+  "result": "pass"
+}
+```
+
+## Computing Fingerprints
+
+```bash
+# Hash each changed file
+sha256sum $(git diff --name-only) | sort
+```
+
+## Decision Logic
+
+```python
+def should_run(current_hashes: dict, stored: dict) -> bool:
+    if not stored:
+        return True  # First run — no fingerprints
+    if current_hashes != stored["hashes"]:
+        return True  # Files changed since last run
+    if stored["result"] == "fail":
+        return True  # Last run failed — re-run even if unchanged
+    return False     # Same hashes, last run passed — skip
+```
+
+## Force Re-Run
+
+Use `--force` flag to bypass fingerprint check:
+```bash
+/ork:expect --force  # Re-run even if fingerprints match
+```
+
+## Implementation Notes
+
+- Hash file **contents**, not metadata (mtime changes shouldn't trigger re-runs)
+- Store fingerprints per target (unstaged vs branch vs commit)
+- Clear fingerprints on `git checkout` or `git stash` (contents changed)
+- `.expect/fingerprints.json` should be gitignored
+
+
+### Report
+
+# Report Generator
+
+Aggregate execution results into a structured report with artifacts and exit codes.
+
+## Report Format (JSON)
+
+```json
+{
+  "timestamp": "2026-03-26T16:30:00Z",
+  "target": "unstaged",
+  "duration_ms": 45000,
+  "files_changed": 3,
+  "pages_tested": 4,
+  "results": [
+    {
+      "page": "/login",
+      "level": "direct",
+      "steps": 5,
+      "passed": 5,
+      "failed": 0,
+      "status": "pass"
+    },
+    {
+      "page": "/dashboard",
+      "level": "routed",
+      "steps": 3,
+      "passed": 2,
+      "failed": 1,
+      "status": "fail",
+      "failures": [
+        {
+          "step": 2,
+          "description": "Chart component renders",
+          "error": "TypeError: Cannot read properties of undefined (reading 'map')",
+          "screenshot": ".expect/screenshots/dashboard-step2-fail.png"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_steps": 15,
+    "passed": 13,
+    "failed": 2,
+    "pass_rate": 0.867
+  }
+}
+```
+
+## Console Output
+
+```
+/ork:expect Report
+═══════════════════════════════════════
+Target: unstaged (3 files changed)
+Pages tested: 4
+Duration: 45s
+
+Results:
+  ✓ /login — 5/5 steps passed
+  ✓ /signup — 3/3 steps passed
+  ✗ /dashboard — 2/3 steps passed (chart component crash)
+  ✓ /settings — 4/4 steps passed
+
+13 passed, 2 failed (86.7%)
+
+Artifacts:
+  .expect/reports/2026-03-26T16-30-00.json
+  .expect/screenshots/dashboard-step2-fail.png
+```
+
+## Exit Code Convention
+
+| Scenario | Exit Suggestion |
+|----------|----------------|
+| All pass | "All tests passed. Safe to push." |
+| Some fail | "2 tests failed. Fix before pushing." |
+| No changes | "No changes detected. Nothing to test." |
+| Execution error | "Test execution failed. Check agent-browser logs." |
+
+## Post-Run Actions
+
+1. Update `.expect/fingerprints.json` with current file hashes
+2. Save report to `.expect/reports/\{iso-timestamp\}.json`
+3. If memory MCP available, persist critical failures to knowledge graph
+4. Suggest next steps based on results
+
+
+### Route Map
+
+# Route Map
+
+Map changed files to testable URLs. The route map is the bridge between "what files changed" and "what pages to test."
+
+## Config-Based Route Map
+
+The primary source is `.expect/config.yaml`:
+
+```yaml
+base_url: http://localhost:3000
+route_map:
+  # Component → pages that use it
+  "src/components/Header.tsx": ["/", "/about", "/pricing", "/dashboard"]
+  "src/components/auth/**": ["/login", "/signup", "/forgot-password"]
+
+  # Page directory → URL pattern
+  "src/app/dashboard/**": ["/dashboard"]
+  "src/app/settings/**": ["/settings", "/settings/profile", "/settings/billing"]
+
+  # API routes → pages that call them
+  "src/app/api/auth/**": ["/login", "/signup"]
+```
+
+## Framework Inference (No Config)
+
+When `.expect/config.yaml` doesn't exist, infer from the framework:
+
+### Next.js App Router
+```
+src/app/page.tsx          → /
+src/app/about/page.tsx    → /about
+src/app/[slug]/page.tsx   → /{slug} (use a test slug)
+src/app/api/auth/route.ts → /login (infer from API name)
+```
+
+### Next.js Pages Router
+```
+pages/index.tsx           → /
+pages/about.tsx           → /about
+pages/[id].tsx            → /{id}
+```
+
+### Generic SPA
+```
+src/routes/*.tsx           → /{filename}
+src/views/*.vue            → /{filename}
+```
+
+## Route Resolution Priority
+
+1. `.expect/config.yaml` explicit mapping (highest priority)
+2. Framework-specific inference (Next.js, Remix, SvelteKit)
+3. Grep for `<Link href=` or `router.push` patterns
+4. Fall back to `base_url` root only
+
+## Dynamic Routes
+
+For dynamic routes (`[slug]`, `[id]`), use test values from:
+1. `.expect/config.yaml` `test_params` section
+2. First entry from a seed/fixture file
+3. Default: `test-1`, `1`, `example`
+
+
+### Test Plan
+
+# Test Plan Generation
+
+Build an AI-driven test plan scoped to the git diff and affected routes.
+
+## Plan Structure
+
+```markdown
+# Test Plan — 2026-03-26T16:30:00Z
+Target: unstaged (3 files changed)
+Instruction: "test the login flow"
+
+## Pages to Test
+
+### /login (Direct — auth form changed)
+1. Navigate to /login
+2. Verify form renders with email + password fields
+3. Submit empty form → expect validation errors
+4. Fill valid credentials → expect redirect to /dashboard
+5. Check console for errors
+
+### /signup (Imported — shared auth component changed)
+1. Navigate to /signup
+2. Verify form renders correctly
+3. Smoke test: no console errors
+
+### /dashboard (Routed — renders auth-dependent header)
+1. Navigate to /dashboard (requires auth)
+2. Verify page loads without crash
+3. Check user name renders in header
+```
+
+## Prompt Template
+
+```python
+PLAN_PROMPT = f"""
+You are a QA engineer. Generate a browser test plan.
+
+**Git Diff Summary:**
+{diff_summary}
+
+**Changed Files (Level 1 — Direct):**
+{direct_files}
+
+**Affected Files (Level 2 — Imported):**
+{imported_files}
+
+**Pages to Test (Level 3 — Routed):**
+{affected_urls}
+
+**User Instruction:**
+{instruction or "Test that the changes work correctly and don't break existing functionality."}
+
+**Rules:**
+- Test each page proportional to its change level (Direct=full, Imported=render, Routed=smoke)
+- Include form interaction tests if forms were changed
+- Include navigation tests if routing changed
+- Check for console errors on every page
+- Note any accessibility concerns from the diff
+- Keep the plan under 20 steps total
+
+Output a numbered test plan in markdown.
+"""
+```
+
+## Plan Review
+
+Unless `-y` (skip review) is set, present the plan to the user:
+
+```python
+AskUserQuestion(questions=[{
+    "question": "Run this test plan?",
+    "header": "Plan",
+    "options": [
+        {"label": "Run (Recommended)", "description": f"{step_count} steps across {page_count} pages"},
+        {"label": "Edit", "description": "Modify the plan before running"},
+        {"label": "Skip", "description": "Cancel without running"}
+    ],
+    "multiSelect": False
+}])
+```
+
