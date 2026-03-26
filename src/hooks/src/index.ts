@@ -207,6 +207,11 @@ import { teamSynthesisTrigger } from './teammate-idle/team-synthesis-trigger.js'
 import { teamQualityGate } from './teammate-idle/team-quality-gate.js';
 import { unifiedTeammateIdleDispatcher } from './teammate-idle/unified-dispatcher.js';
 
+// TaskCreated hooks (CC 2.1.84)
+import { creationTracker } from './task-created/creation-tracker.js';
+import { taskContextInjector } from './task-created/task-context-injector.js';
+import { taskProgressInitializer } from './task-created/task-progress-initializer.js';
+
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from './task-completed/completion-tracker.js';
 
@@ -405,6 +410,11 @@ export const hooks: Record<string, HookFn> = {
   'teammate-idle/progress-reporter': progressReporter,
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,
+
+  // TaskCreated hooks (CC 2.1.84)
+  'task-created/creation-tracker': creationTracker,
+  'task-created/task-context-injector': taskContextInjector,
+  'task-created/task-progress-initializer': taskProgressInitializer,
 
   // TaskCompleted hooks (CC 2.1.33)
   'task-completed/completion-tracker': completionTracker,
