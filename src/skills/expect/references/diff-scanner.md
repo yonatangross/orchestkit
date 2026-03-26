@@ -1,65 +1,88 @@
 # Diff Scanner
 
-Parse git diff output and classify changed files into 3 levels for test targeting.
+Parse git diff output into 3 concurrent data levels for test targeting.
 
-## 3-Level Classification
+## Target Modes (ChangesFor)
 
-| Level | Name | Description | Example |
-|-------|------|-------------|---------|
-| 1 | **Direct** | The file itself changed | `src/components/Button.tsx` |
-| 2 | **Imported** | Files that import the changed file | `src/components/Header.tsx` (imports Button) |
-| 3 | **Routed** | Pages/routes that render level 1 or 2 files | `/dashboard` (renders Header → Button) |
+| Mode | Git Command | Use Case |
+|------|-------------|----------|
+| `changes` (default) | `git diff $(merge-base)` | All changes — committed + uncommitted |
+| `unstaged` | `git diff` | Only uncommitted working tree changes |
+| `branch` | `git diff main...HEAD` | Full branch diff vs main |
+| `commit [hash]` | `git diff {hash}^..{hash}` | Single commit |
 
-## Diff Parsing
+## 3 Data Levels (Gathered Concurrently)
+
+### Level 1: Changed Files
+```bash
+git diff --name-only --diff-filter=AMDRC
+```
+Returns file paths with status: Added, Modified, Deleted, Renamed, Copied.
+
+Each file is typed: `component`, `logic`, `style`, `docs`, `config`, `test`, `script`, `python`, `other`.
+
+### Level 2: File Stats
+```bash
+git diff --numstat
+```
+Returns lines added/removed per file + computed `magnitude` (added + removed) for prioritization.
+
+### Level 3: Diff Preview
+Full unified diff, truncated to 12K chars. Files are prioritized by magnitude (most changed first), limited to 12 files max.
+
+## Usage
 
 ```bash
-# Get changed files based on target
-git diff --name-only                    # unstaged
-git diff main...HEAD --name-only        # branch
-git diff HEAD~1 --name-only             # last commit
-
-# Get detailed diff for context
-git diff --stat                         # summary
-git diff -- src/components/Button.tsx   # single file diff
+bash scripts/diff-scan.sh                    # Default: changes mode
+bash scripts/diff-scan.sh unstaged           # Uncommitted only
+bash scripts/diff-scan.sh branch             # Branch vs main
+bash scripts/diff-scan.sh commit abc123f     # Specific commit
 ```
 
-## Import Graph Traversal
+## Output Format
 
-To find Level 2 (imported-by) files:
-
-```bash
-# Find all files that import the changed file
-grep -rl "from.*['\"].*Button['\"]" src/ --include="*.tsx" --include="*.ts"
+```json
+{
+  "target": "branch",
+  "files": [
+    {"path": "src/components/Button.tsx", "status": "modified", "type": "component"},
+    {"path": "src/app/login/page.tsx", "status": "added", "type": "component"}
+  ],
+  "stats": [
+    {"path": "src/components/Button.tsx", "added": 15, "removed": 3, "magnitude": 18},
+    {"path": "src/app/login/page.tsx", "added": 45, "removed": 0, "magnitude": 45}
+  ],
+  "preview": "--- src/app/login/page.tsx ---\n+export default function Login()...",
+  "context": [
+    "abc123f feat: add login page",
+    "def456a fix: button hover state"
+  ],
+  "summary": {
+    "total": 2,
+    "top_files_in_preview": 12,
+    "preview_chars": 1234,
+    "max_preview_chars": 12000
+  }
+}
 ```
 
-## Change Classification
+## 3-Level Classification (Import Graph)
 
-```python
-def classify_changes(changed_files: list[str]) -> dict:
-    direct = changed_files  # Level 1
+After the diff scan, the expect pipeline classifies each changed file:
 
-    imported = []  # Level 2
-    for f in direct:
-        module = extract_module_name(f)
-        importers = grep(f"from.*{module}", "src/", include="*.tsx,*.ts")
-        imported.extend(importers)
+| Level | Name | How to Find | Test Depth |
+|-------|------|-------------|------------|
+| 1 | **Direct** | `git diff --name-only` output | Full interaction tests |
+| 2 | **Imported** | `grep -rl "from.*{module}" src/` | Render check + basic interaction |
+| 3 | **Routed** | Route map lookup (config or inference) | Page load + smoke test |
 
-    routed = []  # Level 3
-    for f in direct + imported:
-        routes = route_map.get(f, [])
-        routed.extend(routes)
+## Filtering
 
-    return {
-        "direct": dedupe(direct),
-        "imported": dedupe(imported),
-        "routed": dedupe(routed),
-    }
-```
+Non-source files are automatically skipped:
+- Lock files (`.lock`, `.log`, `.map`)
+- `node_modules/`, `.git/`, `dist/`, `build/`
+- Configure additional patterns in `.expect/config.yaml` `ignore_patterns`
 
-## Test Depth by Level
+## Magnitude Prioritization
 
-| Level | Test Depth |
-|-------|------------|
-| Direct (L1) | Full interaction tests — the component itself changed |
-| Imported (L2) | Render check + basic interaction — verify it still works with updated dependency |
-| Routed (L3) | Page load + smoke test — verify the page renders without errors |
+When more than 12 files changed, the preview includes only the top 12 by magnitude (lines added + removed). This ensures the AI test plan focuses on the most impactful changes.
