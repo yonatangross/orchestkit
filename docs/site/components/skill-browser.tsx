@@ -2,9 +2,14 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
+import type { FuseResultMatch } from "fuse.js";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { CATEGORY_COLORS } from "@/lib/category-colors";
+import { useFuzzySearch } from "@/hooks/use-fuzzy-search";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { SKILL_SEARCH_OPTIONS, createRelaxedSearch } from "@/lib/search";
+import { Highlight } from "@/components/search-highlight";
 
 // ── Category visual metadata ────────────────────────────────
 const SKILL_CATEGORY_META: Record<
@@ -195,33 +200,32 @@ export function SkillBrowser() {
   const [pluginFilter, setPluginFilter] = useState<PluginFilter>("all");
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
-  // Filter skills
-  const filtered = useMemo(() => {
-    return ALL_SKILLS.filter((entry) => {
-      // Search filter
-      if (search) {
-        const q = search.toLowerCase();
-        const haystack =
-          `${entry.skill.name} ${entry.skill.description} ${entry.skill.tags.join(" ")}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
+  // Fuzzy search
+  const debouncedSearch = useDebouncedValue(search, 150);
+  const searchResults = useFuzzySearch(ALL_SKILLS, debouncedSearch, SKILL_SEARCH_OPTIONS);
 
-      // Category filter
+  // Apply category + plugin filters on top of search results
+  const filtered = useMemo(() => {
+    return searchResults.filter(({ item: entry }) => {
       if (
         selectedCategories.length > 0 &&
         !selectedCategories.includes(entry.category)
       ) {
         return false;
       }
-
-      // Plugin filter
       if (pluginFilter !== "all") {
         if (!entry.skill.plugins.includes(pluginFilter)) return false;
       }
-
       return true;
     });
-  }, [search, selectedCategories, pluginFilter]);
+  }, [searchResults, selectedCategories, pluginFilter]);
+
+  // "Did you mean?" suggestions when no results
+  const suggestions = useMemo(() => {
+    if (filtered.length > 0 || !debouncedSearch) return [];
+    const relaxed = createRelaxedSearch(ALL_SKILLS, SKILL_SEARCH_OPTIONS);
+    return relaxed(debouncedSearch, 3);
+  }, [filtered.length, debouncedSearch]);
 
   const toggleCategory = useCallback((cat: string) => {
     setSelectedCategories((prev) =>
@@ -353,11 +357,32 @@ export function SkillBrowser() {
         <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
           <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
           <p className="text-sm font-medium text-fd-foreground">
-            No skills match your filters
+            {debouncedSearch
+              ? <>No skills match &ldquo;{debouncedSearch}&rdquo;</>
+              : "No skills match your filters"}
           </p>
           <p className="mt-1 text-xs text-fd-muted-foreground">
             Try broadening your search or removing some filters.
           </p>
+          {suggestions.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs text-fd-muted-foreground">
+                Did you mean?
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestions.map((entry) => (
+                  <button
+                    key={entry.key}
+                    type="button"
+                    onClick={() => setSearch(entry.skill.name)}
+                    className="rounded-full border border-fd-border bg-fd-background px-3 py-1 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+                  >
+                    {entry.skill.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <button
             type="button"
             onClick={clearFilters}
@@ -368,10 +393,11 @@ export function SkillBrowser() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((entry) => (
+          {filtered.map(({ item: entry, matches }) => (
             <SkillCard
               key={entry.key}
               entry={entry}
+              matches={matches}
               expanded={expandedSkill === entry.key}
               onToggle={() =>
                 setExpandedSkill(
@@ -389,10 +415,12 @@ export function SkillBrowser() {
 // ── Skill Card ──────────────────────────────────────────────
 function SkillCard({
   entry,
+  matches,
   expanded,
   onToggle,
 }: {
   entry: SkillEntry;
+  matches: readonly FuseResultMatch[] | undefined;
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -421,9 +449,12 @@ function SkillCard({
       >
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-fd-foreground">
-              {skill.name}
-            </span>
+            <Highlight
+              text={skill.name}
+              matches={matches}
+              fieldKey="skill.name"
+              className="text-sm font-semibold text-fd-foreground"
+            />
             <span
               className={`inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
             >
@@ -435,9 +466,12 @@ function SkillCard({
               </span>
             )}
           </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground">
-            {skill.description}
-          </p>
+          <Highlight
+            text={skill.description}
+            matches={matches}
+            fieldKey="skill.description"
+            className="line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground"
+          />
         </div>
         <ChevronRight
           className={`mt-1 h-4 w-4 shrink-0 text-fd-muted-foreground transition-transform duration-200 ${

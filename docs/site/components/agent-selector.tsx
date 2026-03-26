@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import type { FuseResultMatch } from "fuse.js";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { useFuzzySearch } from "@/hooks/use-fuzzy-search";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { AGENT_SEARCH_OPTIONS, createRelaxedSearch } from "@/lib/search";
+import { Highlight } from "@/components/search-highlight";
 import {
   Search,
   X,
@@ -76,15 +81,13 @@ export function AgentSelector() {
   const [quizCategory, setQuizCategory] = useState<Category | null>(null);
   const quizTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Filter agents
+  // Fuzzy search
+  const debouncedSearch = useDebouncedValue(search, 150);
+  const searchResults = useFuzzySearch(AGENTS, debouncedSearch, AGENT_SEARCH_OPTIONS);
+
+  // Apply category + task type filters on top of search results
   const filtered = useMemo(() => {
-    return AGENTS.filter((agent) => {
-      if (search) {
-        const q = search.toLowerCase();
-        const haystack =
-          `${agent.name} ${agent.description} ${agent.keywords.join(" ")}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
+    return searchResults.filter(({ item: agent }) => {
       if (
         selectedCategories.length > 0 &&
         !selectedCategories.includes(agent.category)
@@ -99,7 +102,14 @@ export function AgentSelector() {
       }
       return true;
     });
-  }, [search, selectedCategories, selectedTaskTypes]);
+  }, [searchResults, selectedCategories, selectedTaskTypes]);
+
+  // "Did you mean?" suggestions when no results
+  const suggestions = useMemo(() => {
+    if (filtered.length > 0 || !debouncedSearch) return [];
+    const relaxed = createRelaxedSearch(AGENTS, AGENT_SEARCH_OPTIONS);
+    return relaxed(debouncedSearch, 3);
+  }, [filtered.length, debouncedSearch]);
 
   // Quiz results
   const quizResults = useMemo(() => {
@@ -331,11 +341,32 @@ export function AgentSelector() {
         <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
           <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
           <p className="text-sm font-medium text-fd-foreground">
-            No agents match your filters
+            {debouncedSearch
+              ? <>No agents match &ldquo;{debouncedSearch}&rdquo;</>
+              : "No agents match your filters"}
           </p>
           <p className="mt-1 text-xs text-fd-muted-foreground">
             Try broadening your search or removing some filters.
           </p>
+          {suggestions.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs text-fd-muted-foreground">
+                Did you mean?
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestions.map((agent) => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => setSearch(agent.name)}
+                    className="rounded-full border border-fd-border bg-fd-background px-3 py-1 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+                  >
+                    {agent.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <button
             type="button"
             onClick={clearFilters}
@@ -346,10 +377,11 @@ export function AgentSelector() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((agent) => (
+          {filtered.map(({ item: agent, matches }) => (
             <AgentCard
               key={agent.id}
               agent={agent}
+              matches={matches}
               expanded={expandedAgent === agent.id}
               onToggle={() =>
                 setExpandedAgent(
@@ -397,10 +429,12 @@ export function AgentSelector() {
 // ── Agent Card — colored left border + model tier badge ─────
 function AgentCard({
   agent,
+  matches,
   expanded,
   onToggle,
 }: {
   agent: Agent;
+  matches: readonly FuseResultMatch[] | undefined;
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -422,18 +456,24 @@ function AgentCard({
       >
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-sm font-semibold text-fd-foreground">
-              {agent.name}
-            </span>
+            <Highlight
+              text={agent.name}
+              matches={matches}
+              fieldKey="name"
+              className="text-sm font-semibold text-fd-foreground"
+            />
             <span
               className={`inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
             >
               {catMeta.label}
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-fd-muted-foreground">
-            {agent.description}
-          </p>
+          <Highlight
+            text={agent.description}
+            matches={matches}
+            fieldKey="description"
+            className="text-xs leading-relaxed text-fd-muted-foreground"
+          />
           <div className="mt-2 flex items-center gap-2">
             <span
               className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide ${MODEL_STYLES[agent.model]}`}
