@@ -62,7 +62,7 @@ describe('conflict-predictor', () => {
   });
 
   it('warns about potential conflicts on git merge', () => {
-    vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
+    vi.mocked(execFileSync).mockImplementation((_cmd: unknown, args: unknown) => {
       const argStr = (args as string[])?.join(' ') ?? '';
       if (argStr.includes('--name-only')) {
         return 'src/app.ts\nsrc/config.ts\n';
