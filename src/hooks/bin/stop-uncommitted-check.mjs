@@ -16,8 +16,15 @@ import { fileURLToPath } from 'node:url';
 
 function getVersion() {
   try {
+    // CLAUDE_PLUGIN_ROOT points to the installed plugin root
+    const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
+    if (pluginRoot) {
+      const pkg = JSON.parse(readFileSync(resolve(pluginRoot, 'package.json'), 'utf-8'));
+      return pkg.version || '0.0.0';
+    }
+    // Fallback: traverse from bin/ → hooks/ → src/ → root/
     const dir = dirname(fileURLToPath(import.meta.url));
-    const pkg = JSON.parse(readFileSync(resolve(dir, '..', 'package.json'), 'utf-8'));
+    const pkg = JSON.parse(readFileSync(resolve(dir, '..', '..', '..', 'package.json'), 'utf-8'));
     return pkg.version || '0.0.0';
   } catch {
     return '0.0.0';
