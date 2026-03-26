@@ -117,5 +117,6 @@ response = requests.post(
 - Set generation timeout at 10 minutes minimum — complex scenes take longer
 - Kling `mode: "pro"` costs ~2x more than `mode: "std"` but enables end-frame control and higher quality
 - fal.ai and AI SDK abstract the polling — prefer these over raw REST for new projects
+- fal MCP server (`mcp.fal.ai`) gives Claude Code / Cursor direct access to all fal models via `run_model` / `submit_job` tools — no SDK code needed for prototyping
 - Store `task_id` persistently — if your process crashes, you can resume polling
 - Validate image URLs are publicly accessible before passing to image-to-video endpoints
