@@ -34,6 +34,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 background: true
+initialPrompt: "Check TaskList for pending performance tasks. Audit Core Web Vitals and bundle composition for optimization targets."
 ---
 
 ## Directive

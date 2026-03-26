@@ -9,6 +9,8 @@ disable-model-invocation: false
 complexity: medium
 metadata:
   category: frontend
+  upstream-package: "@json-render/core"
+  upstream-version-tested: "0.15.0"
 ---
 
 # Multi-Surface Rendering with json-render

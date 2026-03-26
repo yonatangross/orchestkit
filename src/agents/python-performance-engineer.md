@@ -42,6 +42,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
 background: true
+initialPrompt: "Check TaskList for pending performance tasks. Profile current application hotspots and identify optimization targets."
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.

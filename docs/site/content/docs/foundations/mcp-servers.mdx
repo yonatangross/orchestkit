@@ -1,0 +1,245 @@
+---
+title: MCP Servers
+description: External tool integrations that give agents web search, component registries, design extraction, and more.
+---
+
+MCP (Model Context Protocol) servers extend what OrchestKit agents can do by connecting them to external tools and services. They're **optional** — every skill and agent works without them, but MCPs add capabilities that can't be replicated with built-in tools alone.
+
+## Available MCPs
+
+OrchestKit supports 10 MCP servers across three tiers:
+
+### Bundled (zero config)
+
+These ship in `.mcp.json` and work immediately — no API keys, no setup.
+
+| MCP | Purpose | Tools |
+|-----|---------|-------|
+| **context7** | Up-to-date library docs (React, Next.js, Tailwind, etc.) | 2 |
+| **memory** | Knowledge graph — persist decisions across sessions | 8 |
+| **sequential-thinking** | Structured reasoning for Sonnet/Haiku subagents | 1 |
+| **ork-elicit** | Structured form elicitation for `/ork:setup` wizard | 1 |
+
+### API Key Required
+
+Pre-configured in `.mcp.json` but need an API key to activate.
+
+| MCP | Purpose | Setup |
+|-----|---------|-------|
+| **tavily** | Web search, extract, crawl, deep research | API key ([app.tavily.com](https://app.tavily.com) — free 1K credits/month) |
+| **21st-dev-magic** | React component registry (1.4M developers) | API key ([21st.dev](https://21st.dev) — free tier available) |
+
+### User-Installable
+
+Not in `.mcp.json` — you add these per-project when needed. Agents that reference them degrade gracefully when they're absent.
+
+| MCP | Purpose | Setup |
+|-----|---------|-------|
+| **stitch** | Google Stitch — AI design to HTML, screenshots, design context | API key from [stitch.withgoogle.com](https://stitch.withgoogle.com/settings) |
+| **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | `@storybook/addon-mcp` + running Storybook |
+| **agentation** | UI annotation — browser feedback picked up automatically | `npm install -D agentation-mcp` (disabled by default in `.mcp.json`) |
+| **notebooklm-mcp** | Google NotebookLM — RAG, research synthesis, podcasts | `uv tool install notebooklm-mcp-cli` + `nlm login` |
+
+## Recommended by Project Type
+
+Not sure which MCPs to enable? Match your project:
+
+| Project Type | Recommended MCPs | Why |
+|---|---|---|
+| **Full-stack React** | context7, memory, storybook-mcp, 21st-dev-magic, stitch | Component reuse, design extraction, latest API docs |
+| **Backend Python/Node** | context7, memory, tavily | Library docs, decision persistence, web research |
+| **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
+| **AI/LLM project** | context7, memory, tavily, sequential-thinking | API docs, pattern memory, research, structured reasoning for subagents |
+| **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
+| **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
+
+## Which Agents Use Which MCPs
+
+OrchestKit scopes MCP access per agent to keep context windows lean.
+
+### Multi-MCP Agents
+
+| Agent | MCPs | What It Uses Them For |
+|---|---|---|
+| frontend-ui-developer | context7, 21st-dev-magic, storybook-mcp | React docs, component search, story previews |
+| design-system-architect | context7, stitch, storybook-mcp | Token docs, design extraction, component discovery |
+| design-context-extractor | stitch, context7 | Screenshot analysis, token architecture docs |
+
+### Single-MCP Specialists
+
+| Agent | MCP | What It Uses It For |
+|---|---|---|
+| web-research-analyst | tavily | Search, extract, crawl |
+| market-intelligence | tavily | Market analysis with domain filtering |
+| product-strategist | tavily | Competitive landscape research |
+| ai-safety-auditor | tavily | Content extraction with injection detection |
+| monitoring-engineer | tavily | Service status research |
+| component-curator | storybook-mcp | Component inventory, story coverage audit |
+| debug-investigator | memory | Recall past debugging decisions |
+| ui-feedback | agentation | Browser annotations to code fixes |
+
+### context7 Library Docs (18 agents)
+
+These agents use **context7** for up-to-date library documentation:
+
+backend-system-architect, database-engineer, test-generator, workflow-architect, infrastructure-architect, event-driven-architect, data-pipeline-engineer, python-performance-engineer, llm-integrator, ci-cd-engineer, eval-runner, release-engineer, deployment-manager, git-operations-engineer, frontend-performance-engineer, accessibility-specialist, multimodal-specialist, code-quality-reviewer
+
+### No MCP Access
+
+These agents intentionally have `mcpServers: []` — they work with built-in tools only:
+
+security-auditor, security-layer-auditor, system-design-reviewer, genui-architect, emulate-engineer, demo-producer
+
+## Setup Instructions
+
+### Bundled MCPs (zero config)
+
+**context7**, **memory**, **sequential-thinking**, and **ork-elicit** work immediately — no API keys, no setup. They're defined in `.mcp.json` and start automatically.
+
+### Tavily (web research)
+
+```bash
+# Option A: 1Password (recommended — no key in config files)
+# .mcp.json already uses: sh -c "TAVILY_API_KEY=$(op read '...') exec npx tavily-mcp@latest"
+# Just store your key: op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."
+
+# Option B: Environment variable
+# Replace the .mcp.json tavily entry with:
+# "command": "npx", "args": ["-y", "tavily-mcp@latest"]
+# Then add to ~/.zshrc: export TAVILY_API_KEY=<your-key>
+
+# Option C: Remote MCP (no local process)
+# In .mcp.json: "type": "url", "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_KEY>"
+```
+
+Free tier: 1,000 credits/month at [app.tavily.com](https://app.tavily.com).
+
+### 21st.dev Magic (component registry)
+
+```bash
+# .mcp.json already uses: sh -c "API_KEY=$(op read '...') exec npx @21st-dev/magic@latest"
+# Store your key: op item create --category "API Credential" --title "21st.dev Magic MCP" "credential=<key>"
+
+# Alternative: replace .mcp.json entry with env var approach
+# "command": "npx", "args": ["-y", "@21st-dev/magic@latest"]
+# Then add to ~/.zshrc: export API_KEY=<your-21st-dev-key>
+```
+
+Free tier available at [21st.dev](https://21st.dev).
+
+### Stitch (design extraction)
+
+```bash
+claude mcp add stitch --transport http https://stitch.googleapis.com/mcp \
+  --header "X-Goog-Api-Key: <YOUR-KEY>" -s user
+```
+
+Get your API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings).
+
+### Storybook MCP (component discovery + testing)
+
+Requires Storybook 10.3+ with Vite builder:
+
+```bash
+# Install the addon
+npx storybook add @storybook/addon-mcp
+
+# Enable docs toolset in .storybook/main.ts
+# experimentalComponentsManifest: true
+
+# Register with Claude Code
+npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
+```
+
+Storybook must be running for dev + testing tools. The docs toolset can be published remotely via Chromatic.
+
+### Agentation (UI feedback)
+
+Pre-configured in `.mcp.json` but disabled by default. To enable:
+
+```json
+"agentation": {
+  "command": "npx",
+  "args": ["-y", "agentation-mcp", "server"],
+  "disabled": false
+}
+```
+
+### NotebookLM (RAG + research)
+
+```bash
+uv tool install notebooklm-mcp-cli
+nlm login
+nlm setup add claude-code
+```
+
+## How MCP Scoping Works
+
+Each agent declares which MCPs it can access in its frontmatter:
+
+```yaml
+---
+name: frontend-ui-developer
+mcpServers: [context7, 21st-dev-magic, storybook-mcp]
+---
+```
+
+- **`mcpServers` omitted** — agent inherits ALL MCP tools from parent
+- **`mcpServers: [tavily]`** — agent ONLY sees tavily tools
+- **`mcpServers: []`** — agent sees NO MCP tools
+
+This prevents Sonnet/Haiku subagents (128K context) from being overwhelmed by tool definitions they don't need.
+
+## Token Overhead
+
+Each MCP adds tool definitions to the context window:
+
+| MCP | Tools | ~Tokens |
+|-----|-------|---------|
+| context7 | 2 | ~400 |
+| memory | 8 | ~1,200 |
+| sequential-thinking | 1 | ~600 |
+| ork-elicit | 1 | ~300 |
+| tavily | 5 | ~2,000 |
+| 21st-dev-magic | 4 | ~800 |
+| agentation | 8 | ~1,500 |
+| stitch | 14 | ~2,800 |
+| storybook-mcp | 6 | ~1,200 |
+| notebooklm-mcp | 36 | ~7,000 |
+
+When total MCP tokens exceed 10% of context, Claude Code automatically activates **MCPSearch** — deferring schema loading and discovering tools on demand (~85% reduction).
+
+## Graceful Degradation
+
+Every skill works without MCPs — they just lose specific capabilities:
+
+| Without | Fallback |
+|---------|----------|
+| context7 | `/ork:implement` works but won't fetch latest library docs |
+| tavily | Web research uses `WebFetch` (summarized) then `agent-browser` (headless) |
+| memory | Decisions persist via local `.jsonl` files and CC Native memory |
+| storybook-mcp | Component discovery falls back to `Glob` + `Grep` + 21st.dev search |
+| stitch | Design extraction uses Claude's multimodal vision on screenshots |
+| 21st-dev-magic | Component search falls back to `WebSearch("site:21st.dev ...")` |
+
+## Disabling an MCP
+
+Set `"disabled": true` in `.mcp.json`:
+
+```json
+"sequential-thinking": {
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+  "disabled": true
+}
+```
+
+## Background Agent Limitation
+
+MCP tools are **not available** in background subagents (`run_in_background: true`). This is a Claude Code platform limitation. If an agent needs MCP tools, run it in the foreground.
+
+## Next Steps
+
+- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** — Understand agents that consume MCPs
+- **[Configuration](/docs/getting-started/configuration)** — Environment variables and hook settings
+- **[Plugin Architecture](/docs/foundations/choosing-a-plugin)** — How everything loads on-demand

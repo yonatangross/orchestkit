@@ -3,6 +3,7 @@ name: eval-runner
 description: "LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS, tracks regression across model versions, and reports to Langfuse for tracing and scoring."
 model: haiku
 background: true
+initialPrompt: "Check TaskList for pending evaluation tasks. Load the most recent golden dataset configuration and baseline metrics."
 maxTurns: 20
 effort: low
 context: fork
@@ -21,7 +22,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
   - ExitWorktree
 disallowedTools:

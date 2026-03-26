@@ -1,6 +1,6 @@
 ---
 title: Browser Tools Rule Categories
-version: 3.0.0
+version: 4.0.0
 ---
 
 # Rule Categories
@@ -23,11 +23,11 @@ Stable local development URLs using Portless instead of port guessing.
 Rate limiting and page interaction patterns for reliable automation.
 
 - `browser-rate-limiting.md` — Request delays, exponential backoff, concurrency limits, domain restriction
-- `browser-snapshot-workflow.md` — Wait-then-snapshot pattern, accessibility snapshots, semantic locators
+- `browser-snapshot-workflow.md` — Wait-then-snapshot, iframe traversal, batch, semantic locators, --full scope change
 
 ## 4. Debug & Device (browser) — HIGH — 2 rules
 
 Safe debugging, recording, and mobile device testing patterns.
 
-- `browser-debug-recording.md` — Trace, profiler, record safety; console/errors data review
+- `browser-debug-recording.md` — Trace, profiler, record, HAR capture, DevTools inspect, clipboard safety
 - `browser-mobile-testing.md` — iOS Simulator scoping, device emulation verification

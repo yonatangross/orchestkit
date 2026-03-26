@@ -19,7 +19,7 @@
       "rule": "shadcn-catalog",
       "query": "What components are available in json-render for building a settings page?",
       "expectedBehavior": [
-        "References @json-render/shadcn package with its 36 pre-built components",
+        "References @json-render/shadcn package with its 29 pre-built components",
         "Recommends relevant shadcn components: Card, Switch, Select, Input, Button, Tabs",
         "Suggests using shadcnCatalog as-is rather than rebuilding standard components",
         "Shows mergeCatalogs() pattern for adding custom domain-specific components"

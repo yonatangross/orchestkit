@@ -792,7 +792,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -1462,7 +1462,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "design-to-code": {
     "name": "design-to-code",
-    "description": "Mockup-to-component pipeline using Google Stitch and 21st.dev. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, and adaptation to project design tokens. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
+    "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1495,6 +1495,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "design-system-tokens",
       "component-search",
+      "storybook-mcp-integration",
       "design-context-extract",
       "remember",
       "memory"
@@ -1785,7 +1786,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub (repos, PRs, issues, Actions, webhooks), Vercel (projects, deployments, domains), and Google OAuth APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2402,7 +2403,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "json-render-catalog": {
     "name": "json-render-catalog",
-    "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects.",
+    "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 29 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3999,6 +4000,43 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
+  },
+  "storybook-mcp-integration": {
+    "name": "storybook-mcp-integration",
+    "description": "Storybook MCP server integration for component-aware AI development. Covers 6 tools across 3 toolsets (dev, docs, testing): component discovery via list-all-documentation/get-documentation, story previews via preview-stories, and automated testing via run-story-tests. Use when generating components that should reuse existing Storybook components, running component tests via MCP, or previewing stories in chat.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "storybook",
+      "mcp",
+      "component-discovery",
+      "story-preview",
+      "component-testing",
+      "a11y",
+      "design-system",
+      "react"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "component-curator",
+      "design-system-architect",
+      "frontend-ui-developer"
+    ]
   },
   "storybook-testing": {
     "name": "storybook-testing",

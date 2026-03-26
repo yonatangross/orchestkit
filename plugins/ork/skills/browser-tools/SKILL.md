@@ -6,7 +6,7 @@ description: OrchestKit security wrapper for browser automation. Adds URL blockl
 tags: [browser, automation, security, rate-limiting, scraping-ethics]
 context: fork
 agent: web-research-analyst
-version: 4.0.0
+version: 5.0.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -14,7 +14,7 @@ complexity: medium
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.21.0"
+  upstream-version-tested: "0.22.2"
 allowed-tools:
   - Read
   - Glob
@@ -52,7 +52,43 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## Safety Guardrails (6 rules + 11-check hook)
+## What's New (v0.17 → v0.22.2)
+
+**Breaking changes** — update scripts now:
+- `--full` / `-f` moved from global to command-level (v0.21): use `screenshot --full`, NOT `--full screenshot`
+- Node.js/Playwright daemon fully removed (v0.20): `--native` and `AGENT_BROWSER_NATIVE=1` are no-ops
+- `-C` / `--cursor` flag for `snapshot` deprecated (v0.22): cursor-interactive elements included by default
+- Auth encryption format changed (v0.17): saved auth states from v0.16.x may not load
+
+**New commands:**
+
+| Command | Version | Security Note |
+|---------|---------|---------------|
+| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard — hook warns |
+| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy — hook warns |
+| `batch --json [--bail]` | v0.21 | Batch execute commands from stdin |
+| `network har start/stop [file]` | v0.21 | HAR captures auth tokens — hook warns, treat output as sensitive |
+| `network request <id>` | v0.22 | View full request/response detail |
+| `network requests --type/--method/--status` | v0.22 | Filter network requests |
+| `dialog dismiss` / `dialog status` | v0.17/v0.22 | Dismiss or check browser dialogs |
+| `upgrade` | v0.21.1 | Self-update (auto-detects npm/Homebrew/Cargo) |
+
+**New flags:**
+
+| Flag | Scope | Version |
+|------|-------|---------|
+| `--engine lightpanda` | global | v0.17 |
+| `--screenshot-dir/quality/format` | screenshot | v0.19 |
+| `--provider browserless` | global | v0.19 |
+| `--idle-timeout <duration>` | global | v0.20.14 |
+| `--user-data-dir <path>` | Chrome | v0.21 |
+| `set viewport W H [scale]` | viewport | v0.17.1 (retina) |
+
+**Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22).
+
+**Performance (v0.20):** 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
+
+## Safety Guardrails (7 rules + 11-check hook)
 
 This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
 
@@ -95,6 +131,8 @@ Rate limits and behavior are configurable via environment variables:
 | `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
 | `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
 | `AGENT_BROWSER_NATIVE_CONFIRM` | 1 | Use native `--confirm-actions` for sensitive ops |
+| `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
+| `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
 
 ## Anti-Patterns (FORBIDDEN)
@@ -121,6 +159,16 @@ agent-browser get text body                    # Prefer targeted ref extraction
 # Network & State
 agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
 agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies
+
+# Deprecated / removed (v0.20+)
+agent-browser --native screenshot              # --native removed, Rust is the ONLY impl
+AGENT_BROWSER_NATIVE=1 agent-browser open ...  # No-op since v0.20
+agent-browser --full screenshot                # BREAKING: --full is now command-level
+agent-browser screenshot --full                # Correct: flag after subcommand
+
+# Sensitive data leaks
+agent-browser network har stop auth-dump.har   # HAR files contain auth tokens — gitignore!
+git add *.har                                  # NEVER commit HAR captures
 ```
 
 ## Related Skills

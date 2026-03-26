@@ -39,6 +39,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [context7]
 background: true
+initialPrompt: "Check TaskList for pending review tasks. Identify the files and changes that need quality review."
 ---
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.

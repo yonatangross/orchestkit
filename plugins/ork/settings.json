@@ -7,7 +7,8 @@
     "ORCHESTKIT_COMMIT_SCOPE": "optional",
     "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": "1",
     "ORCHESTKIT_LOG_LEVEL": "warn",
-    "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": "1"
+    "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": "1",
+    "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1"
   },
   "plansDirectory": ".claude/plans",
   "permissions": {
@@ -63,6 +64,7 @@
     ]
   },
   "sandbox": {
+    "failIfUnavailable": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
       "allowWrite": ["${projectDir}", "/tmp", "~/.claude"],

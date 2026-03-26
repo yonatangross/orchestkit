@@ -34,13 +34,14 @@ skills:
   - testing-e2e
   - design-context-extract
   - component-search
+  - storybook-mcp-integration
   - remember
   - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7, stitch]
+mcpServers: [context7, stitch, storybook-mcp]
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.
@@ -459,6 +460,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
+|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

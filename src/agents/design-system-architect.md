@@ -34,13 +34,14 @@ skills:
   - testing-e2e
   - design-context-extract
   - component-search
+  - storybook-mcp-integration
   - remember
   - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: [context7, stitch]
+mcpServers: [context7, stitch, storybook-mcp]
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.

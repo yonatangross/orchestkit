@@ -58,13 +58,60 @@ agent-browser wait --text "Error"
 agent-browser record stop
 ```
 
+## HAR Network Capture (v0.21+)
+
+HAR files capture full request/response bodies including auth tokens, cookies, and POST payloads. Treat them as sensitive.
+
+**Incorrect:**
+```bash
+agent-browser network har start
+agent-browser open https://app.example.com/login
+agent-browser fill @e1 "$EMAIL" && agent-browser fill @e2 "$PASSWORD"
+agent-browser network har stop /tmp/full-capture.har
+git add /tmp/full-capture.har  # Contains credentials in cleartext!
+```
+
+**Correct:**
+```bash
+# Start HAR AFTER authentication
+agent-browser vault load my-session
+agent-browser network har start
+agent-browser open https://app.example.com/api-page
+# ... perform actions to debug ...
+agent-browser network har stop /tmp/api-debug.har
+# Add *.har to .gitignore — never commit
+```
+
+## DevTools Inspect (v0.18+)
+
+The `inspect` command opens a local proxy to Chrome DevTools. This is a new attack surface in shared/CI environments.
+
+```bash
+agent-browser inspect          # Opens DevTools proxy on local port
+agent-browser get cdp-url      # Returns CDP WebSocket URL for external tools
+```
+
+## Clipboard Access (v0.19+)
+
+Clipboard commands access the host clipboard without user interaction — relevant for sandboxed environments.
+
+```bash
+agent-browser clipboard read   # Reads host clipboard contents
+agent-browser clipboard write "text"
+agent-browser clipboard copy   # Copy current selection
+agent-browser clipboard paste  # Paste clipboard contents
+```
+
 **Key rules:**
 - Never trace or record login flows — credentials appear in cleartext in output files
 - Load auth state via `vault load` before starting a trace/recording session
 - Review `console` and `errors` output in terminal before redirecting to files
-- Never commit trace, recording, or profile files to git repositories
+- Never commit trace, recording, profile, or HAR files to git repositories
 - Use `profiler` for performance analysis — it captures execution timing, not credentials
 - Store debug output files in `/tmp/` or ephemeral directories, not project directories
 - Scrub trace files before sharing: remove cookies, localStorage, and network payloads
+- **HAR files contain auth tokens** — add `*.har` to `.gitignore`, treat as sensitive
+- **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
+- **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
 
 Reference: `references/debug-tools.md` (Trace Safety, Recording Best Practices)

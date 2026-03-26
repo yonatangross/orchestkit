@@ -1,35 +1,35 @@
 # Session Handoff
 
-**Branch**: main
-**When**: 2026-03-24 18:13:30 UTC
-**Session**: b355a2c8-4a3c-499c-99e4-3064a44b6d29
+**Branch**: feat/cc-2183-tier1
+**When**: 2026-03-25 10:28:10 UTC
+**Session**: 40c2d857-07fc-4bfd-a477-a677060df31d
 
 ## Summary
-Found it. Here's what happened:
+**Summary:** All 5 Tier 1 CC 2.1.83 changes were already implemented and merged to main in commit `a24a9ea9`:
 
-The **latest commit on main** (`bee9be08`) is a squash-merged PR (#1136) from branch `feat/eval-pipeline-1045`. That PR included version bump commits to 7.22.0 **inside the squash** — you can see commits like `chore: bump to v7.22.0` and `docs: bump to v7.22.0` were part of that branch.
+| Change | Status |
+|--------|--------|
+| `sandbox.failIfUnavailable: true` | Already in main |
+| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` | Already in main |
+| TaskOutput → Read (6 agents) | Already in main |
+| `initialPrompt` (15 background agents) | Already in main |
+| `userConfig` with `sensitive:true` | Already in main |
 
-So the version numbers in `package.json`, `CLAUDE.md`, etc. were **manually bumped to 7.22.0** on that feature branch, but **release-please never created releases for 7.20, 7.21, or 7.22**. The last actual release-please release was v7.19.0 (`807ceab5`).
-
-**The gap**: versions 7.20–7.22 were stamped into source files but never went through the release-please flow (no release PR merged, no GitHub release created, no git tag).
-
-**To fix**, you have two options:
-
-1.
+The only net-new fix is the test count (`EXPECTED_INTERNAL=78→79`) for the new storybook-mcp-integration skill.
 
 ## Modified Files
 - .claude/HANDOFF.md.consumed
+- tests/skills/structure/test-skill-md.sh
 
-## Patterns Noted
-- were **manually bumped to 7.22.0** on that feature branch, but **release-please never created releases for 7.20, 7.21, or 7.22**.
-- **The gap**: versions 7.20–7.22 were stamped into source files but never went through the release-please flow (no release PR merged, no GitHub release created, no git tag).
+## What Was Built
+- **Summary:** All 5 Tier 1 CC 2.1.83 changes were already implemented and merged to main in commit `a24a9ea9`:
 
 ## Recent Tasks
-- Create mcp-visual-output skill (#1149) [completed]
-- Create multi-surface-render skill (#1151) [completed]
-- Upgrade ai-ui-generation — json-render first choice (#1153) [completed]
-- Upgrade testing-integration + testing-e2e — emulate first choice (#1154) [completed]
-- Upgrade design-to-code — Stage 4 RENDER (#1155) [completed]
-- Create genui-architect + emulate-engineer agents (#1156, #1157) [completed]
-- Upgrade playground — json-render output mode (#1159) [completed]
-- Update manifests + build + test [completed]
+- Phase 1: Wire component-curator agent to Storybook MCP [completed]
+- Phase 2: Update design-to-code Stage 2 with Storybook-first matching [completed]
+- Phase 2: Wire frontend-ui-developer + design-system-architect agents [completed]
+- Phase 2: Add Storybook MCP to mcp-config.md reference [completed]
+- Phase 3: Add self-healing verification to design-to-code Stage 4 [completed]
+- Phase 3: Update storybook-testing skill with MCP patterns [completed]
+- Build + test [completed]
+- Build, test, and verify [completed]

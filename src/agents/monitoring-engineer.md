@@ -9,6 +9,7 @@ context: fork
 color: orange
 memory: project
 background: true
+initialPrompt: "Check TaskList for pending monitoring tasks. Inventory current observability configuration and identify instrumentation gaps."
 isolation: worktree
 tools:
   - Read
@@ -23,7 +24,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
   - ExitWorktree
 skills:

@@ -7,6 +7,7 @@ maxTurns: 25
 effort: low
 context: fork
 background: true
+initialPrompt: "Check TaskList for pending tasks. Inventory all React components and analyze usage patterns against design tokens."
 color: pink
 memory: project
 tools:
@@ -21,6 +22,7 @@ tools:
   - TaskList
 skills:
   - component-search
+  - storybook-mcp-integration
   - design-system-tokens
   - ui-components
   - remember
@@ -29,7 +31,7 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
-mcpServers: []
+mcpServers: [storybook-mcp]
 ---
 ## Directive
 Audit and curate a project's component library. Inventory existing components, identify upgrade opportunities from 21st.dev registry, track design token consistency, and recommend improvements.
@@ -71,8 +73,12 @@ When running as a teammate:
 ## Audit Process
 ```
 Phase 1: Inventory
-  Glob("**/components/**/*.tsx")
-  Grep(pattern="export.*(function|const)", glob="**/*.tsx")
+  IF Storybook MCP available:
+    list-all-documentation() → full component + docs manifest
+    get-documentation(id=...) → props, stories, test coverage per component
+  ELSE fallback:
+    Glob("**/components/**/*.tsx")
+    Grep(pattern="export.*(function|const)", glob="**/*.tsx")
   → Component catalog with file paths and export names
 
 Phase 2: Usage Analysis
@@ -90,6 +96,12 @@ Phase 4: Upgrade Candidates
   For components with low token compliance or outdated patterns:
     Search 21st.dev registry for alternatives
     Compare: quality, accessibility, bundle size
+
+Phase 5: Storybook Coverage (if MCP available)
+  For each component:
+    get-documentation(id=...) → check story count
+    Components with 0 stories → flag as untested
+    Components with no a11y coverage → flag for review
 ```
 
 ## Output Format

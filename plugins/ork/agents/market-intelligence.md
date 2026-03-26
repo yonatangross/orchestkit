@@ -9,6 +9,7 @@ context: fork
 color: violet
 memory: project
 background: true
+initialPrompt: "Check TaskList for pending research tasks. Search memory for prior market intelligence and competitive analysis."
 tools:
   - Read
   - WebSearch
@@ -20,7 +21,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
 disallowedTools: [Write, Edit, MultiEdit]
 skills:

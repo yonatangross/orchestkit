@@ -245,7 +245,7 @@ export function guardNontrivialBash(input: HookInput): GuardResult {
  * Guard: Only run for git commands
  */
 export function guardGitCommand(input: HookInput): GuardResult {
-  const command = input.tool_input.command || '';
+  const command = (input.tool_input.command || '').replace(/^rtk\s+/, '');
 
   if (command.startsWith('git')) {
     return null; // Continue with hook

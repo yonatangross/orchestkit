@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.23.0] - 2026-03-25
+
+### Added
+
+- **CC 2.1.83 adoption — Tier 1 quick wins**:
+  - `sandbox.failIfUnavailable: true` — fail-fast when sandbox runtime unavailable instead of running unsandboxed
+  - `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` — strip Anthropic/cloud credentials from all subprocess environments (Bash, hooks, MCP servers)
+  - `initialPrompt` for all 15 background agents — zero-wasted-turn bootstrap on spawn
+  - `userConfig` with `sensitive:true` — keychain-backed webhook token storage via manifest
+- **RTK proxy compatibility** — git-validator and guardGitCommand now strip `rtk ` prefix before pattern matching, ensuring commit/branch validation works with RTK-rewritten commands
+
+### Changed
+
+- **Deprecated `TaskOutput` removed** from 6 agents (eval-runner, release-engineer, monitoring-engineer, data-pipeline-engineer, market-intelligence, web-research-analyst) — replaced by `Read` on background task output file per CC 2.1.83 deprecation
+- **CC version requirement** bumped to >= 2.1.83 (from >= 2.1.81)
+
+---
+
 ## [7.22.1] - 2026-03-24
 
 ### Fixed

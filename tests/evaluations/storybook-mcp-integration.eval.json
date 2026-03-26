@@ -1,0 +1,50 @@
+{
+  "$schema": "../../.claude/schemas/skill-evaluation.schema.json",
+  "skill": "storybook-mcp-integration",
+  "version": "1.0.0",
+  "evaluations": [
+    {
+      "id": "component-discovery",
+      "query": "Generate a Card component for our design system. We have Storybook with addon-mcp set up.",
+      "expected_behavior": [
+        "Checks existing Storybook components via list-all-documentation or get-documentation before generating new code",
+        "References Storybook MCP tools for component discovery rather than only filesystem search",
+        "Retrieves props schema from Storybook documentation to understand existing component API"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "test-verification",
+      "query": "Verify the Modal component passes accessibility and component tests. Storybook MCP is available.",
+      "expected_behavior": [
+        "Uses run-story-tests with a11y enabled to run component interaction tests and accessibility scans",
+        "Describes a fix-and-retry self-healing loop with a retry limit when tests fail",
+        "Uses preview-stories to embed a live preview for visual confirmation after tests pass"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "component-audit",
+      "query": "Audit our component library to find components lacking test coverage or accessibility compliance. We use Storybook 10.3.",
+      "expected_behavior": [
+        "Uses list-all-documentation to get the complete component manifest",
+        "Uses get-documentation with specific component IDs to retrieve story count and test coverage",
+        "Identifies components with zero stories or no a11y coverage as gaps"
+      ],
+      "tags": ["happy-path"]
+    },
+    {
+      "id": "graceful-degradation",
+      "query": "Generate a Card component for our project.",
+      "expected_behavior": [
+        "Falls back to filesystem-based component discovery when Storybook MCP is not available",
+        "Does not fail or error when MCP server is absent"
+      ],
+      "should_not": [
+        "Assume Storybook MCP is always available",
+        "Fail with an error if the MCP server cannot be reached"
+      ],
+      "tags": ["edge-case"]
+    }
+  ]
+}

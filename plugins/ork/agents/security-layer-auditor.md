@@ -28,6 +28,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 background: true
+initialPrompt: "Check TaskList for pending audit tasks. Identify the target feature and map its 8 defense-in-depth security layers."
 ---
 # Security Layer Auditor Agent
 

@@ -14,9 +14,25 @@ Commands work without them - MCPs just add extra capabilities.
 | **agentation** | UI annotation tool | Local daemon | UI feedback → automatic agent pickup |
 | **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
+| **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
 | **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
 
 > **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
+
+## Recommended MCPs by Project Type
+
+Not sure which MCPs to enable? Match your project type:
+
+| Project Type | Recommended MCPs | Why |
+|---|---|---|
+| **Full-stack React** | context7, memory, storybook-mcp, 21st-dev-magic, stitch | Component reuse, design extraction, latest API docs |
+| **Backend Python/Node** | context7, memory, tavily | Library docs, decision persistence, web research |
+| **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
+| **AI/LLM project** | context7, memory, tavily, sequential-thinking | API docs, pattern memory, research, structured reasoning for subagents |
+| **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
+| **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
+
+All MCPs are optional — OrchestKit works without any. Enable what fits your workflow. See setup instructions for each MCP in the Dependencies section below.
 
 ## Default State
 
@@ -193,6 +209,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
+| storybook-mcp | Storybook 10.3+ with `@storybook/addon-mcp`. Setup: `npx storybook add @storybook/addon-mcp && npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project`. Requires Vite builder + running Storybook |
 
 ## Plugin Integration
 
@@ -208,6 +225,7 @@ OrchestKit agents and skills integrate with these MCPs:
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 | /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |
 | /ork:component-search, component-curator | 21st-dev-magic | Search + retrieve production React components |
+| /ork:design-to-code, component-curator, frontend-ui-developer | storybook-mcp | Component discovery, story previews, test verification |
 
 ## Without MCPs
 

@@ -42,7 +42,7 @@ These hooks activate exclusively when this agent runs, enforcing safety and comp
 | `migration-safety-check` | 🛑 Blocks | Validates database commands are safe |
 
 ## Directive
-Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.
+Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using PostgreSQL best practices.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 &lt;investigate_before_answering&gt;
@@ -55,7 +55,7 @@ Always run EXPLAIN ANALYZE before recommending optimizations.
 When analyzing database issues, run independent queries in parallel:
 - Read existing migrations → independent
 - Query schema via postgres-mcp → independent
-- Query pg-aiguide for best practices → independent
+- Query context7 for PostgreSQL best practices → independent
 
 Only use sequential execution when migration depends on schema inspection results.
 &lt;/use_parallel_tool_calls&gt;
@@ -79,10 +79,8 @@ Generate complete migration suites (schema design + Alembic migrations + index o
 With 128K output, design and produce all migrations for a feature without splitting across responses.
 
 ## MCP Tools (Optional — skip if not configured)
-- `mcp__pg-aiguide__semantic_search_postgres_docs` - Query PostgreSQL manual
-- `mcp__pg-aiguide__semantic_search_tiger_docs` - Query ecosystem docs (TimescaleDB, pgvector)
-- `mcp__pg-aiguide__view_skill` - Get curated best practices for schema/indexing/constraints
-
+- `mcp__context7__resolve-library-id` — Find PostgreSQL, pgvector, or TimescaleDB library IDs
+- `mcp__context7__query-docs` — Query up-to-date PostgreSQL documentation and best practices
 
 ## Concrete Objectives
 1. Design schemas with proper constraints, indexes, and FK relationships
@@ -112,8 +110,8 @@ Return structured findings:
 
 ## Task Boundaries
 **DO:**
-- Query pg-aiguide for PostgreSQL best practices before designing
-- Inspect existing schema via postgres-mcp or information_schema
+- Query context7 for PostgreSQL best practices before designing
+- Inspect existing schema via information_schema or pg_catalog
 - Generate Alembic migration files in backend/alembic/versions/
 - Run EXPLAIN ANALYZE on slow queries (read-only)
 - Create proper CHECK, UNIQUE, FK, and EXCLUSION constraints
@@ -135,7 +133,7 @@ Return structured findings:
 - Forbidden: frontend/**, direct production access, DROP without approval
 
 ## Resource Scaling
-- Schema review: 5-10 tool calls (inspect + pg-aiguide query)
+- Schema review: 5-10 tool calls (inspect + context7 query)
 - New table design: 15-25 tool calls (research + design + migration)
 - Query optimization: 10-20 tool calls (EXPLAIN + fix + verify)
 - Full migration suite: 30-50 tool calls (design + test + validate + document)
@@ -171,7 +169,7 @@ WITH (m = 16, ef_construction = 64);
 ## Example
 Task: "Optimize hybrid search - currently taking 150ms"
 
-1. Query pg-aiguide: `view_skill("pgvector_indexing")`
+1. Query context7 for pgvector indexing best practices
 2. Run EXPLAIN ANALYZE on current query
 3. Identify: Sequential scan on chunks.embedding, missing GIN on tsvector
 4. Create migration:

@@ -19,7 +19,7 @@ Constraining component props to prevent AI hallucination and invalid output.
 
 ## 3. shadcn Catalog (shadcn) — MEDIUM — 1 rule
 
-Using the 36 pre-built @json-render/shadcn components.
+Using the 29 pre-built @json-render/shadcn components.
 
 - `shadcn-catalog.md` — Component list, prop schemas, extending vs using as-is
 

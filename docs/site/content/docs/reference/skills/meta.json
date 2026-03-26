@@ -82,6 +82,7 @@
     "security-patterns",
     "setup",
     "skill-evolution",
+    "storybook-mcp-integration",
     "storybook-testing",
     "task-dependency-patterns",
     "testing-e2e",

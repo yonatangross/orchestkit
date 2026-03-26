@@ -10,6 +10,7 @@ color: green
 memory: project
 isolation: worktree
 background: true
+initialPrompt: "Check TaskList for pending pipeline tasks. Inventory current embedding configuration and vector index status."
 tools:
   - Bash
   - Read
@@ -23,7 +24,6 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  - TaskOutput
   - TaskStop
   - ExitWorktree
 skills:
