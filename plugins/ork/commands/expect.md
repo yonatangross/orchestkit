@@ -186,8 +186,8 @@ Run the test plan via `agent-browser`:
 
 ```python
 Agent(
-  subagent_type="general-purpose",
-  prompt=f"""Execute this test plan using agent-browser:
+  subagent_type="ork:expect-agent",
+  prompt=f"""Execute this test plan:
   {test_plan}
 
   For each step:
@@ -195,10 +195,10 @@ Agent(
   2. Execute the test action
   3. Take a screenshot on failure
   4. Report PASS/FAIL with evidence
-
-  Use the agent-browser skill for all browser interactions.
   """,
-  run_in_background=True
+  run_in_background=True,
+  model="sonnet",
+  max_turns=50
 )
 ```
 

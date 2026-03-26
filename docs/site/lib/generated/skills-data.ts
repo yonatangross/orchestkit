@@ -1884,8 +1884,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "testing-e2e",
       "chain-patterns",
-      "memory",
-      "agent-browser"
+      "memory"
     ],
     "agent": null,
     "complexity": "high",

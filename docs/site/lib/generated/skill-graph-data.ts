@@ -391,7 +391,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "high",
     "category": "testing",
     "hasDeps": true,
-    "depCount": 4,
+    "depCount": 3,
     "usedByCount": 0
   },
   {
@@ -1218,10 +1218,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "expect",
     "target": "memory"
-  },
-  {
-    "source": "expect",
-    "target": "agent-browser"
   },
   {
     "source": "explore",
