@@ -17,6 +17,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.24.2",
+    "date": "2026-03-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**fal.ai MCP integration** — added fal MCP server to configure skill reference (1000+ models: FLUX.2, Kling 3.0, LTX 2.0, Veo 3.1, Chatterbox TTS), new \"Generative media\" project type",
+          "**Video model pricing refresh** — updated stale fal.ai pricing in multimodal-llm skill ($0.90/10s → Kling $0.07/s, Veo 3.1 $0.40/s, Wan 2.5 $0.05/s)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**Scorecard #132** — added nosemgrep annotation for npm pinned-dependencies advisory"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.24.1",
+    "date": "2026-03-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Stop hook version display** — replaced hardcoded `ork@7.22.0` with build-time injection from `manifests/ork.json` via `__PLUGIN_VERSION__` placeholder",
+          "**Security: picomatch CVE-2026-33671 + CVE-2026-33672** — bumped picomatch to 4.0.4 across 3 directories; also bumped express-rate-limit (GHSA-46wh-pxpv-q5gq)",
+          "**Stale counts** — synced hook count (106→109), skill count (94/98→99), CC version (2.1.75→2.1.84) across 6 docs pages"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.24.0",
     "date": "2026-03-26",
     "compareUrl": "",
