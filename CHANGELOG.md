@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `task-context-injector` — enriches tasks with branch/commit context via `additionalContext`
   - `task-progress-initializer` — detects `[N/M]` numbered task patterns and initializes progress bar state
 - **38 unit tests** for TaskCreated hooks (creation-tracker, task-context-injector, task-progress-initializer)
+- **Fuzzy search with Fuse.js** — replaced `.includes()` substring matching in skill browser and agent selector with Fuse.js fuzzy search:
+  - Typo tolerance (threshold 0.35), multi-word queries, word-order-independent matching
+  - Relevance ranking with field weighting (name 3x, tags 2x, description 1x)
+  - 150ms debounced input to prevent result flashing
+  - `<Highlight>` component renders match ranges with yellow highlights
+  - "Did you mean?" smart empty state with relaxed-threshold suggestions
+  - Shared `useFuzzySearch` hook and `createSearch()` / `createRelaxedSearch()` in `lib/search.ts`
+  - 23 unit tests covering fuzzy matching, relevance ranking, match metadata, and relaxed suggestions
+- **RTK (Rust Token Killer) documentation** — added Git Validator section to safety-hooks docs covering `stripProxyPrefix()` flow, RTK v0.33.1 coexistence guide, `--hook-only` setup, and git status output change warning; added RTK FAQ entry
 
 ### Changed
 
