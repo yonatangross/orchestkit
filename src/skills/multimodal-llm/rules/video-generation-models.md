@@ -43,11 +43,11 @@ result = openai.videos.generate(
 
 **Pricing comparison (5s video, standard mode):**
 
-| Provider | Kling 3.0 | Sora 2 | Veo 3.1 | Runway Gen-4.5 |
-|----------|-----------|--------|---------|----------------|
-| Official API | ~$0.20 | ChatGPT Plus ($20/mo) | Google AI Pro ($29/mo) | From $12/mo |
-| fal.ai | ~$0.90/10s | — | — | — |
-| Third-party (PiAPI, Segmind) | $0.20-$0.96 | — | — | — |
+| Provider | Kling 3.0 | Sora 2 | Veo 3.1 | Runway Gen-4.5 | LTX 2.0 | Wan 2.5 |
+|----------|-----------|--------|---------|----------------|---------|---------|
+| Official API | ~$0.20 | ChatGPT Plus ($20/mo) | Google AI Pro ($29/mo) | From $12/mo | — | — |
+| fal.ai | $0.07/s ($0.14 w/audio) | Available | $0.40/s | — | Available | $0.05/s |
+| Third-party (PiAPI, Segmind) | $0.20-$0.96 | — | — | — | — | — |
 
 **Selection guide:**
 

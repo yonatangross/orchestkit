@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.24.2] - 2026-03-26
+
+### Added
+
+- **fal.ai MCP integration** — added fal MCP server to configure skill reference (1000+ models: FLUX.2, Kling 3.0, LTX 2.0, Veo 3.1, Chatterbox TTS), new "Generative media" project type
+- **Video model pricing refresh** — updated stale fal.ai pricing in multimodal-llm skill ($0.90/10s → Kling $0.07/s, Veo 3.1 $0.40/s, Wan 2.5 $0.05/s)
+
+### Fixed
+
+- **Scorecard #132** — added nosemgrep annotation for npm pinned-dependencies advisory
+
+---
+
+
 ## [7.24.1] - 2026-03-26
 
 ### Fixed

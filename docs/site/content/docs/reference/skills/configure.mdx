@@ -895,6 +895,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
 | **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
 | **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
+| **fal** | AI inference (1000+ models: FLUX.2, Kling, LTX, TTS) | Cloud (fal.ai) | multimodal-specialist, demo-producer, design-to-code |
 
 > **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
 
@@ -907,7 +908,8 @@ Not sure which MCPs to enable? Match your project type:
 | **Full-stack React** | context7, memory, storybook-mcp, 21st-dev-magic, stitch | Component reuse, design extraction, latest API docs |
 | **Backend Python/Node** | context7, memory, tavily | Library docs, decision persistence, web research |
 | **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
-| **AI/LLM project** | context7, memory, tavily, sequential-thinking | API docs, pattern memory, research, structured reasoning for subagents |
+| **AI/LLM project** | context7, memory, tavily, fal, sequential-thinking | API docs, pattern memory, research, image/video/TTS inference, structured reasoning |
+| **Generative media** | fal, memory, stitch, 21st-dev-magic | Image/video/audio generation, design extraction, component registry |
 | **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
 | **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
 
