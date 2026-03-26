@@ -236,8 +236,14 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 
         # Inject plugin version into stop-uncommitted-check.mjs
         PLUGIN_VERSION=$(jq -r '.version' "$manifest")
-        if [[ -f "$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs" ]] && [[ -n "$PLUGIN_VERSION" ]]; then
-            sed -i '' "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs"
+        STOP_HOOK="$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs"
+        if [[ -f "$STOP_HOOK" ]] && [[ -n "$PLUGIN_VERSION" ]]; then
+            # Cross-platform sed -i (macOS needs '' arg, Linux doesn't)
+            if [[ "$(uname)" == "Darwin" ]]; then
+                sed -i '' "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$STOP_HOOK"
+            else
+                sed -i "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$STOP_HOOK"
+            fi
         fi
     fi
 
