@@ -49,11 +49,11 @@ function mockGitCommands(branch: string | null, commit: string | null): void {
   vi.mocked(execSync).mockImplementation((cmd: string) => {
     if (typeof cmd === 'string' && cmd.includes('rev-parse --abbrev-ref HEAD')) {
       if (branch === null) throw new Error('not a git repo');
-      return branch + '\n';
+      return `${branch}\n`;
     }
     if (typeof cmd === 'string' && cmd.includes('git log -1 --format=%s')) {
       if (commit === null) throw new Error('no commits');
-      return commit + '\n';
+      return `${commit}\n`;
     }
     return '';
   });
