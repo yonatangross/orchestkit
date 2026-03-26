@@ -23,6 +23,9 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths:
+  - ".mcp.json"
+  - "**/*.mcp.json"
 ---
 
 # MCP Patterns

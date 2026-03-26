@@ -34,6 +34,11 @@ triggers:
     - "add dark mode support to the dashboard"
     - "implement the payment webhook handler"
   anti-triggers: [fix, debug, review, explore, test, assess, brainstorm]
+paths:
+  - "src/**/*.{ts,tsx,js,jsx}"
+  - "package.json"
+  - "tsconfig.json"
+  - "CLAUDE.md"
 ---
 
 # Implement Feature

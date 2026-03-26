@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.78 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure)
+ * CC 2.1.84 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP)
  */
 
 /**
@@ -22,6 +22,7 @@ export type HookEvent =
   | 'Notification'
   | 'PreCompact'
   | 'TeammateIdle'
+  | 'TaskCreated'
   | 'TaskCompleted'
   | 'WorktreeCreate'
   | 'WorktreeRemove'
@@ -156,11 +157,17 @@ export interface HookInput {
   /** Whether the tool failure was caused by a user interrupt */
   is_interrupt?: boolean;
 
-  // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69)
+  // TaskCreated specific fields (CC 2.1.84)
+  /** Created task subject (TaskCreated) */
+  task_description?: string;
+
+  // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69, 2.1.84)
   /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate) */
   name?: string;
   /** Absolute path to worktree being removed (WorktreeRemove) */
   worktree_path?: string;
+  /** Hook type: "command" (default) or "http" (CC 2.1.84 — returns worktreePath in hookSpecificOutput) */
+  type?: string;
 }
 
 /**
@@ -203,6 +210,8 @@ export interface HookSpecificOutput {
   updatedMCPToolOutput?: unknown;
   /** Apply permission rules (PermissionRequest, CC 2.1.69) */
   updatedPermissions?: Record<string, unknown>;
+  /** Worktree path returned by HTTP-type WorktreeCreate hooks (CC 2.1.84) */
+  worktreePath?: string;
 }
 
 /**

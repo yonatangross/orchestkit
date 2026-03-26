@@ -23,6 +23,9 @@ triggers:
     - "what did we decide about pagination last time"
     - "show me the knowledge graph"
   anti-triggers: [remember, save, store, commit, implement, explore]
+paths:
+  - ".claude/memory/**"
+  - ".claude/projects/**/memory/**"
 ---
 
 # Memory - Read & Access Operations

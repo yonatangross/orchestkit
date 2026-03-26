@@ -22,6 +22,9 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths:
+  - ".storybook/**"
+  - "src/**/*.stories.{ts,tsx}"
 ---
 
 # Storybook MCP Integration
