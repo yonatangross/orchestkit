@@ -159,7 +159,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "expect-agent",
-    "description": "Browser test execution specialist who runs diff-aware test plans via agent-browser. Receives structured test plans, executes steps sequentially using ARIA-first selectors, emits machine-parseable status protocol (STEP_START/STEP_DONE/ASSERTION_FAILED/RUN_COMPLETED), captures screenshots on failure, and categorizes errors into 6 types (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread).",
+    "description": "Browser test execution: runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, and 6-category failure classification.",
     "plugins": [
       "ork"
     ],

@@ -502,7 +502,7 @@ export const AGENTS: Agent[] = [
     id: "expect-agent",
     name: "Expect Agent",
     description:
-      "Browser test execution specialist. Runs diff-aware test plans via agent-browser with ARIA-first selectors, status protocol reporting, and 6-category failure classification.",
+      "Runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, and 6-category failure classification.",
     category: "quality",
     model: "sonnet",
     taskTypes: ["test"],
