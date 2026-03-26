@@ -1,35 +1,27 @@
 # Session Handoff
 
-**Branch**: feat/cc-2183-tier1
-**When**: 2026-03-25 10:28:10 UTC
-**Session**: 40c2d857-07fc-4bfd-a477-a677060df31d
+**Branch**: feat/cc-2184-adoption
+**When**: 2026-03-26 09:31:02 UTC
+**Session**: 90b4d251-35c9-44f1-9307-a0f643b477b5
 
 ## Summary
-**Summary:** All 5 Tier 1 CC 2.1.83 changes were already implemented and merged to main in commit `a24a9ea9`:
+Pushed. All pre-push validations passed. The remote shows 5 remaining vulns on the **default branch** (main) — those will be resolved once this PR merges.
 
-| Change | Status |
-|--------|--------|
-| `sandbox.failIfUnavailable: true` | Already in main |
-| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` | Already in main |
-| TaskOutput → Read (6 agents) | Already in main |
-| `initialPrompt` (15 background agents) | Already in main |
-| `userConfig` with `sensitive:true` | Already in main |
-
-The only net-new fix is the test count (`EXPECTED_INTERNAL=78→79`) for the new storybook-mcp-integration skill.
+Done:
+- **Security fixed**: picomatch CVE-2026-33671 + CVE-2026-33672, express-rate-limit GHSA-46wh-pxpv-q5gq — 0 vulnerabilities in all 3 dirs
+- **#1162 superseded**: commit includes `Closes #1162` — dependabot PR will auto-close when this merges
+- **PR #1163** updated with the security fix commit
 
 ## Modified Files
 - .claude/HANDOFF.md.consumed
-- tests/skills/structure/test-skill-md.sh
-
-## What Was Built
-- **Summary:** All 5 Tier 1 CC 2.1.83 changes were already implemented and merged to main in commit `a24a9ea9`:
+- docs/site/lib/generated/changelog-data.ts
 
 ## Recent Tasks
-- Phase 1: Wire component-curator agent to Storybook MCP [completed]
-- Phase 2: Update design-to-code Stage 2 with Storybook-first matching [completed]
-- Phase 2: Wire frontend-ui-developer + design-system-architect agents [completed]
-- Phase 2: Add Storybook MCP to mcp-config.md reference [completed]
-- Phase 3: Add self-healing verification to design-to-code Stage 4 [completed]
-- Phase 3: Update storybook-testing skill with MCP patterns [completed]
-- Build + test [completed]
-- Build, test, and verify [completed]
+- Verify manifest consistency and counts [completed]
+- Cover & verify CC 2.1.84 adoption branch [completed]
+- Phase 1: Extract search logic + regression tests [completed]
+- Phase 2: Add Fuse.js + useFuzzySearch hook [completed]
+- Phase 3: Wire into components + highlight + smart empty state [completed]
+- Phase 4: Build + test + verify [completed]
+- Document RTK across docs site [completed]
+- Enrich RTK docs with research findings [completed]

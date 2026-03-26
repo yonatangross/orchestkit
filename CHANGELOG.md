@@ -5,6 +5,16 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.24.1] - 2026-03-26
+
+### Fixed
+
+- **Stop hook version display** — replaced hardcoded `ork@7.22.0` with build-time injection from `manifests/ork.json` via `__PLUGIN_VERSION__` placeholder
+- **Security: picomatch CVE-2026-33671 + CVE-2026-33672** — bumped picomatch to 4.0.4 across 3 directories; also bumped express-rate-limit (GHSA-46wh-pxpv-q5gq)
+- **Stale counts** — synced hook count (106→109), skill count (94/98→99), CC version (2.1.75→2.1.84) across 6 docs pages
+
+---
+
 ## [7.24.0] - 2026-03-26
 
 ### Added
