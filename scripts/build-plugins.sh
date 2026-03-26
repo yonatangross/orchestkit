@@ -233,6 +233,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             --exclude='.gitignore' \
             --exclude='package-lock.json' \
             "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
+
+        # Inject plugin version into stop-uncommitted-check.mjs
+        PLUGIN_VERSION=$(jq -r '.version' "$manifest")
+        if [[ -f "$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs" ]] && [[ -n "$PLUGIN_VERSION" ]]; then
+            sed -i '' "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs"
+        fi
     fi
 
     # Build MCP server if source exists
