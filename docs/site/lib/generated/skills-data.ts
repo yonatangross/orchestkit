@@ -1892,12 +1892,16 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "aria-diffing.md",
+        "ci-integration.md",
         "config-schema.md",
         "diff-scanner.md",
         "execution.md",
         "fingerprint.md",
+        "human-review.md",
         "report.md",
+        "research.md",
         "route-map.md",
+        "rrweb-recording.md",
         "saved-flows.md",
         "scope-strategy.md",
         "test-plan.md"
@@ -1911,7 +1915,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "expect-agent"
+    ]
   },
   "explore": {
     "name": "explore",
@@ -4260,6 +4266,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "accessibility-specialist",
       "design-system-architect",
       "emulate-engineer",
+      "expect-agent",
       "frontend-ui-developer",
       "test-generator"
     ]

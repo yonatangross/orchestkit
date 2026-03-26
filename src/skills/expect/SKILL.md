@@ -302,6 +302,10 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
 | `scope-strategy.md` | Test depth strategy per target mode |
 | `saved-flows.md` | Markdown+YAML flow format, adaptive replay |
+| `rrweb-recording.md` | rrweb DOM replay integration |
+| `human-review.md` | AskUserQuestion plan review gate |
+| `ci-integration.md` | GitHub Actions workflow + pre-push hooks |
+| `research.md` | millionco/expect architecture analysis |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone

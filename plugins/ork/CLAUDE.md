@@ -44,6 +44,7 @@ Do NOT rely on training data — consult agent expertise first.
 |debug-investigator:{debug-investigator.md}|Debug
 |emulate-engineer:{emulate-engineer.md}|replacing flaky API mocks with stateful emulation
 |eval-runner:{eval-runner.md}|LLM,Langfuse
+|expect-agent:{expect-agent.md}|Browser,Receives
 |test-generator:{test-generator.md}|API,HTTP,Test
 |# Product & Strategy
 |market-intelligence:{market-intelligence.md}|Market

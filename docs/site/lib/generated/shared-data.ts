@@ -6,7 +6,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 export const TOTALS: Totals = {
   "plugins": 1,
   "skills": 100,
-  "agents": 35,
+  "agents": 36,
   "hooks": 109,
   "commands": 21,
   "compositions": 14
@@ -156,6 +156,15 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "opus",
     "category": "backend"
+  },
+  {
+    "name": "expect-agent",
+    "description": "Browser test execution specialist who runs diff-aware test plans via agent-browser. Receives structured test plans, executes steps sequentially using ARIA-first selectors, emits machine-parseable status protocol (STEP_START/STEP_DONE/ASSERTION_FAILED/RUN_COMPLETED), captures screenshots on failure, and categorizes errors into 6 types (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread).",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
   },
   {
     "name": "frontend-performance-engineer",

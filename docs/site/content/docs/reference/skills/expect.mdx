@@ -286,6 +286,10 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
 | `scope-strategy.md` | Test depth strategy per target mode |
 | `saved-flows.md` | Markdown+YAML flow format, adaptive replay |
+| `rrweb-recording.md` | rrweb DOM replay integration |
+| `human-review.md` | AskUserQuestion plan review gate |
+| `ci-integration.md` | GitHub Actions workflow + pre-push hooks |
+| `research.md` | millionco/expect architecture analysis |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
@@ -482,7 +486,7 @@ except ElementNotFound:
 
 ---
 
-## References (10)
+## References (14)
 
 ### Aria Diffing
 
@@ -560,6 +564,108 @@ ARIA Diff: /login
 
 Change score: 15% (threshold: 10%) — FLAGGED
 ```
+
+
+### Ci Integration
+
+# CI Integration (#1180)
+
+Run /ork:expect in GitHub Actions and pre-push hooks.
+
+## GitHub Actions Workflow
+
+```yaml
+# .github/workflows/expect.yml
+name: Browser Tests (expect)
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  expect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git diff
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start dev server
+        run: npm run dev &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Install Claude Code + OrchestKit
+        run: |
+          npm install -g @anthropic-ai/claude-code@latest
+          claude plugin install orchestkit/ork
+
+      - name: Run expect
+        run: |
+          claude "/ork:expect --target branch -y"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: expect-results
+          path: |
+            .expect/reports/
+            .expect/screenshots/
+            .expect/recordings/
+```
+
+## Pre-Push Hook
+
+```bash
+# .git/hooks/pre-push (or via husky/lefthook)
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Quick fingerprint check — skip if no changes
+if bash scripts/expect/fingerprint.sh check >/dev/null 2>&1; then
+  echo "expect: No changes since last test run — skipping"
+  exit 0
+fi
+
+# Run expect with branch target, skip review
+claude "/ork:expect --target branch -y"
+```
+
+## Exit Code Mapping
+
+| /ork:expect Exit | CI Behavior |
+|-----------------|-------------|
+| `0` (all pass) | CI passes |
+| `0` (skip — fingerprint) | CI passes (zero-cost) |
+| `1` (test failure) | CI fails, artifacts uploaded |
+| `0` + warning (env issue) | CI passes with warning annotation |
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `ANTHROPIC_API_KEY` | Yes | Claude API access |
+| `CI` | Auto-set | Detected by expect, enables CI output mode |
+| `GITHUB_ACTIONS` | Auto-set | Enables GitHub annotations format |
+
+## Cost Optimization
+
+- Fingerprint gating: zero-cost when nothing changed
+- Scope strategy: `branch` target in CI limits test count
+- `-y` flag: skip human review in automated pipelines
+- `--target branch`: only test branch changes, not full site
 
 
 ### Config Schema
@@ -903,6 +1009,77 @@ Use `--force` flag to bypass fingerprint check:
 - `.expect/fingerprints.json` should be gitignored
 
 
+### Human Review
+
+# Human-in-the-Loop Plan Review (#1179)
+
+Present the generated test plan to the user for review before execution.
+
+## Flow
+
+```
+Diff Scan → Plan Generated → [REVIEW GATE] → Execute → Report
+                                   ↓
+                        AskUserQuestion:
+                        "Run this plan?"
+                        ├── Run (proceed)
+                        ├── Edit (modify)
+                        └── Skip (cancel)
+```
+
+## Implementation
+
+```python
+if not SKIP_REVIEW:  # -y flag bypasses
+    AskUserQuestion(questions=[{
+        "question": f"Run this test plan? ({step_count} steps across {page_count} pages)",
+        "header": "Plan",
+        "options": [
+            {
+                "label": "Run (Recommended)",
+                "description": f"{step_count} steps, ~{estimated_time}s",
+                "preview": test_plan_preview  # First 20 lines of the plan
+            },
+            {
+                "label": "Edit plan",
+                "description": "Modify steps before running"
+            },
+            {
+                "label": "Skip",
+                "description": "Cancel without running"
+            }
+        ],
+        "multiSelect": False
+    }])
+```
+
+## Edit Mode
+
+When "Edit plan" is selected:
+1. Present the full test plan as editable text
+2. User modifies (add/remove/reorder steps)
+3. Re-validate step count against scope strategy limits
+4. Proceed to execution with modified plan
+
+## Skip Scenarios
+
+The review is automatically skipped when:
+- `-y` flag is passed
+- Running in CI (`CI=true`)
+- Fingerprint matched (no test to run)
+- Saved flow replay (`--flow` flag — flow is pre-approved)
+
+## Progressive Feedback
+
+After the user approves, show incremental progress:
+```
+Executing test plan...
+  ✓ /login — 3/3 steps passed (2.1s)
+  ◌ /dashboard — running step 2/4...
+  ○ /settings — pending
+```
+
+
 ### Report
 
 # Report Generator (#1176)
@@ -1027,6 +1204,60 @@ When running in CI (`CI=true` or `GITHUB_ACTIONS=true`):
    - Skipped → "Resolve environment issues and re-run."
 
 
+### Research
+
+# Research Reference (#1181)
+
+Architecture analysis of millionco/expect and related tools.
+
+## millionco/expect
+
+[GitHub: millionco/expect](https://github.com/millionco/expect) — AI-powered browser testing tool.
+
+### Key Architecture Decisions
+
+1. **Diff-first**: Uses git diff to determine test scope — doesn't test unchanged code
+2. **ARIA over pixels**: Accessibility tree snapshots for semantic UI diffing
+3. **Natural language steps**: Test plans written in plain English, executed by AI
+4. **Fingerprint gating**: SHA-256 hash of file state — zero-cost skip when unchanged
+5. **Failure taxonomy**: 6 categories (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread)
+
+### What We Adopted
+
+| Feature | millionco/expect | /ork:expect |
+|---------|-----------------|-------------|
+| Diff scanning | 3-level (direct/imported/routed) | Same, plus `changes` target mode |
+| Fingerprinting | SHA-256 of HEAD+staged+unstaged | Same |
+| Status protocol | STEP_START/STEP_DONE/etc. | Same format |
+| Failure categories | 6 types | Same 6 types |
+| ARIA snapshots | Line-based diffing | Same |
+| Saved flows | YAML format | Markdown+YAML for human readability |
+| Config | .expect/config.yaml | Same convention |
+
+### What We Added
+
+| Feature | /ork:expect Only |
+|---------|-----------------|
+| Scope strategy | Test depth varies by target (commit=narrow, branch=thorough) |
+| Coverage context | Cross-ref changed files with existing test files |
+| rrweb recording | DOM event replay (not in millionco/expect) |
+| Anti-rabbit-hole | Max retry limits, stall detection |
+| Agent Teams | Can use mesh orchestration for parallel analysis |
+| MCP integration | Memory graph persistence of findings |
+| fal.ai integration | Could generate test thumbnails/reports via fal MCP |
+
+## Related Tools
+
+| Tool | Approach | Difference |
+|------|----------|------------|
+| Playwright | Code-first E2E tests | Manual test authoring, no AI |
+| Cypress | Code-first E2E tests | Same as Playwright |
+| agent-browser | AI browser automation | Generic — expect adds diff-awareness |
+| Meticulous | Visual regression | Pixel-based, not semantic |
+| Chromatic | Storybook visual testing | Component-level, not page-level |
+| testmon | Python test selection | Unit test scope, not browser |
+
+
 ### Route Map
 
 # Route Map
@@ -1090,6 +1321,81 @@ For dynamic routes (`[slug]`, `[id]`), use test values from:
 1. `.expect/config.yaml` `test_params` section
 2. First entry from a seed/fixture file
 3. Default: `test-1`, `1`, `example`
+
+
+### Rrweb Recording
+
+# rrweb Session Recording (#1178)
+
+Full session replay without video encoding — captures DOM mutations and events as lightweight JSON.
+
+## Why rrweb Over Video
+
+| Approach | Size | Quality | Interaction |
+|----------|------|---------|-------------|
+| Video (mp4) | ~5MB/min | Lossy | Watch only |
+| rrweb JSON | ~100KB/min | Lossless DOM | Replay, inspect, debug |
+
+## Integration Points
+
+### Injection via agent-browser eval
+```javascript
+// Inject rrweb recorder at test start
+eval(`
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/rrweb@2.0.0-alpha.4/dist/rrweb-all.min.js';
+  script.onload = () => {
+    window.__rrweb_events = [];
+    rrweb.record({ emit: (e) => window.__rrweb_events.push(e) });
+  };
+  document.head.appendChild(script);
+`);
+```
+
+### Collect events at test end
+```javascript
+// Extract recorded events
+const events = eval("JSON.stringify(window.__rrweb_events)");
+```
+
+### Storage
+```
+.expect/recordings/
+├── 2026-03-26T16-30-00-login.json    # rrweb events
+└── 2026-03-26T16-30-00-dashboard.json
+```
+
+## Replay
+
+rrweb recordings can be replayed in any browser:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/rrweb-player@2.0.0-alpha.4/dist/index.js"></script>
+<div id="player"></div>
+<script>
+  fetch('.expect/recordings/login.json')
+    .then(r => r.json())
+    .then(events => new rrwebPlayer({ target: document.getElementById('player'), events }));
+</script>
+```
+
+## Config
+
+```yaml
+# .expect/config.yaml
+rrweb:
+  enabled: false          # Opt-in (adds ~100KB overhead per page)
+  storage: .expect/recordings/
+  keep_last: 5            # Retain last 5 recordings
+  record_on: fail         # always | fail | never
+```
+
+## Notes
+
+- rrweb is injected via `eval` — works with any framework, no build step needed
+- Recordings are gitignored (ephemeral, large-ish)
+- Only record on failure by default to minimize storage
+- Future: integrate with report.md to embed replay links in failure details
 
 
 ### Saved Flows
