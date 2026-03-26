@@ -1898,7 +1898,14 @@ export const SKILLS: Record<string, SkillMeta> = {
         "fingerprint.md",
         "report.md",
         "route-map.md",
+        "saved-flows.md",
+        "scope-strategy.md",
         "test-plan.md"
+      ],
+      "scripts": [
+        "coverage-context.sh",
+        "diff-scan.sh",
+        "fingerprint.sh"
       ]
     },
     "plugins": [

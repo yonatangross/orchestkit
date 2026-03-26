@@ -158,10 +158,14 @@ Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/route-map.md")`
 
 ## Phase 4: Test Plan Generation
 
-Build an AI test plan scoped to the diff:
+Build an AI test plan scoped to the diff, using the scope strategy for the current target:
 
 ```python
+scope_strategy = get_scope_strategy(TARGET)  # See references/scope-strategy.md
+
 prompt = f"""
+{scope_strategy}
+
 Changes: {diff_summary}
 Affected pages: {affected_urls}
 Instruction: {INSTRUCTION or "Test that the changes work correctly"}
@@ -280,6 +284,8 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `report.md` | Report format + artifact storage |
 | `config-schema.md` | .expect/config.yaml full schema |
 | `aria-diffing.md` | ARIA snapshot comparison for semantic diffing |
+| `scope-strategy.md` | Test depth strategy per target mode |
+| `saved-flows.md` | Markdown+YAML flow format, adaptive replay |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
@@ -287,7 +293,196 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
-## References (8)
+## Rules (5)
+
+### Artifact storage conventions for reports, screenshots, and fingerprints — MEDIUM
+
+
+## Artifact Storage
+
+All expect artifacts live under `.expect/` with a consistent directory structure.
+
+**Incorrect — scattered artifact locations:**
+```bash
+# Wrong: artifacts in random locations
+/tmp/test-screenshot-1.png
+~/Desktop/test-report.json
+./screenshots/login-fail.png
+```
+
+**Correct — structured under .expect/:**
+```
+.expect/
+├── config.yaml              # Project config (committed)
+├── flows/                   # Saved test flows (committed)
+│   ├── login.yaml
+│   └── checkout.yaml
+├── fingerprints.json         # SHA-256 hashes (gitignored)
+├── reports/                  # Test run reports (gitignored)
+│   ├── 2026-03-26T16-30-00.json
+│   └── 2026-03-26T17-00-00.json
+├── screenshots/              # Failure screenshots (gitignored)
+│   ├── dashboard-step2-fail.png
+│   └── login-step5-fail.png
+└── snapshots/                # ARIA snapshots (committed)
+    ├── login.json
+    └── dashboard.json
+```
+
+**Key rules:**
+- Reports use ISO timestamp filenames (UTC, replace `:` with `-`)
+- Keep last N reports (default 10, configurable in config.yaml)
+- Screenshots only on failure (`on_fail` default)
+- ARIA snapshots and flows are committed (they're baseline references)
+- Fingerprints, reports, and screenshots are gitignored (ephemeral)
+
+
+### Scope test runs to changed code only — HIGH
+
+
+## Diff Scope Boundaries
+
+Only test pages that are connected to the changed files via the 3-level classification.
+
+**Incorrect — testing all pages regardless of diff:**
+```python
+# Wrong: testing entire site when only Button.tsx changed
+pages_to_test = ["/", "/about", "/pricing", "/dashboard", "/settings", "/login"]
+```
+
+**Correct — scoped to affected routes:**
+```python
+# Right: only test pages that render the changed component
+changed = ["src/components/Button.tsx"]
+direct = changed                                    # Level 1
+imported = find_importers("Button", "src/")         # Level 2
+routed = route_map.resolve(direct + imported)       # Level 3
+pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
+```
+
+**Key rules:**
+- Always run diff scan before route mapping — never assume scope
+- If route map is empty (no `.expect/config.yaml`, no framework detected), test only `base_url` root
+- Log which level triggered each page test for debugging
+- Respect `ignore_patterns` from config — skip test files, docs, lockfiles
+
+
+### When to invalidate fingerprints and force re-run — HIGH
+
+
+## Fingerprint Invalidation
+
+Fingerprints must be invalidated when file contents change outside the normal edit flow.
+
+**Incorrect — trusting fingerprints after git operations:**
+```python
+# Wrong: fingerprints match but code is completely different branch
+git checkout feature-branch  # Different code
+/ork:expect                  # "No changes since last run" — WRONG
+```
+
+**Correct — invalidate on state-changing git operations:**
+```python
+# Right: clear fingerprints when git state changes
+INVALIDATION_TRIGGERS = [
+    "git checkout",    # Different branch = different code
+    "git stash pop",   # Restored changes
+    "git merge",       # Merged code from another branch
+    "git rebase",      # Rebased commits
+    "git reset",       # Reset to different state
+    "git pull",        # Pulled upstream changes
+]
+# After any of these: delete .expect/fingerprints.json
+```
+
+**Key rules:**
+- Hash file **contents** (sha256sum), not metadata (mtime)
+- Store fingerprints per target (unstaged/branch/commit) — don't mix
+- Always re-run if last result was `fail` (even if fingerprints match)
+- `--force` flag bypasses fingerprint check entirely
+- `.expect/fingerprints.json` should be in `.gitignore`
+
+
+### Sequential browser testing — no parallel page visits — CRITICAL
+
+
+## No Parallel Browsers
+
+Always test pages sequentially in a single browser session.
+
+**Incorrect — parallel browser sessions:**
+```python
+# Wrong: multiple agents hitting the same app simultaneously
+Agent(prompt="Test /login", run_in_background=True)
+Agent(prompt="Test /dashboard", run_in_background=True)
+Agent(prompt="Test /settings", run_in_background=True)
+# Risk: shared cookies, race conditions, port conflicts
+```
+
+**Correct — single agent, sequential navigation:**
+```python
+# Right: one agent tests all pages in sequence
+Agent(prompt="""Test these pages in order:
+  1. /login
+  2. /dashboard
+  3. /settings
+Navigate between them sequentially. Do not open multiple tabs.""")
+```
+
+**Key rules:**
+- One browser session per test run
+- Navigate sequentially between pages
+- Clear cookies/state between unrelated page groups if needed
+- If app requires auth, login once and reuse the session
+- Never spawn parallel browser agents for the same base_url
+
+
+### Timeout and retry conventions for browser test execution — CRITICAL
+
+
+## Timeout and Retry
+
+Set explicit timeouts for every browser operation and retry transient failures exactly once.
+
+**Incorrect — no timeout, no retry:**
+```python
+# Wrong: waits forever if element doesn't exist
+await page.click("#submit-button")
+# Wrong: fails immediately on slow network
+assert page.url == "/dashboard"
+```
+
+**Correct — explicit timeouts with single retry:**
+```python
+# Right: 10s timeout for element interaction
+await page.click("#submit-button", timeout=10000)
+
+# Right: wait for navigation with timeout
+await page.wait_for_url("/dashboard", timeout=15000)
+
+# Right: retry once on element-not-found
+try:
+    await page.click("#submit-button", timeout=5000)
+except ElementNotFound:
+    await page.wait_for_timeout(2000)  # Wait 2s
+    await page.click("#submit-button", timeout=5000)  # One retry
+```
+
+**Timeout defaults:**
+
+| Operation | Timeout | Retry |
+|-----------|---------|-------|
+| Page navigation | 15s | 1x |
+| Element click/fill | 10s | 1x after 2s wait |
+| Assertion | 5s | No retry |
+| Page crash (5xx) | — | Skip remaining steps on page |
+| Network timeout | 15s | 1x |
+
+
+
+---
+
+## References (10)
 
 ### Aria Diffing
 
@@ -459,145 +654,191 @@ auth:
 
 # Diff Scanner
 
-Parse git diff output and classify changed files into 3 levels for test targeting.
+Parse git diff output into 3 concurrent data levels for test targeting.
 
-## 3-Level Classification
+## Target Modes (ChangesFor)
 
-| Level | Name | Description | Example |
-|-------|------|-------------|---------|
-| 1 | **Direct** | The file itself changed | `src/components/Button.tsx` |
-| 2 | **Imported** | Files that import the changed file | `src/components/Header.tsx` (imports Button) |
-| 3 | **Routed** | Pages/routes that render level 1 or 2 files | `/dashboard` (renders Header → Button) |
+| Mode | Git Command | Use Case |
+|------|-------------|----------|
+| `changes` (default) | `git diff $(merge-base)` | All changes — committed + uncommitted |
+| `unstaged` | `git diff` | Only uncommitted working tree changes |
+| `branch` | `git diff main...HEAD` | Full branch diff vs main |
+| `commit [hash]` | `git diff \{hash\}^..\{hash\}` | Single commit |
 
-## Diff Parsing
+## 3 Data Levels (Gathered Concurrently)
+
+### Level 1: Changed Files
+```bash
+git diff --name-only --diff-filter=AMDRC
+```
+Returns file paths with status: Added, Modified, Deleted, Renamed, Copied.
+
+Each file is typed: `component`, `logic`, `style`, `docs`, `config`, `test`, `script`, `python`, `other`.
+
+### Level 2: File Stats
+```bash
+git diff --numstat
+```
+Returns lines added/removed per file + computed `magnitude` (added + removed) for prioritization.
+
+### Level 3: Diff Preview
+Full unified diff, truncated to 12K chars. Files are prioritized by magnitude (most changed first), limited to 12 files max.
+
+## Usage
 
 ```bash
-# Get changed files based on target
-git diff --name-only                    # unstaged
-git diff main...HEAD --name-only        # branch
-git diff HEAD~1 --name-only             # last commit
-
-# Get detailed diff for context
-git diff --stat                         # summary
-git diff -- src/components/Button.tsx   # single file diff
+bash scripts/diff-scan.sh                    # Default: changes mode
+bash scripts/diff-scan.sh unstaged           # Uncommitted only
+bash scripts/diff-scan.sh branch             # Branch vs main
+bash scripts/diff-scan.sh commit abc123f     # Specific commit
 ```
 
-## Import Graph Traversal
+## Output Format
 
-To find Level 2 (imported-by) files:
-
-```bash
-# Find all files that import the changed file
-grep -rl "from.*['\"].*Button['\"]" src/ --include="*.tsx" --include="*.ts"
+```json
+{
+  "target": "branch",
+  "files": [
+    {"path": "src/components/Button.tsx", "status": "modified", "type": "component"},
+    {"path": "src/app/login/page.tsx", "status": "added", "type": "component"}
+  ],
+  "stats": [
+    {"path": "src/components/Button.tsx", "added": 15, "removed": 3, "magnitude": 18},
+    {"path": "src/app/login/page.tsx", "added": 45, "removed": 0, "magnitude": 45}
+  ],
+  "preview": "--- src/app/login/page.tsx ---\n+export default function Login()...",
+  "context": [
+    "abc123f feat: add login page",
+    "def456a fix: button hover state"
+  ],
+  "summary": {
+    "total": 2,
+    "top_files_in_preview": 12,
+    "preview_chars": 1234,
+    "max_preview_chars": 12000
+  }
+}
 ```
 
-## Change Classification
+## 3-Level Classification (Import Graph)
 
-```python
-def classify_changes(changed_files: list[str]) -> dict:
-    direct = changed_files  # Level 1
+After the diff scan, the expect pipeline classifies each changed file:
 
-    imported = []  # Level 2
-    for f in direct:
-        module = extract_module_name(f)
-        importers = grep(f"from.*{module}", "src/", include="*.tsx,*.ts")
-        imported.extend(importers)
+| Level | Name | How to Find | Test Depth |
+|-------|------|-------------|------------|
+| 1 | **Direct** | `git diff --name-only` output | Full interaction tests |
+| 2 | **Imported** | `grep -rl "from.*\{module\}" src/` | Render check + basic interaction |
+| 3 | **Routed** | Route map lookup (config or inference) | Page load + smoke test |
 
-    routed = []  # Level 3
-    for f in direct + imported:
-        routes = route_map.get(f, [])
-        routed.extend(routes)
+## Filtering
 
-    return {
-        "direct": dedupe(direct),
-        "imported": dedupe(imported),
-        "routed": dedupe(routed),
-    }
-```
+Non-source files are automatically skipped:
+- Lock files (`.lock`, `.log`, `.map`)
+- `node_modules/`, `.git/`, `dist/`, `build/`
+- Configure additional patterns in `.expect/config.yaml` `ignore_patterns`
 
-## Test Depth by Level
+## Magnitude Prioritization
 
-| Level | Test Depth |
-|-------|------------|
-| Direct (L1) | Full interaction tests — the component itself changed |
-| Imported (L2) | Render check + basic interaction — verify it still works with updated dependency |
-| Routed (L3) | Page load + smoke test — verify the page renders without errors |
+When more than 12 files changed, the preview includes only the top 12 by magnitude (lines added + removed). This ensures the AI test plan focuses on the most impactful changes.
 
 
 ### Execution
 
-# Execution Engine
+# Execution Engine (#1175)
 
-Run the test plan via agent-browser orchestration.
+Run test plans via agent-browser with session management, auth profiles, and failure handling.
+
+## Execution Flow
+
+```
+1. Load auth profile (if configured)
+2. For each page in test plan:
+   a. Open URL via agent-browser
+   b. Take pre-test ARIA snapshot
+   c. Execute test steps with status protocol
+   d. Take post-test ARIA snapshot (for diffing)
+   e. On failure: categorize → retry/skip/fail
+3. Close session, collect artifacts
+```
 
 ## Agent Spawn
 
 ```python
 Agent(
     subagent_type="general-purpose",
-    prompt=f"""Execute this browser test plan using the agent-browser skill.
-
-{test_plan}
-
-Base URL: {base_url}
-
-For each test step:
-1. Execute the action (navigate, click, fill, assert)
-2. Report PASS or FAIL immediately
-3. On FAIL: take a screenshot, capture console errors, note the failure reason
-4. Continue to next step (don't stop on first failure)
-
-Output format per step:
-PASS | Step N: description
-FAIL | Step N: description | Reason: error message
-
-After all steps, output a summary:
-TOTAL: X passed, Y failed
-""",
-    run_in_background=True
+    prompt=build_execution_prompt(diff_data, scope_strategy, coverage_context),
+    run_in_background=True,
+    name="expect-runner"
 )
 ```
 
-## Status Protocol
+## Agent-Browser Commands
 
-The agent reports status using a machine-parseable format:
+| Command | Use | Example |
+|---------|-----|---------|
+| `open &lt;url&gt;` | Navigate to page | `open http://localhost:3000/login` |
+| `snapshot` | Full ARIA accessibility tree | Capture page structure |
+| `snapshot -i` | Interactive elements only | Find clickable/fillable elements |
+| `screenshot` | Capture viewport | Auto on failure |
+| `screenshot --annotate` | Labeled screenshot | Vision fallback for complex UIs |
+| `click @ref` | Click by ARIA ref | `click @e15` (from snapshot refs) |
+| `fill @ref &lt;text&gt;` | Type into input | `fill @e8 "test@example.com"` |
+| `select @ref &lt;option&gt;` | Dropdown selection | `select @e12 "United States"` |
+| `eval &lt;js&gt;` | Execute JavaScript | `eval document.title` |
+
+## Auth Profiles
+
+If `.expect/config.yaml` specifies an `auth_profile`:
+
+```python
+# Load auth before testing protected pages
+Bash(f"agent-browser auth login {auth_profile}")
+```
+
+Auth profiles are managed by agent-browser's vault system — credentials are never stored in `.expect/`.
+
+## Session Management
+
+- **One session per run** — sequential page visits, shared auth state
+- **Session timeout**: 5 minutes per page (configurable)
+- **Cleanup**: agent-browser auto-closes on agent completion
+
+## Failure Decision Tree
 
 ```
-[EXPECT:START] 12 steps across 4 pages
-[EXPECT:STEP:1:PASS] /login — page loads
-[EXPECT:STEP:2:PASS] /login — form renders
-[EXPECT:STEP:3:FAIL] /login — validation error missing | TypeError: Cannot read properties of undefined
-[EXPECT:STEP:4:PASS] /signup — page loads
-...
-[EXPECT:DONE] 10 passed, 2 failed
+Step fails
+  ├── Is it a retry-able failure? (element-not-found, timeout)
+  │   ├── First attempt → wait 2s, retry once
+  │   └── Second attempt → categorize and continue
+  ├── Is it a page-level failure? (5xx, crash)
+  │   └── Skip remaining steps on this page
+  ├── Is it auth-related? (401, redirect to login)
+  │   └── Skip page, mark as auth-blocked
+  └── Is it an app bug? (assertion fails with evidence)
+      └── Log as app-bug, screenshot, continue
 ```
 
-## Failure Handling
+## ARIA Snapshot Diffing Integration
 
-| Failure Type | Action |
-|-------------|--------|
-| Page crash (5xx) | Screenshot + skip remaining steps on that page |
-| Element not found | Screenshot + retry once after 2s wait |
-| Assertion mismatch | Screenshot + continue |
-| Network timeout | Retry once, then fail |
-| Console error | Log but don't fail (unless assertion requires no errors) |
+```python
+# Before test steps
+pre_snapshot = agent_browser("snapshot")
 
-## Concurrency
+# After test steps
+post_snapshot = agent_browser("snapshot")
 
-For multiple pages, test sequentially (not parallel) to avoid port/state conflicts.
-Single browser instance, sequential navigation.
-
-## Artifacts
-
-Store all artifacts in `.expect/`:
+# Diff (see aria-diffing.md)
+diff = compute_aria_diff(pre_snapshot, post_snapshot)
+if diff.change_score > config.aria_snapshots.diff_threshold:
+    report.add_aria_diff(page, diff)
 ```
-.expect/
-├── reports/2026-03-26T16-30-00.json
-├── screenshots/
-│   ├── login-step3-fail.png
-│   └── dashboard-step7-fail.png
-└── fingerprints.json  (updated after run)
-```
+
+## Concurrency Rules
+
+- **Sequential pages** — no parallel browser sessions (see rules/no-parallel-browsers.md)
+- **Background agent** — the runner agent runs in background, lead monitors via status protocol
+- **Timeout per page**: 5 min default, configurable in config.yaml
+- **Total run timeout**: 30 min default
 
 
 ### Fingerprint
@@ -664,44 +905,93 @@ Use `--force` flag to bypass fingerprint check:
 
 ### Report
 
-# Report Generator
+# Report Generator (#1176)
 
-Aggregate execution results into a structured report with artifacts and exit codes.
+Aggregate execution results into structured reports with CI-compatible exit codes.
 
-## Report Format (JSON)
+## Report Sections
 
+### 1. Summary
+```
+/ork:expect Report
+═══════════════════════════════════════
+Target: branch (5 files changed)
+Pages tested: 4
+Duration: 45s
+Result: 13 passed, 2 failed (86.7%)
+```
+
+### 2. Step Details
+```
+/login (Direct — auth form changed)
+  ✓ Step 1: Page loads (0.8s)
+  ✓ Step 2: Form renders with email + password (0.3s)
+  ✗ Step 3: Submit empty form → validation [app-bug]
+    Expected: validation errors shown
+    Actual: form submitted with no validation
+    Screenshot: .expect/screenshots/login-step3.png
+  ✓ Step 4: Fill valid credentials → redirect (1.2s)
+
+/dashboard (Routed — renders auth-dependent header)
+  ✓ Step 1: Page loads (0.5s)
+  ✓ Step 2: User name in header (0.2s)
+```
+
+### 3. ARIA Diff (if snapshots exist)
+```
+ARIA Changes: /login
+  + Added: textbox "Confirm Password"
+  - Removed: link "Forgot Password?"
+  ~ Changed: button "Sign In" → "Log In"
+  Change score: 15% (threshold: 10%) — FLAGGED
+```
+
+### 4. Artifacts
+```
+Artifacts:
+  .expect/reports/2026-03-26T16-30-00.json
+  .expect/screenshots/login-step3.png
+```
+
+### 5. Fingerprint
+Updated on success, unchanged on failure.
+
+## Output Formats
+
+### Terminal (Default)
+Colored output with pass/fail symbols, failure details, and artifact paths.
+
+### CI Mode (GitHub Actions)
+When running in CI (`CI=true` or `GITHUB_ACTIONS=true`):
+
+```
+::error file=src/components/LoginForm.tsx,line=1::Login form validation missing — expected error messages on empty submit
+::warning file=src/app/login/page.tsx::ARIA snapshot changed by 15%% (threshold 10%%)
+```
+
+### JSON Report
 ```json
 {
+  "version": 1,
   "timestamp": "2026-03-26T16:30:00Z",
-  "target": "unstaged",
+  "target": "branch",
   "duration_ms": 45000,
-  "files_changed": 3,
+  "files_changed": 5,
   "pages_tested": 4,
   "results": [
     {
       "page": "/login",
       "level": "direct",
-      "steps": 5,
-      "passed": 5,
-      "failed": 0,
-      "status": "pass"
-    },
-    {
-      "page": "/dashboard",
-      "level": "routed",
-      "steps": 3,
-      "passed": 2,
-      "failed": 1,
-      "status": "fail",
-      "failures": [
-        {
-          "step": 2,
-          "description": "Chart component renders",
-          "error": "TypeError: Cannot read properties of undefined (reading 'map')",
-          "screenshot": ".expect/screenshots/dashboard-step2-fail.png"
-        }
+      "steps": [
+        {"id": "login-1", "title": "Page loads", "status": "passed", "duration_ms": 800},
+        {"id": "login-3", "title": "Submit empty form", "status": "failed",
+         "category": "app-bug", "error": "No validation errors shown",
+         "screenshot": ".expect/screenshots/login-step3.png"}
       ]
     }
+  ],
+  "aria_diffs": [
+    {"page": "/login", "change_score": 0.15, "changes": ["+textbox 'Confirm Password'", "-link 'Forgot Password?'"]}
   ],
   "summary": {
     "total_steps": 15,
@@ -712,43 +1002,29 @@ Aggregate execution results into a structured report with artifacts and exit cod
 }
 ```
 
-## Console Output
+## Exit Codes
 
-```
-/ork:expect Report
-═══════════════════════════════════════
-Target: unstaged (3 files changed)
-Pages tested: 4
-Duration: 45s
+| Code | Meaning | When |
+|------|---------|------|
+| `0` | All passed | Every step passed, or fingerprint matched (skip) |
+| `1` | Tests failed | At least one `app-bug` or `selector-drift` failure |
+| `0` + warning | Skipped | `env-issue`, `auth-blocked`, or `missing-test-data` |
 
-Results:
-  ✓ /login — 5/5 steps passed
-  ✓ /signup — 3/3 steps passed
-  ✗ /dashboard — 2/3 steps passed (chart component crash)
-  ✓ /settings — 4/4 steps passed
+## Report Retention
 
-13 passed, 2 failed (86.7%)
+- Keep last N reports (default 10, configurable in config.yaml)
+- Auto-delete oldest when limit exceeded
+- Reports are gitignored (`.expect/reports/` in `.gitignore`)
+- Screenshots are gitignored (`.expect/screenshots/`)
 
-Artifacts:
-  .expect/reports/2026-03-26T16-30-00.json
-  .expect/screenshots/dashboard-step2-fail.png
-```
+## Post-Report Actions
 
-## Exit Code Convention
-
-| Scenario | Exit Suggestion |
-|----------|----------------|
-| All pass | "All tests passed. Safe to push." |
-| Some fail | "2 tests failed. Fix before pushing." |
-| No changes | "No changes detected. Nothing to test." |
-| Execution error | "Test execution failed. Check agent-browser logs." |
-
-## Post-Run Actions
-
-1. Update `.expect/fingerprints.json` with current file hashes
-2. Save report to `.expect/reports/\{iso-timestamp\}.json`
-3. If memory MCP available, persist critical failures to knowledge graph
-4. Suggest next steps based on results
+1. Update fingerprint if all passed (`scripts/fingerprint.sh save`)
+2. Persist critical failures to memory graph (if MCP available)
+3. Suggest next steps:
+   - All passed → "Safe to push."
+   - Failed → "Fix \{N\} failures before pushing."
+   - Skipped → "Resolve environment issues and re-run."
 
 
 ### Route Map
@@ -816,86 +1092,466 @@ For dynamic routes (`[slug]`, `[id]`), use test values from:
 3. Default: `test-1`, `1`, `example`
 
 
-### Test Plan
+### Saved Flows
 
-# Test Plan Generation
+# Saved Test Flows (#1173)
 
-Build an AI-driven test plan scoped to the git diff and affected routes.
+Reusable test sequences stored as Markdown+YAML files in `.expect/flows/`.
 
-## Plan Structure
+## Flow Format
 
 ```markdown
-# Test Plan — 2026-03-26T16:30:00Z
-Target: unstaged (3 files changed)
-Instruction: "test the login flow"
+---
+format_version: 1
+title: "Login flow test"
+slug: "login-flow-test"
+target_scope: "branch"
+created: "2026-03-26T12:00:00Z"
+last_run: "2026-03-26T14:30:00Z"
+last_result: "passed"
+steps:
+  - instruction: "Navigate to /login"
+    expected: "Login form visible with email and password fields"
+  - instruction: "Fill email with test@example.com and password with test123"
+    expected: "Fields populated"
+  - instruction: "Click Login button"
+    expected: "Redirect to /dashboard"
+  - instruction: "Verify welcome message"
+    expected: "Text 'Welcome back' visible on page"
+---
 
-## Pages to Test
+# Login Flow Test
 
-### /login (Direct — auth form changed)
-1. Navigate to /login
-2. Verify form renders with email + password fields
-3. Submit empty form → expect validation errors
-4. Fill valid credentials → expect redirect to /dashboard
-5. Check console for errors
+Tests the standard login flow with valid credentials.
 
-### /signup (Imported — shared auth component changed)
-1. Navigate to /signup
-2. Verify form renders correctly
-3. Smoke test: no console errors
-
-### /dashboard (Routed — renders auth-dependent header)
-1. Navigate to /dashboard (requires auth)
-2. Verify page loads without crash
-3. Check user name renders in header
+## Notes
+- Requires test user: test@example.com / test123
+- Dashboard should show welcome message after redirect
+- Auth cookie should be set (verify via eval document.cookie)
 ```
 
-## Prompt Template
+## Directory Structure
+
+```
+.expect/flows/
+├── login.md           # Login flow
+├── checkout.md        # Checkout flow
+└── signup.md          # Signup flow
+```
+
+## Running a Flow
+
+```bash
+/ork:expect --flow login          # Replay the login flow
+/ork:expect --flow checkout -y    # Replay checkout, skip review
+```
+
+## Adaptive Replay
+
+When replaying a saved flow, the agent adapts to UI changes:
+
+1. Load flow steps from YAML frontmatter
+2. For each step:
+   a. Take ARIA snapshot of current page
+   b. Match instruction to current UI state
+   c. If element exists → execute as-is
+   d. If element missing → use ARIA snapshot to find equivalent
+   e. If no equivalent found → mark step as `selector-drift` failure
+3. After all steps, compare results with `last_result`
+
+## Creating Flows
+
+Flows are created manually by the developer:
+
+```bash
+# Create a new flow file
+cat > .expect/flows/login.md << 'EOF'
+---
+format_version: 1
+title: "Login flow"
+slug: "login"
+steps:
+  - instruction: "Navigate to /login"
+    expected: "Login form visible"
+  - instruction: "Fill email and password, click submit"
+    expected: "Redirect to /dashboard"
+---
+# Login Flow
+Standard login test with valid credentials.
+EOF
+```
+
+Future: auto-generate flows from successful test runs by recording the steps the agent executed.
+
+## Flow Metadata
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `format_version` | Yes | Always `1` for now |
+| `title` | Yes | Human-readable flow name |
+| `slug` | Yes | URL-safe identifier, matches filename |
+| `target_scope` | No | Recommended target mode (branch, commit, etc.) |
+| `created` | No | ISO timestamp of creation |
+| `last_run` | No | ISO timestamp of last execution |
+| `last_result` | No | `passed` or `failed` |
+| `steps` | Yes | Array of instruction+expected pairs |
+
+
+### Scope Strategy
+
+# Scope-Aware Test Depth Strategy
+
+Adjust test plan depth based on the change target scope.
+
+## Strategy Matrix
+
+| Target | Depth | Flow Count | Strategy | Edge Cases |
+|--------|-------|------------|----------|------------|
+| `commit` | Narrow | 2-4 | Prove the commit works + 2-3 adjacent flows | Minimal |
+| `unstaged` | Exact | 2-3 | Test exact changed flow, watch for partial features | None |
+| `changes` | Combined | 3-5 | Treat committed+uncommitted as one body | Light |
+| `branch` | Thorough | 5-8 | Full coverage including negative/edge-case flows | Full |
+
+## Strategy Definitions
+
+### commit — Narrow Focus
+```
+Test depth: NARROW
+Focus: Prove this specific commit works correctly.
+Flow count: 2-4 flows max.
+Strategy: Test the primary flow the commit modifies, then 2-3 adjacent
+flows that could be affected. Don't test unrelated pages.
+Edge cases: Only test edge cases if the commit explicitly handles them.
+Style: Quick validation — this is a single logical change.
+```
+
+### unstaged — Exact Match
+```
+Test depth: EXACT
+Focus: Test exactly what's been modified in the working tree.
+Flow count: 2-3 flows max.
+Strategy: The developer is mid-work. Test the exact flow being changed.
+Watch for partial implementations (half-finished features).
+Edge cases: Skip — the code may be incomplete.
+Style: Development feedback loop — fast, targeted, forgiving of WIP.
+```
+
+### changes — Combined (Default)
+```
+Test depth: COMBINED
+Focus: Treat committed branch changes + uncommitted edits as one body.
+Flow count: 3-5 flows.
+Strategy: Test the overall feature being developed. Include the primary
+flow and its dependencies. Check that committed work still integrates
+with uncommitted changes.
+Edge cases: Light — test obvious boundary conditions.
+Style: Pre-push validation — comprehensive but not exhaustive.
+```
+
+### branch — Thorough Coverage
+```
+Test depth: THOROUGH
+Focus: Full coverage of all changes on this branch vs main.
+Flow count: 5-8 flows.
+Strategy: This is the final check before merge. Test all affected pages
+thoroughly. Include negative flows (invalid input, error states).
+Cover accessibility on key pages. Verify no regressions.
+Edge cases: Full — test boundary conditions, empty states, error handling.
+Style: PR readiness — the branch should be merge-ready after this passes.
+```
+
+## Integration with Test Plan
+
+The scope strategy is injected into the AI test plan generation prompt:
 
 ```python
-PLAN_PROMPT = f"""
-You are a QA engineer. Generate a browser test plan.
+def get_scope_strategy(target: str) -> str:
+    strategies = {
+        "commit": COMMIT_STRATEGY,
+        "unstaged": UNSTAGED_STRATEGY,
+        "changes": CHANGES_STRATEGY,
+        "branch": BRANCH_STRATEGY,
+    }
+    return strategies.get(target, CHANGES_STRATEGY)
 
-**Git Diff Summary:**
+# In test-plan generation:
+prompt = f"""
+{scope_strategy}
+
+Based on the above testing strategy, generate a test plan for:
 {diff_summary}
-
-**Changed Files (Level 1 — Direct):**
-{direct_files}
-
-**Affected Files (Level 2 — Imported):**
-{imported_files}
-
-**Pages to Test (Level 3 — Routed):**
-{affected_urls}
-
-**User Instruction:**
-{instruction or "Test that the changes work correctly and don't break existing functionality."}
-
-**Rules:**
-- Test each page proportional to its change level (Direct=full, Imported=render, Routed=smoke)
-- Include form interaction tests if forms were changed
-- Include navigation tests if routing changed
-- Check for console errors on every page
-- Note any accessibility concerns from the diff
-- Keep the plan under 20 steps total
-
-Output a numbered test plan in markdown.
 """
 ```
 
-## Plan Review
+## Flow Count Enforcement
 
-Unless `-y` (skip review) is set, present the plan to the user:
+The test plan generator should respect the flow count range:
+- If the plan exceeds the max, trim to highest-magnitude pages
+- If the plan is under the min, expand to include imported (Level 2) pages
+- Log which flows were trimmed/added and why
+
+
+### Test Plan
+
+# AI Test Plan Generation — buildExecutionPrompt (#1169)
+
+Core prompt template that generates test plans from diff context using AI agents.
+
+## Prompt Template (8 Sections)
 
 ```python
-AskUserQuestion(questions=[{
-    "question": "Run this test plan?",
-    "header": "Plan",
-    "options": [
-        {"label": "Run (Recommended)", "description": f"{step_count} steps across {page_count} pages"},
-        {"label": "Edit", "description": "Modify the plan before running"},
-        {"label": "Skip", "description": "Cancel without running"}
-    ],
-    "multiSelect": False
-}])
+def build_execution_prompt(
+    diff_data: dict,
+    scope_strategy: str,
+    coverage_context: str,
+    saved_flow: str | None = None,
+    instruction: str | None = None,
+) -> str:
+    return f"""
+You are a QA engineer executing browser tests via agent-browser.
+
+═══════════════════════════════════════════════════════════════
+SECTION 1: DIFF CONTEXT
+═══════════════════════════════════════════════════════════════
+
+Changed files ({diff_data['summary']['total']} total):
+{format_files(diff_data['files'])}
+
+File stats (by magnitude):
+{format_stats(diff_data['stats'])}
+
+Diff preview:
+{diff_data['preview']}
+
+Recent commits:
+{format_context(diff_data['context'])}
+
+═══════════════════════════════════════════════════════════════
+SECTION 2: SCOPE STRATEGY
+═══════════════════════════════════════════════════════════════
+
+{scope_strategy}
+
+═══════════════════════════════════════════════════════════════
+SECTION 3: COVERAGE CONTEXT
+═══════════════════════════════════════════════════════════════
+
+{coverage_context}
+
+Files WITH existing tests are lower priority — focus on files WITHOUT test coverage.
+
+═══════════════════════════════════════════════════════════════
+SECTION 4: AGENT-BROWSER TOOL DOCS
+═══════════════════════════════════════════════════════════════
+
+Available commands (use via agent-browser skill):
+- snapshot: Capture current page accessibility tree
+- click <selector>: Click an element
+- fill <selector> <value>: Type into an input
+- select <selector> <option>: Select dropdown option
+- screenshot [filename]: Take screenshot (auto on failure)
+- eval <js>: Run JavaScript in page context
+- navigate <url>: Go to URL
+- wait <ms>: Wait for specified milliseconds
+- assert_text <text>: Assert text is visible on page
+- assert_url <pattern>: Assert current URL matches pattern
+
+═══════════════════════════════════════════════════════════════
+SECTION 5: INTERACTION PATTERN
+═══════════════════════════════════════════════════════════════
+
+Follow this pattern for every page:
+
+1. Navigate to URL
+2. Take ARIA snapshot (accessibility tree)
+3. Use ARIA roles/names as selectors — NOT CSS selectors
+   Prefer: click "Submit" (by accessible name)
+   Avoid: click "#btn-submit-form-1" (brittle CSS)
+4. Batch related assertions together
+5. Screenshot only on failure (not every step)
+
+When interacting with forms:
+- Fill all fields before submitting
+- Check validation messages after submit
+- Verify redirect/state change after success
+
+═══════════════════════════════════════════════════════════════
+SECTION 6: STATUS PROTOCOL
+═══════════════════════════════════════════════════════════════
+
+Report every step using this exact format:
+
+  STEP_START|<step-id>|<step-title>
+  STEP_DONE|<step-id>|<short-summary>
+
+On failure:
+  ASSERTION_FAILED|<step-id>|<why-it-failed>
+
+At the end:
+  RUN_COMPLETED|passed|<summary>
+  RUN_COMPLETED|failed|<summary>
+
+Example:
+  STEP_START|login-1|Navigate to /login
+  STEP_DONE|login-1|Page loaded, form visible
+  STEP_START|login-2|Fill email and password
+  STEP_DONE|login-2|Fields filled
+  STEP_START|login-3|Submit form
+  ASSERTION_FAILED|login-3|Expected redirect to /dashboard, got /login with error "Invalid credentials"
+  RUN_COMPLETED|failed|2 passed, 1 failed — login form validation error
+
+═══════════════════════════════════════════════════════════════
+SECTION 7: ANTI-RABBIT-HOLE HEURISTICS
+═══════════════════════════════════════════════════════════════
+
+CRITICAL — follow these rules to avoid wasting time:
+
+1. Do NOT repeat the same failing action more than ONCE without new evidence.
+   If click "Submit" fails, do not try clicking it again. Investigate why.
+
+2. If 4 consecutive actions fail, STOP and report.
+   Output: RUN_COMPLETED|failed|Stopped after 4 consecutive failures
+
+3. Categorize every failure into one of these types:
+   - app-bug: The application has a real bug (test found something!)
+   - env-issue: Server not running, wrong URL, network error
+   - auth-blocked: Need login but no credentials available
+   - missing-test-data: Form requires data that doesn't exist
+   - selector-drift: UI changed, saved selectors don't match
+   - agent-misread: AI misinterpreted the page structure
+
+4. If you detect env-issue or auth-blocked, skip remaining steps
+   on that page and move to the next page.
+
+5. Total time limit: 5 minutes per page. If a page takes longer, skip.
+
+═══════════════════════════════════════════════════════════════
+SECTION 8: USER INSTRUCTION / SAVED FLOW
+═══════════════════════════════════════════════════════════════
+
+{format_instruction_or_flow(instruction, saved_flow)}
+"""
+```
+
+## Helper Functions
+
+```python
+def format_files(files: list) -> str:
+    return "\n".join(
+        f"  [{f['status'].upper()[0]}] {f['path']} ({f['type']})"
+        for f in files
+    )
+
+def format_stats(stats: list) -> str:
+    sorted_stats = sorted(stats, key=lambda s: s['magnitude'], reverse=True)
+    return "\n".join(
+        f"  +{s['added']} -{s['removed']} ({s['magnitude']} lines) {s['path']}"
+        for s in sorted_stats[:12]
+    )
+
+def format_context(commits: list) -> str:
+    return "\n".join(f"  {c}" for c in commits)
+
+def format_instruction_or_flow(instruction, saved_flow):
+    if saved_flow:
+        return f"""REPLAYING SAVED FLOW:
+{saved_flow}
+
+Adapt if UI has changed since the flow was saved. If a step no longer
+matches the page structure, use the ARIA snapshot to find the equivalent
+element and continue."""
+
+    if instruction:
+        return f"""USER INSTRUCTION:
+{instruction}
+
+Generate a test plan that addresses this instruction, scoped to the
+changed files from Section 1."""
+
+    return """No specific instruction. Generate a test plan that verifies
+the changed code works correctly and doesn't break existing functionality.
+Focus on the most impactful changes (highest magnitude from Section 1)."""
+```
+
+## Coverage Context Generation
+
+Cross-reference changed files with existing test files:
+
+```python
+def generate_coverage_context(changed_files: list, project_dir: str) -> str:
+    covered = []
+    uncovered = []
+
+    for f in changed_files:
+        # Check for co-located test
+        test_patterns = [
+            f.replace('.tsx', '.test.tsx'),
+            f.replace('.ts', '.test.ts'),
+            f.replace('.ts', '.spec.ts'),
+            f.replace('src/', 'src/__tests__/'),
+        ]
+        has_test = any(os.path.exists(os.path.join(project_dir, t)) for t in test_patterns)
+
+        if has_test:
+            covered.append(f)
+        else:
+            uncovered.append(f)
+
+    lines = []
+    if uncovered:
+        lines.append(f"Files WITHOUT test coverage ({len(uncovered)}) — HIGH PRIORITY:")
+        lines.extend(f"  ⚠ {f}" for f in uncovered)
+    if covered:
+        lines.append(f"\nFiles WITH existing tests ({len(covered)}) — lower priority:")
+        lines.extend(f"  ✓ {f}" for f in covered)
+
+    return "\n".join(lines)
+```
+
+## Status Protocol Parsing
+
+Parse agent output to extract structured results:
+
+```python
+import re
+
+def parse_status_lines(output: str) -> dict:
+    steps = []
+    final_status = None
+
+    for line in output.split('\n'):
+        line = line.strip()
+
+        if line.startswith('STEP_START|'):
+            parts = line.split('|', 2)
+            steps.append({"id": parts[1], "title": parts[2], "status": "running"})
+
+        elif line.startswith('STEP_DONE|'):
+            parts = line.split('|', 2)
+            step = next((s for s in steps if s['id'] == parts[1]), None)
+            if step:
+                step['status'] = 'passed'
+                step['summary'] = parts[2]
+
+        elif line.startswith('ASSERTION_FAILED|'):
+            parts = line.split('|', 2)
+            step = next((s for s in steps if s['id'] == parts[1]), None)
+            if step:
+                step['status'] = 'failed'
+                step['error'] = parts[2]
+
+        elif line.startswith('RUN_COMPLETED|'):
+            parts = line.split('|', 2)
+            final_status = {"result": parts[1], "summary": parts[2]}
+
+    passed = sum(1 for s in steps if s['status'] == 'passed')
+    failed = sum(1 for s in steps if s['status'] == 'failed')
+
+    return {
+        "steps": steps,
+        "passed": passed,
+        "failed": failed,
+        "final": final_status,
+    }
 ```
 
