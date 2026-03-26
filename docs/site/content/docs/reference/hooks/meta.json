@@ -19,6 +19,7 @@
     "elicitation",
     "elicitation-result",
     "teammate-idle",
+    "task-created",
     "task-completed",
     "worktree-create",
     "worktree-remove",

@@ -16,6 +16,7 @@ effort: low
 model: haiku
 metadata:
   category: workflow-automation
+paths: [".claude/**", "**/.claude/**"]
 ---
 
 # OrchestKit Configuration

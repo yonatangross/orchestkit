@@ -29,6 +29,7 @@ triggers:
     - "what is the architecture of this repo"
     - "i just joined this project, walk me through the structure"
   anti-triggers: [fix, implement, build, commit, review, assess]
+paths: ["src/**", "package.json", "CLAUDE.md"]
 ---
 
 # Codebase Exploration

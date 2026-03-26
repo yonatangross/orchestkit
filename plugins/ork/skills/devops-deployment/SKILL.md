@@ -19,6 +19,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+paths: [".github/workflows/**", "Dockerfile*", "docker-compose*", "**/k8s/**", "**/terraform/**"]
 ---
 
 # DevOps & Deployment Skill
