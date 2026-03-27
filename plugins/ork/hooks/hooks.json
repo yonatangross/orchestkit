@@ -1,9 +1,10 @@
 {
-  "description": "OrchestKit hooks - 40 global + 47 agent-scoped + 22 skill-scoped = 109 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 41 global + 47 agent-scoped + 22 skill-scoped = 110 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
+        "if": "Bash(git *) || Bash(npm *) || Bash(npx *) || Bash(node *) || Bash(rm *) || Bash(curl *) || Bash(chmod *) || Bash(docker *) || Bash(kubectl *)",
         "hooks": [
           {
             "type": "command",
@@ -67,6 +68,18 @@
         ]
       }
     ],
+      {
+        "matcher": "AskUserQuestion",
+        "if": "AskUserQuestion(*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/ask/headless-responder",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit",
@@ -96,6 +109,7 @@
     "PermissionRequest": [
       {
         "matcher": "Bash",
+        "if": "Bash(git push*) || Bash(git reset*) || Bash(rm -rf*) || Bash(docker *) || Bash(kubectl *) || Bash(gh pr *) || Bash(gh issue close*) || Bash(npm publish*)",
         "hooks": [
           {
             "type": "command",
