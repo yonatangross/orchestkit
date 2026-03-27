@@ -207,7 +207,7 @@ Run the test plan via `agent-browser`:
 
 ```python
 Agent(
-  subagent_type="ork:expect-agent",
+  subagent_type="expect-agent",
   prompt=f"""Execute this test plan:
   {test_plan}
 
