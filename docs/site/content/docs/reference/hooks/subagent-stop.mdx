@@ -1,0 +1,13 @@
+---
+title: "SubagentStop"
+description: "Hooks triggered on SubagentStop events (2 hooks)."
+---
+
+# SubagentStop Hooks
+
+**2 hooks** registered for the `SubagentStop` lifecycle event.
+
+| Hook | Matcher | Behavior | Description |
+|------|---------|----------|-------------|
+| `unified-dispatcher` | `*` | 🔇 Silent | Consolidates 2 async SubagentStop hooks into a single dispatcher. |
+| `sync-subagent-stop-dispatcher` | `*` | 🛑 Blocks | Consolidates 6 synchronous SubagentStop hooks into a single dispatcher. |

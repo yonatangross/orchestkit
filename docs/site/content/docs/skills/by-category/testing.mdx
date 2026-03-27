@@ -1,0 +1,31 @@
+---
+title: "Testing Skills"
+description: "Unit, integration, E2E, performance, and LLM testing patterns."
+---
+
+# Testing Skills
+
+**15 skills** for unit, integration, e2e, performance, and llm testing patterns.
+
+| Skill | Type | Complexity | Description |
+|-------|------|------------|-------------|
+| [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill ev... |
+| [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-... |
+| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
+| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-brow... |
+| [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing c... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review with parallel specialized agents. Use when reviewing pull requests or code. |
+| [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interac... |
+| [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testin... |
+| [Testing Integration](/docs/reference/skills/testing-integration) | Reference | medium | Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contrac... |
+| [Testing Llm](/docs/reference/skills/testing-llm) | Reference | medium | LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agent... |
+| [Testing Patterns](/docs/reference/skills/testing-patterns) | Reference | low | Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests... |
+| [Testing Perf](/docs/reference/skills/testing-perf) | Reference | medium | Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist para... |
+| [Testing Unit](/docs/reference/skills/testing-unit) | Reference | medium | Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.pa... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes. |
+
+## Related Agents
+
+- [Code Quality Reviewer](/docs/reference/agents/code-quality-reviewer)
+- [Test Generator](/docs/reference/agents/test-generator)

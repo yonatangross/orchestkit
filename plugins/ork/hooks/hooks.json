@@ -66,8 +66,7 @@
             "statusMessage": "Analyzing file structure..."
           }
         ]
-      }
-    ],
+      },
       {
         "matcher": "AskUserQuestion",
         "if": "AskUserQuestion(*)",

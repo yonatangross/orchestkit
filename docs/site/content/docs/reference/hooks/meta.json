@@ -1,0 +1,31 @@
+{
+  "title": "Hooks",
+  "pages": [
+    "index",
+    "pre-tool-use",
+    "post-tool-use",
+    "post-tool-use-failure",
+    "permission-request",
+    "user-prompt-submit",
+    "session-start",
+    "session-end",
+    "stop",
+    "stop-failure",
+    "subagent-start",
+    "subagent-stop",
+    "notification",
+    "pre-compact",
+    "post-compact",
+    "elicitation",
+    "elicitation-result",
+    "teammate-idle",
+    "task-created",
+    "task-completed",
+    "worktree-create",
+    "worktree-remove",
+    "instructions-loaded",
+    "config-change",
+    "setup",
+    "spotlights"
+  ]
+}
