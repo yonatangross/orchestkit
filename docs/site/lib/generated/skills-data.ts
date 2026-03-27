@@ -1908,7 +1908,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scripts": [
         "coverage-context.sh",
         "diff-scan.sh",
-        "fingerprint.sh"
+        "fingerprint.sh",
+        "init.sh",
+        "route-map.sh"
       ]
     },
     "plugins": [
