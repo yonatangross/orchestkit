@@ -498,6 +498,29 @@ export const AGENTS: Agent[] = [
     ],
   },
 
+  {
+    id: "expect-agent",
+    name: "Expect Agent",
+    description:
+      "Runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, and 6-category failure classification.",
+    category: "quality",
+    model: "sonnet",
+    taskTypes: ["test"],
+    keywords: [
+      "browser test",
+      "expect",
+      "e2e",
+      "ARIA",
+      "visual regression",
+      "accessibility",
+      "agent-browser",
+    ],
+    examplePrompts: [
+      "Execute this test plan against localhost:3000 using agent-browser",
+      "Run the login flow test and report pass/fail per step",
+    ],
+  },
+
   // ── DEVOPS ────────────────────────────────────────────────
   {
     id: "ci-cd-engineer",

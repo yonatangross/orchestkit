@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->99<!--/ork--> skills · <!--ork:agents-->35<!--/ork--> agents · <!--ork:hooks-->109<!--/ork--> hooks**
+**<!--ork:skills-->100<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->110<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.78-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.85-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -60,9 +60,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->99<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
-| **<!--ork:agents-->35<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->109<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:skills-->100<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **<!--ork:hooks-->110<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -75,6 +75,8 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 ```bash
 /ork:setup        # Personalized onboarding wizard
 /ork:implement    # Full-stack implementation with parallel agents
+/ork:expect       # Diff-aware AI browser testing
+/ork:review-pr    # PR review with parallel agents
 /ork:verify       # Multi-agent validation
 /ork:commit       # Conventional commit with pre-checks
 /ork:explore      # Analyze unfamiliar codebase
@@ -157,7 +159,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.78**. Check with `claude --version`.
+Requires **≥2.1.85**. Check with `claude --version`.
 </details>
 
 ---
@@ -177,17 +179,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v7.18.0** — Version Management + Library Targets
+**v7.25.0** — /ork:expect + CC 2.1.85
 
-- **`targets:` frontmatter** on 14 skills — declares library version ranges, warns on mismatch
-- **Skill ref validation** — all 93 `skills:` cross-references verified at build time
-- **CC 2.1.80 fully adopted** — effort frontmatter, rate limits statusline, simplified plugin install
+- **`/ork:expect`** — Diff-aware AI browser testing (M99, 18 issues): 6-phase pipeline, fingerprint gating, ARIA snapshot diffing, saved flows, CI integration
+- **`expect-agent`** — Specialized browser test execution subagent (36th agent)
+- **CC 2.1.85 integration** — Hook `if` conditionals (~40% fewer process spawns), headless AskUserQuestion for CI
+- **100 skills**, **36 agents**, **110 hooks**, **21 invocable commands**
 
-**v7.17.0** — NotebookLM v0.5.2 + Cinematic Video
+**v7.24.2** — fal.ai MCP + Model Pricing
 
-- **Cinematic video overviews** — Gemini 3 + Veo 3 powered, 10 studio artifact types
-- **4 audio formats** — Brief, Critique, Debate, Deep Dive
-- **Research timeout** configurable (300s default), deep research auto-retry
+- **fal.ai MCP integration** — 1000+ generative models (FLUX.2, Kling 3.0, Veo 3.1)
+- **Video model pricing refresh** — updated stale pricing across multimodal-llm skill
 
 [Full Changelog →](https://orchestkit.vercel.app/docs/changelog)
 

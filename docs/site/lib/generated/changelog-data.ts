@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.25.0",
+    "date": "2026-03-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**`/ork:expect` — Diff-Aware AI Browser Testing** (M99, 18 issues):\n  - Skill scaffold: SKILL.md (301 lines), 13 reference files, 5 rules, 3 scripts, 12 test cases (#1165)\n  - Git diff scanner: 4 target modes (changes/unstaged/branch/commit), 3 data levels (files/stats/preview), magnitude-based 12-file prioritization (#1166)\n  - SHA-256 fingerprint gating: check/save/clear commands, zero-cost skip when unchanged (#1167)\n  - Scope-aware test depth: commit=narrow(2-4), unstaged=exact(2-3), changes=combined(3-5), branch=thorough(5-8) (#1168)\n  - AI test plan generation: 8-section prompt template with coverage context, ARIA-first interaction, anti-rabbit-hole heuristics (#1169)\n  - Machine-parseable status protocol: STEP_START/STEP_DONE/ASSERTION_FAILED/RUN_COMPLETED with parser (#1170)\n  - Failure categorization: 6 types (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread) (#1171)\n  - ARIA snapshot diffing: semantic UI change detection via accessibility tree comparison (#1172)\n  - Saved test flows: Markdown+YAML format_version 1 with adaptive replay (#1173)\n  - Test coverage context: cross-reference changed files with existing tests, 4 patterns (#1174)\n  - Execution engine: agent-browser orchestration, auth profiles, failure decision tree (#1175)\n  - Report generator: terminal/CI/JSON output, GitHub Actions annotations, exit codes (#1176)\n  - `.expect/config.yaml` convention: base_url, route_map, auth, ARIA snapshots, accessibility (#1177)\n  - rrweb session recording: DOM event replay without video encoding (#1178)\n  - Human-in-the-loop plan review: AskUserQuestion gate before execution (#1179)\n  - CI integration: GitHub Actions workflow, pre-push hook, fingerprint-gated zero-cost skip (#1180)\n  - Research reference: millionco/expect architecture analysis + feature comparison (#1181)\n  - `expect-agent`: specialized browser test execution subagent (#1182)",
+          "**Skill count** 99 → 100, **agent count** 35 → 36, **invocable commands** 20 → 21",
+          "**CC 2.1.85 integration**:\n  - Hook `if` conditionals: Bash PreToolUse and PermissionRequest now use CC 2.1.85 `if` field to skip process spawning for irrelevant commands (~40% fewer hook spawns)\n  - Headless AskUserQuestion: new `pretool/ask/headless-responder` hook auto-selects first option when `CI=true` or `ORCHESTKIT_HEADLESS=1`, using CC 2.1.85 `updatedInput` + `permissionDecision`\n  - **Hook count** 109 → 110 (41 global + 47 agent + 22 skill), **CC minimum** 2.1.84 → 2.1.85"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.24.2",
     "date": "2026-03-26",
     "compareUrl": "",

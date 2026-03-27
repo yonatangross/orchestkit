@@ -1,11 +1,11 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (6 hooks)."
+description: "Hooks triggered on PreToolUse events (7 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**6 hooks** registered for the `PreToolUse` lifecycle event.
+**7 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -15,3 +15,4 @@ description: "Hooks triggered on PreToolUse events (6 hooks)."
 | `memory-validator` | `mcp__memory__*` | 🛑 Blocks | Validates memory operations to prevent accidental data loss |
 | `sync-task-dispatcher` | `Agent` | 💡 Injects | Consolidates 3 Task PreToolUse hooks into a single dispatcher. |
 | `tldr-summary` | `Read` | 💡 Injects | Intercepts Read calls on large files (>500 lines or >2000 tokens) and |
+| `headless-responder` | `AskUserQuestion` | 🔇 Silent | Headless AskUserQuestion Responder (CC 2.1.85) |

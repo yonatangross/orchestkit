@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 99,
-  "agents": 35,
-  "hooks": 109,
-  "commands": 20,
+  "skills": 100,
+  "agents": 36,
+  "hooks": 110,
+  "commands": 21,
   "compositions": 14
 };
 
@@ -156,6 +156,15 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "opus",
     "category": "backend"
+  },
+  {
+    "name": "expect-agent",
+    "description": "Browser test execution: runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, and 6-category failure classification.",
+    "plugins": [
+      "ork"
+    ],
+    "model": "sonnet",
+    "category": "development"
   },
   {
     "name": "frontend-performance-engineer",
@@ -418,6 +427,7 @@ export const SKILLS_SUMMARY = {
     "accessibility": [
       "accessibility",
       "design-system-tokens",
+      "expect",
       "figma-design-handoff",
       "storybook-mcp-integration",
       "storybook-testing",
@@ -433,10 +443,10 @@ export const SKILLS_SUMMARY = {
       "bare-eval",
       "cover",
       "emulate-seed",
+      "expect",
       "golden-dataset",
       "llm-integration",
-      "product-analytics",
-      "review-pr"
+      "product-analytics"
     ],
     "security": [
       "audit-full",

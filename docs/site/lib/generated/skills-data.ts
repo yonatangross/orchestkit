@@ -1849,6 +1849,75 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator"
     ]
   },
+  "expect": {
+    "name": "expect",
+    "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser. Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "browser",
+      "e2e",
+      "diff-aware",
+      "regression",
+      "visual",
+      "accessibility",
+      "ai-testing"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "ToolSearch",
+      "WebFetch"
+    ],
+    "skills": [
+      "testing-e2e",
+      "chain-patterns",
+      "memory"
+    ],
+    "agent": null,
+    "complexity": "high",
+    "structure": {
+      "references": [
+        "aria-diffing.md",
+        "ci-integration.md",
+        "config-schema.md",
+        "diff-scanner.md",
+        "execution.md",
+        "fingerprint.md",
+        "human-review.md",
+        "report.md",
+        "research.md",
+        "route-map.md",
+        "rrweb-recording.md",
+        "saved-flows.md",
+        "scope-strategy.md",
+        "test-plan.md"
+      ],
+      "scripts": [
+        "coverage-context.sh",
+        "diff-scan.sh",
+        "fingerprint.sh"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "expect-agent"
+    ]
+  },
   "explore": {
     "name": "explore",
     "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
@@ -4196,6 +4265,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "accessibility-specialist",
       "design-system-architect",
       "emulate-engineer",
+      "expect-agent",
       "frontend-ui-developer",
       "test-generator"
     ]

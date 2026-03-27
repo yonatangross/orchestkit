@@ -58,6 +58,9 @@ import { skillTracker } from '../pretool/skill/skill-tracker.js';
 // PreTool/Read hooks (1)
 import { tldrSummary } from '../pretool/read/tldr-summary.js';
 
+// PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
+import headlessResponder from '../pretool/ask/headless-responder.js';
+
 // PreTool/Task hooks (1) — Agent Teams
 import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 
@@ -123,6 +126,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Read hooks (1)
   'pretool/read/tldr-summary': tldrSummary,
+
+  // PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
+  'pretool/ask/headless-responder': headlessResponder,
 
   // PreTool/Task hooks (1) — Agent Teams
   'pretool/task/team-size-gate': teamSizeGate,
