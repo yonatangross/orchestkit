@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Research reference: millionco/expect architecture analysis + feature comparison (#1181)
   - `expect-agent`: specialized browser test execution subagent (#1182)
 - **Skill count** 99 → 100, **agent count** 35 → 36, **invocable commands** 20 → 21
+- **CC 2.1.85 integration**:
+  - Hook `if` conditionals: Bash PreToolUse and PermissionRequest now use CC 2.1.85 `if` field to skip process spawning for irrelevant commands (~40% fewer hook spawns)
+  - Headless AskUserQuestion: new `pretool/ask/headless-responder` hook auto-selects first option when `CI=true` or `ORCHESTKIT_HEADLESS=1`, using CC 2.1.85 `updatedInput` + `permissionDecision`
+  - **Hook count** 109 → 110 (41 global + 47 agent + 22 skill), **CC minimum** 2.1.84 → 2.1.85
 
 ---
 
