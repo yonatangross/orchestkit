@@ -332,7 +332,8 @@ describe('Cross-Bundle Consistency', () => {
     // 179 -> 180: stale-cache-cleanup (lifecycle)
     // 180 -> 181: #1106 — stop-failure-handler (CC 2.1.78 StopFailure event)
     // 181 -> 184: CC 2.1.84 — added creation-tracker, task-context-injector, task-progress-initializer (TaskCreated hooks)
-    expect(totalHooks).toBe(184);
+    // 184 -> 185: CC 2.1.85 — added headless-responder (PreToolUse/AskUserQuestion)
+    expect(totalHooks).toBe(185);
   });
 });
 
