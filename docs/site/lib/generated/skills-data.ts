@@ -1910,6 +1910,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "diff-scan.sh",
         "fingerprint.sh",
         "init.sh",
+        "report.sh",
         "route-map.sh"
       ]
     },
