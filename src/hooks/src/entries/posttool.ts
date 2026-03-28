@@ -31,6 +31,9 @@ import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
 
+// PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
+import { fingerprintSaver } from '../posttool/expect/fingerprint-saver.js';
+
 // PostTool/Task hooks (1) — Agent Teams
 import { teamMemberStart } from '../posttool/task/team-member-start.js';
 
@@ -70,6 +73,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
+
+  // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
+  'posttool/expect/fingerprint-saver': fingerprintSaver,
 
   // PostTool/Task hooks (1) — Agent Teams
   'posttool/task/team-member-start': teamMemberStart,

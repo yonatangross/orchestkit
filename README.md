@@ -7,7 +7,7 @@
 
 **<!--ork:skills-->100<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->110<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.85-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.86-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -159,7 +159,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.85**. Check with `claude --version`.
+Requires **≥2.1.86**. Check with `claude --version`.
 </details>
 
 ---

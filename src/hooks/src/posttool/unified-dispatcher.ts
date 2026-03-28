@@ -19,6 +19,7 @@ import { redactSecrets } from '../skill/redact-secrets.js';
 import { configChangeAuditor } from './config-change/security-auditor.js';
 import { teamMemberStart } from './task/team-member-start.js';
 import { commitNudge } from './commit-nudge.js';
+import { fingerprintSaver } from './expect/fingerprint-saver.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -47,6 +48,8 @@ const HOOKS: HookConfig[] = [
   { name: 'team-member-start', fn: teamMemberStart, matcher: ['Task', 'Agent'] },
   // Commit nudge: escalating reminders to commit work (CC 2.1.71 utilization)
   { name: 'commit-nudge', fn: commitNudge, matcher: ['Write', 'Edit', 'MultiEdit', 'Bash'] },
+  // Expect fingerprint auto-save: saves fingerprint after successful /ork:expect (#1191)
+  { name: 'fingerprint-saver', fn: fingerprintSaver, matcher: ['Skill'] },
 ];
 
 /** Exposed for registry wiring tests */

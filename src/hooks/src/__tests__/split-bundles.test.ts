@@ -333,7 +333,8 @@ describe('Cross-Bundle Consistency', () => {
     // 180 -> 181: #1106 — stop-failure-handler (CC 2.1.78 StopFailure event)
     // 181 -> 184: CC 2.1.84 — added creation-tracker, task-context-injector, task-progress-initializer (TaskCreated hooks)
     // 184 -> 185: CC 2.1.85 — added headless-responder (PreToolUse/AskUserQuestion)
-    expect(totalHooks).toBe(185);
+    // 185 -> 186: #1191 — added fingerprint-saver (PostToolUse/expect)
+    expect(totalHooks).toBe(186);
   });
 });
 
