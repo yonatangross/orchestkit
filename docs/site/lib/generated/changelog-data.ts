@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.26.1",
+    "date": "2026-03-28",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Bumped `path-to-regexp` to fix ReDoS vulnerabilities (Dependabot alerts #47, #48, #53, #54)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.26.0",
     "date": "2026-03-28",
     "compareUrl": "",
