@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Route-map script: framework-aware file→URL mapping for Next.js App Router, Pages Router, Remix, SvelteKit — replaces Phase 3 prompt guessing with deterministic detection (#1185)
   - `--init` scaffolder: `bash scripts/init.sh` creates `.expect/` directory with config.yaml template, .gitignore, and flows/ directory in 5 seconds (#1186)
   - Rich expect-agent directive: 194-line agent body (was 61) with full agent-browser command reference, ARIA selector patterns, form interaction workflow, status protocol examples, and failure decision tree (#1187)
+  - Report script: parses status protocol to terminal/CI/JSON output, auto-saves to `.expect/reports/` (#1189)
+  - Example saved flows: login.md, crud.md, navigation.md — ARIA-first templates for common test patterns (#1190)
+  - Fingerprint auto-save hook: PostToolUse dispatcher saves fingerprint after successful run, enabling zero-cost skip on next invocation (#1191)
 - **CC 2.1.86 adoption**: bumped minimum from 2.1.85 → 2.1.86 for config disk write fix (eliminates unnecessary writes on every skill invocation) and Write/Edit fix for files outside project root
 
 ---
