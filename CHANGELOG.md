@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.26.0] - 2026-03-28
+
+### Added
+
+- **`/ork:expect` improvements** — reliability and DX upgrades (#1185, #1186, #1187):
+  - Route-map script: framework-aware file→URL mapping for Next.js App Router, Pages Router, Remix, SvelteKit — replaces Phase 3 prompt guessing with deterministic detection (#1185)
+  - `--init` scaffolder: `bash scripts/init.sh` creates `.expect/` directory with config.yaml template, .gitignore, and flows/ directory in 5 seconds (#1186)
+  - Rich expect-agent directive: 194-line agent body (was 61) with full agent-browser command reference, ARIA selector patterns, form interaction workflow, status protocol examples, and failure decision tree (#1187)
+- **CC 2.1.86 adoption**: bumped minimum from 2.1.85 → 2.1.86 for config disk write fix (eliminates unnecessary writes on every skill invocation) and Write/Edit fix for files outside project root
+
+---
+
+
 ## [7.25.0] - 2026-03-26
 
 ### Added

@@ -12,7 +12,7 @@
 import { execSync } from 'node:child_process';
 
 // Injected by build-plugins.sh at build time from manifests/ork.json
-const PLUGIN_VERSION = '7.25.0';
+const PLUGIN_VERSION = '7.26.0';
 
 async function main() {
   // Drain stdin (required by hook protocol)
