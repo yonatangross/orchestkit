@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.26.2",
+    "date": "2026-03-28",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "Refactored `run-hook.mjs`: extracted `SILENT_OK` constant replacing 5 hardcoded JSON strings"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.26.1",
     "date": "2026-03-28",
     "compareUrl": "",
