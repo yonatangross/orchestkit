@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.26.1] - 2026-03-28
+
+### Fixed
+
+- Bumped `path-to-regexp` to fix ReDoS vulnerabilities (Dependabot alerts #47, #48, #53, #54)
+
+---
+
+
 ## [7.26.0] - 2026-03-28
 
 ### Added
