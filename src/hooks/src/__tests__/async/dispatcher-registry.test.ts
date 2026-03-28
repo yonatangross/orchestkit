@@ -143,8 +143,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 4, lifecycle: 5, stop: 8, subagent-stop: 2, notification: 2, setup: 1
-      expect(total).toBe(22);
+      // posttool: 5 (+fingerprint-saver), lifecycle: 5, stop: 8, subagent-stop: 2, notification: 2, setup: 1
+      expect(total).toBe(23);
     });
   });
 });
