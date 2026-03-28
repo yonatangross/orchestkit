@@ -14,8 +14,8 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
-import { execSync } from 'child_process';
-import path from 'path';
+import { execSync } from 'node:child_process';
+import path from 'node:path';
 
 export async function fingerprintSaver(input: HookInput): Promise<HookResult> {
   // Guard: only fire for /ork:expect skill completion

@@ -17,12 +17,13 @@ import { registeredHookNames as setupHooks } from '../../setup/unified-dispatche
 describe('Dispatcher Registry Wiring', () => {
   describe('posttool/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // After #897 slimming + CC 2.1.71: 4 hooks
+      // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver: 5 hooks
       expect(posttoolHooks()).toEqual([
         'redact-secrets',
         'config-change-auditor',
         'team-member-start',
         'commit-nudge',
+        'fingerprint-saver',
       ]);
     });
 
@@ -37,6 +38,8 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['team-member-start']).toEqual(['Task', 'Agent']);
       // CC 2.1.71: commit-nudge fires on file-modifying tools
       expect(byName['commit-nudge']).toEqual(['Write', 'Edit', 'MultiEdit', 'Bash']);
+      // #1191: fingerprint-saver fires on Skill completion
+      expect(byName['fingerprint-saver']).toEqual(['Skill']);
     });
   });
 
