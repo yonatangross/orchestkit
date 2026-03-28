@@ -290,7 +290,7 @@ jobs:
         run: |
           # Pin to exact version + --ignore-scripts (supply chain mitigation — Scorecard #130, #132)
           # nosemgrep: pinned-dependencies (npm packages cannot be SHA-pinned; --ignore-scripts mitigates)
-          npm install -g @anthropic-ai/claude-code@2.1.84 --ignore-scripts 2>/dev/null || true
+          npm install -g @anthropic-ai/claude-code@2.1.86 --ignore-scripts 2>/dev/null || true
           if command -v claude &>/dev/null; then
             CC_VERSION=$(claude --version 2>/dev/null || echo "unknown")
             echo "cc_available=true" >> "$GITHUB_OUTPUT"
