@@ -144,7 +144,7 @@ describe('changelogToDecisions', () => {
     expect(decisions.find(d => d.summary.includes('Legacy'))?.status).toBe('deprecated');
   });
   it('truncates long summaries', () => {
-    const long = '- ' + 'A'.repeat(120);
+    const long = `- ${'A'.repeat(120)}`;
     const d = changelogToDecisions(parseChangelog(`## [1.0.0] - 2026-01-01\n### Added\n${long}`));
     expect(d[0].summary).toHaveLength(103);
     expect(d[0].summary.endsWith('...')).toBe(true);
@@ -292,11 +292,11 @@ describe('groupDecisions', () => {
     makeDecision({ ccVersion: '2.1.70', category: 'hooks', date: '2026-02-01' }),
   ];
   it('groups by cc_version default', () => { expect(Object.keys(groupDecisions(ds))).toEqual(['2.1.80', '2.1.70']); });
-  it('groups by category', () => { expect(groupDecisions(ds, 'category')['hooks']).toHaveLength(2); });
+  it('groups by category', () => { expect(groupDecisions(ds, 'category').hooks).toHaveLength(2); });
   it('groups by month', () => { expect(Object.keys(groupDecisions(ds, 'month'))).toContain('2026-03'); });
   it('groups by plugin_version', () => {
     const g = groupDecisions([makeDecision({ pluginVersion: '7.20.0' }), makeDecision({ pluginVersion: undefined })], 'plugin_version');
-    expect(g['Unknown']).toHaveLength(1);
+    expect(g.Unknown).toHaveLength(1);
   });
   it('defaults to cc_version for unknown groupBy', () => { expect(Object.keys(groupDecisions(ds, 'xyz'))).toEqual(['2.1.80', '2.1.70']); });
 });

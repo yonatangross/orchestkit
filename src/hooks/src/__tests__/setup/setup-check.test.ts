@@ -146,7 +146,7 @@ describe('setup-check', () => {
       process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = '1';
 
       // Act
-      const result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput());
 
       // Assert
       expect(vi.mocked(outputSilentSuccess)).toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe('setup-check', () => {
       // Arrange — no marker, SessionStart event
 
       // Act
-      const result = setupCheck(createHookInput({ hook_event: 'SessionStart' }));
+      const _result = setupCheck(createHookInput({ hook_event: 'SessionStart' }));
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -325,7 +325,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-repair.sh'), '#!/bin/bash\n');
 
       // Act
-      const result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput());
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -350,7 +350,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-maintenance.sh'), '#!/bin/bash\n');
 
       // Act
-      const result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput());
 
       // Assert — should notify about upgrade
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();

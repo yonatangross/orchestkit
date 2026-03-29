@@ -67,7 +67,7 @@ function agentMd(model?: string, skills?: string[]): string {
   let fm = '---\n';
   if (model) fm += `model: ${model}\n`;
   if (skills) { fm += 'skills:\n'; for (const s of skills) fm += `  - ${s}\n`; }
-  return fm + '---\n\n## Directive\nDo something.\n';
+  return `${fm}---\n\n## Directive\nDo something.\n`;
 }
 
 function skillMd(complexity: string): string {
@@ -311,7 +311,7 @@ describe('modelCostAdvisor', () => {
       const skills = Array.from({ length: 8 }, (_, i) => `s${i}`);
       const cx: Record<string, string> = {};
       for (const s of skills) cx[s] = 'low';
-      cx['s7'] = 'high'; // beyond 5-skill limit
+      cx.s7 = 'high'; // beyond 5-skill limit
       setupFs({ agentModel: 'sonnet', agentSkills: skills, skillComplexities: cx });
       expect(modelCostAdvisor(mkInput('a', 'task')).continue).toBe(true);
     });

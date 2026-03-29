@@ -143,7 +143,7 @@ describe('issueSubtaskUpdater', () => {
     });
     mockExistsSync.mockReturnValue(false);
 
-    const result = issueSubtaskUpdater(makeInput({
+    const _result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "feat: add input validation"' },
     }));
 

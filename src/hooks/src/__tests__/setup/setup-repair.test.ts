@@ -44,7 +44,7 @@ vi.mock('../../lib/agent-teams.js', () => ({
 
 import { setupRepair } from '../../setup/setup-repair.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
-import { outputWithContext, outputSilentSuccess } from '../../lib/common.js';
+import { outputWithContext, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 
 // ---------------------------------------------------------------------------

@@ -84,7 +84,7 @@ function writeProblem(p: Partial<Problem> & { id: string }): void {
     project: 'test',
     ...p,
   };
-  fs.appendFileSync(problemsPath(), JSON.stringify(full) + '\n');
+  fs.appendFileSync(problemsPath(), `${JSON.stringify(full)}\n`);
 }
 
 // ===========================================================================

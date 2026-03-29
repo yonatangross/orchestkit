@@ -211,7 +211,7 @@ describe('first-run-setup', () => {
       mockJqMissing();
 
       // Act
-      const result = firstRunSetup(createHookInput());
+      const _result = firstRunSetup(createHookInput());
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -233,7 +233,7 @@ describe('first-run-setup', () => {
       // No --silent flag
 
       // Act
-      const result = firstRunSetup(createHookInput());
+      const _result = firstRunSetup(createHookInput());
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();

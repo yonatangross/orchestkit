@@ -40,7 +40,7 @@ import {
   analyzeDecisionFlow,
   completeDecisionFlow,
 } from '../../lib/decision-flow-tracker.js';
-import type { ToolAction, ActionCategory, WorkflowPattern } from '../../lib/decision-flow-tracker.js';
+import type { ToolAction, } from '../../lib/decision-flow-tracker.js';
 import { getProjectDir } from '../../lib/common.js';
 
 // Helper to build ToolAction stubs

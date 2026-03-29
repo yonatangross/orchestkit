@@ -84,7 +84,7 @@ function makeLogContent(count: number, library = 'react'): string {
     const ts = new Date(now.getTime() - (count - i) * 1000).toISOString();
     lines.push(`${ts} | tool=mcp__context7__resolve | library=${library} | query_length=10`);
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 
 // ===========================================================================
@@ -206,11 +206,11 @@ describe('context7-tracker', () => {
 
     it('includes library count and recent libraries in context', () => {
       // Arrange
-      const lines = [
+      const lines = `${[
         `${new Date().toISOString()} | tool=mcp__context7__resolve | library=react | query_length=10`,
         `${new Date().toISOString()} | tool=mcp__context7__resolve | library=nextjs | query_length=10`,
         `${new Date().toISOString()} | tool=mcp__context7__resolve | library=prisma | query_length=10`,
-      ].join('\n') + '\n';
+      ].join('\n')}\n`;
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(lines);
       mockStatSync.mockReturnValue({ size: 200 });
@@ -252,7 +252,7 @@ describe('context7-tracker', () => {
         lines.push(`${ts} | tool=mcp__context7__resolve | library=react | query_length=10`);
       }
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(lines.join('\n') + '\n');
+      mockReadFileSync.mockReturnValue(`${lines.join('\n')}\n`);
       mockStatSync.mockReturnValue({ size: 1000 });
 
       // Act
@@ -271,7 +271,7 @@ describe('context7-tracker', () => {
         lines.push(`${ts} | tool=mcp__context7__resolve | library=react | query_length=10`);
       }
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(lines.join('\n') + '\n');
+      mockReadFileSync.mockReturnValue(`${lines.join('\n')}\n`);
       mockStatSync.mockReturnValue({ size: 500 });
 
       // Act
