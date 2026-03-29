@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.26.3] - 2026-03-29
+
+### Fixed
+
+- Agent attribution: race condition in session state (lockedAtomicWriteSync)
+- Agent attribution: path traversal in sanitizeBranch (allowlist-based)
+- Agent attribution: double ork: prefix in Co-Authored-By trailers
+- Agent attribution: filterByThreshold now checks duration only, not success flag
+- Agent attribution: cleanupStaleLedgers uses TTL only (branch name reversal was lossy)
+
+### Changed
+
+- Split agent-attribution.ts into 3 files (types, core, formatters)
+
+### Added
+
+- 35 unit tests for agent attribution (sanitize, ledger, format, deduplicate)
+- 16 integration + E2E tests (session state pipeline, concurrent access, full flow)
+- Agent attribution docs page in fumadocs site
+
+---
+
+
 ## [7.26.2] - 2026-03-28
 
 ### Changed
