@@ -1,52 +1,52 @@
 /**
  * Agent Attribution — Branch Activity Ledger
- * Issue #1195: Track which sub-agents contributed to each branch
+ * Issue #1195: Track which sub-agents contributed to each branch.
  *
- * The SubagentStop hook appends entries to .claude/agents/activity/{branch}.jsonl.
- * The /ork:commit and /ork:create-pr skills read the ledger for attribution.
+ * Split into 3 files:
+ *   - agent-attribution-types.ts  (types, constants, helpers)
+ *   - agent-attribution.ts        (this file — core read/write/filter)
+ *   - agent-attribution-format.ts (commit trailers, PR markdown)
  */
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, statSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { getCurrentBranch, gitExec } from './git.js';
 import { getProjectDir } from './common.js';
+import { lockedAtomicWriteSync } from './atomic-write.js';
+import type { SessionState, LedgerEntry } from './agent-attribution-types.js';
+
+// Re-export types and formatters for consumers
+export type { LedgerEntry, SessionState } from './agent-attribution-types.js';
+export { normalizeAgentName, formatDuration, getAgentIcon } from './agent-attribution-types.js';
+export { formatAsTrailers, formatAsAgentsSection, formatAsPrMarkdown } from './agent-attribution-format.js';
 
 // -----------------------------------------------------------------------------
-// Session State (persisted to file — env vars don't survive across hook processes)
+// Session State — file-based, locked for concurrent access
 // -----------------------------------------------------------------------------
-
-interface SessionState {
-  commit_base: string;
-  agent_counter: number;
-  agent_starts: Record<string, number>; // agent_id → start timestamp
-}
 
 function getStatePath(): string {
   return join(getProjectDir(), '.claude', 'agents', 'session-state.json');
 }
 
 function readSessionState(): SessionState {
-  const path = getStatePath();
   try {
+    const path = getStatePath();
     if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf8'));
-  } catch { /* ignore corrupt state */ }
+  } catch { /* corrupt state — start fresh */ }
   return { commit_base: '', agent_counter: 0, agent_starts: {} };
 }
 
 function writeSessionState(state: SessionState): void {
-  const path = getStatePath();
   try {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, JSON.stringify(state));
-  } catch { /* ignore */ }
+    lockedAtomicWriteSync(getStatePath(), JSON.stringify(state));
+  } catch { /* attribution should never break hooks */ }
 }
 
-/** Record agent start time (called from SubagentStart) */
+/** Record agent start time (called from SubagentStart hook). */
 export function recordAgentStart(agentId: string): void {
   const state = readSessionState();
   state.agent_starts[agentId] = Date.now();
-  // Record commit_base on first agent start
   if (!state.commit_base) {
     const head = gitExec(['rev-parse', 'HEAD']);
     if (head) state.commit_base = head;
@@ -54,13 +54,12 @@ export function recordAgentStart(agentId: string): void {
   writeSessionState(state);
 }
 
-/** Get agent start time and increment counter (called from SubagentStop) */
+/** Get agent context and increment counter (called from SubagentStop hook). */
 export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string } {
   const state = readSessionState();
   const startMs = state.agent_starts[agentId] || 0;
   const counter = state.agent_counter;
   const commitBase = state.commit_base;
-  // Increment counter and clean up start entry
   state.agent_counter = counter + 1;
   delete state.agent_starts[agentId];
   writeSessionState(state);
@@ -68,39 +67,20 @@ export function resolveAgentContext(agentId: string): { startMs: number; counter
 }
 
 // -----------------------------------------------------------------------------
-// Types
+// Ledger Path — allowlist-based sanitization
 // -----------------------------------------------------------------------------
 
-export interface LedgerEntry {
-  ts: string;
-  agent: string;
-  agent_name?: string;
-  stage: number; // 0=lead, 1=parallel, 2=follow-up
-  duration_ms: number;
-  success: boolean;
-  summary: string;
-  prompt?: string; // what the agent was asked to do (first 300 chars)
-  commit_base: string;
-  orchestrator?: string; // which skill/command spawned this agent (e.g., "brainstorm", "implement")
-  background?: boolean; // was this agent run_in_background?
-}
-
-// -----------------------------------------------------------------------------
-// Ledger Path
-// -----------------------------------------------------------------------------
-
-function sanitizeBranch(branch: string): string {
-  // Replace path separators and strip traversal sequences to prevent directory escape
+/** Sanitize branch name for filename. Uses allowlist for defense in depth. */
+export function sanitizeBranch(branch: string): string {
   return branch
-    .replace(/\.\./g, '_')       // strip traversal
-    .replace(/\//g, '--')        // slashes to double-dash
-    .replace(/[\\:\0]/g, '_');   // strip dangerous chars
+    .replace(/\.\./g, '_')             // strip traversal
+    .replace(/\//g, '--')              // slashes to double-dash
+    .replace(/[^a-zA-Z0-9._-]/g, '_'); // allowlist: only safe chars
 }
 
 export function getLedgerPath(branch?: string): string {
   const b = branch || getCurrentBranch();
-  const projectDir = getProjectDir();
-  return join(projectDir, '.claude', 'agents', 'activity', `${sanitizeBranch(b)}.jsonl`);
+  return join(getProjectDir(), '.claude', 'agents', 'activity', `${sanitizeBranch(b)}.jsonl`);
 }
 
 // -----------------------------------------------------------------------------
@@ -108,31 +88,29 @@ export function getLedgerPath(branch?: string): string {
 // -----------------------------------------------------------------------------
 
 export function appendLedgerEntry(entry: LedgerEntry): void {
-  const ledgerPath = getLedgerPath();
-  bufferWrite(ledgerPath, `${JSON.stringify(entry)}\n`);
+  bufferWrite(getLedgerPath(), `${JSON.stringify(entry)}\n`);
 }
 
 // -----------------------------------------------------------------------------
-// Read
+// Read + Filter
 // -----------------------------------------------------------------------------
 
 export function readBranchLedger(branch?: string): LedgerEntry[] {
   const ledgerPath = getLedgerPath(branch);
   if (!existsSync(ledgerPath)) return [];
-
   try {
-    const content = readFileSync(ledgerPath, 'utf8');
-    return content
+    return readFileSync(ledgerPath, 'utf8')
       .split('\n')
       .filter(line => line.trim())
       .map(line => {
-        try { return JSON.parse(line) as LedgerEntry; }
-        catch { return null; }
+        try {
+          const p = JSON.parse(line);
+          if (!p.agent || !p.ts) return null; // validate required fields
+          return p as LedgerEntry;
+        } catch { return null; }
       })
       .filter((e): e is LedgerEntry => e !== null);
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export function filterSinceCommit(entries: LedgerEntry[], commitSha: string): LedgerEntry[] {
@@ -142,8 +120,9 @@ export function filterSinceCommit(entries: LedgerEntry[], commitSha: string): Le
   return entries.filter(e => new Date(e.ts).getTime() > cutoff);
 }
 
+/** Filter by minimum duration. Only duration — success doesn't mean "produced changes". */
 export function filterByThreshold(entries: LedgerEntry[], minDurationMs = 5000): LedgerEntry[] {
-  return entries.filter(e => e.duration_ms >= minDurationMs || e.success);
+  return entries.filter(e => e.duration_ms >= minDurationMs);
 }
 
 export function deduplicateAgents(entries: LedgerEntry[]): LedgerEntry[] {
@@ -158,151 +137,25 @@ export function deduplicateAgents(entries: LedgerEntry[]): LedgerEntry[] {
 }
 
 // -----------------------------------------------------------------------------
-// Format — Commit Trailers
-// -----------------------------------------------------------------------------
-
-export function formatAsTrailers(entries: LedgerEntry[]): string {
-  const unique = deduplicateAgents(entries);
-  return unique
-    .map(e => `Co-Authored-By: ork:${e.agent} <noreply@orchestkit.dev>`)
-    .join('\n');
-}
-
-function formatDuration(ms: number): string {
-  const secs = Math.round(ms / 1000);
-  return `${Math.floor(secs / 60)}m${String(secs % 60).padStart(2, '0')}s`;
-}
-
-export function formatAsAgentsSection(entries: LedgerEntry[]): string {
-  const unique = deduplicateAgents(entries);
-  if (unique.length === 0) return '';
-  const lines = unique.map(e => {
-    const dur = formatDuration(e.duration_ms);
-    return `  ${e.agent} — ${e.summary} (${dur})`;
-  });
-  return `Agents Involved:\n${lines.join('\n')}`;
-}
-
-// -----------------------------------------------------------------------------
-// Format — PR Markdown
-// -----------------------------------------------------------------------------
-
-const AGENT_ICONS: Record<string, string> = {
-  'backend-system-architect': '🏗️', 'security-auditor': '🛡️',
-  'test-generator': '🧪', 'frontend-ui-developer': '🎨',
-  'ci-cd-engineer': '⚙️', 'code-quality-reviewer': '🔍',
-  'database-engineer': '💾', 'accessibility-specialist': '♿',
-  'workflow-architect': '📐', 'debug-investigator': '🔬',
-  'git-operations-engineer': '🔀', 'deployment-manager': '🚀',
-  'Explore': '🔍', 'general-purpose': '🤖',
-  'product-strategist': '📊', 'market-intelligence': '📈',
-  'data-pipeline-engineer': '🔧', 'llm-integrator': '🧠',
-  'infrastructure-architect': '🏛️', 'monitoring-engineer': '📡',
-  'release-engineer': '📦', 'demo-producer': '🎬',
-  'design-system-architect': '🎨', 'component-curator': '🧩',
-  'multimodal-specialist': '🖼️', 'event-driven-architect': '⚡',
-  'python-performance-engineer': '🐍', 'genui-architect': '🖥️',
-};
-
-const STAGE_LABELS = ['Lead', '⚡ Parallel', 'Follow-up'];
-
-export function formatAsPrMarkdown(entries: LedgerEntry[]): string {
-  const unique = deduplicateAgents(entries);
-  if (unique.length === 0) return '';
-
-  const parts: string[] = [];
-
-  // Badges
-  parts.push(`![Agents](https://img.shields.io/badge/agents-${unique.length}-blue?style=for-the-badge)`);
-  const testAgent = unique.find(e => e.agent === 'test-generator');
-  if (testAgent) {
-    const testCount = testAgent.summary.match(/\d+/)?.[0] || '?';
-    parts.push(`![Tests](https://img.shields.io/badge/tests-${testCount}-green?style=for-the-badge)`);
-  }
-  if (unique.find(e => e.agent === 'security-auditor')) {
-    parts.push(`![Security](https://img.shields.io/badge/vulnerabilities-0-brightgreen?style=for-the-badge)`);
-  }
-  parts.push('');
-
-  // Orchestrator line (which skill/command spawned these agents)
-  const orchestrators = [...new Set(unique.map(e => e.orchestrator).filter(Boolean))];
-  if (orchestrators.length > 0) {
-    parts.push(`> Orchestrated by: **${orchestrators.join('**, **')}**`);
-    parts.push('');
-  }
-
-  // Team Roster
-  parts.push('## Agent Team Sheet');
-  parts.push('');
-  parts.push('| Agent | Task | Stage | Time |');
-  parts.push('|-------|------|-------|------|');
-  for (const e of unique) {
-    const icon = AGENT_ICONS[e.agent] || '🤖';
-    const stage = STAGE_LABELS[e.stage] || 'Unknown';
-    // Use prompt (what it was asked) truncated to 80 chars, fall back to summary
-    const task = (e.prompt || e.summary || e.agent).slice(0, 80);
-    parts.push(`| ${icon} **${e.agent}** | ${task} | ${stage} | ${formatDuration(e.duration_ms)} |`);
-  }
-  parts.push('');
-
-  // Credits Roll
-  const lead = unique.filter(e => e.stage === 0);
-  const parallel = unique.filter(e => e.stage === 1);
-  const followUp = unique.filter(e => e.stage === 2);
-  const totalDur = unique.reduce((s, e) => s + e.duration_ms, 0);
-
-  parts.push('<details>');
-  parts.push(`<summary><strong>🎬 Agent Credits</strong> — ${unique.length} agents collaborated on this PR</summary>`);
-  parts.push('');
-  if (lead.length) {
-    parts.push('**Lead**');
-    lead.forEach(e => parts.push(`- ${AGENT_ICONS[e.agent] || '🤖'} **${e.agent}** — ${e.summary} (${formatDuration(e.duration_ms)})`));
-    parts.push('');
-  }
-  if (parallel.length) {
-    parts.push('**⚡ Parallel** (ran simultaneously)');
-    parallel.forEach(e => parts.push(`- ${AGENT_ICONS[e.agent] || '🤖'} **${e.agent}** — ${e.summary} (${formatDuration(e.duration_ms)})`));
-    parts.push('');
-  }
-  if (followUp.length) {
-    parts.push('**Follow-up**');
-    followUp.forEach(e => parts.push(`- ${AGENT_ICONS[e.agent] || '🤖'} **${e.agent}** — ${e.summary} (${formatDuration(e.duration_ms)})`));
-    parts.push('');
-  }
-  parts.push('---');
-  parts.push(`<sub>Orchestrated by <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> — ${unique.length} agents, ${formatDuration(totalDur)} total</sub>`);
-  parts.push('');
-  parts.push('</details>');
-
-  return parts.join('\n');
-}
-
-// -----------------------------------------------------------------------------
-// Cleanup
+// Cleanup — TTL-based only (branch name reversal is lossy)
 // -----------------------------------------------------------------------------
 
 export function cleanupStaleLedgers(): number {
-  const projectDir = getProjectDir();
-  const activityDir = join(projectDir, '.claude', 'agents', 'activity');
+  const activityDir = join(getProjectDir(), '.claude', 'agents', 'activity');
   if (!existsSync(activityDir)) return 0;
-
   let cleaned = 0;
-  const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-
+  const TTL_MS = 30 * 24 * 60 * 60 * 1000;
   try {
-    const files = readdirSync(activityDir);
-    for (const file of files) {
+    for (const file of readdirSync(activityDir)) {
       if (!file.endsWith('.jsonl')) continue;
-      const filePath = join(activityDir, file);
-      const branchName = file.replace('.jsonl', '').replace(/--/g, '/');
-      const branchExists = gitExec(['rev-parse', '--verify', branchName]) !== '';
-      const stat = statSync(filePath);
-      const ageMs = Date.now() - stat.mtimeMs;
-      if (!branchExists || ageMs > TTL_MS) {
-        try { unlinkSync(filePath); cleaned++; } catch { /* ignore */ }
-      }
+      try {
+        const filePath = join(activityDir, file);
+        if (Date.now() - statSync(filePath).mtimeMs > TTL_MS) {
+          unlinkSync(filePath);
+          cleaned++;
+        }
+      } catch { /* ignore per-file errors */ }
     }
   } catch { /* ignore */ }
-
   return cleaned;
 }
