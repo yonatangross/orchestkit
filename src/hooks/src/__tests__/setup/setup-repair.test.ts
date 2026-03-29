@@ -6,7 +6,7 @@
  * Tests self-healing: config restore, hook permissions, directories, marker, critical components
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterAll } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -97,6 +97,10 @@ beforeEach(() => {
   // Clean the fake plugin root between tests
   rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });
   mkdirSync(FAKE_PLUGIN_ROOT, { recursive: true });
+});
+
+afterAll(() => {
+  rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });
 });
 
 describe('setup-repair', () => {

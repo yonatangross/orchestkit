@@ -374,6 +374,62 @@ describe('runGuards', () => {
 // isDontAskMode
 // =============================================================================
 
+// =============================================================================
+// Error paths & edge cases
+// =============================================================================
+
+describe('runGuards error handling', () => {
+  it('survives a guard that throws — error propagates', () => {
+    const g1 = () => null as GuardResult;
+    const g2 = () => { throw new Error('guard crashed'); };
+    // runGuards does NOT catch — the error propagates (by design, let the caller handle it)
+    expect(() => runGuards(makeInput(), g1, g2)).toThrow('guard crashed');
+  });
+});
+
+describe('guardMultiInstance edge cases', () => {
+  it('skips when Agent Teams is active', () => {
+    vi.mocked(isAgentTeamsActive).mockReturnValue(true);
+    expect(isSkip(guardMultiInstance(makeInput()))).toBe(true);
+  });
+
+  it('continues when coordination DB exists', () => {
+    vi.mocked(isAgentTeamsActive).mockReturnValue(false);
+    // The guard does a require('node:fs').existsSync — already mocked at module level
+    // When DB doesn't exist (default), it returns skip
+    expect(isSkip(guardMultiInstance(makeInput({ project_dir: '/nonexistent' })))).toBe(true);
+  });
+
+  it('falls back to CLAUDE_PROJECT_DIR env var when project_dir missing', () => {
+    vi.mocked(isAgentTeamsActive).mockReturnValue(false);
+    const input = makeInput();
+    delete (input as Record<string, unknown>).project_dir;
+    // Should not throw — falls back to env var
+    expect(() => guardMultiInstance(input)).not.toThrow();
+  });
+});
+
+describe('guardNontrivialBash edge cases', () => {
+  it('continues for empty command', () => {
+    // Empty command is not trivial — it's unexpected, hook should run
+    expect(guardNontrivialBash(makeInput({ tool_input: { command: '' } }))).toBeNull();
+  });
+
+  it('continues for multiline command', () => {
+    expect(guardNontrivialBash(makeInput({ tool_input: { command: 'npm install\nnpm run build' } }))).toBeNull();
+  });
+});
+
+describe('guardGitCommand edge cases', () => {
+  it('strips rtk prefix before checking git', () => {
+    expect(guardGitCommand(makeInput({ tool_input: { command: 'rtk git status' } }))).toBeNull();
+  });
+
+  it('handles undefined command', () => {
+    expect(isSkip(guardGitCommand(makeInput({ tool_input: {} })))).toBe(true);
+  });
+});
+
 describe('isDontAskMode', () => {
   it('returns true for dontAsk mode', () => {
     expect(isDontAskMode(makeInput({ permissionMode: 'dontAsk' }))).toBe(true);

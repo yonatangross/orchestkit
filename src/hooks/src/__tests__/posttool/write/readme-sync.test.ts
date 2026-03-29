@@ -333,10 +333,62 @@ describe('readme-sync', () => {
   // =========================================================================
   describe('unrecognized files', () => {
     it('returns silent success for unrecognized file types', () => {
-      // Act
       const result = readmeSync(makeInput('/mock/proj/src/utils/helpers.ts'));
+      expect(result).toEqual({ continue: true, suppressOutput: true });
+    });
+  });
 
-      // Assert
+  // =========================================================================
+  // Error handling & edge cases
+  // =========================================================================
+  describe('error handling', () => {
+    it('handles corrupt package.json gracefully (parse error caught)', () => {
+      // The source has try/catch around require(package.json) — verify it doesn't throw
+      mockExistsSync.mockReturnValue(true);
+      // readFileSync mock returns empty string — require() will fail to parse
+      // The hook should fall through to other analysis without crashing
+      const result = readmeSync(makeInput('/mock/proj/package.json'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('handles missing README gracefully (no README.md found)', () => {
+      // All existsSync calls return false — no README anywhere
+      mockExistsSync.mockReturnValue(false);
+      // Use a file that triggers analysis (docker) but no README exists
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const ctx = result.hookSpecificOutput?.additionalContext as string;
+      expect(ctx).toContain('no README.md found');
+      expect(ctx).toContain('Consider creating one');
+    });
+
+    it('handles statSync failure on README gracefully', () => {
+      // README exists but statSync throws
+      mockExistsSync.mockImplementation((p: unknown) => String(p).includes('README'));
+      mockStatSync.mockImplementation(() => { throw new Error('EACCES'); });
+      // Should not crash — try/catch in source handles stat errors
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      expect(result.continue).toBe(true);
+      const ctx = result.hookSpecificOutput?.additionalContext as string;
+      expect(ctx).toContain('docker');
+    });
+
+    it('handles log directory write failure gracefully', () => {
+      // README exists, analysis succeeds, but mkdirSync for logs throws
+      mockExistsSync.mockImplementation((p: unknown) => String(p).includes('README'));
+      mockStatSync.mockReturnValue({ mtime: new Date() } as ReturnType<typeof import('node:fs').statSync>);
+      mockMkdirSync.mockImplementation(() => { throw new Error('ENOSPC'); });
+      // Should not crash — try/catch around log writing
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      expect(result.continue).toBe(true);
+    });
+
+    it('skips .log files', () => {
+      const result = readmeSync(makeInput('/mock/proj/output.log'));
+      expect(result).toEqual({ continue: true, suppressOutput: true });
+    });
+
+    it('skips test files', () => {
+      const result = readmeSync(makeInput('/mock/proj/src/__tests__/api.test.ts'));
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });
