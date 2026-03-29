@@ -139,7 +139,7 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'progress_msg_memory_fix',  minVersion: '2.1.77', description: 'Progress messages no longer survive compaction (memory growth fix)' },
   // 2.1.78
   { feature: 'stop_failure_event',       minVersion: '2.1.78', description: 'StopFailure hook event fires on API errors (rate limit, auth failure)' },
-  { feature: 'plugin_data_dir',          minVersion: '2.1.78', description: '${CLAUDE_PLUGIN_DATA} persistent state survives plugin updates' },
+  { feature: 'plugin_data_dir',          minVersion: '2.1.78', description: 'CLAUDE_PLUGIN_DATA persistent state survives plugin updates' },
   { feature: 'agent_effort_maxturns',    minVersion: '2.1.78', description: 'Agent effort/maxTurns/disallowedTools frontmatter fields' },
   // 2.1.79
   { feature: 'console_auth',            minVersion: '2.1.79', description: 'claude auth login --console for API billing auth' },
