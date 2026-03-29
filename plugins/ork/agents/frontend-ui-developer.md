@@ -573,7 +573,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |code-review-playbook:{SKILL.md,references/{conventional-comments.md,review-patterns.md}}|code-review,quality,collaboration,best-practices
 |zustand-patterns:{SKILL.md,references/{anti-patterns-and-integration.md,core-patterns.md,middleware-composition.md}}|zustand,state-management,react,immer,middleware,persistence,slices
 |architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
 |storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
 |design-to-code:{SKILL.md}|design-to-code,stitch,21st-dev,ui-generation,mockup,component,react,frontend

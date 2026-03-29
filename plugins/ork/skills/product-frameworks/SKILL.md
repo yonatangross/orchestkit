@@ -101,4 +101,4 @@ Structured JSON output formats for consistent deliverables. Load: `Read("${CLAUD
 - `ork:assess` - Assess project complexity and risks
 - `ork:brainstorm` - Generate product ideas and features
 
-**Version:** 2.0.0 (February 2026)
+**Version:** 2.0.0 (March 2026)

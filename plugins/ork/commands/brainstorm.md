@@ -174,9 +174,9 @@ ExitPlanMode()
 
 Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
-2. Agent Teams unavailable → **Task tool mode** (default)
-3. Otherwise: Open exploration with 3+ agents → recommend **Agent Teams** (real-time debate produces better ideas); Quick ideation → **Task tool**
+1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 3+ agents** (real-time debate produces better ideas)
+2. Task tool mode → **for quick ideation**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|

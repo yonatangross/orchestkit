@@ -33,7 +33,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 ## Orchestration Mode
 
-- Agent Teams (mesh) when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and complexity >= 2.5
+- Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
 - Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
 - Load orchestration modes: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-modes.md")`
 

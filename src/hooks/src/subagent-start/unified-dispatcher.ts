@@ -35,6 +35,7 @@ import { subagentValidator } from './subagent-validator.js';
 // - graph-memory-inject (better handled by prompt hooks)
 // - model-cost-advisor (informational only, HQ Langfuse tracks costs)
 import { issueContextInjector } from './issue-context-injector.js';
+import { gitExec } from '../lib/git.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -91,6 +92,14 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logHook(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
+  }
+
+  // --- Phase 1b: Record HEAD sha for agent attribution (Issue #1195) ---
+  if (!process.env.ORCHESTKIT_COMMIT_BASE) {
+    try {
+      const head = gitExec(['rev-parse', 'HEAD']);
+      if (head) process.env.ORCHESTKIT_COMMIT_BASE = head;
+    } catch { /* non-critical */ }
   }
 
   // --- Phase 2: Validation + tracking (subagent-validator) ---

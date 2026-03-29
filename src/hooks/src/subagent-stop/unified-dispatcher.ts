@@ -13,6 +13,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { appendLedgerEntry } from '../lib/agent-attribution.js';
 
 // Import individual hook implementations
 // Analytics hooks removed — now handled by HQ (#897):
@@ -97,6 +98,22 @@ function trackAgentResult(input: HookInput): void {
       output_len: outputLength,
       last_msg_len: input.last_assistant_message?.length ?? null,
       ...getTeamContext(),
+    });
+
+    // Branch activity ledger for agent attribution (Issue #1195)
+    const stage = (input.tool_input?.stage as number) ?? 1;
+    const summary = typeof output === 'string'
+      ? output.slice(0, 200).replace(/\n/g, ' ').trim()
+      : '';
+    appendLedgerEntry({
+      ts: new Date().toISOString(),
+      agent: agentType,
+      agent_name: agentName,
+      stage,
+      duration_ms: durationMs ?? 0,
+      success,
+      summary: summary || agentType,
+      commit_base: process.env.ORCHESTKIT_COMMIT_BASE || '',
     });
   } catch {
     // Silent failure - tracking should never break hooks

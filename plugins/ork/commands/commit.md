@@ -66,6 +66,19 @@ git diff --staged   # What will be committed
 git diff            # Unstaged changes
 ```
 
+### Phase 3b: Agent Attribution (automatic)
+
+Before committing, check for the branch activity ledger at `.claude/agents/activity/{branch}.jsonl`.
+If it exists and has entries since the last commit, include them in the commit message:
+
+1. Read `.claude/agents/activity/{branch}.jsonl` (one JSON object per line)
+2. Filter entries where `ts` is after the last commit timestamp (`git log -1 --format=%cI`)
+3. Skip agents with `duration_ms < 5000` (advisory-only agents go in PR, not commits)
+4. Add an **"Agents Involved:"** section between the commit body and the Co-Authored-By trailer
+5. Add per-agent `Co-Authored-By` trailers: `Co-Authored-By: ork:{agent} <noreply@orchestkit.dev>`
+
+If the ledger doesn't exist or is empty, skip this step — commit normally.
+
 ### Phase 4: Stage and Commit
 
 ```bash
@@ -73,13 +86,19 @@ git diff            # Unstaged changes
 git add <files>
 # Or all: git add .
 
-# Commit with conventional format
+# Commit with conventional format (with agent attribution if ledger exists)
 git commit -m "<type>(#<issue>): <brief description>
 
 - [Change 1]
 - [Change 2]
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Agents Involved:
+  backend-system-architect — API design + data models (2m14s)
+  security-auditor — Dependency audit (0m42s)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: ork:backend-system-architect <noreply@orchestkit.dev>
+Co-Authored-By: ork:security-auditor <noreply@orchestkit.dev>"
 
 # Verify
 git log -1 --stat

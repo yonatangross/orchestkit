@@ -70,6 +70,9 @@ HOOK_SECURITY_*.txt
 .claude/agent-memory/
 .claude/agent-memory-local/
 
+# Agent activity ledgers (runtime, per-branch attribution tracking)
+.claude/agents/
+
 # Worktrees (created by agent isolation, ephemeral)
 .claude/worktrees/
 

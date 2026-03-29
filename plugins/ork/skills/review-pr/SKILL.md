@@ -52,7 +52,7 @@ Deep code review using 6-7 parallel specialized agents.
 The PR number or branch is passed as the skill argument. Resolve it immediately:
 
 ```python
-PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch" (CC 2.1.19 indexed access)
+PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch"
 
 # If no argument provided, check environment
 if not PR_NUMBER:
@@ -111,7 +111,7 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 
 ---
 
-## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## CRITICAL: Task Management is MANDATORY
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
 
@@ -184,9 +184,9 @@ Spawn all three in ONE message. This cuts context-gathering time by 60%.
 For agent-based review (Phase 3), all 6 agents are independent -- launch them together.
 </use_parallel_tool_calls>
 
-## Phase 2: Skills Auto-Loading (CC 2.1.6)
+## Phase 2: Skills Auto-Loading
 
-**CC 2.1.6 auto-discovers skills** -- no manual loading needed!
+**CC auto-discovers skills** -- no manual loading needed!
 
 Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments

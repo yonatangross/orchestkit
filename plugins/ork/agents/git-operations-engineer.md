@@ -312,7 +312,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{changelog-generation.md,release-automation.md,release-workflows.md,semver.md}}|git,github,releases,versioning,changelog,automation
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |issue-progress-tracking:{SKILL.md}|git,github,issues,tracking,workflow
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

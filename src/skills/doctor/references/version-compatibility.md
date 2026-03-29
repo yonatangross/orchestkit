@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.84. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -189,6 +189,9 @@ OrchestKit requires Claude Code >= 2.1.84. This matrix documents which CC featur
 | Background bash stuck notification | 2.1.84 | Tasks stuck on interactive prompt surface notification after ~45s | Stuck tasks hang silently |
 | MCP cache leak fix on reconnect | 2.1.84 | Tool/resource cache properly cleaned on server reconnect | Memory leak on MCP reconnect |
 | `p90` prompt cache rate improvement | 2.1.84 | Better prompt caching across sessions | Lower cache hit rate |
+| PreToolUse for AskUserQuestion | 2.1.85 | Headless AskUserQuestion responder hooks | No hook on AskUserQuestion |
+| Config disk write fix | 2.1.86 | Eliminates unnecessary config writes on every skill invocation | Unnecessary disk I/O per skill |
+| Write/Edit outside project root | 2.1.86 | Write/Edit fix for files outside project root | Write/Edit fails for external files |
 
 ## Version Detection
 
@@ -210,12 +213,15 @@ claude --version  # Returns e.g. "2.1.47"
 | 2.1.50 - 2.1.58 | Partial | Memory leaks fixed, missing auto-memory and @imports |
 | 2.1.59 - 2.1.62 | Partial | Auto-memory, @imports, missing HTTP hooks and 2.1.69 features |
 | 2.1.63 - 2.1.68 | Partial | HTTP hooks, worktree config sharing, missing InstructionsLoaded/once:true/ask |
-| >= 2.1.69 | Full | InstructionsLoaded, once:true, outputAsk, path-scoped rules, env var interpolation |
-| >= 2.1.70 | Full+ | Worktree dedup, 74% re-render reduction, MCP cache fixes |
-| >= 2.1.71 | Full++ | `/loop` command, cron scheduling, expanded bash allowlist, `/debug` toggle, plugin stability |
-| >= 2.1.72 | Full+++ | ExitWorktree, agent model override, effort simplification, prompt cache 12x savings, skill hook fix |
-| >= 2.1.73 | Full++++ | Skill-file deadlock fix, SessionStart double-fire fix, no-op reminder fix, Opus 4.6 cloud default |
-| >= 2.1.74 | Full+++++ | SessionEnd timeout fix, managed policy precedence, full model IDs, memory leak fixes, /context hints |
+| >= 2.1.69 | Full | InstructionsLoaded, once:true, outputAsk, path-scoped rules |
+| >= 2.1.72 | Full | ExitWorktree, agent model override, effort simplification, prompt cache 12x |
+| >= 2.1.76 | Full | MCP elicitation, PostCompact hook, /effort command |
+| >= 2.1.78 | Full | StopFailure event, CLAUDE_PLUGIN_DATA, agent effort/maxTurns frontmatter |
+| >= 2.1.80 | Full | rate_limits in StatusLine, skill effort frontmatter, --channels preview |
+| >= 2.1.83 | Full | CwdChanged/FileChanged events, managed-settings.d/, sandbox.failIfUnavailable |
+| >= 2.1.84 | Full | TaskCreated event, paths: glob, CLAUDE_STREAM_IDLE_TIMEOUT_MS, MCP non-blocking startup |
+| >= 2.1.85 | Full | PreToolUse for AskUserQuestion, headless responder hooks |
+| >= 2.1.86 | **Recommended** | Config disk write fix, Write/Edit outside project root — **current minimum** |
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
