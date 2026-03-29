@@ -17,6 +17,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.26.3",
+    "date": "2026-03-29",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Agent attribution: race condition in session state (lockedAtomicWriteSync)",
+          "Agent attribution: path traversal in sanitizeBranch (allowlist-based)",
+          "Agent attribution: double ork: prefix in Co-Authored-By trailers",
+          "Agent attribution: filterByThreshold now checks duration only, not success flag",
+          "Agent attribution: cleanupStaleLedgers uses TTL only (branch name reversal was lossy)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "Split agent-attribution.ts into 3 files (types, core, formatters)"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "35 unit tests for agent attribution (sanitize, ledger, format, deduplicate)",
+          "16 integration + E2E tests (session state pipeline, concurrent access, full flow)",
+          "Agent attribution docs page in fumadocs site"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.26.2",
     "date": "2026-03-28",
     "compareUrl": "",

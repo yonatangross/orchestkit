@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR #1200 — Agent Attribution + CI Score Dashboard</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;--code:#1c2128}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;max-width:1060px;margin:0 auto;padding:28px 24px}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .sub a{color:var(--accent);text-decoration:none}
+  h2{font-size:17px;font-weight:600;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+  /* Badges */
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .badge{display:inline-flex;border-radius:5px;overflow:hidden;font-size:11px;font-weight:700;line-height:1}
+  .bl{padding:6px 9px;background:#555;color:#fff}
+  .bv{padding:6px 9px;color:#fff}
+  .b-blue .bv{background:#2563eb}.b-green .bv{background:#16a34a}.b-orange .bv{background:#ca8a04}.b-purple .bv{background:#7c3aed}.b-red .bv{background:#dc2626}
+
+  /* Score gauges */
+  .gauges{display:flex;align-items:center;gap:20px;margin:16px 0;flex-wrap:wrap}
+  .gc{width:85px;height:85px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:700;font-size:26px;flex-shrink:0}
+  .gc small{font-size:10px;font-weight:600;opacity:.8}
+  .gc-before{border:3px solid var(--orange);color:var(--orange)}
+  .gc-after{border:3px solid var(--green);color:var(--green)}
+  .gc-arrow{font-size:22px;color:var(--muted);flex-shrink:0}
+
+  /* Coverage bars */
+  .cov-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+  .cov-label{width:75px;font-size:11px;font-weight:600;color:var(--muted);text-align:right;flex-shrink:0}
+  .cov-track{flex:1;height:16px;background:var(--border);border-radius:4px;position:relative;overflow:hidden}
+  .cov-before{position:absolute;top:0;left:0;height:100%;border-radius:4px;opacity:.35}
+  .cov-after{position:absolute;top:0;left:0;height:100%;border-radius:4px}
+  .cov-val{width:48px;font-size:11px;font-weight:600;flex-shrink:0}
+  .cov-thresh{position:absolute;top:0;height:100%;width:2px;background:var(--text);opacity:.4}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin:10px 0}
+  th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);font-size:11px;color:var(--muted);font-weight:600}
+  td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .an{font-weight:600;display:flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .tag{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+  .tag-par{background:rgba(245,158,11,.15);color:#fbbf24}
+  .dur{font-family:monospace;font-size:11px;color:var(--muted)}
+
+  /* Pipeline */
+  .pipeline{display:flex;align-items:stretch;gap:0;padding:16px 0;overflow-x:auto}
+  .stage{display:flex;flex-direction:column;gap:6px;align-items:center;flex-shrink:0}
+  .stage-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px}
+  .node{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:8px;min-width:120px;max-width:160px;text-align:center;border:2px solid;flex-shrink:0}
+  .node .icon{font-size:18px}
+  .node .name{font-size:11px;font-weight:700}
+  .node .desc{font-size:9.5px;opacity:.85}
+  .node .stat{font-size:9px;opacity:.6;font-family:monospace;margin-top:2px}
+  .arrow{display:flex;align-items:center;padding:0 5px;flex-shrink:0;align-self:center}
+  .arrow svg{width:28px;height:14px}
+  .par-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px dashed var(--border);border-radius:10px;background:rgba(255,255,255,.015);position:relative}
+  .par-badge{position:absolute;top:-8px;left:12px;background:var(--surface);color:var(--muted);font-size:9px;padding:1px 7px;border-radius:4px;border:1px solid var(--border);font-weight:600}
+
+  /* Credits */
+  details{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin:14px 0}
+  summary{padding:12px 18px;cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:6px}
+  summary::before{content:'\25B6';font-size:9px;color:var(--muted);transition:.2s}
+  details[open] summary::before{transform:rotate(90deg)}
+  .crd-body{padding:0 18px 16px;border-top:1px solid var(--border)}
+  .crd-cat{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+  .credit{padding:6px 0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+  .credit .cn{font-weight:600;font-size:13px}
+  .credit .cd{color:var(--muted);font-size:12px}
+  .credit .ct{font-family:monospace;font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0}
+  .crd-footer{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center}
+  .crd-footer a{color:var(--accent);text-decoration:none}
+
+  /* Ledger */
+  .ledger{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'SF Mono','Fira Code',monospace;font-size:10.5px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;margin:10px 0;color:var(--muted);max-height:300px;overflow-y:auto}
+  .k{color:var(--accent)}.s{color:var(--green)}.n{color:var(--orange)}.b{color:var(--purple)}
+
+  /* Mutation */
+  .mut{background:var(--code);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:11.5px;line-height:1.7;margin:8px 0}
+  .mut .ok{color:var(--green)}.mut .fail{color:var(--red)}
+
+  /* File categories */
+  .cat{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:600}
+  .cat-lib{background:rgba(88,166,255,.15);color:var(--accent)}
+  .cat-setup{background:rgba(188,140,255,.15);color:var(--purple)}
+  .cat-post{background:rgba(63,185,80,.15);color:var(--green)}
+  .cat-pre{background:rgba(210,153,34,.15);color:var(--orange)}
+  .cat-stop{background:rgba(248,81,73,.15);color:var(--red)}
+  .cat-sub{background:rgba(139,148,158,.15);color:var(--muted)}
+  .bar-mini{display:inline-block;height:9px;border-radius:2px;vertical-align:middle;margin-right:5px}
+
+  .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border)}
+  .footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<h1>PR #1200 &mdash; Agent Attribution + CI Score</h1>
+<p class="sub"><a href="https://github.com/yonatangross/orchestkit/pull/1200">fix/ci-score-improvements</a> &mdash; 8 commits &bull; 8 agents &bull; 582 tests &bull; Grade C &rarr; A</p>
+
+<div class="badges">
+  <span class="badge b-blue"><span class="bl">agents</span><span class="bv">8</span></span>
+  <span class="badge b-green"><span class="bl">tests added</span><span class="bv">582</span></span>
+  <span class="badge b-green"><span class="bl">coverage</span><span class="bv">81.9%</span></span>
+  <span class="badge b-green"><span class="bl">vulnerabilities</span><span class="bv">0</span></span>
+  <span class="badge b-purple"><span class="bl">score</span><span class="bv">95/100 A</span></span>
+</div>
+
+<!-- Score -->
+<h2>Score Impact</h2>
+<div class="gauges">
+  <div class="gc gc-before">77<small>Grade C</small></div>
+  <div class="gc-arrow">&rarr;</div>
+  <div class="gc gc-after">95<small>Grade A</small></div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.9;margin-left:12px">
+    <strong style="color:var(--text)">Security:</strong> 1 high &rarr; 0 vulns (+5 pts)<br>
+    <strong style="color:var(--text)">Coverage:</strong> 66.4% &rarr; 81.9% (+13 pts)<br>
+    <strong style="color:var(--text)">Flaky test:</strong> consent-check fixed
+  </div>
+</div>
+
+<!-- Coverage -->
+<h2>Coverage (before &rarr; after)</h2>
+<div class="cov-row"><span class="cov-label">Lines</span><div class="cov-track"><div class="cov-before" style="width:67.1%;background:var(--orange)"></div><div class="cov-after" style="width:81.9%;background:var(--green)"></div><div class="cov-thresh" style="left:70%"></div><div class="cov-thresh" style="left:80%"></div></div><span class="cov-val" style="color:var(--green)">81.9%</span></div>
+<div class="cov-row"><span class="cov-label">Functions</span><div class="cov-track"><div class="cov-before" style="width:71.6%;background:var(--orange)"></div><div class="cov-after" style="width:86.5%;background:var(--green)"></div><div class="cov-thresh" style="left:72%"></div></div><span class="cov-val" style="color:var(--green)">86.5%</span></div>
+<div class="cov-row"><span class="cov-label">Branches</span><div class="cov-track"><div class="cov-before" style="width:60.1%;background:var(--orange)"></div><div class="cov-after" style="width:73.7%;background:var(--green)"></div><div class="cov-thresh" style="left:65%"></div></div><span class="cov-val" style="color:var(--green)">73.7%</span></div>
+<div class="cov-row"><span class="cov-label">Statements</span><div class="cov-track"><div class="cov-before" style="width:66.4%;background:var(--orange)"></div><div class="cov-after" style="width:80.9%;background:var(--green)"></div><div class="cov-thresh" style="left:70%"></div></div><span class="cov-val" style="color:var(--green)">80.9%</span></div>
+<div style="font-size:10px;color:var(--muted);margin-top:6px">Orange = before &bull; Green = after &bull; Lines = thresholds</div>
+
+<!-- Pipeline -->
+<h2>Agent Pipeline</h2>
+<div class="pipeline">
+  <div class="stage">
+    <div class="stage-lbl">Batch 1</div>
+    <div class="par-group">
+      <span class="par-badge">&#9889; 5 parallel</span>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">setup/ (3 files)</span><span class="stat">38 tests &bull; 3m36s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">posttool/ (3 files)</span><span class="stat">78 tests &bull; 3m29s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">model-cost-advisor</span><span class="stat">29 tests &bull; 3m36s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">decision-history</span><span class="stat">89 tests &bull; 4m36s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">problem-tracker + task</span><span class="stat">96 tests &bull; 4m26s</span></div>
+    </div>
+  </div>
+  <div class="arrow"><svg viewBox="0 0 28 14"><path d="M0 7H20M17 3l5 4-5 4" stroke="#8b949e" stroke-width="1.5" fill="none"/></svg></div>
+  <div class="stage">
+    <div class="stage-lbl">Batch 2</div>
+    <div class="par-group">
+      <span class="par-badge">&#9889; 3 parallel</span>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">flow-tracker + guards</span><span class="stat">124 tests &bull; 2m21s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">workflow + readme + c7</span><span class="stat">65 tests &bull; 4m42s</span></div>
+      <div class="node" style="border-color:#10b981;background:#10b98118"><span class="icon">&#129514;</span><span class="name" style="color:#10b981">test-generator</span><span class="desc">maintenance + parser</span><span class="stat">49 tests &bull; 5m09s</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Team Roster -->
+<h2>Agent Team Sheet</h2>
+<table>
+  <thead><tr><th>Agent</th><th>Task</th><th>Tests</th><th>Batch</th><th>Time</th></tr></thead>
+  <tbody>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>setup-repair, first-run, setup-check</td><td>38</td><td><span class="tag tag-par">&#9889; Batch 1</span></td><td class="dur">3m36s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>naming-conv, code-style, subtask-updater</td><td>78</td><td><span class="tag tag-par">&#9889; Batch 1</span></td><td class="dur">3m29s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>model-cost-advisor</td><td>29</td><td><span class="tag tag-par">&#9889; Batch 1</span></td><td class="dur">3m36s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>decision-history (0% &rarr; 96%)</td><td>89</td><td><span class="tag tag-par">&#9889; Batch 1</span></td><td class="dur">4m36s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>problem-tracker + task-integration</td><td>96</td><td><span class="tag tag-par">&#9889; Batch 1</span></td><td class="dur">4m26s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>decision-flow-tracker + guards</td><td>124</td><td><span class="tag tag-par">&#9889; Batch 2</span></td><td class="dur">2m21s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>workflow-pref + readme-sync + context7</td><td>65</td><td><span class="tag tag-par">&#9889; Batch 2</span></td><td class="dur">4m42s</td></tr>
+    <tr><td><span class="an"><span class="dot" style="background:#10b981"></span>&#129514; test-generator</span></td><td>setup-maintenance + session-parser</td><td>49</td><td><span class="tag tag-par">&#9889; Batch 2</span></td><td class="dur">5m09s</td></tr>
+  </tbody>
+</table>
+<div style="margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap">
+  <span><strong style="color:var(--text)">Formation:</strong> 1-5-3</span>
+  <span><strong style="color:var(--text)">Parallel agents:</strong> 8</span>
+  <span><strong style="color:var(--text)">Total time:</strong> 31m55s</span>
+  <span><strong style="color:var(--text)">Tests:</strong> 582</span>
+  <span><strong style="color:var(--text)">Files:</strong> 17</span>
+</div>
+
+<!-- Files Tested -->
+<h2>Files Tested (17)</h2>
+<table>
+  <thead><tr><th>File</th><th>Category</th><th>Tests</th><th>Coverage Impact</th></tr></thead>
+  <tbody>
+    <tr><td>decision-history.ts</td><td><span class="cat cat-lib">lib</span></td><td>89</td><td><span class="bar-mini" style="width:55px;background:var(--green)"></span>0% &rarr; 96%</td></tr>
+    <tr><td>guards.ts</td><td><span class="cat cat-lib">lib</span></td><td>85</td><td><span class="bar-mini" style="width:48px;background:var(--green)"></span>32% &rarr; ~85%</td></tr>
+    <tr><td>problem-tracker.ts</td><td><span class="cat cat-lib">lib</span></td><td>59</td><td><span class="bar-mini" style="width:42px;background:var(--green)"></span>2% &rarr; ~70%</td></tr>
+    <tr><td>decision-flow-tracker.ts</td><td><span class="cat cat-lib">lib</span></td><td>47</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>43% &rarr; ~80%</td></tr>
+    <tr><td>task-integration.ts</td><td><span class="cat cat-lib">lib</span></td><td>37</td><td><span class="bar-mini" style="width:35px;background:var(--green)"></span>11% &rarr; ~65%</td></tr>
+    <tr><td>session-parser.ts</td><td><span class="cat cat-lib">lib</span></td><td>26</td><td><span class="bar-mini" style="width:40px;background:var(--green)"></span>0% &rarr; ~70%</td></tr>
+    <tr><td>code-style-learner.ts</td><td><span class="cat cat-post">posttool</span></td><td>31</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>1% &rarr; ~65%</td></tr>
+    <tr><td>naming-convention-learner.ts</td><td><span class="cat cat-post">posttool</span></td><td>30</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>1% &rarr; ~65%</td></tr>
+    <tr><td>readme-sync.ts</td><td><span class="cat cat-post">posttool</span></td><td>33</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>0% &rarr; ~60%</td></tr>
+    <tr><td>issue-subtask-updater.ts</td><td><span class="cat cat-post">posttool</span></td><td>17</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>0% &rarr; ~60%</td></tr>
+    <tr><td>model-cost-advisor.ts</td><td><span class="cat cat-sub">subagent</span></td><td>29</td><td><span class="bar-mini" style="width:34px;background:var(--green)"></span>4% &rarr; ~60%</td></tr>
+    <tr><td>setup-maintenance.ts</td><td><span class="cat cat-setup">setup</span></td><td>23</td><td><span class="bar-mini" style="width:28px;background:var(--green)"></span>48% &rarr; ~75%</td></tr>
+    <tr><td>workflow-pref-learner.ts</td><td><span class="cat cat-stop">stop</span></td><td>20</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>3% &rarr; ~65%</td></tr>
+    <tr><td>context7-tracker.ts</td><td><span class="cat cat-pre">pretool</span></td><td>18</td><td><span class="bar-mini" style="width:32px;background:var(--green)"></span>5% &rarr; ~60%</td></tr>
+    <tr><td>setup-check.ts</td><td><span class="cat cat-setup">setup</span></td><td>16</td><td><span class="bar-mini" style="width:40px;background:var(--green)"></span>1% &rarr; ~70%</td></tr>
+    <tr><td>setup-repair.ts</td><td><span class="cat cat-setup">setup</span></td><td>11</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>3% &rarr; ~65%</td></tr>
+    <tr><td>first-run-setup.ts</td><td><span class="cat cat-setup">setup</span></td><td>11</td><td><span class="bar-mini" style="width:34px;background:var(--green)"></span>1% &rarr; ~60%</td></tr>
+  </tbody>
+</table>
+
+<!-- Credits Roll -->
+<details open>
+  <summary>&#127916; Agent Credits &mdash; 8 test-generator agents collaborated on this PR</summary>
+  <div class="crd-body">
+    <div class="crd-cat">&#9889; Batch 1 (5 agents, ran simultaneously)</div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; setup-repair (11), first-run-setup (11), setup-check (16)</span><span class="ct">38 tests &bull; 3m36s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; naming-conv-learner (30), code-style-learner (31), subtask-updater (17)</span><span class="ct">78 tests &bull; 3m29s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; model-cost-advisor (29 tests, 4% &rarr; ~60%)</span><span class="ct">29 tests &bull; 3m36s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; decision-history (89 tests, 0% &rarr; 96%)</span><span class="ct">89 tests &bull; 4m36s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; problem-tracker (59) + task-integration (37)</span><span class="ct">96 tests &bull; 4m26s</span></div>
+    <div class="crd-cat">&#9889; Batch 2 (3 agents, ran after coverage gap analysis)</div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; decision-flow-tracker (47) + guards (77)</span><span class="ct">124 tests &bull; 2m21s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; workflow-pref (20) + readme-sync (27) + context7 (18)</span><span class="ct">65 tests &bull; 4m42s</span></div>
+    <div class="credit"><span>&#129514;</span><span class="cn">test-generator</span><span class="cd">&mdash; setup-maintenance (23) + session-parser (26)</span><span class="ct">49 tests &bull; 5m09s</span></div>
+    <div class="crd-footer">Orchestrated by <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> v7.26.4 &mdash; 8 agents, 31m55s total, 17 files, 582 tests</div>
+  </div>
+</details>
+
+<!-- Mutation Testing -->
+<h2>Mutation Testing Proof</h2>
+<div class="mut">
+<span class="fail">MUTATION 1:</span> guards.ts &mdash; invert includes() check
+  <span class="ok">CAUGHT: 21/77 tests failed &#10003;</span>
+
+<span class="fail">MUTATION 2:</span> problem-tracker.ts &mdash; flip confidence += 0.2 to -= 0.2
+  <span class="ok">CAUGHT: 3/59 tests failed &#10003;</span>
+
+Both reverted cleanly. 6800/6800 pass.
+</div>
+
+<!-- Raw Ledger -->
+<h2>Raw Branch Activity Ledger</h2>
+<p style="font-size:12px;color:var(--muted);margin-bottom:6px">Auto-captured by SubagentStop hook &rarr; <code>.claude/agents/activity/fix--ci-score-improvements.jsonl</code></p>
+<div class="ledger">{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:13:44.657Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">215956</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"All 38 tests pass across all 3 files..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:13:52.730Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">208905</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"All 78 tests pass across 3 files..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:14:05.325Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">215840</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"subagent-start 3.8% → 12.28%..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:14:30.668Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">275580</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"All 89 tests pass. decision-history 0% → 95.81%..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:14:53.798Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">266266</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"96 tests, problem-tracker + task-integration..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:19:12.026Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">140763</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"All 124 tests pass. flow-tracker + guards..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:21:32.868Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">281548</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"6786 tests pass. workflow-pref + readme + context7..."</span>}
+{<span class="k">"ts"</span>:<span class="s">"2026-03-29T11:21:59.745Z"</span>,<span class="k">"agent"</span>:<span class="s">"ork:test-generator"</span>,<span class="k">"stage"</span>:<span class="n">2</span>,<span class="k">"duration_ms"</span>:<span class="n">308521</span>,<span class="k">"success"</span>:<span class="b">true</span>,<span class="k">"summary"</span>:<span class="s">"6786 tests pass. maintenance + session-parser..."</span>}</div>
+
+<div class="footer">
+  <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> v7.26.4 &mdash;
+  PR #1200 &mdash; Agent attribution auto-captured by SubagentStop hook (<a href="https://github.com/yonatangross/orchestkit/pull/1194">#1194</a>)
+</div>
+
+</body>
+</html>

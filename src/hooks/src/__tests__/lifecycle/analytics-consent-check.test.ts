@@ -69,6 +69,7 @@ function createConsentLog(events: Array<{ action: string; timestamp: string }>):
 function daysAgo(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() - days);
+  date.setHours(date.getHours() - 1); // avoid boundary jitter at exact day count
   return date.toISOString();
 }
 
