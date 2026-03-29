@@ -1,6 +1,6 @@
 {
   "title": "Foundations",
   "icon": "BookOpen",
-  "pages": ["overview", "skills-agents-hooks", "mcp-servers", "choosing-a-plugin"],
+  "pages": ["overview", "skills-agents-hooks", "agent-attribution", "mcp-servers", "choosing-a-plugin"],
   "defaultOpen": true
 }
