@@ -109,7 +109,7 @@ export function getLedgerPath(branch?: string): string {
 
 export function appendLedgerEntry(entry: LedgerEntry): void {
   const ledgerPath = getLedgerPath();
-  bufferWrite(ledgerPath, JSON.stringify(entry) + '\n');
+  bufferWrite(ledgerPath, `${JSON.stringify(entry)}\n`);
 }
 
 // -----------------------------------------------------------------------------
