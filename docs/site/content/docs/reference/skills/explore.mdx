@@ -89,9 +89,9 @@ Write(".claude/chain/exploration.json", JSON.stringify({
 
 Choose **Agent Teams** (mesh) or **Task tool** (star):
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
-2. Agent Teams unavailable → **Task tool mode** (default)
-3. Full exploration with 4+ agents → recommend **Agent Teams**; Quick/single-focus → **Task tool**
+1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 4+ agents**
+2. Task tool mode → **for quick/single-focus exploration**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|
