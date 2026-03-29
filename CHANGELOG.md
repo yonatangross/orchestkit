@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.26.4] - 2026-03-29
+
+### Fixed
+
+- Flaky analytics-consent-check test (daysAgo boundary jitter at exact 30 days)
+- path-to-regexp ReDoS vulnerability (8.3.0 → 8.4.0)
+
+### Added
+
+- 568 unit tests across 17 files — hook coverage 67% → 82%
+- Tests for: decision-history, problem-tracker, task-integration, guards,
+  decision-flow-tracker, session-parser, setup-repair, first-run-setup,
+  setup-check, setup-maintenance, naming-convention-learner, code-style-learner,
+  issue-subtask-updater, readme-sync, context7-tracker,
+  workflow-preference-learner, model-cost-advisor
+
+---
+
+
 ## [7.26.3] - 2026-03-29
 
 ### Fixed
