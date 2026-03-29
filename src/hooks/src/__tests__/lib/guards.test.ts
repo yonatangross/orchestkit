@@ -354,7 +354,7 @@ describe('runGuards', () => {
   });
 
   it('returns first skip result', () => {
-    const skip = { exit_code: 0, suppressOutput: true } as GuardResult;
+    const skip = { continue: true, exit_code: 0, suppressOutput: true } as GuardResult;
     const g1 = () => null as GuardResult;
     const g2 = () => skip;
     const g3 = vi.fn(() => null as GuardResult);
@@ -402,8 +402,7 @@ describe('guardMultiInstance edge cases', () => {
 
   it('falls back to CLAUDE_PROJECT_DIR env var when project_dir missing', () => {
     vi.mocked(isAgentTeamsActive).mockReturnValue(false);
-    const input = makeInput();
-    delete (input as Record<string, unknown>).project_dir;
+    const input = makeInput({ project_dir: undefined });
     // Should not throw — falls back to env var
     expect(() => guardMultiInstance(input)).not.toThrow();
   });

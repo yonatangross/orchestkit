@@ -16,9 +16,9 @@ const { mockAppendFileSync } = vi.hoisted(() => ({
 }));
 
 const { mockExistsSync, mockStatSync, mockMkdirSync } = vi.hoisted(() => ({
-  mockExistsSync: vi.fn(() => false),
-  mockStatSync: vi.fn(() => ({ mtime: new Date() })),
-  mockMkdirSync: vi.fn(),
+  mockExistsSync: vi.fn((_p?: string) => false),
+  mockStatSync: vi.fn((_p?: string) => ({ mtime: new Date() })),
+  mockMkdirSync: vi.fn((_p?: string, _opts?: unknown) => undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -49,9 +49,9 @@ vi.mock('../../../lib/common.js', () => ({
 }));
 
 vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  statSync: (...args: unknown[]) => mockStatSync(...args),
-  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  existsSync: (p: string) => mockExistsSync(p),
+  statSync: (p: string) => mockStatSync(p),
+  mkdirSync: (p: string, opts?: unknown) => mockMkdirSync(p, opts),
   readFileSync: vi.fn(() => ''),
 }));
 
@@ -264,8 +264,8 @@ describe('readme-sync', () => {
 
     it('includes section suggestion when README exists', () => {
       // Arrange — README.md exists at first call (findReadme), file exists too
-      mockExistsSync.mockImplementation((p: unknown) => {
-        const path = String(p);
+      mockExistsSync.mockImplementation((p?: string) => {
+        const path = (p || '');
         if (path.includes('README')) return true;
         return false;
       });
@@ -282,11 +282,11 @@ describe('readme-sync', () => {
     it('appends staleness warning when README is old', () => {
       // Arrange
       const oldDate = new Date(Date.now() - 60 * 86400 * 1000); // 60 days ago
-      mockExistsSync.mockImplementation((p: unknown) => {
-        const path = String(p);
+      mockExistsSync.mockImplementation((p?: string) => {
+        const path = (p || '');
         return path.includes('README');
       });
-      mockStatSync.mockReturnValue({ mtime: oldDate } as ReturnType<typeof import('node:fs').statSync>);
+      mockStatSync.mockReturnValue({ mtime: oldDate } as { mtime: Date });
 
       // Act
       const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
@@ -363,7 +363,7 @@ describe('readme-sync', () => {
 
     it('handles statSync failure on README gracefully', () => {
       // README exists but statSync throws
-      mockExistsSync.mockImplementation((p: unknown) => String(p).includes('README'));
+      mockExistsSync.mockImplementation((p?: string) => (p || '').includes('README'));
       mockStatSync.mockImplementation(() => { throw new Error('EACCES'); });
       // Should not crash — try/catch in source handles stat errors
       const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
@@ -374,8 +374,8 @@ describe('readme-sync', () => {
 
     it('handles log directory write failure gracefully', () => {
       // README exists, analysis succeeds, but mkdirSync for logs throws
-      mockExistsSync.mockImplementation((p: unknown) => String(p).includes('README'));
-      mockStatSync.mockReturnValue({ mtime: new Date() } as ReturnType<typeof import('node:fs').statSync>);
+      mockExistsSync.mockImplementation((p?: string) => (p || '').includes('README'));
+      mockStatSync.mockReturnValue({ mtime: new Date() } as { mtime: Date });
       mockMkdirSync.mockImplementation(() => { throw new Error('ENOSPC'); });
       // Should not crash — try/catch around log writing
       const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
@@ -400,11 +400,11 @@ describe('readme-sync', () => {
     it('truncates context message over 200 chars', () => {
       // Arrange — README exists with a very old mtime to create a long message
       const oldDate = new Date(Date.now() - 365 * 86400 * 1000);
-      mockExistsSync.mockImplementation((p: unknown) => {
-        const path = String(p);
+      mockExistsSync.mockImplementation((p?: string) => {
+        const path = (p || '');
         return path.includes('README');
       });
-      mockStatSync.mockReturnValue({ mtime: oldDate } as ReturnType<typeof import('node:fs').statSync>);
+      mockStatSync.mockReturnValue({ mtime: oldDate } as { mtime: Date });
 
       // Act — use a setup.py to trigger python-config with long suggestion
       const result = readmeSync(makeInput('/mock/proj/setup.py'));
