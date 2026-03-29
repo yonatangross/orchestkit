@@ -166,9 +166,9 @@ describe('Concurrent Access (interleaved)', () => {
     const statePath = join(tmpDir, '.claude', 'agents', 'session-state.json');
     const state = JSON.parse(readFileSync(statePath, 'utf8'));
     expect(Object.keys(state.agent_starts)).toHaveLength(3);
-    expect(state.agent_starts['a1']).toBeGreaterThan(0);
-    expect(state.agent_starts['a2']).toBeGreaterThan(0);
-    expect(state.agent_starts['a3']).toBeGreaterThan(0);
+    expect(state.agent_starts.a1).toBeGreaterThan(0);
+    expect(state.agent_starts.a2).toBeGreaterThan(0);
+    expect(state.agent_starts.a3).toBeGreaterThan(0);
   });
 
   test('interleaved start/stop preserves unresolved agents', () => {
@@ -180,8 +180,8 @@ describe('Concurrent Access (interleaved)', () => {
 
     const statePath = join(tmpDir, '.claude', 'agents', 'session-state.json');
     const state = JSON.parse(readFileSync(statePath, 'utf8'));
-    expect(state.agent_starts['a1']).toBeUndefined(); // cleaned up
-    expect(state.agent_starts['a2']).toBeGreaterThan(0); // still there
+    expect(state.agent_starts.a1).toBeUndefined(); // cleaned up
+    expect(state.agent_starts.a2).toBeGreaterThan(0); // still there
   });
 });
 
@@ -304,6 +304,8 @@ describe('E2E: Full Attribution Pipeline', () => {
 
     // 10. Verify threshold filter
     const filtered = filterByThreshold(ledger, 3000);
-    filtered.forEach(e => expect(e.duration_ms).toBeGreaterThanOrEqual(3000));
+    for (const e of filtered) {
+      expect(e.duration_ms).toBeGreaterThanOrEqual(3000);
+    }
   });
 });

@@ -148,7 +148,7 @@ describe('readBranchLedger', () => {
 
   test('parses valid JSONL', () => {
     const entry = makeLedgerEntry();
-    writeFileSync(join(activityDir, 'test-branch.jsonl'), JSON.stringify(entry) + '\n');
+    writeFileSync(join(activityDir, 'test-branch.jsonl'), `${JSON.stringify(entry)}\n`);
     const result = readBranchLedger('test-branch');
     expect(result).toHaveLength(1);
     expect(result[0].agent).toBe('test-generator');

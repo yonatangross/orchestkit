@@ -86,7 +86,9 @@ export function formatAsPrMarkdown(entries: LedgerEntry[]): string {
   const renderGroup = (label: string, group: LedgerEntry[]) => {
     if (!group.length) return;
     parts.push(`**${label}**`);
-    group.forEach(e => parts.push(`- ${getAgentIcon(e.agent)} **${normalizeAgentName(e.agent)}** \u2014 ${e.summary} (${formatDuration(e.duration_ms)})`));
+    for (const e of group) {
+      parts.push(`- ${getAgentIcon(e.agent)} **${normalizeAgentName(e.agent)}** \u2014 ${e.summary} (${formatDuration(e.duration_ms)})`);
+    }
     parts.push('');
   };
   renderGroup('Lead', lead);
