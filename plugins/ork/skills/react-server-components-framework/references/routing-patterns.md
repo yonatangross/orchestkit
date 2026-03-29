@@ -65,8 +65,9 @@ app/
 import { Modal } from '@/components/Modal'
 import { getPhoto } from '@/lib/photos'
 
-export default async function PhotoModal({ params }: { params: { id: string } }) {
-  const photo = await getPhoto(params.id)
+export default async function PhotoModal({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const photo = await getPhoto(id)
 
   return (
     <Modal>
@@ -78,8 +79,9 @@ export default async function PhotoModal({ params }: { params: { id: string } })
 // app/photos/[id]/page.tsx (Direct route - shows full page)
 import { getPhoto } from '@/lib/photos'
 
-export default async function PhotoPage({ params }: { params: { id: string } }) {
-  const photo = await getPhoto(params.id)
+export default async function PhotoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const photo = await getPhoto(id)
 
   return (
     <div>
@@ -92,20 +94,9 @@ export default async function PhotoPage({ params }: { params: { id: string } }) 
 
 ---
 
-## Partial Prerendering (PPR)
+## Cache Components (PPR)
 
-Combine static and dynamic content in the same route.
-
-### Enable PPR
-
-```js
-// next.config.js
-module.exports = {
-  experimental: {
-    ppr: true
-  }
-}
-```
+Combine static and dynamic content in the same route using Cache Components (Next.js 16+).
 
 ### Implementation
 
@@ -115,10 +106,9 @@ import { Suspense } from 'react'
 import { getProduct } from '@/lib/products'
 import { ReviewsList } from '@/components/ReviewsList'
 
-export const experimental_ppr = true
-
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProduct(params.id)
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const product = await getProduct(id)
 
   return (
     <div>
@@ -128,7 +118,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       {/* Dynamic content - streamed */}
       <Suspense fallback={<ReviewsSkeleton />}>
-        <ReviewsList productId={params.id} />
+        <ReviewsList productId={id} />
       </Suspense>
     </div>
   )

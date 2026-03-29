@@ -1,27 +1,18 @@
 # Session Handoff
 
-**Branch**: feat/cc-2184-adoption
-**When**: 2026-03-26 09:31:02 UTC
-**Session**: 90b4d251-35c9-44f1-9307-a0f643b477b5
+**Branch**: main
+**When**: 2026-03-28 10:23:56 UTC
+**Session**: 66e028b8-d433-436b-9b74-c583529ce7ce
 
 ## Summary
-Pushed. All pre-push validations passed. The remote shows 5 remaining vulns on the **default branch** (main) — those will be resolved once this PR merges.
-
-Done:
-- **Security fixed**: picomatch CVE-2026-33671 + CVE-2026-33672, express-rate-limit GHSA-46wh-pxpv-q5gq — 0 vulnerabilities in all 3 dirs
-- **#1162 superseded**: commit includes `Closes #1162` — dependabot PR will auto-close when this merges
-- **PR #1163** updated with the security fix commit
-
-## Modified Files
-- .claude/HANDOFF.md.consumed
-- docs/site/lib/generated/changelog-data.ts
+Done. #1159 closed, M98 closed (11/11 issues). Two milestones closed this session (M98 + M99).
 
 ## Recent Tasks
-- Verify manifest consistency and counts [completed]
-- Cover & verify CC 2.1.84 adoption branch [completed]
-- Phase 1: Extract search logic + regression tests [completed]
-- Phase 2: Add Fuse.js + useFuzzySearch hook [completed]
-- Phase 3: Wire into components + highlight + smart empty state [completed]
-- Phase 4: Build + test + verify [completed]
-- Document RTK across docs site [completed]
-- Enrich RTK docs with research findings [completed]
+- Create SKILL.md with frontmatter and triggers [completed]
+- Write test-cases.json for eval coverage [completed]
+- Implement #1166: Git diff scanner with 3-level data [completed]
+- Phase 1: Add `if` conditionals to hooks.json [completed]
+- Phase 2: Headless AskUserQuestion hook [completed]
+- Phase 3: MCP server name env var [completed]
+- Phase 4-6: Docs, enterprise FAQ, version bump [completed]
+- CC 2.1.85 Integration — Plan + Implement [completed]

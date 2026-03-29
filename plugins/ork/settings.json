@@ -37,10 +37,6 @@
       "Bash(:(){ :|:& };:)"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "${CLAUDE_PLUGIN_ROOT}/hooks/bin/statusline-context-writer.sh"
-  },
   "keybindings": [
     { "key": "ctrl+k ctrl+f", "skill": "fix-issue" },
     { "key": "ctrl+k ctrl+i", "skill": "implement" },

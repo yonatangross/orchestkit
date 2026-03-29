@@ -2,9 +2,9 @@
 
 Choose **Agent Teams** (mesh -- reviewers cross-reference findings) or **Task tool** (star -- all report to lead):
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` -> **Agent Teams mode**
-2. Agent Teams unavailable -> **Task tool mode** (default)
-3. Otherwise: Full review with 6+ agents and cross-cutting concerns -> recommend **Agent Teams**; Quick/focused review -> **Task tool**
+1. Agent Teams mode (GA since CC 2.1.33) -> **recommended for full review with 6+ agents**
+2. Task tool mode -> **for quick/focused review**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Task tool** (override)
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|

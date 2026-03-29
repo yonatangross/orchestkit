@@ -1,13 +1,13 @@
 ---
 name: task-dependency-patterns
 license: MIT
-compatibility: "Claude Code 2.1.76+."
-description: CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
+compatibility: "Claude Code 2.1.86+."
+description: Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
 context: fork
 version: 1.0.0
 author: OrchestKit
 agent: workflow-architect
-tags: [task-management, dependencies, orchestration, cc-2.1.16, workflow, coordination]
+tags: [task-management, dependencies, orchestration, workflow, coordination]
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
@@ -74,17 +74,17 @@ pending → in_progress → completed
    ↓           ↓
 (unblocked)  (active)
 
-pending/in_progress → deleted (CC 2.1.20)
+pending/in_progress → deleted
 ```
 
 - **pending**: Task created but not started
 - **in_progress**: Actively being worked on
 - **completed**: Work finished and verified
-- **deleted**: Task removed (CC 2.1.20) - permanently removes the task
+- **deleted**: Task removed — permanently removes the task
 
-### Task Deletion (CC 2.1.20)
+### Task Deletion
 
-CC 2.1.20 adds `status: "deleted"` to permanently remove tasks:
+Use `status: "deleted"` to permanently remove tasks:
 
 ```json
 // Delete a task
@@ -112,9 +112,9 @@ Provide present-continuous form for spinner display:
 | Update schema | Updating schema |
 | Fix authentication | Fixing authentication |
 
-## Agent Teams (CC 2.1.33+)
+## Agent Teams
 
-CC 2.1.33 introduces Agent Teams for multi-agent coordination with shared task lists and peer-to-peer messaging.
+Agent Teams provides multi-agent coordination with shared task lists and peer-to-peer messaging.
 
 ### Team Workflow
 

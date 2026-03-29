@@ -32,7 +32,7 @@ Deep code review using 6-7 parallel specialized agents.
 The PR number or branch is passed as the skill argument. Resolve it immediately:
 
 ```python
-PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch" (CC 2.1.19 indexed access)
+PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch"
 
 # If no argument provided, check environment
 if not PR_NUMBER:
@@ -91,7 +91,7 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 
 ---
 
-## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## CRITICAL: Task Management is MANDATORY
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
 
@@ -164,9 +164,9 @@ Spawn all three in ONE message. This cuts context-gathering time by 60%.
 For agent-based review (Phase 3), all 6 agents are independent -- launch them together.
 &lt;/use_parallel_tool_calls&gt;
 
-## Phase 2: Skills Auto-Loading (CC 2.1.6)
+## Phase 2: Skills Auto-Loading
 
-**CC 2.1.6 auto-discovers skills** -- no manual loading needed!
+**CC auto-discovers skills** -- no manual loading needed!
 
 Relevant skills activated automatically:
 - `code-review-playbook` -- Review patterns, conventional comments
@@ -822,9 +822,9 @@ if pr_contains_llm_code:
 
 Choose **Agent Teams** (mesh -- reviewers cross-reference findings) or **Task tool** (star -- all report to lead):
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` -> **Agent Teams mode**
-2. Agent Teams unavailable -> **Task tool mode** (default)
-3. Otherwise: Full review with 6+ agents and cross-cutting concerns -> recommend **Agent Teams**; Quick/focused review -> **Task tool**
+1. Agent Teams mode (GA since CC 2.1.33) -> **recommended for full review with 6+ agents**
+2. Task tool mode -> **for quick/focused review**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Task tool** (override)
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|

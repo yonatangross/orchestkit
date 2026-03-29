@@ -215,15 +215,15 @@ export default function UserPage({ params }: { params: { id: string } }) {
 }
 ```
 
-## Partial Prerendering (PPR)
+## Cache Components (PPR)
 
-Mix static and dynamic content in a single route:
+Mix static and dynamic content in a single route using Cache Components (Next.js 16+):
 
 ```tsx
 // app/product/[id]/page.tsx
-export const experimental_ppr = true
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
 
-export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <div>
       {/* Static: Prerendered at build time */}
@@ -232,7 +232,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
       {/* Dynamic: Streamed at request time */}
       <Suspense fallback={<ProductSkeleton />}>
-        <ProductDetails id={params.id} />
+        <ProductDetails id={id} />
       </Suspense>
 
       {/* Dynamic: Personalized content */}
@@ -247,10 +247,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 }
 ```
 
-### PPR Benefits
+### Cache Components Benefits
 
 - Static shell serves instantly from CDN
 - Dynamic content streams in Suspense boundaries
+- `"use cache"` directive for declarative caching at component level
 - Best of both static and dynamic rendering
 
 ## Error Boundaries with Streaming

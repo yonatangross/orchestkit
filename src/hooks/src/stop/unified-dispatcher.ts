@@ -31,6 +31,7 @@ import { coverageCheck } from '../skill/coverage-check.js';
 import { evidenceCollector } from '../skill/evidence-collector.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
+import { cleanupStaleLedgers } from '../lib/agent-attribution.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -66,6 +67,9 @@ const HOOKS: HookConfig[] = [
 
   // --- Analysis hooks ---
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
+
+  // --- Cleanup hooks ---
+  { name: 'ledger-cleanup', fn: () => { try { cleanupStaleLedgers(); } catch { /* silent */ } return outputSilentSuccess(); } },
 
   // --- Skill validation hooks (run at stop time) ---
   { name: 'coverage-check', fn: coverageCheck },

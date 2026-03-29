@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Agent Attribution Playground</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;--cyan:#39d353;--code-bg:#1c2128}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;display:flex;height:100vh;overflow:hidden}
+  .controls{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+  .controls h1{font-size:15px;font-weight:600;color:var(--accent)}
+  .cg{display:flex;flex-direction:column;gap:6px}
+  .cg>label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+  select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;outline:none;width:100%}
+  input[type="range"]{-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border);width:100%}
+  input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+  .rv{font-size:13px;color:var(--accent);font-weight:600}
+  .pg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .pb{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:6px;font-size:11px;cursor:pointer;transition:.15s}
+  .pb:hover,.pb.on{border-color:var(--accent);background:rgba(88,166,255,.08)}
+  .div{height:1px;background:var(--border)}
+  .tr{display:flex;align-items:center;justify-content:space-between;padding:2px 0}
+  .tr span{font-size:12px}
+  .tg{position:relative;width:32px;height:17px;cursor:pointer}
+  .tg input{opacity:0;width:0;height:0}
+  .ts{position:absolute;inset:0;background:var(--border);border-radius:9px;transition:.2s}
+  .ts::before{content:'';position:absolute;height:11px;width:11px;left:3px;bottom:3px;background:var(--text);border-radius:50%;transition:.2s}
+  .tg input:checked+.ts{background:var(--accent)}
+  .tg input:checked+.ts::before{transform:translateX(15px)}
+  .preview{flex:1;overflow-y:auto;padding:20px 28px 40px;display:flex;flex-direction:column;gap:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+  .card-hdr{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+  .tag{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;text-transform:uppercase}
+  .tag-c{background:rgba(63,185,80,.15);color:var(--green)}
+  .tag-p{background:rgba(188,140,255,.15);color:var(--purple)}
+  .card-body{padding:16px 18px}
+  .cm{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;line-height:1.65;white-space:pre-wrap}
+  .ct{color:var(--green);font-weight:700}.cs{color:var(--cyan)}.cv{color:var(--text);font-weight:600}.cb{color:var(--text-muted)}.ch{color:var(--accent);font-weight:700}.ca{color:var(--orange)}.cd{color:var(--text-muted)}.cx{color:var(--text-muted);opacity:.7}.cp{color:var(--purple)}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .badge{display:inline-flex;border-radius:5px;overflow:hidden;font-size:11px;font-weight:700;line-height:1}
+  .bl{padding:6px 8px;background:#555;color:#fff}.bv{padding:6px 8px;color:#fff}
+  .b-blue .bv{background:#2563eb}.b-green .bv{background:#16a34a}.b-yellow .bv{background:#ca8a04}
+  .pipeline-dag{display:flex;align-items:stretch;gap:0;padding:12px 0;overflow-x:auto}
+  .stage{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;flex-shrink:0}
+  .stage-label{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:600}
+  .pn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:8px;min-width:130px;max-width:170px;text-align:center;border:2px solid;flex-shrink:0}
+  .pn .pi{font-size:18px}.pn .pn-name{font-size:11.5px;font-weight:700}.pn .pn-act{font-size:10px;opacity:.85}.pn .pn-stat{font-size:9px;opacity:.6;font-family:monospace;margin-top:2px}
+  .stage-arrow{display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0;min-width:36px}
+  .stage-arrow svg{width:28px;height:14px}
+  .parallel-group{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px dashed var(--border);border-radius:10px;background:rgba(255,255,255,.015);position:relative}
+  .parallel-badge{position:absolute;top:-8px;left:12px;background:var(--surface);color:var(--text-muted);font-size:9px;padding:1px 6px;border-radius:4px;border:1px solid var(--border);font-weight:600}
+  .gh-h{font-size:18px;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:12px}
+  .roster{width:100%;border-collapse:collapse}
+  .roster th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);font-size:11px;color:var(--text-muted);font-weight:600}
+  .roster td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px}
+  .roster tr:last-child td{border-bottom:none}
+  .an{font-weight:600;display:flex;align-items:center;gap:6px}
+  .ad{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .ib{display:inline-flex;gap:1px;margin-right:8px;vertical-align:middle}
+  .ib span{width:8px;height:13px;border-radius:2px}
+  .ib .f{background:var(--green)}.ib .e{background:var(--border)}
+  .is{font-family:monospace;font-size:11px;color:var(--text-muted)}
+  .fm{margin-top:10px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap}
+  .fm strong{color:var(--text)}
+  .crd{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .crd summary{padding:10px 16px;cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:6px}
+  .crd summary::before{content:'\25B6';font-size:9px;color:var(--text-muted);transition:.2s}
+  .crd[open] summary::before{transform:rotate(90deg)}
+  .crd-b{padding:0 16px 14px;border-top:1px solid var(--border)}
+  .crd-cat{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px}
+  .crd-r{display:flex;align-items:baseline;gap:6px;padding:5px 0;flex-wrap:wrap}
+  .crd-r .ri{font-size:13px;flex-shrink:0}.crd-r .rn{font-weight:600;font-size:13px;flex-shrink:0}.crd-r .rd{color:var(--text-muted);font-size:12px}
+  .crd-r .rs{font-family:monospace;font-size:10px;color:var(--text-muted);margin-left:auto;display:flex;gap:8px;flex-shrink:0}
+  .crd-f{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);text-align:center}
+  .crd-f a{color:var(--accent);text-decoration:none}
+  .file-expand{cursor:pointer;user-select:none}
+  .file-expand:hover{background:rgba(255,255,255,.03)}
+  .file-expand td:first-child .an::after,.file-expand-crd::after{content:' \25B6';font-size:8px;color:var(--text-muted);transition:.15s;margin-left:4px}
+  .file-expand.open td:first-child .an::after,.file-expand-crd.open::after{content:' \25BC'}
+  .file-list{display:none}.file-list.open{display:table-row}
+  .file-list td{padding:0 10px 8px 36px!important;border-bottom:1px solid var(--border)!important}
+  .fl{list-style:none;padding:6px 0}
+  .fl li{font-family:monospace;font-size:11px;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:8px;color:var(--text-muted)}
+  .fl li:hover{background:rgba(255,255,255,.03)}
+  .fl .fp{color:var(--accent);flex:1}.fl .fa{color:var(--green);font-size:10px}.fl .fr{color:var(--red);font-size:10px}
+  .crd-files{display:none;padding:4px 0 4px 24px}
+  .crd-files.open{display:block}
+  .crd-r.file-expand-crd{cursor:pointer;border-radius:4px;padding:5px 4px;margin:0 -4px}
+  .crd-r.file-expand-crd:hover{background:rgba(255,255,255,.03)}
+  .hidden{display:none!important}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="controls">
+  <h1>OrchestKit Attribution</h1>
+  <div class="cg"><label>Presets</label>
+    <div class="pg">
+      <button class="pb" onclick="preset('quickfix')">Quick Fix</button>
+      <button class="pb" onclick="preset('feature')">Feature PR</button>
+      <button class="pb on" onclick="preset('epic')">Epic PR</button>
+      <button class="pb" onclick="preset('security')">Security Patch</button>
+    </div>
+  </div>
+  <div class="div"></div>
+  <div class="cg"><label>PR Scenario</label>
+    <select id="sc" onchange="render()">
+      <option value="bugfix">Bug Fix (small)</option>
+      <option value="feature">Feature (medium)</option>
+      <option value="epic" selected>Epic Feature (large)</option>
+      <option value="refactor">Refactor</option>
+      <option value="security">Security Patch</option>
+    </select>
+  </div>
+  <div class="cg"><label>Agents: <span id="nL" class="rv">6</span></label>
+    <input type="range" id="n" min="2" max="8" value="6" oninput="render()">
+  </div>
+  <div class="div"></div>
+  <div class="cg"><label>Sections</label>
+    <div class="tr"><span>Commit Message</span><label class="tg"><input type="checkbox" id="sC" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Pipeline Diagram</span><label class="tg"><input type="checkbox" id="sP" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Team Roster</span><label class="tg"><input type="checkbox" id="sR" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Credits Roll</span><label class="tg"><input type="checkbox" id="sX" checked onchange="render()"><span class="ts"></span></label></div>
+  </div>
+  <div class="div"></div>
+  <div class="cg"><label>Display</label>
+    <div class="tr"><span>Agents in Commit</span><label class="tg"><input type="checkbox" id="dA" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Co-Authored-By</span><label class="tg"><input type="checkbox" id="dT" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Emoji Icons</span><label class="tg"><input type="checkbox" id="dE" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Duration Stats</span><label class="tg"><input type="checkbox" id="dD" checked onchange="render()"><span class="ts"></span></label></div>
+    <div class="tr"><span>Formation Line</span><label class="tg"><input type="checkbox" id="dF" checked onchange="render()"><span class="ts"></span></label></div>
+  </div>
+</div>
+<div class="preview" id="out"></div>
+<script>
+const A=[
+  {id:'backend-system-architect',name:'Backend Architect',icon:'\u{1f3d7}\ufe0f',color:'#3b82f6',role:'Architecture & API',stage:0},
+  {id:'security-auditor',name:'Security Auditor',icon:'\u{1f6e1}\ufe0f',color:'#ef4444',role:'Vulnerability Scan',stage:1},
+  {id:'test-generator',name:'Test Generator',icon:'\u{1f9ea}',color:'#10b981',role:'Test Coverage',stage:1},
+  {id:'frontend-ui-developer',name:'Frontend Developer',icon:'\u{1f3a8}',color:'#8b5cf6',role:'UI Components',stage:1},
+  {id:'ci-cd-engineer',name:'CI/CD Engineer',icon:'\u2699\ufe0f',color:'#f59e0b',role:'Pipeline Config',stage:2},
+  {id:'code-quality-reviewer',name:'Quality Reviewer',icon:'\u{1f50d}',color:'#ec4899',role:'Code Review',stage:2},
+  {id:'database-engineer',name:'Database Engineer',icon:'\u{1f4be}',color:'#06b6d4',role:'Schema & Migrations',stage:1},
+  {id:'accessibility-specialist',name:'A11y Specialist',icon:'\u267f',color:'#a78bfa',role:'WCAG Compliance',stage:2},
+];
+const SC={
+  bugfix:{type:'fix',scope:'auth',title:'resolve token refresh race condition',body:'Fixed race condition in token refresh when multiple\nAPI calls trigger simultaneous refresh attempts.\nAdded mutex lock around the refresh flow.',
+    acts:[{act:'Root cause analysis',f:3,a:28,r:12,d:'0m45s',sum:'Traced race to async refresh',files:[{p:'src/auth/token-refresh.ts',a:18,r:8},{p:'src/auth/mutex.ts',a:10,r:4}]},{act:'Security review',f:2,a:0,r:0,d:'0m22s',sum:'Verified fix doesn\'t expose tokens',files:[{p:'src/auth/token-refresh.ts',a:0,r:0},{p:'src/middleware/auth.ts',a:0,r:0}]},{act:'12 regression tests',f:2,a:87,r:0,d:'1m10s',sum:'12 tests for concurrent scenarios',files:[{p:'tests/auth/token-refresh.test.ts',a:87,r:0}]},{act:'Updated error UI',f:2,a:18,r:4,d:'0m40s',sum:'Better retry UX on 401',files:[{p:'src/components/ErrorBoundary.tsx',a:18,r:4}]},{act:'CI pipeline check',f:1,a:4,r:0,d:'0m15s',sum:'Verified test matrix',files:[{p:'.github/workflows/test.yml',a:4,r:0}]},{act:'Reviewed lock pattern',f:3,a:2,r:5,d:'0m30s',sum:'Suggested simpler mutex',files:[{p:'src/auth/mutex.ts',a:2,r:5}]},{act:'Migration script',f:1,a:15,r:0,d:'0m20s',sum:'Session cleanup migration',files:[{p:'prisma/migrations/cleanup.sql',a:15,r:0}]},{act:'Screen reader check',f:1,a:8,r:0,d:'0m18s',sum:'Error announcement accessible',files:[{p:'src/components/ErrorBoundary.tsx',a:8,r:0}]}]},
+  feature:{type:'feat',scope:'analytics',title:'add user engagement dashboard',body:'Implemented real-time user engagement dashboard with\nevent tracking, session replay indicators, and\nexportable CSV reports.',
+    acts:[{act:'API design + data models',f:12,a:342,r:18,d:'2m14s',sum:'REST endpoints + Prisma schema',files:[{p:'src/api/analytics/routes.ts',a:89,r:0},{p:'src/api/analytics/service.ts',a:134,r:0},{p:'prisma/schema.prisma',a:45,r:8},{p:'src/api/analytics/types.ts',a:34,r:0},{p:'src/api/analytics/controller.ts',a:40,r:10}]},{act:'Dependency audit',f:4,a:28,r:3,d:'0m42s',sum:'Scanned 4 endpoints, 0 vulns',files:[{p:'src/api/analytics/routes.ts',a:12,r:3},{p:'src/middleware/rate-limit.ts',a:16,r:0}]},{act:'47 unit + integration tests',f:19,a:847,r:0,d:'2m01s',sum:'47 tests, 94% coverage',files:[{p:'tests/unit/analytics/service.test.ts',a:234,r:0},{p:'tests/unit/analytics/controller.test.ts',a:178,r:0},{p:'tests/integration/analytics-flow.test.ts',a:289,r:0},{p:'tests/fixtures/events.json',a:146,r:0}]},{act:'Dashboard UI components',f:8,a:456,r:24,d:'3m47s',sum:'Charts, filters, date picker',files:[{p:'src/components/dashboard/EngagementChart.tsx',a:134,r:0},{p:'src/components/dashboard/FilterBar.tsx',a:89,r:0},{p:'src/components/dashboard/MetricCard.tsx',a:67,r:0},{p:'src/components/dashboard/DatePicker.tsx',a:78,r:12},{p:'src/pages/analytics.tsx',a:88,r:12}]},{act:'GitHub Actions update',f:3,a:56,r:12,d:'0m38s',sum:'Added e2e test stage',files:[{p:'.github/workflows/ci.yml',a:34,r:8},{p:'.github/workflows/e2e.yml',a:22,r:4}]},{act:'Reviewed 340 lines',f:12,a:8,r:15,d:'1m05s',sum:'Suggested 3 improvements',files:[{p:'src/api/analytics/service.ts',a:4,r:8},{p:'src/api/analytics/controller.ts',a:4,r:7}]},{act:'Added indexes + migrations',f:4,a:67,r:0,d:'1m20s',sum:'Composite indexes for queries',files:[{p:'prisma/migrations/001_analytics.sql',a:34,r:0},{p:'prisma/schema.prisma',a:23,r:0},{p:'prisma/seed.ts',a:10,r:0}]},{act:'WCAG AA compliance',f:6,a:34,r:8,d:'0m55s',sum:'Color contrast + keyboard nav',files:[{p:'src/components/dashboard/EngagementChart.tsx',a:12,r:4},{p:'src/components/dashboard/FilterBar.tsx',a:8,r:4},{p:'tests/a11y/dashboard.spec.ts',a:14,r:0}]}]},
+  epic:{type:'feat',scope:'payments',title:'implement Stripe billing with subscription management',body:'Full Stripe integration with subscription tiers,\nusage-based billing, invoice management, webhook\nhandling, and customer portal.',
+    acts:[{act:'Payment architecture + 14 endpoints',f:28,a:1247,r:45,d:'5m30s',sum:'REST API + webhook handlers + Stripe SDK',files:[{p:'src/api/payments/routes.ts',a:245,r:0},{p:'src/api/payments/controller.ts',a:189,r:0},{p:'src/api/payments/service.ts',a:312,r:0},{p:'src/api/webhooks/stripe.ts',a:156,r:12},{p:'src/models/subscription.ts',a:87,r:0},{p:'src/models/invoice.ts',a:65,r:0},{p:'src/middleware/stripe-verify.ts',a:43,r:8},{p:'src/config/stripe.ts',a:28,r:0}]},{act:'PCI compliance + secret rotation',f:12,a:156,r:23,d:'2m15s',sum:'Audit: 2 medium issues fixed',files:[{p:'src/middleware/stripe-verify.ts',a:34,r:8},{p:'src/config/stripe.ts',a:18,r:5},{p:'src/api/payments/service.ts',a:23,r:10},{p:'.env.example',a:4,r:0},{p:'src/utils/crypto.ts',a:45,r:0},{p:'docs/security-audit.md',a:32,r:0}]},{act:'89 tests across 3 tiers',f:34,a:2103,r:0,d:'4m22s',sum:'89 tests, 91% coverage',files:[{p:'tests/unit/payments/service.test.ts',a:456,r:0},{p:'tests/unit/payments/controller.test.ts',a:312,r:0},{p:'tests/integration/stripe-webhook.test.ts',a:534,r:0},{p:'tests/integration/subscription-flow.test.ts',a:289,r:0},{p:'tests/e2e/checkout.spec.ts',a:198,r:0},{p:'tests/fixtures/stripe-events.json',a:314,r:0}]},{act:'Billing portal + pricing page',f:18,a:876,r:0,d:'6m10s',sum:'Full checkout flow + portal',files:[{p:'src/components/pricing/PricingTable.tsx',a:167,r:0},{p:'src/components/pricing/PlanCard.tsx',a:89,r:0},{p:'src/components/billing/Portal.tsx',a:234,r:0},{p:'src/components/billing/InvoiceList.tsx',a:112,r:0},{p:'src/components/checkout/CheckoutFlow.tsx',a:156,r:0},{p:'src/hooks/useSubscription.ts',a:67,r:0},{p:'src/styles/pricing.css',a:51,r:0}]},{act:'Stripe webhook pipeline',f:5,a:134,r:8,d:'1m45s',sum:'Webhook + retry + dead-letter',files:[{p:'.github/workflows/deploy.yml',a:45,r:8},{p:'.github/workflows/stripe-test.yml',a:56,r:0},{p:'docker-compose.yml',a:12,r:0},{p:'scripts/seed-stripe.sh',a:18,r:0},{p:'Makefile',a:3,r:0}]},{act:'Architecture review',f:28,a:23,r:45,d:'2m30s',sum:'Identified 5 improvements',files:[{p:'src/api/payments/service.ts',a:8,r:15},{p:'src/api/payments/controller.ts',a:5,r:12},{p:'src/middleware/rate-limit.ts',a:10,r:18}]},{act:'Schema + 6 migrations',f:8,a:234,r:12,d:'2m50s',sum:'Subscription + invoice tables',files:[{p:'prisma/schema.prisma',a:67,r:4},{p:'prisma/migrations/001_subscriptions.sql',a:45,r:0},{p:'prisma/migrations/002_invoices.sql',a:38,r:0},{p:'prisma/migrations/003_usage_records.sql',a:34,r:0},{p:'prisma/seed.ts',a:50,r:8}]},{act:'Pricing page a11y',f:8,a:67,r:12,d:'1m10s',sum:'Screen reader + focus mgmt',files:[{p:'src/components/pricing/PricingTable.tsx',a:23,r:8},{p:'src/components/pricing/PlanCard.tsx',a:12,r:4},{p:'src/components/checkout/CheckoutFlow.tsx',a:18,r:0},{p:'tests/a11y/pricing.spec.ts',a:14,r:0}]}]},
+  refactor:{type:'refactor',scope:'core',title:'extract service layer from controllers',body:'Extracted business logic from Express controllers\ninto a dedicated service layer. Improved testability\nand separation of concerns.',
+    acts:[{act:'Service layer design',f:16,a:534,r:312,d:'3m20s',sum:'DI container + 8 service classes',files:[{p:'src/services/UserService.ts',a:134,r:0},{p:'src/services/AuthService.ts',a:112,r:0},{p:'src/di/container.ts',a:89,r:0},{p:'src/controllers/UserController.ts',a:23,r:156},{p:'src/controllers/AuthController.ts',a:18,r:156}]},{act:'Injection point audit',f:8,a:12,r:0,d:'0m55s',sum:'No new vulnerabilities',files:[{p:'src/di/container.ts',a:8,r:0},{p:'src/middleware/auth.ts',a:4,r:0}]},{act:'Updated 67 existing tests',f:24,a:445,r:234,d:'3m15s',sum:'Migrated fixtures to services',files:[{p:'tests/unit/services/UserService.test.ts',a:178,r:0},{p:'tests/unit/services/AuthService.test.ts',a:156,r:0},{p:'tests/unit/controllers/UserController.test.ts',a:12,r:134},{p:'tests/unit/controllers/AuthController.test.ts',a:8,r:100}]},{act:'Updated view imports',f:6,a:34,r:45,d:'1m20s',sum:'Updated component imports',files:[{p:'src/pages/profile.tsx',a:12,r:15},{p:'src/pages/settings.tsx',a:14,r:18},{p:'src/pages/admin.tsx',a:8,r:12}]},{act:'Pipeline cache update',f:2,a:12,r:4,d:'0m25s',sum:'Updated build cache keys',files:[{p:'.github/workflows/ci.yml',a:8,r:4},{p:'Dockerfile',a:4,r:0}]},{act:'Reviewed patterns',f:16,a:5,r:18,d:'1m45s',sum:'Consistent DI enforced',files:[{p:'src/di/container.ts',a:3,r:12},{p:'src/services/UserService.ts',a:2,r:6}]},{act:'Query optimization',f:4,a:23,r:34,d:'0m50s',sum:'Fixed N+1 queries',files:[{p:'src/services/UserService.ts',a:15,r:20},{p:'prisma/schema.prisma',a:8,r:14}]},{act:'Tab order preserved',f:3,a:8,r:2,d:'0m30s',sum:'Focus order unchanged',files:[{p:'src/pages/profile.tsx',a:4,r:1},{p:'src/pages/settings.tsx',a:4,r:1}]}]},
+  security:{type:'fix',scope:'security',title:'patch CVE-2026-1234 in auth middleware',body:'Patched critical JWT validation bypass in auth\nmiddleware. Updated jsonwebtoken to v10.0.1 and\nadded additional claim validation.',
+    acts:[{act:'Patch implementation',f:5,a:67,r:23,d:'1m30s',sum:'JWT validation + claim checks',files:[{p:'src/middleware/auth.ts',a:34,r:12},{p:'src/utils/jwt.ts',a:23,r:8},{p:'package.json',a:1,r:1},{p:'package-lock.json',a:8,r:2},{p:'src/config/auth.ts',a:1,r:0}]},{act:'CVE analysis + hardening',f:8,a:89,r:12,d:'3m15s',sum:'Full audit, 2 related issues patched',files:[{p:'src/middleware/auth.ts',a:23,r:4},{p:'src/utils/jwt.ts',a:18,r:3},{p:'src/middleware/csrf.ts',a:12,r:0},{p:'src/middleware/rate-limit.ts',a:15,r:5},{p:'docs/security-advisory.md',a:21,r:0}]},{act:'34 security-focused tests',f:6,a:456,r:0,d:'2m40s',sum:'34 tests incl. exploit attempts',files:[{p:'tests/security/jwt-bypass.test.ts',a:178,r:0},{p:'tests/security/csrf-validation.test.ts',a:134,r:0},{p:'tests/security/rate-limit.test.ts',a:89,r:0},{p:'tests/fixtures/malicious-tokens.json',a:55,r:0}]},{act:'Updated error pages',f:3,a:23,r:8,d:'0m45s',sum:'Sanitized error messages',files:[{p:'src/pages/error.tsx',a:12,r:5},{p:'src/utils/error-sanitizer.ts',a:11,r:3}]},{act:'Emergency deploy pipeline',f:2,a:34,r:0,d:'0m30s',sum:'Fast-track deploy workflow',files:[{p:'.github/workflows/hotfix.yml',a:34,r:0}]},{act:'Reviewed all changes',f:8,a:4,r:2,d:'1m20s',sum:'Verified no regressions',files:[{p:'src/middleware/auth.ts',a:2,r:1},{p:'src/utils/jwt.ts',a:2,r:1}]},{act:'Session table cleanup',f:2,a:18,r:0,d:'0m35s',sum:'Invalidate compromised sessions',files:[{p:'prisma/migrations/invalidate-sessions.sql',a:12,r:0},{p:'scripts/session-cleanup.sh',a:6,r:0}]},{act:'Error a11y check',f:2,a:6,r:0,d:'0m15s',sum:'Errors accessible',files:[{p:'src/pages/error.tsx',a:4,r:0},{p:'tests/a11y/error.spec.ts',a:2,r:0}]}]}
+};
+function $(id){return document.getElementById(id)}
+function S(){const n=+$('n').value;$('nL').textContent=n;return{sc:$('sc').value,n,sC:$('sC').checked,sP:$('sP').checked,sR:$('sR').checked,sX:$('sX').checked,dA:$('dA').checked,dT:$('dT').checked,dE:$('dE').checked,dD:$('dD').checked,dF:$('dF').checked}}
+function ag(s){const c=SC[s.sc];return A.slice(0,s.n).map((a,i)=>({...a,...c.acts[i]}))}
+function pd(d){const m=d.match(/(\d+)m(\d+)s/);return m?+m[1]*60+ +m[2]:0}
+function td(aa){const t=aa.reduce((s,a)=>s+pd(a.d),0);return Math.floor(t/60)+'m'+String(t%60).padStart(2,'0')+'s'}
+function tf(aa){return aa.reduce((s,a)=>s+a.f,0)}
+function fm(n){return n<=2?'1-1':n===3?'1-1-1':n<=5?'1-'+Math.floor((n-1)/2)+'-'+Math.ceil((n-1)/2):'1-'+Math.floor((n-2)/2)+'-'+Math.ceil((n-2)/2)+'-1'}
+const arw='<svg viewBox="0 0 28 14"><path d="M0 7H20M17 3l5 4-5 4" stroke="#8b949e" stroke-width="1.5" fill="none"/></svg>';
+function fileListHtml(files){let h='<ul class="fl">';files.forEach(f=>{h+=`<li><span class="fp">${f.p}</span><span class="fa">+${f.a}</span><span class="fr">${f.r?'-'+f.r:''}</span></li>`});return h+'</ul>'}
+function rCommit(s){const sc=SC[s.sc],aa=ag(s),e=s.dE;let h='<div class="cm">';h+=`<span class="ct">${sc.type}</span><span class="cs">(${sc.scope})</span><span class="cv">: ${sc.title}</span>\n\n<span class="cb">${sc.body}</span>`;if(s.dA){h+='\n\n<span class="ch">Agents Involved:</span>\n';aa.forEach(a=>{h+=`  <span class="ca">${e?a.icon+' ':''}${a.id}</span> <span class="cd">\u2014 ${a.act}${s.dD?' ('+a.d+')':''}</span>\n`})}if(s.dT){h+='\n<span class="cx">Co-Authored-By: Claude &lt;noreply@anthropic.com&gt;</span>\n';aa.forEach(a=>{h+=`<span class="cx">Co-Authored-By: <span class="cp">ork:${a.id}</span> &lt;noreply@orchestkit.dev&gt;</span>\n`})}return h+'</div>'}
+function node(a,e,dur){return `<div class="pn" style="border-color:${a.color};background:${a.color}18"><span class="pi">${e?a.icon:''}</span><span class="pn-name" style="color:${a.color}">${a.name}</span><span class="pn-act">${a.act}</span>${dur?`<span class="pn-stat">${a.d} \u00b7 ${a.f} files</span>`:''}</div>`}
+function rPipeline(s){const aa=ag(s),e=s.dE;const stages=[[],[],[]];aa.forEach(a=>stages[a.stage].push(a));let h='<div class="badges">';h+=`<span class="badge b-blue"><span class="bl">agents</span><span class="bv">${aa.length}</span></span>`;const tg=aa.find(a=>a.id==='test-generator');if(tg){const tc=tg.act.match(/\d+/)?.[0]||'?';h+=`<span class="badge b-green"><span class="bl">tests</span><span class="bv">${tc}</span></span>`}if(aa.find(a=>a.id==='security-auditor'))h+='<span class="badge b-green"><span class="bl">vulnerabilities</span><span class="bv">0</span></span>';h+=`<span class="badge b-yellow"><span class="bl">files changed</span><span class="bv">${tf(aa)}</span></span></div>`;h+='<div class="pipeline-dag">';const stageLabels=['Lead','Parallel','Follow-up'];stages.forEach((stg,si)=>{if(!stg.length)return;if(si>0&&stages[si-1].length)h+='<div class="stage-arrow">'+arw+'</div>';if(stg.length===1){h+='<div class="stage"><div class="stage-label">'+stageLabels[si]+'</div>'+node(stg[0],e,s.dD)+'</div>'}else{h+='<div class="stage"><div class="stage-label">'+stageLabels[si]+'</div><div class="parallel-group"><span class="parallel-badge">\u26a1 '+stg.length+' parallel</span>';stg.forEach(a=>{h+=node(a,e,s.dD)});h+='</div></div>'}});h+='</div>';return h}
+function rRoster(s){const aa=ag(s),e=s.dE,mx=Math.max(...aa.map(a=>a.a));const cols=5+(s.dD?1:0);let h=`<div class="gh-h">${e?'\u{1f3df}\ufe0f ':''}Agent Team Sheet</div>`;h+=`<table class="roster"><thead><tr><th>Agent</th><th>Role</th><th>Stage</th><th>Files</th><th>Impact</th>${s.dD?'<th>Time</th>':''}</tr></thead><tbody>`;aa.forEach((a,idx)=>{const lvl=Math.min(5,Math.max(1,Math.ceil(a.a/mx*5)));const bars=Array.from({length:5},(_,i)=>`<span class="${i<lvl?'f':'e'}" ${i<lvl?`style="background:${a.color}"`:''}></span>`).join('');h+=`<tr class="file-expand" onclick="toggleFiles('r${idx}',this)"><td><span class="an"><span class="ad" style="background:${a.color}"></span>${e?a.icon+' ':''}<strong>${a.name}</strong></span></td><td>${a.role}</td><td>${a.stage===1?'\u26a1 Parallel':a.stage===0?'Lead':'Follow-up'}</td><td>${a.f}</td><td><span class="ib">${bars}</span><span class="is">+${a.a} -${a.r}</span></td>${s.dD?`<td>${a.d}</td>`:''}</tr>`;h+=`<tr class="file-list" id="r${idx}"><td colspan="${cols}">${fileListHtml(a.files)}</td></tr>`});h+='</tbody></table>';if(s.dF){const par=aa.filter(a=>a.stage===1).length;h+=`<div class="fm"><span><strong>Formation:</strong> ${fm(s.n)}</span><span><strong>Parallel agents:</strong> ${par}</span><span><strong>Total time:</strong> ${td(aa)}</span><span><strong>Files:</strong> ${tf(aa)}</span></div>`}return h}
+function rCredits(s){const aa=ag(s),e=s.dE;const lead=aa.filter(a=>a.stage===0);const par=aa.filter(a=>a.stage===1);const fup=aa.filter(a=>a.stage===2);let cidx=0;function row(a){const id='cf'+(cidx++);return `<div class="crd-r file-expand-crd" onclick="toggleCrdFiles('${id}',this)"><span class="ri">${e?a.icon:'\u2022'}</span><span class="rn">${a.name}</span><span class="rd">\u2014 ${a.sum}</span>${s.dD?`<span class="rs"><code>${a.f} files</code><code>+${a.a} -${a.r}</code><code>${a.d}</code></span>`:''}</div><div class="crd-files" id="${id}">${fileListHtml(a.files)}</div>`}let h=`<details class="crd" open><summary>${e?'\u{1f3ac} ':''}Agent Credits \u2014 ${aa.length} agents collaborated on this PR</summary><div class="crd-b">`;if(lead.length)h+=`<div class="crd-cat">Lead</div>${lead.map(row).join('')}`;if(par.length)h+=`<div class="crd-cat">\u26a1 Parallel (ran simultaneously)</div>${par.map(row).join('')}`;if(fup.length)h+=`<div class="crd-cat">Follow-up</div>${fup.map(row).join('')}`;h+=`<div class="crd-f">Orchestrated by <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> \u2014 ${aa.length} agents, ${td(aa)} total, ${tf(aa)} files changed</div></div></details>`;return h}
+function toggleFiles(id,row){$(id).classList.toggle('open');row.classList.toggle('open')}
+function toggleCrdFiles(id,row){$(id).classList.toggle('open');row.classList.toggle('open')}
+function render(){const s=S();let h='';if(s.sC)h+=`<div class="card"><div class="card-hdr"><span class="tag tag-c">commit</span>git commit message</div><div class="card-body">${rCommit(s)}</div></div>`;if(s.sP)h+=`<div class="card"><div class="card-hdr"><span class="tag tag-p">pr body</span>Agent Pipeline Diagram</div><div class="card-body">${rPipeline(s)}</div></div>`;if(s.sR)h+=`<div class="card"><div class="card-hdr"><span class="tag tag-p">pr body</span>Agent Team Roster</div><div class="card-body">${rRoster(s)}</div></div>`;if(s.sX)h+=`<div class="card"><div class="card-hdr"><span class="tag tag-p">pr comment</span>Credits Roll</div><div class="card-body">${rCredits(s)}</div></div>`;$('out').innerHTML=h}
+function preset(p){const m={quickfix:{sc:'bugfix',n:2},feature:{sc:'feature',n:4},epic:{sc:'epic',n:6},security:{sc:'security',n:3}}[p];$('sc').value=m.sc;$('n').value=m.n;['sC','sP','sR','sX','dA','dT','dE','dD'].forEach(id=>{$(id).checked=true});$('dF').checked=p!=='quickfix';document.querySelectorAll('.pb').forEach(b=>b.classList.remove('on'));document.querySelector(`.pb[onclick="preset('${p}')"]`).classList.add('on');render()}
+render();
+</script>
+</body>
+</html>

@@ -241,7 +241,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |fix-issue:{SKILL.md,references/{agent-selection.md,agent-teams-rca.md,cc-enhancements.md,fix-phases.md,hypothesis-rca.md,prevention-patterns.md,similar-issue-search.md}}|issue,bug-fix,github,debugging,rca,prevention
 |ui-components:{SKILL.md,references/{aschild-composition.md,cn-utility-patterns.md,component-extension.md,cva-variant-system.md,dark-mode-toggle.md,dialog-modal-patterns.md,dropdown-menu-patterns.md,focus-management.md,oklch-theming.md,popover-tooltip-patterns.md}}|ui-components,shadcn,radix,component-library,design-system,accessible-components,react-hook-form,zod,forms,validation,server-actions,field-arrays
 |accessibility:{SKILL.md,references/{focus-patterns.md,react-aria-hooks.md,ux-thresholds-quick.md,wcag-criteria.md}}|accessibility,a11y,wcag,focus-management,react-aria,keyboard-navigation,screen-reader,aria
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

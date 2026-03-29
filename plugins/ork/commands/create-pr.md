@@ -123,9 +123,26 @@ git log --oneline dev..HEAD
 git diff dev...HEAD --stat
 ```
 
+### Phase 3b: Agent Attribution (automatic)
+
+Before creating the PR, check for the branch activity ledger at `.claude/agents/activity/{branch}.jsonl`.
+If it exists, generate agent attribution sections for the PR body:
+
+1. Read `.claude/agents/activity/{branch}.jsonl` (one JSON object per line, full branch history)
+2. Deduplicate by agent type (keep the entry with longest duration for each agent)
+3. Generate the following sections to append to the PR body:
+   - **Badge row**: shields.io badges for agent count, tests generated, vulnerabilities
+   - **Agent Team Sheet**: Markdown table with Agent, Role, Stage (Lead/⚡ Parallel/Follow-up), Time
+   - **Credits Roll**: Collapsible `<details>` section grouped by execution stage (Lead/Parallel/Follow-up)
+4. Each agent entry has: `agent` (type), `stage` (0=lead, 1=parallel, 2=follow-up), `duration_ms`, `summary`
+
+If the ledger doesn't exist or is empty, skip this step — create PR normally.
+
 ### Phase 4: Create PR
 
 Follow `Read("${CLAUDE_SKILL_DIR}/rules/pr-title-format.md")` and `Read("${CLAUDE_SKILL_DIR}/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("${CLAUDE_SKILL_DIR}/references/pr-body-templates.md")`.
+
+Include agent attribution sections (from Phase 3b) after the Test Plan section in the PR body.
 
 ```bash
 TYPE="feat"  # Determine: feat/fix/refactor/docs/test/chore
@@ -142,6 +159,27 @@ gh pr create --base dev \
 ## Test Plan
 - [x] Unit tests pass
 - [x] Lint/type checks pass
+
+## Agent Team Sheet
+| Agent | Role | Stage | Time |
+|-------|------|-------|------|
+| 🏗️ **backend-system-architect** | API design | Lead | 2m14s |
+| 🛡️ **security-auditor** | Dependency audit | ⚡ Parallel | 0m42s |
+| 🧪 **test-generator** | 47 tests, 94% coverage | ⚡ Parallel | 2m01s |
+
+<details>
+<summary><strong>🎬 Agent Credits</strong> — 3 agents collaborated on this PR</summary>
+
+**Lead**
+- 🏗️ **backend-system-architect** — API design (2m14s)
+
+**⚡ Parallel** (ran simultaneously)
+- 🛡️ **security-auditor** — Dependency audit (0m42s)
+- 🧪 **test-generator** — 47 tests, 94% coverage (2m01s)
+
+<sub>Orchestrated by <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> — 3 agents, 4m57s total</sub>
+
+</details>
 
 Closes #$ISSUE
 

@@ -13,6 +13,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution.js';
 
 // Import individual hook implementations
 // Analytics hooks removed — now handled by HQ (#897):
@@ -97,6 +98,47 @@ function trackAgentResult(input: HookInput): void {
       output_len: outputLength,
       last_msg_len: input.last_assistant_message?.length ?? null,
       ...getTeamContext(),
+    });
+
+    // Branch activity ledger for agent attribution (Issue #1195)
+    // Extract the agent's task description (prompt) — what it was asked to do
+    const prompt = input.tool_input?.prompt as string || '';
+    const promptSummary = prompt.slice(0, 300).replace(/\n/g, ' ').trim();
+
+    // Extract a meaningful summary: prefer last_assistant_message (what the agent concluded),
+    // then output (what it returned), then fall back to the prompt snippet
+    const lastMsg = input.last_assistant_message || '';
+    const outputStr = typeof output === 'string' ? output : '';
+    const summarySource = lastMsg.slice(0, 300) || outputStr.slice(0, 300) || promptSummary;
+    const cleanSummary = summarySource.replace(/\n/g, ' ').trim() || agentType;
+
+    // Resolve agent context from file-based session state (Issue #1195)
+    const agentCtx = resolveAgentContext(input.agent_id || '');
+
+    // Determine stage: first agent = lead, background = parallel, rest = follow-up
+    const isBackground = !!(input.tool_input?.run_in_background);
+    const stage = agentCtx.counter === 0 ? 0 : (isBackground ? 1 : 2);
+
+    // Detect orchestrating skill from environment
+    const orchestrator = process.env.CLAUDE_SKILL_NAME
+      || process.env.ORCHESTKIT_ACTIVE_SKILL
+      || undefined;
+
+    // Duration: prefer CC-provided, fall back to start-time diff
+    const effectiveDuration = durationMs || (agentCtx.startMs ? Date.now() - agentCtx.startMs : 0);
+
+    appendLedgerEntry({
+      ts: new Date().toISOString(),
+      agent: agentType,
+      agent_name: agentName,
+      stage,
+      duration_ms: effectiveDuration,
+      success,
+      summary: cleanSummary,
+      prompt: promptSummary || undefined,
+      commit_base: agentCtx.commitBase,
+      orchestrator,
+      background: isBackground || undefined,
     });
   } catch {
     // Silent failure - tracking should never break hooks

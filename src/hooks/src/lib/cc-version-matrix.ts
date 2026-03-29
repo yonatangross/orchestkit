@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.76';
+export const MIN_CC_VERSION = '2.1.86';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -137,6 +137,42 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'resume_memory_perf',       minVersion: '2.1.77', description: '--resume 45% faster loading, ~100-150MB less peak memory' },
   { feature: 'macos_startup_perf',       minVersion: '2.1.77', description: '~60ms faster macOS startup via parallel keychain reads' },
   { feature: 'progress_msg_memory_fix',  minVersion: '2.1.77', description: 'Progress messages no longer survive compaction (memory growth fix)' },
+  // 2.1.78
+  { feature: 'stop_failure_event',       minVersion: '2.1.78', description: 'StopFailure hook event fires on API errors (rate limit, auth failure)' },
+  { feature: 'plugin_data_dir',          minVersion: '2.1.78', description: 'CLAUDE_PLUGIN_DATA persistent state survives plugin updates' },
+  { feature: 'agent_effort_maxturns',    minVersion: '2.1.78', description: 'Agent effort/maxTurns/disallowedTools frontmatter fields' },
+  // 2.1.79
+  { feature: 'console_auth',            minVersion: '2.1.79', description: 'claude auth login --console for API billing auth' },
+  { feature: 'turn_duration_display',    minVersion: '2.1.79', description: 'Show turn duration toggle in /config menu' },
+  { feature: 'remote_control',          minVersion: '2.1.79', description: '/remote-control bridges VSCode session to claude.ai/code' },
+  // 2.1.80
+  { feature: 'rate_limits_statusline',   minVersion: '2.1.80', description: 'StatusLine receives rate_limits with used_percentage and resets_at' },
+  { feature: 'source_settings_marketplace', minVersion: '2.1.80', description: 'Declare plugin entries inline in settings.json via source:settings' },
+  { feature: 'skill_effort_frontmatter', minVersion: '2.1.80', description: 'Skills declare effort level (low/high) in frontmatter' },
+  { feature: 'channels_preview',         minVersion: '2.1.80', description: 'MCP servers push messages into active session via --channels' },
+  // 2.1.81
+  { feature: 'bare_flag',               minVersion: '2.1.81', description: '--bare flag for -p mode skips hooks/LSP/plugin sync for eval pipelines' },
+  { feature: 'channels_permission_relay', minVersion: '2.1.81', description: 'Channel servers relay tool approval prompts to phone' },
+  { feature: 'plugin_freshness_reclone', minVersion: '2.1.81', description: 'Ref-tracked plugins re-clone on every load for latest upstream' },
+  { feature: 'mcp_tool_call_collapse',   minVersion: '2.1.81', description: 'MCP read/search calls collapse to single line (Ctrl+O to expand)' },
+  // 2.1.83
+  { feature: 'managed_settings_dropin',  minVersion: '2.1.83', description: 'managed-settings.d/ drop-in directory for team policy fragments' },
+  { feature: 'cwd_changed_event',        minVersion: '2.1.83', description: 'CwdChanged hook event fires on working directory change' },
+  { feature: 'file_changed_event',       minVersion: '2.1.83', description: 'FileChanged hook event fires on file changes' },
+  { feature: 'sandbox_fail_unavailable', minVersion: '2.1.83', description: 'sandbox.failIfUnavailable fails fast when sandbox unavailable' },
+  { feature: 'subprocess_env_scrub',     minVersion: '2.1.83', description: 'CLAUDE_CODE_SUBPROCESS_ENV_SCRUB strips creds from subprocesses' },
+  { feature: 'agent_initial_prompt',     minVersion: '2.1.83', description: 'Agent initialPrompt frontmatter for zero-wasted-turn bootstrap' },
+  { feature: 'plugin_user_config',       minVersion: '2.1.83', description: 'Plugin userConfig with sensitive:true for keychain-stored secrets' },
+  // 2.1.84
+  { feature: 'task_created_event',       minVersion: '2.1.84', description: 'TaskCreated hook event for task initialization tracking' },
+  { feature: 'paths_yaml_glob',          minVersion: '2.1.84', description: 'paths: YAML glob list for auto-loading relevant skill/rule files' },
+  { feature: 'stream_idle_timeout_ms',   minVersion: '2.1.84', description: 'CLAUDE_STREAM_IDLE_TIMEOUT_MS configurable streaming idle watchdog' },
+  { feature: 'mcp_startup_nonblocking',  minVersion: '2.1.84', description: 'REPL renders immediately, MCP servers connect in background' },
+  // 2.1.85
+  { feature: 'pretool_ask_hook',         minVersion: '2.1.85', description: 'PreToolUse fires for AskUserQuestion, enabling headless responders' },
+  // 2.1.86
+  { feature: 'config_disk_write_fix',    minVersion: '2.1.86', description: 'Eliminates unnecessary config disk writes on every skill invocation' },
+  { feature: 'write_edit_outside_root',  minVersion: '2.1.86', description: 'Write/Edit fix for files outside project root' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

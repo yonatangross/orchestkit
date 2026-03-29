@@ -25,12 +25,12 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
-5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)
+5. **Permission Rules** - Detects unreachable rules
 6. **Schema Compliance** - Validates JSON files against schemas
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.47, detects release channel (stable/beta/alpha)
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.86, detects release channel (stable/beta/alpha)
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
@@ -89,7 +89,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks |
 |----------|---------------|
-| **6. Permission Rules** | Unreachable rules detection (CC 2.1.3) |
+| **6. Permission Rules** | Unreachable rules detection |
 | **7. Schema Compliance** | JSON files against schemas |
 | **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |

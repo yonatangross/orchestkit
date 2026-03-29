@@ -14,6 +14,6 @@
 |python-backend:{SKILL.md,references/{eager-loading.md,fastapi-app-boilerplate.md,fastapi-integration.md,middleware-stack.md,pool-sizing.md,semaphore-patterns.md,taskgroup-patterns.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
 |async-jobs:{SKILL.md,references/{anti-patterns.md,arq-patterns.md,canvas-workflows.md,capability-details.md,celery-config.md,monitoring-health.md,quick-start-examples.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
 |domain-driven-design:{SKILL.md,references/{bounded-contexts.md,domain-events.md,entities-value-objects.md,repositories.md}}|ddd,domain-modeling,entities,value-objects,bounded-contexts,python
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

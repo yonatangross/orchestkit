@@ -106,9 +106,10 @@ export default async function DashboardPage() {
 
 ```tsx
 // When data depends on previous results
-export default async function UserPostPage({ params }: { params: { userId: string } }) {
+export default async function UserPostPage({ params }: { params: Promise<{ userId: string }> }) {
+  const { userId } = await params
   // First fetch - get user
-  const user = await getUser(params.userId)
+  const user = await getUser(userId)
 
   // Second fetch - depends on user data
   const posts = await getPostsByAuthor(user.id)
@@ -126,9 +127,10 @@ export default async function UserPostPage({ params }: { params: { userId: strin
 // Direct Prisma/Drizzle access
 import { prisma } from '@/lib/prisma'
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       category: true,
       reviews: {
@@ -162,9 +164,6 @@ export const dynamic = 'force-static'
 // Set revalidation period
 export const revalidate = 3600 // 1 hour
 
-// Enable Partial Prerendering
-export const experimental_ppr = true
-
 export default async function ProductsPage() {
   const products = await getProducts()
   return <ProductList products={products} />
@@ -186,8 +185,9 @@ export async function generateStaticParams() {
   }))
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
   return <PostContent post={post} />
 }
 ```

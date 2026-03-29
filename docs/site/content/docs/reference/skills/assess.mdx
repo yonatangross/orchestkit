@@ -672,23 +672,22 @@ Shared logic for choosing between Agent Teams and Task tool orchestration in ass
 ## Environment Check
 
 ```python
+# Agent Teams is GA since CC 2.1.33
 import os
-teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
 force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
 
-if force_task_tool or not teams_available:
+if force_task_tool:
     mode = "task_tool"
 else:
-    # Teams available — use for full multi-dimensional work
+    # Teams available by default — use for full multi-dimensional work
     mode = "agent_teams" if scope == "full" else "task_tool"
 ```
 
 ## Decision Rules
 
-1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set --> **Agent Teams mode** (for full assessment/verification)
-2. Flag not set --> **Task tool mode** (default)
-3. Quick/single-dimension scope --> **Task tool** (regardless of flag)
-4. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Task tool** (override)
+1. Full assessment/verification scope --> **Agent Teams mode** (GA since CC 2.1.33)
+2. Quick/single-dimension scope --> **Task tool mode**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Task tool** (override)
 
 ## Agent Teams vs Task Tool
 

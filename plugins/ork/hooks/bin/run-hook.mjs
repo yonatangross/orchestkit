@@ -98,11 +98,14 @@ function normalizeInput(input) {
   return input;
 }
 
+/** Silent success — tells CC to continue without showing output. */
+const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
+
 const hookName = process.argv[2];
 
 // If no hook name provided, output silent success
 if (!hookName) {
-  console.log('{"continue":true,"suppressOutput":true}');
+  console.log(SILENT_OK);
   process.exit(0);
 }
 
@@ -164,7 +167,7 @@ try {
 } catch (err) {
   // Bundle not found - likely not built yet
   // Output silent success to not block Claude Code
-  console.log('{"continue":true,"suppressOutput":true}');
+  console.log(SILENT_OK);
   process.exit(0);
 }
 
@@ -172,7 +175,7 @@ try {
 const t1 = process.hrtime.bigint();
 
 if (!hooks) {
-  console.log('{"continue":true,"suppressOutput":true}');
+  console.log(SILENT_OK);
   process.exit(0);
 }
 
@@ -181,7 +184,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
-  console.log('{"continue":true,"suppressOutput":true}');
+  console.log(SILENT_OK);
   process.exit(0);
 }
 
@@ -425,7 +428,7 @@ async function runHook(parsedInput) {
   const overrides = loadOverrides(projectDir);
 
   if (isHookDisabled(hookName, overrides)) {
-    console.log('{"continue":true,"suppressOutput":true}');
+    console.log(SILENT_OK);
     return;
   }
 

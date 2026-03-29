@@ -35,6 +35,7 @@ import { subagentValidator } from './subagent-validator.js';
 // - graph-memory-inject (better handled by prompt hooks)
 // - model-cost-advisor (informational only, HQ Langfuse tracks costs)
 import { issueContextInjector } from './issue-context-injector.js';
+import { recordAgentStart } from '../lib/agent-attribution.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -91,6 +92,12 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logHook(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
+  }
+
+  // --- Phase 1b: Agent attribution setup (Issue #1195) ---
+  // Record start time + commit_base via file-based state (env vars don't persist across hook processes)
+  if (input.agent_id) {
+    try { recordAgentStart(input.agent_id); } catch { /* non-critical */ }
   }
 
   // --- Phase 2: Validation + tracking (subagent-validator) ---
