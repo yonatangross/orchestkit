@@ -1,0 +1,140 @@
+---
+title: "Agent Attribution"
+description: "Automatic tracking of which sub-agents contributed to each branch, with attribution in commit messages and PR bodies."
+---
+
+# Agent Attribution
+
+OrchestKit automatically tracks which sub-agents contributed to your work and surfaces that attribution in **commit messages** and **PR descriptions**.
+
+Instead of GitHub showing a single "claude" contributor, agent attribution shows the full team — which specialized agents ran, what they did, how long they took, and whether they ran in parallel.
+
+## How It Works
+
+```
+Agent spawns          SubagentStart hook
+─────────────────►    Records HEAD sha + start time
+
+Agent completes       SubagentStop hook
+─────────────────►    Appends to branch activity ledger
+                      (.claude/agents/activity/{branch}.jsonl)
+
+/ork:commit           Reads ledger → injects trailers
+─────────────────►    "Agents Involved:" + Co-Authored-By
+
+/ork:create-pr        Reads ledger → generates PR body
+─────────────────►    Badge row + Team Roster + Credits Roll
+```
+
+### The Branch Activity Ledger
+
+Every time a sub-agent completes work, the `SubagentStop` hook appends an entry to a JSONL file scoped to the current branch:
+
+```jsonl
+{"ts":"2026-03-29T07:58:05Z","agent":"ork:backend-system-architect","stage":0,"duration_ms":5263,"summary":"Designed REST API schema...","commit_base":"a8cef5f9..."}
+{"ts":"2026-03-29T07:58:19Z","agent":"Explore","stage":2,"duration_ms":6029,"summary":"Counted 10 exported functions","commit_base":"a8cef5f9..."}
+{"ts":"2026-03-29T07:58:23Z","agent":"ork:security-auditor","stage":2,"duration_ms":11369,"summary":"Found path traversal in sanitizeBranch()","commit_base":"a8cef5f9..."}
+```
+
+Each entry captures:
+
+| Field | Description |
+|-------|-------------|
+| `agent` | Sub-agent type (e.g., `ork:security-auditor`) |
+| `stage` | Execution stage: `0` = Lead, `1` = Parallel, `2` = Follow-up |
+| `duration_ms` | How long the agent ran (real wall-clock time) |
+| `summary` | What the agent concluded (first 300 chars of response) |
+| `commit_base` | HEAD sha when the agent started (for commit attribution) |
+| `orchestrator` | Which skill spawned the agent (e.g., `brainstorm`, `implement`) |
+
+## Commit Attribution
+
+When you run `/ork:commit`, the skill reads the ledger and injects two things into the commit message:
+
+### 1. "Agents Involved" Section
+
+```
+feat(auth): implement OAuth2 flow
+
+- Added token refresh endpoint
+- Configured PKCE flow
+
+Agents Involved:
+  ork:backend-system-architect — API design + data models (2m14s)
+  ork:security-auditor — Token rotation hardening (0m42s)
+  ork:test-generator — 47 integration tests (2m01s)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### 2. Per-Agent Co-Authored-By Trailers
+
+```
+Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: ork:backend-system-architect <noreply@orchestkit.dev>
+Co-Authored-By: ork:security-auditor <noreply@orchestkit.dev>
+Co-Authored-By: ork:test-generator <noreply@orchestkit.dev>
+```
+
+Only agents that ran for more than 5 seconds or produced file changes are included in commit trailers. Advisory-only agents appear in the PR body instead.
+
+## PR Attribution
+
+When you run `/ork:create-pr`, the skill reads the full branch ledger and generates:
+
+### Badge Row
+
+Shields.io badges showing agent count, tests generated, and vulnerability scan results.
+
+### Agent Team Sheet
+
+A Markdown table showing each agent, what it did, its execution stage, and duration:
+
+| Agent | Task | Stage | Time |
+|-------|------|-------|------|
+| **backend-system-architect** | API design + data models | Lead | 2m14s |
+| **security-auditor** | Dependency audit | Parallel | 0m42s |
+| **test-generator** | 47 tests, 94% coverage | Parallel | 2m01s |
+
+### Credits Roll
+
+A collapsible `<details>` section grouping agents by execution stage:
+
+- **Lead** — The first agent spawned (typically the architect or designer)
+- **Parallel** — Agents that ran simultaneously (security, testing, frontend)
+- **Follow-up** — Agents that ran after the parallel batch (CI/CD, quality review)
+
+## Parallel Execution Stages
+
+OrchestKit tracks whether agents ran sequentially or in parallel:
+
+| Stage | Value | Meaning |
+|-------|-------|---------|
+| Lead | `0` | First agent spawned — sets the direction |
+| Parallel | `1` | Ran in background simultaneously with others |
+| Follow-up | `2` | Ran after the parallel batch completed |
+
+This maps to how OrchestKit skills actually work. For example, `/ork:brainstorm` spawns 4 agents in parallel after a lead agent designs the approach, then follow-up agents synthesize results.
+
+## Data Storage
+
+| File | Purpose | Lifetime |
+|------|---------|----------|
+| `.claude/agents/activity/{branch}.jsonl` | Branch activity ledger | Until branch is deleted or 30 days |
+| `.claude/agents/session-state.json` | Start times + commit base | Current session |
+
+Both files are `.gitignore`d — they're ephemeral session data, never committed to the repository.
+
+## Cleanup
+
+The `Stop` hook automatically cleans up stale ledger files:
+- Ledgers for branches that no longer exist are deleted
+- Ledgers older than 30 days are pruned
+- Session state resets on each new session
+
+## Configuration
+
+Agent attribution is **enabled by default** with no configuration needed. The system activates automatically when:
+1. You use any skill that spawns sub-agents (`/ork:implement`, `/ork:brainstorm`, `/ork:fix-issue`, etc.)
+2. You commit with `/ork:commit`
+3. You create PRs with `/ork:create-pr`
