@@ -6,11 +6,66 @@
  * The /ork:commit and /ork:create-pr skills read the ledger for attribution.
  */
 
-import { readFileSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, statSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { getCurrentBranch, gitExec } from './git.js';
 import { getProjectDir } from './common.js';
+
+// -----------------------------------------------------------------------------
+// Session State (persisted to file — env vars don't survive across hook processes)
+// -----------------------------------------------------------------------------
+
+interface SessionState {
+  commit_base: string;
+  agent_counter: number;
+  agent_starts: Record<string, number>; // agent_id → start timestamp
+}
+
+function getStatePath(): string {
+  return join(getProjectDir(), '.claude', 'agents', 'session-state.json');
+}
+
+function readSessionState(): SessionState {
+  const path = getStatePath();
+  try {
+    if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf8'));
+  } catch { /* ignore corrupt state */ }
+  return { commit_base: '', agent_counter: 0, agent_starts: {} };
+}
+
+function writeSessionState(state: SessionState): void {
+  const path = getStatePath();
+  try {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
+/** Record agent start time (called from SubagentStart) */
+export function recordAgentStart(agentId: string): void {
+  const state = readSessionState();
+  state.agent_starts[agentId] = Date.now();
+  // Record commit_base on first agent start
+  if (!state.commit_base) {
+    const head = gitExec(['rev-parse', 'HEAD']);
+    if (head) state.commit_base = head;
+  }
+  writeSessionState(state);
+}
+
+/** Get agent start time and increment counter (called from SubagentStop) */
+export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string } {
+  const state = readSessionState();
+  const startMs = state.agent_starts[agentId] || 0;
+  const counter = state.agent_counter;
+  const commitBase = state.commit_base;
+  // Increment counter and clean up start entry
+  state.agent_counter = counter + 1;
+  delete state.agent_starts[agentId];
+  writeSessionState(state);
+  return { startMs, counter, commitBase };
+}
 
 // -----------------------------------------------------------------------------
 // Types
@@ -24,7 +79,10 @@ export interface LedgerEntry {
   duration_ms: number;
   success: boolean;
   summary: string;
+  prompt?: string; // what the agent was asked to do (first 300 chars)
   commit_base: string;
+  orchestrator?: string; // which skill/command spawned this agent (e.g., "brainstorm", "implement")
+  background?: boolean; // was this agent run_in_background?
 }
 
 // -----------------------------------------------------------------------------
@@ -132,6 +190,14 @@ const AGENT_ICONS: Record<string, string> = {
   'database-engineer': '💾', 'accessibility-specialist': '♿',
   'workflow-architect': '📐', 'debug-investigator': '🔬',
   'git-operations-engineer': '🔀', 'deployment-manager': '🚀',
+  'Explore': '🔍', 'general-purpose': '🤖',
+  'product-strategist': '📊', 'market-intelligence': '📈',
+  'data-pipeline-engineer': '🔧', 'llm-integrator': '🧠',
+  'infrastructure-architect': '🏛️', 'monitoring-engineer': '📡',
+  'release-engineer': '📦', 'demo-producer': '🎬',
+  'design-system-architect': '🎨', 'component-curator': '🧩',
+  'multimodal-specialist': '🖼️', 'event-driven-architect': '⚡',
+  'python-performance-engineer': '🐍', 'genui-architect': '🖥️',
 };
 
 const STAGE_LABELS = ['Lead', '⚡ Parallel', 'Follow-up'];
@@ -154,15 +220,24 @@ export function formatAsPrMarkdown(entries: LedgerEntry[]): string {
   }
   parts.push('');
 
+  // Orchestrator line (which skill/command spawned these agents)
+  const orchestrators = [...new Set(unique.map(e => e.orchestrator).filter(Boolean))];
+  if (orchestrators.length > 0) {
+    parts.push(`> Orchestrated by: **${orchestrators.join('**, **')}**`);
+    parts.push('');
+  }
+
   // Team Roster
   parts.push('## Agent Team Sheet');
   parts.push('');
-  parts.push('| Agent | Role | Stage | Time |');
+  parts.push('| Agent | Task | Stage | Time |');
   parts.push('|-------|------|-------|------|');
   for (const e of unique) {
     const icon = AGENT_ICONS[e.agent] || '🤖';
     const stage = STAGE_LABELS[e.stage] || 'Unknown';
-    parts.push(`| ${icon} **${e.agent}** | ${e.summary} | ${stage} | ${formatDuration(e.duration_ms)} |`);
+    // Use prompt (what it was asked) truncated to 80 chars, fall back to summary
+    const task = (e.prompt || e.summary || e.agent).slice(0, 80);
+    parts.push(`| ${icon} **${e.agent}** | ${task} | ${stage} | ${formatDuration(e.duration_ms)} |`);
   }
   parts.push('');
 
