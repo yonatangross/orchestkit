@@ -90,7 +90,11 @@ export interface LedgerEntry {
 // -----------------------------------------------------------------------------
 
 function sanitizeBranch(branch: string): string {
-  return branch.replace(/\//g, '--');
+  // Replace path separators and strip traversal sequences to prevent directory escape
+  return branch
+    .replace(/\.\./g, '_')       // strip traversal
+    .replace(/\//g, '--')        // slashes to double-dash
+    .replace(/[\\:\0]/g, '_');   // strip dangerous chars
 }
 
 export function getLedgerPath(branch?: string): string {
