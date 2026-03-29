@@ -12,10 +12,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Hoisted mocks
 // ---------------------------------------------------------------------------
 const { mockExistsSync, mockReadFileSync, mockMkdirSync, mockAtomicWriteSync } = vi.hoisted(() => ({
-  mockExistsSync: vi.fn(() => false),
-  mockReadFileSync: vi.fn(() => ''),
-  mockMkdirSync: vi.fn(),
-  mockAtomicWriteSync: vi.fn(),
+  mockExistsSync: vi.fn((_p?: string) => false),
+  mockReadFileSync: vi.fn((_p?: string, _e?: string) => ''),
+  mockMkdirSync: vi.fn((_p?: string, _o?: unknown) => undefined),
+  mockAtomicWriteSync: vi.fn((_p?: string, _d?: string) => undefined),
 }));
 
 const { mockAnalyzeDecisionFlow, mockCompleteDecisionFlow } = vi.hoisted(() => ({
@@ -34,18 +34,18 @@ vi.mock('../../lib/common.js', () => ({
 }));
 
 vi.mock('../../lib/decision-flow-tracker.js', () => ({
-  analyzeDecisionFlow: (...args: unknown[]) => mockAnalyzeDecisionFlow(...args),
-  completeDecisionFlow: (...args: unknown[]) => mockCompleteDecisionFlow(...args),
+  analyzeDecisionFlow: (input: unknown) => mockAnalyzeDecisionFlow(input),
+  completeDecisionFlow: (input: unknown) => mockCompleteDecisionFlow(input),
 }));
 
 vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  existsSync: (p: string) => mockExistsSync(p),
+  readFileSync: (p: string, e?: string) => mockReadFileSync(p, e),
+  mkdirSync: (p: string, o?: unknown) => mockMkdirSync(p, o),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({
-  atomicWriteSync: (...args: unknown[]) => mockAtomicWriteSync(...args),
+  atomicWriteSync: (p: string, d: string) => mockAtomicWriteSync(p, d),
 }));
 
 vi.mock('node:path', () => ({

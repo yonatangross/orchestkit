@@ -16,11 +16,11 @@ const { mockAppendFileSync } = vi.hoisted(() => ({
 }));
 
 const { mockExistsSync, mockReadFileSync, mockStatSync, mockRenameSync, mockMkdirSync } = vi.hoisted(() => ({
-  mockExistsSync: vi.fn(() => false),
-  mockReadFileSync: vi.fn(() => ''),
-  mockStatSync: vi.fn(() => ({ size: 100 })),
-  mockRenameSync: vi.fn(),
-  mockMkdirSync: vi.fn(),
+  mockExistsSync: vi.fn((_p?: string) => false),
+  mockReadFileSync: vi.fn((_p?: string, _e?: string) => ''),
+  mockStatSync: vi.fn((_p?: string) => ({ size: 100 })),
+  mockRenameSync: vi.fn((_o?: string, _n?: string) => undefined),
+  mockMkdirSync: vi.fn((_p?: string, _o?: unknown) => undefined),
 }));
 
 // ---------------------------------------------------------------------------
@@ -48,11 +48,11 @@ vi.mock('../../../lib/common.js', () => ({
 }));
 
 vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-  statSync: (...args: unknown[]) => mockStatSync(...args),
-  renameSync: (...args: unknown[]) => mockRenameSync(...args),
-  mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  existsSync: (p: string) => mockExistsSync(p),
+  readFileSync: (p: string, e?: string) => mockReadFileSync(p, e),
+  statSync: (p: string) => mockStatSync(p),
+  renameSync: (o: string, n: string) => mockRenameSync(o, n),
+  mkdirSync: (p: string, o?: unknown) => mockMkdirSync(p, o),
 }));
 
 vi.mock('node:path', () => ({

@@ -222,9 +222,9 @@ describe('modelCostAdvisor', () => {
       setupFs({ agentModel: 'opus' });
       const r = modelCostAdvisor(mkInput('a', 'list files check status summary'));
       expect(r.continue).toBe(true);
-      if (r.hookSpecificOutput?.outputContent) {
-        expect(r.hookSpecificOutput.outputContent).toContain('40%');
-        expect(r.hookSpecificOutput.outputContent).toContain('sonnet');
+      if (r.hookSpecificOutput?.additionalContext) {
+        expect(r.hookSpecificOutput.additionalContext).toContain('40%');
+        expect(r.hookSpecificOutput.additionalContext).toContain('sonnet');
       }
     });
 
