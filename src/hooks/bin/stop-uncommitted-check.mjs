@@ -14,6 +14,9 @@ import { execSync } from 'node:child_process';
 // Injected by build-plugins.sh at build time from manifests/ork.json
 const PLUGIN_VERSION = '__PLUGIN_VERSION__';
 
+/** Silent success — tells CC to continue without showing output. */
+const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
+
 async function main() {
   // Drain stdin (required by hook protocol)
   const chunks = [];
@@ -55,14 +58,14 @@ async function main() {
         })
       );
     } else {
-      console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+      console.log(SILENT_OK);
     }
   } catch {
     // Not a git repo or git not available — skip silently
-    console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+    console.log(SILENT_OK);
   }
 }
 
 main().catch(() => {
-  console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+  console.log(SILENT_OK);
 });

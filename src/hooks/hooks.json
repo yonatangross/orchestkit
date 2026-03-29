@@ -159,7 +159,8 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
-            "timeout": 3
+            "timeout": 3,
+            "statusMessage": "Loading handoff..."
           }
         ]
       }
