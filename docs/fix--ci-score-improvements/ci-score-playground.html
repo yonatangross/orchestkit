@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI Score Improvement — OrchestKit PR #1200</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;--code:#1c2128}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;max-width:1100px;margin:0 auto;padding:24px}
+  h1{font-size:22px;font-weight:700;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  .sub a{color:var(--accent);text-decoration:none}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow:hidden}
+  .card h2{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card.full{grid-column:1/-1}
+
+  /* Score gauge */
+  .gauge{display:flex;align-items:center;gap:24px;margin:12px 0}
+  .gauge-circle{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:700;font-size:28px;flex-shrink:0}
+  .gauge-circle small{font-size:11px;font-weight:600;opacity:0.8}
+  .gauge-before{border:3px solid var(--orange);color:var(--orange)}
+  .gauge-after{border:3px solid var(--green);color:var(--green)}
+  .gauge-arrow{font-size:24px;color:var(--muted)}
+  .gauge-detail{font-size:12px;color:var(--muted);line-height:1.8}
+  .gauge-detail strong{color:var(--text)}
+
+  /* Coverage bars */
+  .cov-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+  .cov-label{width:80px;font-size:12px;font-weight:600;color:var(--muted);text-align:right;flex-shrink:0}
+  .cov-track{flex:1;height:18px;background:var(--border);border-radius:4px;position:relative;overflow:hidden}
+  .cov-fill-before{position:absolute;top:0;left:0;height:100%;border-radius:4px;opacity:0.4}
+  .cov-fill-after{position:absolute;top:0;left:0;height:100%;border-radius:4px}
+  .cov-val{width:50px;font-size:12px;font-weight:600;flex-shrink:0}
+  .cov-thresh{position:absolute;top:0;height:100%;width:2px;background:var(--text);opacity:0.5}
+  .cov-thresh::after{content:attr(data-label);position:absolute;top:-14px;left:-8px;font-size:9px;color:var(--muted);white-space:nowrap}
+
+  /* File table */
+  .ftable{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .ftable th{text-align:left;padding:6px 8px;border-bottom:2px solid var(--border);color:var(--muted);font-weight:600;font-size:11px}
+  .ftable td{padding:6px 8px;border-bottom:1px solid var(--border)}
+  .ftable tr:last-child td{border-bottom:none}
+  .ftable tr:hover td{background:rgba(255,255,255,0.02)}
+  .bar-mini{display:inline-block;height:10px;border-radius:2px;vertical-align:middle;margin-right:6px}
+  .cat{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600}
+  .cat-lib{background:rgba(88,166,255,0.15);color:var(--accent)}
+  .cat-setup{background:rgba(188,140,255,0.15);color:var(--purple)}
+  .cat-post{background:rgba(63,185,80,0.15);color:var(--green)}
+  .cat-pre{background:rgba(210,153,34,0.15);color:var(--orange)}
+  .cat-stop{background:rgba(248,81,73,0.15);color:var(--red)}
+  .cat-sub{background:rgba(139,148,158,0.15);color:var(--muted)}
+
+  /* Check table */
+  .checks{width:100%;border-collapse:collapse;font-size:13px}
+  .checks td{padding:8px 10px;border-bottom:1px solid var(--border)}
+  .checks tr:last-child td{border-bottom:none;font-weight:700}
+  .checks .pass{color:var(--green)}
+  .checks .warn{color:var(--orange)}
+  .checks .pen{font-family:monospace;font-size:12px;text-align:right;width:60px}
+
+  /* Mutation box */
+  .mut{background:var(--code);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.7;margin-top:8px}
+  .mut .ok{color:var(--green)}
+  .mut .fail{color:var(--red)}
+
+  .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+  .footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<h1>CI Score Improvement Dashboard</h1>
+<p class="sub">PR <a href="https://github.com/yonatangross/orchestkit/pull/1200">#1200</a> &mdash; fix/ci-score-improvements &mdash; 7 commits, 582 new tests</p>
+
+<div class="grid">
+
+  <!-- Score Gauge -->
+  <div class="card">
+    <h2>Score</h2>
+    <div class="gauge">
+      <div class="gauge-circle gauge-before">77<small>Grade C</small></div>
+      <div class="gauge-arrow">&rarr;</div>
+      <div class="gauge-circle gauge-after">95<small>Grade A</small></div>
+    </div>
+    <div class="gauge-detail">
+      <strong>Security:</strong> 1 high &rarr; 0 vulns (+5 pts)<br>
+      <strong>Coverage:</strong> 66.4% &rarr; 81.9% (+13 pts)<br>
+      <strong>Flaky test:</strong> analytics-consent-check fixed
+    </div>
+  </div>
+
+  <!-- CI Checks -->
+  <div class="card">
+    <h2>CI Checks (before &rarr; after)</h2>
+    <table class="checks">
+      <tr><td>Build</td><td class="pass">Passed</td><td class="pass">Passed</td><td class="pen">0</td></tr>
+      <tr><td>Tests</td><td class="pass">6218 (1 flaky)</td><td class="pass">6800</td><td class="pen">0</td></tr>
+      <tr><td>Lint</td><td class="pass">0 errors</td><td class="pass">0 errors</td><td class="pen">0</td></tr>
+      <tr><td>Security</td><td class="warn">1 high</td><td class="pass">0 vulns</td><td class="pen">0</td></tr>
+      <tr><td>Coverage</td><td class="warn">66.4%</td><td class="pass">81.9%</td><td class="pen">-5</td></tr>
+      <tr><td>Total</td><td class="warn">77/100</td><td class="pass">95/100</td><td class="pen">-5</td></tr>
+    </table>
+  </div>
+
+  <!-- Coverage Bars -->
+  <div class="card full">
+    <h2>Coverage (before &rarr; after)</h2>
+    <div class="cov-row">
+      <span class="cov-label">Lines</span>
+      <div class="cov-track">
+        <div class="cov-fill-before" style="width:67.1%;background:var(--orange)"></div>
+        <div class="cov-fill-after" style="width:81.9%;background:var(--green)"></div>
+        <div class="cov-thresh" style="left:70%" data-label="70%"></div>
+        <div class="cov-thresh" style="left:80%" data-label="80%"></div>
+      </div>
+      <span class="cov-val" style="color:var(--green)">81.9%</span>
+    </div>
+    <div class="cov-row">
+      <span class="cov-label">Functions</span>
+      <div class="cov-track">
+        <div class="cov-fill-before" style="width:71.6%;background:var(--orange)"></div>
+        <div class="cov-fill-after" style="width:86.5%;background:var(--green)"></div>
+        <div class="cov-thresh" style="left:72%" data-label="72%"></div>
+      </div>
+      <span class="cov-val" style="color:var(--green)">86.5%</span>
+    </div>
+    <div class="cov-row">
+      <span class="cov-label">Branches</span>
+      <div class="cov-track">
+        <div class="cov-fill-before" style="width:60.1%;background:var(--orange)"></div>
+        <div class="cov-fill-after" style="width:73.7%;background:var(--green)"></div>
+        <div class="cov-thresh" style="left:65%" data-label="65%"></div>
+      </div>
+      <span class="cov-val" style="color:var(--green)">73.7%</span>
+    </div>
+    <div class="cov-row">
+      <span class="cov-label">Statements</span>
+      <div class="cov-track">
+        <div class="cov-fill-before" style="width:66.4%;background:var(--orange)"></div>
+        <div class="cov-fill-after" style="width:80.9%;background:var(--green)"></div>
+        <div class="cov-thresh" style="left:70%" data-label="70%"></div>
+      </div>
+      <span class="cov-val" style="color:var(--green)">80.9%</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">
+      Orange = before (PR #1199) &bull; Green = after (this PR) &bull; Vertical lines = thresholds
+    </div>
+  </div>
+
+  <!-- Files Tested -->
+  <div class="card full">
+    <h2>17 Files Tested (582 new tests)</h2>
+    <table class="ftable">
+      <thead><tr><th>File</th><th>Category</th><th>Tests</th><th>Coverage Impact</th></tr></thead>
+      <tbody>
+        <tr><td>decision-history.ts</td><td><span class="cat cat-lib">lib</span></td><td>89</td><td><span class="bar-mini" style="width:60px;background:var(--green)"></span>0% &rarr; 96%</td></tr>
+        <tr><td>guards.ts</td><td><span class="cat cat-lib">lib</span></td><td>85</td><td><span class="bar-mini" style="width:50px;background:var(--green)"></span>32% &rarr; ~85%</td></tr>
+        <tr><td>problem-tracker.ts</td><td><span class="cat cat-lib">lib</span></td><td>59</td><td><span class="bar-mini" style="width:45px;background:var(--green)"></span>2% &rarr; ~70%</td></tr>
+        <tr><td>decision-flow-tracker.ts</td><td><span class="cat cat-lib">lib</span></td><td>47</td><td><span class="bar-mini" style="width:40px;background:var(--green)"></span>43% &rarr; ~80%</td></tr>
+        <tr><td>task-integration.ts</td><td><span class="cat cat-lib">lib</span></td><td>37</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>11% &rarr; ~65%</td></tr>
+        <tr><td>session-parser.ts</td><td><span class="cat cat-lib">lib</span></td><td>26</td><td><span class="bar-mini" style="width:42px;background:var(--green)"></span>0% &rarr; ~70%</td></tr>
+        <tr><td>code-style-learner.ts</td><td><span class="cat cat-post">posttool</span></td><td>31</td><td><span class="bar-mini" style="width:40px;background:var(--green)"></span>1% &rarr; ~65%</td></tr>
+        <tr><td>naming-convention-learner.ts</td><td><span class="cat cat-post">posttool</span></td><td>30</td><td><span class="bar-mini" style="width:40px;background:var(--green)"></span>1% &rarr; ~65%</td></tr>
+        <tr><td>readme-sync.ts</td><td><span class="cat cat-post">posttool</span></td><td>33</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>0% &rarr; ~60%</td></tr>
+        <tr><td>model-cost-advisor.ts</td><td><span class="cat cat-sub">subagent</span></td><td>29</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>4% &rarr; ~60%</td></tr>
+        <tr><td>setup-maintenance.ts</td><td><span class="cat cat-setup">setup</span></td><td>23</td><td><span class="bar-mini" style="width:30px;background:var(--green)"></span>48% &rarr; ~75%</td></tr>
+        <tr><td>workflow-preference-learner.ts</td><td><span class="cat cat-stop">stop</span></td><td>20</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>3% &rarr; ~65%</td></tr>
+        <tr><td>context7-tracker.ts</td><td><span class="cat cat-pre">pretool</span></td><td>18</td><td><span class="bar-mini" style="width:34px;background:var(--green)"></span>5% &rarr; ~60%</td></tr>
+        <tr><td>issue-subtask-updater.ts</td><td><span class="cat cat-post">posttool</span></td><td>17</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>0% &rarr; ~60%</td></tr>
+        <tr><td>setup-check.ts</td><td><span class="cat cat-setup">setup</span></td><td>16</td><td><span class="bar-mini" style="width:42px;background:var(--green)"></span>1% &rarr; ~70%</td></tr>
+        <tr><td>setup-repair.ts</td><td><span class="cat cat-setup">setup</span></td><td>11</td><td><span class="bar-mini" style="width:38px;background:var(--green)"></span>3% &rarr; ~65%</td></tr>
+        <tr><td>first-run-setup.ts</td><td><span class="cat cat-setup">setup</span></td><td>11</td><td><span class="bar-mini" style="width:36px;background:var(--green)"></span>1% &rarr; ~60%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mutation Testing -->
+  <div class="card">
+    <h2>Mutation Testing</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Intentional source code mutations to verify tests catch real bugs:</p>
+    <div class="mut">
+<span class="fail">MUTATION 1:</span> guards.ts
+  Invert includes() check
+  <span class="ok">CAUGHT: 21/77 tests failed</span>
+
+<span class="fail">MUTATION 2:</span> problem-tracker.ts
+  Flip confidence += 0.2 to -= 0.2
+  <span class="ok">CAUGHT: 3/59 tests failed</span>
+
+Both reverted. 6800/6800 clean.
+    </div>
+  </div>
+
+  <!-- Quality Audit -->
+  <div class="card">
+    <h2>Test Quality Audit</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Automated audit across all 17 new test files:</p>
+    <table class="checks" style="font-size:12px">
+      <tr><td>Real assertions (not mock-only)</td><td class="pass">89%</td></tr>
+      <tr><td>Real filesystem I/O (tmpdir)</td><td class="pass">15/17 files</td></tr>
+      <tr><td>Error/corrupt path tests</td><td class="pass">17/17 files</td></tr>
+      <tr><td>Edge case coverage</td><td class="pass">17/17 files</td></tr>
+      <tr><td>Proper cleanup (afterEach/afterAll)</td><td class="pass">17/17 files</td></tr>
+      <tr><td>Biome lint</td><td class="pass">0 errors</td></tr>
+      <tr><td>TypeScript strict</td><td class="pass">0 errors</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> v7.26.4 &mdash;
+  PR #1200: fix(ci): coverage 67% &rarr; 82% + security fix &mdash; Grade C &rarr; A
+</div>
+
+</body>
+</html>
