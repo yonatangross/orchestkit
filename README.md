@@ -10,13 +10,15 @@
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.86-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
+[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
 
 </div>
 
 ---
 
 <p align="center">
-  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a><br>
+  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a> ·
+  <a href="https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2"><strong>OrchestKit Users Group →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
@@ -195,9 +197,22 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ---
 
+## Community
+
+Join the **Code with Yonatan** community for AI dev tips, OrchestKit support, and connecting with other builders:
+
+| Group | Link |
+|-------|------|
+| **Community** (all channels) | [Join on WhatsApp](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk) |
+| **AI Dev (EN)** | [English Group](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
+| **יש לך AI?** | [Hebrew Group](https://chat.whatsapp.com/BC4QoLEUNR76ygZwyrgZZT) |
+| **OrchestKit Users** | [Support & Showcase](https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2) |
+
+---
+
 <div align="center">
 
-**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
+**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 
