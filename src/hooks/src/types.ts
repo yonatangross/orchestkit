@@ -197,7 +197,7 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop';
   /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask') */
   permissionDecision?: 'allow' | 'deny' | 'ask';
   /** Reason for permission decision */

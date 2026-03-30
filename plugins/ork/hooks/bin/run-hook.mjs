@@ -93,8 +93,16 @@ function normalizeInput(input) {
   }
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
-  input.project_dir = input.project_dir || input.projectDir || process.env.CLAUDE_PROJECT_DIR || '.';
+  // SubagentStart/SubagentStop send `cwd` instead of `project_dir`
+  input.project_dir = input.project_dir || input.projectDir || input.cwd || process.env.CLAUDE_PROJECT_DIR || '.';
   input.plugin_root = pluginRoot;
+  // SubagentStart/SubagentStop send `agent_type` at top level (not in tool_input)
+  if (input.agent_type && !input.tool_input.subagent_type) {
+    input.tool_input.subagent_type = input.agent_type;
+  }
+  if (input.agent_id && !input.tool_input.agent_id) {
+    input.tool_input.agent_id = input.agent_id;
+  }
   return input;
 }
 

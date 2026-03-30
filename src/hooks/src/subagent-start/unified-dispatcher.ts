@@ -170,6 +170,7 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
     const consolidated = contextParts.join('\n\n---\n\n');
     logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
     result.hookSpecificOutput = {
+      hookEventName: 'SubagentStart',
       additionalContext: consolidated,
     };
   }

@@ -215,6 +215,52 @@ describe('E2E: run-hook.mjs Pipeline', () => {
       expect(result.parsed).not.toBeNull();
       expect(result.parsed!.continue).toBe(true);
     });
+
+    it('normalizes SubagentStart cwd to project_dir', async () => {
+      // CC SubagentStart sends cwd (not project_dir) at top level
+      const result = await runHook('subagent-start/unified-dispatcher', {
+        session_id: 'test',
+        cwd: '/Users/test/my-project',
+        hook_event_name: 'SubagentStart',
+        agent_id: 'agent-abc123',
+        agent_type: 'ork:test-generator',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    it('normalizes SubagentStart agent_type to tool_input.subagent_type', async () => {
+      // CC sends agent_type at top level, not in tool_input
+      const result = await runHook('subagent-start/unified-dispatcher', {
+        session_id: 'test',
+        cwd: '/Users/test/project',
+        hook_event_name: 'SubagentStart',
+        agent_id: 'agent-xyz',
+        agent_type: 'Explore',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    it('normalizes SubagentStop cwd and agent_type', async () => {
+      // CC SubagentStop also sends cwd and agent_type at top level
+      const result = await runHook('subagent-stop/unified-dispatcher', {
+        session_id: 'test',
+        cwd: '/Users/test/project',
+        hook_event_name: 'SubagentStop',
+        agent_id: 'agent-xyz',
+        agent_type: 'ork:test-generator',
+        last_assistant_message: 'Done.',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
   });
 
 });
