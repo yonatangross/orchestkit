@@ -12,7 +12,7 @@
 import { execSync } from 'node:child_process';
 
 // Injected by build-plugins.sh at build time from manifests/ork.json
-const PLUGIN_VERSION = '7.26.4';
+const PLUGIN_VERSION = '7.26.5';
 
 /** Silent success — tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });

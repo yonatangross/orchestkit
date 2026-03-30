@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.26.4",
+    "date": "2026-03-29",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "Flaky analytics-consent-check test (daysAgo boundary jitter at exact 30 days)",
+          "path-to-regexp ReDoS vulnerability (8.3.0 → 8.4.0)"
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "568 unit tests across 17 files — hook coverage 67% → 82%",
+          "Tests for: decision-history, problem-tracker, task-integration, guards,"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.26.3",
     "date": "2026-03-29",
     "compareUrl": "",
