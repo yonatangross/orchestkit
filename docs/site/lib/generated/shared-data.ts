@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 132,
+  "skills": 101,
   "agents": 36,
   "hooks": 111,
   "commands": 21,
@@ -422,8 +422,7 @@ export const SKILLS_SUMMARY = {
       "demo-producer",
       "multi-surface-render",
       "multimodal-llm",
-      "notebooklm",
-      "vercel-json-render-remotion"
+      "notebooklm"
     ],
     "accessibility": [
       "accessibility",
@@ -437,7 +436,7 @@ export const SKILLS_SUMMARY = {
     "devops": [
       "devops-deployment",
       "monitoring-observability",
-      "vercel-emulate-vercel",
+      "portless",
       "web-research-workflow"
     ],
     "testing": [
@@ -455,9 +454,7 @@ export const SKILLS_SUMMARY = {
       "browser-tools",
       "mcp-patterns",
       "review-pr",
-      "security-patterns",
-      "vercel-emulate-google",
-      "vercel-portless-oauth"
+      "security-patterns"
     ],
     "python": [
       "async-jobs",

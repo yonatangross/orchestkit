@@ -743,7 +743,7 @@ const png = await renderToPng(spec, {
 
 ---
 
-## References (2)
+## References (6)
 
 ### Renderer Api
 
@@ -1028,4 +1028,542 @@ Common multi-target combinations:
 | Blog + social sharing | React + Image | Blog post + OG image preview |
 | Product page + demo | React + Remotion | Landing page + demo video |
 | Full marketing suite | React + PDF + Email + Image + Remotion | All surfaces from one spec |
+
+
+### Upstream Email
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-email/SKILL.md) --&gt;
+&lt;!-- Hash: 8b376b37da07dd68944e72e0e322a272571f39271e5b08b6efd437db201470c9 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-email
+
+React Email renderer that converts JSON specs into HTML or plain-text email output.
+
+## Quick Start
+
+```typescript
+import { renderToHtml } from "@json-render/react-email";
+import { schema, standardComponentDefinitions } from "@json-render/react-email";
+import { defineCatalog } from "@json-render/core";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+
+const spec = {
+  root: "html-1",
+  elements: {
+    "html-1": { type: "Html", props: { lang: "en", dir: "ltr" }, children: ["head-1", "body-1"] },
+    "head-1": { type: "Head", props: {}, children: [] },
+    "body-1": {
+      type: "Body",
+      props: { style: { backgroundColor: "#f6f9fc" } },
+      children: ["container-1"],
+    },
+    "container-1": {
+      type: "Container",
+      props: { style: { maxWidth: "600px", margin: "0 auto", padding: "20px" } },
+      children: ["heading-1", "text-1"],
+    },
+    "heading-1": { type: "Heading", props: { text: "Welcome" }, children: [] },
+    "text-1": { type: "Text", props: { text: "Thanks for signing up." }, children: [] },
+  },
+};
+
+const html = await renderToHtml(spec);
+```
+
+## Spec Structure (Element Tree)
+
+Same flat element tree as `@json-render/react`: `root` key plus `elements` map. Root must be `Html`; children of `Html` should be `Head` and `Body`. Use `Container` (e.g. max-width 600px) inside `Body` for client-safe layout.
+
+## Creating a Catalog and Registry
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry, renderToHtml } from "@json-render/react-email";
+import { standardComponentDefinitions } from "@json-render/react-email/catalog";
+import { Container, Heading, Text } from "@react-email/components";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Alert: {
+      props: z.object({
+        message: z.string(),
+        variant: z.enum(["info", "success", "warning"]).nullable(),
+      }),
+      slots: [],
+      description: "A highlighted message block",
+    },
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Alert: ({ props }) => (
+      <Container style={{ padding: 16, backgroundColor: "#eff6ff", borderRadius: 8 }}>
+        <Text style={{ margin: 0 }}>{props.message}</Text>
+      </Container>
+    ),
+  },
+});
+
+const html = await renderToHtml(spec, { registry });
+```
+
+## Server-Side Render APIs
+
+| Function | Purpose |
+|----------|---------|
+| `renderToHtml(spec, options?)` | Render spec to HTML email string |
+| `renderToPlainText(spec, options?)` | Render spec to plain-text email string |
+
+`RenderOptions`: `registry`, `includeStandard` (default true), `state` (for `$state` / `$cond`).
+
+## Visibility and State
+
+Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
+
+## Server-Safe Import
+
+Import schema and catalog without React or `@react-email/components`:
+
+```typescript
+import { schema, standardComponentDefinitions } from "@json-render/react-email/server";
+```
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create type-safe component registry from catalog |
+| `Renderer` | Render spec in browser (e.g. preview); use with `JSONUIProvider` for state/actions |
+| `createRenderer` | Standalone renderer component with state/actions/validation |
+| `renderToHtml` | Server: spec to HTML string |
+| `renderToPlainText` | Server: spec to plain-text string |
+| `schema` | Email element schema |
+| `standardComponents` | Pre-built component implementations |
+| `standardComponentDefinitions` | Catalog definitions (Zod props) |
+
+## Sub-path Exports
+
+| Path | Purpose |
+|------|---------|
+| `@json-render/react-email` | Full package |
+| `@json-render/react-email/server` | Schema and catalog only (no React) |
+| `@json-render/react-email/catalog` | Standard component definitions and types |
+| `@json-render/react-email/render` | Render functions only |
+
+## Standard Components
+
+All components accept a `style` prop (object) for inline styles. Use inline styles for email client compatibility; avoid external CSS.
+
+### Document structure
+
+| Component | Description |
+|-----------|-------------|
+| `Html` | Root wrapper (lang, dir). Children: Head, Body. |
+| `Head` | Email head section. |
+| `Body` | Body wrapper; use `style` for background. |
+
+### Layout
+
+| Component | Description |
+|-----------|-------------|
+| `Container` | Constrain width (e.g. max-width 600px). |
+| `Section` | Group content; table-based for compatibility. |
+| `Row` | Horizontal row. |
+| `Column` | Column in a Row; set width via style. |
+
+### Content
+
+| Component | Description |
+|-----------|-------------|
+| `Heading` | Heading text (as: h1–h6). |
+| `Text` | Body text. |
+| `Link` | Hyperlink (text, href). |
+| `Button` | CTA link styled as button (text, href). |
+| `Image` | Image from URL (src, alt, width, height). |
+| `Hr` | Horizontal rule. |
+
+### Utility
+
+| Component | Description |
+|-----------|-------------|
+| `Preview` | Inbox preview text (inside Html). |
+| `Markdown` | Markdown content as email-safe HTML. |
+
+## Email Best Practices
+
+- Keep width constrained (e.g. Container max-width 600px).
+- Use inline styles or React Email's style props; many clients strip `&lt;style&gt;` blocks.
+- Prefer table-based layout (Section, Row, Column) for broad client support.
+- Use absolute URLs for images; many clients block relative or cid: references in some contexts.
+- Test in multiple clients (Gmail, Outlook, Apple Mail); use a preview tool or Litmus-like service when possible.
+
+
+### Upstream Image
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/image/SKILL.md) --&gt;
+&lt;!-- Hash: fc6469e1592a86d4d92058b81704023394ab8cbdd9f422d541ad3a752f2a0e42 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/image
+
+Image renderer that converts JSON specs into SVG and PNG images using Satori.
+
+## Quick Start
+
+```typescript
+import { renderToPng } from "@json-render/image/render";
+import type { Spec } from "@json-render/core";
+
+const spec: Spec = {
+  root: "frame",
+  elements: {
+    frame: {
+      type: "Frame",
+      props: { width: 1200, height: 630, backgroundColor: "#1a1a2e" },
+      children: ["heading"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Hello World", level: "h1", color: "#ffffff" },
+      children: [],
+    },
+  },
+};
+
+const png = await renderToPng(spec, {
+  fonts: [{ name: "Inter", data: fontData, weight: 400, style: "normal" }],
+});
+```
+
+## Using Standard Components
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, standardComponentDefinitions } from "@json-render/image";
+
+export const imageCatalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+```
+
+## Adding Custom Components
+
+```typescript
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Badge: {
+      props: z.object({ label: z.string(), color: z.string().nullable() }),
+      slots: [],
+      description: "A colored badge label",
+    },
+  },
+});
+```
+
+## Standard Components
+
+| Component | Category | Description |
+|-----------|----------|-------------|
+| `Frame` | Root | Root container. Defines width, height, background. Must be root. |
+| `Box` | Layout | Container with padding, margin, border, absolute positioning |
+| `Row` | Layout | Horizontal flex layout |
+| `Column` | Layout | Vertical flex layout |
+| `Heading` | Content | h1-h4 heading text |
+| `Text` | Content | Body text with full styling |
+| `Image` | Content | Image from URL |
+| `Divider` | Decorative | Horizontal line separator |
+| `Spacer` | Decorative | Empty vertical space |
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `renderToSvg` | Render spec to SVG string |
+| `renderToPng` | Render spec to PNG buffer (requires `@resvg/resvg-js`) |
+| `schema` | Image element schema |
+| `standardComponents` | Pre-built component registry |
+| `standardComponentDefinitions` | Catalog definitions for AI prompts |
+
+## Sub-path Exports
+
+| Export | Description |
+|--------|-------------|
+| `@json-render/image` | Full package: schema, components, render functions |
+| `@json-render/image/server` | Schema and catalog definitions only (no React/Satori) |
+| `@json-render/image/catalog` | Standard component definitions and types |
+| `@json-render/image/render` | Render functions only |
+
+
+### Upstream Pdf
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-pdf/SKILL.md) --&gt;
+&lt;!-- Hash: 42d7d378733e0c1e6ff10ba788dc77c32b36b2f28841f1d6aa671e44ed9ad0be --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-pdf
+
+React PDF renderer that generates PDF documents from JSON specs using `@react-pdf/renderer`.
+
+## Installation
+
+```bash
+npm install @json-render/core @json-render/react-pdf
+```
+
+## Quick Start
+
+```typescript
+import { renderToBuffer } from "@json-render/react-pdf";
+import type { Spec } from "@json-render/core";
+
+const spec: Spec = {
+  root: "doc",
+  elements: {
+    doc: { type: "Document", props: { title: "Invoice" }, children: ["page"] },
+    page: {
+      type: "Page",
+      props: { size: "A4" },
+      children: ["heading", "table"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Invoice #1234", level: "h1" },
+      children: [],
+    },
+    table: {
+      type: "Table",
+      props: {
+        columns: [
+          { header: "Item", width: "60%" },
+          { header: "Price", width: "40%", align: "right" },
+        ],
+        rows: [
+          ["Widget A", "$10.00"],
+          ["Widget B", "$25.00"],
+        ],
+      },
+      children: [],
+    },
+  },
+};
+
+const buffer = await renderToBuffer(spec);
+```
+
+## Render APIs
+
+```typescript
+import { renderToBuffer, renderToStream, renderToFile } from "@json-render/react-pdf";
+
+// In-memory buffer
+const buffer = await renderToBuffer(spec);
+
+// Readable stream (pipe to HTTP response)
+const stream = await renderToStream(spec);
+stream.pipe(res);
+
+// Direct to file
+await renderToFile(spec, "./output.pdf");
+```
+
+All render functions accept an optional second argument: `\{ registry?, state?, handlers? \}`.
+
+## Standard Components
+
+| Component | Description |
+|-----------|-------------|
+| `Document` | Top-level PDF wrapper (must be root) |
+| `Page` | Page with size (A4, LETTER), orientation, margins |
+| `View` | Generic container (padding, margin, background, border) |
+| `Row`, `Column` | Flex layout with gap, align, justify |
+| `Heading` | h1-h4 heading text |
+| `Text` | Body text (fontSize, color, weight, alignment) |
+| `Image` | Image from URL or base64 |
+| `Link` | Hyperlink with text and href |
+| `Table` | Data table with typed columns and rows |
+| `List` | Ordered or unordered list |
+| `Divider` | Horizontal line separator |
+| `Spacer` | Empty vertical space |
+| `PageNumber` | Current page number and total pages |
+
+## Custom Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry, renderToBuffer } from "@json-render/react-pdf";
+import { standardComponentDefinitions } from "@json-render/react-pdf/catalog";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Badge: {
+      props: z.object({ label: z.string(), color: z.string().nullable() }),
+      slots: [],
+      description: "A colored badge label",
+    },
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Badge: ({ props }) => (
+      <View style={{ backgroundColor: props.color ?? "#e5e7eb", padding: 4 }}>
+        <Text>{props.label}</Text>
+      </View>
+    ),
+  },
+});
+
+const buffer = await renderToBuffer(spec, { registry });
+```
+
+## External Store (Controlled Mode)
+
+Pass a `StateStore` for full control over state:
+
+```typescript
+import { createStateStore } from "@json-render/react-pdf";
+
+const store = createStateStore({ invoice: { total: 100 } });
+store.set("/invoice/total", 200);
+```
+
+## Server-Safe Import
+
+Import schema and catalog without pulling in React:
+
+```typescript
+import { schema, standardComponentDefinitions } from "@json-render/react-pdf/server";
+```
+
+
+### Upstream Remotion
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/remotion/SKILL.md) --&gt;
+&lt;!-- Hash: 59d63ac06729795f0981fe0cfadf6c1c34454be0329a34f2d36c9be2391fbbe9 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/remotion
+
+Remotion renderer that converts JSON timeline specs into video compositions.
+
+## Quick Start
+
+```typescript
+import { Player } from "@remotion/player";
+import { Renderer, type TimelineSpec } from "@json-render/remotion";
+
+function VideoPlayer({ spec }: { spec: TimelineSpec }) {
+  return (
+    <Player
+      component={Renderer}
+      inputProps={{ spec }}
+      durationInFrames={spec.composition.durationInFrames}
+      fps={spec.composition.fps}
+      compositionWidth={spec.composition.width}
+      compositionHeight={spec.composition.height}
+      controls
+    />
+  );
+}
+```
+
+## Using Standard Components
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  standardComponentDefinitions,
+  standardTransitionDefinitions,
+  standardEffectDefinitions,
+} from "@json-render/remotion";
+
+export const videoCatalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+  transitions: standardTransitionDefinitions,
+  effects: standardEffectDefinitions,
+});
+```
+
+## Adding Custom Components
+
+```typescript
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    MyCustomClip: {
+      props: z.object({ text: z.string() }),
+      type: "scene",
+      defaultDuration: 90,
+      description: "My custom video clip",
+    },
+  },
+});
+
+// Pass custom component to Renderer
+<Player
+  component={Renderer}
+  inputProps={{
+    spec,
+    components: { MyCustomClip: MyCustomComponent },
+  }}
+/>
+```
+
+## Timeline Spec Structure
+
+```json
+{
+  "composition": { "id": "video", "fps": 30, "width": 1920, "height": 1080, "durationInFrames": 300 },
+  "tracks": [{ "id": "main", "name": "Main", "type": "video", "enabled": true }],
+  "clips": [
+    { "id": "clip-1", "trackId": "main", "component": "TitleCard", "props": { "title": "Hello" }, "from": 0, "durationInFrames": 90 }
+  ],
+  "audio": { "tracks": [] }
+}
+```
+
+## Standard Components
+
+| Component | Type | Description |
+|-----------|------|-------------|
+| `TitleCard` | scene | Full-screen title with subtitle |
+| `TypingText` | scene | Terminal-style typing animation |
+| `ImageSlide` | image | Full-screen image display |
+| `SplitScreen` | scene | Two-panel comparison |
+| `QuoteCard` | scene | Quote with attribution |
+| `StatCard` | scene | Animated statistic display |
+| `TextOverlay` | overlay | Text overlay |
+| `LowerThird` | overlay | Name/title overlay |
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `Renderer` | Render spec to Remotion composition |
+| `schema` | Timeline schema |
+| `standardComponents` | Pre-built component registry |
+| `standardComponentDefinitions` | Catalog definitions |
+| `useTransition` | Transition animation hook |
+| `ClipWrapper` | Wrap clips with transitions |
 

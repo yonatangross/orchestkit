@@ -1,0 +1,53 @@
+{
+  "description": "Maps Vercel Labs upstream skills to OrchestKit target directories. Edit this file to add/remove upstream references.",
+  "repos": {
+    "vercel-labs/agent-browser": "https://github.com/vercel-labs/agent-browser",
+    "vercel-labs/json-render": "https://github.com/vercel-labs/json-render",
+    "vercel-labs/emulate": "https://github.com/vercel-labs/emulate",
+    "vercel-labs/portless": "https://github.com/vercel-labs/portless"
+  },
+  "refs": [
+    { "repo": "vercel-labs/agent-browser", "skill_path": "skills/agent-browser", "target_skill": "browser-tools", "ref_filename": "upstream.md" },
+    { "repo": "vercel-labs/agent-browser", "skill_path": "skills/electron", "target_skill": "browser-tools", "ref_filename": "upstream-electron.md" },
+    { "repo": "vercel-labs/agent-browser", "skill_path": "skills/slack", "target_skill": "browser-tools", "ref_filename": "upstream-slack.md" },
+    { "repo": "vercel-labs/agent-browser", "skill_path": "skills/vercel-sandbox", "target_skill": "browser-tools", "ref_filename": "upstream-sandbox.md" },
+    { "repo": "vercel-labs/agent-browser", "skill_path": "skills/dogfood", "target_skill": "browser-tools", "ref_filename": "upstream-dogfood.md" },
+
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/core", "target_skill": "json-render-catalog", "ref_filename": "upstream-core.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/shadcn", "target_skill": "json-render-catalog", "ref_filename": "upstream-shadcn.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/mcp", "target_skill": "json-render-catalog", "ref_filename": "upstream-mcp.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/image", "target_skill": "json-render-catalog", "ref_filename": "upstream-image.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-email", "target_skill": "json-render-catalog", "ref_filename": "upstream-email.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-pdf", "target_skill": "json-render-catalog", "ref_filename": "upstream-pdf.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react", "target_skill": "json-render-catalog", "ref_filename": "upstream-react.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/vue", "target_skill": "json-render-catalog", "ref_filename": "upstream-vue.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/svelte", "target_skill": "json-render-catalog", "ref_filename": "upstream-svelte.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/solid", "target_skill": "json-render-catalog", "ref_filename": "upstream-solid.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-three-fiber", "target_skill": "json-render-catalog", "ref_filename": "upstream-r3f.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/yaml", "target_skill": "json-render-catalog", "ref_filename": "upstream-yaml.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/remotion", "target_skill": "json-render-catalog", "ref_filename": "upstream-remotion.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/ink", "target_skill": "json-render-catalog", "ref_filename": "upstream-ink.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-native", "target_skill": "json-render-catalog", "ref_filename": "upstream-react-native.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/next", "target_skill": "json-render-catalog", "ref_filename": "upstream-next.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/zustand", "target_skill": "json-render-catalog", "ref_filename": "upstream-zustand.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/redux", "target_skill": "json-render-catalog", "ref_filename": "upstream-redux.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/jotai", "target_skill": "json-render-catalog", "ref_filename": "upstream-jotai.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/xstate", "target_skill": "json-render-catalog", "ref_filename": "upstream-xstate.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/shadcn-svelte", "target_skill": "json-render-catalog", "ref_filename": "upstream-shadcn-svelte.md" },
+
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/mcp", "target_skill": "mcp-visual-output", "ref_filename": "upstream-mcp.md" },
+
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/image", "target_skill": "multi-surface-render", "ref_filename": "upstream-image.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-email", "target_skill": "multi-surface-render", "ref_filename": "upstream-email.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/react-pdf", "target_skill": "multi-surface-render", "ref_filename": "upstream-pdf.md" },
+    { "repo": "vercel-labs/json-render", "skill_path": "skills/remotion", "target_skill": "multi-surface-render", "ref_filename": "upstream-remotion.md" },
+
+    { "repo": "vercel-labs/emulate", "skill_path": "skills/emulate", "target_skill": "emulate-seed", "ref_filename": "upstream.md" },
+    { "repo": "vercel-labs/emulate", "skill_path": "skills/github", "target_skill": "emulate-seed", "ref_filename": "upstream-github.md" },
+    { "repo": "vercel-labs/emulate", "skill_path": "skills/google", "target_skill": "emulate-seed", "ref_filename": "upstream-google.md" },
+    { "repo": "vercel-labs/emulate", "skill_path": "skills/vercel", "target_skill": "emulate-seed", "ref_filename": "upstream-vercel.md" },
+
+    { "repo": "vercel-labs/portless", "skill_path": "skills/portless", "target_skill": "portless", "ref_filename": "upstream.md" },
+    { "repo": "vercel-labs/portless", "skill_path": "skills/oauth", "target_skill": "portless", "ref_filename": "upstream-oauth.md" }
+  ]
+}
