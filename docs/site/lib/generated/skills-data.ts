@@ -1786,7 +1786,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -4682,6 +4682,748 @@ export const SKILLS: Record<string, SkillMeta> = {
         "validate-counts.sh"
       ]
     },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-agent-browser": {
+    "name": "vercel-agent-browser",
+    "description": "Browser automation CLI for AI agents. Navigate, snapshot, interact, extract data, test web apps. Covers headless Chrome, Lightpanda, iOS Simulator, cloud providers, batch commands, HAR capture, and session management.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "browser",
+      "automation",
+      "testing",
+      "e2e",
+      "agent-browser"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "advanced-topics.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-agent-browser-dogfood": {
+    "name": "vercel-agent-browser-dogfood",
+    "description": "Internal dogfooding patterns for agent-browser development and testing.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "browser",
+      "internal",
+      "testing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-agent-browser-electron": {
+    "name": "vercel-agent-browser-electron",
+    "description": "Electron app automation with agent-browser. Test desktop apps via CDP.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "browser",
+      "electron",
+      "desktop",
+      "testing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-agent-browser-sandbox": {
+    "name": "vercel-agent-browser-sandbox",
+    "description": "Vercel Sandbox integration for agent-browser. Ephemeral cloud environments for browser testing.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "browser",
+      "sandbox",
+      "cloud",
+      "vercel"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-agent-browser-slack": {
+    "name": "vercel-agent-browser-slack",
+    "description": "Slack workspace automation via agent-browser. Navigate channels, send messages, interact with Slack UI.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "browser",
+      "slack",
+      "automation"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-emulate": {
+    "name": "vercel-emulate",
+    "description": "Stateful API emulation for CI and no-network sandboxes. CLI + programmatic API for GitHub, Vercel, Google, Slack, Apple, Entra, AWS.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "emulate",
+      "testing",
+      "api",
+      "mock",
+      "stateful"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-emulate-github": {
+    "name": "vercel-emulate-github",
+    "description": "GitHub API emulation: repos, PRs, issues, webhooks, GitHub Apps, installations. HMAC-SHA256 signed webhooks.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "emulate",
+      "github",
+      "api",
+      "testing"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-emulate-google": {
+    "name": "vercel-emulate-google",
+    "description": "Google API emulation: OAuth, Gmail, Calendar, Drive.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "emulate",
+      "google",
+      "oauth",
+      "api"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-emulate-vercel": {
+    "name": "vercel-emulate-vercel",
+    "description": "Vercel Platform API emulation: projects, deployments, environment variables.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "emulate",
+      "vercel",
+      "api",
+      "deployment"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-core": {
+    "name": "vercel-json-render-core",
+    "description": "Core json-render: schema, catalog, AI prompt generation, SpecStream, dynamic expressions, state, validation. The foundation for all json-render renderers.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "generative-ui",
+      "ai",
+      "schema",
+      "catalog"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-image": {
+    "name": "vercel-json-render-image",
+    "description": "Image renderer powered by Satori. SVG/PNG output for OG images, social cards, banners from JSON specs.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "image",
+      "og",
+      "satori",
+      "renderer"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-ink": {
+    "name": "vercel-json-render-ink",
+    "description": "Ink CLI renderer. JSON specs become terminal UIs with React-like components.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "cli",
+      "terminal",
+      "ink"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-jotai": {
+    "name": "vercel-json-render-jotai",
+    "description": "Jotai state store adapter for json-render StateStore interface.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "jotai",
+      "state",
+      "adapter"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-mcp": {
+    "name": "vercel-json-render-mcp",
+    "description": "MCP Apps integration — serve json-render UIs as interactive apps inside Claude, ChatGPT, Cursor, VS Code. createMcpApp, useJsonRenderApp, buildAppHtml.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "mcp",
+      "interactive",
+      "dashboard"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-next": {
+    "name": "vercel-json-render-next",
+    "description": "Next.js integration patterns for json-render with RSC, streaming, and App Router support.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "next",
+      "react",
+      "ssr"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-r3f": {
+    "name": "vercel-json-render-r3f",
+    "description": "React Three Fiber renderer. JSON specs become 3D scenes with meshes, lights, models, cameras.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "3d",
+      "three",
+      "renderer"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-react": {
+    "name": "vercel-json-render-react",
+    "description": "React renderer for json-render. JSON specs become React component trees with data binding, visibility, actions, validation, streaming.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "react",
+      "renderer",
+      "frontend"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-react-email": {
+    "name": "vercel-json-render-react-email",
+    "description": "React Email renderer. 17 standard components, renderToHtml/renderToPlainText for email generation from JSON specs.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "email",
+      "renderer",
+      "react-email"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-react-native": {
+    "name": "vercel-json-render-react-native",
+    "description": "React Native renderer for json-render. Mobile UI from JSON specs.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "react-native",
+      "mobile",
+      "renderer"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-react-pdf": {
+    "name": "vercel-json-render-react-pdf",
+    "description": "PDF renderer for json-render. Generate PDFs from JSON specs with React PDF components.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "pdf",
+      "renderer",
+      "document"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-redux": {
+    "name": "vercel-json-render-redux",
+    "description": "Redux/RTK state store adapter for json-render StateStore interface.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "redux",
+      "state",
+      "adapter"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-remotion": {
+    "name": "vercel-json-render-remotion",
+    "description": "Remotion video renderer. JSON specs become video compositions with timeline and animation support.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "video",
+      "remotion",
+      "renderer"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-shadcn": {
+    "name": "vercel-json-render-shadcn",
+    "description": "shadcn/ui component catalog for json-render. Pre-built components with Zod-typed props for AI-safe generative UI.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "shadcn",
+      "components",
+      "ui"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-shadcn-svelte": {
+    "name": "vercel-json-render-shadcn-svelte",
+    "description": "shadcn-svelte component catalog for json-render Svelte renderer.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "shadcn",
+      "svelte",
+      "components"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-solid": {
+    "name": "vercel-json-render-solid",
+    "description": "SolidJS renderer for json-render. Reactive rendering with schema export and catalog support.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "solid",
+      "renderer",
+      "frontend"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-svelte": {
+    "name": "vercel-json-render-svelte",
+    "description": "Svelte 5 renderer with runes-based reactivity for json-render specs.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "svelte",
+      "renderer",
+      "frontend"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-vue": {
+    "name": "vercel-json-render-vue",
+    "description": "Vue 3 renderer for json-render with composables, state binding, and full feature parity with React renderer.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "vue",
+      "renderer",
+      "frontend"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-xstate": {
+    "name": "vercel-json-render-xstate",
+    "description": "XState Store atom adapter for json-render StateStore interface.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "xstate",
+      "state",
+      "adapter"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-yaml": {
+    "name": "vercel-json-render-yaml",
+    "description": "YAML mode for json-render. Token-optimized spec format for AI generation with 40-60% token savings.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "yaml",
+      "optimization",
+      "tokens"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-json-render-zustand": {
+    "name": "vercel-json-render-zustand",
+    "description": "Zustand state store adapter for json-render StateStore interface.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "json-render",
+      "zustand",
+      "state",
+      "adapter"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-portless": {
+    "name": "vercel-portless",
+    "description": "Named .localhost URLs for local dev. Replaces port numbers with stable subdomains. HTTPS, git worktree support, PORTLESS_URL env var.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "portless",
+      "dev-server",
+      "localhost",
+      "https"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "vercel-portless-oauth": {
+    "name": "vercel-portless-oauth",
+    "description": "OAuth callback handling with portless stable URLs. Eliminates port-mismatch issues in local OAuth flows.",
+    "version": "0.1.0",
+    "author": "Vercel Labs (synced by OrchestKit)",
+    "tags": [
+      "portless",
+      "oauth",
+      "auth",
+      "dev"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
     "plugins": [
       "ork"
     ],

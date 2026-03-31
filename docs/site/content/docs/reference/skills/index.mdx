@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 100 OrchestKit skills."
+description: "Complete reference for all 132 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **100 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **132 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -45,7 +45,7 @@ OrchestKit includes **100 skills** — reusable knowledge modules that provide p
 | [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues. |
 | [Documentation Patterns](/docs/reference/skills/documentation-patterns) | Reference | low | Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs. |
 | [Domain Driven Design](/docs/reference/skills/domain-driven-design) | Reference | medium | Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts. |
-| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development. |
+| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development. |
 | [Errors](/docs/reference/skills/errors) | Reference | low | Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues. |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser. Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience. |
 | [Explore](/docs/reference/skills/explore) | Command | high | explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns. |
@@ -103,6 +103,38 @@ OrchestKit includes **100 skills** — reusable knowledge modules that provide p
 | [Upgrade Assessment](/docs/reference/skills/upgrade-assessment) | Reference | max | Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades. |
 | [User Research](/docs/reference/skills/user-research) | Reference | medium | User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done. |
 | [Validate Counts](/docs/reference/skills/validate-counts) | Reference | low | Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong. |
+| [Vercel Agent Browser](/docs/reference/skills/vercel-agent-browser) | Reference | medium | Browser automation CLI for AI agents. Navigate, snapshot, interact, extract data, test web apps. Covers headless Chrome, Lightpanda, iOS Simulator, cloud providers, batch commands, HAR capture, and session management. |
+| [Vercel Agent Browser Dogfood](/docs/reference/skills/vercel-agent-browser-dogfood) | Reference | low | Internal dogfooding patterns for agent-browser development and testing. |
+| [Vercel Agent Browser Electron](/docs/reference/skills/vercel-agent-browser-electron) | Reference | low | Electron app automation with agent-browser. Test desktop apps via CDP. |
+| [Vercel Agent Browser Sandbox](/docs/reference/skills/vercel-agent-browser-sandbox) | Reference | low | Vercel Sandbox integration for agent-browser. Ephemeral cloud environments for browser testing. |
+| [Vercel Agent Browser Slack](/docs/reference/skills/vercel-agent-browser-slack) | Reference | low | Slack workspace automation via agent-browser. Navigate channels, send messages, interact with Slack UI. |
+| [Vercel Emulate](/docs/reference/skills/vercel-emulate) | Reference | medium | Stateful API emulation for CI and no-network sandboxes. CLI + programmatic API for GitHub, Vercel, Google, Slack, Apple, Entra, AWS. |
+| [Vercel Emulate Github](/docs/reference/skills/vercel-emulate-github) | Reference | low | GitHub API emulation: repos, PRs, issues, webhooks, GitHub Apps, installations. HMAC-SHA256 signed webhooks. |
+| [Vercel Emulate Google](/docs/reference/skills/vercel-emulate-google) | Reference | low | Google API emulation: OAuth, Gmail, Calendar, Drive. |
+| [Vercel Emulate Vercel](/docs/reference/skills/vercel-emulate-vercel) | Reference | low | Vercel Platform API emulation: projects, deployments, environment variables. |
+| [Vercel Json Render Core](/docs/reference/skills/vercel-json-render-core) | Reference | medium | Core json-render: schema, catalog, AI prompt generation, SpecStream, dynamic expressions, state, validation. The foundation for all json-render renderers. |
+| [Vercel Json Render Image](/docs/reference/skills/vercel-json-render-image) | Reference | low | Image renderer powered by Satori. SVG/PNG output for OG images, social cards, banners from JSON specs. |
+| [Vercel Json Render Ink](/docs/reference/skills/vercel-json-render-ink) | Reference | low | Ink CLI renderer. JSON specs become terminal UIs with React-like components. |
+| [Vercel Json Render Jotai](/docs/reference/skills/vercel-json-render-jotai) | Reference | low | Jotai state store adapter for json-render StateStore interface. |
+| [Vercel Json Render Mcp](/docs/reference/skills/vercel-json-render-mcp) | Reference | medium | MCP Apps integration — serve json-render UIs as interactive apps inside Claude, ChatGPT, Cursor, VS Code. createMcpApp, useJsonRenderApp, buildAppHtml. |
+| [Vercel Json Render Next](/docs/reference/skills/vercel-json-render-next) | Reference | low | Next.js integration patterns for json-render with RSC, streaming, and App Router support. |
+| [Vercel Json Render R3f](/docs/reference/skills/vercel-json-render-r3f) | Reference | low | React Three Fiber renderer. JSON specs become 3D scenes with meshes, lights, models, cameras. |
+| [Vercel Json Render React](/docs/reference/skills/vercel-json-render-react) | Reference | low | React renderer for json-render. JSON specs become React component trees with data binding, visibility, actions, validation, streaming. |
+| [Vercel Json Render React Email](/docs/reference/skills/vercel-json-render-react-email) | Reference | low | React Email renderer. 17 standard components, renderToHtml/renderToPlainText for email generation from JSON specs. |
+| [Vercel Json Render React Native](/docs/reference/skills/vercel-json-render-react-native) | Reference | low | React Native renderer for json-render. Mobile UI from JSON specs. |
+| [Vercel Json Render React Pdf](/docs/reference/skills/vercel-json-render-react-pdf) | Reference | low | PDF renderer for json-render. Generate PDFs from JSON specs with React PDF components. |
+| [Vercel Json Render Redux](/docs/reference/skills/vercel-json-render-redux) | Reference | low | Redux/RTK state store adapter for json-render StateStore interface. |
+| [Vercel Json Render Remotion](/docs/reference/skills/vercel-json-render-remotion) | Reference | low | Remotion video renderer. JSON specs become video compositions with timeline and animation support. |
+| [Vercel Json Render Shadcn](/docs/reference/skills/vercel-json-render-shadcn) | Reference | medium | shadcn/ui component catalog for json-render. Pre-built components with Zod-typed props for AI-safe generative UI. |
+| [Vercel Json Render Shadcn Svelte](/docs/reference/skills/vercel-json-render-shadcn-svelte) | Reference | low | shadcn-svelte component catalog for json-render Svelte renderer. |
+| [Vercel Json Render Solid](/docs/reference/skills/vercel-json-render-solid) | Reference | low | SolidJS renderer for json-render. Reactive rendering with schema export and catalog support. |
+| [Vercel Json Render Svelte](/docs/reference/skills/vercel-json-render-svelte) | Reference | low | Svelte 5 renderer with runes-based reactivity for json-render specs. |
+| [Vercel Json Render Vue](/docs/reference/skills/vercel-json-render-vue) | Reference | low | Vue 3 renderer for json-render with composables, state binding, and full feature parity with React renderer. |
+| [Vercel Json Render Xstate](/docs/reference/skills/vercel-json-render-xstate) | Reference | low | XState Store atom adapter for json-render StateStore interface. |
+| [Vercel Json Render Yaml](/docs/reference/skills/vercel-json-render-yaml) | Reference | low | YAML mode for json-render. Token-optimized spec format for AI generation with 40-60% token savings. |
+| [Vercel Json Render Zustand](/docs/reference/skills/vercel-json-render-zustand) | Reference | low | Zustand state store adapter for json-render StateStore interface. |
+| [Vercel Portless](/docs/reference/skills/vercel-portless) | Reference | medium | Named .localhost URLs for local dev. Replaces port numbers with stable subdomains. HTTPS, git worktree support, PORTLESS_URL env var. |
+| [Vercel Portless Oauth](/docs/reference/skills/vercel-portless-oauth) | Reference | low | OAuth callback handling with portless stable URLs. Eliminates port-mismatch issues in local OAuth flows. |
 | [Verify](/docs/reference/skills/verify) | Command | high | Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes. |
 | [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact. |
 | [Vite Advanced](/docs/reference/skills/vite-advanced) | Reference | medium | Advanced Vite 8 patterns including Rolldown-powered builds, advancedChunks, Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds. |

@@ -39,9 +39,9 @@ const mockCreatePR = jest.fn().mockResolvedValue({ number: 1 })
 **Correct — use emulate for stateful GitHub API testing:**
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
-const github = await createEmulator({ service: 'github', port: 4001 })
+const github = await createEmulate({ service: 'github', port: 4001 })
 
 // Create PR via API
 await fetch(`${github.url}/repos/org/repo/pulls`, {

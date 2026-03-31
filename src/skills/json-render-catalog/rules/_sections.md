@@ -27,7 +27,7 @@ Using the 29 pre-built @json-render/shadcn components.
 
 Reducing token usage by choosing the right spec format.
 
-- `token-optimization.md` — YAML mode for one-shot (30% fewer tokens), JSON for streaming
+- `token-optimization.md` — YAML mode for standalone (30% fewer tokens), JSON for inline/streaming
 
 ## 5. Actions & State (action) — MEDIUM — 1 rule
 

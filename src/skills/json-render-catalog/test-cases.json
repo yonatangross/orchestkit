@@ -30,10 +30,10 @@
       "rule": "token-optimization",
       "query": "How do I optimize json-render specs to use fewer tokens?",
       "expectedBehavior": [
-        "Recommends YAML mode for one-shot generation with ~30% token savings",
-        "Explains that JSON is required for streaming (JSON Patch RFC 6902 over JSONL)",
+        "Recommends YAML mode for standalone generation with ~30% token savings",
+        "Explains that JSON is required for inline/streaming (JSON Patch RFC 6902 over JSONL)",
         "Shows parseYamlSpec() import from @json-render/yaml",
-        "Provides the decision rule: streaming → JSON, one-shot → YAML"
+        "Provides the decision rule: inline/streaming → JSON, standalone → YAML"
       ]
     },
     {

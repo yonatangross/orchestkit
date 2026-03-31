@@ -10,7 +10,7 @@ complexity: medium
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.15.0"
+  upstream-version-tested: "0.13.0"
   shadcn-component-count: 29
 ---
 
@@ -72,6 +72,17 @@ export const catalog = defineCatalog({
     children: false,
   },
 })
+```
+
+### LLM Structured Output Compatibility
+
+Use `jsonSchema({ strict: true })` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
+
+```typescript
+import { jsonSchema } from '@json-render/core'
+
+const schema = jsonSchema(catalog, { strict: true })
+// Pass to OpenAI response_format, Anthropic tool_use, or Gemini structured output
 ```
 
 ### Step 2: Implement Components
@@ -159,7 +170,7 @@ Load `rules/action-state.md` for event handlers, watch bindings, and state adapt
 
 ## YAML Mode — 30% Fewer Tokens
 
-For one-shot (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
+For standalone (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
 
 ```yaml
 root: card-1
@@ -176,7 +187,7 @@ elements:
       variant: default
 ```
 
-Use JSON for streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for one-shot generation where token cost matters. Load `rules/token-optimization.md` for selection criteria.
+Use JSON for inline mode / streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for standalone mode where token cost matters. Load `rules/token-optimization.md` for selection criteria.
 
 ## Progressive Streaming
 
@@ -259,7 +270,7 @@ Choosing JSON vs YAML for token efficiency.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Optimization | `rules/token-optimization.md` | YAML for one-shot, JSON for streaming |
+| Token Optimization | `rules/token-optimization.md` | YAML for standalone mode, JSON for inline/streaming |
 
 ### Actions & State
 
@@ -274,14 +285,14 @@ Adding interactivity with events, watchers, and state.
 | Decision | Recommendation |
 |----------|----------------|
 | Custom vs shadcn catalog | Start with shadcn, extend with custom types for domain-specific components |
-| JSON vs YAML spec format | YAML for one-shot (30% fewer tokens), JSON for streaming |
+| JSON vs YAML spec format | YAML for standalone mode (30% fewer tokens), JSON for inline/streaming |
 | Zod constraint strictness | Tighter is better — use z.enum over z.string, z.array().max() over unbounded |
 | State management adapter | Match your app's existing state library (Zustand, Redux, Jotai, XState) |
 
 ## Common Mistakes
 
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
-2. Always using JSON specs — wastes 30% tokens when streaming is not needed
+2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
 4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts

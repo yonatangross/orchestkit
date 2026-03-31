@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit on Codex — Porting Explorer</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text-dim: #8b949e; --text-muted: #484f58;
+    --green: #3fb950; --green-bg: rgba(63,185,80,0.15);
+    --yellow: #d29922; --yellow-bg: rgba(210,153,34,0.15);
+    --red: #f85149; --red-bg: rgba(248,81,73,0.15);
+    --blue: #58a6ff; --blue-bg: rgba(88,166,255,0.15);
+    --purple: #bc8cff; --purple-bg: rgba(188,140,255,0.15);
+    --orange: #f0883e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  .header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .header .date { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; gap: 0; overflow-x: auto; }
+  .tab { padding: 10px 16px; font-size: 13px; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--orange); }
+
+  .panel { display: none; padding: 24px; overflow-y: auto; max-height: calc(100vh - 120px); }
+  .panel.active { display: block; }
+
+  /* Overview Panel */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-card .value { font-size: 28px; font-weight: 700; }
+  .stat-card .sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .stat-card.green .value { color: var(--green); }
+  .stat-card.yellow .value { color: var(--yellow); }
+  .stat-card.red .value { color: var(--red); }
+
+  .sankey { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+  .sankey h3 { font-size: 14px; margin-bottom: 16px; color: var(--text-dim); }
+  .sankey svg { width: 100%; }
+
+  /* Matrix Panel */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { padding: 5px 12px; font-size: 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+  .filter-btn.active { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+  .filter-btn .count { font-weight: 600; margin-left: 4px; }
+  .search-box { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); outline: none; width: 200px; margin-left: auto; }
+  .search-box:focus { border-color: var(--blue); }
+
+  .matrix-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .matrix-table th { text-align: left; padding: 8px 12px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); }
+  .matrix-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .matrix-table tr:hover td { background: var(--surface); }
+  .type-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .type-badge.skill { background: var(--blue-bg); color: var(--blue); }
+  .type-badge.agent { background: var(--purple-bg); color: var(--purple); }
+  .type-badge.hook { background: var(--yellow-bg); color: var(--yellow); }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.portable { background: var(--green); }
+  .status-dot.adapt { background: var(--yellow); }
+  .status-dot.blocked { background: var(--red); }
+  .notes { font-size: 11px; color: var(--text-dim); }
+
+  /* Effort Panel */
+  .effort-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .effort-container { grid-template-columns: 1fr; } }
+  .effort-left { display: flex; flex-direction: column; gap: 16px; }
+  .effort-group { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .effort-group h3 { font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .effort-group label { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 0; cursor: pointer; color: var(--text-dim); }
+  .effort-group label:hover { color: var(--text); }
+  .effort-group input[type="checkbox"] { accent-color: var(--blue); }
+  .effort-group .item-effort { margin-left: auto; font-size: 11px; color: var(--text-muted); font-family: 'SF Mono', 'Fira Code', monospace; }
+  .effort-summary { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; position: sticky; top: 0; }
+  .effort-summary h3 { font-size: 14px; margin-bottom: 16px; }
+  .effort-bar-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin: 8px 0 4px; }
+  .effort-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .effort-bar-fill.green { background: var(--green); }
+  .effort-bar-fill.yellow { background: var(--yellow); }
+  .effort-bar-fill.red { background: var(--red); }
+  .effort-total { font-size: 36px; font-weight: 700; color: var(--blue); margin: 16px 0 4px; }
+  .effort-total-label { font-size: 12px; color: var(--text-dim); }
+  .effort-breakdown { margin-top: 16px; }
+  .effort-breakdown-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .effort-breakdown-item .label { color: var(--text-dim); }
+  .effort-presets { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .preset-btn { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; }
+  .preset-btn:hover { border-color: var(--blue); color: var(--text); }
+  .preset-btn.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+  /* Compare Panel */
+  .compare-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+  .compare-btn { padding: 6px 14px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; }
+  .compare-btn.active { border-color: var(--orange); color: var(--orange); background: rgba(240,136,62,0.1); }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
+  .compare-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .compare-panel .panel-header { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .compare-panel .panel-header .logo { width: 16px; height: 16px; border-radius: 4px; }
+  .compare-panel pre { padding: 14px; font-size: 12px; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; line-height: 1.6; overflow-x: auto; color: var(--text-dim); }
+  .compare-panel pre .hl { color: var(--green); }
+  .compare-panel pre .diff { color: var(--yellow); }
+  .compare-panel pre .same { color: var(--text-muted); }
+  .compare-panel pre .key { color: var(--blue); }
+  .compare-panel pre .comment { color: var(--text-muted); font-style: italic; }
+
+  /* Prompt Panel */
+  .prompt-area { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 24px; }
+  .prompt-area h3 { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .prompt-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; min-height: 80px; }
+  .copy-btn { padding: 6px 14px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; margin-top: 12px; transition: all 0.2s; }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* Hook comparison chart */
+  .hook-chart { display: grid; grid-template-columns: 1fr; gap: 4px; margin: 16px 0; }
+  .hook-row { display: grid; grid-template-columns: 180px 1fr 60px; gap: 8px; align-items: center; font-size: 12px; padding: 4px 0; }
+  .hook-row .name { color: var(--text-dim); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hook-bars { display: flex; gap: 4px; align-items: center; }
+  .hook-bar { height: 20px; border-radius: 3px; min-width: 2px; display: flex; align-items: center; padding: 0 6px; font-size: 10px; color: rgba(0,0,0,0.7); font-weight: 600; }
+  .hook-bar.cc { background: var(--purple); }
+  .hook-bar.codex { background: var(--orange); }
+  .hook-status { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OrchestKit on Codex</h1>
+  <span class="badge">Porting Explorer</span>
+  <span class="date">Research: 2026-03-30 | Codex v0.117.0 | OrchestKit v7.26.4</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">Overview</div>
+  <div class="tab" data-tab="matrix">Component Matrix</div>
+  <div class="tab" data-tab="effort">Port Estimator</div>
+  <div class="tab" data-tab="compare">Code Compare</div>
+  <div class="tab" data-tab="hooks">Hook Coverage</div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="panel active">
+  <div class="stats-row">
+    <div class="stat-card green"><div class="label">Portable</div><div class="value" id="stat-portable">148</div><div class="sub">Components transfer directly</div></div>
+    <div class="stat-card yellow"><div class="label">Needs Adaptation</div><div class="value" id="stat-adapt">62</div><div class="sub">Format/API translation needed</div></div>
+    <div class="stat-card red"><div class="label">Not Portable</div><div class="value" id="stat-blocked">36</div><div class="sub">No Codex equivalent (yet)</div></div>
+    <div class="stat-card"><div class="label">Overall Portability</div><div class="value" id="stat-pct" style="color:var(--yellow)">60%</div><div class="sub">Weighted by effort</div></div>
+  </div>
+
+  <div class="sankey">
+    <h3>Porting OrchestKit into Codex — Component Readiness</h3>
+    <svg viewBox="0 0 900 400" id="sankey-svg"></svg>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="label">OrchestKit (source)</div>
+      <div class="value" style="font-size:20px">100 skills + 36 agents + 110 hooks</div>
+      <div class="sub">v7.26.4 | Currently runs in Claude Code >= 2.1.86</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Codex CLI (target)</div>
+      <div class="value" style="font-size:20px">Plugins + Skills + 5 hook events</div>
+      <div class="sub">v0.117.0 | Plugin support launched Mar 26, 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- MATRIX -->
+<div id="matrix" class="panel">
+  <div class="filters">
+    <div class="filter-btn active" data-filter="all">All<span class="count" id="count-all"></span></div>
+    <div class="filter-btn" data-filter="skill">Skills<span class="count" id="count-skill"></span></div>
+    <div class="filter-btn" data-filter="agent">Agents<span class="count" id="count-agent"></span></div>
+    <div class="filter-btn" data-filter="hook">Hooks<span class="count" id="count-hook"></span></div>
+    <div class="filter-btn" data-filter="portable" style="border-color:rgba(63,185,80,0.4)">Portable</div>
+    <div class="filter-btn" data-filter="adapt" style="border-color:rgba(210,153,34,0.4)">Needs Work</div>
+    <div class="filter-btn" data-filter="blocked" style="border-color:rgba(248,81,73,0.4)">Blocked</div>
+    <input type="text" class="search-box" placeholder="Search components..." id="matrix-search">
+  </div>
+  <table class="matrix-table">
+    <thead><tr><th>Component</th><th>Type</th><th>Status</th><th>Codex Equivalent</th><th>Notes</th></tr></thead>
+    <tbody id="matrix-body"></tbody>
+  </table>
+</div>
+
+<!-- EFFORT -->
+<div id="effort" class="panel">
+  <div class="effort-presets">
+    <span style="font-size:12px;color:var(--text-dim);padding:6px 0;">Presets:</span>
+    <button class="preset-btn" data-preset="skills-only">Skills Only (~3d)</button>
+    <button class="preset-btn" data-preset="dual-publish">Dual-Publish (~2w)</button>
+    <button class="preset-btn" data-preset="full-port">Full Port (~6w)</button>
+    <button class="preset-btn" data-preset="none">Clear All</button>
+  </div>
+  <div class="effort-container">
+    <div class="effort-left" id="effort-groups"></div>
+    <div>
+      <div class="effort-summary">
+        <h3>Estimated Effort</h3>
+        <div class="effort-total" id="effort-total">0d</div>
+        <div class="effort-total-label">engineering days</div>
+        <div class="effort-bar-track"><div class="effort-bar-fill green" id="effort-bar" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px"><span>0d</span><span>15d</span><span>30d</span></div>
+        <div class="effort-breakdown" id="effort-breakdown"></div>
+        <div class="prompt-area" style="margin-top:20px">
+          <h3>Generated Prompt <button class="copy-btn" onclick="copyPrompt()">Copy</button></h3>
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div id="compare" class="panel">
+  <div class="compare-selector">
+    <button class="compare-btn active" data-compare="skill">SKILL.md</button>
+    <button class="compare-btn" data-compare="hooks">hooks.json</button>
+    <button class="compare-btn" data-compare="project">CLAUDE.md vs AGENTS.md</button>
+    <button class="compare-btn" data-compare="agent">Agent Definition</button>
+    <button class="compare-btn" data-compare="mcp">MCP Config</button>
+  </div>
+  <div class="compare-grid" id="compare-grid"></div>
+</div>
+
+<!-- HOOKS -->
+<div id="hooks" class="panel">
+  <h3 style="font-size:14px;margin-bottom:4px">Hook Event Coverage in Codex</h3>
+  <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px">OrchestKit uses 18 hook events in Claude Code. Codex currently supports 5. Purple = what OrchestKit needs, Orange = what Codex provides.</p>
+  <div class="hook-chart" id="hook-chart"></div>
+  <div class="stats-row" style="margin-top:24px">
+    <div class="stat-card"><div class="label">OrchestKit Needs</div><div class="value" style="color:var(--purple)">18</div><div class="sub">Hook events used: PreToolUse (all tools), SubagentStart/Stop, PermissionRequest, etc.</div></div>
+    <div class="stat-card"><div class="label">Codex Provides</div><div class="value" style="color:var(--orange)">5</div><div class="sub">SessionStart, PreToolUse (Bash only), PostToolUse, UserPromptSubmit, Stop</div></div>
+    <div class="stat-card"><div class="label">Total OrchestKit Hooks</div><div class="value">110</div><div class="sub">41 global + 47 agent-scoped + 22 skill-scoped</div></div>
+    <div class="stat-card red"><div class="label">Not Yet Portable</div><div class="value">74</div><div class="sub">Need Codex to add: agent-scoped hooks (47), SubagentStart/Stop, PermissionRequest</div></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const SKILL_CATEGORIES = [
+  { name: 'Domain Knowledge Skills', count: 65, status: 'portable', codex: 'SKILL.md body is pure markdown', note: 'security-patterns, database-patterns, api-design, testing-*, performance, devops, etc.' },
+  { name: 'Workflow Skills (explore, implement, verify)', count: 12, status: 'adapt', codex: 'Skill invocation exists, tool names differ', note: 'Need Agent() -> path-based agents, TaskCreate -> ???' },
+  { name: 'Git/PR Skills (commit, create-pr)', count: 5, status: 'adapt', codex: 'Bash + Git works, frontmatter needs translation', note: 'allowed-tools, hooks.PreToolUse matchers need Codex equivalents' },
+  { name: 'MCP-dependent Skills (design-to-code, component-search)', count: 8, status: 'portable', codex: 'Both platforms support MCP natively', note: 'MCP server configs differ slightly' },
+  { name: 'Orchestration Skills (brainstorm, fix-issue)', count: 10, status: 'adapt', codex: 'Need parallel agent translation', note: 'Agent() spawning has no direct Codex equivalent yet' },
+];
+
+const AGENT_CATEGORIES = [
+  { name: 'Analysis Agents (code-quality, security-auditor)', count: 8, status: 'adapt', codex: 'Path-based agents exist, different syntax', note: 'tools: [Agent(x)] -> /root/agent_x addressing' },
+  { name: 'Builder Agents (frontend, backend, database)', count: 10, status: 'adapt', codex: 'Agent definitions portable, orchestration differs', note: 'TeamCreate/SendMessage have no equivalent' },
+  { name: 'Research Agents (web-research, market-intel)', count: 5, status: 'portable', codex: 'MCP-based tools work on both', note: 'tavily, memory MCP servers portable' },
+  { name: 'Orchestrator Agents (workflow, pipeline)', count: 6, status: 'blocked', codex: 'No sub-agent orchestration in Codex yet', note: 'context: fork, isolation: worktree missing' },
+  { name: 'UI Agents (ui-feedback, expect, demo-producer)', count: 7, status: 'blocked', codex: 'Depend on CC-specific SubagentStart/Stop lifecycle', note: 'Agent attribution pipeline impossible without these hooks' },
+];
+
+const HOOK_CATEGORIES = [
+  { name: 'PreToolUse hooks (Bash)', count: 8, status: 'portable', codex: 'Codex PreToolUse supports Bash matcher', note: 'Direct equivalent exists' },
+  { name: 'PreToolUse hooks (Write|Edit|Agent|Read)', count: 15, status: 'blocked', codex: 'Codex PreToolUse only supports Bash', note: 'Cannot intercept file/agent operations' },
+  { name: 'PostToolUse hooks', count: 12, status: 'portable', codex: 'Codex PostToolUse exists', note: 'Matcher syntax may differ' },
+  { name: 'SessionStart/Stop hooks', count: 6, status: 'portable', codex: 'Direct equivalent', note: 'SessionStart + Stop both supported' },
+  { name: 'UserPromptSubmit hooks', count: 4, status: 'portable', codex: 'Added in Codex 0.116.0 (Mar 19)', note: 'Newly supported' },
+  { name: 'SubagentStart/Stop hooks', count: 18, status: 'blocked', codex: 'No equivalent event in Codex', note: 'Agent attribution pipeline depends on these' },
+  { name: 'PermissionRequest hooks', count: 10, status: 'blocked', codex: 'No equivalent — Codex uses approval modes', note: 'Security gates implemented differently' },
+  { name: 'PreCompact/PostCompact hooks', count: 4, status: 'blocked', codex: 'No context compaction hooks', note: 'State preservation not possible' },
+  { name: 'Notification/Task/Worktree hooks', count: 11, status: 'blocked', codex: 'No equivalent lifecycle events', note: 'Task system hooks, worktree hooks missing' },
+  { name: 'Agent-scoped hooks', count: 47, status: 'blocked', codex: 'Codex hooks are global only', note: 'No per-agent hook scoping in Codex' },
+  { name: 'Skill-scoped hooks (commit, create-pr, etc.)', count: 22, status: 'adapt', codex: 'Could be reimplemented inside SKILL.md logic', note: 'Move hook logic into skill instructions' },
+];
+
+function buildAllItems() {
+  const items = [];
+  SKILL_CATEGORIES.forEach(c => items.push({ ...c, type: 'skill' }));
+  AGENT_CATEGORIES.forEach(c => items.push({ ...c, type: 'agent' }));
+  HOOK_CATEGORIES.forEach(c => items.push({ ...c, type: 'hook' }));
+  return items;
+}
+const ALL_ITEMS = buildAllItems();
+
+// ============================================================
+// TABS
+// ============================================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ============================================================
+// OVERVIEW — Sankey
+// ============================================================
+function renderSankey() {
+  const svg = document.getElementById('sankey-svg');
+  const portableSkills = 73, adaptSkills = 27, blockedSkills = 0;
+  const portableAgents = 5, adaptAgents = 18, blockedAgents = 13;
+  const portableHooks = 30, adaptHooks = 22, blockedHooks = 58;
+
+  const totalPortable = portableSkills + portableAgents + portableHooks;
+  const totalAdapt = adaptSkills + adaptAgents + adaptHooks;
+  const totalBlocked = blockedSkills + blockedAgents + blockedHooks;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gSkillPort" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#58a6ff" stop-opacity="0.6"/><stop offset="100%" stop-color="#3fb950" stop-opacity="0.6"/></linearGradient>
+      <linearGradient id="gSkillAdapt" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#58a6ff" stop-opacity="0.5"/><stop offset="100%" stop-color="#d29922" stop-opacity="0.5"/></linearGradient>
+      <linearGradient id="gAgentPort" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#bc8cff" stop-opacity="0.6"/><stop offset="100%" stop-color="#3fb950" stop-opacity="0.6"/></linearGradient>
+      <linearGradient id="gAgentAdapt" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#bc8cff" stop-opacity="0.5"/><stop offset="100%" stop-color="#d29922" stop-opacity="0.5"/></linearGradient>
+      <linearGradient id="gAgentBlock" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#bc8cff" stop-opacity="0.4"/><stop offset="100%" stop-color="#f85149" stop-opacity="0.4"/></linearGradient>
+      <linearGradient id="gHookPort" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#d29922" stop-opacity="0.6"/><stop offset="100%" stop-color="#3fb950" stop-opacity="0.6"/></linearGradient>
+      <linearGradient id="gHookAdapt" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#d29922" stop-opacity="0.5"/><stop offset="100%" stop-color="#d29922" stop-opacity="0.5"/></linearGradient>
+      <linearGradient id="gHookBlock" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#d29922" stop-opacity="0.4"/><stop offset="100%" stop-color="#f85149" stop-opacity="0.4"/></linearGradient>
+    </defs>
+    <!-- Left column: OrchestKit components -->
+    <rect x="20" y="20" width="140" height="120" rx="6" fill="#58a6ff" opacity="0.2" stroke="#58a6ff" stroke-opacity="0.4"/>
+    <text x="90" y="70" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="600">100 Skills</text>
+    <text x="90" y="90" text-anchor="middle" fill="#8b949e" font-size="11">Domain knowledge</text>
+
+    <rect x="20" y="160" width="140" height="100" rx="6" fill="#bc8cff" opacity="0.2" stroke="#bc8cff" stroke-opacity="0.4"/>
+    <text x="90" y="200" text-anchor="middle" fill="#bc8cff" font-size="13" font-weight="600">36 Agents</text>
+    <text x="90" y="220" text-anchor="middle" fill="#8b949e" font-size="11">Specialized workers</text>
+
+    <rect x="20" y="280" width="140" height="100" rx="6" fill="#d29922" opacity="0.2" stroke="#d29922" stroke-opacity="0.4"/>
+    <text x="90" y="320" text-anchor="middle" fill="#d29922" font-size="13" font-weight="600">110 Hooks</text>
+    <text x="90" y="340" text-anchor="middle" fill="#8b949e" font-size="11">Lifecycle gates</text>
+
+    <!-- Right column: Portability tiers -->
+    <rect x="720" y="20" width="160" height="${totalPortable * 2.2}" rx="6" fill="#3fb950" opacity="0.15" stroke="#3fb950" stroke-opacity="0.4"/>
+    <text x="800" y="${20 + totalPortable * 1.1}" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">Portable (${totalPortable})</text>
+
+    <rect x="720" y="${40 + totalPortable * 2.2}" width="160" height="${totalAdapt * 2.2}" rx="6" fill="#d29922" opacity="0.15" stroke="#d29922" stroke-opacity="0.4"/>
+    <text x="800" y="${40 + totalPortable * 2.2 + totalAdapt * 1.1}" text-anchor="middle" fill="#d29922" font-size="13" font-weight="600">Adapt (${totalAdapt})</text>
+
+    <rect x="720" y="${60 + (totalPortable + totalAdapt) * 2.2}" width="160" height="${totalBlocked * 1.6}" rx="6" fill="#f85149" opacity="0.15" stroke="#f85149" stroke-opacity="0.4"/>
+    <text x="800" y="${60 + (totalPortable + totalAdapt) * 2.2 + totalBlocked * 0.8}" text-anchor="middle" fill="#f85149" font-size="13" font-weight="600">Blocked (${totalBlocked})</text>
+
+    <!-- Flows: Skills -->
+    <path d="M160,55 C400,55 500,55 720,45" stroke="url(#gSkillPort)" stroke-width="${portableSkills * 0.8}" fill="none" opacity="0.7"/>
+    <path d="M160,100 C400,110 500,${55 + totalPortable * 2.2} 720,${55 + totalPortable * 2.2}" stroke="url(#gSkillAdapt)" stroke-width="${adaptSkills * 0.6}" fill="none" opacity="0.6"/>
+
+    <!-- Flows: Agents -->
+    <path d="M160,185 C400,140 500,80 720,80" stroke="url(#gAgentPort)" stroke-width="${portableAgents * 1.5}" fill="none" opacity="0.7"/>
+    <path d="M160,205 C400,200 500,${60 + totalPortable * 2.2} 720,${60 + totalPortable * 2.2 + totalAdapt * 0.5}" stroke="url(#gAgentAdapt)" stroke-width="${adaptAgents * 0.7}" fill="none" opacity="0.6"/>
+    <path d="M160,230 C400,260 500,${70 + (totalPortable + totalAdapt) * 2.2} 720,${70 + (totalPortable + totalAdapt) * 2.2}" stroke="url(#gAgentBlock)" stroke-width="${blockedAgents * 0.7}" fill="none" opacity="0.5"/>
+
+    <!-- Flows: Hooks -->
+    <path d="M160,300 C400,250 500,100 720,${20 + totalPortable * 1.8}" stroke="url(#gHookPort)" stroke-width="${portableHooks * 0.5}" fill="none" opacity="0.6"/>
+    <path d="M160,325 C400,310 500,${55 + totalPortable * 2.2 + totalAdapt * 1.5} 720,${55 + totalPortable * 2.2 + totalAdapt * 1.5}" stroke="url(#gHookAdapt)" stroke-width="${adaptHooks * 0.5}" fill="none" opacity="0.5"/>
+    <path d="M160,355 C400,360 500,${75 + (totalPortable + totalAdapt) * 2.2 + totalBlocked * 0.5} 720,${75 + (totalPortable + totalAdapt) * 2.2 + totalBlocked * 0.5}" stroke="url(#gHookBlock)" stroke-width="${blockedHooks * 0.4}" fill="none" opacity="0.5"/>
+
+    <!-- Labels on flows -->
+    <text x="420" y="45" text-anchor="middle" fill="#8b949e" font-size="10">73 skills</text>
+    <text x="420" y="118" text-anchor="middle" fill="#8b949e" font-size="10">27 skills</text>
+    <text x="420" y="250" text-anchor="middle" fill="#8b949e" font-size="10">18 agents</text>
+    <text x="420" y="280" text-anchor="middle" fill="#8b949e" font-size="10">13 agents</text>
+    <text x="420" y="350" text-anchor="middle" fill="#8b949e" font-size="10">58 hooks</text>
+  `;
+}
+
+// ============================================================
+// MATRIX
+// ============================================================
+function renderMatrix(filter, search) {
+  const tbody = document.getElementById('matrix-body');
+  let html = '';
+  let filtered = ALL_ITEMS;
+  if (filter && filter !== 'all') {
+    if (['skill','agent','hook'].includes(filter)) filtered = filtered.filter(i => i.type === filter);
+    else filtered = filtered.filter(i => i.status === filter);
+  }
+  if (search) {
+    const s = search.toLowerCase();
+    filtered = filtered.filter(i => i.name.toLowerCase().includes(s) || i.codex.toLowerCase().includes(s) || i.note.toLowerCase().includes(s));
+  }
+  filtered.forEach(item => {
+    const statusLabel = item.status === 'portable' ? 'Portable' : item.status === 'adapt' ? 'Needs Adaptation' : 'Not Portable';
+    html += `<tr>
+      <td><strong>${item.name}</strong><br><span style="font-size:11px;color:var(--text-muted)">${item.count} components</span></td>
+      <td><span class="type-badge ${item.type}">${item.type}</span></td>
+      <td><span class="status-dot ${item.status}"></span>${statusLabel}</td>
+      <td style="font-size:12px">${item.codex}</td>
+      <td class="notes">${item.note}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:40px">No matching components</td></tr>';
+
+  // Update counts
+  document.getElementById('count-all').textContent = ` ${ALL_ITEMS.length}`;
+  document.getElementById('count-skill').textContent = ` ${ALL_ITEMS.filter(i=>i.type==='skill').length}`;
+  document.getElementById('count-agent').textContent = ` ${ALL_ITEMS.filter(i=>i.type==='agent').length}`;
+  document.getElementById('count-hook').textContent = ` ${ALL_ITEMS.filter(i=>i.type==='hook').length}`;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMatrix(btn.dataset.filter, document.getElementById('matrix-search').value);
+  });
+});
+document.getElementById('matrix-search').addEventListener('input', e => {
+  const active = document.querySelector('.filter-btn.active');
+  renderMatrix(active?.dataset.filter || 'all', e.target.value);
+});
+
+// ============================================================
+// EFFORT ESTIMATOR
+// ============================================================
+const EFFORT_ITEMS = [
+  { group: 'Skills (Markdown Bodies)', items: [
+    { id: 'skill-domain', label: '65 domain knowledge skills', days: 1, preset: ['skills-only','dual-publish','full-port'] },
+    { id: 'skill-workflow', label: '12 workflow skills (explore, implement)', days: 3, preset: ['dual-publish','full-port'] },
+    { id: 'skill-git', label: '5 git/PR skills (commit, create-pr)', days: 2, preset: ['dual-publish','full-port'] },
+    { id: 'skill-mcp', label: '8 MCP-dependent skills', days: 1, preset: ['skills-only','dual-publish','full-port'] },
+    { id: 'skill-orch', label: '10 orchestration skills', days: 3, preset: ['full-port'] },
+  ]},
+  { group: 'Skill Frontmatter Translation', items: [
+    { id: 'fm-basic', label: 'Basic frontmatter (name, desc, tags)', days: 0.5, preset: ['skills-only','dual-publish','full-port'] },
+    { id: 'fm-tools', label: 'allowed-tools mapping', days: 1, preset: ['dual-publish','full-port'] },
+    { id: 'fm-hooks', label: 'Skill-scoped hook translation', days: 2, preset: ['dual-publish','full-port'] },
+    { id: 'fm-env', label: 'Environment variable remapping', days: 1, preset: ['dual-publish','full-port'] },
+  ]},
+  { group: 'Agent Definitions', items: [
+    { id: 'agent-basic', label: 'Basic agent metadata (8 analysis agents)', days: 2, preset: ['dual-publish','full-port'] },
+    { id: 'agent-builder', label: 'Builder agents (10 frontend/backend/db)', days: 3, preset: ['full-port'] },
+    { id: 'agent-orch', label: 'Orchestrator agents (TeamCreate/SendMessage)', days: 5, preset: ['full-port'] },
+    { id: 'agent-path', label: 'Agent() -> path-based addressing migration', days: 3, preset: ['full-port'] },
+  ]},
+  { group: 'Hook System', items: [
+    { id: 'hook-session', label: 'SessionStart/Stop hooks (6)', days: 1, preset: ['dual-publish','full-port'] },
+    { id: 'hook-pretool', label: 'PreToolUse Bash hooks (8)', days: 1, preset: ['dual-publish','full-port'] },
+    { id: 'hook-posttool', label: 'PostToolUse hooks (12)', days: 1.5, preset: ['dual-publish','full-port'] },
+    { id: 'hook-prompt', label: 'UserPromptSubmit hooks (4)', days: 0.5, preset: ['dual-publish','full-port'] },
+    { id: 'hook-skill', label: 'Skill-scoped hooks -> inline logic (22)', days: 3, preset: ['full-port'] },
+  ]},
+  { group: 'Build Tooling', items: [
+    { id: 'build-dual', label: 'Dual-publish build script', days: 2, preset: ['dual-publish','full-port'] },
+    { id: 'build-ci', label: 'CI matrix for both platforms', days: 1, preset: ['dual-publish','full-port'] },
+    { id: 'build-test', label: 'Cross-platform test harness', days: 2, preset: ['full-port'] },
+  ]},
+];
+
+function renderEffort() {
+  const container = document.getElementById('effort-groups');
+  container.innerHTML = '';
+  EFFORT_ITEMS.forEach(group => {
+    const div = document.createElement('div');
+    div.className = 'effort-group';
+    div.innerHTML = `<h3>${group.group}</h3>` + group.items.map(item =>
+      `<label><input type="checkbox" data-id="${item.id}" data-days="${item.days}" onchange="updateEffort()"> ${item.label} <span class="item-effort">${item.days}d</span></label>`
+    ).join('');
+    container.appendChild(div);
+  });
+}
+
+function updateEffort() {
+  const checks = document.querySelectorAll('#effort-groups input[type="checkbox"]');
+  let total = 0;
+  const breakdown = {};
+  checks.forEach(ch => {
+    if (ch.checked) {
+      const days = parseFloat(ch.dataset.days);
+      total += days;
+      const group = ch.closest('.effort-group').querySelector('h3').textContent;
+      breakdown[group] = (breakdown[group] || 0) + days;
+    }
+  });
+
+  document.getElementById('effort-total').textContent = total === 0 ? '0d' : total <= 5 ? `${total}d` : `${Math.ceil(total / 5)}w ${total % 5 > 0 ? (total % 5) + 'd' : ''}`;
+
+  const pct = Math.min(100, (total / 30) * 100);
+  const bar = document.getElementById('effort-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'effort-bar-fill ' + (total <= 5 ? 'green' : total <= 15 ? 'yellow' : 'red');
+
+  const bdDiv = document.getElementById('effort-breakdown');
+  bdDiv.innerHTML = Object.entries(breakdown).map(([k,v]) =>
+    `<div class="effort-breakdown-item"><span class="label">${k}</span><span>${v}d</span></div>`
+  ).join('');
+
+  updatePrompt(total, breakdown);
+}
+
+function updatePrompt(total, breakdown) {
+  const parts = [];
+  if (total === 0) {
+    document.getElementById('prompt-text').textContent = 'Select components above to estimate porting effort.';
+    return;
+  }
+  parts.push(`Port OrchestKit to Codex CLI with an estimated ${total} engineering days of effort.`);
+  parts.push('');
+  parts.push('Scope:');
+  Object.entries(breakdown).forEach(([k,v]) => parts.push(`- ${k}: ${v} days`));
+  parts.push('');
+  if (total <= 5) parts.push('This is a lightweight skills-only port. Ship the markdown bodies with minimal frontmatter adaptation. Skip hooks and agents.');
+  else if (total <= 15) parts.push('This is a dual-publish setup. Build tooling generates both CC and Codex plugin formats from shared source. Covers skills + basic hooks.');
+  else parts.push('This is a full port including agent orchestration workarounds and hook reimplementation. Consider waiting for Codex to add SubagentStart/Stop events before starting.');
+
+  document.getElementById('prompt-text').textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text);
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const preset = btn.dataset.preset;
+    document.querySelectorAll('#effort-groups input[type="checkbox"]').forEach(ch => {
+      if (preset === 'none') { ch.checked = false; return; }
+      const item = EFFORT_ITEMS.flatMap(g => g.items).find(i => i.id === ch.dataset.id);
+      ch.checked = item?.preset?.includes(preset) || false;
+    });
+    updateEffort();
+  });
+});
+
+// ============================================================
+// CODE COMPARE
+// ============================================================
+const COMPARISONS = {
+  skill: {
+    cc: { title: 'Claude Code — SKILL.md', code: `<span class="key">---</span>
+<span class="key">name:</span> commit
+<span class="key">description:</span> Creates commits with conventional format
+<span class="key">tags:</span> [git, workflow]
+<span class="key">user-invocable:</span> true
+<span class="diff">complexity:</span> medium          <span class="comment"># CC-specific</span>
+<span class="diff">compatibility:</span> "CC 2.1.76+"  <span class="comment"># CC-specific</span>
+<span class="diff">allowed-tools:</span> [Bash]        <span class="comment"># CC tool names</span>
+<span class="diff">hooks:</span>                         <span class="comment"># CC hook system</span>
+<span class="diff">  PreToolUse:</span>
+<span class="diff">    - matcher: "Bash"</span>
+<span class="diff">      command: "\${CLAUDE_PLUGIN_ROOT}/hooks/..."</span>
+<span class="key">---</span>
+
+<span class="same"># Commit Skill</span>
+<span class="same">## Phase 1: Analyze changes...</span>
+<span class="same">## Phase 2: Draft message...</span>
+<span class="hl">(markdown body is 100% portable)</span>` },
+    codex: { title: 'Codex — SKILL.md', code: `<span class="key">---</span>
+<span class="key">name:</span> commit
+<span class="key">description:</span> Creates commits with conventional format
+<span class="key">tags:</span> [git, workflow]
+<span class="diff">activation:</span> explicit         <span class="comment"># Codex uses activation modes</span>
+<span class="comment"># No complexity, compatibility fields</span>
+<span class="comment"># No allowed-tools (approval modes instead)</span>
+<span class="comment"># No inline hook declarations</span>
+<span class="comment"># Hooks go in separate hooks.json</span>
+<span class="key">---</span>
+
+<span class="same"># Commit Skill</span>
+<span class="same">## Phase 1: Analyze changes...</span>
+<span class="same">## Phase 2: Draft message...</span>
+<span class="hl">(same markdown body transfers directly)</span>` }
+  },
+  hooks: {
+    cc: { title: 'Claude Code — hooks.json (18 events)', code: `<span class="key">{</span>
+  <span class="hl">"hooks":</span> {
+    <span class="hl">"PreToolUse":</span> [
+      { <span class="key">"matcher":</span> "Bash",        <span class="comment">// any tool</span>
+        <span class="key">"command":</span> "node hooks/run.mjs" },
+      { <span class="key">"matcher":</span> <span class="diff">"Write|Edit"</span>,  <span class="comment">// CC-only</span>
+        <span class="key">"command":</span> "node hooks/run.mjs" },
+      { <span class="key">"matcher":</span> <span class="diff">"Agent"</span>,       <span class="comment">// CC-only</span>
+        <span class="key">"command":</span> "node hooks/run.mjs" }
+    ],
+    <span class="hl">"PostToolUse":</span> [...],
+    <span class="hl">"SessionStart":</span> [...],
+    <span class="hl">"UserPromptSubmit":</span> [...],
+    <span class="hl">"Stop":</span> [...],
+    <span class="diff">"SubagentStart":</span> [...],     <span class="comment">// CC-only</span>
+    <span class="diff">"SubagentStop":</span> [...],      <span class="comment">// CC-only</span>
+    <span class="diff">"PermissionRequest":</span> [...], <span class="comment">// CC-only</span>
+    <span class="diff">"PreCompact":</span> [...],        <span class="comment">// CC-only</span>
+    <span class="diff">"PostCompact":</span> [...],       <span class="comment">// CC-only</span>
+    <span class="diff">"Notification":</span> [...],      <span class="comment">// CC-only</span>
+    <span class="diff">"TaskCreated":</span> [...]        <span class="comment">// CC-only</span>
+    <span class="comment">// ... 6 more CC-only events</span>
+  }
+<span class="key">}</span>` },
+    codex: { title: 'Codex — hooks.json (5 events)', code: `<span class="key">{</span>
+  <span class="hl">"hooks":</span> {
+    <span class="hl">"PreToolUse":</span> [
+      { <span class="key">"matcher":</span> "Bash",       <span class="comment">// Bash ONLY</span>
+        <span class="key">"type":</span> "command",
+        <span class="key">"command":</span> "node hooks/run.mjs",
+        <span class="key">"timeout":</span> 600 }         <span class="comment">// 600s default</span>
+    ],
+    <span class="hl">"PostToolUse":</span> [...],
+    <span class="hl">"SessionStart":</span> [
+      { <span class="key">"matcher":</span> "startup|resume",
+        <span class="key">"type":</span> "command",
+        <span class="key">"command":</span> "..." }
+    ],
+    <span class="hl">"UserPromptSubmit":</span> [...],   <span class="comment">// Added 0.116.0</span>
+    <span class="hl">"Stop":</span> [...]
+    <span class="comment">// That's it. 5 events total.</span>
+    <span class="comment">// No SubagentStart/Stop</span>
+    <span class="comment">// No PermissionRequest</span>
+    <span class="comment">// No PreCompact/PostCompact</span>
+    <span class="comment">// No agent/skill scoping</span>
+    <span class="comment">// Hooks run CONCURRENTLY (unordered)</span>
+  }
+<span class="key">}</span>` }
+  },
+  project: {
+    cc: { title: 'Claude Code — CLAUDE.md', code: `<span class="same"># CLAUDE.md</span>
+<span class="same">Essential context for Claude Code.</span>
+
+<span class="same">## Project Overview</span>
+<span class="same">OrchestKit — Claude Code plugin...</span>
+
+<span class="same">## Commands</span>
+<span class="same">npm run build</span>
+<span class="same">npm test</span>
+
+<span class="same">## Critical Rules</span>
+<span class="same">Edit src/, never plugins/</span>
+
+<span class="diff">## Features</span>
+<span class="diff">- @import syntax for composition</span>
+<span class="diff">- No documented size limit</span>
+<span class="diff">- Hierarchical: walks directory tree</span>
+<span class="diff">- .claude/ namespace for state</span>` },
+    codex: { title: 'Codex — AGENTS.md', code: `<span class="same"># AGENTS.md</span>
+<span class="same">Essential context for Codex.</span>
+
+<span class="same">## Project Overview</span>
+<span class="same">OrchestKit — Codex plugin...</span>
+
+<span class="same">## Commands</span>
+<span class="same">npm run build</span>
+<span class="same">npm test</span>
+
+<span class="same">## Critical Rules</span>
+<span class="same">Edit src/, never plugins/</span>
+
+<span class="diff">## Differences</span>
+<span class="diff">- AGENTS.override.md replaces (not appends)</span>
+<span class="diff">- 32KB hard limit (project_doc_max_bytes)</span>
+<span class="diff">- 3-tier: global -> project -> nested</span>
+<span class="diff">- .codex/ namespace for state</span>` }
+  },
+  agent: {
+    cc: { title: 'Claude Code — Agent Definition', code: `<span class="key">---</span>
+<span class="key">name:</span> backend-system-architect
+<span class="key">description:</span> Backend architect for APIs and schemas
+<span class="diff">model:</span> inherit              <span class="comment"># CC model selection</span>
+<span class="diff">tools:</span>                       <span class="comment"># CC tool syntax</span>
+<span class="diff">  - Agent(database-engineer)</span> <span class="comment"># nested agent spawning</span>
+<span class="diff">  - Agent(test-generator)</span>
+<span class="diff">  - TeamCreate</span>              <span class="comment"># team orchestration</span>
+<span class="diff">  - SendMessage</span>             <span class="comment"># peer communication</span>
+<span class="diff">  - TaskCreate, TaskUpdate</span>
+<span class="key">skills:</span>
+  - database-patterns
+  - api-design
+<span class="diff">context:</span> fork               <span class="comment"># isolated context</span>
+<span class="diff">isolation:</span> worktree          <span class="comment"># git worktree</span>
+<span class="diff">memory:</span> project             <span class="comment"># persistent memory</span>
+<span class="diff">color:</span> blue                 <span class="comment"># UI team color</span>
+<span class="diff">mcpServers:</span> [memory]        <span class="comment"># MCP bindings</span>
+<span class="key">---</span>
+<span class="same">You are a backend architect...</span>` },
+    codex: { title: 'Codex — agents/openai.yaml', code: `<span class="comment"># Codex agent format (path-based)</span>
+<span class="key">name:</span> backend-system-architect
+<span class="key">description:</span> Backend architect for APIs and schemas
+<span class="comment"># No model selection (uses account default)</span>
+<span class="comment"># No Agent() tool — use path addressing:</span>
+<span class="diff"># /root/database-engineer</span>
+<span class="diff"># /root/test-generator</span>
+<span class="comment"># No TeamCreate/SendMessage</span>
+<span class="comment"># No TaskCreate/TaskUpdate</span>
+<span class="key">skills:</span>
+  - database-patterns
+  - api-design
+<span class="comment"># No context: fork</span>
+<span class="comment"># No isolation: worktree</span>
+<span class="comment"># No memory system</span>
+<span class="comment"># No color coding</span>
+<span class="key">mcp:</span>                         <span class="comment"># MCP is supported</span>
+  <span class="key">- name:</span> memory
+    <span class="key">command:</span> npx memory-mcp
+
+<span class="same">You are a backend architect...</span>` }
+  },
+  mcp: {
+    cc: { title: 'Claude Code — MCP in settings.json', code: `<span class="comment">// .claude/settings.json</span>
+<span class="key">{</span>
+  <span class="hl">"mcpServers":</span> {
+    <span class="key">"memory":</span> {
+      <span class="key">"command":</span> "npx",
+      <span class="key">"args":</span> ["-y", "@anthropic/memory-mcp"],
+      <span class="key">"env":</span> { <span class="key">"MEMORY_DIR":</span> ".claude/memory" }
+    },
+    <span class="key">"tavily":</span> {
+      <span class="key">"command":</span> "npx",
+      <span class="key">"args":</span> ["-y", "tavily-mcp"],
+      <span class="key">"env":</span> { <span class="key">"TAVILY_API_KEY":</span> "..." }
+    }
+  }
+<span class="key">}</span>
+
+<span class="comment">// Tools appear as: mcp__memory__search_nodes</span>
+<span class="comment">// Agents declare: mcpServers: [memory, tavily]</span>` },
+    codex: { title: 'Codex — MCP via CLI + config.toml', code: `<span class="comment"># Add via CLI:</span>
+<span class="hl">codex mcp add memory -- npx -y @openai/memory-mcp</span>
+<span class="hl">codex mcp add tavily -- npx -y tavily-mcp</span>
+
+<span class="comment"># Or in ~/.codex/config.toml:</span>
+<span class="key">[mcp.memory]</span>
+<span class="key">command</span> = "npx"
+<span class="key">args</span> = ["-y", "@openai/memory-mcp"]
+
+<span class="key">[mcp.tavily]</span>
+<span class="key">command</span> = "npx"
+<span class="key">args</span> = ["-y", "tavily-mcp"]
+
+<span class="comment"># List active: codex mcp list</span>
+<span class="comment"># View in TUI: /mcp</span>
+<span class="comment"># Codex can also BE an MCP server:</span>
+<span class="hl">codex mcp-server</span>  <span class="comment"># expose over stdio</span>` }
+  }
+};
+
+function renderCompare(type) {
+  const data = COMPARISONS[type];
+  const grid = document.getElementById('compare-grid');
+  grid.innerHTML = `
+    <div class="compare-panel">
+      <div class="panel-header"><span style="color:var(--purple)">&#9632;</span> ${data.cc.title}</div>
+      <pre>${data.cc.code}</pre>
+    </div>
+    <div class="compare-panel">
+      <div class="panel-header"><span style="color:var(--orange)">&#9632;</span> ${data.codex.title}</div>
+      <pre>${data.codex.code}</pre>
+    </div>
+  `;
+}
+
+document.querySelectorAll('.compare-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.compare-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCompare(btn.dataset.compare);
+  });
+});
+
+// ============================================================
+// HOOK MAP
+// ============================================================
+function renderHookChart() {
+  const events = [
+    { name: 'PreToolUse (Bash)', cc: 8, codex: 8, status: 'match' },
+    { name: 'PreToolUse (Write|Edit)', cc: 8, codex: 0, status: 'cc-only' },
+    { name: 'PreToolUse (Agent)', cc: 4, codex: 0, status: 'cc-only' },
+    { name: 'PreToolUse (Read)', cc: 3, codex: 0, status: 'cc-only' },
+    { name: 'PostToolUse', cc: 12, codex: 12, status: 'match' },
+    { name: 'PostToolUseFailure', cc: 4, codex: 0, status: 'cc-only' },
+    { name: 'SessionStart', cc: 3, codex: 3, status: 'match' },
+    { name: 'SessionEnd', cc: 3, codex: 0, status: 'cc-only' },
+    { name: 'UserPromptSubmit', cc: 4, codex: 4, status: 'match' },
+    { name: 'Stop', cc: 3, codex: 3, status: 'match' },
+    { name: 'SubagentStart', cc: 9, codex: 0, status: 'cc-only' },
+    { name: 'SubagentStop', cc: 9, codex: 0, status: 'cc-only' },
+    { name: 'PermissionRequest', cc: 10, codex: 0, status: 'cc-only' },
+    { name: 'PreCompact', cc: 2, codex: 0, status: 'cc-only' },
+    { name: 'PostCompact', cc: 2, codex: 0, status: 'cc-only' },
+    { name: 'Notification', cc: 3, codex: 0, status: 'cc-only' },
+    { name: 'TaskCreated/Completed', cc: 4, codex: 0, status: 'cc-only' },
+    { name: 'WorktreeCreate/Remove', cc: 2, codex: 0, status: 'cc-only' },
+    { name: 'InstructionsLoaded', cc: 1, codex: 0, status: 'cc-only' },
+    { name: 'Elicitation', cc: 2, codex: 0, status: 'cc-only' },
+    { name: 'Agent-scoped (all events)', cc: 47, codex: 0, status: 'cc-only' },
+    { name: 'Skill-scoped (all events)', cc: 22, codex: 0, status: 'cc-only' },
+  ];
+
+  const maxVal = 47;
+  const chart = document.getElementById('hook-chart');
+  chart.innerHTML = events.map(e => {
+    const ccW = (e.cc / maxVal) * 100;
+    const codexW = (e.codex / maxVal) * 100;
+    const statusIcon = e.status === 'match' ? '<span style="color:var(--green)">&#10003;</span>' : '<span style="color:var(--red)">&#10007;</span>';
+    return `<div class="hook-row">
+      <div class="name">${e.name}</div>
+      <div class="hook-bars">
+        <div class="hook-bar cc" style="width:${Math.max(ccW, 3)}%">${e.cc}</div>
+        ${e.codex > 0 ? `<div class="hook-bar codex" style="width:${Math.max(codexW, 3)}%">${e.codex}</div>` : ''}
+      </div>
+      <div class="hook-status">${statusIcon}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderSankey();
+renderMatrix('all', '');
+renderEffort();
+updateEffort();
+renderCompare('skill');
+renderHookChart();
+
+// Update overview stats
+const totalItems = ALL_ITEMS.reduce((s,i) => s + i.count, 0);
+const portableCount = ALL_ITEMS.filter(i => i.status === 'portable').reduce((s,i) => s + i.count, 0);
+const adaptCount = ALL_ITEMS.filter(i => i.status === 'adapt').reduce((s,i) => s + i.count, 0);
+const blockedCount = ALL_ITEMS.filter(i => i.status === 'blocked').reduce((s,i) => s + i.count, 0);
+document.getElementById('stat-portable').textContent = portableCount;
+document.getElementById('stat-adapt').textContent = adaptCount;
+document.getElementById('stat-blocked').textContent = blockedCount;
+document.getElementById('stat-pct').textContent = Math.round((portableCount + adaptCount * 0.5) / totalItems * 100) + '%';
+</script>
+</body>
+</html>

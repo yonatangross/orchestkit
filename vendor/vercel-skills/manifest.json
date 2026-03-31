@@ -1,0 +1,13 @@
+{
+  "synced": "2026-03-31T11:04:38Z",
+  "repos": {
+    "vercel-labs/agent-browser": {"skills": 5},
+    "vercel-labs/json-render": {"skills": 27},
+    "vercel-labs/emulate": {"skills": 4},
+    "vercel-labs/portless": {"skills": 2}
+  },
+  "total": 38,
+  "synced_count": 32,
+  "skipped_count": 6,
+  "failed_count": 0
+}

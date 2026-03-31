@@ -70,6 +70,17 @@ export const catalog = defineCatalog({
 })
 ```
 
+### LLM Structured Output Compatibility
+
+Use `jsonSchema(\{ strict: true \})` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
+
+```typescript
+import { jsonSchema } from '@json-render/core'
+
+const schema = jsonSchema(catalog, { strict: true })
+// Pass to OpenAI response_format, Anthropic tool_use, or Gemini structured output
+```
+
 ### Step 2: Implement Components
 
 ```tsx
@@ -155,7 +166,7 @@ Load `rules/action-state.md` for event handlers, watch bindings, and state adapt
 
 ## YAML Mode — 30% Fewer Tokens
 
-For one-shot (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
+For standalone (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
 
 ```yaml
 root: card-1
@@ -172,7 +183,7 @@ elements:
       variant: default
 ```
 
-Use JSON for streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for one-shot generation where token cost matters. Load `rules/token-optimization.md` for selection criteria.
+Use JSON for inline mode / streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for standalone mode where token cost matters. Load `rules/token-optimization.md` for selection criteria.
 
 ## Progressive Streaming
 
@@ -255,7 +266,7 @@ Choosing JSON vs YAML for token efficiency.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Optimization | `rules/token-optimization.md` | YAML for one-shot, JSON for streaming |
+| Token Optimization | `rules/token-optimization.md` | YAML for standalone mode, JSON for inline/streaming |
 
 ### Actions & State
 
@@ -270,14 +281,14 @@ Adding interactivity with events, watchers, and state.
 | Decision | Recommendation |
 |----------|----------------|
 | Custom vs shadcn catalog | Start with shadcn, extend with custom types for domain-specific components |
-| JSON vs YAML spec format | YAML for one-shot (30% fewer tokens), JSON for streaming |
+| JSON vs YAML spec format | YAML for standalone mode (30% fewer tokens), JSON for inline/streaming |
 | Zod constraint strictness | Tighter is better — use z.enum over z.string, z.array().max() over unbounded |
 | State management adapter | Match your app's existing state library (Zustand, Redux, Jotai, XState) |
 
 ## Common Mistakes
 
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
-2. Always using JSON specs — wastes 30% tokens when streaming is not needed
+2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
 4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts
@@ -768,7 +779,7 @@ Reference: https://ui.shadcn.com
 
 ## Token Optimization — YAML Mode
 
-json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For one-shot generation, YAML is the default choice.
+json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For standalone mode (formerly "generate"), YAML is the default choice. Note: "generate"/"chat" mode names were deprecated in v0.12.1 — use "standalone"/"inline" instead.
 
 **Incorrect:**
 ```typescript
@@ -806,7 +817,7 @@ const systemPrompt = `Generate a json-render spec in JSON format:
 
 **Correct:**
 ```typescript
-// YAML for one-shot generation — 30% fewer tokens
+// YAML for standalone mode — 30% fewer tokens
 import { parseYamlSpec } from '@json-render/yaml'
 
 const systemPrompt = `Generate a json-render spec in YAML format:
@@ -838,8 +849,8 @@ const spec = parseYamlSpec(yamlString)
 
 | Criterion | JSON | YAML |
 |-----------|------|------|
-| Streaming (progressive render) | Required | Not supported |
-| One-shot generation | Works but wasteful | 30% fewer tokens |
+| Inline mode / streaming (progressive render) | Required | Not supported |
+| Standalone mode | Works but wasteful | 30% fewer tokens |
 | Token cost sensitivity | Higher | Lower |
 | Parsing reliability | Native JSON.parse | Requires yaml parser |
 | AI familiarity | Higher (more training data) | High (common in configs) |
@@ -848,10 +859,10 @@ const spec = parseYamlSpec(yamlString)
 ### Decision Rule
 
 ```
-If streaming (progressive render needed) → JSON
-If one-shot AND token cost matters → YAML
-If one-shot AND debugging matters → either (both readable)
-Default for one-shot → YAML
+If inline mode / streaming (progressive render needed) → JSON
+If standalone AND token cost matters → YAML
+If standalone AND debugging matters → either (both readable)
+Default for standalone → YAML
 ```
 
 ### Token Comparison Example
@@ -864,8 +875,8 @@ A spec with 5 components:
 At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The real value is in output token reduction — LLMs generate fewer tokens in YAML format, which reduces latency.
 
 **Key rules:**
-- Use YAML for one-shot generation — it reduces both input and output tokens by ~30%
-- Use JSON when streaming is required — JSON Patch (RFC 6902) operates on JSON, not YAML
+- Use YAML for standalone mode — it reduces both input and output tokens by ~30%
+- Use JSON for inline mode / streaming — JSON Patch (RFC 6902) operates on JSON, not YAML
 - Import `parseYamlSpec` from `@json-render/yaml` to convert YAML strings to spec objects
 - Do not mix formats in a single spec — pick one and stay consistent
 - Measure token usage with your provider's tokenizer to validate savings for your specific catalogs

@@ -190,8 +190,8 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
 - Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
 - Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
-- **v0.22 breaking**: `-C`/`--cursor` flag is deprecated — cursor-interactive elements are included by default
 - **v0.21+**: iframes are traversed automatically in snapshots — no need for `frame @e1` first
 - **v0.21 breaking**: `--full` is now command-level, not global — use `screenshot --full`, not `--full screenshot`
+- **v0.23.1**: alert/beforeunload dialogs are auto-dismissed by default — opt out with `--no-auto-dialog`
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)

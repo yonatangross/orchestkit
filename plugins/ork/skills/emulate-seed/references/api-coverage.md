@@ -139,18 +139,6 @@ Full list of supported API endpoints per emulate service.
 ### IAM & STS
 - `POST /` — CreateUser, CreateRole, GetCallerIdentity, AssumeRole
 
-## MongoDB Atlas (`:4007`)
-
-### Admin API v2
-- `GET /api/atlas/v2/groups` — List projects
-- `GET /api/atlas/v2/groups/{id}/clusters` — List clusters
-
-### Data API v1
-- `POST /action/find` — Query with filter, projection, sort
-- `POST /action/insertOne` / `insertMany` — Insert documents
-- `POST /action/updateOne` / `updateMany` — Update with operators
-- `POST /action/aggregate` — Aggregation pipeline
-
 ## Stateful Behaviors
 
 All services maintain full state:

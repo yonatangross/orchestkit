@@ -56,9 +56,8 @@ agent-browser open "http://localhost:3000"  # which app is this?
 
 **Breaking changes** — update scripts now:
 - `--full` / `-f` moved from global to command-level (v0.21): use `screenshot --full`, NOT `--full screenshot`
-- Node.js/Playwright daemon fully removed (v0.20): `--native` and `AGENT_BROWSER_NATIVE=1` are no-ops
-- `-C` / `--cursor` flag for `snapshot` deprecated (v0.22): cursor-interactive elements included by default
 - Auth encryption format changed (v0.17): saved auth states from v0.16.x may not load
+- Auto-dialog dismissal (v0.23.1): alert/beforeunload dialogs are auto-dismissed by default, opt out with `--no-auto-dialog`
 
 **New commands:**
 
@@ -130,7 +129,7 @@ Rate limits and behavior are configurable via environment variables:
 | `AGENT_BROWSER_BURST_LIMIT` | 3 | Max requests in 3-second window |
 | `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
 | `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
-| `AGENT_BROWSER_NATIVE_CONFIRM` | 1 | Use native `--confirm-actions` for sensitive ops |
+| `AGENT_BROWSER_CONFIRM` | 1 | Use `--confirm-actions` for sensitive ops |
 | `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
 | `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
@@ -160,10 +159,8 @@ agent-browser get text body                    # Prefer targeted ref extraction
 agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
 agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies
 
-# Deprecated / removed (v0.20+)
-agent-browser --native screenshot              # --native removed, Rust is the ONLY impl
-AGENT_BROWSER_NATIVE=1 agent-browser open ...  # No-op since v0.20
-agent-browser --full screenshot                # BREAKING: --full is now command-level
+# Deprecated / removed
+agent-browser --full screenshot                # BREAKING: --full is now command-level (v0.21)
 agent-browser screenshot --full                # Correct: flag after subcommand
 
 # Sensitive data leaks
