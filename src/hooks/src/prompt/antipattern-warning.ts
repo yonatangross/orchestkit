@@ -1,30 +1,20 @@
 /**
- * Antipattern Warning - UserPromptSubmit Hook
- * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext for warnings
+ * Antipattern Warning - Static Rules Materializer
  *
- * Architecture (2 layers):
- * 1. STATIC: materializeAntipatternRules() writes .claude/rules/antipatterns.md
- *    at session start. CC loads this into every prompt for FREE — no per-turn cost.
- *    This handles the 7 known anti-patterns (offset pagination, N+1, etc.).
- *    Still called by sync-session-dispatcher.ts at SessionStart — DO NOT DELETE.
+ * materializeAntipatternRules() writes .claude/rules/antipatterns.md
+ * at session start. CC loads this into every prompt for FREE — no per-turn cost.
+ * Called by sync-session-dispatcher.ts at SessionStart.
  *
- * 2. DYNAMIC: antipatternWarning() ran per-turn to check project-specific
- *    learned patterns (learned-patterns.json) and cross-project global patterns
- *    (global-patterns.json).
- *
- * @deprecated antipatternWarning() (#972): Migrated to type:prompt hook in hooks.json.
- * The LLM now classifies antipatterns directly — no regex needed. This function is
- * no longer called by unified-dispatcher.ts but remains here for reference.
- * materializeAntipatternRules() is still used by sync-session-dispatcher.ts.
+ * Dynamic per-turn pattern matching (antipatternWarning, searchDynamicPatterns)
+ * was removed in v7.27.1 (#1145) — migrated to type:prompt hook in hooks.json.
+ * The LLM now classifies antipatterns directly — no regex needed.
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir, writeRulesFile } from '../lib/common.js';
-import { getHomeDir } from '../lib/paths.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { outputSilentSuccess, writeRulesFile } from '../lib/common.js';
 import { join } from 'node:path';
 
-// Static anti-patterns — materialized to rules file at session start, NOT checked at runtime
+// Static anti-patterns — materialized to rules file at session start
 const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
   {
     pattern: 'offset pagination',
@@ -59,110 +49,21 @@ const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
   },
 ];
 
-interface LearnedPattern {
-  text: string;
-  outcome?: string;
-}
-
-interface PatternsFile {
-  patterns?: LearnedPattern[];
-}
-
-interface GlobalAntipattern {
-  pattern: string;
-  warning: string;
-}
-
-interface GlobalPatternsFile {
-  antipatterns?: GlobalAntipattern[];
-}
-
 /**
  * Materialize static anti-patterns to a rules file (called once at session start).
  * CC loads .claude/rules/ files into every prompt automatically — zero per-turn cost.
  */
+/**
+ * @deprecated Removed in v7.27.1 (#1145). Dynamic pattern matching migrated to
+ * type:prompt hook. Kept as no-op for bundle compatibility.
+ */
+export function antipatternWarning(_input: HookInput): HookResult {
+  return outputSilentSuccess();
+}
+
 export function materializeAntipatternRules(projectDir: string): void {
   const lines = STATIC_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
   const content = `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;
   const rulesDir = join(projectDir, '.claude', 'rules');
   writeRulesFile(rulesDir, 'antipatterns.md', content, 'antipattern-warning');
-}
-
-/**
- * Search dynamic learned patterns (project-local + global).
- * Static patterns are NOT checked here — they're in the rules file.
- */
-function searchDynamicPatterns(prompt: string, projectDir: string): string[] {
-  const promptLower = prompt.toLowerCase();
-  const warnings: string[] = [];
-
-  // Check project-specific learned patterns
-  const patternsFile = join(projectDir, '.claude', 'feedback', 'learned-patterns.json');
-  if (existsSync(patternsFile)) {
-    try {
-      const data: PatternsFile = JSON.parse(readFileSync(patternsFile, 'utf8'));
-      const failedPatterns = (data.patterns || []).filter((p) => p.outcome === 'failed');
-
-      for (const pattern of failedPatterns) {
-        if (pattern.text) {
-          const patternLower = pattern.text.toLowerCase();
-          const firstWord = patternLower.split(' ')[0];
-          if (firstWord && promptLower.includes(firstWord)) {
-            warnings.push(`Previously failed: ${pattern.text}`);
-          }
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  // Check cross-project global patterns
-  const globalPatternsFile = join(getHomeDir(), '.claude', 'global-patterns.json');
-  if (existsSync(globalPatternsFile)) {
-    try {
-      const data: GlobalPatternsFile = JSON.parse(readFileSync(globalPatternsFile, 'utf8'));
-      for (const { pattern, warning } of data.antipatterns || []) {
-        if (promptLower.includes(pattern.toLowerCase())) {
-          warnings.push(`${pattern}: ${warning}`);
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  return warnings;
-}
-
-/**
- * Antipattern warning hook — checks dynamic learned patterns per-turn.
- * Static patterns are handled by the rules file (zero cost).
- */
-export function antipatternWarning(input: HookInput): HookResult {
-  const prompt = input.prompt || '';
-  const projectDir = input.project_dir || getProjectDir();
-
-  if (!prompt) {
-    return outputSilentSuccess();
-  }
-
-  // Check dynamic patterns (learned + global) — no keyword gate needed
-  const warnings = searchDynamicPatterns(prompt, projectDir);
-
-  if (warnings.length > 0) {
-    logHook('antipattern-warning', `Found dynamic pattern warnings: ${warnings.join(', ')}`);
-
-    const warningMessage = `## Anti-Pattern Warning
-
-The following patterns have previously caused issues:
-
-${warnings.map((w) => `- ${w}`).join('\n')}
-
-Consider alternative approaches before proceeding.`;
-
-    return outputPromptContext(warningMessage);
-  }
-
-  return outputSilentSuccess();
 }
