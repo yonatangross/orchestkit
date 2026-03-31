@@ -7,10 +7,10 @@
  * Writes an audit trail of all permission denials to
  * .claude/feedback/permission-denials.jsonl (one JSON object per line).
  *
- * Async — never blocks the denial flow. Never returns retry.
+ * Sync — writes to disk on each denial. Never returns retry.
  *
  * CC 2.1.88 Compliant: PermissionDenied hook
- * @hook PermissionDenied (async)
+ * @hook PermissionDenied (sync)
  * @since v7.27.0
  * @see #1208
  */

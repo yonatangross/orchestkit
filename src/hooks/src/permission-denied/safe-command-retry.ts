@@ -22,6 +22,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 
 const HOOK_NAME = 'safe-command-retry';
 
@@ -50,6 +51,7 @@ const RETRY_SAFE_PATTERNS: RegExp[] = [
   // Package manager read-only
   /^npm (list|ls|outdated|audit)\b/,
   /^pnpm (list|ls|outdated|audit)\b/,
+  /^yarn (list|outdated|audit|info|why)\b/,
 
   // Docker read-only
   /^docker (ps|images|logs|inspect)\b/,
@@ -62,19 +64,7 @@ const RETRY_SAFE_PATTERNS: RegExp[] = [
   /^pytest\b/,
 ];
 
-/**
- * Reject patterns — never retry these even if they look safe
- */
-const REJECT_PATTERNS: RegExp[] = [
-  /^git\s+checkout\s+--\s+\./,
-  /^git\s+checkout\s+\.\s*$/,
-  /^git\s+reset\s+--hard/,
-  /^git\s+push\s+.*--force/,
-  /^git\s+push\s+-f\b/,
-  /^git\s+clean/,
-  /^rm\s/,
-  /^chmod\s/,
-];
+// REJECT_PATTERNS imported from lib/bash-patterns.ts (unified source)
 
 function outputRetry(reason: string): HookResult {
   return {

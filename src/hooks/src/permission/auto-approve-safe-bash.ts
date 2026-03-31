@@ -12,20 +12,7 @@ import {
   logPermissionFeedback,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
-
-/**
- * Patterns that should NEVER be auto-approved even if they match SAFE_PATTERNS.
- * SEC: These destructive git operations discard work without warning.
- */
-const REJECT_PATTERNS: RegExp[] = [
-  /^git\s+checkout\s+--\s+\./,    // git checkout -- . (discard all unstaged changes)
-  /^git\s+checkout\s+\.\s*$/,      // git checkout . (same effect)
-  /^git\s+checkout\s+(-f|--force)/, // git checkout -f (force, discards local changes)
-  /^git\s+clean/,                   // git clean (deletes untracked files)
-  /^git\s+reset\s+--hard/,          // git reset --hard (discards all changes)
-  /^git\s+push\s+.*--force/,        // git push --force (rewrites remote history)
-  /^git\s+push\s+-f\b/,             // git push -f (short form of --force)
-];
+import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 
 /**
  * Safe command patterns that should be auto-approved.

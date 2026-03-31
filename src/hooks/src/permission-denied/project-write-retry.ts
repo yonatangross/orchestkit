@@ -20,36 +20,10 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
-import { resolve, isAbsolute, relative, normalize, sep } from 'node:path';
+import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
+import { isAbsolute, resolve } from 'node:path';
 
 const HOOK_NAME = 'project-write-retry';
-
-/**
- * Directories that should NOT trigger a retry — same as auto-approve-project-writes.ts
- */
-const EXCLUDED_DIRS = [
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
-  '__pycache__',
-  '.venv',
-  'venv',
-];
-
-function isInsideDir(filePath: string, rootDir: string): boolean {
-  const rel = relative(normalize(rootDir), normalize(filePath));
-  return !rel.startsWith('..') && !isAbsolute(rel);
-}
-
-function hasExcludedDir(filePath: string): boolean {
-  for (const dir of EXCLUDED_DIRS) {
-    if (filePath.includes(`${sep}${dir}${sep}`)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function outputRetry(reason: string): HookResult {
   return {
@@ -77,6 +51,9 @@ export function projectWriteRetry(input: HookInput): HookResult {
   if (!isAbsolute(filePath)) {
     filePath = resolve(projectDir, filePath);
   }
+
+  // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / PD-001)
+  filePath = resolveRealPath(filePath, projectDir);
 
   // Check all root directories: project + /add-dir dirs
   const rootDirs = [projectDir, ...(input.added_dirs ?? [])];

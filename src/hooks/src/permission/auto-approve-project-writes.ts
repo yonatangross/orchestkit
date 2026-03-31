@@ -12,41 +12,8 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../lib/common.js';
-import { resolve, isAbsolute, relative, normalize, sep } from 'node:path';
-
-/**
- * Directories that should not be auto-approved for writes
- */
-const EXCLUDED_DIRS = [
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
-  '__pycache__',
-  '.venv',
-  'venv',
-];
-
-/**
- * Check if a file path is inside a given root directory (safe containment check).
- * Guards against prefix attacks (e.g. /project-evil vs /project).
- */
-function isInsideDir(filePath: string, rootDir: string): boolean {
-  const rel = relative(normalize(rootDir), normalize(filePath));
-  return !rel.startsWith('..') && !isAbsolute(rel);
-}
-
-/**
- * Check if a file path contains an excluded directory segment.
- */
-function hasExcludedDir(filePath: string): boolean {
-  for (const dir of EXCLUDED_DIRS) {
-    if (filePath.includes(`${sep}${dir}${sep}`)) {
-      return true;
-    }
-  }
-  return false;
-}
+import { isInsideDir, hasExcludedDir } from '../lib/path-containment.js';
+import { resolve, isAbsolute } from 'node:path';
 
 /**
  * Auto-approve writes within project directory or any /add-dir added directories

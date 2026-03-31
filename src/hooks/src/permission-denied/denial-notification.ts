@@ -5,31 +5,97 @@
  * sliding window. This signals potential misconfiguration or overly
  * restrictive auto mode settings.
  *
- * Async — never blocks. Never returns retry.
+ * Reads denial timestamps from permission-denials.jsonl (written by
+ * denial-logger.ts). Persists cooldown state to a separate JSON file
+ * so it survives across hook process spawns.
+ *
+ * Sync — never blocks. Never returns retry.
  *
  * CC 2.1.88 Compliant: PermissionDenied hook
- * @hook PermissionDenied (async)
- * @since v7.27.0
+ * @hook PermissionDenied (sync)
+ * @since v7.27.0 (fixed v7.27.1: persisted state replaces in-memory)
  * @see #1211
  */
 
 import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { platform } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 
 const HOOK_NAME = 'denial-notification';
 
 /** Sliding window config */
 const WINDOW_MS = 60_000;
 const THRESHOLD = 3;
-
-/** In-process denial timestamp tracker */
-const denialTimestamps: number[] = [];
-
-/** Track if we already notified in this window to avoid spam */
-let lastNotifiedAt = 0;
 const COOLDOWN_MS = 120_000; // 2 minutes between notifications
+
+function getDenialLogPath(): string {
+  return join(getProjectDir(), '.claude', 'feedback', 'permission-denials.jsonl');
+}
+
+function getStatePath(): string {
+  return join(getProjectDir(), '.claude', 'feedback', 'denial-notification-state.json');
+}
+
+/**
+ * Read recent denial timestamps from the JSONL log file.
+ * Only parses the last ~20 lines for efficiency.
+ */
+function getRecentDenialCount(now: number): number {
+  const logPath = getDenialLogPath();
+  if (!existsSync(logPath)) return 0;
+
+  try {
+    const content = readFileSync(logPath, 'utf-8');
+    const lines = content.trim().split('\n');
+    // Only check recent lines (last 20 is more than enough for a 60s window)
+    const recentLines = lines.slice(-20);
+
+    let count = 0;
+    for (const line of recentLines) {
+      if (!line.trim()) continue;
+      try {
+        const entry = JSON.parse(line);
+        const ts = new Date(entry.timestamp).getTime();
+        if (ts >= now - WINDOW_MS) {
+          count++;
+        }
+      } catch {
+        // Skip malformed lines
+      }
+    }
+    return count;
+  } catch {
+    return 0;
+  }
+}
+
+function getLastNotifiedAt(): number {
+  const statePath = getStatePath();
+  if (!existsSync(statePath)) return 0;
+
+  try {
+    const state = JSON.parse(readFileSync(statePath, 'utf-8'));
+    return state.lastNotifiedAt || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function setLastNotifiedAt(ts: number): void {
+  const statePath = getStatePath();
+  try {
+    const dir = dirname(statePath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(statePath, JSON.stringify({ lastNotifiedAt: ts }) + '\n');
+  } catch {
+    logHook(HOOK_NAME, 'Failed to persist notification state');
+  }
+}
 
 function escapeAppleScript(str: string): string {
   return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -46,7 +112,6 @@ function sendDesktopNotification(title: string, message: string): void {
     } else if (os === 'linux') {
       execFileSync('notify-send', [title, message], { timeout: 3000, stdio: 'ignore' });
     }
-    // Windows: skip (no reliable silent notification command)
   } catch {
     logHook(HOOK_NAME, 'Failed to send desktop notification');
   }
@@ -55,30 +120,25 @@ function sendDesktopNotification(title: string, message: string): void {
 export function denialNotification(input: HookInput): HookResult {
   const now = Date.now();
 
-  // Add current denial
-  denialTimestamps.push(now);
+  // Read denial count from persisted log (written by denial-logger.ts)
+  const denialCount = getRecentDenialCount(now);
 
-  // Prune entries outside the window
-  while (denialTimestamps.length > 0 && denialTimestamps[0] < now - WINDOW_MS) {
-    denialTimestamps.shift();
-  }
+  logHook(HOOK_NAME, `Denial count in window: ${denialCount}/${THRESHOLD}`);
 
-  logHook(HOOK_NAME, `Denial count in window: ${denialTimestamps.length}/${THRESHOLD}`);
+  if (denialCount >= THRESHOLD) {
+    const lastNotifiedAt = getLastNotifiedAt();
 
-  // Check threshold
-  if (denialTimestamps.length >= THRESHOLD) {
-    // Cooldown: don't spam notifications
     if (now - lastNotifiedAt < COOLDOWN_MS) {
       logHook(HOOK_NAME, 'Threshold reached but in cooldown period');
       return outputSilentSuccess();
     }
 
-    lastNotifiedAt = now;
+    setLastNotifiedAt(now);
     const toolName = input.tool_name || 'unknown';
 
     sendDesktopNotification(
       'OrchestKit: Repeated Permission Denials',
-      `${denialTimestamps.length} commands denied in ${WINDOW_MS / 1000}s. Last: ${toolName}. Check /permissions.`,
+      `${denialCount} commands denied in ${WINDOW_MS / 1000}s. Last: ${toolName}. Check /permissions.`,
     );
 
     logHook(HOOK_NAME, 'Desktop notification sent for repeated denials');

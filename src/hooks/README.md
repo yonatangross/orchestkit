@@ -64,6 +64,7 @@ hooks/
 │   ├── subagent-start/     # Subagent spawn hooks (5)
 │   ├── subagent-stop/      # Subagent completion hooks (11)
 │   ├── notification/       # Notification hooks (3)
+│   ├── permission-denied/  # PermissionDenied hooks (5) — CC 2.1.88+
 │   ├── instructions-loaded/ # InstructionsLoaded hooks (6 handlers via dispatcher)
 │   │   ├── instructions-loaded-dispatcher.ts  # Main dispatcher
 │   │   ├── types.ts                           # Shared interfaces
@@ -160,6 +161,16 @@ Handle notifications and alerts.
 **Examples:**
 - `notification/desktop` - Desktop notifications for completion
 - `notification/sound` - Sound alerts for errors
+
+### PermissionDenied Hooks (CC 2.1.88+)
+Fire when the user denies a tool call or auto mode skips it. Can return `{retry: true}` to re-attempt safe operations.
+
+**Hooks (via unified-dispatcher):**
+- `permission-denied/denial-logger` - Audit trail to `.claude/feedback/permission-denials.jsonl`
+- `permission-denied/denial-notification` - Desktop notification on 3+ denials in 60s
+- `permission-denied/safe-command-retry` - Retry safe read-only Bash commands
+- `permission-denied/project-write-retry` - Retry writes inside project directory
+- `permission-denied/denial-notification` - Desktop alert for repeated denials
 
 ---
 
