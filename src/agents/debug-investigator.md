@@ -31,6 +31,19 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
+taskTypes:
+  - debug
+keywords:
+  - "bug"
+  - "error"
+  - "exception"
+  - "crash"
+  - "debugging"
+  - "regression"
+  - "flaky"
+examplePrompts:
+  - "Investigate why the checkout flow fails intermittently"
+  - "Find the root cause of the memory leak in production"
 ---
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.

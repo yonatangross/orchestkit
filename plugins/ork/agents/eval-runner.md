@@ -40,6 +40,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - test
+  - optimize
+keywords:
+  - "eval"
+  - "deepeval"
+  - "ragas"
+  - "langfuse"
+  - "golden dataset"
+  - "regression"
+  - "metrics"
+examplePrompts:
+  - "Run the eval dataset and report quality metrics vs baseline"
+  - "Track regression across model versions with Langfuse scoring"
 ---
 
 ## Directive

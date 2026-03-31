@@ -7,7 +7,7 @@ export const TOTALS: Totals = {
   "plugins": 1,
   "skills": 100,
   "agents": 36,
-  "hooks": 110,
+  "hooks": 111,
   "commands": 21,
   "compositions": 14
 };
@@ -65,7 +65,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "data-pipeline-engineer",
@@ -101,7 +101,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "design"
   },
   {
     "name": "deployment-manager",
@@ -119,7 +119,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "design-system-architect",
@@ -128,7 +128,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "emulate-engineer",
@@ -137,7 +137,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "eval-runner",
@@ -146,7 +146,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "haiku",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "event-driven-architect",
@@ -164,7 +164,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "frontend-performance-engineer",
@@ -173,7 +173,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "frontend-ui-developer",
@@ -191,7 +191,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "git-operations-engineer",
@@ -200,7 +200,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "haiku",
-    "category": "development"
+    "category": "git"
   },
   {
     "name": "infrastructure-architect",
@@ -218,7 +218,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "ai"
+    "category": "llm"
   },
   {
     "name": "market-intelligence",
@@ -245,7 +245,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "ai"
+    "category": "llm"
   },
   {
     "name": "product-strategist",
@@ -299,7 +299,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "opus",
-    "category": "development"
+    "category": "design"
   },
   {
     "name": "test-generator",
@@ -317,7 +317,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "web-research-analyst",
@@ -335,7 +335,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "opus",
-    "category": "ai"
+    "category": "llm"
   }
 ];
 

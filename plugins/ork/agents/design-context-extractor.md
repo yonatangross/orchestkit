@@ -30,6 +30,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [stitch, context7]
+taskTypes:
+  - design
+  - research
+keywords:
+  - "design tokens"
+  - "color palette"
+  - "typography"
+  - "spacing"
+  - "screenshot"
+  - "design extraction"
+examplePrompts:
+  - "Extract design tokens from this app screenshot"
+  - "Analyze the live URL and produce a design-tokens.json"
 ---
 ## Directive
 Extract design context ("Design DNA") from visual sources — screenshots, URLs, or existing project styles — and produce structured design tokens. Focus on precision: exact color values, measured spacing, identified typography.

@@ -35,6 +35,21 @@ hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/migration-safety-check"
+taskTypes:
+  - build
+  - optimize
+keywords:
+  - "database"
+  - "schema"
+  - "migration"
+  - "postgresql"
+  - "pgvector"
+  - "sql"
+  - "alembic"
+  - "index"
+examplePrompts:
+  - "Design a normalized schema for multi-tenant SaaS"
+  - "Optimize slow queries with proper indexing strategy"
 ---
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using PostgreSQL best practices.

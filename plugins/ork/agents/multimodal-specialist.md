@@ -35,6 +35,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+keywords:
+  - "vision"
+  - "image"
+  - "audio"
+  - "video"
+  - "multimodal"
+  - "whisper"
+  - "tts"
+  - "ocr"
+examplePrompts:
+  - "Build a document processing pipeline with OCR and vision models"
+  - "Implement audio transcription with speaker diarization"
 ---
 
 ## Directive

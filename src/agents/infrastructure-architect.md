@@ -38,6 +38,21 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "terraform"
+  - "kubernetes"
+  - "aws"
+  - "gcp"
+  - "azure"
+  - "vpc"
+  - "eks"
+  - "iac"
+examplePrompts:
+  - "Design a Terraform module for the EKS cluster with auto-scaling"
+  - "Architect the VPC networking for multi-region deployment"
 ---
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.

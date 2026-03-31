@@ -39,6 +39,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "langgraph"
+  - "workflow"
+  - "supervisor"
+  - "state"
+  - "checkpoint"
+  - "rag"
+  - "multi-agent"
+examplePrompts:
+  - "Design a LangGraph supervisor workflow for document processing"
+  - "Build a multi-agent RAG pipeline with checkpointing"
 ---
 ## Directive
 Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.

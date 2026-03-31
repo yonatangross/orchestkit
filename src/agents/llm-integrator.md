@@ -38,6 +38,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+keywords:
+  - "llm"
+  - "openai"
+  - "anthropic"
+  - "ollama"
+  - "function calling"
+  - "streaming"
+  - "token"
+examplePrompts:
+  - "Integrate Claude API with function calling for the support bot"
+  - "Implement streaming responses with token cost tracking"
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.

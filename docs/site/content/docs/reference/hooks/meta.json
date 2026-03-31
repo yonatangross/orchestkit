@@ -25,6 +25,7 @@
     "worktree-remove",
     "instructions-loaded",
     "config-change",
+    "permission-denied",
     "setup",
     "spotlights"
   ]

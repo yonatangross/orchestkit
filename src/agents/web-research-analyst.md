@@ -35,6 +35,17 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
+taskTypes:
+  - research
+keywords:
+  - "web research"
+  - "scraping"
+  - "browser automation"
+  - "content extraction"
+  - "tavily"
+examplePrompts:
+  - "Research the latest React 19 patterns and document findings"
+  - "Capture competitor pricing pages and feature matrices"
 ---
 
 ## Directive

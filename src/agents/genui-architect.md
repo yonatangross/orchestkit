@@ -23,6 +23,19 @@ skills:
   - ui-components
   - component-search
   - mcp-visual-output
+taskTypes:
+  - design
+  - build
+keywords:
+  - "json-render"
+  - "zod catalog"
+  - "shadcn"
+  - "generative ui"
+  - "ai safety"
+  - "component catalog"
+examplePrompts:
+  - "Design a Zod-typed component catalog for the AI dashboard"
+  - "Constrain shadcn props for safe AI-generated UIs"
 ---
 ## Directive
 You are a json-render catalog design specialist. Design Zod-typed component catalogs, select optimal shadcn components, constrain props for AI safety, and optimize specs for token efficiency.

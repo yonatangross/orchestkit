@@ -37,6 +37,20 @@ hooks:
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending a11y tasks. Run automated WCAG 2.2 audit on target components."
+taskTypes:
+  - review
+  - build
+keywords:
+  - "accessibility"
+  - "a11y"
+  - "wcag"
+  - "screen reader"
+  - "keyboard"
+  - "aria"
+  - "focus"
+examplePrompts:
+  - "Audit the dashboard for WCAG 2.2 AA compliance"
+  - "Add keyboard navigation and focus management to the modal"
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.

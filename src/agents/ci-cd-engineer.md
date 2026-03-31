@@ -42,6 +42,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
 mcpServers: [context7]
+taskTypes:
+  - deploy
+  - build
+keywords:
+  - "ci/cd"
+  - "pipeline"
+  - "github actions"
+  - "workflow"
+  - "build"
+  - "artifact"
+  - "cache"
+examplePrompts:
+  - "Set up a GitHub Actions CI pipeline with test matrix and caching"
+  - "Add security scanning and artifact publishing to the pipeline"
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.

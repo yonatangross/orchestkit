@@ -39,6 +39,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [tavily]
+taskTypes:
+  - build
+  - design
+keywords:
+  - "monitoring"
+  - "prometheus"
+  - "grafana"
+  - "alerting"
+  - "tracing"
+  - "opentelemetry"
+  - "slo"
+examplePrompts:
+  - "Set up Prometheus metrics and Grafana dashboards for the API"
+  - "Define SLOs and create alerting rules for the payment service"
 ---
 
 ## Directive

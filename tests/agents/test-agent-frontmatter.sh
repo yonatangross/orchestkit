@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test: Validates agent YAML frontmatter (format introduced CC 2.1.6)
-# All agents must have: name, description, model, tools, skills
+# All agents must have: name, description, model, tools, skills, taskTypes, keywords, examplePrompts
 
 set -euo pipefail
 
@@ -14,9 +14,13 @@ REQUIRED_FIELDS=(
   "model:"
   "tools:"
   "skills:"
+  "taskTypes:"
+  "keywords:"
+  "examplePrompts:"
 )
 
 VALID_MODELS=("opus" "sonnet" "haiku" "inherit")
+VALID_TASK_TYPES=("build" "review" "debug" "test" "deploy" "design" "research" "document" "optimize" "secure" "plan")
 
 FAILED=0
 
@@ -51,6 +55,31 @@ for agent_file in "$AGENTS_DIR"/*.md; do
       agent_failed=1
       FAILED=1
     fi
+  fi
+
+  # Validate taxonomy fields using the project's own frontmatter parser
+  taxonomy_result=$(node -e '
+    const { parseYamlFrontmatter } = require("'"$REPO_ROOT"'/scripts/lib/parse-frontmatter");
+    const fs = require("fs");
+    const fm = parseYamlFrontmatter(fs.readFileSync("'"$agent_file"'", "utf-8")).frontmatter;
+    const tt = fm.taskTypes || [];
+    const kw = fm.keywords || [];
+    const ep = fm.examplePrompts || [];
+    const validTT = ["build","review","debug","test","deploy","design","research","document","optimize","secure","plan"];
+    const errors = [];
+    if (tt.length === 0) errors.push("empty taskTypes array");
+    tt.forEach(t => { if (!validTT.includes(t)) errors.push("invalid taskType: " + t); });
+    if (kw.length < 1) errors.push("no keywords");
+    if (ep.length !== 2) errors.push(ep.length + " examplePrompts (expected 2)");
+    console.log(errors.length === 0 ? "OK" : errors.join("|"));
+  ' 2>&1)
+  if [[ "$taxonomy_result" != "OK" ]]; then
+    IFS='|' read -ra errs <<< "$taxonomy_result"
+    for err in "${errs[@]}"; do
+      echo "FAIL: $agent_name $err"
+    done
+    agent_failed=1
+    FAILED=1
   fi
 
   # Check frontmatter delimiters

@@ -38,6 +38,18 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-validator"
 mcpServers: [context7]
+taskTypes:
+  - deploy
+keywords:
+  - "deployment"
+  - "rollback"
+  - "blue-green"
+  - "canary"
+  - "feature flag"
+  - "zero-downtime"
+examplePrompts:
+  - "Set up blue-green deployment for the API service"
+  - "Create a rollback procedure for failed production releases"
 ---
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.

@@ -32,6 +32,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [storybook-mcp]
+taskTypes:
+  - review
+  - research
+keywords:
+  - "component"
+  - "library"
+  - "21st.dev"
+  - "design system"
+  - "audit"
+  - "freshness"
+  - "registry"
+examplePrompts:
+  - "Audit all React components and recommend 21st.dev alternatives"
+  - "Track component freshness and identify outdated patterns"
 ---
 ## Directive
 Audit and curate a project's component library. Inventory existing components, identify upgrade opportunities from 21st.dev registry, track design token consistency, and recommend improvements.

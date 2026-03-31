@@ -348,7 +348,12 @@ result=$(claude -p "$grading_prompt" --bare --max-turns 1 --output-format text)
 
 ### Fallback: Per-Assertion Grading
 
-If batch fails (malformed JSON), fall back to grading one assertion at a time:
+If batch fails (malformed JSON), fall back to grading one assertion at a time.
+
+> **CC 2.1.88 note**: The StructuredOutput schema cache bug that caused ~50% failure
+> rate with multiple schemas has been fixed. Schema failures are now exceptional.
+> If you see repeated failures, investigate the prompt/schema rather than assuming
+> cache corruption.
 
 ```bash
 grading_prompt="Grade this output against the assertion.
@@ -440,9 +445,15 @@ claude -p "$prompt" \
     --dangerously-skip-permissions \
     --max-turns 3 \
     --output-format json \
+    --json-schema "$QUALITY_SCHEMA" \
     --no-session-persistence \
     --max-budget-usd 0.50
 ```
+
+> **CC 2.1.88**: The `--json-schema` flag is now safe to use with multiple schemas
+> in a single session. The StructuredOutput schema cache bug (~50% failure rate)
+> has been fixed. You can safely chain `--json-schema` calls across batch grading,
+> trigger classification, quality scoring, and baseline comparison.
 
 ## Flag Compatibility Matrix
 

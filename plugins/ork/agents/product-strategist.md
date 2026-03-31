@@ -33,6 +33,17 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
+taskTypes:
+  - plan
+  - research
+keywords:
+  - "product strategy"
+  - "value proposition"
+  - "build/buy/partner"
+  - "go/no-go"
+examplePrompts:
+  - "Evaluate build vs buy for the notification system"
+  - "Validate the value proposition for the workflow builder"
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.

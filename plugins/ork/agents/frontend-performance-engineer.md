@@ -35,6 +35,20 @@ hooks:
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending performance tasks. Audit Core Web Vitals and bundle composition for optimization targets."
+taskTypes:
+  - optimize
+keywords:
+  - "core web vitals"
+  - "lcp"
+  - "inp"
+  - "cls"
+  - "bundle"
+  - "lighthouse"
+  - "rum"
+  - "render"
+examplePrompts:
+  - "Improve LCP by optimizing the critical rendering path"
+  - "Reduce bundle size with code splitting and lazy loading"
 ---
 
 ## Directive

@@ -31,6 +31,21 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 background: true
 initialPrompt: "Check TaskList for pending security tasks. Run parallel scans: dependency audit, secrets detection, and OWASP pattern check."
+taskTypes:
+  - secure
+  - review
+keywords:
+  - "security"
+  - "vulnerability"
+  - "cve"
+  - "owasp"
+  - "injection"
+  - "xss"
+  - "csrf"
+  - "secrets"
+examplePrompts:
+  - "Scan the codebase for OWASP Top 10 vulnerabilities"
+  - "Audit npm dependencies for known CVEs"
 ---
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.

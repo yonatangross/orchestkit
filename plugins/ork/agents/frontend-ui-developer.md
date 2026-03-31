@@ -47,6 +47,22 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7, 21st-dev-magic, storybook-mcp]
+taskTypes:
+  - build
+keywords:
+  - "react"
+  - "typescript"
+  - "component"
+  - "ui"
+  - "frontend"
+  - "zod"
+  - "tanstack"
+  - "suspense"
+  - "form"
+  - "dashboard"
+examplePrompts:
+  - "Build a data table component with sorting, filtering, and pagination"
+  - "Create a multi-step form with Zod validation and optimistic updates"
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.

@@ -36,6 +36,17 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Read the implementation plan or PR under review against the 5-dimension framework."
+taskTypes:
+  - review
+  - design
+keywords:
+  - "system design"
+  - "architecture review"
+  - "scale"
+  - "implementation plan"
+examplePrompts:
+  - "Review the architecture plan for the multi-tenant migration"
+  - "Evaluate the implementation plan against 5 design dimensions"
 ---
 # System Design Reviewer Agent
 

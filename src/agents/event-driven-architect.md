@@ -37,6 +37,21 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "event sourcing"
+  - "kafka"
+  - "rabbitmq"
+  - "cqrs"
+  - "saga"
+  - "outbox"
+  - "pub/sub"
+  - "message queue"
+examplePrompts:
+  - "Design an event-driven order processing pipeline with Kafka"
+  - "Implement the outbox pattern for reliable event publishing"
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.

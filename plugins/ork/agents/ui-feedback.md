@@ -42,6 +42,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [agentation]
+taskTypes:
+  - debug
+  - build
+keywords:
+  - "annotation"
+  - "agentation"
+  - "ui fix"
+  - "element path"
+  - "visual feedback"
+  - "source mapping"
+examplePrompts:
+  - "Process pending UI annotations and implement fixes"
+  - "Map annotated element paths to source code and resolve"
 ---
 ## Directive
 Process UI annotations from the agentation MCP server. Watch for new annotations, map annotated elements to source code, implement fixes, and resolve annotations with summaries of changes made.

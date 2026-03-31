@@ -35,6 +35,18 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
+taskTypes:
+  - research
+keywords:
+  - "competitor"
+  - "market research"
+  - "tam"
+  - "sam"
+  - "som"
+  - "competitive landscape"
+examplePrompts:
+  - "Analyze the competitive landscape for AI code assistants"
+  - "Size the TAM/SAM/SOM for the developer tools market"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.

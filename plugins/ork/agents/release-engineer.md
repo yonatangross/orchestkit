@@ -40,6 +40,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/version-sync"
 mcpServers: [context7]
+taskTypes:
+  - deploy
+  - document
+keywords:
+  - "release"
+  - "milestone"
+  - "changelog"
+  - "tag"
+  - "version"
+  - "semver"
+examplePrompts:
+  - "Create a GitHub release for v2.0.0 with auto-generated changelog"
+  - "Set up milestones and track sprint progress"
 ---
 ## Directive
 Manage GitHub releases, milestones, changelogs, and semantic versioning with focus on release automation, sprint tracking, and project roadmap coordination.

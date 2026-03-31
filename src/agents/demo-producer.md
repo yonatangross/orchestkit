@@ -34,6 +34,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: []
+taskTypes:
+  - design
+  - document
+keywords:
+  - "demo"
+  - "video"
+  - "marketing"
+  - "showcase"
+  - "terminal recording"
+  - "remotion"
+examplePrompts:
+  - "Create a 60-second demo video for the /ork:implement skill"
+  - "Produce a marketing showcase for the new plugin features"
 ---
 
 ## Directive

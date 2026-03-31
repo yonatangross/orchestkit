@@ -43,6 +43,21 @@ hooks:
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending performance tasks. Profile current application hotspots and identify optimization targets."
+taskTypes:
+  - optimize
+  - debug
+keywords:
+  - "performance"
+  - "profiling"
+  - "memory leak"
+  - "slow query"
+  - "bottleneck"
+  - "benchmark"
+  - "cprofile"
+  - "n+1"
+examplePrompts:
+  - "Profile and fix the N+1 query problem in the user dashboard"
+  - "Optimize memory usage in the batch processing pipeline"
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.

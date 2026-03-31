@@ -34,6 +34,19 @@ hooks:
 mcpServers: [tavily]
 background: true
 initialPrompt: "Check TaskList for pending safety audit tasks. Identify LLM integration points and guardrail configuration."
+taskTypes:
+  - secure
+  - test
+keywords:
+  - "ai safety"
+  - "red team"
+  - "prompt injection"
+  - "jailbreak"
+  - "guardrails"
+  - "owasp llm"
+examplePrompts:
+  - "Red team the chatbot for prompt injection vulnerabilities"
+  - "Validate guardrails against the OWASP LLM Top 10"
 ---
 
 ## Directive

@@ -40,6 +40,19 @@ hooks:
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Identify the files and changes that need quality review."
+taskTypes:
+  - review
+keywords:
+  - "review"
+  - "quality"
+  - "lint"
+  - "coverage"
+  - "audit"
+  - "code review"
+  - "type-check"
+examplePrompts:
+  - "Review this PR for code quality and architectural consistency"
+  - "Audit test coverage and identify untested critical paths"
 ---
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.

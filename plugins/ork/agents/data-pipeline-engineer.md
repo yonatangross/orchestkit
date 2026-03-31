@@ -42,6 +42,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+  - optimize
+keywords:
+  - "embeddings"
+  - "chunking"
+  - "vector"
+  - "data pipeline"
+  - "batch"
+  - "etl"
+examplePrompts:
+  - "Build an embedding pipeline with semantic chunking for the knowledge base"
+  - "Optimize the vector index for hybrid search with pgvector"
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.

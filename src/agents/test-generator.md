@@ -37,6 +37,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - test
+  - build
+keywords:
+  - "test"
+  - "coverage"
+  - "unit test"
+  - "integration test"
+  - "msw"
+  - "fixture"
+examplePrompts:
+  - "Generate unit tests for the auth service with 90% coverage"
+  - "Create integration tests for the payment API with MSW mocking"
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
