@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit × CC 2.1.88 Integration Plan</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --red: #f85149; --orange: #d29922; --purple: #bc8cff; --pink: #f778ba;
+    --cyan: #39d2c0; --yellow: #e3b341;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+
+  .app { display: grid; grid-template-columns: 280px 1fr; grid-template-rows: 56px 1fr 140px; height: 100vh; }
+
+  /* Header */
+  .header { grid-column: 1 / -1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+  .header h1 { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .header .badge { background: var(--accent); color: var(--bg); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .header .stats { margin-left: auto; display: flex; gap: 16px; font-size: 12px; color: var(--text2); }
+  .header .stats span { display: flex; align-items: center; gap: 4px; }
+  .header .stats .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Tab bar */
+  .tabs { display: flex; gap: 2px; margin-left: 24px; }
+  .tab { padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 12px; cursor: pointer; background: transparent; border: none; color: var(--text2); transition: all 0.15s; }
+  .tab:hover { background: var(--surface2); color: var(--text); }
+  .tab.active { background: var(--bg); color: var(--accent); font-weight: 600; }
+
+  /* Sidebar */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+  .sidebar h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 8px; margin-top: 16px; }
+  .sidebar h3:first-child { margin-top: 0; }
+
+  .filter-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .filter-btn { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; border: none; background: transparent; color: var(--text); font-size: 12px; cursor: pointer; text-align: left; transition: all 0.15s; }
+  .filter-btn:hover { background: var(--surface2); }
+  .filter-btn.active { background: var(--surface2); }
+  .filter-btn .indicator { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .filter-btn .count { margin-left: auto; color: var(--text2); font-size: 11px; }
+
+  .priority-legend { display: flex; flex-direction: column; gap: 4px; }
+  .priority-item { display: flex; align-items: center; gap: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 4px; border: none; background: transparent; color: var(--text); }
+  .priority-item:hover { background: var(--surface2); }
+  .priority-item.active { background: var(--surface2); }
+  .priority-item .pip { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Main content */
+  .main { overflow: auto; padding: 20px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Issues view */
+  .issue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .issue-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .issue-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .issue-card .dim-stripe { position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .issue-card .card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .issue-card .issue-num { color: var(--text2); font-size: 12px; font-family: monospace; white-space: nowrap; }
+  .issue-card .title { font-size: 13px; font-weight: 600; line-height: 1.4; }
+  .issue-card .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .issue-card .tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .issue-card .effort-bar { margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text2); }
+  .issue-card .effort-track { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .issue-card .effort-fill { height: 100%; border-radius: 2px; }
+  .issue-card.hidden { display: none; }
+
+  /* Priority matrix view */
+  .matrix-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; }
+  .matrix-svg { width: 100%; height: 500px; }
+  .matrix-dot { cursor: pointer; transition: all 0.2s; }
+  .matrix-dot:hover { filter: brightness(1.3); }
+  .matrix-label { font-size: 11px; fill: var(--text2); font-family: -apple-system, sans-serif; }
+  .matrix-axis-label { font-size: 12px; fill: var(--text2); font-family: -apple-system, sans-serif; font-weight: 600; }
+  .matrix-tooltip { position: absolute; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 10; max-width: 280px; }
+  .matrix-tooltip .tt-title { font-weight: 600; margin-bottom: 4px; }
+  .matrix-tooltip .tt-meta { color: var(--text2); font-size: 11px; }
+
+  /* Architecture view */
+  .arch-svg { width: 100%; height: 520px; }
+  .arch-node { cursor: pointer; }
+  .arch-node:hover rect { filter: brightness(1.2); }
+  .arch-node text { font-family: -apple-system, sans-serif; }
+  .arch-edge { stroke-width: 2; fill: none; }
+  .arch-label { font-size: 10px; fill: var(--text2); font-family: -apple-system, sans-serif; }
+
+  /* Timeline view */
+  .timeline { max-width: 700px; margin: 0 auto; position: relative; padding-left: 30px; }
+  .timeline::before { content: ''; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 20px; padding-left: 24px; }
+  .tl-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); }
+  .tl-item.p0::before { background: var(--green); border-color: var(--green); }
+  .tl-item.p1::before { background: var(--accent); border-color: var(--accent); }
+  .tl-item.p2::before { background: var(--orange); border-color: var(--orange); }
+  .tl-item.p3::before { background: var(--purple); border-color: var(--purple); }
+  .tl-item.p4::before { background: var(--text2); border-color: var(--text2); }
+  .tl-phase { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .tl-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .tl-effort { display: inline-block; margin-top: 6px; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--surface2); color: var(--text2); }
+
+  /* Release notes view */
+  .release-notes { max-width: 700px; margin: 0 auto; }
+  .rn-section { margin-bottom: 24px; }
+  .rn-section h3 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .rn-section h3 .rn-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+  .rn-item { padding: 8px 12px; border-left: 3px solid var(--border); margin-bottom: 6px; font-size: 13px; line-height: 1.5; transition: all 0.15s; border-radius: 0 4px 4px 0; }
+  .rn-item:hover { background: var(--surface); }
+  .rn-item.ork-relevant { border-left-color: var(--accent); }
+  .rn-item code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  .rn-item .rn-tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; vertical-align: middle; }
+
+  /* Prompt bar */
+  .prompt-bar { grid-column: 1 / -1; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .prompt-bar .prompt-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; }
+  .prompt-text { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; overflow-y: auto; flex: 1; white-space: pre-wrap; }
+  .copy-btn { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .copy-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .copy-btn.copied { background: var(--green); color: var(--bg); border-color: var(--green); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>OrchestKit × CC 2.1.88</h1>
+    <span class="badge">M101</span>
+    <div class="tabs">
+      <button class="tab active" data-view="issues">Issues</button>
+      <button class="tab" data-view="matrix">Priority Matrix</button>
+      <button class="tab" data-view="arch">Architecture</button>
+      <button class="tab" data-view="timeline">Timeline</button>
+      <button class="tab" data-view="notes">Release Notes</button>
+    </div>
+    <div class="stats">
+      <span><span class="dot" style="background:var(--green)"></span> <span id="stat-free">4</span> free wins</span>
+      <span><span class="dot" style="background:var(--accent)"></span> <span id="stat-visible">10</span> issues</span>
+      <span><span class="dot" style="background:var(--orange)"></span> 110 → 115 hooks</span>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>Dimensions</h3>
+    <div class="filter-group" id="dim-filters"></div>
+
+    <h3>Priority</h3>
+    <div class="priority-legend" id="priority-filters"></div>
+
+    <h3>Quick Filters</h3>
+    <div class="filter-group">
+      <button class="filter-btn" onclick="filterPreset('all')">
+        <span class="indicator" style="background:var(--text2)"></span> Show All
+      </button>
+      <button class="filter-btn" onclick="filterPreset('free')">
+        <span class="indicator" style="background:var(--green)"></span> Free Wins Only
+      </button>
+      <button class="filter-btn" onclick="filterPreset('hooks')">
+        <span class="indicator" style="background:var(--accent)"></span> New Hooks Only
+      </button>
+      <button class="filter-btn" onclick="filterPreset('security')">
+        <span class="indicator" style="background:var(--red)"></span> Security-Related
+      </button>
+    </div>
+
+    <h3>Summary</h3>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6" id="summary-text">
+      Total effort: ~12h<br>
+      New hooks: +5<br>
+      Free wins: 4<br>
+      Min CC bump: 2.1.86 → 2.1.88
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Issues view -->
+    <div class="view active" id="view-issues">
+      <div class="issue-grid" id="issue-grid"></div>
+    </div>
+
+    <!-- Priority Matrix view -->
+    <div class="view" id="view-matrix">
+      <div class="matrix-container">
+        <svg class="matrix-svg" id="matrix-svg"></svg>
+        <div class="matrix-tooltip" id="matrix-tooltip"></div>
+      </div>
+    </div>
+
+    <!-- Architecture view -->
+    <div class="view" id="view-arch">
+      <svg class="arch-svg" id="arch-svg" viewBox="0 0 900 520"></svg>
+    </div>
+
+    <!-- Timeline view -->
+    <div class="view" id="view-timeline">
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- Release Notes view -->
+    <div class="view" id="view-notes">
+      <div class="release-notes" id="release-notes"></div>
+    </div>
+  </div>
+
+  <!-- Prompt bar -->
+  <div class="prompt-bar">
+    <div class="prompt-label">
+      <span>Generated Prompt</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy</button>
+    </div>
+    <div class="prompt-text" id="prompt-output"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const DIMENSIONS = [
+  { id: 'new-hooks', label: 'New Hooks', color: '#58a6ff', icon: '⚡' },
+  { id: 'cleanup', label: 'Cleanup', color: '#3fb950', icon: '🧹' },
+  { id: 'settings', label: 'Settings', color: '#d29922', icon: '⚙' },
+  { id: 'eval', label: 'Eval Pipeline', color: '#bc8cff', icon: '📊' },
+  { id: 'tokens', label: 'Token Savings', color: '#39d2c0', icon: '💰' },
+  { id: 'dx', label: 'Dev Experience', color: '#f778ba', icon: '✨' },
+];
+
+const PRIORITIES = [
+  { id: 'P0', label: 'P0 — Free Wins', color: '#3fb950' },
+  { id: 'P1', label: 'P1 — Quick', color: '#58a6ff' },
+  { id: 'P2', label: 'P2 — Build', color: '#d29922' },
+  { id: 'P3', label: 'P3 — Eval', color: '#bc8cff' },
+  { id: 'P4', label: 'P4 — Audit', color: '#8b949e' },
+];
+
+const ISSUES = [
+  {
+    num: 1208, title: 'PermissionDenied unified dispatcher + denial-logger',
+    dim: 'new-hooks', priority: 'P2', effort: 2, impact: 5,
+    labels: ['enhancement', 'hooks'],
+    desc: 'New hook event type. Unified dispatcher + async denial-logger writing to .claude/feedback/.',
+    tasks: ['Add PermissionDenied to HookEvent union', 'Add retry?: boolean to output', 'Create dispatcher + logger', 'Register in hooks.json', 'Tests'],
+  },
+  {
+    num: 1209, title: 'safe-command-retry PermissionDenied hook',
+    dim: 'new-hooks', priority: 'P2', effort: 3, impact: 4,
+    labels: ['enhancement', 'hooks', 'security'],
+    desc: 'Retry known-safe Bash commands incorrectly denied by auto mode. Reuses SAFE_PATTERNS.',
+    tasks: ['Create safe-command-retry.ts', 'Reuse SAFE_PATTERNS', 'Return {retry: true} for known-safe', 'Edge case tests'],
+  },
+  {
+    num: 1210, title: 'project-write-retry PermissionDenied hook',
+    dim: 'new-hooks', priority: 'P2', effort: 2, impact: 4,
+    labels: ['enhancement', 'hooks', 'security'],
+    desc: 'Retry denied writes inside project directory. Reuses isInsideDir() + hasExcludedDir().',
+    tasks: ['Create project-write-retry.ts', 'Reuse existing containment logic', 'Respect EXCLUDED_DIRS', 'Tests'],
+  },
+  {
+    num: 1211, title: 'denial-notification PermissionDenied hook',
+    dim: 'new-hooks', priority: 'P2', effort: 1, impact: 2,
+    labels: ['enhancement', 'hooks'],
+    desc: 'Desktop notification after 3+ denials in 60s window. Signals misconfiguration.',
+    tasks: ['Create denial-notification.ts', '60s sliding window counter', 'Reuse notification infra', 'Tests'],
+  },
+  {
+    num: 1214, title: 'Annotate 5 path workarounds as CC<2.1.88 compat',
+    dim: 'cleanup', priority: 'P1', effort: 0.5, impact: 2,
+    labels: ['hooks'],
+    desc: 'Add compat comments to 5 path resolution workarounds now redundant with CC 2.1.88 absolute file_path fix.',
+    tasks: ['auto-lint.ts:79', 'code-style-learner.ts:298', 'naming-convention-learner.ts:293', 'auto-approve-project-writes.ts:62', 'file-guard.ts:162'],
+  },
+  {
+    num: 1212, title: 'Compound if patterns for security hardening',
+    dim: 'cleanup', priority: 'P3', effort: 1, impact: 3,
+    labels: ['enhancement', 'security', 'hooks'],
+    desc: 'Add new if patterns: Bash(* && rm -rf *), Bash(* && git push *), Bash(* | xargs rm *). Now possible with CC 2.1.88 compound matching fix.',
+    tasks: ['Update hooks.json if conditions', 'Test compound commands', 'Verify no false positives'],
+  },
+  {
+    num: 1215, title: 'Add CLAUDE_CODE_NO_FLICKER=1 to settings',
+    dim: 'settings', priority: 'P1', effort: 0.25, impact: 2,
+    labels: ['enhancement'],
+    desc: 'Flicker-free alt-screen rendering. Add to env block in ork.settings.json.',
+    tasks: ['Add env var', 'Rebuild plugins'],
+  },
+  {
+    num: 1216, title: 'Update cc-version-matrix.ts for CC 2.1.88',
+    dim: 'settings', priority: 'P1', effort: 0.5, impact: 2,
+    labels: ['enhancement'],
+    desc: 'Add 5 new feature entries. Bump CLAUDE.md min CC version 2.1.86 → 2.1.88.',
+    tasks: ['Add version matrix entries', 'Update CLAUDE.md min version'],
+  },
+  {
+    num: 1213, title: 'Raise eval fallback threshold + add --json-schema to baseline',
+    dim: 'eval', priority: 'P3', effort: 1.5, impact: 4,
+    labels: ['enhancement', 'eval'],
+    desc: 'StructuredOutput fix means schema failures are now exceptional. Raise threshold, add schema to baseline-comparison.',
+    tasks: ['Raise early-exit threshold', 'Add --json-schema to baseline', 'Consider 4th schema in trigger eval', 'CI verification'],
+  },
+  {
+    num: 1217, title: 'Audit 36 agent names for @ mention typeahead UX',
+    dim: 'dx', priority: 'P4', effort: 1, impact: 1,
+    labels: ['enhancement'],
+    desc: 'CC 2.1.88 makes agent names discoverable via @ mention. Ensure names are short, unique, memorable.',
+    tasks: ['Audit all 36 names', 'Rename problematic agents', 'Update manifests'],
+  },
+];
+
+const FREE_WINS = [
+  { title: 'StructuredOutput reliability', desc: 'Schema cache fix: ~50% failure → ~0%. Eval pipeline 2-4x cheaper.', dim: 'eval', impact: 5 },
+  { title: 'Compound if matching', desc: 'Permission guards now catch "npm test && git push". Zero changes needed.', dim: 'cleanup', impact: 4 },
+  { title: 'Prompt cache restored', desc: 'Tool schema byte stability fixes cache misses in long sessions.', dim: 'tokens', impact: 4 },
+  { title: 'SDK is_error accuracy', desc: 'error_during_execution/error_max_turns now correctly set is_error: true.', dim: 'dx', impact: 3 },
+];
+
+const RELEASE_NOTES = {
+  features: [
+    { text: '<code>PermissionDenied</code> hook event — fires after auto mode denials, return <code>{retry: true}</code> to retry', relevant: true },
+    { text: 'Named subagents in <code>@</code> mention typeahead suggestions', relevant: true },
+    { text: '<code>CLAUDE_CODE_NO_FLICKER=1</code> env var for flicker-free alt-screen rendering', relevant: true },
+  ],
+  fixes: [
+    { text: 'Fixed Pre/PostToolUse hooks not providing <code>file_path</code> as absolute path for Write/Edit/Read', relevant: true },
+    { text: 'Fixed hooks <code>if</code> condition not matching compound commands (<code>ls && git push</code>)', relevant: true },
+    { text: 'Fixed <code>StructuredOutput</code> schema cache bug — ~50% failure rate with multiple schemas', relevant: true },
+    { text: 'Fixed skill listing re-injected on <code>--resume</code> (~600 tokens saved)', relevant: true },
+    { text: 'Fixed prompt cache misses from tool schema bytes changing mid-session', relevant: true },
+    { text: 'Fixed nested CLAUDE.md re-injection (dozens of times in long sessions)', relevant: true },
+    { text: 'Fixed SDK error messages <code>is_error: true</code> now set correctly', relevant: true },
+    { text: 'Fixed memory leak: large JSON inputs retained as LRU cache keys', relevant: false },
+    { text: 'Fixed OOM crash on Edit for >1 GiB files', relevant: false },
+    { text: 'Fixed <code>--resume</code> crash with older tool results', relevant: false },
+    { text: 'Fixed misleading rate limit error — now shows actual entitlement error', relevant: false },
+    { text: 'Fixed LSP zombie state after crash — auto-restarts', relevant: false },
+    { text: 'Fixed Edit/Write doubling CRLF on Windows', relevant: false },
+    { text: 'Fixed scrollback disappearing when scrolling up', relevant: false },
+    { text: 'Fixed collapsed badge duplication during heavy parallel tool use', relevant: false },
+    { text: 'Fixed <code>/stats</code> undercounting tokens (excluded subagent/fork)', relevant: true },
+    { text: 'Fixed <code>/stats</code> losing historical data beyond 30 days', relevant: false },
+    { text: 'Fixed Devanagari/combining-mark text truncation', relevant: false },
+    { text: 'Fixed voice mode mic permission on macOS Apple Silicon', relevant: false },
+    { text: 'Fixed Shift+Enter on Windows Terminal Preview 1.25', relevant: false },
+    { text: 'Fixed iTerm2/tmux periodic UI jitter during streaming', relevant: false },
+    { text: 'Fixed task notifications lost when backgrounding Ctrl+B', relevant: false },
+    { text: 'Fixed feature flags stale disk cache across sessions', relevant: false },
+    { text: 'Fixed PowerShell stderr false failures', relevant: false },
+  ],
+  improvements: [
+    { text: 'Thinking summaries OFF by default — <code>showThinkingSummaries: true</code> to restore', relevant: true },
+    { text: 'Compaction preserves images → prompt cache reuse for cheaper compaction', relevant: true },
+    { text: 'Auto mode denials → notification + <code>/permissions</code> Recent tab', relevant: true },
+    { text: '<code>/env</code> now applies to PowerShell tool commands', relevant: false },
+    { text: '<code>/usage</code> hides redundant bar for Pro/Enterprise', relevant: false },
+    { text: 'Collapsed tool: "Listed N directories" for ls/tree/du', relevant: false },
+    { text: 'Image paste no longer inserts trailing space', relevant: false },
+    { text: 'Pasting <code>!command</code> into empty prompt → bash mode', relevant: false },
+  ],
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+const state = {
+  view: 'issues',
+  dims: Object.fromEntries(DIMENSIONS.map(d => [d.id, true])),
+  priorities: Object.fromEntries(PRIORITIES.map(p => [p.id, true])),
+  selectedIssue: null,
+  showOnlyRelevant: false,
+};
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+function getDimColor(id) { return DIMENSIONS.find(d => d.id === id)?.color || '#8b949e'; }
+function getPriorityColor(id) { return PRIORITIES.find(p => p.id === id)?.color || '#8b949e'; }
+
+function renderFilters() {
+  const dimEl = document.getElementById('dim-filters');
+  dimEl.innerHTML = DIMENSIONS.map(d => {
+    const count = ISSUES.filter(i => i.dim === d.id).length;
+    return `<button class="filter-btn ${state.dims[d.id] ? 'active' : ''}" onclick="toggleDim('${d.id}')">
+      <span class="indicator" style="background:${d.color}"></span>
+      ${d.icon} ${d.label}
+      <span class="count">${count}</span>
+    </button>`;
+  }).join('');
+
+  const prioEl = document.getElementById('priority-filters');
+  prioEl.innerHTML = PRIORITIES.map(p => {
+    const count = ISSUES.filter(i => i.priority === p.id).length + (p.id === 'P0' ? FREE_WINS.length : 0);
+    return `<button class="priority-item ${state.priorities[p.id] ? 'active' : ''}" onclick="togglePriority('${p.id}')">
+      <span class="pip" style="background:${p.color}"></span>
+      ${p.label}
+      <span class="count" style="margin-left:auto;color:var(--text2);font-size:11px">${count}</span>
+    </button>`;
+  }).join('');
+}
+
+function getVisibleIssues() {
+  return ISSUES.filter(i => state.dims[i.dim] && state.priorities[i.priority]);
+}
+
+function renderIssues() {
+  const grid = document.getElementById('issue-grid');
+  const visible = getVisibleIssues();
+
+  // Also show free wins as cards if P0 is active
+  let freeHtml = '';
+  if (state.priorities['P0']) {
+    freeHtml = FREE_WINS.filter(f => state.dims[f.dim]).map(f => `
+      <div class="issue-card" style="border-left: 3px solid var(--green);">
+        <div class="dim-stripe" style="background:var(--green)"></div>
+        <div class="card-header">
+          <span class="issue-num" style="color:var(--green)">FREE</span>
+          <span class="title">${f.title}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:4px">${f.desc}</div>
+        <div class="meta">
+          <span class="tag" style="background:#3fb95033;color:var(--green)">zero effort</span>
+          <span class="tag" style="background:#3fb95033;color:var(--green)">impact: ${f.impact}/5</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  const issueHtml = visible.map(i => {
+    const dimColor = getDimColor(i.dim);
+    const prioColor = getPriorityColor(i.priority);
+    const effortPct = Math.min(i.effort / 4 * 100, 100);
+    return `<div class="issue-card" onclick="selectIssue(${i.num})">
+      <div class="dim-stripe" style="background:${dimColor}"></div>
+      <div class="card-header">
+        <span class="issue-num">#${i.num}</span>
+        <span class="title">${i.title}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-top:4px">${i.desc}</div>
+      <div class="meta">
+        ${i.labels.map(l => `<span class="tag" style="background:${dimColor}22;color:${dimColor}">${l}</span>`).join('')}
+        <span class="tag" style="background:${prioColor}22;color:${prioColor}">${i.priority}</span>
+      </div>
+      <div class="effort-bar">
+        <span>Effort: ${i.effort}h</span>
+        <div class="effort-track"><div class="effort-fill" style="width:${effortPct}%;background:${prioColor}"></div></div>
+        <span>Impact: ${i.impact}/5</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = freeHtml + issueHtml;
+  document.getElementById('stat-visible').textContent = visible.length;
+  document.getElementById('stat-free').textContent = FREE_WINS.filter(f => state.dims[f.dim]).length;
+}
+
+function renderMatrix() {
+  const svg = document.getElementById('matrix-svg');
+  const rect = svg.getBoundingClientRect();
+  const W = rect.width || 800, H = 500;
+  const pad = { top: 40, right: 40, bottom: 50, left: 60 };
+
+  const items = [
+    ...FREE_WINS.map(f => ({ ...f, effort: 0, num: 'FREE', priority: 'P0' })),
+    ...getVisibleIssues(),
+  ];
+
+  const scaleX = (v) => pad.left + (v / 4) * (W - pad.left - pad.right);
+  const scaleY = (v) => H - pad.bottom - (v / 5) * (H - pad.top - pad.bottom);
+
+  let html = `
+    <line x1="${pad.left}" y1="${H - pad.bottom}" x2="${W - pad.right}" y2="${H - pad.bottom}" stroke="#30363d" stroke-width="1"/>
+    <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${H - pad.bottom}" stroke="#30363d" stroke-width="1"/>
+    <text class="matrix-axis-label" x="${W/2}" y="${H - 10}" text-anchor="middle">Effort (hours) →</text>
+    <text class="matrix-axis-label" x="16" y="${H/2}" text-anchor="middle" transform="rotate(-90,16,${H/2})">← Impact</text>
+  `;
+
+  // Grid lines
+  for (let i = 0; i <= 5; i++) {
+    const y = scaleY(i);
+    html += `<line x1="${pad.left}" y1="${y}" x2="${W-pad.right}" y2="${y}" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>`;
+    html += `<text class="matrix-label" x="${pad.left - 8}" y="${y + 4}" text-anchor="end">${i}</text>`;
+  }
+  for (let i = 0; i <= 4; i++) {
+    const x = scaleX(i);
+    html += `<line x1="${x}" y1="${pad.top}" x2="${x}" y2="${H-pad.bottom}" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>`;
+    html += `<text class="matrix-label" x="${x}" y="${H - pad.bottom + 18}" text-anchor="middle">${i}h</text>`;
+  }
+
+  // Quadrant labels
+  html += `<text class="matrix-label" x="${pad.left + 10}" y="${pad.top + 16}" fill="#3fb950" opacity="0.5" font-size="13" font-weight="600">★ QUICK WINS</text>`;
+  html += `<text class="matrix-label" x="${W - pad.right - 10}" y="${pad.top + 16}" fill="#d29922" opacity="0.5" font-size="13" font-weight="600" text-anchor="end">BIG BETS</text>`;
+  html += `<text class="matrix-label" x="${pad.left + 10}" y="${H - pad.bottom - 10}" fill="#8b949e" opacity="0.4" font-size="13">LOW PRIORITY</text>`;
+
+  // Dots
+  items.forEach((item, idx) => {
+    const x = scaleX(item.effort);
+    const y = scaleY(item.impact);
+    const color = item.num === 'FREE' ? '#3fb950' : getDimColor(item.dim);
+    const r = item.num === 'FREE' ? 10 : 14;
+    html += `
+      <circle class="matrix-dot" cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="0.85"
+        onmouseenter="showTooltip(event, ${idx})" onmouseleave="hideTooltip()"/>
+      <text x="${x}" y="${y + 4}" text-anchor="middle" fill="#0d1117" font-size="9" font-weight="700" pointer-events="none">
+        ${item.num === 'FREE' ? '★' : '#' + item.num}
+      </text>
+    `;
+  });
+
+  svg.innerHTML = html;
+  window._matrixItems = items;
+}
+
+function showTooltip(event, idx) {
+  const item = window._matrixItems[idx];
+  const tt = document.getElementById('matrix-tooltip');
+  tt.innerHTML = `
+    <div class="tt-title">${item.num === 'FREE' ? '★ ' : '#' + item.num + ' '}${item.title}</div>
+    <div class="tt-meta">Effort: ${item.effort}h · Impact: ${item.impact}/5 · ${item.priority}</div>
+  `;
+  tt.style.opacity = 1;
+  const rect = document.getElementById('matrix-svg').getBoundingClientRect();
+  tt.style.left = (event.clientX - rect.left + 12) + 'px';
+  tt.style.top = (event.clientY - rect.top - 40) + 'px';
+}
+
+function hideTooltip() { document.getElementById('matrix-tooltip').style.opacity = 0; }
+
+function renderArch() {
+  const svg = document.getElementById('arch-svg');
+  svg.innerHTML = `
+    <!-- Background labels -->
+    <text x="450" y="24" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="600" font-family="-apple-system,sans-serif">PermissionDenied Hook Architecture (CC 2.1.88)</text>
+
+    <!-- Auto Mode Classifier -->
+    <rect x="320" y="50" width="260" height="50" rx="8" fill="#21262d" stroke="#58a6ff" stroke-width="2"/>
+    <text x="450" y="72" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="600" font-family="-apple-system,sans-serif">Auto Mode Classifier</text>
+    <text x="450" y="88" text-anchor="middle" fill="#8b949e" font-size="10" font-family="-apple-system,sans-serif">CC 2.1.88 built-in</text>
+
+    <!-- Decision diamond -->
+    <polygon points="450,120 490,150 450,180 410,150" fill="#21262d" stroke="#d29922" stroke-width="2"/>
+    <text x="450" y="154" text-anchor="middle" fill="#d29922" font-size="11" font-weight="600" font-family="-apple-system,sans-serif">DENY?</text>
+
+    <!-- ALLOW path -->
+    <line x1="490" y1="150" x2="620" y2="150" stroke="#3fb950" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="555" y="142" text-anchor="middle" fill="#3fb950" font-size="10" font-family="-apple-system,sans-serif">ALLOW</text>
+    <rect x="620" y="130" width="140" height="40" rx="6" fill="#3fb95020" stroke="#3fb950" stroke-width="1"/>
+    <text x="690" y="154" text-anchor="middle" fill="#3fb950" font-size="11" font-family="-apple-system,sans-serif">Tool Executes</text>
+
+    <!-- DENY path down -->
+    <line x1="450" y1="180" x2="450" y2="220" stroke="#f85149" stroke-width="2" marker-end="url(#arrow-red)"/>
+    <text x="468" y="204" fill="#f85149" font-size="10" font-family="-apple-system,sans-serif">DENY</text>
+
+    <!-- PermissionDenied Event -->
+    <rect x="310" y="220" width="280" height="50" rx="8" fill="#f8514920" stroke="#f85149" stroke-width="2"/>
+    <text x="450" y="242" text-anchor="middle" fill="#f85149" font-size="13" font-weight="700" font-family="-apple-system,sans-serif">⚡ PermissionDenied Event</text>
+    <text x="450" y="258" text-anchor="middle" fill="#8b949e" font-size="10" font-family="-apple-system,sans-serif">NEW in CC 2.1.88</text>
+
+    <!-- Dispatcher -->
+    <line x1="450" y1="270" x2="450" y2="310" stroke="#d29922" stroke-width="2" marker-end="url(#arrow-orange)"/>
+    <rect x="310" y="310" width="280" height="44" rx="8" fill="#d2992220" stroke="#d29922" stroke-width="2"/>
+    <text x="450" y="336" text-anchor="middle" fill="#d29922" font-size="12" font-weight="600" font-family="-apple-system,sans-serif">unified-dispatcher.ts</text>
+    <text x="450" y="348" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">#1208 · sync · &lt;50ms</text>
+
+    <!-- Fan out to 4 hooks -->
+    <line x1="350" y1="354" x2="120" y2="400" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <line x1="410" y1="354" x2="310" y2="400" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <line x1="490" y1="354" x2="500" y2="400" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <line x1="550" y1="354" x2="700" y2="400" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+    <!-- Hook 1: denial-logger -->
+    <rect x="40" y="400" width="160" height="60" rx="6" fill="#21262d" stroke="#39d2c0" stroke-width="1.5"/>
+    <text x="120" y="420" text-anchor="middle" fill="#39d2c0" font-size="11" font-weight="600" font-family="-apple-system,sans-serif">denial-logger</text>
+    <text x="120" y="434" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">#1208 · async</text>
+    <text x="120" y="450" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">.claude/feedback/*.json</text>
+
+    <!-- Hook 2: safe-command-retry -->
+    <rect x="230" y="400" width="160" height="60" rx="6" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
+    <text x="310" y="420" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600" font-family="-apple-system,sans-serif">safe-command-retry</text>
+    <text x="310" y="434" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">#1209 · {retry: true}</text>
+    <text x="310" y="450" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">reuses SAFE_PATTERNS</text>
+
+    <!-- Hook 3: project-write-retry -->
+    <rect x="420" y="400" width="160" height="60" rx="6" fill="#21262d" stroke="#bc8cff" stroke-width="1.5"/>
+    <text x="500" y="420" text-anchor="middle" fill="#bc8cff" font-size="11" font-weight="600" font-family="-apple-system,sans-serif">project-write-retry</text>
+    <text x="500" y="434" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">#1210 · {retry: true}</text>
+    <text x="500" y="450" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">reuses isInsideDir()</text>
+
+    <!-- Hook 4: denial-notification -->
+    <rect x="620" y="400" width="160" height="60" rx="6" fill="#21262d" stroke="#f778ba" stroke-width="1.5"/>
+    <text x="700" y="420" text-anchor="middle" fill="#f778ba" font-size="11" font-weight="600" font-family="-apple-system,sans-serif">denial-notification</text>
+    <text x="700" y="434" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">#1211 · 3+/60s alert</text>
+    <text x="700" y="450" text-anchor="middle" fill="#8b949e" font-size="9" font-family="-apple-system,sans-serif">desktop notification</text>
+
+    <!-- Retry path back up -->
+    <path d="M310,400 C310,380 240,340 240,300 C240,260 300,240 310,220" fill="none" stroke="#3fb950" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+    <text x="230" y="310" fill="#3fb950" font-size="10" font-weight="600" font-family="-apple-system,sans-serif">{retry: true}</text>
+
+    <path d="M500,400 C500,380 530,340 530,300 C530,260 500,240 500,220" fill="none" stroke="#3fb950" stroke-width="2" stroke-dasharray="6,3"/>
+    <text x="542" y="310" fill="#3fb950" font-size="10" font-weight="600" font-family="-apple-system,sans-serif">{retry: true}</text>
+
+    <!-- Retry leads to re-evaluation -->
+    <text x="450" y="500" text-anchor="middle" fill="#8b949e" font-size="11" font-family="-apple-system,sans-serif" font-style="italic">Retry → model re-attempts the denied tool call</text>
+
+    <!-- Arrow markers -->
+    <defs>
+      <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+      <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f85149"/></marker>
+      <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d29922"/></marker>
+    </defs>
+  `;
+}
+
+function renderTimeline() {
+  const el = document.getElementById('timeline');
+  const phases = [
+    { priority: 'p0', label: 'Phase 0 — Free Wins (no changes needed)', items: FREE_WINS.map(f => ({ title: f.title, desc: f.desc, effort: '0h' })) },
+    { priority: 'p1', label: 'Phase 1 — Quick Settings & Cleanup (~1h)', items: [
+      { title: '#1215 — CLAUDE_CODE_NO_FLICKER=1', desc: 'Add env var to ork.settings.json', effort: '15m' },
+      { title: '#1216 — cc-version-matrix.ts update', desc: 'Add 5 feature entries, bump min CC', effort: '30m' },
+      { title: '#1214 — Annotate path workarounds', desc: 'Add compat comments to 5 locations', effort: '30m' },
+    ]},
+    { priority: 'p2', label: 'Phase 2 — Build PermissionDenied Hooks (~8h)', items: [
+      { title: '#1208 — Unified dispatcher + denial-logger', desc: 'Types, dispatcher, logger, hooks.json registration', effort: '2h' },
+      { title: '#1209 — safe-command-retry', desc: 'Retry known-safe Bash commands via SAFE_PATTERNS', effort: '3h' },
+      { title: '#1210 — project-write-retry', desc: 'Retry in-project writes via isInsideDir()', effort: '2h' },
+      { title: '#1211 — denial-notification', desc: '60s sliding window counter + desktop alert', effort: '1h' },
+    ]},
+    { priority: 'p3', label: 'Phase 3 — Eval & Security (~2.5h)', items: [
+      { title: '#1213 — Eval fallback threshold + --json-schema', desc: 'Leverage StructuredOutput reliability fix', effort: '1.5h' },
+      { title: '#1212 — Compound if security patterns', desc: 'Add Bash(* && rm -rf *) and similar', effort: '1h' },
+    ]},
+    { priority: 'p4', label: 'Phase 4 — Audit (~1h)', items: [
+      { title: '#1217 — Agent name audit for @ mention', desc: 'Check 36 names for typeahead UX', effort: '1h' },
+    ]},
+  ];
+
+  el.innerHTML = phases.map(phase => `
+    <div class="tl-item ${phase.priority}">
+      <div class="tl-phase">${phase.label}</div>
+      ${phase.items.map(item => `
+        <div style="margin-bottom:12px;padding:8px 12px;background:var(--surface);border-radius:6px;border:1px solid var(--border)">
+          <div class="tl-title" style="font-size:13px">${item.title}</div>
+          <div class="tl-desc">${item.desc}</div>
+          <span class="tl-effort">${item.effort}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderNotes() {
+  const el = document.getElementById('release-notes');
+  const sections = [
+    { title: 'New Features', data: RELEASE_NOTES.features, color: '#58a6ff', bg: '#58a6ff22' },
+    { title: 'Bug Fixes', data: RELEASE_NOTES.fixes, color: '#f85149', bg: '#f8514922' },
+    { title: 'Improvements', data: RELEASE_NOTES.improvements, color: '#3fb950', bg: '#3fb95022' },
+  ];
+
+  el.innerHTML = sections.map(s => `
+    <div class="rn-section">
+      <h3><span class="rn-badge" style="background:${s.bg};color:${s.color}">${s.data.length}</span> ${s.title}</h3>
+      ${s.data.map(item => `
+        <div class="rn-item ${item.relevant ? 'ork-relevant' : ''}">
+          ${item.text}
+          ${item.relevant ? `<span class="rn-tag" style="background:#58a6ff22;color:#58a6ff">OrchestKit</span>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ── PROMPT ─────────────────────────────────────────────────────────────────────
+
+function updatePrompt() {
+  const visible = getVisibleIssues();
+  const freesVisible = FREE_WINS.filter(f => state.dims[f.dim]);
+
+  const parts = [];
+
+  if (state.view === 'issues' || state.view === 'timeline') {
+    if (freesVisible.length > 0 && state.priorities['P0']) {
+      parts.push(`Free wins (zero effort): ${freesVisible.map(f => f.title).join(', ')}.`);
+    }
+    if (visible.length > 0) {
+      const grouped = {};
+      visible.forEach(i => {
+        if (!grouped[i.priority]) grouped[i.priority] = [];
+        grouped[i.priority].push(i);
+      });
+      Object.entries(grouped).forEach(([p, items]) => {
+        const pLabel = PRIORITIES.find(pr => pr.id === p)?.label || p;
+        parts.push(`${pLabel}: ${items.map(i => `#${i.num} ${i.title} (${i.effort}h)`).join('; ')}.`);
+      });
+    }
+    const totalEffort = visible.reduce((s, i) => s + i.effort, 0);
+    parts.push(`\nTotal: ${visible.length} issues, ~${totalEffort}h effort, +${visible.filter(i => i.dim === 'new-hooks').length * (visible.filter(i => i.dim === 'new-hooks').length > 0 ? 1 : 0) + (state.dims['new-hooks'] && state.priorities['P2'] ? 5 : 0)} new hooks.`);
+  } else if (state.view === 'arch') {
+    parts.push('Implement the PermissionDenied hook architecture for OrchestKit:');
+    parts.push('1. Add PermissionDenied event type to HookEvent union in types.ts');
+    parts.push('2. Create unified-dispatcher.ts (sync, <50ms) routing to 4 sub-hooks');
+    parts.push('3. denial-logger.ts — async audit trail to .claude/feedback/');
+    parts.push('4. safe-command-retry.ts — {retry:true} for SAFE_PATTERNS matches');
+    parts.push('5. project-write-retry.ts — {retry:true} for in-project, non-excluded writes');
+    parts.push('6. denial-notification.ts — desktop alert after 3+ denials in 60s');
+    parts.push('Register all in hooks.json. Update counts 110 → 115.');
+  } else if (state.view === 'matrix') {
+    const quickWins = visible.filter(i => i.effort <= 1 && i.impact >= 3);
+    const bigBets = visible.filter(i => i.effort > 1 && i.impact >= 4);
+    if (quickWins.length) parts.push(`Quick wins (low effort, high impact): ${quickWins.map(i => '#' + i.num).join(', ')}`);
+    if (bigBets.length) parts.push(`Big bets (higher effort, high impact): ${bigBets.map(i => '#' + i.num).join(', ')}`);
+    if (freesVisible.length) parts.push(`Plus ${freesVisible.length} free wins requiring zero code changes.`);
+  } else if (state.view === 'notes') {
+    const relevant = [...RELEASE_NOTES.features, ...RELEASE_NOTES.fixes, ...RELEASE_NOTES.improvements].filter(r => r.relevant);
+    parts.push(`CC 2.1.88 has ${relevant.length} changes relevant to OrchestKit out of ${RELEASE_NOTES.features.length + RELEASE_NOTES.fixes.length + RELEASE_NOTES.improvements.length} total.`);
+    parts.push('Key: PermissionDenied hook event, absolute file_path fix, StructuredOutput schema fix, compound if matching, thinking summaries off by default.');
+  }
+
+  document.getElementById('prompt-output').textContent = parts.join('\n');
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+
+function switchView(view) {
+  state.view = view;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+  if (view === 'matrix') renderMatrix();
+  updatePrompt();
+}
+
+function toggleDim(id) {
+  state.dims[id] = !state.dims[id];
+  renderAll();
+}
+
+function togglePriority(id) {
+  state.priorities[id] = !state.priorities[id];
+  renderAll();
+}
+
+function filterPreset(preset) {
+  if (preset === 'all') {
+    DIMENSIONS.forEach(d => state.dims[d.id] = true);
+    PRIORITIES.forEach(p => state.priorities[p.id] = true);
+  } else if (preset === 'free') {
+    PRIORITIES.forEach(p => state.priorities[p.id] = p.id === 'P0');
+    DIMENSIONS.forEach(d => state.dims[d.id] = true);
+  } else if (preset === 'hooks') {
+    DIMENSIONS.forEach(d => state.dims[d.id] = d.id === 'new-hooks');
+    PRIORITIES.forEach(p => state.priorities[p.id] = true);
+  } else if (preset === 'security') {
+    DIMENSIONS.forEach(d => state.dims[d.id] = true);
+    PRIORITIES.forEach(p => state.priorities[p.id] = true);
+    // Will highlight security-labeled only via a future filter
+  }
+  renderAll();
+}
+
+function selectIssue(num) {
+  state.selectedIssue = num;
+  const issue = ISSUES.find(i => i.num === num);
+  if (issue) {
+    const parts = [
+      `Implement #${num}: ${issue.title}`,
+      '',
+      issue.desc,
+      '',
+      'Tasks:',
+      ...issue.tasks.map(t => `- [ ] ${t}`),
+    ];
+    document.getElementById('prompt-output').textContent = parts.join('\n');
+  }
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function renderAll() {
+  renderFilters();
+  renderIssues();
+  if (state.view === 'matrix') renderMatrix();
+  updatePrompt();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
+
+renderFilters();
+renderIssues();
+renderArch();
+renderTimeline();
+renderNotes();
+updatePrompt();
+</script>
+</body>
+</html>

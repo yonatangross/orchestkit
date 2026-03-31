@@ -75,6 +75,7 @@ export function autoLint(input: HookInput): HookResult {
   }
 
   // Check if file exists
+  // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
   const projectDir = process.env.CLAUDE_PROJECT_DIR || '.';
   const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 

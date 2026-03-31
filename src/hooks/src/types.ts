@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.84 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP)
+ * CC 2.1.88 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied)
  */
 
 /**
@@ -30,7 +30,8 @@ export type HookEvent =
   | 'InstructionsLoaded'
   | 'PostCompact'
   | 'Elicitation'
-  | 'ElicitationResult';
+  | 'ElicitationResult'
+  | 'PermissionDenied';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -197,7 +198,7 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop';
   /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask') */
   permissionDecision?: 'allow' | 'deny' | 'ask';
   /** Reason for permission decision */
@@ -212,6 +213,8 @@ export interface HookSpecificOutput {
   updatedPermissions?: Record<string, unknown>;
   /** Worktree path returned by HTTP-type WorktreeCreate hooks (CC 2.1.84) */
   worktreePath?: string;
+  /** Signal model to retry the denied tool call (PermissionDenied, CC 2.1.88) */
+  retry?: boolean;
 }
 
 /**

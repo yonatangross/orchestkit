@@ -60,6 +60,7 @@ function getBundleName(hookName) {
     'task-completed': 'lifecycle',
     worktree: 'lifecycle',
     notification: 'notification',
+    'permission-denied': 'permission',
     setup: 'setup',
     skill: 'skill',
     agent: 'agent',

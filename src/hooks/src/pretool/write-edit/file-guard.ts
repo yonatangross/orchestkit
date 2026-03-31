@@ -156,7 +156,7 @@ const CONFIG_PATTERNS: RegExp[] = [
  */
 function resolveRealPath(filePath: string, projectDir: string): string {
   try {
-    // Make absolute if relative
+    // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
     const absolutePath = isAbsolute(filePath)
       ? filePath
       : resolve(projectDir, filePath);

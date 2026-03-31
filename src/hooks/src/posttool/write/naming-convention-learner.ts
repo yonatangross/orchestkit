@@ -289,6 +289,7 @@ export function namingConventionLearner(input: HookInput): HookResult {
   let content = getField<string>(input, 'tool_input.content') || '';
 
   if (!content) {
+    // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
     const projectDir = getProjectDir();
     const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 

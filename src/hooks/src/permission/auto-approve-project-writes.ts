@@ -58,7 +58,7 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
 
   logHook('auto-approve-project-writes', `Evaluating write to: ${filePath}`);
 
-  // Resolve to absolute path if relative
+  // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
   if (!isAbsolute(filePath)) {
     filePath = resolve(projectDir, filePath);
   }

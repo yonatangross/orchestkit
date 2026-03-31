@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.86';
+export const MIN_CC_VERSION = '2.1.88';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -173,6 +173,12 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   // 2.1.86
   { feature: 'config_disk_write_fix',    minVersion: '2.1.86', description: 'Eliminates unnecessary config disk writes on every skill invocation' },
   { feature: 'write_edit_outside_root',  minVersion: '2.1.86', description: 'Write/Edit fix for files outside project root' },
+  // 2.1.88
+  { feature: 'permission_denied_hook',  minVersion: '2.1.88', description: 'PermissionDenied hook event fires after auto mode classifier denials' },
+  { feature: 'absolute_file_path_hooks', minVersion: '2.1.88', description: 'PreToolUse/PostToolUse file_path always absolute for Write/Edit/Read' },
+  { feature: 'compound_if_matching',    minVersion: '2.1.88', description: 'Hook if conditions match compound commands (ls && git push) and env prefixes' },
+  { feature: 'structured_output_fix',   minVersion: '2.1.88', description: 'StructuredOutput schema cache fix (~50% failure rate with multiple schemas)' },
+  { feature: 'no_flicker_env',          minVersion: '2.1.88', description: 'CLAUDE_CODE_NO_FLICKER=1 env var for flicker-free alt-screen rendering' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
