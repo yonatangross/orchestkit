@@ -7,11 +7,11 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 <span className="badge badge-blue">Injects</span> <span className="badge badge-gray">Global</span>
 
-> OrchestKit consolidates 110 hooks into a small number of hooks.json entries using unified dispatchers --- single entry points that route to many internal hooks.
+> OrchestKit consolidates 111 hooks into a small number of hooks.json entries using unified dispatchers --- single entry points that route to many internal hooks.
 
 ## The Pattern
 
-Without dispatchers, every hook would need its own entry in `hooks.json`, meaning Claude Code would spawn a separate Node.js process for each one. With 110 hooks, that would add significant latency to every tool call.
+Without dispatchers, every hook would need its own entry in `hooks.json`, meaning Claude Code would spawn a separate Node.js process for each one. With 111 hooks, that would add significant latency to every tool call.
 
 The unified dispatcher pattern solves this:
 
