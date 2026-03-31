@@ -5,11 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [7.26.5] - 2026-03-30
+## [7.26.5] - 2026-03-31
 
 ### Fixed
 
-- TODO: Describe your changes here
+- **P0 BUG** denial-notification.ts: in-memory `denialTimestamps` array reset on every hook invocation (fresh Node.js process per call). Now reads persisted timestamps from `permission-denials.jsonl` written by denial-logger, with cooldown state in separate JSON file
+- **P1 SEC** project-write-retry.ts: added `resolveRealPath()` before `isInsideDir()` to prevent symlink bypass attacks (replicates ME-001 fix from file-guard.ts)
+- **P1 SEC** auto-approve-project-writes.ts: added matching `resolveRealPath()` call to close asymmetry between approval and retry hooks
+- denial-logger.ts: JSDoc incorrectly said "Async" but uses `appendFileSync` — corrected to "Sync"
+- `hasExcludedDir()` now catches terminal path segments (e.g., `/project/.git` without trailing slash)
+- Stale hook count "110 hooks" updated to "111 hooks" across 11 doc pages
+
+### Added
+
+- **CC 2.1.88 integration**: 5 PermissionDenied hooks via unified-dispatcher (denial-logger, denial-notification, safe-command-retry, project-write-retry, denial-notification)
+- `lib/path-containment.ts` — shared EXCLUDED_DIRS, isInsideDir(), hasExcludedDir(), resolveRealPath() (extracted from 2 duplicating hooks)
+- `lib/bash-patterns.ts` — unified REJECT_PATTERNS (was duplicated with inconsistencies between auto-approve-safe-bash and safe-command-retry)
+- yarn read-only patterns added to RETRY_SAFE_PATTERNS
+- PermissionDenied section added to `src/hooks/README.md`
+- 152 new unit tests for all PermissionDenied hooks (6969 total tests passing)
+- `tests/skills/test-upstream-refs.sh` — CI freshness check for vendor references
+
+### Changed
+
+- **Option E**: Replaced 32 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 101
+- `scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes
+- `vendor/vercel-skills/mapping.json` — 37 refs across 4 Vercel repos → 6 skill dirs (committed for offline builds)
+- `docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files
+- Removed 32 `vercel-*.mdx` pages from fumadocs, updated meta.json and category pages
+- Minimum Claude Code version: 2.1.86 → 2.1.88
 
 ---
 

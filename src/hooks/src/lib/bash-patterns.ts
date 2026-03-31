@@ -26,12 +26,6 @@ export const REJECT_PATTERNS: RegExp[] = [
   /^chmod\s/,
 ];
 
-/**
- * Check if a command contains compound operators that could chain
- * a dangerous command after a safe one.
- *
- * Covers: &&, ||, |, ;, backticks, $()
- */
-export function hasCompoundOperator(command: string): boolean {
-  return /[;&|`]|\$\(/.test(command);
-}
+// Note: For compound command detection, use isCompoundCommand() from
+// lib/normalize-command.ts — it handles newlines, line continuations,
+// and normalizes the command before checking.

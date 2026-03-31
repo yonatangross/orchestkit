@@ -36,7 +36,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # 69 skills in flat CC 2.1.59 structure
+├── skills/               # <!--ork:skills-->101<!--/ork--> skills in flat CC 2.1.59 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -228,6 +228,46 @@ npm run test:agents
 # Test agent spawning (in Claude Code)
 # Use Task tool with subagent_type: "your-agent"
 ```
+
+### Agent Taxonomy Fields (for docs generation)
+
+All agents require these frontmatter fields for the auto-generated `agents-data.ts`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `taskTypes` | string[] | What the agent does: `build`, `review`, `debug`, `test`, `deploy`, `design`, `research`, `document`, `optimize`, `secure`, `plan` |
+| `keywords` | string[] | Search terms for the agent selector (3-8 keywords) |
+| `examplePrompts` | string[] | Exactly 2 example prompts showing typical usage |
+
+These fields are validated by `tests/agents/test-agent-frontmatter.sh`.
+
+## Vendor Upstream Skills (Option E)
+
+OrchestKit references Vercel Labs skills as upstream API documentation, deposited as `references/upstream-*.md` inside our own skill directories.
+
+### How it works
+
+```
+vendor/vercel-skills/mapping.json  → defines 37 refs across 4 Vercel repos
+scripts/sync-vercel-skills.sh      → fetches + deposits into src/skills/*/references/
+vendor/vercel-skills/manifest.json → tracks content hashes for dedup
+```
+
+### Adding a new upstream reference
+
+1. Add entry to `vendor/vercel-skills/mapping.json`:
+   ```json
+   { "repo": "vercel-labs/json-render", "skill_path": "skills/new-skill", "target_skill": "json-render-catalog", "ref_filename": "upstream-new.md" }
+   ```
+2. Run `bash scripts/sync-vercel-skills.sh`
+3. Verify: `bash scripts/sync-vercel-skills.sh --check`
+4. Commit the mapping, manifest, and new reference file together
+
+### Modes
+
+- `--check` — verify all refs exist on disk (used in CI)
+- `--dry-run` — show what would change without writing
+- No flag — fetch and sync (requires network)
 
 ## Adding New Hooks
 

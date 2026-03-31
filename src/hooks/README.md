@@ -45,7 +45,9 @@ hooks/
 │   ├── lib/                # Shared utilities
 │   │   ├── common.ts       # Logging, output builders, environment
 │   │   ├── git.ts          # Git operations and validation
-│   │   └── guards.ts       # Conditional execution predicates
+│   │   ├── guards.ts       # Conditional execution predicates
+│   │   ├── path-containment.ts  # SEC: EXCLUDED_DIRS, isInsideDir, resolveRealPath (v7.27.1)
+│   │   └── bash-patterns.ts     # SEC: Unified REJECT_PATTERNS for dangerous commands (v7.27.1)
 │   ├── permission/         # Permission hooks (3)
 │   ├── pretool/            # Pre-execution hooks (30)
 │   │   ├── bash/           # Bash command hooks

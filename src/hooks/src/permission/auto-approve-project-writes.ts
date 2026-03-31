@@ -12,7 +12,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../lib/common.js';
-import { isInsideDir, hasExcludedDir } from '../lib/path-containment.js';
+import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
 import { resolve, isAbsolute } from 'node:path';
 
 /**
@@ -29,6 +29,9 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
   if (!isAbsolute(filePath)) {
     filePath = resolve(projectDir, filePath);
   }
+
+  // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / SEC-3)
+  filePath = resolveRealPath(filePath, projectDir);
 
   // All directories to check: primary project dir + any /add-dir dirs (CC 2.1.47)
   const rootDirs = [projectDir, ...(input.added_dirs ?? [])];
