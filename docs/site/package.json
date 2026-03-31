@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node ../../scripts/generate-docs-data.js",
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",

@@ -23,8 +23,16 @@ vi.mock('node:os', () => ({
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
   readFileSync: vi.fn(),
-  writeFileSync: vi.fn(),
+  openSync: vi.fn().mockReturnValue(3),
+  readSync: vi.fn(),
+  fstatSync: vi.fn().mockReturnValue({ size: 0 }),
+  closeSync: vi.fn(),
   mkdirSync: vi.fn(),
+}));
+
+// Mock atomic-write for state persistence
+vi.mock('../../lib/atomic-write.js', () => ({
+  atomicWriteSync: vi.fn(),
 }));
 
 // Mock the common module
@@ -39,11 +47,16 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, openSync, readSync, fstatSync, closeSync } from 'node:fs';
+import { atomicWriteSync } from '../../lib/atomic-write.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
-const mockWriteFileSync = vi.mocked(writeFileSync);
+const mockOpenSync = vi.mocked(openSync);
+const mockReadSync = vi.mocked(readSync);
+const mockFstatSync = vi.mocked(fstatSync);
+const mockCloseSync = vi.mocked(closeSync);
+const mockAtomicWriteSync = vi.mocked(atomicWriteSync);
 const mockExecFileSync = vi.mocked(execFileSync);
 
 function createDeniedInput(toolName = 'Bash'): HookInput {
@@ -77,6 +90,9 @@ function setupMocks(opts: {
     stateExists = lastNotifiedAt > 0,
   } = opts;
 
+  const jsonlContent = makeJSONL(denialTimestamps);
+  const jsonlBytes = Buffer.from(jsonlContent, 'utf-8');
+
   mockExistsSync.mockImplementation((path: unknown) => {
     const p = String(path);
     if (p.includes('permission-denials.jsonl')) return logExists;
@@ -85,11 +101,18 @@ function setupMocks(opts: {
     return false;
   });
 
+  // Bounded tail read: openSync → fstatSync → readSync → closeSync
+  mockOpenSync.mockReturnValue(3 as unknown as number);
+  mockFstatSync.mockReturnValue({ size: jsonlBytes.length } as ReturnType<typeof fstatSync>);
+  mockReadSync.mockImplementation((fd: number, buf: Buffer) => {
+    jsonlBytes.copy(buf, 0, 0, Math.min(jsonlBytes.length, buf.length));
+    return Math.min(jsonlBytes.length, buf.length);
+  });
+  mockCloseSync.mockImplementation(() => {});
+
+  // State file still uses readFileSync (small JSON, not JSONL)
   mockReadFileSync.mockImplementation((path: unknown) => {
     const p = String(path);
-    if (p.includes('permission-denials.jsonl')) {
-      return makeJSONL(denialTimestamps);
-    }
     if (p.includes('denial-notification-state.json')) {
       return JSON.stringify({ lastNotifiedAt });
     }
@@ -180,7 +203,7 @@ describe('denial-notification (disk-based)', () => {
 
       denialNotification(createDeniedInput());
 
-      expect(mockWriteFileSync).toHaveBeenCalledWith(
+      expect(mockAtomicWriteSync).toHaveBeenCalledWith(
         expect.stringContaining('denial-notification-state.json'),
         expect.stringContaining('"lastNotifiedAt"'),
       );

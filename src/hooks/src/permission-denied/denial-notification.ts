@@ -18,11 +18,12 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, openSync, readSync, fstatSync, closeSync, readFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { platform } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { atomicWriteSync } from '../lib/atomic-write.js';
 
 const HOOK_NAME = 'denial-notification';
 
@@ -39,19 +40,30 @@ function getStatePath(): string {
   return join(getProjectDir(), '.claude', 'feedback', 'denial-notification-state.json');
 }
 
+/** Max bytes to read from tail of JSONL (~27 lines at ~150 bytes each) */
+const TAIL_BYTES = 4096;
+
 /**
  * Read recent denial timestamps from the JSONL log file.
- * Only parses the last ~20 lines for efficiency.
+ * Reads only the last 4KB (bounded) to avoid loading large files.
  */
 function getRecentDenialCount(now: number): number {
   const logPath = getDenialLogPath();
   if (!existsSync(logPath)) return 0;
 
   try {
-    const content = readFileSync(logPath, 'utf-8');
-    const lines = content.trim().split('\n');
-    // Only check recent lines (last 20 is more than enough for a 60s window)
-    const recentLines = lines.slice(-20);
+    const fd = openSync(logPath, 'r');
+    const size = fstatSync(fd).size;
+    const readSize = Math.min(size, TAIL_BYTES);
+    const offset = Math.max(0, size - TAIL_BYTES);
+    const buf = Buffer.alloc(readSize);
+    readSync(fd, buf, 0, readSize, offset);
+    closeSync(fd);
+
+    const content = buf.toString('utf-8');
+    const lines = content.split('\n').filter(Boolean);
+    // If we read from middle of file, first line may be partial — skip it
+    const recentLines = offset > 0 ? lines.slice(1) : lines;
 
     let count = 0;
     for (const line of recentLines) {
@@ -91,7 +103,7 @@ function setLastNotifiedAt(ts: number): void {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(statePath, JSON.stringify({ lastNotifiedAt: ts }) + '\n');
+    atomicWriteSync(statePath, JSON.stringify({ lastNotifiedAt: ts }) + '\n');
   } catch {
     logHook(HOOK_NAME, 'Failed to persist notification state');
   }
