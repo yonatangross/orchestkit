@@ -32,7 +32,7 @@ describe('Split Bundle Entry Points', () => {
     test('hooks registry contains permission hooks', () => {
       const hookNames = Object.keys(permissionBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
-      expect(hookNames.every(name => name.startsWith('permission/'))).toBe(true);
+      expect(hookNames.every(name => name.startsWith('permission/') || name.startsWith('permission-denied/'))).toBe(true);
     });
 
     test('all hooks are functions', () => {
@@ -334,7 +334,8 @@ describe('Cross-Bundle Consistency', () => {
     // 181 -> 184: CC 2.1.84 — added creation-tracker, task-context-injector, task-progress-initializer (TaskCreated hooks)
     // 184 -> 185: CC 2.1.85 — added headless-responder (PreToolUse/AskUserQuestion)
     // 185 -> 186: #1191 — added fingerprint-saver (PostToolUse/expect)
-    expect(totalHooks).toBe(186);
+    // 186 -> 191: CC 2.1.88 — PermissionDenied hooks (#1208-#1211)
+    expect(totalHooks).toBe(191);
   });
 });
 

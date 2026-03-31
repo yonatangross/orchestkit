@@ -64,6 +64,7 @@ function extractHookPaths(): Set<string> {
  */
 const prefixToBundleMap: Record<string, { name: string; hooks: Record<string, unknown> }> = {
   'permission': { name: 'permission', hooks: permissionBundle.hooks },
+  'permission-denied': { name: 'permission', hooks: permissionBundle.hooks },
   'pretool': { name: 'pretool', hooks: pretoolBundle.hooks },
   'posttool': { name: 'posttool', hooks: posttoolBundle.hooks },
   'prompt': { name: 'prompt', hooks: promptBundle.hooks },
@@ -224,6 +225,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       PostToolUse: ['posttool', 'skill'],
       PostToolUseFailure: ['posttool'],
       PermissionRequest: ['permission'],
+      PermissionDenied: ['permission-denied'],
       UserPromptSubmit: ['prompt'],
       SessionStart: ['lifecycle'],
       SessionEnd: ['lifecycle'],
