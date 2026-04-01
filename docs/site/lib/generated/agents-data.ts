@@ -631,7 +631,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "genui-architect",
     "name": "Genui Architect",
-    "description": "json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
+    "description": "Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
     "category": "frontend",
     "model": "inherit",
     "taskTypes": [
@@ -956,7 +956,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "ui-feedback",
     "name": "Ui Feedback",
-    "description": "Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
+    "description": "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
     "category": "frontend",
     "model": "sonnet",
     "taskTypes": [

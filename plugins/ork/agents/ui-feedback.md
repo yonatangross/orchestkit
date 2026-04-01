@@ -1,6 +1,6 @@
 ---
 name: ui-feedback
-description: Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.
+description: "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries."
 category: frontend
 model: sonnet
 maxTurns: 20
