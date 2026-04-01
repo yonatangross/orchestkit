@@ -20,6 +20,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/rag/**", "**/retrieval/**", "**/embeddings/**", "**/vector/**"]
 ---
 
 # RAG Retrieval

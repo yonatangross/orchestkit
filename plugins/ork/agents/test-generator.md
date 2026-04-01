@@ -37,6 +37,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
 taskTypes:
   - test
   - build

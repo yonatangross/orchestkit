@@ -5,7 +5,7 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 5 hooks managed by this dispatcher:
+ * 6 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
@@ -13,6 +13,7 @@
  *
  * Every-turn silent analytics:
  * - frustration-detector (producesContext: false, Issue #1243)
+ * - cache-break-detector (producesContext: false, Issue #1238)
  *
  * Every-turn context producers:
  * - context-exhaustion-warner (producesContext: true)
@@ -48,6 +49,7 @@ import { join } from 'node:path';
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { pipelineDetector } from './pipeline-detector.js';
 import { frustrationDetector } from './frustration-detector.js';
+import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
@@ -82,7 +84,7 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 6 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
@@ -97,6 +99,7 @@ const HOOKS: PromptHookConfig[] = [
 
   // --- Silent analytics (no context output, fire-and-forget) ---
   { name: 'frustration-detector', fn: frustrationDetector, producesContext: false },
+  { name: 'cache-break-detector', fn: cacheBreakDetector, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },

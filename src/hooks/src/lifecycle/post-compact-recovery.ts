@@ -29,6 +29,11 @@ interface PreservedContext {
     graphEntries?: number;
     localEntries?: number;
   };
+  tokenBudget?: {
+    estimatedUsed?: number;
+    estimatedRemaining?: number;
+    effortLevel?: string;
+  };
 }
 
 interface SessionState {
@@ -121,6 +126,11 @@ export function postCompactRecovery(input: HookInput): HookResult {
   // Memory snapshot
   if (ctx.memoryTierSnapshot?.localEntries) {
     parts.push(`Memory entries at compaction: ${ctx.memoryTierSnapshot.localEntries}`);
+  }
+
+  // Token budget carry-forward (CC 2.1.89 Candlekeep insight)
+  if (ctx.tokenBudget?.estimatedRemaining) {
+    parts.push(`Token budget before compaction: ~${Math.round(ctx.tokenBudget.estimatedUsed || 0)}k used, ~${Math.round(ctx.tokenBudget.estimatedRemaining)}k remaining (effort: ${ctx.tokenBudget.effortLevel || 'default'})`);
   }
 
   const context = parts.join('\n');

@@ -38,6 +38,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [context7]
+critical_system_reminder: "Flag any function over 50 lines, any file over 300 lines, and any circular dependency."
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Identify the files and changes that need quality review."
 taskTypes:

@@ -19,6 +19,7 @@ targets:
 model: haiku
 metadata:
   category: document-asset-creation
+path_patterns: ["**/store/**", "**/stores/**", "*.store.*", "*.zustand.*"]
 ---
 
 # Zustand Patterns

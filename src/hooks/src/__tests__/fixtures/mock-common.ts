@@ -129,6 +129,15 @@ export function mockCommonBasic(
       if (claudeContext) result.hookSpecificOutput = { hookEventName: 'UserPromptSubmit', additionalContext: claudeContext };
       return result;
     }),
+    outputDefer: vi.fn((reason: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'defer',
+        permissionDecisionReason: reason,
+      },
+    })),
     outputAllowWithContext: vi.fn((ctx: string, systemMessage?: string): HookResult => {
       const result: HookResult = {
         continue: true,

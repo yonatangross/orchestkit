@@ -22,6 +22,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/e2e/**", "**/playwright/**", "**/cypress/**", "playwright.config.*"]
 ---
 
 # E2E Testing Patterns

@@ -44,10 +44,10 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # <!--ork:agents-->36<!--/ork--> specialized AI personas
-└── hooks/                # <!--ork:hooks-->112<!--/ork--> TypeScript hooks in 12 split bundles
+└── hooks/                # <!--ork:hooks-->115<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->112<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->115<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)
@@ -373,6 +373,76 @@ npm run test:agents
 - [ ] Hook scripts output valid JSON
 - [ ] No security violations
 - [ ] CHANGELOG.md updated
+
+## CC Version Bump Audit Checklist
+
+**Philosophy**: "Every time there's a new model release, we delete a bunch of code." (Anthropic). OrchestKit accumulates workarounds, prompt engineering fixes, and compatibility shims that may become unnecessary as Claude Code improves. Treat each CC version bump as a code deletion opportunity.
+
+When bumping the minimum CC version (the `>= X.Y.Z` in CLAUDE.md), run this audit **before** tagging the release:
+
+### 1. Review CC CHANGELOG for new capabilities
+
+```bash
+# Check what's new in the target CC version
+# Compare current minCCVersion to target
+grep -r 'Claude Code.*>=' CLAUDE.md
+```
+
+For each new CC capability, ask: "Does OrchestKit have a workaround for this that can now be removed?"
+
+### 2. Grep for version-gated code
+
+```bash
+# Find version checks, compatibility shims, and CC-specific workarounds
+grep -rn 'minCCVersion\|CC 2\.1\.\|Claude Code 2\.' src/
+grep -rn 'compatibility\|workaround\|shim\|polyfill\|fallback' src/skills/ src/hooks/
+```
+
+Remove any code gated behind versions older than the new minimum.
+
+### 3. Audit prompt engineering
+
+Review skills for prompt patterns that compensate for fixed model weaknesses:
+- Overly explicit instructions that the model now handles natively
+- Multi-step decomposition of tasks the model can now do in one shot
+- Defensive repetition ("IMPORTANT:", "CRITICAL:", "NEVER forget to...")
+- Redundant examples where the model now understands from description alone
+
+### 4. Simplify multi-phase skills
+
+Check if complex multi-phase workflows can be collapsed:
+- Can a 3-phase skill become 2 phases?
+- Are there intermediate validation steps that the model now handles reliably?
+- Can `complexity: max` skills be downgraded to `high`?
+
+### 5. Audit hook necessity
+
+```bash
+# List all hooks and their descriptions
+jq '.hooks[] | {event: .matcher.tool_name // .matcher.event, type: .type}' src/hooks/hooks.json
+```
+
+For each hook, ask: "Is this working around a CC bug that's now fixed?"
+
+### 6. Measure before/after
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Total lines in `src/skills/` | `find src/skills -name '*.md' \| xargs wc -l` | |
+| Total lines in `src/hooks/` | `find src/hooks/src -name '*.ts' \| xargs wc -l` | |
+| Hook count | Check `hooks.json` | |
+| Skill count | Check `manifests/ork.json` | |
+| Average skill token count | `npm run test:skills` output | |
+
+### 7. Track deletion as a health metric
+
+Include in the release PR description:
+- Lines deleted vs. lines added (target: net negative or neutral)
+- Skills simplified or removed
+- Hooks removed
+- Workarounds eliminated (with CC changelog reference)
+
+A CC version bump PR that only bumps the version number without auditing for deletable code is incomplete.
 
 ## Questions?
 

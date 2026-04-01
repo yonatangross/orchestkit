@@ -114,9 +114,10 @@ export function getCachedBranch(projectDir?: string): string {
  * Resolution order (first match wins):
  * 1. ORCHESTKIT_LOG_LEVEL env var (explicit override)
  * 2. CLAUDE_DEBUG env var (CC 2.1.71 /debug toggle → auto-enable debug)
- * 3. Debug flag file (~/.claude/logs/ork/debug-mode.flag) — written by
- *    ConfigChange hook on /debug toggle or by failure-handler on repeated errors
- * 4. Default: 'warn'
+ * 3. ORK_DEBUG env var (set via CLAUDE_ENV_FILE by ConfigChange or failure-handler)
+ * 4. Debug flag file (~/.claude/logs/ork/debug-mode.flag) — fallback for hooks
+ *    on events that don't receive CLAUDE_ENV_FILE propagated vars
+ * 5. Default: 'warn'
  */
 export function getLogLevel(): string {
   // Explicit override always wins
@@ -129,7 +130,12 @@ export function getLogLevel(): string {
     return 'debug';
   }
 
-  // Flag file: written by ConfigChange hook or failure-handler
+  // CLAUDE_ENV_FILE propagated: ORK_DEBUG set by ConfigChange or failure-handler
+  if (process.env.ORK_DEBUG) {
+    return 'debug';
+  }
+
+  // Flag file fallback: for hooks on events that don't inherit env file vars
   try {
     const flagPath = join(
       process.env.HOME || process.env.USERPROFILE || '',

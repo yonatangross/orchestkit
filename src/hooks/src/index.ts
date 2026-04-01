@@ -188,6 +188,8 @@ import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
+import { cwdChanged } from './lifecycle/cwd-changed.js';
+import { fileChanged } from './lifecycle/file-changed.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
@@ -393,6 +395,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
+  'lifecycle/cwd-changed': cwdChanged,
+  'lifecycle/file-changed': fileChanged,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 43 global + 47 agent-scoped + 22 skill-scoped = 112 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 46 global + 47 agent-scoped + 22 skill-scoped = 115 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -93,6 +93,17 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "mcp__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/mcp-output-transform",
+            "timeout": 5,
+            "statusMessage": "Processing MCP result..."
+          }
+        ]
+      },
+      {
         "matcher": "Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit",
         "hooks": [
           {
@@ -173,6 +184,29 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
             "timeout": 3,
             "statusMessage": "Loading handoff..."
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/cwd-changed",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": "CLAUDE.md|package.json|.env|settings.json",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/file-changed",
+            "timeout": 5
           }
         ]
       }

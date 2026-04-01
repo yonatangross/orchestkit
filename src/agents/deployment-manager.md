@@ -38,6 +38,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-validator"
 mcpServers: [context7]
+critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
 taskTypes:
   - deploy
 keywords:

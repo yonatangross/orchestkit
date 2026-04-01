@@ -13,7 +13,7 @@
 import { readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback } from '../lib/common.js';
+import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback, getEnvFile } from '../lib/common.js';
 
 /** Dangerous patterns that should BLOCK the change */
 const BLOCK_PATTERNS = [
@@ -112,10 +112,13 @@ function writeAuditEntry(projectDir: string, entry: { session: string; action: s
  * Sync OrchestKit debug mode with CC's /debug toggle (CC 2.1.71).
  *
  * When /debug is toggled on, CC sets CLAUDE_DEBUG=1 in the process env.
- * We detect this and write a flag file so all subsequent hook processes
- * (which are separate Node processes) also run in debug mode.
+ * Primary: write `export ORK_DEBUG=1` to CLAUDE_ENV_FILE so all subsequent
+ * hooks see it via process.env.ORK_DEBUG without file I/O.
+ * Fallback: also write a flag file for hooks on events that don't receive
+ * CLAUDE_ENV_FILE (PostToolUse, PreToolUse, etc.).
  *
- * When /debug is toggled off, CLAUDE_DEBUG is unset and we remove the flag.
+ * When /debug is toggled off, CLAUDE_DEBUG is unset — we clear ORK_DEBUG
+ * via the env file and remove the flag file.
  */
 function syncDebugMode(): void {
   const home = process.env.HOME || process.env.USERPROFILE || '';
@@ -123,18 +126,32 @@ function syncDebugMode(): void {
   const flagPath = join(flagDir, 'debug-mode.flag');
 
   if (process.env.CLAUDE_DEBUG) {
-    // /debug is ON — write flag file for all hooks
+    // /debug is ON — propagate via CLAUDE_ENV_FILE (primary) + flag file (fallback)
+    try {
+      const envFile = getEnvFile();
+      appendFileSync(envFile, `export ORK_DEBUG=1\n`);
+    } catch {
+      // Non-fatal — older CC versions may not provide CLAUDE_ENV_FILE
+    }
+
     if (!existsSync(flagPath)) {
       mkdirSync(flagDir, { recursive: true });
       writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nsession=${process.env.CLAUDE_SESSION_ID || 'unknown'}\n`);
-      logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
     }
+    logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
   } else {
-    // /debug is OFF — remove flag file
+    // /debug is OFF — clear ORK_DEBUG via env file and remove flag file
+    try {
+      const envFile = getEnvFile();
+      appendFileSync(envFile, `export ORK_DEBUG=\n`);
+    } catch {
+      // Non-fatal
+    }
+
     if (existsSync(flagPath)) {
       try { unlinkSync(flagPath); } catch { /* ok */ }
-      logHook('config-change', 'Debug mode disabled — OrchestKit hooks returning to warn level', 'info');
     }
+    logHook('config-change', 'Debug mode disabled — OrchestKit hooks returning to warn level', 'info');
   }
 }
 

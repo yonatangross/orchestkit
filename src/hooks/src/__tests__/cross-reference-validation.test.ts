@@ -221,7 +221,7 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
   describe('event type to bundle mapping consistency', () => {
     // Map hooks.json event types to expected bundle prefixes
     const eventTypeExpectedPrefixes: Record<string, string[]> = {
-      PreToolUse: ['pretool'],
+      PreToolUse: ['pretool', 'permission'],
       PostToolUse: ['posttool', 'skill'],
       PostToolUseFailure: ['posttool'],
       PermissionRequest: ['permission'],
@@ -246,6 +246,8 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       PostCompact: ['lifecycle'],
       Elicitation: ['elicitation'],
       ElicitationResult: ['elicitation'],
+      CwdChanged: ['lifecycle'],
+      FileChanged: ['lifecycle'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {

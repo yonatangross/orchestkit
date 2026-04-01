@@ -335,7 +335,8 @@ describe('Cross-Bundle Consistency', () => {
     // 184 -> 185: CC 2.1.85 — added headless-responder (PreToolUse/AskUserQuestion)
     // 185 -> 186: #1191 — added fingerprint-saver (PostToolUse/expect)
     // 186 -> 191: CC 2.1.88 — PermissionDenied hooks (#1208-#1211)
-    expect(totalHooks).toBe(191);
+    // 191 -> 195: CC 2.1.89 — mcp-output-transform (posttool), cwd-changed + file-changed (lifecycle), +1 posttool registry
+    expect(totalHooks).toBe(195);
   });
 });
 

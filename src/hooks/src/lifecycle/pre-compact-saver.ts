@@ -28,6 +28,12 @@ interface PreservedContext {
     graphEntries?: number;
     localEntries?: number;
   };
+  /** Token budget state carried across compaction (CC 2.1.89 Candlekeep insight) */
+  tokenBudget?: {
+    estimatedUsed?: number;
+    estimatedRemaining?: number;
+    effortLevel?: string;
+  };
 }
 
 interface SessionState {
@@ -189,6 +195,22 @@ export function preCompactSaver(_input: HookInput): HookResult {
     const localEntries = countLocalMemoryEntries();
     const decisions = getRecentDecisions();
 
+    // Read token budget state (from token-budget-tracker InstructionsLoaded hook)
+    let tokenBudget: PreservedContext['tokenBudget'];
+    try {
+      const budgetFile = join(getProjectDir(), '.claude', 'feedback', 'token-budget-state.json');
+      if (existsSync(budgetFile)) {
+        const budget = JSON.parse(readFileSync(budgetFile, 'utf8'));
+        tokenBudget = {
+          estimatedUsed: budget.estimatedUsed,
+          estimatedRemaining: budget.estimatedRemaining,
+          effortLevel: budget.effortLevel || process.env.CLAUDE_EFFORT,
+        };
+      }
+    } catch {
+      // Budget state unavailable — not critical
+    }
+
     // Preserve rich context for post-compaction recovery
     state.preservedContext = {
       branch: process.env.ORCHESTKIT_BRANCH || process.env.GIT_BRANCH || undefined,
@@ -199,6 +221,7 @@ export function preCompactSaver(_input: HookInput): HookResult {
       memoryTierSnapshot: {
         localEntries,
       },
+      tokenBudget,
     };
 
     atomicWriteSync(stateFile, JSON.stringify(state, null, 2));

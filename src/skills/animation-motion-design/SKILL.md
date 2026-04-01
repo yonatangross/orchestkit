@@ -22,6 +22,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/animation/**", "**/motion/**", "*.motion.*", "*.framer.*"]
 ---
 
 # Animation & Motion Design

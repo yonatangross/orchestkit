@@ -107,7 +107,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->112<!--/ork--> hooks (<!--ork:hooks-global-->43<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->115<!--/ork--> hooks (<!--ork:hooks-global-->46<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -226,6 +226,84 @@ CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
 - `stop/stop-failure-handler.ts` — emergency handoff file (uses `project_dir` directly, not PLUGIN_DATA)
 
 **Rule:** Never hardcode `.claude/memory/sessions/` — always use `getSessionStorageDir()` or `getPromptSessionDir()` to respect PLUGIN_DATA.
+
+---
+
+## CLAUDE_ENV_FILE Pattern
+
+CC provides a `CLAUDE_ENV_FILE` env var to hooks running on `SessionStart`, `CwdChanged`, `FileChanged`, and `ConfigChange` events. Hook scripts write `export KEY=value` lines to this file, and CC reads them back after execution, setting those env vars for **all future hook invocations** in the session. This is cleaner than file-based state for lightweight key-value data.
+
+### How It Works
+
+```
+Hook receives CLAUDE_ENV_FILE=/tmp/claude-env-abc123
+    ↓
+Hook appends: export ORK_DEBUG=1
+    ↓
+CC reads the file after hook exits
+    ↓
+All subsequent hooks see process.env.ORK_DEBUG === '1'
+```
+
+### When to Use
+
+| Use Case | CLAUDE_ENV_FILE | File-Based State |
+|----------|-----------------|------------------|
+| Session-level flags (debug mode, feature toggles) | **Preferred** | Overkill |
+| Detected project tier (interview/mvp/production) | **Preferred** | Overkill |
+| Simple counters (< 5 values) | **Preferred** | Overkill |
+| Complex structured data (JSON objects, arrays) | Not suitable | **Use this** |
+| Data needed across sessions | Not suitable | **Use this** |
+| Data > 10 key-value pairs | Not suitable | **Use this** |
+
+### TypeScript Example
+
+```typescript
+import { appendFileSync } from 'node:fs';
+import { getEnvFile } from '../lib/common.js';
+
+/**
+ * Write a session-scoped env var via CLAUDE_ENV_FILE.
+ * All subsequent hooks in this session will see the value
+ * via process.env[key].
+ */
+function setSessionEnv(key: string, value: string): void {
+  const envFile = getEnvFile();
+  try {
+    appendFileSync(envFile, `export ${key}=${value}\n`);
+  } catch {
+    // Non-fatal — env file may not exist on older CC versions
+  }
+}
+
+// Usage in a SessionStart or ConfigChange hook:
+setSessionEnv('ORK_DEBUG', '1');
+setSessionEnv('ORK_PROJECT_TIER', 'production');
+```
+
+### Helper: `getEnvFile()`
+
+Located in `lib/common.ts`. Returns `CLAUDE_ENV_FILE` if set, falls back to legacy `.instance_env` path:
+
+```typescript
+export function getEnvFile(): string {
+  if (process.env.CLAUDE_ENV_FILE) {
+    return process.env.CLAUDE_ENV_FILE;
+  }
+  return `${getPluginRoot()}/.claude/.instance_env`;
+}
+```
+
+### Adoption
+
+The `syncDebugMode()` function in `config-change/settings-reload.ts` uses `CLAUDE_ENV_FILE` to propagate the `ORK_DEBUG` flag when `/debug` is toggled. Instead of writing a flag file to disk that every hook must stat, it writes `export ORK_DEBUG=1` to the env file, making the flag instantly available via `process.env.ORK_DEBUG` in all subsequent hooks.
+
+### Constraints
+
+- **Session-scoped only** — values do not persist across sessions. For cross-session state, use `CLAUDE_PLUGIN_DATA` or project-local files.
+- **Event support** — only available on events where CC provides the env var (`SessionStart`, `CwdChanged`, `FileChanged`, `ConfigChange`). Other events can *read* values set earlier, but cannot write new ones.
+- **String values only** — no JSON, no arrays. For structured data, use file-based state.
+- **No deletion** — you cannot unset a previously exported variable via this file. To "disable" a flag, overwrite it with an empty value (`export ORK_DEBUG=`).
 
 ---
 
@@ -1160,7 +1238,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->112<!--/ork--> hooks (<!--ork:hooks-global-->43<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->115<!--/ork--> hooks (<!--ork:hooks-global-->46<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 

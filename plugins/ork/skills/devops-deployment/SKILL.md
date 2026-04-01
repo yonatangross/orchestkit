@@ -20,6 +20,7 @@ allowed-tools:
   - WebFetch
   - WebSearch
 paths: [".github/workflows/**", "Dockerfile*", "docker-compose*", "**/k8s/**", "**/terraform/**"]
+path_patterns: ["*.tf", "*.tfvars", "**/k8s/**", "**/helm/**", "Dockerfile*", ".github/workflows/*"]
 ---
 
 # DevOps & Deployment Skill

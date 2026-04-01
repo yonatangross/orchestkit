@@ -38,6 +38,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+critical_system_reminder: "Verify cost implications of every resource. Never provision without a budget tag."
 taskTypes:
   - design
   - build

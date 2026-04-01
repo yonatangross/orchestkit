@@ -32,6 +32,7 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [storybook-mcp]
+required_mcp_servers: [21st-dev-magic]
 taskTypes:
   - review
   - research

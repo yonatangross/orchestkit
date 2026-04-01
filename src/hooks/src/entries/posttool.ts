@@ -43,6 +43,9 @@ import { failureHandler } from '../posttool/failure-handler.js';
 // Intelligent Decision Capture System
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
+// MCP output transformation (CC 2.1.89)
+import { mcpOutputTransform } from '../posttool/mcp-output-transform.js';
+
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
@@ -85,6 +88,9 @@ export const hooks: Record<string, HookFn> = {
 
   // Intelligent Decision Capture System
   'posttool/tool-preference-learner': toolPreferenceLearner,
+
+  // MCP output transformation (CC 2.1.89)
+  'posttool/mcp-output-transform': mcpOutputTransform,
 
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,

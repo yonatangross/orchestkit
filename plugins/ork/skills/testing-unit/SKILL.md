@@ -22,6 +22,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["*.test.*", "*.spec.*", "**/vitest.config.*", "**/jest.config.*"]
 ---
 
 # Unit Testing Patterns
