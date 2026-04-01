@@ -24,6 +24,7 @@ const BLOCK_PATTERNS = [
 /** Risky patterns that should WARN */
 const WARN_PATTERNS = [
   { pattern: /"permissionMode"\s*:\s*"dontAsk"/, label: 'permission-mode: dontAsk bypasses all permission prompts' },
+  { pattern: /"permissionMode"\s*:\s*"auto"/, label: 'permission-mode: auto uses classifier-based approval — PermissionDenied hooks still fire' },
   { pattern: /"allow"\s*:.*"Bash"/, label: 'permission-escalation: Bash added to allow list' },
   { pattern: /"deny"\s*:\s*\[\s*\]/, label: 'permission-gap: empty deny list' },
   { pattern: /"hooks"\s*:\s*\{\s*\}/, label: 'hooks-removed: all hooks cleared' },

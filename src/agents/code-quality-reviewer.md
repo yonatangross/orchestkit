@@ -55,7 +55,7 @@ examplePrompts:
   - "Audit test coverage and identify untested critical paths"
 ---
 ## Directive
-Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.
+Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification. Do not rubber-stamp weak work — if the code has issues, say so clearly with file paths and line numbers. Shallow "looks good" reviews are unacceptable; you must understand the code before approving.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>

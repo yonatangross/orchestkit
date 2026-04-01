@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-04-01T11:09:23.500Z",
-  "buildTimeMs": 314,
+  "generatedAt": "2026-04-01T13:30:30.440Z",
+  "buildTimeMs": 375,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 24032,
-      "sizeKB": "23.47",
-      "exports": 60
+      "size": 24124,
+      "sizeKB": "23.56",
+      "exports": 61
     },
     "pretool": {
-      "size": 97741,
-      "sizeKB": "95.45",
-      "exports": 75
+      "size": 97833,
+      "sizeKB": "95.54",
+      "exports": 76
     },
     "posttool": {
       "size": 67164,
@@ -19,13 +19,13 @@
       "exports": 59
     },
     "prompt": {
-      "size": 38511,
-      "sizeKB": "37.61",
+      "size": 39756,
+      "sizeKB": "38.82",
       "exports": 101
     },
     "lifecycle": {
-      "size": 86413,
-      "sizeKB": "84.39",
+      "size": 86557,
+      "sizeKB": "84.53",
       "exports": 59
     },
     "stop": {
@@ -34,8 +34,8 @@
       "exports": 44
     },
     "subagent": {
-      "size": 69502,
-      "sizeKB": "67.87",
+      "size": 69550,
+      "sizeKB": "67.92",
       "exports": 77
     },
     "notification": {
@@ -54,19 +54,19 @@
       "exports": 59
     },
     "agent": {
-      "size": 18095,
-      "sizeKB": "17.67",
-      "exports": 60
+      "size": 18187,
+      "sizeKB": "17.76",
+      "exports": 61
     },
     "hooks": {
-      "size": 333597,
-      "sizeKB": "325.78",
-      "exports": 158,
+      "size": 333689,
+      "sizeKB": "325.87",
+      "exports": 159,
       "unified": true
     }
   },
-  "totalSize": 559529,
-  "totalSizeKB": "546.42",
+  "totalSize": 561242,
+  "totalSizeKB": "548.09",
   "inputs": 64,
-  "avgBundleSizeKB": "49.67"
+  "avgBundleSizeKB": "49.83"
 }

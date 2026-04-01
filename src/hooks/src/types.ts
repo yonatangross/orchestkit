@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.89 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied, 2.1.89 defer permission)
+ * CC 2.1.89 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission)
  */
 
 /**
@@ -31,7 +31,9 @@ export type HookEvent =
   | 'PostCompact'
   | 'Elicitation'
   | 'ElicitationResult'
-  | 'PermissionDenied';
+  | 'PermissionDenied'
+  | 'CwdChanged'
+  | 'FileChanged';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -53,8 +55,8 @@ export interface HookInput {
   exit_code?: number;
   /** Whether a stop hook is currently active (prevents re-entry) */
   stop_hook_active?: boolean;
-  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only) */
-  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk';
+  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only; CC 2.1.88: 'auto' mode — classifier-based approval) */
+  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk' | 'auto';
   /** User prompt (UserPromptSubmit only) */
   prompt?: string;
   /** Project directory */
@@ -169,6 +171,18 @@ export interface HookInput {
   worktree_path?: string;
   /** Hook type: "command" (default) or "http" (CC 2.1.84 — returns worktreePath in hookSpecificOutput) */
   type?: string;
+
+  // CwdChanged specific fields (CC 2.1.83)
+  /** Previous working directory (CwdChanged) */
+  old_cwd?: string;
+  /** New working directory (CwdChanged) */
+  new_cwd?: string;
+
+  // FileChanged specific fields (CC 2.1.83)
+  /** Basename of the changed file (FileChanged — matched via hook `matcher` on basename) */
+  changed_file?: string;
+  /** Absolute path to the changed file (FileChanged) */
+  changed_file_path?: string;
 }
 
 /**

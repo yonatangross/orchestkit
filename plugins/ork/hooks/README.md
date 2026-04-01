@@ -20,8 +20,9 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 - CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 - CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
-- CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching
+- CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching, `auto` permission mode
 - CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
+- Event coverage: 24/26 CC events hooked; CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---
 
@@ -157,7 +158,18 @@ Session and instance lifecycle management.
 - `StopFailure` - API error termination (CC 2.1.78). Flushes state, writes emergency handoff. **Must be async.** See `stop/stop-failure-handler.ts`
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation
-- `SubagentStop` - Subagent completion tracking
+- `SubagentStop` - Subagent completion tracking (includes `agent_transcript_path` for post-mortem, CC 2.1.69)
+- `PreCompact` - Save critical context before compaction
+- `PostCompact` - Recover context after compaction (CC 2.1.76)
+- `Elicitation` - MCP server requests structured user input (CC 2.1.76)
+- `ElicitationResult` - User responds to elicitation (CC 2.1.76)
+- `InstructionsLoaded` - Fires per CLAUDE.md/rules file load (CC 2.1.83)
+- `ConfigChange` - Settings changed mid-session (CC 2.1.49)
+- `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
+- `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
+- `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
+- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
+- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -1064,16 +1076,31 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | Event | Entry Point | Bundle |
 |-------|-------------|--------|
 | PermissionRequest | src/entries/permission.ts | permission.mjs |
+| PermissionDenied | src/entries/permission.ts | permission.mjs |
 | PreToolUse | src/entries/pretool.ts | pretool.mjs |
 | PostToolUse | src/entries/posttool.ts | posttool.mjs |
+| PostToolUseFailure | src/entries/posttool.ts | posttool.mjs |
 | UserPromptSubmit | src/entries/prompt.ts | prompt.mjs |
 | SessionStart/End | src/entries/lifecycle.ts | lifecycle.mjs |
-| Stop | src/entries/stop.ts | stop.mjs |
+| Stop/StopFailure | src/entries/stop.ts | stop.mjs |
 | SubagentStart/Stop | src/entries/subagent.ts | subagent.mjs |
 | Notification | src/entries/notification.ts | notification.mjs |
 | Setup | src/entries/setup.ts | setup.mjs |
+| PreCompact/PostCompact | src/entries/lifecycle.ts | lifecycle.mjs |
+| Elicitation/ElicitationResult | (root hooks.json) | lifecycle.mjs |
+| InstructionsLoaded | (root hooks.json) | lifecycle.mjs |
+| ConfigChange | (root hooks.json) | lifecycle.mjs |
+| TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
+| TeammateIdle | (root hooks.json) | lifecycle.mjs |
+| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
+| CwdChanged | *not hooked* | — |
+| FileChanged | *not hooked* | — |
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
+
+**Deliberately unhoooked events (CC 2.1.83+):**
+- `CwdChanged` — fires on working directory change. OrchestKit does not currently need to react to cwd changes; session context is project-scoped via `project_dir`. Could be useful for multi-worktree context switching if needed in the future.
+- `FileChanged` — fires on file modifications (matched by basename). OrchestKit's PostToolUse hooks already track file writes. FileChanged is more useful for watching external file changes (e.g., `.env` modifications) but the overhead of per-file-change hooks is not justified yet.
 
 ### Step 2: Register in Entry Point
 

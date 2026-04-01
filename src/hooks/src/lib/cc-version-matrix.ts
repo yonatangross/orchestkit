@@ -175,6 +175,7 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'write_edit_outside_root',  minVersion: '2.1.86', description: 'Write/Edit fix for files outside project root' },
   // 2.1.88
   { feature: 'permission_denied_hook',  minVersion: '2.1.88', description: 'PermissionDenied hook event fires after auto mode classifier denials' },
+  { feature: 'auto_permission_mode',  minVersion: '2.1.88', description: 'permissionMode:"auto" — classifier-based approval, replaces interactive prompts' },
   { feature: 'absolute_file_path_hooks', minVersion: '2.1.88', description: 'PreToolUse/PostToolUse file_path always absolute for Write/Edit/Read' },
   { feature: 'compound_if_matching',    minVersion: '2.1.88', description: 'Hook if conditions match compound commands (ls && git push) and env prefixes' },
   { feature: 'structured_output_fix',   minVersion: '2.1.88', description: 'StructuredOutput schema cache fix (~50% failure rate with multiple schemas)' },

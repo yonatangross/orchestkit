@@ -139,6 +139,8 @@ function trackAgentResult(input: HookInput): void {
       commit_base: agentCtx.commitBase,
       orchestrator,
       background: isBackground || undefined,
+      // CC 2.1.69: transcript path for post-mortem analysis
+      transcript_path: input.agent_transcript_path || undefined,
     });
   } catch {
     // Silent failure - tracking should never break hooks

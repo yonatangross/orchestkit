@@ -48,7 +48,7 @@ examplePrompts:
   - "Audit npm dependencies for known CVEs"
 ---
 ## Directive
-Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
+Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only. Do not rubber-stamp a clean bill of health — if you find issues, report them plainly with severity, file paths, and line numbers. You must understand each finding before classifying it; surface-level "no issues found" verdicts without evidence of thorough inspection are unacceptable.
 
 Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 <investigate_before_answering>

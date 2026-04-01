@@ -1792,6 +1792,35 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect"
     ]
   },
+  "dream": {
+    "name": "dream",
+    "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "memory",
+      "maintenance",
+      "consolidation"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "emulate-seed": {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
@@ -3746,6 +3775,30 @@ export const SKILLS: Record<string, SkillMeta> = {
       "git-operations-engineer",
       "release-engineer"
     ]
+  },
+  "release-sync": {
+    "name": "release-sync",
+    "description": "Sync release content to NotebookLM and HQ Knowledge Base after tagging a new version. Reads CHANGELOG, CLAUDE.md, and hook README, then updates notebook sources and ingests to knowledge base.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "release",
+      "notebooklm",
+      "knowledge-base",
+      "content-sync",
+      "automation"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "remember": {
     "name": "remember",

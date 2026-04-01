@@ -24,6 +24,8 @@ export interface LedgerEntry {
   commit_base: string;
   orchestrator?: string;
   background?: boolean;
+  /** Path to subagent transcript file (CC 2.1.69+) for post-mortem analysis */
+  transcript_path?: string;
 }
 
 /** Strip the ork: prefix from agent names if present, to avoid double-prefixing. */

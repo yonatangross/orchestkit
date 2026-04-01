@@ -5,11 +5,14 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 4 hooks managed by this dispatcher:
+ * 5 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
  * - agentation-context (producesContext: true)
+ *
+ * Every-turn silent analytics:
+ * - frustration-detector (producesContext: false, Issue #1243)
  *
  * Every-turn context producers:
  * - context-exhaustion-warner (producesContext: true)
@@ -44,6 +47,7 @@ import { join } from 'node:path';
 // Import hook implementations — every-turn
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { pipelineDetector } from './pipeline-detector.js';
+import { frustrationDetector } from './frustration-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
@@ -90,6 +94,9 @@ const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
+
+  // --- Silent analytics (no context output, fire-and-forget) ---
+  { name: 'frustration-detector', fn: frustrationDetector, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },

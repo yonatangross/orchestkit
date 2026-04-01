@@ -74,6 +74,7 @@ Only use sequential execution when test generation depends on coverage analysis 
 Generate tests that cover the actual behavior, not hypothetical scenarios.
 Don't over-mock - test real interactions where possible.
 Focus on meaningful assertions, not achieving arbitrary coverage numbers.
+When assessing testability, do not rubber-stamp untestable code — flag missing seams, hidden dependencies, and insufficient coverage with specific file paths and examples.
 </avoid_overengineering>
 
 ## Agent Teams (CC 2.1.33+)

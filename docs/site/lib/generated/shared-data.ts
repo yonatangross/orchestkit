@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 101,
+  "skills": 103,
   "agents": 36,
-  "hooks": 111,
-  "commands": 21,
+  "hooks": 112,
+  "commands": 23,
   "compositions": 14
 };
 
@@ -186,7 +186,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "genui-architect",
-    "description": "json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
+    "description": "Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
     "plugins": [
       "ork"
     ],
@@ -312,7 +312,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "ui-feedback",
-    "description": "Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
+    "description": "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
     "plugins": [
       "ork"
     ],
@@ -396,6 +396,7 @@ export const SKILLS_SUMMARY = {
     ],
     "memory": [
       "doctor",
+      "dream",
       "memory",
       "memory-fabric",
       "remember"

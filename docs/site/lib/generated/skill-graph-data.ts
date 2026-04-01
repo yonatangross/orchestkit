@@ -365,6 +365,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "dream",
+    "label": "Dream",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "emulate-seed",
     "label": "Emulate Seed",
     "type": "reference",
@@ -750,6 +760,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "type": "reference",
     "complexity": "low",
     "category": "other",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "release-sync",
+    "label": "Release Sync",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
