@@ -185,11 +185,20 @@ function analyzeAndRecordTranscript(
     const metrics = analyzeTranscript(transcriptPath);
     if (!metrics) return;
 
+    // Fork cache metrics (CC 2.1.89 — #1227)
+    const isFork = Boolean(input.is_fork);
+    const cacheCreationTokens = input.cache_creation_input_tokens;
+    const cacheReadTokens = input.cache_read_input_tokens;
+    const cacheHitPct = (cacheCreationTokens && cacheReadTokens)
+      ? Math.round((cacheReadTokens / (cacheCreationTokens + cacheReadTokens)) * 100)
+      : undefined;
+
     appendAnalytics('subagent-quality.jsonl', {
       ts: new Date().toISOString(),
       pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
       agent: agentType,
       agent_name: agentName ?? null,
+      is_fork: isFork,
       tool_call_count: metrics.tool_call_count,
       tool_counts: metrics.tool_counts,
       unique_tools: metrics.unique_tools,
@@ -197,6 +206,7 @@ function analyzeAndRecordTranscript(
       completion_status: metrics.completion_status,
       duration_ms: durationMs,
       ...(metrics.token_usage ? { token_usage: metrics.token_usage } : {}),
+      ...(cacheHitPct !== undefined ? { cache_hit_pct: cacheHitPct } : {}),
     });
   } catch {
     // Analytics should never break the hook chain

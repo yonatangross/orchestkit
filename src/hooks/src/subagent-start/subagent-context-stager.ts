@@ -300,6 +300,15 @@ export function subagentContextStager(input: HookInput): HookResult {
   const subagentType = (toolInput.subagent_type as string) || '';
   const taskDescription = (toolInput.task_description as string) || (toolInput.description as string) || '';
 
+  // === FORK DETECTION (CC 2.1.89 — #1227) ===
+  // Forked subagents inherit parent's full context (system prompt, CLAUDE.md, conversation).
+  // Skip heavy context injection to avoid double-injection that wastes tokens.
+  const isFork = Boolean(input.is_fork);
+  if (isFork) {
+    logHook('subagent-context-stager', `Fork detected for ${subagentType} — skipping context injection`);
+    return outputSilentSuccess();
+  }
+
   logHook('subagent-context-stager', `Staging context for ${subagentType}`);
 
   let stagedContext = '';

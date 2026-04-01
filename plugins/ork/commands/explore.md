@@ -189,4 +189,4 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
 ## Related Skills
 - `ork:implement`: Implement after exploration
 
-**Version:** 2.3.0 (March 2026) — Added progressive output for incremental exploration results
+**Version:** 2.4.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)

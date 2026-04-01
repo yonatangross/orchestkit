@@ -178,9 +178,15 @@ export interface HookInput {
   /** New working directory (CwdChanged) */
   new_cwd?: string;
 
-  // SubagentStart MCP context (CC 2.1.89)
+  // SubagentStart context (CC 2.1.89)
   /** Connected MCP server names (SubagentStart) */
   mcp_connections?: string | string[];
+  /** Whether this subagent was forked (cache-sharing) vs cold-started (CC 2.1.89) */
+  is_fork?: boolean;
+  /** Cache creation input tokens (CC 2.1.89 — SubagentStop) */
+  cache_creation_input_tokens?: number;
+  /** Cache read input tokens (CC 2.1.89 — SubagentStop) */
+  cache_read_input_tokens?: number;
 
   // FileChanged specific fields (CC 2.1.83)
   /** Basename of the changed file (FileChanged — matched via hook `matcher` on basename) */

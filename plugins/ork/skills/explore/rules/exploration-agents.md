@@ -57,6 +57,14 @@ Agent(
 )
 ```
 
+## Fork Pattern (CC 2.1.89 — #1227)
+
+These agents are **fork-eligible**: short prompts (<500 words), no custom model, no worktree isolation. CC automatically shares the parent's cached API prefix across all 4 forks, reducing cost by ~60%.
+
+> See `chain-patterns/references/fork-pattern.md` for full details.
+
+**Do NOT** add `model=` or `isolation="worktree"` to these agents — it breaks cache sharing.
+
 ## Explorer Roles
 
 1. **Code Structure Explorer** - Files, classes, functions
