@@ -10,7 +10,8 @@
     "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": "1",
     "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "180000",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "MCP_CONNECTION_NONBLOCKING": "true"
   },
   "plansDirectory": ".claude/plans",
   "permissions": {

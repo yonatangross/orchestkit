@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.88';
+export const MIN_CC_VERSION = '2.1.89';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -179,6 +179,16 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'compound_if_matching',    minVersion: '2.1.88', description: 'Hook if conditions match compound commands (ls && git push) and env prefixes' },
   { feature: 'structured_output_fix',   minVersion: '2.1.88', description: 'StructuredOutput schema cache fix (~50% failure rate with multiple schemas)' },
   { feature: 'no_flicker_env',          minVersion: '2.1.88', description: 'CLAUDE_CODE_NO_FLICKER=1 env var for flicker-free alt-screen rendering' },
+  // 2.1.89
+  { feature: 'defer_permission',       minVersion: '2.1.89', description: 'PreToolUse hooks can return decision:"defer" to pause headless sessions for later --resume' },
+  { feature: 'task_created_hook',      minVersion: '2.1.89', description: 'TaskCreated hook event fires when tasks are created, with blocking behavior' },
+  { feature: 'autocompact_thrash_fix', minVersion: '2.1.89', description: 'Detects autocompact thrash loop (3 refills) and stops with actionable error' },
+  { feature: 'cleanup_period_validation', minVersion: '2.1.89', description: 'cleanupPeriodDays:0 in settings.json now rejected with validation error' },
+  { feature: 'mcp_nonblocking_p_mode', minVersion: '2.1.89', description: 'MCP_CONNECTION_NONBLOCKING=true skips MCP wait in -p mode, bounded at 5s' },
+  { feature: 'named_subagent_typeahead', minVersion: '2.1.89', description: 'Named subagents appear in @ mention typeahead suggestions' },
+  { feature: 'hook_output_disk_spill', minVersion: '2.1.89', description: 'Hook output over 50K chars saved to disk with file path + preview' },
+  { feature: 'edit_after_bash_view',   minVersion: '2.1.89', description: 'Edit works on files viewed via Bash sed/cat without separate Read call' },
+  { feature: 'symlink_permission_check', minVersion: '2.1.89', description: 'Edit/Read allow rules check resolved symlink target, not just requested path' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
