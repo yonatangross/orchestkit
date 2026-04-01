@@ -105,7 +105,6 @@ import { implementStandardsLoader, reviewDimensionsLoader, verifyScoringRubricLo
 
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
-import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { handoffInjector } from './prompt/handoff-injector.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
@@ -276,7 +275,6 @@ export const hooks: Record<string, HookFn> = {
 
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
-  'prompt/antipattern-warning': antipatternWarning,
   'prompt/handoff-injector': handoffInjector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,

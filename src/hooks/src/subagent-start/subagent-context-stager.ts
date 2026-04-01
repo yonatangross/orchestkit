@@ -269,18 +269,14 @@ function injectCriticalReminder(agentType: string): string {
  * Check required_mcp_servers availability and warn if missing (#1232).
  * Reads connected MCP servers from input and compares to requirements.
  */
-function checkRequiredMcpServers(agentType: string, input: HookInput): string {
+function checkRequiredMcpServers(agentType: string): string {
   const fm = parseAgentFrontmatter(agentType);
   const required = fm.required_mcp_servers;
   if (!required || !Array.isArray(required) || required.length === 0) return '';
 
-  // CC exposes connected MCP servers via input.mcp_connections or env
-  const connectedRaw = input.mcp_connections || process.env.CLAUDE_MCP_SERVERS || '';
-  const connected = typeof connectedRaw === 'string'
-    ? connectedRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
-    : Array.isArray(connectedRaw)
-      ? (connectedRaw as string[]).map(s => s.toLowerCase())
-      : [];
+  // CC exposes connected MCP servers via CLAUDE_MCP_SERVERS env var
+  const connectedRaw = process.env.CLAUDE_MCP_SERVERS || '';
+  const connected = connectedRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
   const missing = required.filter(s => !connected.includes(s.toLowerCase()));
 
@@ -321,7 +317,7 @@ export function subagentContextStager(input: HookInput): HookResult {
   }
 
   // === CHECK REQUIRED MCP SERVERS (#1232) ===
-  const mcpWarning = checkRequiredMcpServers(subagentType, input);
+  const mcpWarning = checkRequiredMcpServers(subagentType);
   if (mcpWarning) {
     stagedContext += mcpWarning;
   }

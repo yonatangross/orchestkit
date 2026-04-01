@@ -10,8 +10,7 @@
  * The LLM now classifies antipatterns directly — no regex needed.
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, writeRulesFile } from '../lib/common.js';
+import { writeRulesFile } from '../lib/common.js';
 import { join } from 'node:path';
 
 // Static anti-patterns — materialized to rules file at session start
@@ -53,14 +52,6 @@ const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
  * Materialize static anti-patterns to a rules file (called once at session start).
  * CC loads .claude/rules/ files into every prompt automatically — zero per-turn cost.
  */
-/**
- * @deprecated Removed in v7.27.1 (#1145). Dynamic pattern matching migrated to
- * type:prompt hook. Kept as no-op for bundle compatibility.
- */
-export function antipatternWarning(_input: HookInput): HookResult {
-  return outputSilentSuccess();
-}
-
 export function materializeAntipatternRules(projectDir: string): void {
   const lines = STATIC_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
   const content = `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;

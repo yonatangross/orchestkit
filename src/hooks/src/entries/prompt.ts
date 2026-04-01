@@ -35,7 +35,6 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
-import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
@@ -56,7 +55,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/profile-injector': profileInjector,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,
-  'prompt/antipattern-warning': antipatternWarning,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
   // 'prompt/communication-style-tracker': replaced by type:prompt hook in hooks.json (#980)

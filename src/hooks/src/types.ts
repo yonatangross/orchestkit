@@ -179,8 +179,6 @@ export interface HookInput {
   new_cwd?: string;
 
   // SubagentStart context (CC 2.1.89)
-  /** Connected MCP server names (SubagentStart) */
-  mcp_connections?: string | string[];
   /** Whether this subagent was forked (cache-sharing) vs cold-started (CC 2.1.89) */
   is_fork?: boolean;
   /** Cache creation input tokens (CC 2.1.89 — SubagentStop) */
