@@ -330,8 +330,12 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('audit entry includes session ID and timestamp', () => {
       settingsReload(createInput({ session_id: 'audit-sess-123' }));
 
-      const written = mockAppendFileSync.mock.calls[0][1] as string;
-      const entry = JSON.parse(written.trim());
+      // Find the JSONL audit call (not env file writes like "export ORK_DEBUG=...")
+      const auditCall = mockAppendFileSync.mock.calls.find(
+        (call: unknown[]) => String(call[0]).includes('config-changes.jsonl'),
+      );
+      expect(auditCall).toBeDefined();
+      const entry = JSON.parse((auditCall![1] as string).trim());
       expect(entry.session).toBe('audit-sess-123');
       expect(entry.timestamp).toBeDefined();
     });

@@ -58,8 +58,9 @@ describe('prompt/antipattern-warning', () => {
       }
     });
 
-    test('checks ALL prompts, not just implementation prompts', () => {
-      // No keyword gate — any prompt can trigger learned pattern warnings
+    test('returns silent success even with learned patterns file present (#1145 migration)', () => {
+      // Dynamic pattern matching was removed in v7.27.1 (#1145) —
+      // migrated to type:prompt hook. antipatternWarning() is now a no-op.
       const tempDir = join(tmpdir(), `ap-test-${Date.now()}`);
       mkdirSync(join(tempDir, '.claude', 'feedback'), { recursive: true });
       writeFileSync(
@@ -68,7 +69,8 @@ describe('prompt/antipattern-warning', () => {
       );
 
       const result = antipatternWarning(createPromptInput('Check the weather API', { project_dir: tempDir }));
-      expect(result.hookSpecificOutput?.additionalContext).toContain('Previously failed');
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
 
       rmSync(tempDir, { recursive: true, force: true });
     });
@@ -132,7 +134,7 @@ describe('prompt/antipattern-warning', () => {
       rmSync(tempDir, { recursive: true, force: true });
     });
 
-    test('warns when learned failed pattern matches', () => {
+    test('no longer warns for learned patterns (#1145 — migrated to type:prompt hook)', () => {
       writeFileSync(
         join(tempDir, '.claude', 'feedback', 'learned-patterns.json'),
         JSON.stringify({
@@ -141,8 +143,9 @@ describe('prompt/antipattern-warning', () => {
       );
 
       const result = antipatternWarning(createPromptInput('Implement offset feature', { project_dir: tempDir }));
-      expect(result.hookSpecificOutput?.additionalContext).toContain('Previously failed');
-      expect(result.hookSpecificOutput?.additionalContext).toContain('offset pagination');
+      // Dynamic matching removed — always silent success
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
     });
 
     test('ignores successful patterns', () => {
@@ -199,14 +202,16 @@ describe('prompt/antipattern-warning', () => {
       rmSync(tempDir, { recursive: true, force: true });
     });
 
-    test('uses hookEventName: UserPromptSubmit when warning', () => {
+    test('returns silent success — dynamic warnings removed (#1145)', () => {
       const result = antipatternWarning(createPromptInput('Use redis caching', { project_dir: tempDir }));
-      expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
+      // hookEventName is no longer set — function is a no-op
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
     });
 
-    test('warning includes Anti-Pattern Warning heading', () => {
+    test('no additionalContext — static rules via materializeAntipatternRules instead', () => {
       const result = antipatternWarning(createPromptInput('Use redis for this', { project_dir: tempDir }));
-      expect(result.hookSpecificOutput?.additionalContext).toContain('Anti-Pattern Warning');
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
     });
 
     test('includes suppressOutput: true for silent responses', () => {
