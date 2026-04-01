@@ -178,6 +178,10 @@ export interface HookInput {
   /** New working directory (CwdChanged) */
   new_cwd?: string;
 
+  // SubagentStart MCP context (CC 2.1.89)
+  /** Connected MCP server names (SubagentStart) */
+  mcp_connections?: string | string[];
+
   // FileChanged specific fields (CC 2.1.83)
   /** Basename of the changed file (FileChanged — matched via hook `matcher` on basename) */
   changed_file?: string;

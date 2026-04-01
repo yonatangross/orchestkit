@@ -14,7 +14,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -197,6 +197,101 @@ function extractRulesFromMarkdown(content: string, _source: string): string[] {
 }
 
 // -----------------------------------------------------------------------------
+// Agent Frontmatter Enrichment (Candlekeep #1231, #1232)
+// -----------------------------------------------------------------------------
+
+/** Cache parsed agent frontmatter to avoid re-reading .md files */
+const agentFrontmatterCache = new Map<string, Record<string, string | string[]>>();
+
+/**
+ * Parse agent .md frontmatter for custom fields.
+ * Returns a map of field → value for known enrichment fields.
+ */
+function parseAgentFrontmatter(agentType: string): Record<string, string | string[]> {
+  if (agentFrontmatterCache.has(agentType)) {
+    return agentFrontmatterCache.get(agentType)!;
+  }
+
+  const result: Record<string, string | string[]> = {};
+  const pluginRoot = getPluginRoot();
+  if (!pluginRoot) {
+    agentFrontmatterCache.set(agentType, result);
+    return result;
+  }
+
+  const agentFile = join(pluginRoot, 'agents', `${agentType}.md`);
+  if (!existsSync(agentFile)) {
+    agentFrontmatterCache.set(agentType, result);
+    return result;
+  }
+
+  try {
+    const content = readFileSync(agentFile, 'utf8');
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) {
+      agentFrontmatterCache.set(agentType, result);
+      return result;
+    }
+
+    const fm = fmMatch[1];
+
+    // critical_system_reminder: single-line string (#1231)
+    const csrMatch = fm.match(/^critical_system_reminder:\s*"(.+)"$/m);
+    if (csrMatch) {
+      result.critical_system_reminder = csrMatch[1];
+    }
+
+    // required_mcp_servers: YAML array (#1232)
+    const rmsMatch = fm.match(/^required_mcp_servers:\s*\[(.+)\]$/m);
+    if (rmsMatch) {
+      result.required_mcp_servers = rmsMatch[1].split(',').map(s => s.trim());
+    }
+  } catch {
+    // Parse errors are non-fatal
+  }
+
+  agentFrontmatterCache.set(agentType, result);
+  return result;
+}
+
+/**
+ * Inject critical_system_reminder into subagent context (#1231).
+ * These are persistent guardrails the agent should always follow.
+ */
+function injectCriticalReminder(agentType: string): string {
+  const fm = parseAgentFrontmatter(agentType);
+  const reminder = fm.critical_system_reminder;
+  if (!reminder || typeof reminder !== 'string') return '';
+  return `CRITICAL GUARDRAIL: ${reminder}\n\n`;
+}
+
+/**
+ * Check required_mcp_servers availability and warn if missing (#1232).
+ * Reads connected MCP servers from input and compares to requirements.
+ */
+function checkRequiredMcpServers(agentType: string, input: HookInput): string {
+  const fm = parseAgentFrontmatter(agentType);
+  const required = fm.required_mcp_servers;
+  if (!required || !Array.isArray(required) || required.length === 0) return '';
+
+  // CC exposes connected MCP servers via input.mcp_connections or env
+  const connectedRaw = input.mcp_connections || process.env.CLAUDE_MCP_SERVERS || '';
+  const connected = typeof connectedRaw === 'string'
+    ? connectedRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+    : Array.isArray(connectedRaw)
+      ? (connectedRaw as string[]).map(s => s.toLowerCase())
+      : [];
+
+  const missing = required.filter(s => !connected.includes(s.toLowerCase()));
+
+  if (missing.length === 0) return '';
+
+  logHook('subagent-context-stager', `Agent ${agentType} missing MCP servers: ${missing.join(', ')}`);
+  return `WARNING: This agent requires MCP servers that may not be connected: ${missing.join(', ')}. ` +
+    `Results may be degraded. Consider connecting these servers before proceeding.\n\n`;
+}
+
+// -----------------------------------------------------------------------------
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
@@ -208,6 +303,19 @@ export function subagentContextStager(input: HookInput): HookResult {
   logHook('subagent-context-stager', `Staging context for ${subagentType}`);
 
   let stagedContext = '';
+
+  // === INJECT AGENT-SPECIFIC GUARDRAILS (#1231) ===
+  const criticalReminder = injectCriticalReminder(subagentType);
+  if (criticalReminder) {
+    stagedContext += criticalReminder;
+    logHook('subagent-context-stager', `Injected critical_system_reminder for ${subagentType}`);
+  }
+
+  // === CHECK REQUIRED MCP SERVERS (#1232) ===
+  const mcpWarning = checkRequiredMcpServers(subagentType, input);
+  if (mcpWarning) {
+    stagedContext += mcpWarning;
+  }
 
   // === INJECT CRITICAL RULES FROM CLAUDE.md FILES ===
   const criticalRules = extractCriticalRules();

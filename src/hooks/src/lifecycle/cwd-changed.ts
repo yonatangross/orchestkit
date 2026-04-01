@@ -13,8 +13,8 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
-import { existsSync } from 'node:fs';
+import { outputSilentSuccess, logHook, getPluginRoot } from '../lib/common.js';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const HOOK_NAME = 'cwd-changed';
@@ -31,6 +31,106 @@ function getWatchPaths(projectDir: string): string[] {
   return candidates
     .map(f => join(projectDir, f))
     .filter(p => existsSync(p));
+}
+
+// -----------------------------------------------------------------------------
+// Skill path_patterns matching (Candlekeep #1228)
+// -----------------------------------------------------------------------------
+
+/** Cache the skill → path_patterns index (built once per process) */
+let skillPathIndex: Array<{ skill: string; patterns: string[] }> | null = null;
+
+/** @internal Reset cache for testing */
+export function _resetSkillPathIndex(): void { skillPathIndex = null; }
+
+/**
+ * Build an index of skill name → path_patterns from SKILL.md frontmatter.
+ * Cached across invocations within the same process.
+ */
+function getSkillPathIndex(): Array<{ skill: string; patterns: string[] }> {
+  if (skillPathIndex) return skillPathIndex;
+  skillPathIndex = [];
+
+  const pluginRoot = getPluginRoot();
+  if (!pluginRoot) return skillPathIndex;
+
+  const skillsDir = join(pluginRoot, 'skills');
+  if (!existsSync(skillsDir)) return skillPathIndex;
+
+  try {
+    for (const entry of readdirSync(skillsDir)) {
+      const skillMd = join(skillsDir, entry, 'SKILL.md');
+      if (!existsSync(skillMd)) continue;
+
+      try {
+        const content = readFileSync(skillMd, 'utf8');
+        const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        if (!fmMatch) continue;
+
+        const ppMatch = fmMatch[1].match(/^path_patterns:\s*\[(.+)\]$/m);
+        if (!ppMatch) continue;
+
+        const patterns = ppMatch[1]
+          .split(',')
+          .map(s => s.trim().replace(/^["']|["']$/g, ''));
+
+        if (patterns.length > 0) {
+          skillPathIndex.push({ skill: entry, patterns });
+        }
+      } catch {
+        // Skip unreadable skills
+      }
+    }
+  } catch {
+    // Skills dir unreadable
+  }
+
+  return skillPathIndex;
+}
+
+/**
+ * Match directory contents against skill path_patterns.
+ * Uses simple glob-to-regex conversion for top-level matching.
+ * Returns skill names whose patterns match files in the directory.
+ */
+function matchSkillsByDirectory(dir: string): string[] {
+  const index = getSkillPathIndex();
+  if (index.length === 0) return [];
+
+  // Collect filenames and directory names in the project root (1 level)
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(dir).slice(0, 100); // cap to avoid slow dirs
+  } catch {
+    return [];
+  }
+
+  const matched = new Set<string>();
+  for (const { skill, patterns } of index) {
+    for (const pattern of patterns) {
+      // Simple pattern matching: check if any entry matches the glob
+      // Handles: "*.py", "*.test.*", "Dockerfile*", "**/migrations/**", "vite.config.*"
+      const base = pattern.replace(/\*\*\//g, '').replace(/\/\*\*/g, '');
+      if (base.includes('*')) {
+        // Convert glob to regex: * → [^/]*, . → \., rest literal
+        const re = new RegExp(
+          '^' + base.replace(/\./g, '\\.').replace(/\*/g, '[^/]*') + '$',
+        );
+        if (entries.some(e => re.test(e))) {
+          matched.add(skill);
+          break;
+        }
+      } else {
+        // Exact directory or file name: migrations, prisma, k8s
+        if (entries.some(e => e === base || e.includes(base))) {
+          matched.add(skill);
+          break;
+        }
+      }
+    }
+  }
+
+  return [...matched].sort();
 }
 
 export function cwdChanged(input: HookInput): HookResult {
@@ -56,11 +156,17 @@ export function cwdChanged(input: HookInput): HookResult {
 
   const techStack = signals.length > 0 ? signals.join(', ') : 'unknown';
 
+  // Match skills by path_patterns (#1228)
+  const relevantSkills = matchSkillsByDirectory(newCwd);
+  const skillHint = relevantSkills.length > 0
+    ? ` | Relevant skills: ${relevantSkills.map(s => `/ork:${s}`).join(', ')}`
+    : '';
+
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
-      additionalContext: `[CwdChanged] New directory: ${newCwd} | Stack: ${techStack}`,
+      additionalContext: `[CwdChanged] New directory: ${newCwd} | Stack: ${techStack}${skillHint}`,
       watchPaths,
     },
   } as HookResult;
