@@ -893,6 +893,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "checkpoint-resume.md",
         "cron-monitoring.md",
+        "fork-pattern.md",
         "handoff-schema.md",
         "mcp-detection.md",
         "tier-fallbacks.md",

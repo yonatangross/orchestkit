@@ -350,6 +350,8 @@ Agent(subagent_type="test-generator", name="testability-assessor",
 
 **Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.
 
+**Fork pattern (CC 2.1.89 — #1227):** All brainstorm agents are fork-eligible: prompts are &lt;500 words, no custom model, no worktree. CC shares the parent's cached API prefix across forks, reducing cost by ~60%. Do NOT add `model=` to agent calls. See `chain-patterns/references/fork-pattern.md`.
+
 **Team teardown** after synthesis:
 ```python
 # After Phase 5 synthesis and design presentation
@@ -414,7 +416,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 ---
 
-**Version:** 4.7.0 (March 2026) — Added progressive output for incremental phase results (7.9.0)
+**Version:** 4.8.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)
 
 
 ---
