@@ -186,11 +186,15 @@ function analyzeAndRecordTranscript(
     if (!metrics) return;
 
     // Fork cache metrics (CC 2.1.89 — #1227)
+    // cache_creation_input_tokens: tokens written to cache (cold miss)
+    // cache_read_input_tokens: tokens served from cache (hit)
+    // cache_hit_pct = read / (creation + read) — standard Anthropic definition
     const isFork = Boolean(input.is_fork);
-    const cacheCreationTokens = input.cache_creation_input_tokens;
-    const cacheReadTokens = input.cache_read_input_tokens;
-    const cacheHitPct = (cacheCreationTokens && cacheReadTokens)
-      ? Math.round((cacheReadTokens / (cacheCreationTokens + cacheReadTokens)) * 100)
+    const cacheCreationTokens = input.cache_creation_input_tokens ?? 0;
+    const cacheReadTokens = input.cache_read_input_tokens ?? 0;
+    const cacheTotalTokens = cacheCreationTokens + cacheReadTokens;
+    const cacheHitPct = cacheTotalTokens > 0
+      ? Math.round((cacheReadTokens / cacheTotalTokens) * 100)
       : undefined;
 
     appendAnalytics('subagent-quality.jsonl', {
