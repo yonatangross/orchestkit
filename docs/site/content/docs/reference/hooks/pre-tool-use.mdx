@@ -1,14 +1,15 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (7 hooks)."
+description: "Hooks triggered on PreToolUse events (8 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**7 hooks** registered for the `PreToolUse` lifecycle event.
+**8 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
+| `headless-defer` | `Bash` | 🔇 Silent | Headless Defer Hook — PreToolUse permission deferral for -p mode |
 | `sync-bash-dispatcher` | `Bash` | 💡 Injects | Consolidates 3 Bash PreToolUse hooks into a single dispatcher. |
 | `sync-write-edit-dispatcher` | `Write\|Edit` | 💡 Injects | Consolidates 4 Write\|Edit PreToolUse hooks into a single dispatcher. |
 | `context7-tracker` | `mcp__context7__*` | 🛑 Blocks | Tracks context7 library lookups and injects cache state as additionalContext |

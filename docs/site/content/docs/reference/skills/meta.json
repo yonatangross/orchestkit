@@ -77,6 +77,7 @@
     "react-server-components-framework",
     "release-checklist",
     "release-management",
+    "release-sync",
     "remember",
     "responsive-patterns",
     "review-pr",

@@ -14,26 +14,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **P1 SEC** auto-approve-project-writes.ts: added matching `resolveRealPath()` call to close asymmetry between approval and retry hooks
 - denial-logger.ts: JSDoc incorrectly said "Async" but uses `appendFileSync` — corrected to "Sync"
 - `hasExcludedDir()` now catches terminal path segments (e.g., `/project/.git` without trailing slash)
-- Stale hook count "110 hooks" updated to "111 hooks" across 11 doc pages
+- Stale hook count "110 hooks" updated to "112 hooks" across 11 doc pages
+- Stale skill count "100/101 skills" updated to "102 skills" across 11 doc pages
 
 ### Added
 
-- **CC 2.1.88 integration**: 5 PermissionDenied hooks via unified-dispatcher (denial-logger, denial-notification, safe-command-retry, project-write-retry, denial-notification)
+- **CC 2.1.88 integration**: 5 PermissionDenied hooks via unified-dispatcher (denial-logger, denial-notification, safe-command-retry, project-write-retry)
+- **CC 2.1.89 integration**: `headless-defer` PreToolUse hook returns `{decision:"defer"}` in headless `-p` mode for destructive ops (force push, npm publish, terraform apply, kubectl, docker push, gh merge). Configurable via `ORCHESTKIT_DEFER_TOOLS` env var
+- **`/ork:release-sync` skill**: post-release content sync to NotebookLM + HQ Knowledge Base. Reads CHANGELOG, CLAUDE.md, hook README, updates notebook sources
 - `lib/path-containment.ts` — shared EXCLUDED_DIRS, isInsideDir(), hasExcludedDir(), resolveRealPath() (extracted from 2 duplicating hooks)
 - `lib/bash-patterns.ts` — unified REJECT_PATTERNS (was duplicated with inconsistencies between auto-approve-safe-bash and safe-command-retry)
+- `outputDefer()` helper in lib/common.ts for PreToolUse permission deferral
+- types.ts: `permissionDecision` union extended with `'defer'` (CC 2.1.89)
+- cc-version-matrix.ts: +9 entries for CC 2.1.89 features (defer permission, TaskCreated hook, autocompact thrash detection, cleanup validation, MCP nonblocking, named subagent typeahead, hook output disk spill, edit after bash view, symlink permission check)
+- `MCP_CONNECTION_NONBLOCKING=true` in ork.settings.json for faster headless `-p` mode startup
 - yarn read-only patterns added to RETRY_SAFE_PATTERNS
 - PermissionDenied section added to `src/hooks/README.md`
-- 152 new unit tests for all PermissionDenied hooks (6969 total tests passing)
+- 167 new unit tests (152 PermissionDenied + 15 headless-defer)
 - `tests/skills/test-upstream-refs.sh` — CI freshness check for vendor references
 
 ### Changed
 
-- **Option E**: Replaced 32 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 101
+- **Option E**: Replaced 32 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)
 - `scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes
 - `vendor/vercel-skills/mapping.json` — 37 refs across 4 Vercel repos → 6 skill dirs (committed for offline builds)
 - `docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files
 - Removed 32 `vercel-*.mdx` pages from fumadocs, updated meta.json and category pages
-- Minimum Claude Code version: 2.1.86 → 2.1.88
+- Agent descriptions improved for @mention typeahead discoverability: `genui-architect`, `ui-feedback`
+- Dead code removed: memory-bridge entity extraction (132→33 lines), antipattern-warning dynamic matching
+- Bounded JSONL read (last 4KB) + `atomicWriteSync` for crash-safe state persistence
+- Minimum Claude Code version: 2.1.86 → 2.1.89
 
 ---
 

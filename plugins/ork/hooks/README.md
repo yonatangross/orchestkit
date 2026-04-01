@@ -20,6 +20,8 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 - CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 - CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
+- CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching
+- CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
 
 ---
 
@@ -48,7 +50,7 @@ hooks/
 │   │   ├── guards.ts       # Conditional execution predicates
 │   │   ├── path-containment.ts  # SEC: EXCLUDED_DIRS, isInsideDir, resolveRealPath (v7.27.1)
 │   │   └── bash-patterns.ts     # SEC: Unified REJECT_PATTERNS for dangerous commands (v7.27.1)
-│   ├── permission/         # Permission hooks (3)
+│   ├── permission/         # Permission hooks (4) — includes headless-defer (CC 2.1.89)
 │   ├── pretool/            # Pre-execution hooks (30)
 │   │   ├── bash/           # Bash command hooks
 │   │   ├── write-edit/     # File operation hooks

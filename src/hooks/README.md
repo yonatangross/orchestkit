@@ -20,6 +20,8 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 - CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 - CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
+- CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching
+- CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
 
 ---
 
@@ -48,7 +50,7 @@ hooks/
 │   │   ├── guards.ts       # Conditional execution predicates
 │   │   ├── path-containment.ts  # SEC: EXCLUDED_DIRS, isInsideDir, resolveRealPath (v7.27.1)
 │   │   └── bash-patterns.ts     # SEC: Unified REJECT_PATTERNS for dangerous commands (v7.27.1)
-│   ├── permission/         # Permission hooks (3)
+│   ├── permission/         # Permission hooks (4) — includes headless-defer (CC 2.1.89)
 │   ├── pretool/            # Pre-execution hooks (30)
 │   │   ├── bash/           # Bash command hooks
 │   │   ├── write-edit/     # File operation hooks
@@ -104,7 +106,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->111<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->112<!--/ork--> hooks (<!--ork:hooks-global-->43<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1131,7 +1133,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->111<!--/ork--> hooks (<!--ork:hooks-global-->42<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->112<!--/ork--> hooks (<!--ork:hooks-global-->43<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
