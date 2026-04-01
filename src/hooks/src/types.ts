@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.88 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied)
+ * CC 2.1.89 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied, 2.1.89 defer permission)
  */
 
 /**
@@ -199,8 +199,8 @@ export interface ToolInput {
 export interface HookSpecificOutput {
   /** Hook event name for context */
   hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop';
-  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask') */
-  permissionDecision?: 'allow' | 'deny' | 'ask';
+  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer') */
+  permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
   /** Additional context injected before tool execution (CC 2.1.9) */

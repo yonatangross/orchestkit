@@ -1,7 +1,19 @@
 {
-  "description": "OrchestKit hooks - 42 global + 47 agent-scoped + 22 skill-scoped = 111 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 43 global + 47 agent-scoped + 22 skill-scoped = 112 total hooks (18 once:true context loaders). HTTP webhooks via `npm run generate:http-hooks`. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "if": "Bash(git push*) || Bash(npm publish*) || Bash(npx wrangler deploy*) || Bash(terraform apply*) || Bash(kubectl apply*) || Bash(kubectl delete*) || Bash(docker push*) || Bash(alembic upgrade*) || Bash(gh pr merge*) || Bash(gh release create*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/headless-defer",
+            "timeout": 5,
+            "statusMessage": "Checking headless approval..."
+          }
+        ]
+      },
       {
         "matcher": "Bash",
         "if": "Bash(git *) || Bash(npm *) || Bash(npx *) || Bash(node *) || Bash(rm *) || Bash(curl *) || Bash(chmod *) || Bash(docker *) || Bash(kubectl *)",

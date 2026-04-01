@@ -355,6 +355,22 @@ export function outputAsk(reason: string): HookResult {
 }
 
 /**
+ * Output defer - pauses headless session for later --resume (CC 2.1.89)
+ * PreToolUse returns {decision:"defer"} to pause -p mode execution
+ */
+export function outputDefer(reason: string): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'defer',
+      permissionDecisionReason: reason,
+    },
+  };
+}
+
+/**
  * Output with updatedInput - modifies tool input before execution (CC 2.1.25)
  * Canonical way to modify tool inputs from PreToolUse hooks
  */

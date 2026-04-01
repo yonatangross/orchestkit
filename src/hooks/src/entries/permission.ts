@@ -15,6 +15,7 @@ import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../permission/auto-approve-project-writes.js';
 import { learningTracker } from '../permission/learning-tracker.js';
 import { unifiedPermissionBashDispatcher } from '../permission/unified-dispatcher.js';
+import { headlessDefer } from '../permission/headless-defer.js';
 
 // Import PermissionDenied hook implementations (CC 2.1.88)
 import { unifiedPermissionDeniedDispatcher } from '../permission-denied/unified-dispatcher.js';
@@ -33,6 +34,7 @@ export const hooks: Record<string, HookFn> = {
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
   'permission/unified-dispatcher': unifiedPermissionBashDispatcher,
+  'permission/headless-defer': headlessDefer,
   // PermissionDenied (CC 2.1.88)
   'permission-denied/unified-dispatcher': unifiedPermissionDeniedDispatcher,
   'permission-denied/safe-command-retry': safeCommandRetry,

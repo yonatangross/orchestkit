@@ -31,6 +31,7 @@ export * from './lib/effort-detector.js';
 import { autoApproveSafeBash } from './permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from './permission/auto-approve-project-writes.js';
 import { learningTracker } from './permission/learning-tracker.js';
+import { headlessDefer } from './permission/headless-defer.js';
 
 // PreTool/Bash hooks
 import { dangerousCommandBlocker } from './pretool/bash/dangerous-command-blocker.js';
@@ -228,6 +229,7 @@ export const hooks: Record<string, HookFn> = {
   'permission/auto-approve-safe-bash': autoApproveSafeBash,
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
+  'permission/headless-defer': headlessDefer,
 
   // PreTool/Bash hooks (17 - consolidated git hooks)
   'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
