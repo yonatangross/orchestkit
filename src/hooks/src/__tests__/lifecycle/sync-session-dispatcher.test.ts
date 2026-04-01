@@ -50,7 +50,13 @@ vi.mock('../../prompt/antipattern-warning.js', () => ({
   materializeAntipatternRules: vi.fn(),
 }));
 
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn(() => 'test_hash'),
+}));
+
 import { syncSessionDispatcher } from '../../lifecycle/sync-session-dispatcher.js';
+import { appendAnalytics } from '../../lib/analytics.js';
 import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.js';
 import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../../lifecycle/mcp-health-check.js';
@@ -363,6 +369,33 @@ describe('lifecycle/sync-session-dispatcher', () => {
         ([name, msg]) => name === 'sync-session-dispatcher' && String(msg).includes('Merged'),
       );
       expect(hasMergedLog).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // SessionStart perf measurement
+  // ---------------------------------------------------------------------------
+
+  describe('perf measurement', () => {
+    it('records session start duration to analytics', () => {
+      syncSessionDispatcher(createSessionStartInput());
+      expect(appendAnalytics).toHaveBeenCalledWith('session-start-perf.jsonl', expect.objectContaining({
+        duration_ms: expect.any(Number),
+        hooks_fired: 3,
+      }));
+    });
+
+    it('includes hashed project ID and timestamp', () => {
+      syncSessionDispatcher(createSessionStartInput());
+      expect(appendAnalytics).toHaveBeenCalledWith('session-start-perf.jsonl', expect.objectContaining({
+        pid: 'test_hash',
+        ts: expect.any(String),
+      }));
+    });
+
+    it('analytics failure does not crash the dispatcher', () => {
+      vi.mocked(appendAnalytics).mockImplementation(() => { throw new Error('disk full'); });
+      expect(() => syncSessionDispatcher(createSessionStartInput())).not.toThrow();
     });
   });
 });

@@ -206,9 +206,101 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       const result = cwdChanged(createInput());
       expect(result.continue).toBe(true);
-      // Should not crash, just no skill suggestions
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).not.toContain('/ork:');
+    });
+
+    test('2-level scan: detects nested directory matching **/migrations/**', () => {
+      _resetSkillPathIndex();
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        return s.includes('skills') || s.endsWith('SKILL.md');
+      });
+      vi.mocked(readdirSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        if (s.includes('skills')) return ['database-patterns'] as unknown as ReturnType<typeof readdirSync>;
+        if (s === '/new/project') return ['src', 'README.md'] as unknown as ReturnType<typeof readdirSync>;
+        // Level 1: src/ contains migrations/
+        if (s.endsWith('/src')) return ['migrations', 'models', 'index.ts'] as unknown as ReturnType<typeof readdirSync>;
+        return [] as unknown as ReturnType<typeof readdirSync>;
+      });
+      vi.mocked(readFileSync).mockReturnValue(
+        '---\nname: database-patterns\npath_patterns: ["**/migrations/**", "*.sql"]\n---\n# DB',
+      );
+
+      const result = cwdChanged(createInput());
+      const ctx = result.hookSpecificOutput?.additionalContext as string;
+      expect(ctx).toContain('/ork:database-patterns');
+    });
+
+    test('2-level scan: skips node_modules and .git', () => {
+      _resetSkillPathIndex();
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        return s.includes('skills') || s.endsWith('SKILL.md');
+      });
+      vi.mocked(readdirSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        if (s.includes('skills')) return ['testing-e2e'] as unknown as ReturnType<typeof readdirSync>;
+        if (s === '/new/project') return ['node_modules', '.git', 'README.md'] as unknown as ReturnType<typeof readdirSync>;
+        // These should NOT be scanned
+        if (s.includes('node_modules')) throw new Error('Should not scan node_modules');
+        if (s.includes('.git')) throw new Error('Should not scan .git');
+        return [] as unknown as ReturnType<typeof readdirSync>;
+      });
+      vi.mocked(readFileSync).mockReturnValue(
+        '---\nname: testing-e2e\npath_patterns: ["**/e2e/**"]\n---\n# E2E',
+      );
+
+      // Should not throw — node_modules and .git are skipped
+      const result = cwdChanged(createInput());
+      expect(result.continue).toBe(true);
+    });
+
+    test('2-level scan: detects auth/ at src/auth/ level', () => {
+      _resetSkillPathIndex();
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        return s.includes('skills') || s.endsWith('SKILL.md');
+      });
+      vi.mocked(readdirSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        if (s.includes('skills')) return ['security-patterns'] as unknown as ReturnType<typeof readdirSync>;
+        if (s === '/new/project') return ['src', 'package.json'] as unknown as ReturnType<typeof readdirSync>;
+        if (s.endsWith('/src')) return ['auth', 'middleware', 'utils'] as unknown as ReturnType<typeof readdirSync>;
+        return [] as unknown as ReturnType<typeof readdirSync>;
+      });
+      vi.mocked(readFileSync).mockReturnValue(
+        '---\nname: security-patterns\npath_patterns: ["**/auth/**", "**/middleware/**"]\n---\n# Sec',
+      );
+
+      const result = cwdChanged(createInput());
+      const ctx = result.hookSpecificOutput?.additionalContext as string;
+      expect(ctx).toContain('/ork:security-patterns');
+    });
+
+    test('2-level scan: handles unreadable subdirectory gracefully', () => {
+      _resetSkillPathIndex();
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        return s.includes('skills') || s.endsWith('SKILL.md');
+      });
+      vi.mocked(readdirSync).mockImplementation((p: unknown) => {
+        const s = String(p);
+        if (s.includes('skills')) return ['api-design'] as unknown as ReturnType<typeof readdirSync>;
+        if (s === '/new/project') return ['src', 'locked'] as unknown as ReturnType<typeof readdirSync>;
+        if (s.endsWith('/src')) return ['routes'] as unknown as ReturnType<typeof readdirSync>;
+        if (s.endsWith('/locked')) throw new Error('EACCES: permission denied');
+        return [] as unknown as ReturnType<typeof readdirSync>;
+      });
+      vi.mocked(readFileSync).mockReturnValue(
+        '---\nname: api-design\npath_patterns: ["**/routes/**"]\n---\n# API',
+      );
+
+      // Should not throw, and should still find routes via src/
+      const result = cwdChanged(createInput());
+      const ctx = result.hookSpecificOutput?.additionalContext as string;
+      expect(ctx).toContain('/ork:api-design');
     });
   });
 });

@@ -166,6 +166,10 @@ function analyzeTranscript(transcriptPath: string): TranscriptMetrics | null {
   }
 }
 
+/** @internal Exposed for testing */
+export { analyzeTranscript as _analyzeTranscript };
+export type { TranscriptMetrics as _TranscriptMetrics };
+
 /**
  * Analyze transcript and write quality metrics to analytics JSONL.
  * Fire-and-forget — never throws.
@@ -326,7 +330,16 @@ function trackAgentResult(input: HookInput): void {
 /**
  * Unified dispatcher that runs all SubagentStop hooks in parallel
  */
+/** One-time field name diagnostic — log CC input fields on first invocation */
+let _fieldNamesLogged = false;
+
 export async function unifiedSubagentStopDispatcher(input: HookInput): Promise<HookResult> {
+  // Diagnostic: log CC input field names once for runtime verification (#1227)
+  if (!_fieldNamesLogged) {
+    _fieldNamesLogged = true;
+    logHook('subagent-stop-dispatcher', `CC input fields: ${Object.keys(input).sort().join(', ')}`, 'debug');
+  }
+
   // Track agent result (Issue #245: Multi-User Intelligent Decision Capture)
   trackAgentResult(input);
 

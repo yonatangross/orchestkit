@@ -89,44 +89,76 @@ function getSkillPathIndex(): Array<{ skill: string; patterns: string[] }> {
 }
 
 /**
+ * Collect file/directory names at up to 2 levels of depth.
+ * Level 0: project root. Level 1: common subdirectories.
+ * Skips heavy directories (node_modules, .git, dist, build, vendor).
+ * Cap total entries at 200 to bound scan time.
+ */
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'vendor', '__pycache__', '.next', '.cache']);
+
+function collectEntries(dir: string): Set<string> {
+  const names = new Set<string>();
+  try {
+    const level0 = readdirSync(dir);
+    for (const entry of level0) {
+      names.add(entry);
+      if (names.size >= 200) return names;
+
+      // Scan one level deeper for non-skipped directories
+      if (!SKIP_DIRS.has(entry) && !entry.startsWith('.')) {
+        try {
+          const subPath = join(dir, entry);
+          const level1 = readdirSync(subPath);
+          for (const sub of level1) {
+            names.add(sub);
+            if (names.size >= 200) return names;
+          }
+        } catch {
+          // Not a directory or unreadable — skip
+        }
+      }
+    }
+  } catch {
+    // Root unreadable
+  }
+  return names;
+}
+
+/**
  * Match directory contents against skill path_patterns.
- * Uses simple glob-to-regex conversion for top-level matching.
+ * Scans 2 levels deep to catch nested directories like src/migrations/.
  * Returns skill names whose patterns match files in the directory.
  */
 function matchSkillsByDirectory(dir: string): string[] {
   const index = getSkillPathIndex();
   if (index.length === 0) return [];
 
-  // Collect filenames and directory names in the project root (1 level)
-  let entries: string[] = [];
-  try {
-    entries = readdirSync(dir).slice(0, 100); // cap to avoid slow dirs
-  } catch {
-    return [];
-  }
+  const entries = collectEntries(dir);
+  if (entries.size === 0) return [];
 
   const matched = new Set<string>();
   for (const { skill, patterns } of index) {
     for (const pattern of patterns) {
-      // Simple pattern matching: check if any entry matches the glob
-      // Handles: "*.py", "*.test.*", "Dockerfile*", "**/migrations/**", "vite.config.*"
+      // Strip **/ prefix/suffix for directory name matching
       const base = pattern.replace(/\*\*\//g, '').replace(/\/\*\*/g, '');
       if (base.includes('*')) {
         // Convert glob to regex: * → [^/]*, . → \., rest literal
         const re = new RegExp(
           '^' + base.replace(/\./g, '\\.').replace(/\*/g, '[^/]*') + '$',
         );
-        if (entries.some(e => re.test(e))) {
-          matched.add(skill);
-          break;
+        for (const e of entries) {
+          if (re.test(e)) {
+            matched.add(skill);
+            break;
+          }
         }
       } else {
         // Exact directory or file name: migrations, prisma, k8s
-        if (entries.some(e => e === base || e.includes(base))) {
+        if (entries.has(base)) {
           matched.add(skill);
-          break;
         }
       }
+      if (matched.has(skill)) break;
     }
   }
 

@@ -21,6 +21,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, extractContext, getProjectDir } from '../lib/common.js';
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
 // Import consolidated hook implementations
 import { analyticsConsentCheck } from './analytics-consent-check.js';
@@ -52,6 +53,8 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
 export function syncSessionDispatcher(input: HookInput): HookResult {
+  const startMs = Date.now();
+
   // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
   // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
   const projectDir = input.project_dir || getProjectDir();
@@ -99,11 +102,34 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
 
   if (messages.length === 0) {
     logHook(HOOK_NAME, 'All sync hooks silent');
+    try {
+      appendAnalytics('session-start-perf.jsonl', {
+        ts: new Date().toISOString(),
+        pid: hashProject(input.project_dir || getProjectDir()),
+        duration_ms: Date.now() - startMs,
+        hooks_fired: SYNC_HOOKS.length,
+        messages_merged: 0,
+      });
+    } catch { /* non-critical */ }
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
   logHook(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
+
+  // SessionStart perf measurement — track sync dispatcher latency
+  try {
+    const durationMs = Date.now() - startMs;
+    appendAnalytics('session-start-perf.jsonl', {
+      ts: new Date().toISOString(),
+      pid: hashProject(input.project_dir || getProjectDir()),
+      duration_ms: durationMs,
+      hooks_fired: SYNC_HOOKS.length,
+      messages_merged: messages.length,
+    });
+  } catch {
+    // Never block SessionStart on analytics failure
+  }
 
   return {
     continue: true,
