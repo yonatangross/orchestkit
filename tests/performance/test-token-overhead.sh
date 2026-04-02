@@ -61,7 +61,7 @@ AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions c
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
 MAX_USER_INVOCABLE_SKILLS=23   # Each adds ~50-100 tokens to system prompt
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
-TOTAL_SESSION_MAX_TOKENS=5000  # Combined session overhead budget
+TOTAL_SESSION_MAX_TOKENS=5200  # Combined session overhead budget (bumped for CC 2.1.90 version matrix growth)
 
 echo "  Budgets:"
 echo "  ├─ CLAUDE.md:           < ${CLAUDE_MD_MAX_BYTES} bytes (~$(estimate_tokens $CLAUDE_MD_MAX_BYTES)t)"
