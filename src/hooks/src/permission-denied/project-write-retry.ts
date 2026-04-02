@@ -56,7 +56,11 @@ export function projectWriteRetry(input: HookInput): HookResult {
   filePath = resolveRealPath(filePath, projectDir);
 
   // Check all root directories: project + /add-dir dirs
-  const rootDirs = [projectDir, ...(input.added_dirs ?? [])];
+  // SEC-003: Validate added_dirs — reject filesystem root or sensitive directories
+  const safeAddedDirs = (input.added_dirs ?? []).filter(dir =>
+    dir.length > 1 && !dir.includes('..') && !['/etc', '/usr', '/var'].some(s => dir.startsWith(s))
+  );
+  const rootDirs = [projectDir, ...safeAddedDirs];
 
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;

@@ -169,9 +169,9 @@ describe('posttool/mcp-output-transform', () => {
     });
 
     test('preserves head and tail of truncated output', () => {
-      const head = 'HEAD_MARKER_' + 'x'.repeat(1188);  // fills 1200 head chars
+      const head = `HEAD_MARKER_${'x'.repeat(1188)}`;  // fills 1200 head chars
       const middle = 'm'.repeat(3000);
-      const tail = 'y'.repeat(594) + '_TAIL_MARKER';  // fills 600 tail chars
+      const tail = `${'y'.repeat(594)}_TAIL_MARKER`;  // fills 600 tail chars
       const longOutput = head + middle + tail;
 
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }));
@@ -253,7 +253,7 @@ describe('posttool/mcp-output-transform', () => {
 
     test('PII redaction runs before truncation', () => {
       // Email near the end of a long output — should be redacted even if truncated
-      const longOutput = 'x'.repeat(4500) + ' secret@corp.com ' + 'y'.repeat(400);
+      const longOutput = `${'x'.repeat(4500)} secret@corp.com ${'y'.repeat(400)}`;
       const result = mcpOutputTransform(createInput({ tool_output: longOutput }));
       const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
       // The email is in the tail section (last 600 chars)

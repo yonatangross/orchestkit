@@ -5,16 +5,15 @@
  * These are security-critical: path traversal and symlink bypass prevention.
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, } from 'vitest';
 import { sep, join } from 'node:path';
 
 // Mock fs before importing the module
 vi.mock('node:fs', () => ({
-  existsSync: vi.fn(),
   realpathSync: vi.fn(),
 }));
 
-import { existsSync, realpathSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import {
   EXCLUDED_DIRS,
   isInsideDir,
@@ -22,7 +21,6 @@ import {
   resolveRealPath,
 } from '../../lib/path-containment.js';
 
-const mockExistsSync = vi.mocked(existsSync);
 const mockRealpathSync = vi.mocked(realpathSync);
 
 beforeEach(() => {
@@ -123,38 +121,36 @@ describe('hasExcludedDir', () => {
 
 describe('resolveRealPath', () => {
   test('resolves absolute path through symlink when file exists', () => {
-    mockExistsSync.mockReturnValue(true);
     mockRealpathSync.mockReturnValue('/real/path/file.ts');
 
     expect(resolveRealPath('/symlink/path/file.ts', '/project')).toBe('/real/path/file.ts');
     expect(mockRealpathSync).toHaveBeenCalledWith('/symlink/path/file.ts');
   });
 
-  test('returns original absolute path when file does not exist', () => {
-    mockExistsSync.mockReturnValue(false);
+  test('returns original absolute path when file does not exist (ENOENT)', () => {
+    // TOCTOU fix: realpathSync called directly, ENOENT caught in catch block
+    mockRealpathSync.mockImplementation(() => { throw new Error('ENOENT'); });
 
     expect(resolveRealPath('/new/file.ts', '/project')).toBe('/new/file.ts');
-    expect(mockRealpathSync).not.toHaveBeenCalled();
+    expect(mockRealpathSync).toHaveBeenCalledWith('/new/file.ts');
   });
 
   test('resolves relative path against projectDir', () => {
-    mockExistsSync.mockReturnValue(true);
     const expectedAbsolute = join('/project', 'src/file.ts');
     mockRealpathSync.mockReturnValue(expectedAbsolute);
 
     expect(resolveRealPath('src/file.ts', '/project')).toBe(expectedAbsolute);
-    expect(mockExistsSync).toHaveBeenCalledWith(expectedAbsolute);
+    expect(mockRealpathSync).toHaveBeenCalledWith(expectedAbsolute);
   });
 
-  test('returns raw path on realpathSync error', () => {
-    mockExistsSync.mockReturnValue(true);
+  test('returns best-effort path on realpathSync error', () => {
     mockRealpathSync.mockImplementation(() => { throw new Error('ELOOP'); });
 
+    // Catch block returns best-effort absolute path
     expect(resolveRealPath('/loop/file.ts', '/project')).toBe('/loop/file.ts');
   });
 
   test('SEC: follows symlink to detect escape from project', () => {
-    mockExistsSync.mockReturnValue(true);
     mockRealpathSync.mockReturnValue('/etc/passwd');
 
     const resolved = resolveRealPath('/project/evil-link', '/project');

@@ -15,7 +15,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
-import { realpathSync, existsSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import { resolve, isAbsolute, extname, basename } from 'node:path';
 
 // ---------------------------------------------------------------------------
@@ -162,14 +162,11 @@ function resolveRealPath(filePath: string, projectDir: string): string {
       ? filePath
       : resolve(projectDir, filePath);
 
-    // Follow symlinks if file exists
-    if (existsSync(absolutePath)) {
-      return realpathSync(absolutePath);
-    }
-
-    return absolutePath;
+    // Call realpathSync directly — avoids TOCTOU race between existsSync and realpathSync
+    return realpathSync(absolutePath);
   } catch {
-    return filePath;
+    // ENOENT (file doesn't exist) or other errors — return best-effort absolute path
+    return isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
   }
 }
 

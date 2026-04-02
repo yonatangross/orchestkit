@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
 import { basename } from 'node:path';
-import { assertSafeCommandName, assertSafeShellArg } from '../lib/sanitize-shell.js';
+import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 
 /**
  * Get language from file extension
@@ -97,7 +97,9 @@ export function autoLint(input: HookInput): HookResult {
 
   let lintIssues = 0;
   let fixesApplied = false;
-  const safePath = assertSafeShellArg(fullPath, 'file path');
+  // execFileSync passes args as array — no shell injection risk, no need for assertSafeShellArg
+  // (assertSafeShellArg rejects paths with spaces, breaking user projects)
+  const safePath = fullPath;
 
   try {
     switch (language) {

@@ -41,6 +41,8 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['commit-nudge']).toEqual(['Write', 'Edit', 'MultiEdit', 'Bash']);
       // #1191: fingerprint-saver fires on Skill completion
       expect(byName['fingerprint-saver']).toEqual(['Skill']);
+      // CC 2.1.90: auto-lint fires on file-modifying tools
+      expect(byName['auto-lint']).toEqual(['Write', 'Edit']);
     });
   });
 

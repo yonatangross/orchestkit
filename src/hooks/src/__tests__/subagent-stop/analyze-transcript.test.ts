@@ -25,7 +25,7 @@ afterEach(() => {
 
 function writeTranscript(lines: string[]): string {
   const path = join(tempDir, 'transcript.jsonl');
-  writeFileSync(path, lines.join('\n') + '\n');
+  writeFileSync(path, `${lines.join('\n')}\n`);
   return path;
 }
 
@@ -70,7 +70,7 @@ describe('analyzeTranscript', () => {
       ]);
       const result = analyzeTranscript(path)!;
       expect(result.tool_call_count).toBe(1);
-      expect(result.tool_counts['Read']).toBe(1);
+      expect(result.tool_counts.Read).toBe(1);
     });
 
     test('counts multiple different tool calls', () => {
@@ -82,9 +82,9 @@ describe('analyzeTranscript', () => {
       const result = analyzeTranscript(path)!;
       expect(result.tool_call_count).toBe(3);
       expect(result.unique_tools).toBe(3);
-      expect(result.tool_counts['Read']).toBe(1);
-      expect(result.tool_counts['Write']).toBe(1);
-      expect(result.tool_counts['Bash']).toBe(1);
+      expect(result.tool_counts.Read).toBe(1);
+      expect(result.tool_counts.Write).toBe(1);
+      expect(result.tool_counts.Bash).toBe(1);
     });
 
     test('counts repeated same tool', () => {
@@ -96,7 +96,7 @@ describe('analyzeTranscript', () => {
       const result = analyzeTranscript(path)!;
       expect(result.tool_call_count).toBe(3);
       expect(result.unique_tools).toBe(1);
-      expect(result.tool_counts['Grep']).toBe(3);
+      expect(result.tool_counts.Grep).toBe(3);
     });
 
     test('handles lines without tool_name', () => {

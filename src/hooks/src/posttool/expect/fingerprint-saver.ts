@@ -14,7 +14,7 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 export async function fingerprintSaver(input: HookInput): Promise<HookResult> {
@@ -40,7 +40,7 @@ export async function fingerprintSaver(input: HookInput): Promise<HookResult> {
   const scriptPath = path.join(pluginRoot, 'skills', 'expect', 'scripts', 'fingerprint.sh');
 
   try {
-    execSync(`bash "${scriptPath}" save`, {
+    execFileSync('bash', [scriptPath, 'save'], {
       timeout: 5000,
       stdio: 'pipe',
       cwd: input.project_dir || process.cwd(),

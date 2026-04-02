@@ -126,6 +126,20 @@ describe('headless-defer', () => {
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
       expect(mockOutputDefer).not.toHaveBeenCalled();
     });
+
+    it('defers npx wrangler deploy', () => {
+      headlessDefer(makeInput('Bash', 'npx wrangler deploy --env production'));
+      expect(mockOutputDefer).toHaveBeenCalledWith(
+        expect.stringContaining('npx wrangler deploy')
+      );
+    });
+
+    it('defers alembic upgrade head', () => {
+      headlessDefer(makeInput('Bash', 'alembic upgrade head'));
+      expect(mockOutputDefer).toHaveBeenCalledWith(
+        expect.stringContaining('alembic upgrade head')
+      );
+    });
   });
 
   describe('CLAUDE_NONINTERACTIVE mode', () => {

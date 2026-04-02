@@ -71,9 +71,9 @@ function createDeniedInput(toolName = 'Bash'): HookInput {
 
 /** Generate JSONL log content with N entries at given timestamps */
 function makeJSONL(timestamps: number[]): string {
-  return timestamps
+  return `${timestamps
     .map((ts) => JSON.stringify({ timestamp: new Date(ts).toISOString(), tool_name: 'Bash' }))
-    .join('\n') + '\n';
+    .join('\n')}\n`;
 }
 
 /** Mock fs so log file has given denial timestamps and state file has given lastNotifiedAt */
@@ -104,7 +104,7 @@ function setupMocks(opts: {
   // Bounded tail read: openSync → fstatSync → readSync → closeSync
   mockOpenSync.mockReturnValue(3 as unknown as number);
   mockFstatSync.mockReturnValue({ size: jsonlBytes.length } as ReturnType<typeof fstatSync>);
-  mockReadSync.mockImplementation((fd: number, buf: Buffer) => {
+  mockReadSync.mockImplementation((_fd: number, buf: Buffer) => {
     jsonlBytes.copy(buf, 0, 0, Math.min(jsonlBytes.length, buf.length));
     return Math.min(jsonlBytes.length, buf.length);
   });
@@ -156,7 +156,7 @@ describe('denial-notification (disk-based)', () => {
     test('2 denials in window — no notification', () => {
       const now = Date.now();
       setupMocks({ denialTimestamps: [now - 20_000, now - 10_000] });
-      const result = denialNotification(createDeniedInput());
+      const _result = denialNotification(createDeniedInput());
       expect(mockExecFileSync).not.toHaveBeenCalled();
     });
   });

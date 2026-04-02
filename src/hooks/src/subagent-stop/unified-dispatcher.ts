@@ -96,7 +96,7 @@ function analyzeTranscript(transcriptPath: string): TranscriptMetrics | null {
     let inputTokens = 0;
     let outputTokens = 0;
     let hasTokenInfo = false;
-    let lastLineWasTruncated = bytesRead < fileSize;
+    const lastLineWasTruncated = bytesRead < fileSize;
 
     for (const line of lines) {
       const trimmed = line.trim();

@@ -144,7 +144,7 @@ function matchSkillsByDirectory(dir: string): string[] {
       if (base.includes('*')) {
         // Convert glob to regex: * → [^/]*, . → \., rest literal
         const re = new RegExp(
-          '^' + base.replace(/\./g, '\\.').replace(/\*/g, '[^/]*') + '$',
+          `^${base.replace(/\./g, '\\.').replace(/\*/g, '[^/]*')}$`,
         );
         for (const e of entries) {
           if (re.test(e)) {

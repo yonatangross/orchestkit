@@ -103,7 +103,7 @@ function setLastNotifiedAt(ts: number): void {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    atomicWriteSync(statePath, JSON.stringify({ lastNotifiedAt: ts }) + '\n');
+    atomicWriteSync(statePath, `${JSON.stringify({ lastNotifiedAt: ts })}\n`);
   } catch {
     logHook(HOOK_NAME, 'Failed to persist notification state');
   }

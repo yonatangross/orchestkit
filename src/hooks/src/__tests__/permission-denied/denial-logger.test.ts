@@ -107,7 +107,7 @@ describe('denial-logger', () => {
 
     test('truncates long commands to 200 chars', () => {
       // Arrange
-      const longCommand = 'echo ' + 'a'.repeat(500);
+      const longCommand = `echo ${'a'.repeat(500)}`;
       const input = createDeniedInput('Bash', { command: longCommand });
 
       // Act

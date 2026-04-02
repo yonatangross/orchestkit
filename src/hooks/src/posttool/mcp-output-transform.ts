@@ -154,7 +154,7 @@ function logTransform(entry: {
   const logPath = join(home, '.claude', 'analytics', 'mcp-transforms.jsonl');
 
   try {
-    bufferWrite(logPath, JSON.stringify(entry) + '\n');
+    bufferWrite(logPath, `${JSON.stringify(entry)}\n`);
   } catch {
     // Never block hook on logging failure
   }

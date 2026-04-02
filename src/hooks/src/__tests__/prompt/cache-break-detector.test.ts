@@ -237,7 +237,7 @@ describe('prompt/cache-break-detector', () => {
         turnCount: 1,
       }));
 
-      const prompt = '<system-reminder>x</system-reminder> [TLDR] new markers # currentDate ' + 'a'.repeat(50);
+      const prompt = `<system-reminder>x</system-reminder> [TLDR] new markers # currentDate ${'a'.repeat(50)}`;
       cacheBreakDetector(createInput(prompt));
       expect(appendAnalytics).toHaveBeenCalledWith('cache-breaks.jsonl', expect.objectContaining({
         added_count: expect.any(Number),

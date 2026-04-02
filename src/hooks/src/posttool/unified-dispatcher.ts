@@ -54,7 +54,7 @@ const HOOKS: HookConfig[] = [
   { name: 'fingerprint-saver', fn: fingerprintSaver, matcher: ['Skill'] },
   // CC 2.1.90: format-on-save — auto-format with ruff/biome/prettier after Write/Edit
   // Toggle off with SKIP_AUTO_LINT=1
-  { name: 'auto-lint', fn: autoLint as HookFn, matcher: ['Write', 'Edit'] },
+  { name: 'auto-lint', fn: autoLint, matcher: ['Write', 'Edit'] },
 ];
 
 /** Exposed for registry wiring tests */

@@ -43,7 +43,7 @@ export function denialLogger(input: HookInput): HookResult {
       tool_input_summary: summarizeInput(input),
     };
 
-    appendFileSync(logPath, JSON.stringify(entry) + '\n', 'utf-8');
+    appendFileSync(logPath, `${JSON.stringify(entry)}\n`, 'utf-8');
     logHook(HOOK_NAME, `Logged denial for ${entry.tool_name}`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -61,8 +61,12 @@ function summarizeInput(input: HookInput): string {
   const toolInput = input.tool_input || {};
 
   if (toolInput.command) {
-    // Bash: truncate command, strip env vars
-    const cmd = String(toolInput.command).slice(0, 200);
+    // Bash: truncate command, scrub potential secrets (SEC-005)
+    let cmd = String(toolInput.command).slice(0, 200);
+    // Redact common secret patterns: tokens, passwords, API keys
+    cmd = cmd.replace(/(?:password|token|key|secret|auth|bearer)\s*[=:]\s*\S+/gi, `${'$&'.split('=')[0]}=***`);
+    cmd = cmd.replace(/([-]-(?:password|token|key|secret)[\s=])\S+/gi, '$1***');
+    cmd = cmd.replace(/\b[A-Za-z0-9_]{20,}(?=\s|$)/g, (m) => m.length > 30 ? `${m.slice(0, 8)}***` : m);
     return `command: ${cmd}`;
   }
 

@@ -88,7 +88,7 @@ validate_plugin() {
             ((errors++)) || true
         else
             # Check that hook events are valid
-            valid_events='["PreToolUse", "PostToolUse", "PermissionRequest", "UserPromptSubmit", "SessionStart", "SessionEnd", "PreCompact", "PostCompact", "Stop", "StopFailure", "SubagentStart", "SubagentStop", "Notification", "Setup", "TeammateIdle", "TaskCompleted", "TaskCreated", "WorktreeCreate", "WorktreeRemove", "ConfigChange", "InstructionsLoaded", "Elicitation", "ElicitationResult"]'
+            valid_events='["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest", "PermissionDenied", "UserPromptSubmit", "SessionStart", "SessionEnd", "PreCompact", "PostCompact", "Stop", "StopFailure", "SubagentStart", "SubagentStop", "Notification", "Setup", "TeammateIdle", "TaskCompleted", "TaskCreated", "WorktreeCreate", "WorktreeRemove", "ConfigChange", "CwdChanged", "FileChanged", "InstructionsLoaded", "Elicitation", "ElicitationResult"]'
             invalid_events=$(jq -r --argjson valid "$valid_events" '.hooks | keys | map(select(. as $k | $valid | index($k) | not)) | .[]' "$plugin_file" 2>/dev/null || true)
             if [[ -n "$invalid_events" ]]; then
                 while IFS= read -r event; do

@@ -67,7 +67,7 @@ function matchesPattern(toolName: string, command: string, pattern: string): boo
   const patternGlob = pattern.slice(parenIdx + 1, -1); // strip parens
   // Convert glob to regex: escape special chars, replace * with .*
   const regex = new RegExp(
-    '^' + patternGlob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'
+    `^${patternGlob.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`
   );
   return regex.test(command);
 }

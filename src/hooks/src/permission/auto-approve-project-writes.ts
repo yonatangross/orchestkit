@@ -34,7 +34,11 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
   filePath = resolveRealPath(filePath, projectDir);
 
   // All directories to check: primary project dir + any /add-dir dirs (CC 2.1.47)
-  const rootDirs = [projectDir, ...(input.added_dirs ?? [])];
+  // SEC-003: Validate added_dirs — reject filesystem root or sensitive directories
+  const safeAddedDirs = (input.added_dirs ?? []).filter(dir =>
+    dir.length > 1 && !dir.includes('..') && !['/etc', '/usr', '/var'].some(s => dir.startsWith(s))
+  );
+  const rootDirs = [projectDir, ...safeAddedDirs];
 
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
