@@ -12,6 +12,7 @@ import {
   logHook,
   logPermissionFeedback,
 } from '../../lib/common.js';
+import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 
 // ---------------------------------------------------------------------------
 // Size limits (OWASP ASI06 — prevent memory poisoning)
@@ -94,6 +95,7 @@ function validateObservationSizes(observationsInput: Array<Record<string, unknow
  * Memory validator - validates memory operations
  */
 export function memoryValidator(input: HookInput): HookResult {
+  webhookForwarder(input).catch(() => {});
   const toolName = input.tool_name || '';
 
   // Only process memory MCP calls

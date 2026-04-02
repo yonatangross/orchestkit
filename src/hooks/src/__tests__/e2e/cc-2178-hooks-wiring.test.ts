@@ -77,7 +77,8 @@ describe('CC 2.1.78 Hooks Wiring E2E', () => {
       const sfCommands = stopFailureHooks.map(h => h.command).filter(Boolean);
 
       // At least one command should differ (they're different handlers)
-      const overlap = sfCommands.filter(c => stopCommands.includes(c));
+      // lifecycle/webhook-forwarder is a cross-cutting hook on all events — exclude from overlap check
+      const overlap = sfCommands.filter(c => stopCommands.includes(c) && !c?.includes('webhook-forwarder'));
       expect(overlap.length).toBe(0);
     });
   });
@@ -149,8 +150,8 @@ describe('CC 2.1.78 Hooks Wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 135', () => {
-      expect(hooksConfig.description).toContain('135 total');
+    it('description total matches 131', () => {
+      expect(hooksConfig.description).toContain('131 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

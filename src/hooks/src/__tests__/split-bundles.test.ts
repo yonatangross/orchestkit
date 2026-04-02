@@ -337,7 +337,8 @@ describe('Cross-Bundle Consistency', () => {
     // 186 -> 191: CC 2.1.88 — PermissionDenied hooks (#1208-#1211)
     // 191 -> 195: CC 2.1.89 — mcp-output-transform (posttool), cwd-changed + file-changed (lifecycle), +1 posttool registry
     // 195 -> 194: Removed dead antipatternWarning from prompt bundle (#1145)
-    expect(totalHooks).toBe(194);
+    // 194 -> 196: #1256 — webhookForwarder inlined in 8 more dispatchers (import adds to bundle export count)
+    expect(totalHooks).toBe(196);
   });
 });
 

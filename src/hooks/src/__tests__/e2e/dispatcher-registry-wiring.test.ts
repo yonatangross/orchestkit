@@ -91,8 +91,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const allHooks = stopGroups.flatMap(g => g.hooks);
       const commandHooks = allHooks.filter(h => h.type === 'command');
 
-      // Should have exactly two command hooks
-      expect(commandHooks.length, 'Stop should have two command hooks').toBe(2);
+      // Should have three command hooks: stop/unified-dispatcher, stop-uncommitted-check, lifecycle/webhook-forwarder
+      expect(commandHooks.length, 'Stop should have three command hooks').toBe(3);
 
       const stopDispatcher = commandHooks.find(h => h.command?.includes('stop/unified-dispatcher'));
       expect(stopDispatcher, 'Stop should have stop/unified-dispatcher via run-hook.mjs').toBeDefined();
@@ -237,7 +237,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      expect(asyncHooks.length, 'Should have exactly 29 async hooks').toBe(29);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -312,7 +314,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncCount).toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      expect(asyncCount).toBe(29);
     });
 
     it('should have hooks for all critical security operations', () => {

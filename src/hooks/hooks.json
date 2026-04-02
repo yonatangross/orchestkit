@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 61 global + 47 agent-scoped + 22 skill-scoped = 130 total hooks (18 once:true context loaders). Webhook forwarder inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest/TaskCreated/TaskCompleted (no separate spawns). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 62 global + 47 agent-scoped + 22 skill-scoped = 131 total hooks (18 once:true context loaders). Webhook forwarder covers all 27 events: inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest/TaskCreated/TaskCompleted, standalone for remaining 21 events. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -212,6 +212,12 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/file-changed",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
             "timeout": 5
           }
         ]

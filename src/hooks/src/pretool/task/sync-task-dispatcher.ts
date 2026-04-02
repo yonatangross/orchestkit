@@ -20,6 +20,7 @@ import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
+import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
 import { teamSizeGate } from './team-size-gate.js';
 import { taskExistenceGate } from './task-existence-gate.js';
@@ -54,6 +55,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
  * On pass: merge additionalContext from all hooks.
  */
 export function syncTaskDispatcher(input: HookInput): HookResult {
+  webhookForwarder(input).catch(() => {});
   const contextParts: string[] = [];
 
   for (const hook of TASK_HOOKS) {

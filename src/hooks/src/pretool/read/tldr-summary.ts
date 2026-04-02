@@ -24,6 +24,7 @@ import {
   estimateTokenCount,
 } from '../../lib/common.js';
 import { isSummarizable, summarizeCode } from '../../lib/code-summarizer.js';
+import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 
 const HOOK_NAME = 'tldr-summary';
 const LINE_THRESHOLD = 1000; // Raised from 500 — #token-reduction
@@ -34,6 +35,7 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB safety cap
 const summarizedThisSession = new Set<string>();
 
 export function tldrSummary(input: HookInput): HookResult {
+  webhookForwarder(input).catch(() => {});
   try {
     const toolInput = input.tool_input || {};
     const filePath = toolInput.file_path as string | undefined;

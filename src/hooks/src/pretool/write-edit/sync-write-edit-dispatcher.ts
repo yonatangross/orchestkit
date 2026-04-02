@@ -21,6 +21,7 @@ import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
+import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 import { contentSecretScanner } from './content-secret-scanner.js';
 import { fileGuard } from './file-guard.js';
 import { writeHeaders } from '../input-mod/write-headers.js';
@@ -93,6 +94,7 @@ function buildMergedResult(
  * On pass: merge additionalContext and updatedInput from all hooks.
  */
 export function syncWriteEditDispatcher(input: HookInput): HookResult {
+  webhookForwarder(input).catch(() => {});
   const contextParts: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
 

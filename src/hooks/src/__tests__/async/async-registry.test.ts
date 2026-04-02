@@ -80,7 +80,9 @@ describe('Async Hooks Registry', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      expect(asyncHooks.length, 'Should have exactly 29 async hooks').toBe(29);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
