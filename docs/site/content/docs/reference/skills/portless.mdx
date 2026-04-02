@@ -37,6 +37,32 @@ portless run --name web npm run dev:web
 # → https://api.localhost, https://web.localhost
 ```
 
+## Framework-Specific Setup
+
+> Load `Read("$\{CLAUDE_SKILL_DIR\}/references/framework-integration.md")` for full framework recipes.
+
+Most frameworks (Next.js, Vite, Express) work with `portless run &lt;cmd&gt;`. Some need explicit flags:
+
+| Framework | Auto-detected? | Extra flags needed |
+|-----------|:-:|---|
+| Next.js | Yes | None |
+| Vite / Astro | Yes | None |
+| Express / Fastify / Hono | Yes | None (reads `PORT` env var) |
+| Ruby on Rails | Yes | None |
+| FastAPI / uvicorn | **No** | `--port $PORT --host $HOST` |
+| Django | **No** | `$HOST:$PORT` positional arg |
+
+## Why `.localhost`?
+
+| Feature | `.localhost` (RFC 6761) | `127.0.0.1:PORT` | `/etc/hosts` hack |
+|---------|:-:|:-:|:-:|
+| No `/etc/hosts` editing | Yes | Yes | No |
+| HTTPS with valid cert | Yes | No | Manual |
+| Wildcard subdomains | Yes | No | No |
+| Works in all browsers | Yes | Yes | Varies |
+| Cookie isolation per service | Yes | No | Yes |
+| No port conflicts | Yes | No | Yes |
+
 ## Key Environment Variables
 
 When portless runs your command, it injects:
@@ -101,11 +127,202 @@ PORTLESS=0 npm run dev
 |------|---------|
 | `references/upstream.md` | Full portless CLI reference (synced from Vercel) |
 | `references/upstream-oauth.md` | OAuth callback patterns with stable URLs |
+| `references/framework-integration.md` | Framework recipes (FastAPI, Django, Docker, gotchas) |
+| `checklists/new-project-setup.md` | Step-by-step: add portless to a new project |
 
 
 ---
 
-## References (2)
+## References (3)
+
+### Framework Integration
+
+# Framework Integration Recipes
+
+How to configure popular frameworks to work with `portless run`.
+
+## How Portless Works
+
+Portless injects `PORT` and `HOST` environment variables into your process. Frameworks that read `PORT` automatically (Express, Fastify, Hono, Next.js, Vite) work out of the box. Others need explicit flags.
+
+## Framework Reference
+
+### Node.js (Express, Fastify, Hono)
+
+Auto-detected. No extra flags needed:
+
+```bash
+portless run --name api node server.js
+# Express/Fastify/Hono read process.env.PORT automatically
+```
+
+**IPv6 ECONNREFUSED fix**: If you see `ECONNREFUSED ::1:4001`, Node 18+ prefers IPv6 by default. Fix:
+
+```js
+// At the top of your entry file
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+```
+
+Or set the env var: `NODE_OPTIONS="--dns-result-order=ipv4first"`.
+
+### Next.js
+
+Auto-detected. Reads `PORT` from environment:
+
+```bash
+portless run --name web next dev
+# → https://web.localhost
+```
+
+**Proxy rewrites** (e.g., `/api` → backend service): use `changeOrigin: true` to avoid 508 redirect loops:
+
+```js
+// next.config.js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "https://api.localhost/:path*",
+        // CRITICAL: prevents 508 loop when proxying to another portless service
+        changeOrigin: true,
+      },
+    ];
+  },
+};
+```
+
+### Vite / Astro
+
+Auto-detected. Reads `PORT` from environment:
+
+```bash
+portless run --name app vite dev
+# → https://app.localhost
+```
+
+**Proxy config** for API backends:
+
+```js
+// vite.config.ts
+export default defineConfig({
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://api.localhost",
+        changeOrigin: true, // prevents 508 loop
+        secure: false, // allow self-signed .localhost certs
+      },
+    },
+  },
+});
+```
+
+### FastAPI / Uvicorn
+
+**NOT auto-detected** — uvicorn ignores the `PORT` env var. You MUST pass `--port` and `--host` explicitly:
+
+```bash
+# WRONG — uvicorn ignores PORT, binds to 8000
+portless run --name api uvicorn main:app
+
+# CORRECT — read from injected env vars
+portless run --name api uvicorn main:app --port \$PORT --host \$HOST
+```
+
+**Trailing slash gotcha**: FastAPI redirects `/api/users` to `/api/users/` by default. This 307 redirect can confuse proxied setups. Fix:
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI(redirect_slashes=False)
+```
+
+Or ensure all routes have consistent trailing slashes.
+
+### Django
+
+**NOT auto-detected** — pass `$HOST:$PORT` as a positional argument:
+
+```bash
+# WRONG — Django ignores PORT env var
+portless run --name admin python manage.py runserver
+
+# CORRECT
+portless run --name admin python manage.py runserver \$HOST:\$PORT
+```
+
+### Ruby on Rails
+
+Auto-detected. Reads `PORT` from environment:
+
+```bash
+portless run --name app rails server
+```
+
+### Go (net/http)
+
+Read from environment in your code:
+
+```go
+port := os.Getenv("PORT")
+if port == "" {
+    port = "8080"
+}
+http.ListenAndServe(":"+port, handler)
+```
+
+```bash
+portless run --name api go run ./cmd/server
+```
+
+## Docker Infrastructure via Aliases
+
+Use `portless alias` for Docker services that expose fixed ports (databases, caches, etc.):
+
+```bash
+# Map Docker-exposed ports to named URLs
+portless alias postgres 5432
+portless alias redis 6379
+portless alias minio 9000
+
+# Now accessible as:
+#   https://postgres.localhost
+#   https://redis.localhost
+#   https://minio.localhost
+```
+
+This is useful for consistency — all services (app and infra) use the same `*.localhost` URL pattern.
+
+## Common Gotchas
+
+### Cookie Domain
+
+Never set `Domain=.localhost` on cookies. Per RFC 6761, browsers handle `.localhost` specially and will reject domain-scoped cookies. Use path-scoped cookies or omit the `Domain` attribute entirely (defaults to exact origin).
+
+```js
+// WRONG
+res.cookie("session", token, { domain: ".localhost" });
+
+// CORRECT — omit domain, browser scopes to exact origin
+res.cookie("session", token, { path: "/" });
+```
+
+### Proxy 508 Loop
+
+When proxying between two portless services (e.g., `web.localhost` → `api.localhost`), always set `changeOrigin: true` in your proxy config. Without it, the `Host` header retains the original domain, causing a redirect loop (HTTP 508).
+
+### Mixed Port References
+
+After adopting portless, grep your codebase for hardcoded `localhost:NNNN` references:
+
+```bash
+grep -rn 'localhost:[0-9]' --include='*.ts' --include='*.js' --include='*.env*' .
+```
+
+Replace with `PORTLESS_URL` or the named `*.localhost` URL.
+
 
 ### Upstream Oauth
 
@@ -540,4 +757,146 @@ proxy: {
 - Node.js 20+
 - macOS, Linux, or Windows
 - `openssl` (for `--https` cert generation; ships with macOS and most Linux distributions)
+
+
+
+---
+
+## Checklists (1)
+
+### New Project Setup
+
+# New Project Setup Checklist
+
+Add portless to an existing or new project in 7 steps.
+
+## Prerequisites
+
+- `portless` CLI installed (`npm i -g portless` or `brew install portless`)
+- Project runs locally with a dev server
+
+## Steps
+
+### 1. Choose Name(s)
+
+Pick portless names for your services. Conventions:
+
+| Pattern | Example | When to use |
+|---------|---------|-------------|
+| `&lt;project&gt;` | `myapp` | Single-service project |
+| `&lt;project&gt;-&lt;layer&gt;` | `myapp-api`, `myapp-web` | Multi-service / monorepo |
+| `&lt;service&gt;` | `api`, `web`, `docs` | When project context is obvious |
+
+Names become `https://&lt;name&gt;.localhost`. Keep them short.
+
+### 2. Update Dev Scripts
+
+Wrap your dev commands with `portless run`:
+
+```jsonc
+// package.json
+{
+  "scripts": {
+    // Before
+    "dev": "next dev",
+    // After
+    "dev": "portless run --name myapp next dev"
+  }
+}
+```
+
+For frameworks that don't auto-detect `PORT` (FastAPI, Django), add explicit flags. See `references/framework-integration.md` for per-framework recipes.
+
+### 3. Update Environment Variables
+
+Replace hardcoded `localhost:NNNN` URLs in `.env` files:
+
+```bash
+# Before
+API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# After
+API_URL=https://api.localhost
+NEXT_PUBLIC_API_URL=https://api.localhost
+```
+
+Search for stale references:
+
+```bash
+grep -rn 'localhost:[0-9]' --include='*.env*' --include='*.ts' --include='*.js' .
+```
+
+### 4. Update Proxy Configs
+
+If your frontend proxies API calls, update the target and add `changeOrigin: true`:
+
+**Next.js** (`next.config.js`):
+```js
+rewrites: () => [{
+  source: "/api/:path*",
+  destination: "https://api.localhost/:path*",
+  changeOrigin: true,
+}]
+```
+
+**Vite** (`vite.config.ts`):
+```js
+server: {
+  proxy: {
+    "/api": { target: "https://api.localhost", changeOrigin: true, secure: false }
+  }
+}
+```
+
+### 5. CI Compatibility
+
+Portless is a dev-only tool. Disable it in CI:
+
+```yaml
+# GitHub Actions
+env:
+  PORTLESS: "0"
+
+# Or in package.json
+"dev:ci": "PORTLESS=0 next dev"
+```
+
+### 6. Monorepo Pattern
+
+For Turborepo / Nx workspaces, configure per-package:
+
+```jsonc
+// apps/web/package.json
+{ "scripts": { "dev": "portless run --name web next dev" } }
+
+// apps/api/package.json
+{ "scripts": { "dev": "portless run --name api uvicorn main:app --port $PORT --host $HOST" } }
+
+// Root — runs both via turbo
+// turbo dev → starts web.localhost + api.localhost
+```
+
+### 7. Verify
+
+```bash
+# List active portless services
+portless list
+
+# Open in browser
+open https://myapp.localhost
+
+# Test cross-service calls
+curl https://api.localhost/health
+```
+
+Check that:
+- [ ] Dev server starts at `https://&lt;name&gt;.localhost`
+- [ ] Cross-service calls resolve (no `ECONNREFUSED`)
+- [ ] OAuth callbacks work with new URLs (if applicable)
+- [ ] CI still works with `PORTLESS=0`
+
+## Rollback
+
+If something breaks, remove `portless run --name &lt;name&gt;` from scripts and revert `.env` changes. Portless is additive — removing it just falls back to direct `localhost:PORT`.
 

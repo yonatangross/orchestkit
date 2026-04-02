@@ -40,6 +40,32 @@ portless run --name web npm run dev:web
 # → https://api.localhost, https://web.localhost
 ```
 
+## Framework-Specific Setup
+
+> Load `Read("${CLAUDE_SKILL_DIR}/references/framework-integration.md")` for full framework recipes.
+
+Most frameworks (Next.js, Vite, Express) work with `portless run <cmd>`. Some need explicit flags:
+
+| Framework | Auto-detected? | Extra flags needed |
+|-----------|:-:|---|
+| Next.js | Yes | None |
+| Vite / Astro | Yes | None |
+| Express / Fastify / Hono | Yes | None (reads `PORT` env var) |
+| Ruby on Rails | Yes | None |
+| FastAPI / uvicorn | **No** | `--port $PORT --host $HOST` |
+| Django | **No** | `$HOST:$PORT` positional arg |
+
+## Why `.localhost`?
+
+| Feature | `.localhost` (RFC 6761) | `127.0.0.1:PORT` | `/etc/hosts` hack |
+|---------|:-:|:-:|:-:|
+| No `/etc/hosts` editing | Yes | Yes | No |
+| HTTPS with valid cert | Yes | No | Manual |
+| Wildcard subdomains | Yes | No | No |
+| Works in all browsers | Yes | Yes | Varies |
+| Cookie isolation per service | Yes | No | Yes |
+| No port conflicts | Yes | No | Yes |
+
 ## Key Environment Variables
 
 When portless runs your command, it injects:
@@ -104,3 +130,5 @@ PORTLESS=0 npm run dev
 |------|---------|
 | `references/upstream.md` | Full portless CLI reference (synced from Vercel) |
 | `references/upstream-oauth.md` | OAuth callback patterns with stable URLs |
+| `references/framework-integration.md` | Framework recipes (FastAPI, Django, Docker, gotchas) |
+| `checklists/new-project-setup.md` | Step-by-step: add portless to a new project |

@@ -3262,8 +3262,12 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {
       "references": [
+        "framework-integration.md",
         "upstream-oauth.md",
         "upstream.md"
+      ],
+      "checklists": [
+        "new-project-setup.md"
       ]
     },
     "plugins": [
