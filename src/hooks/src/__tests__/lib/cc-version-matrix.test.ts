@@ -17,8 +17,8 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.89', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.89');
+    test('is 2.1.90', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.90');
     });
   });
 
@@ -72,7 +72,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.89');
+      const features = getAvailableFeatures('2.1.90');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -98,8 +98,8 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.89', () => {
-      const missing = getMissingFeatures('2.1.89');
+    test('no missing features at 2.1.90', () => {
+      const missing = getMissingFeatures('2.1.90');
       expect(missing.length).toBe(0);
     });
 

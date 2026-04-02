@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.89';
+export const MIN_CC_VERSION = '2.1.90';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -190,6 +190,18 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'hook_output_disk_spill', minVersion: '2.1.89', description: 'Hook output over 50K chars saved to disk with file path + preview' },
   { feature: 'edit_after_bash_view',   minVersion: '2.1.89', description: 'Edit works on files viewed via Bash sed/cat without separate Read call' },
   { feature: 'symlink_permission_check', minVersion: '2.1.89', description: 'Edit/Read allow rules check resolved symlink target, not just requested path' },
+  // 2.1.90
+  { feature: 'powerup_lessons',          minVersion: '2.1.90', description: '/powerup interactive lessons teaching Claude Code features with animated demos' },
+  { feature: 'plugin_keep_marketplace',  minVersion: '2.1.90', description: 'CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE keeps marketplace cache when git pull fails' },
+  { feature: 'husky_protected_dir',      minVersion: '2.1.90', description: '.husky added to protected directories in acceptEdits mode' },
+  { feature: 'pretool_exit2_json_fix',   minVersion: '2.1.90', description: 'PreToolUse hooks emitting JSON to stdout with exit code 2 now correctly block tool calls' },
+  { feature: 'format_on_save_fix',       minVersion: '2.1.90', description: 'Edit/Write no longer fail with "File content has changed" when PostToolUse format-on-save rewrites' },
+  { feature: 'resume_prompt_cache_fix',  minVersion: '2.1.90', description: '--resume no longer causes full prompt-cache miss with deferred tools/MCP/agents' },
+  { feature: 'mcp_schema_cache_perf',    minVersion: '2.1.90', description: 'Eliminated per-turn JSON.stringify of MCP tool schemas on cache-key lookup' },
+  { feature: 'sse_linear_perf',          minVersion: '2.1.90', description: 'SSE transport handles large streamed frames in linear time (was quadratic)' },
+  { feature: 'transcript_write_perf',    minVersion: '2.1.90', description: 'SDK sessions with long conversations no longer slow down quadratically on transcript writes' },
+  { feature: 'resume_hides_p_sessions',  minVersion: '2.1.90', description: '--resume picker no longer shows sessions created by claude -p or SDK invocations' },
+  { feature: 'dns_cache_auto_allow_removed', minVersion: '2.1.90', description: 'Get-DnsClientCache and ipconfig /displaydns removed from auto-allow (DNS privacy)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

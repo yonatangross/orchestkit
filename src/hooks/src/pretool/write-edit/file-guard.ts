@@ -140,6 +140,7 @@ const PROTECTED_PATTERNS: RegExp[] = [
   /\.pem$/,
   /id_rsa$/,
   /id_ed25519$/,
+  /\/\.husky\//, // CC 2.1.90: git hooks directory — prevent tampering with commit hooks
 ];
 
 /**
@@ -156,7 +157,7 @@ const CONFIG_PATTERNS: RegExp[] = [
  */
 function resolveRealPath(filePath: string, projectDir: string): string {
   try {
-    // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
+    // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
     const absolutePath = isAbsolute(filePath)
       ? filePath
       : resolve(projectDir, filePath);

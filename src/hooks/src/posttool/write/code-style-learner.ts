@@ -294,7 +294,7 @@ export function codeStyleLearner(input: HookInput): HookResult {
   let content = getField<string>(input, 'tool_input.content') || '';
 
   if (!content) {
-    // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
+    // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
     const projectDir = getProjectDir();
     const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
