@@ -1,22 +1,10 @@
 {
-  "description": "OrchestKit hooks - 70 global + 47 agent-scoped + 22 skill-scoped = 139 total hooks (18 once:true context loaders). Webhook forwarder streams all events to ORCHESTKIT_HOOK_URL (no-op when unset). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 66 global + 47 agent-scoped + 22 skill-scoped = 135 total hooks (18 once:true context loaders). Webhook forwarder inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest (no separate spawns). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "if": "Bash(git push*) || Bash(npm publish*) || Bash(npx wrangler deploy*) || Bash(terraform apply*) || Bash(kubectl apply*) || Bash(kubectl delete*) || Bash(docker push*) || Bash(alembic upgrade*) || Bash(gh pr merge*) || Bash(gh release create*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/headless-defer",
-            "timeout": 5,
-            "statusMessage": "Checking headless approval..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "if": "Bash(git *) || Bash(npm *) || Bash(npx *) || Bash(node *) || Bash(rm *) || Bash(curl *) || Bash(chmod *) || Bash(docker *) || Bash(kubectl *)",
+        "if": "Bash(git *) || Bash(npm *) || Bash(npx *) || Bash(node *) || Bash(rm *) || Bash(curl *) || Bash(chmod *) || Bash(docker *) || Bash(kubectl *) || Bash(terraform apply*) || Bash(alembic upgrade*) || Bash(gh pr merge*) || Bash(gh release create*)",
         "hooks": [
           {
             "type": "command",
@@ -89,16 +77,6 @@
             "timeout": 5
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -123,16 +101,6 @@
             "timeout": 60
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
-          }
-        ]
       }
     ],
     "PostToolUseFailure": [
@@ -144,16 +112,6 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler",
             "timeout": 10,
             "statusMessage": "Analyzing failure..."
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
           }
         ]
       }
@@ -178,16 +136,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes",
             "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
           }
         ]
       }
@@ -497,11 +445,6 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/creation-tracker",
             "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/task-context-injector",
-            "timeout": 5
           },
           {
             "type": "command",

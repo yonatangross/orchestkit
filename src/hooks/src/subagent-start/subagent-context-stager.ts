@@ -298,75 +298,29 @@ export function subagentContextStager(input: HookInput): HookResult {
 
   // === FORK DETECTION (CC 2.1.89 — #1227) ===
   // Forked subagents inherit parent's full context (system prompt, CLAUDE.md, conversation).
-  // Skip heavy context injection to avoid double-injection that wastes tokens.
+  // Skip heavy context injection (CLAUDE.md rules, decisions, todos, testing reminders)
+  // but still inject critical guardrails and active issue context (~100 tokens vs ~500).
   const isFork = Boolean(input.is_fork);
-  if (isFork) {
-    logHook('subagent-context-stager', `Fork detected for ${subagentType} — skipping context injection`);
-    return outputSilentSuccess();
-  }
 
-  logHook('subagent-context-stager', `Staging context for ${subagentType}`);
+  logHook('subagent-context-stager', `Staging context for ${subagentType}${isFork ? ' (fork — lightweight mode)' : ''}`);
 
   let stagedContext = '';
 
-  // === INJECT AGENT-SPECIFIC GUARDRAILS (#1231) ===
+  // === INJECT AGENT-SPECIFIC GUARDRAILS (#1231) — always, even for forks ===
   const criticalReminder = injectCriticalReminder(subagentType);
   if (criticalReminder) {
     stagedContext += criticalReminder;
     logHook('subagent-context-stager', `Injected critical_system_reminder for ${subagentType}`);
   }
 
-  // === CHECK REQUIRED MCP SERVERS (#1232) ===
+  // === CHECK REQUIRED MCP SERVERS (#1232) — always, even for forks ===
   const mcpWarning = checkRequiredMcpServers(subagentType);
   if (mcpWarning) {
     stagedContext += mcpWarning;
   }
 
-  // === INJECT CRITICAL RULES FROM CLAUDE.md FILES ===
-  const criticalRules = extractCriticalRules();
-  if (criticalRules) {
-    stagedContext += criticalRules;
-    logHook('subagent-context-stager', 'Injected critical rules from CLAUDE.md');
-  }
-
-  // === CHECK FOR ACTIVE TODOS (Context Protocol 2.0) ===
-  const { count: pendingCount, summary: taskSummary } = extractPendingTasks();
-  if (pendingCount > 0) {
-    logHook('subagent-context-stager', `Found ${pendingCount} pending tasks`);
-    stagedContext += `ACTIVE TODOS:\n${taskSummary}\n\n`;
-  }
-
-  // === STAGE RELEVANT ARCHITECTURE DECISIONS ===
+  // === STAGE ISSUE DOCUMENTATION — always, even for forks ===
   const taskLower = taskDescription.toLowerCase();
-
-  if (/backend|api|endpoint|database|migration/.test(taskLower)) {
-    logHook('subagent-context-stager', 'Backend task detected - staging backend decisions');
-    const backendDecisions = extractRelevantDecisions(taskDescription, 'backend');
-    if (backendDecisions) {
-      stagedContext += `RELEVANT DECISIONS:\n${backendDecisions}\n\n`;
-    }
-  }
-
-  if (/frontend|react|ui|component/.test(taskLower)) {
-    logHook('subagent-context-stager', 'Frontend task detected - staging frontend decisions');
-    const frontendDecisions = extractRelevantDecisions(taskDescription, 'frontend');
-    if (frontendDecisions) {
-      stagedContext += `RELEVANT DECISIONS:\n${frontendDecisions}\n\n`;
-    }
-  }
-
-  // === STAGE TESTING REMINDERS ===
-  if (/test|testing|pytest|jest/.test(taskLower)) {
-    logHook('subagent-context-stager', 'Testing task detected - staging test context');
-    stagedContext += `TESTING REMINDERS:
-- Use 'tee' for visible test output
-- Check test patterns in backend/tests/ or frontend/src/**/__tests__/
-- Ensure coverage meets threshold requirements
-
-`;
-  }
-
-  // === STAGE ISSUE DOCUMENTATION ===
   if (/issue|#\d+|bug|fix/.test(taskLower)) {
     logHook('subagent-context-stager', 'Issue-related task detected');
 
@@ -378,6 +332,53 @@ export function subagentContextStager(input: HookInput): HookResult {
         stagedContext += `ISSUE DOCS: ${issueDoc}\n\n`;
         logHook('subagent-context-stager', `Staged issue documentation for #${issueNum}`);
       }
+    }
+  }
+
+  // === FORK: skip heavy context (CLAUDE.md rules, decisions, todos, testing reminders) ===
+  if (isFork) {
+    logHook('subagent-context-stager', `Fork lightweight mode: skipped CLAUDE.md rules, decisions, todos`);
+  } else {
+    // === INJECT CRITICAL RULES FROM CLAUDE.md FILES ===
+    const criticalRules = extractCriticalRules();
+    if (criticalRules) {
+      stagedContext += criticalRules;
+      logHook('subagent-context-stager', 'Injected critical rules from CLAUDE.md');
+    }
+
+    // === CHECK FOR ACTIVE TODOS (Context Protocol 2.0) ===
+    const { count: pendingCount, summary: taskSummary } = extractPendingTasks();
+    if (pendingCount > 0) {
+      logHook('subagent-context-stager', `Found ${pendingCount} pending tasks`);
+      stagedContext += `ACTIVE TODOS:\n${taskSummary}\n\n`;
+    }
+
+    // === STAGE RELEVANT ARCHITECTURE DECISIONS ===
+    if (/backend|api|endpoint|database|migration/.test(taskLower)) {
+      logHook('subagent-context-stager', 'Backend task detected - staging backend decisions');
+      const backendDecisions = extractRelevantDecisions(taskDescription, 'backend');
+      if (backendDecisions) {
+        stagedContext += `RELEVANT DECISIONS:\n${backendDecisions}\n\n`;
+      }
+    }
+
+    if (/frontend|react|ui|component/.test(taskLower)) {
+      logHook('subagent-context-stager', 'Frontend task detected - staging frontend decisions');
+      const frontendDecisions = extractRelevantDecisions(taskDescription, 'frontend');
+      if (frontendDecisions) {
+        stagedContext += `RELEVANT DECISIONS:\n${frontendDecisions}\n\n`;
+      }
+    }
+
+    // === STAGE TESTING REMINDERS ===
+    if (/test|testing|pytest|jest/.test(taskLower)) {
+      logHook('subagent-context-stager', 'Testing task detected - staging test context');
+      stagedContext += `TESTING REMINDERS:
+- Use 'tee' for visible test output
+- Check test patterns in backend/tests/ or frontend/src/**/__tests__/
+- Ensure coverage meets threshold requirements
+
+`;
     }
   }
 

@@ -40,7 +40,7 @@ import { unifiedTeammateIdleDispatcher } from '../teammate-idle/unified-dispatch
 
 // TaskCreated hooks (CC 2.1.84)
 import { creationTracker } from '../task-created/creation-tracker.js';
-import { taskContextInjector } from '../task-created/task-context-injector.js';
+// taskContextInjector removed — unregistered to reduce hook count (#optimization)
 import { taskProgressInitializer } from '../task-created/task-progress-initializer.js';
 
 // TaskCompleted hooks (CC 2.1.33)
@@ -100,7 +100,7 @@ export const hooks: Record<string, HookFn> = {
 
   // TaskCreated hooks (CC 2.1.84)
   'task-created/creation-tracker': creationTracker,
-  'task-created/task-context-injector': taskContextInjector,
+  // task-context-injector removed — unregistered to reduce hook count
   'task-created/task-progress-initializer': taskProgressInitializer,
 
   // TaskCompleted hooks (CC 2.1.33)

@@ -41,6 +41,7 @@ import {
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
 import { detectEffortLevel, effortTokenBudget } from '../lib/effort-detector.js';
+import { trackTokenUsage } from '../lib/token-tracker.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -300,6 +301,11 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   }
 
   logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+
+  // Track token usage for budget enforcement
+  if (totalTokens > 0) {
+    trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
+  }
 
   return outputPromptContext(consolidated);
 }

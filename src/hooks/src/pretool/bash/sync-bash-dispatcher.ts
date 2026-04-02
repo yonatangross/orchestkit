@@ -18,12 +18,15 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
+import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 
 // Import consolidated hook implementations
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { compoundCommandValidator } from './compound-command-validator.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
+// Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
+import { headlessDefer } from '../../permission/headless-defer.js';
 // Phase 2: Git/GH enforcement hooks (merged from separate spawns — #912, #913, #914)
 import { gitValidator } from './git-validator.js';
 import { issueReferenceChecker } from './issue-reference-checker.js';
@@ -50,6 +53,8 @@ interface BlockingHookConfig {
  * Short-circuit: any block in Phase 1 or 2 skips remaining phases.
  */
 const BASH_HOOKS: BlockingHookConfig[] = [
+  // Phase 0: Headless deferral (blocks destructive ops in -p mode)
+  { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'compound-command-validator', fn: compoundCommandValidator },
@@ -124,6 +129,12 @@ export function syncBashDispatcher(input: HookInput): HookResult {
         return result;
       }
 
+      // Short-circuit on defer decision (headless-defer returns permissionDecision: 'defer')
+      if (result.hookSpecificOutput?.permissionDecision === 'defer') {
+        logHook(HOOK_NAME, `${hook.name} deferred — short-circuiting`);
+        return result;
+      }
+
       if (result.hookSpecificOutput?.updatedInput) {
         updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
         logHook(HOOK_NAME, `${hook.name}: updatedInput collected`);
@@ -139,6 +150,9 @@ export function syncBashDispatcher(input: HookInput): HookResult {
       logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
+
+  // Fire-and-forget webhook forwarding (replaces separate hooks.json group)
+  webhookForwarder(input).catch(() => {});
 
   return buildMergedResult(contextParts, updatedInput);
 }
