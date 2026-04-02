@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.27.0] - 2026-04-02
 
+### Added
+
+- **shadcn/ui v4 style system** across 7 design skills: `ui-components`, `design-to-code`, `component-search`, `design-context-extract`, `json-render-catalog`, `design-system-tokens`, `ai-ui-generation`
+  - 6 styles documented: Vega, Nova, Maia, Lyra, Mira, Luma
+  - Preset code system (`npx shadcn@latest init --preset <code>`)
+  - Style detection from `components.json` → `"style"` field
+  - Style-aware component adaptation in design-to-code pipeline
+  - Best-fit style recommender in design-context-extract
+  - Style-aware catalog overrides in json-render-catalog
+  - Luma elevation tokens (shadow-md + ring) in design-system-tokens
+- `ui-components/rules/shadcn-v4-styles.md` — new rule file for v4 style detection, class mapping, and preset codes (622 total rules)
+
 ### Fixed
 
 - **P0 BUG** denial-notification.ts: in-memory `denialTimestamps` array reset on every hook invocation (fresh Node.js process per call). Now reads persisted timestamps from `permission-denials.jsonl` written by denial-logger, with cooldown state in separate JSON file

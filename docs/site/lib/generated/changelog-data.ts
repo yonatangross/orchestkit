@@ -22,6 +22,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "compareUrl": "",
     "sections": [
       {
+        "type": "added",
+        "items": [
+          "**shadcn/ui v4 style system** across 7 design skills: `ui-components`, `design-to-code`, `component-search`, `design-context-extract`, `json-render-catalog`, `design-system-tokens`, `ai-ui-generation`\n  - 6 styles documented: Vega, Nova, Maia, Lyra, Mira, Luma\n  - Preset code system (`npx shadcn@latest init --preset <code>`)\n  - Style detection from `components.json` → `\"style\"` field\n  - Style-aware component adaptation in design-to-code pipeline\n  - Best-fit style recommender in design-context-extract\n  - Style-aware catalog overrides in json-render-catalog\n  - Luma elevation tokens (shadow-md + ring) in design-system-tokens",
+          "`ui-components/rules/shadcn-v4-styles.md` — new rule file for v4 style detection, class mapping, and preset codes (622 total rules)"
+        ]
+      },
+      {
         "type": "fixed",
         "items": [
           "**P0 BUG** denial-notification.ts: in-memory `denialTimestamps` array reset on every hook invocation (fresh Node.js process per call). Now reads persisted timestamps from `permission-denials.jsonl` written by denial-logger, with cooldown state in separate JSON file",

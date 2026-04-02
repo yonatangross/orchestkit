@@ -181,12 +181,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v7.25.0** — /ork:expect + CC 2.1.85
+**v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 
-- **`/ork:expect`** — Diff-aware AI browser testing (M99, 18 issues): 6-phase pipeline, fingerprint gating, ARIA snapshot diffing, saved flows, CI integration
-- **`expect-agent`** — Specialized browser test execution subagent (36th agent)
-- **CC 2.1.85 integration** — Hook `if` conditionals (~40% fewer process spawns), headless AskUserQuestion for CI
-- **103 skills**, **36 agents**, **115 hooks**, **23 invocable commands**
+- **shadcn/ui v4 styles** — 6 styles (Vega, Nova, Maia, Lyra, Mira, Luma) across 7 design skills. Preset codes, style detection, style-aware adaptation
+- **CC 2.1.90 integration** — format-on-save, offline resilience, `/powerup` onboarding
+- **622 rules**, **103 skills**, **36 agents**, **115 hooks**, **23 invocable commands**
 
 **v7.24.2** — fal.ai MCP + Model Pricing
 
