@@ -260,3 +260,33 @@ Ref-tracked plugins now re-clone on every load to pick up upstream changes. For 
 ```
 
 Use `@main` for bleeding edge, `@v7.x.x` for stability.
+
+## CC 2.1.90 Settings
+
+### Offline Plugin Resilience
+
+Keep marketplace cache when `git pull` fails (useful for offline or restricted network environments):
+
+```bash
+export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
+```
+
+### Format-on-Save Hooks (now viable)
+
+CC 2.1.90 fixed the "File content has changed" race condition when a PostToolUse hook reformats files between consecutive edits. This enables format-on-save patterns:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Write|Edit",
+      "command": "prettier --write \"$CLAUDE_FILE_PATH\"",
+      "timeout": 5
+    }]
+  }
+}
+```
+
+### /powerup Lessons
+
+CC 2.1.90 adds `/powerup` — interactive lessons teaching features with animated demos. Reference this in onboarding or setup flows for new users.

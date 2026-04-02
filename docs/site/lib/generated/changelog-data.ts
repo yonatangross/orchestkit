@@ -65,7 +65,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
           "Updated specs: CONTRIBUTING-SKILLS.md (path_patterns, invocation_hooks), agent-authoring.md (critical_system_reminder, required_mcp_servers), frontmatter validator (critical_system_reminder length check)",
           "Stale counts fixed across 22 fumadocs pages (102→103 skills, 112→115 hooks)",
           "Bounded JSONL read (last 4KB) + `atomicWriteSync` for crash-safe state persistence",
-          "Minimum Claude Code version: 2.1.86 → 2.1.89"
+          "Minimum Claude Code version: 2.1.86 → 2.1.90",
+          "**CC 2.1.90 integration**: version matrix +11 entries (powerup, plugin-keep-marketplace, husky-protected, exit code 2 fix, format-on-save fix, resume prompt cache fix, 3x perf, resume hides -p sessions, DNS auto-allow removal)",
+          "`.husky/` added to file-guard PROTECTED_PATTERNS (CC 2.1.90 parity — prevent git hook tampering)",
+          "Path resolution comments updated from \"backward compat\" to \"defense in depth\" — fallbacks retained as defensive programming rather than removed",
+          "README badge updated from 2.1.86 to 2.1.90",
+          "version-compatibility.md: +25 entries for CC 2.1.88–2.1.90, compatibility levels updated, v7.27.x version history row",
+          "cc-version-settings.md: added CC 2.1.90 section (PLUGIN_KEEP_MARKETPLACE env var, format-on-save hook pattern, /powerup reference)"
         ]
       }
     ]
