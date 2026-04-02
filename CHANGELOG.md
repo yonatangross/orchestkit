@@ -32,6 +32,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PermissionDenied section added to `src/hooks/README.md`
 - 167 new unit tests (152 PermissionDenied + 15 headless-defer)
 - `tests/skills/test-upstream-refs.sh` — CI freshness check for vendor references
+- **Candlekeep batch** (CC 2.1.89 architecture insights — #1227-#1236):
+  - **CwdChanged hook** (#1229): Detects tech stack on directory change, returns watchPaths, suggests relevant skills via path_patterns
+  - **FileChanged hook** (#1230): Reacts to watched file changes (CLAUDE.md, package.json, .env, rules/), injects context
+  - **mcp-output-transform hook**: PostToolUse PII redaction (emails, phones) and token-saving truncation for MCP results
+  - **cache-break-detector hook** (#1234): Analytics-only — tracks prompt injection shape changes across turns for cache hit monitoring
+  - **frustration-detector hook**: Analytics-only — privacy-first DX signal (boolean only, no matched text logged)
+  - **fork() pattern** (#1227): Reference doc, explore + brainstorm skills annotated fork-friendly, context-stager skips forks, cache_hit_pct analytics
+  - **path_patterns** (#1228): Added to 15 skills, CwdChanged consumer with 2-level directory scan (94% pattern match rate)
+  - **critical_system_reminder** (#1231): Added to 8 agents, injected at spawn via subagent-context-stager
+  - **required_mcp_servers** (#1232): Added to 4 agents, pre-flight availability check via CLAUDE_MCP_SERVERS env var
+  - **invocation_hooks** (#1235): Shell precondition commands on 4 skills (cover, expect, commit, devops-deployment)
+  - **MCP channels** (#1233): evalApiKey + notebookLmToken sensitive userConfig slots (CC keychain storage)
+  - **Token budget carry-forward** (#1236): Pre/post compact preserves effort level and budget across compaction
+  - **Transcript quality analysis**: SubagentStop bounded JSONL reads for tool counts, errors, token usage
+  - **SessionStart perf measurement**: sync-session-dispatcher logs duration_ms to analytics
+  - **CC field name diagnostic**: Debug-level log of input field names on first SubagentStop for runtime verification
+  - 167 new Candlekeep tests (cwd-changed 21, file-changed 14, mcp-output-transform 35, cache-break 21, frustration 28, post-compact 20, analyze-transcript 17, fork detection 4, sync-session perf 3, materialize-rules 4)
+  - Cache audit documented in hooks README: only 2 genuinely volatile per-turn hooks, rest migrated or gated
 
 ### Changed
 
@@ -41,7 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files
 - Removed 32 `vercel-*.mdx` pages from fumadocs, updated meta.json and category pages
 - Agent descriptions improved for @mention typeahead discoverability: `genui-architect`, `ui-feedback`
-- Dead code removed: memory-bridge entity extraction (132→33 lines), antipattern-warning dynamic matching
+- Dead code removed: memory-bridge entity extraction (132→33 lines), antipattern-warning function deleted (was no-op since #1145), speculative `mcp_connections` HookInput field removed
+- Updated specs: CONTRIBUTING-SKILLS.md (path_patterns, invocation_hooks), agent-authoring.md (critical_system_reminder, required_mcp_servers), frontmatter validator (critical_system_reminder length check)
+- Stale counts fixed across 22 fumadocs pages (102→103 skills, 112→115 hooks)
 - Bounded JSONL read (last 4KB) + `atomicWriteSync` for crash-safe state persistence
 - Minimum Claude Code version: 2.1.86 → 2.1.89
 
