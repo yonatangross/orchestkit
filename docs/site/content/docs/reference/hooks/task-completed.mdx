@@ -1,15 +1,12 @@
 ---
 title: "TaskCompleted"
-description: "Hooks triggered on TaskCompleted events (4 hooks)."
+description: "Hooks triggered on TaskCompleted events (1 hooks)."
 ---
 
 # TaskCompleted Hooks
 
-**4 hooks** registered for the `TaskCompleted` lifecycle event.
+**1 hooks** registered for the `TaskCompleted` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `completion-tracker` | `*` | 💡 Injects | TaskCompleted Hook: Completion Tracker |
-| `task-commit-linker` | `*` | 🔇 Silent | Task-Commit Linker — Suggest commit when a task completes |
-| `task-progress-tracker` | `*` | 🔇 Silent | Task Progress Tracker — Numbered progress display for task workflows |
-| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |
+| `sync-task-completed-dispatcher` | `*` | 💡 Injects | Consolidates 3 TaskCompleted hooks + webhook forwarder into a single |

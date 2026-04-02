@@ -42,11 +42,13 @@ import { unifiedTeammateIdleDispatcher } from '../teammate-idle/unified-dispatch
 import { creationTracker } from '../task-created/creation-tracker.js';
 // taskContextInjector removed — unregistered to reduce hook count (#optimization)
 import { taskProgressInitializer } from '../task-created/task-progress-initializer.js';
+import { syncTaskCreatedDispatcher } from '../task-created/sync-task-created-dispatcher.js';
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from '../task-completed/completion-tracker.js';
 import { taskCommitLinker } from '../task-completed/task-commit-linker.js';
 import { taskProgressTracker } from '../task-completed/task-progress-tracker.js';
+import { syncTaskCompletedDispatcher } from '../task-completed/sync-task-completed-dispatcher.js';
 
 // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
 import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
@@ -98,12 +100,14 @@ export const hooks: Record<string, HookFn> = {
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,
 
-  // TaskCreated hooks (CC 2.1.84)
+  // TaskCreated hooks (CC 2.1.84) — dispatcher + individual handlers
+  'task-created/sync-task-created-dispatcher': syncTaskCreatedDispatcher,
   'task-created/creation-tracker': creationTracker,
   // task-context-injector removed — unregistered to reduce hook count
   'task-created/task-progress-initializer': taskProgressInitializer,
 
-  // TaskCompleted hooks (CC 2.1.33)
+  // TaskCompleted hooks (CC 2.1.33) — dispatcher + individual handlers
+  'task-completed/sync-task-completed-dispatcher': syncTaskCompletedDispatcher,
   'task-completed/completion-tracker': completionTracker,
   'task-completed/task-commit-linker': taskCommitLinker,
   'task-completed/task-progress-tracker': taskProgressTracker,

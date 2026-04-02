@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 66 global + 47 agent-scoped + 22 skill-scoped = 135 total hooks (18 once:true context loaders). Webhook forwarder inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest (no separate spawns). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 61 global + 47 agent-scoped + 22 skill-scoped = 130 total hooks (18 once:true context loaders). Webhook forwarder inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest/TaskCreated/TaskCompleted (no separate spawns). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -443,19 +443,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/creation-tracker",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/sync-task-created-dispatcher",
             "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/task-progress-initializer",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
           }
         ]
       }
@@ -465,24 +454,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/completion-tracker",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/task-commit-linker",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/task-progress-tracker",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
-            "timeout": 5
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/sync-task-completed-dispatcher",
+            "timeout": 15
           }
         ]
       }
