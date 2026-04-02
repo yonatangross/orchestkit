@@ -1091,6 +1091,34 @@ return { continue: true, systemMessage: 'Updated context: project uses React 19'
 
 **Why this matters:** The Claude Code team monitors cache hit rate like uptime. A few percentage points of cache miss can dramatically affect cost and latency for users.
 
+### Cache Audit: Context Injection Classification (#1234)
+
+All hooks that inject `additionalContext` are classified by volatility. Volatile injections (per-turn) break the API prompt cache prefix. Cacheable injections run once and don't affect per-turn cache.
+
+| Hook | Event | Frequency | Volatile? | Status |
+|------|-------|-----------|-----------|--------|
+| **SessionStart hooks** | | | | |
+| sync-session-dispatcher | SessionStart | once | No | Materializes rules files |
+| session-handoff-injector | SessionStart | once | No | Injects prior handoff |
+| unified-dispatcher (async) | SessionStart | once | No | Fire-and-forget setup |
+| **UserPromptSubmit hooks** | | | | |
+| handoff-injector | UserPromptSubmit | once (flag) | No | File-flag gated |
+| agentation-context | UserPromptSubmit | once (flag) | No | File-flag gated |
+| context-exhaustion-warner | UserPromptSubmit | per-turn | **Yes** | Must check every turn |
+| pipeline-detector | UserPromptSubmit | per-turn | **Yes** | Must detect piped input |
+| frustration-detector | UserPromptSubmit | per-turn | No output | Analytics only |
+| cache-break-detector | UserPromptSubmit | per-turn | No output | Analytics only |
+| **Skill context loaders** | | | | |
+| 10 once:true loaders | PreToolUse | once/skill | No | File-flag gated |
+| **Already migrated to SessionStart** | | | | |
+| profile-injector | ~~UserPromptSubmit~~ | once | Moved | #960 |
+| memory-context-loader | ~~UserPromptSubmit~~ | once | Moved | #448 |
+| antipattern-warning | ~~UserPromptSubmit~~ | ~~per-turn~~ | Deleted | #972, #1145 |
+
+**Result:** Only 2 hooks inject volatile per-turn context: `context-exhaustion-warner` and `pipeline-detector`. Both are genuinely volatile (depend on current turn state). No further migration candidates identified.
+
+**Measured by:** `cache-break-detector` tracks shape changes and logs to `~/.claude/analytics/cache-breaks.jsonl`. `sync-session-dispatcher` logs `session-start-perf.jsonl` with duration.
+
 ---
 
 ## Troubleshooting

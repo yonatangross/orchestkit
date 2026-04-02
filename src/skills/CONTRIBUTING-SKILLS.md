@@ -66,6 +66,9 @@ targets:                 # Library version ranges — warns on mismatch (CC 2.1.
 paths:                   # YAML list of globs — auto-loaded when skill activates (CC 2.1.84+)
   - "src/**/*.{ts,tsx}"
   - "package.json"
+path_patterns:           # Globs for file-aware skill suggestions in CwdChanged (CC 2.1.89+)
+  - "*.py"               # Matches files at project root or 1 level deep
+  - "**/migrations/**"   # Matches nested directory names (2-level scan)
 ```
 
 **Model invocation guide:**
@@ -85,6 +88,18 @@ hooks:
 ```
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
+### Invocation Hooks (CC 2.1.89+)
+
+Shell commands that run when a skill activates — before the skill body is loaded. Use for precondition checks and setup:
+
+```yaml
+invocation_hooks:
+  - "command -v vitest >/dev/null || npm install -D vitest"   # install if missing
+  - "test -f playwright.config.ts || echo 'Warning: no Playwright config'"
+```
+
+Keep commands fast (<2s) and idempotent. They run in the user's shell, not in a sandbox.
 
 ### Structure Pattern
 

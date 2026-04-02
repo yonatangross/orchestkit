@@ -26,6 +26,8 @@ triggers:
     - "run visual regression on the dashboard"
   anti-triggers: [cover, "unit test", "generate tests", verify, implement, "npm test"]
 paths: [".expect/**", "**/*.test.{ts,tsx}", "playwright.config.*"]
+invocation_hooks:
+  - "command -v agent-browser >/dev/null 2>&1 || echo 'Warning: agent-browser not installed — run npm install -g @anthropic-ai/agent-browser'"
 ---
 
 # Expect — Diff-Aware AI Browser Testing

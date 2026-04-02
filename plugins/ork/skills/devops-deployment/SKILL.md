@@ -21,6 +21,8 @@ allowed-tools:
   - WebSearch
 paths: [".github/workflows/**", "Dockerfile*", "docker-compose*", "**/k8s/**", "**/terraform/**"]
 path_patterns: ["*.tf", "*.tfvars", "**/k8s/**", "**/helm/**", "Dockerfile*", ".github/workflows/*"]
+invocation_hooks:
+  - "command -v docker >/dev/null 2>&1 || echo 'Warning: docker not found — container operations will fail'"
 ---
 
 # DevOps & Deployment Skill

@@ -31,6 +31,16 @@
       "type": "string",
       "sensitive": true,
       "description": "Authentication token for webhook endpoint (stored in keychain)"
+    },
+    "evalApiKey": {
+      "type": "string",
+      "sensitive": true,
+      "description": "Anthropic API key for skill evaluation pipeline (stored in keychain)"
+    },
+    "notebookLmToken": {
+      "type": "string",
+      "sensitive": true,
+      "description": "NotebookLM auth token for /ork:release-sync (stored in keychain)"
     }
   }
 }

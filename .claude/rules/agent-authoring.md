@@ -17,6 +17,8 @@ paths:
 - `isolation: worktree` — run in isolated git worktree (safe for heavy writes)
 - `context: fork` — isolated subagent context
 - `maxTurns: N` — conversation turn limit
+- `critical_system_reminder: "..."` — persistent guardrail injected at spawn via context-stager
+- `required_mcp_servers: [name1, name2]` — warns if MCP servers unavailable at spawn
 
 ## Decision Guide
 - Heavy writes (build, refactor)? → `isolation: worktree`

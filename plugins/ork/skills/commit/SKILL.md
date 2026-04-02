@@ -31,6 +31,8 @@ triggers:
     - "create a conventional commit for these files"
     - "stage and commit the new tests"
   anti-triggers: [push, pr, "pull request", review, rebase, merge]
+invocation_hooks:
+  - "git rev-parse --is-inside-work-tree >/dev/null 2>&1 || echo 'Warning: not inside a git repository'"
 ---
 
 # Smart Commit
