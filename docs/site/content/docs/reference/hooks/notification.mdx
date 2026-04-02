@@ -1,12 +1,13 @@
 ---
 title: "Notification"
-description: "Hooks triggered on Notification events (1 hooks)."
+description: "Hooks triggered on Notification events (2 hooks)."
 ---
 
 # Notification Hooks
 
-**1 hooks** registered for the `Notification` lifecycle event.
+**2 hooks** registered for the `Notification` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `*` | 🔇 Silent | Consolidates 2 async Notification hooks into a single dispatcher. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |

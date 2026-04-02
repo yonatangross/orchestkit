@@ -28,6 +28,7 @@ import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
 import { usageSummaryReporter } from '../lifecycle/usage-summary-reporter.js';
+import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { sessionHandoffGenerator } from '../lifecycle/session-handoff-generator.js';
 import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js';
 
@@ -87,6 +88,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
   'lifecycle/usage-summary-reporter': usageSummaryReporter,
+  'lifecycle/webhook-forwarder': webhookForwarder,
   'lifecycle/session-handoff-generator': sessionHandoffGenerator,
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
 

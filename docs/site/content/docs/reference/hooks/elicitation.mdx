@@ -1,12 +1,13 @@
 ---
 title: "Elicitation"
-description: "Hooks triggered on Elicitation events (1 hooks)."
+description: "Hooks triggered on Elicitation events (2 hooks)."
 ---
 
 # Elicitation Hooks
 
-**1 hooks** registered for the `Elicitation` lifecycle event.
+**2 hooks** registered for the `Elicitation` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `elicitation-guard` | `*` | 🔇 Silent | Elicitation Guard — Blocks form-mode requests for secrets |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |

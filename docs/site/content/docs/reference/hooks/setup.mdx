@@ -1,12 +1,13 @@
 ---
 title: "Setup"
-description: "Hooks triggered on Setup events (1 hooks)."
+description: "Hooks triggered on Setup events (2 hooks)."
 ---
 
 # Setup Hooks
 
-**1 hooks** registered for the `Setup` lifecycle event.
+**2 hooks** registered for the `Setup` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `sync-setup-dispatcher` | `*` | 💡 Injects | Consolidates 6 Setup hooks into a single dispatcher. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |

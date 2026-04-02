@@ -1,13 +1,14 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (2 hooks)."
+description: "Hooks triggered on PostToolUse events (3 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**2 hooks** registered for the `PostToolUse` lifecycle event.
+**3 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `mcp-output-transform` | `mcp__*` | 🔇 Silent | MCP Output Transform — PostToolUse hook for MCP tool results |
 | `unified-dispatcher` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 💡 Injects | Consolidates essential PostToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |

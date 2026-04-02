@@ -1,12 +1,13 @@
 ---
 title: "StopFailure"
-description: "Hooks triggered on StopFailure events (1 hooks)."
+description: "Hooks triggered on StopFailure events (2 hooks)."
 ---
 
 # StopFailure Hooks
 
-**1 hooks** registered for the `StopFailure` lifecycle event.
+**2 hooks** registered for the `StopFailure` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `stop-failure-handler` | `*` | 🔇 Silent | Fires when a turn ends due to an API error (rate limit, auth failure, etc.). |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |
