@@ -192,6 +192,29 @@ OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC featur
 | PreToolUse for AskUserQuestion | 2.1.85 | Headless AskUserQuestion responder hooks | No hook on AskUserQuestion |
 | Config disk write fix | 2.1.86 | Eliminates unnecessary config writes on every skill invocation | Unnecessary disk I/O per skill |
 | Write/Edit outside project root | 2.1.86 | Write/Edit fix for files outside project root | Write/Edit fails for external files |
+| `PermissionDenied` hook event | 2.1.88 | Fires after auto mode classifier denials, supports `{retry: true}` | No hook on permission denials |
+| `permissionMode: "auto"` | 2.1.88 | Classifier-based approval replaces interactive prompts | Interactive permission prompts |
+| `file_path` always absolute | 2.1.88 | PreToolUse/PostToolUse file_path always absolute for Write/Edit/Read | Relative paths possible |
+| Compound `if` matching | 2.1.88 | Hook `if` conditions match compound commands and env-var prefixes | Only simple command matching |
+| `CLAUDE_CODE_NO_FLICKER=1` | 2.1.88 | Flicker-free alt-screen rendering with virtualized scrollback | Default rendering |
+| `"defer"` permission decision | 2.1.89 | PreToolUse hooks return `decision:"defer"` to pause headless sessions | Only allow/deny/ask |
+| `TaskCreated` hook blocking | 2.1.89 | TaskCreated hook fires with documented blocking behavior | TaskCreated (2.1.84) without blocking docs |
+| `MCP_CONNECTION_NONBLOCKING=true` | 2.1.89 | Skip MCP connection wait in `-p` mode, bounded at 5s | Blocks on slowest MCP server |
+| Named subagent typeahead | 2.1.89 | Named subagents appear in `@` mention typeahead | Only file names in typeahead |
+| Hook output disk spill | 2.1.89 | Hook output >50K chars saved to disk with file path + preview | Full output injected into context |
+| Edit after Bash view | 2.1.89 | Edit works on files viewed via `sed -n`/`cat` without Read | Must Read before Edit |
+| Symlink permission check | 2.1.89 | Edit/Read allow rules check resolved symlink target | Only requested path checked |
+| `/powerup` interactive lessons | 2.1.90 | Interactive feature tutorials with animated demos | No built-in learning tools |
+| `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | 2.1.90 | Keep marketplace cache when `git pull` fails (offline support) | Marketplace cache lost on git failure |
+| `.husky` protected directory | 2.1.90 | `.husky` added to protected dirs in acceptEdits mode | .husky writable in acceptEdits |
+| PreToolUse exit code 2 JSON fix | 2.1.90 | Hooks emitting JSON to stdout with exit code 2 now correctly block | Exit code 2 JSON silently ignored |
+| Format-on-save hook fix | 2.1.90 | Edit/Write no longer fail when PostToolUse format-on-save rewrites file | "File content has changed" error |
+| `--resume` prompt cache fix | 2.1.90 | `--resume` no longer causes full prompt-cache miss with deferred tools/MCP | Full cache miss on resume |
+| MCP schema cache perf | 2.1.90 | Eliminated per-turn JSON.stringify of MCP tool schemas | Redundant serialization per turn |
+| SSE linear transport perf | 2.1.90 | SSE transport handles large frames in linear time (was quadratic) | Quadratic SSE processing |
+| Transcript write perf | 2.1.90 | Long conversations no longer slow down quadratically on transcript writes | Quadratic transcript slowdown |
+| `--resume` hides `-p` sessions | 2.1.90 | Resume picker no longer shows `claude -p` or SDK sessions | `-p` sessions in resume picker |
+| DNS cache auto-allow removed | 2.1.90 | `Get-DnsClientCache` and `ipconfig /displaydns` removed from auto-allow | DNS cache commands auto-allowed |
 
 ## Version Detection
 
@@ -221,7 +244,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.83 | Full | CwdChanged/FileChanged events, managed-settings.d/, sandbox.failIfUnavailable |
 | >= 2.1.84 | Full | TaskCreated event, paths: glob, CLAUDE_STREAM_IDLE_TIMEOUT_MS, MCP non-blocking startup |
 | >= 2.1.85 | Full | PreToolUse for AskUserQuestion, headless responder hooks |
-| >= 2.1.86 | **Recommended** | Config disk write fix, Write/Edit outside project root — **current minimum** |
+| >= 2.1.86 | Full | Config disk write fix, Write/Edit outside project root |
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
@@ -231,6 +254,9 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.81 | Full++++++++++++ | --bare eval mode, --channels permission relay, plugin re-clone freshness, worktree resume, bg agent race fix |
 | >= 2.1.83 | Full+++++++++++++ | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig, env scrub |
 | >= 2.1.84 | Full++++++++++++++ | TaskCreated hook, WorktreeCreate HTTP, paths: globs, ANTHROPIC_DEFAULT_*, stream timeout, MCP 2KB cap, json-schema fix |
+| >= 2.1.88 | Full+++++++++++++++ | PermissionDenied hook, auto permission mode, absolute file_path, compound if matching, NO_FLICKER |
+| >= 2.1.89 | Full++++++++++++++++ | defer permission, TaskCreated blocking, MCP_CONNECTION_NONBLOCKING, named subagent typeahead, hook disk spill |
+| >= 2.1.90 | **Recommended** | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf — **current minimum** |
 
 ## Doctor Check Implementation
 
@@ -309,6 +335,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |
 | v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |
 | v7.23.x | 2.1.83 | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig sensitive, env scrub |
 | v7.15.x | 2.1.80 | effort frontmatter, rate_limits statusline, --channels, source:settings, simplified plugin tips |

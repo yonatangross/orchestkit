@@ -186,7 +186,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **`/ork:expect`** — Diff-aware AI browser testing (M99, 18 issues): 6-phase pipeline, fingerprint gating, ARIA snapshot diffing, saved flows, CI integration
 - **`expect-agent`** — Specialized browser test execution subagent (36th agent)
 - **CC 2.1.85 integration** — Hook `if` conditionals (~40% fewer process spawns), headless AskUserQuestion for CI
-- **100 skills**, **36 agents**, **110 hooks**, **21 invocable commands**
+- **103 skills**, **36 agents**, **115 hooks**, **23 invocable commands**
 
 **v7.24.2** — fal.ai MCP + Model Pricing
 
