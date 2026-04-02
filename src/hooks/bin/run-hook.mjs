@@ -85,6 +85,16 @@ async function loadBundle(hookName) {
  * Normalize hook input to handle CC version differences
  * CC 2.1.19+ uses tool_input, older versions may use toolInput
  */
+/**
+ * Validate that a string looks like a filesystem path, not JSON or garbage.
+ * Rejects strings starting with '{', '[', or containing null bytes.
+ */
+function isValidPath(s) {
+  if (typeof s !== 'string' || s.length === 0) return false;
+  if (s.startsWith('{') || s.startsWith('[') || s.includes('\0')) return false;
+  return true;
+}
+
 function normalizeInput(input) {
   if (!input.tool_input && input.toolInput) {
     input.tool_input = input.toolInput;
@@ -95,7 +105,9 @@ function normalizeInput(input) {
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
   // SubagentStart/SubagentStop send `cwd` instead of `project_dir`
-  input.project_dir = input.project_dir || input.projectDir || input.cwd || process.env.CLAUDE_PROJECT_DIR || '.';
+  // Validate each candidate — reject JSON strings that leak from hook stdout (#1250)
+  const candidates = [input.project_dir, input.projectDir, input.cwd, process.env.CLAUDE_PROJECT_DIR];
+  input.project_dir = candidates.find(isValidPath) || '.';
   input.plugin_root = pluginRoot;
   // SubagentStart/SubagentStop send `agent_type` at top level (not in tool_input)
   if (input.agent_type && !input.tool_input.subagent_type) {

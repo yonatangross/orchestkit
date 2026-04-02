@@ -26,10 +26,14 @@ export function getTempDir(): string {
 }
 
 /**
- * Get the project directory from environment
+ * Get the project directory from environment.
+ * Guards against JSON strings leaking from hook stdout (#1250).
  */
 export function getProjectDir(): string {
-  return process.env.CLAUDE_PROJECT_DIR || '.';
+  const dir = process.env.CLAUDE_PROJECT_DIR || '.';
+  // Reject JSON objects/arrays that may leak from hook stdout
+  if (dir.startsWith('{') || dir.startsWith('[')) return '.';
+  return dir;
 }
 
 /**
