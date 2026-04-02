@@ -1,11 +1,13 @@
 /**
- * Auto-Lint Hook - PostToolUse hook for Write/Edit
- * CC 2.1.7 Compliant
+ * Auto-Lint Hook - PostToolUse format-on-save for Write/Edit
+ * CC 2.1.90: Safe to modify files in PostToolUse — "File content has changed" race fixed
  *
- * Automatically runs linters after file writes:
+ * Automatically formats files after writes:
  * - Python: ruff check + format (Astral toolchain)
- * - JS/TS: biome check (Rust-based)
- * - JSON/CSS: biome format
+ * - JS/TS: biome check --write, falls back to prettier --write
+ * - JSON/CSS: biome format --write, falls back to prettier --write
+ *
+ * Toggle off: SKIP_AUTO_LINT=1
  */
 
 import { existsSync } from 'node:fs';
@@ -144,6 +146,16 @@ export function autoLint(input: HookInput): HookResult {
           } catch {
             // Ignore biome errors
           }
+        } else if (commandExists('prettier')) {
+          try {
+            execFileSync('prettier', ['--write', safePath], {
+              stdio: 'ignore',
+              timeout: 5000,
+            });
+            fixesApplied = true;
+          } catch {
+            // Ignore prettier errors
+          }
         }
         break;
 
@@ -158,6 +170,16 @@ export function autoLint(input: HookInput): HookResult {
             fixesApplied = true;
           } catch {
             // Ignore format errors
+          }
+        } else if (commandExists('prettier')) {
+          try {
+            execFileSync('prettier', ['--write', safePath], {
+              stdio: 'ignore',
+              timeout: 5000,
+            });
+            fixesApplied = true;
+          } catch {
+            // Ignore prettier errors
           }
         }
         break;

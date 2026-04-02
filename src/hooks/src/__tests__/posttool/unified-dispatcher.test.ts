@@ -79,13 +79,14 @@ describe('matchesTool', () => {
 describe('registeredHookNames', () => {
   it('returns all registered hook names', () => {
     const names = registeredHookNames();
-    // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver: 5
+    // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver + CC 2.1.90 auto-lint: 6
     expect(names).toContain('redact-secrets');
     expect(names).toContain('config-change-auditor');
     expect(names).toContain('team-member-start');
     expect(names).toContain('commit-nudge');
     expect(names).toContain('fingerprint-saver');
-    expect(names.length).toBe(5);
+    expect(names).toContain('auto-lint');
+    expect(names.length).toBe(6);
   });
 });
 

@@ -20,6 +20,8 @@ import { configChangeAuditor } from './config-change/security-auditor.js';
 import { teamMemberStart } from './task/team-member-start.js';
 import { commitNudge } from './commit-nudge.js';
 import { fingerprintSaver } from './expect/fingerprint-saver.js';
+// CC 2.1.90: format-on-save is now safe — the "File content has changed" race was fixed
+import { autoLint } from './auto-lint.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -50,6 +52,9 @@ const HOOKS: HookConfig[] = [
   { name: 'commit-nudge', fn: commitNudge, matcher: ['Write', 'Edit', 'MultiEdit', 'Bash'] },
   // Expect fingerprint auto-save: saves fingerprint after successful /ork:expect (#1191)
   { name: 'fingerprint-saver', fn: fingerprintSaver, matcher: ['Skill'] },
+  // CC 2.1.90: format-on-save — auto-format with ruff/biome/prettier after Write/Edit
+  // Toggle off with SKIP_AUTO_LINT=1
+  { name: 'auto-lint', fn: autoLint as HookFn, matcher: ['Write', 'Edit'] },
 ];
 
 /** Exposed for registry wiring tests */

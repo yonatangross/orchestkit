@@ -147,6 +147,8 @@ Offers 5 recommended shortcuts (commit, verify, implement, explore, review-pr). 
 ## Post-Setup
 
 > **Tip (CC 2.1.69+):** After setup completes, run `/reload-plugins` to activate all plugin changes without restarting your session.
+>
+> **Tip (CC 2.1.90+):** New to Claude Code? Try `/powerup` for interactive lessons with animated demos teaching core features.
 
 ## Phase 9: Telemetry & Webhooks
 

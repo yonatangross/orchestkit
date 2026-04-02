@@ -17,13 +17,14 @@ import { registeredHookNames as setupHooks } from '../../setup/unified-dispatche
 describe('Dispatcher Registry Wiring', () => {
   describe('posttool/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver: 5 hooks
+      // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver + CC 2.1.90 auto-lint: 6 hooks
       expect(posttoolHooks()).toEqual([
         'redact-secrets',
         'config-change-auditor',
         'team-member-start',
         'commit-nudge',
         'fingerprint-saver',
+        'auto-lint',
       ]);
     });
 
@@ -144,8 +145,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 5 (+fingerprint-saver), lifecycle: 5, stop: 9 (+ledger-cleanup), subagent-stop: 2, notification: 2, setup: 1
-      expect(total).toBe(24);
+      // posttool: 6 (+fingerprint-saver, +auto-lint), lifecycle: 5, stop: 9 (+ledger-cleanup), subagent-stop: 2, notification: 2, setup: 1
+      expect(total).toBe(25);
     });
   });
 });
