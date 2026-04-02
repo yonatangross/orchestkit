@@ -237,6 +237,8 @@ export interface HookSpecificOutput {
   worktreePath?: string;
   /** Signal model to retry the denied tool call (PermissionDenied, CC 2.1.88) */
   retry?: boolean;
+  /** Paths to watch for changes (CwdChanged, CC 2.1.89) */
+  watchPaths?: string[];
 }
 
 /**

@@ -104,7 +104,7 @@ function setupMocks(opts: {
   // Bounded tail read: openSync → fstatSync → readSync → closeSync
   mockOpenSync.mockReturnValue(3 as unknown as number);
   mockFstatSync.mockReturnValue({ size: jsonlBytes.length } as ReturnType<typeof fstatSync>);
-  mockReadSync.mockImplementation((_fd: number, buf: Buffer) => {
+  mockReadSync.mockImplementation((_fd: number, buf: Buffer | ArrayBufferView) => {
     jsonlBytes.copy(buf, 0, 0, Math.min(jsonlBytes.length, buf.length));
     return Math.min(jsonlBytes.length, buf.length);
   });

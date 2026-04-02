@@ -252,7 +252,7 @@ AskUserQuestion(questions=[{
       "description": "Yonatan HQ production API"
     },
     {
-      "label": "http://hq-api.localhost:1355/api/hooks",
+      "label": "https://hq-api.localhost:1355/api/hooks",
       "description": "Local dev API (Portless)"
     },
     {

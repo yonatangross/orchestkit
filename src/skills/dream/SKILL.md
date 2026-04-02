@@ -13,7 +13,7 @@ complexity: medium
 effort: low
 model: sonnet
 triggers:
-  keywords: [dream, consolidate, "clean memory", "prune memory", "memory cleanup", "stale memories", "merge memories", "memory maintenance", "tidy memory"]
+  keywords: [dream, consolidate, "clean memory", "prune memory", "memory cleanup", "stale memories", "merge memories", "memory maintenance", "tidy memory", "stale memory entries", "memory files", "prune memories"]
   examples:
     - "consolidate my memory files"
     - "clean up stale memory entries"
