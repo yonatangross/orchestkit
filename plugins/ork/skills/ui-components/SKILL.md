@@ -29,7 +29,7 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [shadcn/ui](#shadcnui) | 3 | HIGH | CVA variants, component customization, form patterns, data tables |
+| [shadcn/ui](#shadcnui) | 4 | HIGH | CVA variants, component customization, form patterns, data tables, v4 styles |
 | [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
 | [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
@@ -37,7 +37,7 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 | [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
 | [UX Foundations](#ux-foundations) | 4 | HIGH | Visual hierarchy, typography thresholds, color system, empty states |
 
-**Total: 21 rules across 7 categories**
+**Total: 22 rules across 7 categories**
 
 ## Quick Start
 
@@ -95,6 +95,30 @@ Beautifully designed, accessible components built on CVA variants, cn() utility,
 | Customization | `rules/shadcn-customization.md` | CVA variants, cn() utility, OKLCH theming, component extension |
 | Forms | `rules/shadcn-forms.md` | Form field wrappers, react-hook-form integration, validation |
 | Data Table | `rules/shadcn-data-table.md` | TanStack Table integration, column definitions, sorting/filtering |
+| v4 Styles | `rules/shadcn-v4-styles.md` | 6 styles (Vega→Luma), preset codes, style detection, class mapping |
+
+### v4 Style System
+
+shadcn CLI v4 ships 6 visual styles. Each rewrites component class names — not just CSS variables.
+
+| Style | Character | Best For |
+|-------|-----------|----------|
+| **Vega** | Balanced radius, clean lines | General purpose (successor to New York) |
+| **Nova** | Compact padding, reduced margins | Dense dashboards, admin panels |
+| **Maia** | Soft, rounded, generous spacing | Consumer-facing, friendly apps |
+| **Lyra** | Sharp, zero radius, monospace pairs | Editorial, developer tools |
+| **Mira** | Ultra-compact, minimal chrome | Spreadsheets, data-heavy interfaces |
+| **Luma** | Extreme rounding (`rounded-4xl`), soft elevation (`shadow-md` + ring), breathable layouts | Polished native-app feel, macOS Tahoe-inspired |
+
+**Preset codes** encode style + theme + fonts + icons into a shareable 7-char string:
+
+```bash
+npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist + HugeIcons
+```
+
+Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create). Same code = same output on any machine.
+
+**Detection:** Read `components.json` → `"style"` field (e.g., `"radix-luma"`, `"base-nova"`). Old `"new-york"` and `"default"` styles are superseded by Vega.
 
 ## Radix Primitives
 

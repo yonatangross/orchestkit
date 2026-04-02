@@ -78,6 +78,12 @@ Glob("**/tailwind.config.*")
 Glob("**/tokens.css")
 Glob("**/.tokens.json")
 # Read existing tokens if found → used in Stage 3
+
+# Detect shadcn/ui style (v4 style system)
+Glob("**/components.json")
+# Read → style field (e.g., "radix-luma", "base-nova")
+# Determines class names: Luma=rounded-4xl, Nova=compact, Lyra=sharp
+# Store: SHADCN_STYLE for Stage 2 filtering + Stage 3 adaptation
 ```
 
 ## Stage 1: Extract Design Context
@@ -126,6 +132,8 @@ for component in inventory.components:
 # Use the component descriptions from Stage 1
 # Example: "animated pricing table with toggle"
 # Filter: React, Tailwind CSS, shadcn/ui compatible
+# If SHADCN_STYLE detected, prefer components matching style's visual language
+# (e.g., Luma → rounded/pill-shaped, Nova → compact/dense, Lyra → sharp/boxy)
 ```
 
 **Priority 3 — Filesystem fallback (if no MCP servers available):**
@@ -157,10 +165,15 @@ AskUserQuestion(questions=[{
 Merge the extracted design context with matched/generated components:
 
 1. **Apply project tokens** — Replace hardcoded colors/spacing with project's design tokens
-2. **Match naming conventions** — Follow project's component naming patterns
-3. **Add TypeScript types** — Full type safety with Zod validation for any data props
-4. **Include tests** — MSW handlers for API-backed components, render tests for static
-5. **Responsive** — Mobile-first with breakpoints matching project's system
+2. **Apply shadcn style classes** — If `SHADCN_STYLE` detected, use style-correct class names:
+   - Luma: `rounded-4xl` buttons/cards, `shadow-md` + `ring-1 ring-foreground/5`, `gap-6 py-6`
+   - Nova: compact `px-2 py-1`, reduced margins, tight spacing
+   - Lyra: `rounded-none`, sharp edges, monospace-friendly
+   - Mira: ultra-dense, minimal padding
+3. **Match naming conventions** — Follow project's component naming patterns
+4. **Add TypeScript types** — Full type safety with Zod validation for any data props
+5. **Include tests** — MSW handlers for API-backed components, render tests for static
+6. **Responsive** — Mobile-first with breakpoints matching project's system
 
 ### Output Structure
 ```

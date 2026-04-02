@@ -141,6 +141,32 @@ AskUserQuestion(questions=[{
 
 Write the extracted tokens in the chosen format. If the project already has tokens, show a diff of what's new vs existing.
 
+## Step 5: Recommend Best-Fit shadcn/ui Style
+
+After extracting design DNA, map the extracted characteristics to the best-fit shadcn/ui v4 style:
+
+```python
+# Map extracted design DNA → shadcn style recommendation
+radius = extracted["radius"]      # e.g., "large", "pill", "none", "small"
+density = extracted["spacing"]    # e.g., "generous", "balanced", "compact", "dense"
+elevation = extracted["shadows"]  # e.g., "layered", "subtle", "none"
+
+STYLE_MAP = {
+    # (radius, density, elevation) → style
+    ("pill/large", "generous", "layered"):  "Luma — polished, macOS-like",
+    ("medium",     "balanced", "subtle"):   "Vega — general purpose",
+    ("medium",     "compact",  "subtle"):   "Nova — dense dashboards",
+    ("large",      "generous", "subtle"):   "Maia — soft, consumer-facing",
+    ("none/sharp", "balanced", "none"):     "Lyra — editorial, dev tools",
+    ("small",      "dense",    "none"):     "Mira — ultra-dense data",
+}
+# Present recommendation with preset code link:
+# "Based on extracted design DNA, recommended style: Luma"
+# "Configure: https://ui.shadcn.com/create?preset=b2D0xPaDb"
+```
+
+**Skip condition:** If the user only needs raw tokens (not a shadcn project), skip this step.
+
 ## Anti-Patterns
 
 - **NEVER** guess colors without analyzing the actual source — use precise extraction

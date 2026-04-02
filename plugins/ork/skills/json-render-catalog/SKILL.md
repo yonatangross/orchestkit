@@ -216,6 +216,34 @@ import { mergeCatalogs } from '@json-render/core'
 const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
 ```
 
+### Style-Aware Catalogs
+
+The shadcn catalog components use default Tailwind classes. When your project uses a specific shadcn v4 style (Luma, Nova, etc.), override component implementations to match:
+
+```typescript
+import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { mergeCatalogs, type CatalogComponents } from '@json-render/core'
+
+// Override shadcn component implementations for Luma style
+const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
+  Card: ({ title, description, children }) => (
+    <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+      <h3 className="font-semibold">{title}</h3>
+      {description && <p className="text-muted-foreground">{description}</p>}
+      <div className="mt-6">{children}</div>
+    </div>
+  ),
+  Button: ({ label, variant }) => (
+    <button className={cn('rounded-4xl', buttonVariants({ variant }))}>{label}</button>
+  ),
+}
+
+// Merge: catalog schema unchanged, only rendering adapts to style
+const components = { ...shadcnComponents, ...lumaComponents }
+```
+
+**Detection pattern:** Read `components.json` → `"style"` field to determine which overrides to apply. Style-specific class names: Luma (`rounded-4xl`, `shadow-md`, `gap-6`), Nova (compact `px-2 py-1`), Lyra (`rounded-none`).
+
 ## Package Ecosystem
 
 23 packages covering web, mobile, 3D, codegen, and state management. Load `references/package-ecosystem.md` for the full list organized by category.

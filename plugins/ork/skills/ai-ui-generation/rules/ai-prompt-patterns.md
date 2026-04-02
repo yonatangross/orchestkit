@@ -26,6 +26,8 @@ Generate a signup form component:
 
 Framework: React 19 + TypeScript strict mode
 Styling: Tailwind CSS v4 + shadcn/ui primitives (Button, Input, Label, Card)
+shadcn style: Luma (rounded-4xl buttons/cards, shadow-md elevation, gap-6 spacing)
+  — or read from components.json → "style" field for project-specific style
 Design tokens:
   - Colors: use oklch(var(--color-primary)), oklch(var(--color-destructive))
   - Spacing: gap-4 for form fields, p-6 for card padding
@@ -47,7 +49,7 @@ Responsive: single column always, max-w-md centered
 Generate a [component type] component:
 
 Framework: [React/Next.js version] + TypeScript
-Styling: [Tailwind version] + [UI library]
+Styling: [Tailwind version] + [UI library] + [shadcn style: Luma/Vega/Nova/etc.]
 Design tokens: [list token names and where to use them]
 Accessibility: [specific ARIA patterns needed]
 States: [enumerate all states]
@@ -56,7 +58,7 @@ Integration: [form library, state management, API calls]
 ```
 
 **Key rules:**
-- Always specify the UI library (shadcn/ui, Radix, Ark UI) — AI tools default to raw HTML otherwise
+- Always specify the UI library AND shadcn style (e.g., "shadcn/ui Luma style") — AI tools default to raw HTML and generic classes otherwise
 - List design token variable names explicitly — AI cannot infer your token system
 - Enumerate every state the component must handle — AI skips states you do not mention
 - Include responsive breakpoints — AI defaults to desktop-only layouts

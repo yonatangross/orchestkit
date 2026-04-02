@@ -108,7 +108,6 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Alert | title, description, variant | false |
 | AlertDialog | title, description, actionLabel | false |
 | Toast | title, description, variant, action | false |
-
 ### When to Extend vs Use As-Is
 
 | Scenario | Approach |
@@ -116,12 +115,36 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Standard UI (dashboards, settings, forms) | Use shadcn as-is |
 | Domain-specific display (pricing, metrics, timelines) | Add custom components via `mergeCatalogs` |
 | Branded components (custom design system) | Override shadcn implementations, keep schemas |
+| Project uses shadcn v4 style (Luma, Nova, etc.) | Override implementations with style-correct classes |
 | Highly specialized (3D, charts, maps) | Add custom + use `@json-render/react-three-fiber` |
 
-**Key rules:**
-- Start with `shadcnCatalog` — it covers 80% of common UI patterns out of the box
-- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
-- Override implementations (not schemas) when you need branded styling on standard components
-- Check the shadcn component list before creating a custom catalog entry — avoid reimplementing existing components
+### Style-Aware Overrides
 
-Reference: https://ui.shadcn.com
+When your project uses a shadcn v4 style, the default `shadcnComponents` use generic Tailwind classes that may not match. Override implementations to match the project's style.
+
+**Incorrect — using default components in a Luma project:**
+```typescript
+// Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
+<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+```
+
+**Correct — overriding implementations for project's v4 style:**
+```typescript
+import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+// Read components.json → style to determine overrides (Luma, Nova, etc.)
+const lumaOverrides = {
+  Card: ({ title, children }) => (
+    <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+      <h3 className="font-semibold">{title}</h3>
+      <div className="mt-6">{children}</div>
+    </div>
+  ),
+}
+const components = { ...shadcnComponents, ...lumaOverrides }
+```
+
+**Key rules:**
+- Start with `shadcnCatalog` — covers 80% of common UI patterns out of the box
+- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
+- Override implementations (not schemas) for branded styling or v4 style conformance
+- Check `components.json` → `"style"` to determine which class overrides apply

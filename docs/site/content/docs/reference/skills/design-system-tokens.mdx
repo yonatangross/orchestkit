@@ -177,6 +177,29 @@ Tokens evolve. Use semantic versioning for your token packages, deprecation anno
 
 See `rules/tokens-versioning.md` for migration strategies.
 
+## shadcn/ui v4 Preset Integration
+
+shadcn CLI v4 encodes style + theme + fonts + icons into a shareable preset code. Presets generate `globals.css` with CSS variables that map to the token hierarchy:
+
+```bash
+npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist
+```
+
+**Luma elevation tokens** (the most token-rich style):
+
+```css
+/* Luma elevation system — soft depth hierarchy */
+--shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);  /* shadow-md */
+--ring-card: 0 0 0 1px var(--foreground) / 0.05;  /* ring-1 ring-foreground/5 */
+--shadow-dropdown: 0 4px 6px -1px rgb(0 0 0 / 0.1);  /* shadow-lg */
+--shadow-dialog: 0 10px 15px -3px rgb(0 0 0 / 0.1);  /* shadow-xl */
+--radius-button: var(--radius-4xl);  /* pill-shaped */
+--radius-card: var(--radius-4xl);
+--radius-input: var(--radius-3xl);
+```
+
+**Detection:** Read `components.json` → `"style"` field to determine which elevation/radius tokens are active. Map preset-generated CSS variables to W3C DTCG tokens via Style Dictionary transforms.
+
 ## Key Decisions
 
 | Decision | Recommendation |

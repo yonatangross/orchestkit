@@ -18,7 +18,7 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 
 | Category | Rules | Impact | When to Use |
 |----------|-------|--------|-------------|
-| [shadcn/ui](#shadcnui) | 3 | HIGH | CVA variants, component customization, form patterns, data tables |
+| [shadcn/ui](#shadcnui) | 4 | HIGH | CVA variants, component customization, form patterns, data tables, v4 styles |
 | [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
 | [Design System](#design-system) | 5 | HIGH | W3C tokens, OKLCH theming, spacing scales, typography, component states, animation |
 | [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
@@ -26,7 +26,7 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 | [Modern CSS & Tooling](#modern-css--tooling) | 3 | HIGH | CSS cascade layers, Tailwind v4, Storybook CSF3 |
 | [UX Foundations](#ux-foundations) | 4 | HIGH | Visual hierarchy, typography thresholds, color system, empty states |
 
-**Total: 21 rules across 7 categories**
+**Total: 22 rules across 7 categories**
 
 ## Quick Start
 
@@ -84,6 +84,30 @@ Beautifully designed, accessible components built on CVA variants, cn() utility,
 | Customization | `rules/shadcn-customization.md` | CVA variants, cn() utility, OKLCH theming, component extension |
 | Forms | `rules/shadcn-forms.md` | Form field wrappers, react-hook-form integration, validation |
 | Data Table | `rules/shadcn-data-table.md` | TanStack Table integration, column definitions, sorting/filtering |
+| v4 Styles | `rules/shadcn-v4-styles.md` | 6 styles (Vega→Luma), preset codes, style detection, class mapping |
+
+### v4 Style System
+
+shadcn CLI v4 ships 6 visual styles. Each rewrites component class names — not just CSS variables.
+
+| Style | Character | Best For |
+|-------|-----------|----------|
+| **Vega** | Balanced radius, clean lines | General purpose (successor to New York) |
+| **Nova** | Compact padding, reduced margins | Dense dashboards, admin panels |
+| **Maia** | Soft, rounded, generous spacing | Consumer-facing, friendly apps |
+| **Lyra** | Sharp, zero radius, monospace pairs | Editorial, developer tools |
+| **Mira** | Ultra-compact, minimal chrome | Spreadsheets, data-heavy interfaces |
+| **Luma** | Extreme rounding (`rounded-4xl`), soft elevation (`shadow-md` + ring), breathable layouts | Polished native-app feel, macOS Tahoe-inspired |
+
+**Preset codes** encode style + theme + fonts + icons into a shareable 7-char string:
+
+```bash
+npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist + HugeIcons
+```
+
+Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create). Same code = same output on any machine.
+
+**Detection:** Read `components.json` → `"style"` field (e.g., `"radix-luma"`, `"base-nova"`). Old `"new-york"` and `"default"` styles are superseded by Vega.
 
 ## Radix Primitives
 
@@ -184,7 +208,7 @@ Cognitive-science-grounded UI/UX principles with specific numeric thresholds for
 
 ---
 
-## Rules (20)
+## Rules (21)
 
 ### Build a color system with OKLCH, 9-shade scales, and semantic categories — HIGH
 
@@ -2327,6 +2351,94 @@ npm install clsx tailwind-merge      # Class merging
 npm install react-hook-form          # Form management
 npm install lucide-react             # Icons
 ```
+
+
+### shadcn/ui v4 Style System — 6 Styles + Preset Codes — HIGH
+
+
+## shadcn/ui v4 Style System
+
+shadcn CLI v4 ships 6 visual styles that rewrite component class names — not just CSS variables. Each style defines its own radius, elevation, spacing, and visual weight. Detect the project's style from `components.json` and apply the correct classes.
+
+**Incorrect — hardcoding classes without checking project style:**
+```tsx
+// Assumes rounded-md everywhere — wrong for Luma (rounded-4xl) or Lyra (rounded-none)
+const Card = ({ children }: CardProps) => (
+  <div className="rounded-lg border p-4 shadow-sm">
+    {children}
+  </div>
+)
+```
+
+**Correct — reading project style and applying matching classes:**
+```tsx
+// 1. Detect style: Read components.json → "style" field
+//    "radix-luma" | "radix-vega" | "base-nova" | etc.
+
+// 2. Apply style-correct classes:
+// Luma:  rounded-4xl, shadow-md + ring-1 ring-foreground/5, gap-6 py-6
+// Vega:  rounded-lg, shadow-sm, gap-4 py-4 (balanced, general purpose)
+// Nova:  rounded-md, no shadow, px-2 py-1 (compact dashboards)
+// Maia:  rounded-xl, shadow-sm, gap-5 py-5 (soft, consumer)
+// Lyra:  rounded-none, no shadow, gap-4 py-4 (sharp, editorial)
+// Mira:  rounded-sm, no shadow, px-1 py-0.5 (ultra-dense)
+
+const Card = ({ children }: CardProps) => (
+  <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+    {children}
+  </div>
+)
+```
+
+### Preset Codes
+
+All style + theme + font + icon choices encode into a shareable 7-char preset code:
+
+**Incorrect — using deprecated style names:**
+```json
+{
+  "style": "new-york"
+}
+```
+
+**Correct — using v4 style names and preset codes:**
+```bash
+# Initialize with preset (encodes all 10 design system params)
+npx shadcn@latest init --preset b2D0xPaDb
+
+# Preview changes before applying
+npx shadcn@latest add button --diff
+```
+
+```json
+{
+  "style": "radix-luma"
+}
+```
+
+### Style Detection Pattern
+
+```typescript
+import { readFileSync } from 'fs'
+
+// Read components.json to detect active style
+const config = JSON.parse(readFileSync('components.json', 'utf-8'))
+const style = config.style // "radix-luma", "base-nova", etc.
+const styleName = style.split('-').pop() // "luma", "nova", etc.
+```
+
+### Style Reference
+
+| Style | Radius | Elevation | Spacing | Best For |
+|-------|--------|-----------|---------|----------|
+| Vega | `rounded-lg` | `shadow-sm` | Balanced | General purpose |
+| Nova | `rounded-md` | None | Compact | Dense dashboards |
+| Maia | `rounded-xl` | `shadow-sm` | Generous | Consumer apps |
+| Lyra | `rounded-none` | None | Balanced | Editorial, dev tools |
+| Mira | `rounded-sm` | None | Ultra-dense | Spreadsheets, data |
+| Luma | `rounded-4xl` | `shadow-md` + ring | Breathable | Polished native-app |
+
+Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create). Old `"new-york"` and `"default"` are superseded by Vega.
 
 
 ### Storybook CSF3 stories with play() interaction tests and Chromatic visual regression — HIGH

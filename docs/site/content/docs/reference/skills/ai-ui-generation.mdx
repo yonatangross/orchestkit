@@ -33,7 +33,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 | Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
-| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y |
+| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y. Pass preset code for style consistency |
 | Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
 | Refactor existing component | Cursor | Reads surrounding code, respects conventions |
@@ -48,7 +48,8 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 ```
 Generate a React signup form component using:
 - Framework: React 19 + TypeScript
-- Styling: Tailwind CSS v4 + shadcn/ui
+- Styling: Tailwind CSS v4 + shadcn/ui (Luma style — rounded-4xl, shadow-md elevation)
+- Preset: --preset b2D0xPaDb (or read from project's components.json style field)
 - Tokens: use color.primary, color.destructive, spacing.md from our design system
 - A11y: ARIA labels on all inputs, error announcements via aria-live
 - States: default, loading (disabled + spinner), error (inline messages), success
@@ -115,7 +116,7 @@ Choosing the right AI tool and iterating effectively.
 
 1. **Own the output** — AI generates a draft; the engineer reviews, refactors, and is accountable for what ships.
 2. **Tokens over literals** — Never accept hardcoded colors, spacing, or typography values. Always map to design tokens.
-3. **Constraint-first prompts** — Specify framework, tokens, a11y, and states upfront. Vague prompts produce vague output.
+3. **Constraint-first prompts** — Specify framework, tokens, shadcn style (Luma/Nova/etc.), a11y, and states upfront. Vague prompts produce vague output.
 4. **Iterative refinement** — Complex components need 2-3 prompt passes: structure first, states second, polish third.
 5. **CI is non-negotiable** — Every AI-generated component goes through the same CI pipeline as hand-written code.
 6. **Accessibility by default** — Include a11y requirements in every prompt; verify with automated checks post-generation.
@@ -357,6 +358,8 @@ Generate a signup form component:
 
 Framework: React 19 + TypeScript strict mode
 Styling: Tailwind CSS v4 + shadcn/ui primitives (Button, Input, Label, Card)
+shadcn style: Luma (rounded-4xl buttons/cards, shadow-md elevation, gap-6 spacing)
+  — or read from components.json → "style" field for project-specific style
 Design tokens:
   - Colors: use oklch(var(--color-primary)), oklch(var(--color-destructive))
   - Spacing: gap-4 for form fields, p-6 for card padding
@@ -378,7 +381,7 @@ Responsive: single column always, max-w-md centered
 Generate a [component type] component:
 
 Framework: [React/Next.js version] + TypeScript
-Styling: [Tailwind version] + [UI library]
+Styling: [Tailwind version] + [UI library] + [shadcn style: Luma/Vega/Nova/etc.]
 Design tokens: [list token names and where to use them]
 Accessibility: [specific ARIA patterns needed]
 States: [enumerate all states]
@@ -387,7 +390,7 @@ Integration: [form library, state management, API calls]
 ```
 
 **Key rules:**
-- Always specify the UI library (shadcn/ui, Radix, Ark UI) — AI tools default to raw HTML otherwise
+- Always specify the UI library AND shadcn style (e.g., "shadcn/ui Luma style") — AI tools default to raw HTML and generic classes otherwise
 - List design token variable names explicitly — AI cannot infer your token system
 - Enumerate every state the component must handle — AI skips states you do not mention
 - Include responsive breakpoints — AI defaults to desktop-only layouts

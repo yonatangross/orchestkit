@@ -44,7 +44,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 | Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
-| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y |
+| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y. Pass preset code for style consistency |
 | Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
 | Refactor existing component | Cursor | Reads surrounding code, respects conventions |
@@ -59,7 +59,8 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 ```
 Generate a React signup form component using:
 - Framework: React 19 + TypeScript
-- Styling: Tailwind CSS v4 + shadcn/ui
+- Styling: Tailwind CSS v4 + shadcn/ui (Luma style — rounded-4xl, shadow-md elevation)
+- Preset: --preset b2D0xPaDb (or read from project's components.json style field)
 - Tokens: use color.primary, color.destructive, spacing.md from our design system
 - A11y: ARIA labels on all inputs, error announcements via aria-live
 - States: default, loading (disabled + spinner), error (inline messages), success
@@ -126,7 +127,7 @@ Choosing the right AI tool and iterating effectively.
 
 1. **Own the output** — AI generates a draft; the engineer reviews, refactors, and is accountable for what ships.
 2. **Tokens over literals** — Never accept hardcoded colors, spacing, or typography values. Always map to design tokens.
-3. **Constraint-first prompts** — Specify framework, tokens, a11y, and states upfront. Vague prompts produce vague output.
+3. **Constraint-first prompts** — Specify framework, tokens, shadcn style (Luma/Nova/etc.), a11y, and states upfront. Vague prompts produce vague output.
 4. **Iterative refinement** — Complex components need 2-3 prompt passes: structure first, states second, polish third.
 5. **CI is non-negotiable** — Every AI-generated component goes through the same CI pipeline as hand-written code.
 6. **Accessibility by default** — Include a11y requirements in every prompt; verify with automated checks post-generation.

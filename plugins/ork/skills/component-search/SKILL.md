@@ -75,6 +75,11 @@ TaskCreate(subject="Component search: {QUERY}", description="Search 21st.dev reg
 # Detect project context for framework filtering
 Glob("**/package.json")
 # Read to determine: React version, Tailwind, shadcn/ui, styling approach
+
+# Detect shadcn/ui style for result ranking
+Glob("**/components.json")
+# Read → "style" field (e.g., "radix-luma", "base-nova")
+# Used to prefer components matching the project's visual language
 ```
 
 ## Step 1: Search Registry
@@ -134,6 +139,9 @@ For the selected component:
 | React + CSS Modules | Filter non-Tailwind | Fewer results |
 | Next.js App Router | Prefer RSC-compatible | Check "use client" directives |
 | Vue / Svelte | Not supported | 21st.dev is React-only |
+| shadcn/ui style | Match visual language | Luma→rounded/pill, Nova→compact, Lyra→sharp |
+
+**shadcn v4 style awareness:** When `components.json` has a style (e.g., `"radix-luma"`), prefer components whose visual language matches — rounded pill shapes for Luma, dense layouts for Nova/Mira, sharp edges for Lyra. Components can be adapted post-install, but a closer match reduces customization work.
 
 ## Related Skills
 
