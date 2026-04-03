@@ -1,0 +1,64 @@
+{
+  "_formatVersion": "1.0.0",
+  "workflow": {
+    "name": "OrchestKit Full Eval Pipeline",
+    "description": "Weekly full evaluation: triggers GitHub Actions workflow for CC-based eval, then analyzes results and posts regression report.",
+    "definition": {
+      "flow": [
+        { "from": "clone-repo", "to": "trigger-eval-gha", "condition": null },
+        { "from": "trigger-eval-gha", "to": "analyze-results", "condition": null }
+      ],
+      "steps": [
+        {
+          "id": "clone-repo",
+          "action": "git.clone",
+          "params": {
+            "branch": "main"
+          }
+        },
+        {
+          "id": "trigger-eval-gha",
+          "action": "ci.executeWorkflow",
+          "params": {
+            "workflowName": "orchestkit-eval.yml",
+            "branch": "main",
+            "inputs": {
+              "scope": "full"
+            },
+            "waitForCompletion": true
+          }
+        },
+        {
+          "id": "analyze-results",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-test-engineer",
+            "agentEngine": "overcut"
+          },
+          "instruction": "The GitHub Actions eval workflow has completed.\n\n1. Read the workflow run results from {{outputs.trigger-eval-gha.message}}\n2. Check if eval-results.json artifact is available\n3. Analyze the results:\n   - How many test suites passed vs failed?\n   - Were there any security test failures?\n   - What's the skill trigger coverage?\n   - Any TypeScript type errors?\n4. Compare against the previous run baseline (check recent issue comments for prior results)\n5. Post an issue comment on the OrchestKit tracking issue with:\n\n## Weekly Eval Report — {{date}}\n\n### Suite Results\n| Suite | Status | vs Last Week |\n(table)\n\n### Skill Eval\n- Trigger coverage: X/Y skills\n- Structure validation: X pass, X fail\n- Regressions: (list any)\n- Improvements: (list any)\n\n### Health Score: X/10\n\nFlag any regressions prominently. If all green, keep it brief."
+        }
+      ],
+      "triggers": [
+        {
+          "event": "scheduled",
+          "cron": "0 0 * * 0",
+          "timezone": "Asia/Jerusalem"
+        },
+        {
+          "event": "manual",
+          "slashCommand": {
+            "command": "eval",
+            "requireMention": false
+          }
+        }
+      ],
+      "version": "1.0.0",
+      "timeoutMs": 1800000
+    }
+  },
+  "refs": {
+    "agents": [
+      { "name": "orchestkit-test-engineer", "baseType": "Senior Developer" }
+    ]
+  }
+}

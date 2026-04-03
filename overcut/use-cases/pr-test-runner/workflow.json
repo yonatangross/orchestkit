@@ -1,0 +1,64 @@
+{
+  "_formatVersion": "1.0.0",
+  "workflow": {
+    "name": "OrchestKit PR Test Runner",
+    "description": "Run full test suite on OrchestKit PRs touching hooks or skills. Reports pass/fail with details.",
+    "definition": {
+      "flow": [
+        { "from": "clone-repo", "to": "run-tests", "condition": null },
+        { "from": "run-tests", "to": "report-results", "condition": null }
+      ],
+      "steps": [
+        {
+          "id": "clone-repo",
+          "action": "git.clone",
+          "params": {
+            "branch": "{{trigger.pullRequest.headBranch}}"
+          }
+        },
+        {
+          "id": "run-tests",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-test-engineer",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Run the full OrchestKit test suite:\n1. cd src/hooks && npm install && npm run build\n2. cd ../.. && npm run build\n3. npm test\n4. npm run typecheck\n5. npm run test:security\n\nCapture all output. Note any failures with full error messages and stack traces."
+        },
+        {
+          "id": "report-results",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-quality-reviewer",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Read the test results from {{outputs.run-tests.message}}.\n\nPost a PR comment with this format:\n\n## Test Results — OrchestKit CI\n\n| Suite | Status | Details |\n|-------|--------|--------|\n| Build (hooks) | ✅/❌ | ... |\n| Build (plugins) | ✅/❌ | ... |\n| Unit tests | ✅/❌ | X passed, X failed |\n| Security tests | ✅/❌ | ... |\n| TypeScript types | ✅/❌ | ... |\n\n### Failures (if any)\n```\ntest name: error message\n```\n\n**Verdict: [ALL PASS / X FAILURES — BLOCK MERGE]**"
+        }
+      ],
+      "triggers": [
+        {
+          "event": "pull_request_opened",
+          "conditions": {
+            "repositories": ["yonatangross/orchestkit"],
+            "filePatterns": ["src/hooks/**", "src/skills/**", "src/agents/**", "manifests/**"]
+          }
+        },
+        {
+          "event": "pull_request_edited",
+          "conditions": {
+            "repositories": ["yonatangross/orchestkit"],
+            "filePatterns": ["src/hooks/**", "src/skills/**", "src/agents/**", "manifests/**"]
+          }
+        }
+      ],
+      "version": "1.0.0",
+      "timeoutMs": 600000
+    }
+  },
+  "refs": {
+    "agents": [
+      { "name": "orchestkit-test-engineer", "baseType": "Senior Developer" },
+      { "name": "orchestkit-quality-reviewer", "baseType": "Code Reviewer" }
+    ]
+  }
+}

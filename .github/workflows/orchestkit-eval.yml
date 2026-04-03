@@ -1,0 +1,140 @@
+name: OrchestKit Eval Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Eval scope: full, skills-only, hooks-only, changed'
+        required: false
+        default: 'full'
+  schedule:
+    - cron: '0 0 * * 0' # Sunday midnight UTC
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  eval:
+    name: Run OrchestKit Evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd src/hooks && npm ci
+
+      - name: Build hooks
+        run: cd src/hooks && npm run build
+
+      - name: Build plugins
+        run: npm run build
+
+      - name: Run unit tests
+        id: unit-tests
+        run: npm test 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: Run security tests
+        id: security-tests
+        run: npm run test:security 2>&1 | tee security-output.txt
+        continue-on-error: true
+
+      - name: Run TypeScript type check
+        id: typecheck
+        run: npm run typecheck 2>&1 | tee typecheck-output.txt
+        continue-on-error: true
+
+      - name: Run skill validation
+        id: skill-validation
+        run: npm run test:skills 2>&1 | tee skills-output.txt
+        continue-on-error: true
+
+      - name: Run agent validation
+        id: agent-validation
+        run: npm run test:agents 2>&1 | tee agents-output.txt
+        continue-on-error: true
+
+      - name: Run manifest checks
+        id: manifest-checks
+        run: npm run test:manifests 2>&1 | tee manifests-output.txt
+        continue-on-error: true
+
+      - name: Install Claude Code CLI
+        if: inputs.scope != 'hooks-only'
+        run: npm install -g @anthropic-ai/claude-code
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Run skill trigger detection eval
+        if: inputs.scope == 'full' || inputs.scope == 'skills-only' || inputs.scope == 'changed'
+        id: skill-eval
+        run: |
+          chmod +x scripts/run-eval.sh
+          scripts/run-eval.sh --scope "${{ inputs.scope || 'full' }}" 2>&1 | tee eval-output.txt
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        continue-on-error: true
+
+      - name: Compile eval results
+        run: |
+          node -e "
+          const fs = require('fs');
+          const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch { return 'N/A'; } };
+          const results = {
+            timestamp: new Date().toISOString(),
+            scope: '${{ inputs.scope || 'full' }}',
+            git_sha: '${{ github.sha }}',
+            git_ref: '${{ github.ref }}',
+            suites: {
+              unit_tests: { status: '${{ steps.unit-tests.outcome }}', output: read('test-output.txt').slice(-2000) },
+              security_tests: { status: '${{ steps.security-tests.outcome }}', output: read('security-output.txt').slice(-2000) },
+              typecheck: { status: '${{ steps.typecheck.outcome }}', output: read('typecheck-output.txt').slice(-2000) },
+              skill_validation: { status: '${{ steps.skill-validation.outcome }}', output: read('skills-output.txt').slice(-2000) },
+              agent_validation: { status: '${{ steps.agent-validation.outcome }}', output: read('agents-output.txt').slice(-2000) },
+              manifest_checks: { status: '${{ steps.manifest-checks.outcome }}', output: read('manifests-output.txt').slice(-2000) },
+              skill_eval: { status: '${{ steps.skill-eval.outcome }}', output: read('eval-output.txt').slice(-2000) }
+            },
+            pass_count: ['${{ steps.unit-tests.outcome }}','${{ steps.security-tests.outcome }}','${{ steps.typecheck.outcome }}','${{ steps.skill-validation.outcome }}','${{ steps.agent-validation.outcome }}','${{ steps.manifest-checks.outcome }}'].filter(s => s === 'success').length,
+            total_count: 6
+          };
+          fs.writeFileSync('eval-results.json', JSON.stringify(results, null, 2));
+          console.log(JSON.stringify(results, null, 2));
+          "
+
+      - name: Upload eval results
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: |
+            eval-results.json
+            test-output.txt
+            security-output.txt
+            typecheck-output.txt
+            skills-output.txt
+            agents-output.txt
+            manifests-output.txt
+            eval-output.txt
+          retention-days: 90
+
+      - name: Fail if critical suites failed
+        run: |
+          if [ "${{ steps.security-tests.outcome }}" = "failure" ]; then
+            echo "::error::Security tests FAILED — blocking"
+            exit 1
+          fi
+          if [ "${{ steps.unit-tests.outcome }}" = "failure" ]; then
+            echo "::error::Unit tests FAILED"
+            exit 1
+          fi
