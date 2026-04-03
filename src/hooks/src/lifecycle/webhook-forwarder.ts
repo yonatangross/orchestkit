@@ -24,6 +24,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { getSessionId, getCachedBranch, logHook, outputSilentSuccess } from '../lib/common.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 import { signPayload, sanitizePayload } from '../lib/crypto.js';
+import { writeTelemetryEvent } from '../lib/telemetry-jsonl.js';
 import { getProjectSlug } from './usage-summary-reporter.js';
 
 const HOOK_NAME = 'webhook-forwarder';
@@ -61,6 +62,9 @@ export async function webhookForwarder(input: HookInput): Promise<HookResult> {
         source_channel: 'orchestkit-forwarder',
       },
     };
+
+    // Local JSONL sink — write before HTTP to ensure local capture even if fetch fails
+    writeTelemetryEvent(payload);
 
     const body = JSON.stringify(payload);
     const signature = signPayload(body, hookToken);
