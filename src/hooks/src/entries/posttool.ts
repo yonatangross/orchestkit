@@ -103,3 +103,6 @@ export function getHook(name: string): HookFn | undefined {
 export function listHooks(): string[] {
   return Object.keys(hooks);
 }
+
+// Phase 4: HookContext DI
+export { buildContext } from '../lib/context.js';

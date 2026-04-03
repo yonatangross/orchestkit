@@ -474,7 +474,11 @@ async function runHook(parsedInput) {
   let t3 = t2;
 
   try {
-    const result = await hookFn(parsedInput);
+    // Phase 4: Build HookContext from real environment (v7.29.0)
+    // The context object provides env/log dependencies via DI instead of imports.
+    // hooks.buildContext is exported from the lifecycle bundle.
+    const ctx = hooks.buildContext?.() ?? undefined;
+    const result = await hookFn(parsedInput, ctx);
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     console.log(JSON.stringify(result));
