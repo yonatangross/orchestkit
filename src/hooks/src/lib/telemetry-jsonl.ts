@@ -67,7 +67,7 @@ export function writeTelemetryEvent(payload: Record<string, unknown> | object): 
   // Ensure directory exists (sync — only runs once per process, fast)
   if (!existsSync(dir)) {
     try {
-      mkdirSync(dir, { recursive: true });
+      mkdirSync(dir, { recursive: true, mode: 0o700 });
     } catch {
       return; // Can't create dir — skip silently
     }
