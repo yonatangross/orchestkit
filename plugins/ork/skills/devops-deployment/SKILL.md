@@ -29,6 +29,8 @@ invocation_hooks:
 
 Comprehensive frameworks for CI/CD pipelines, containerization, deployment strategies, and infrastructure automation.
 
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the Docker install check won't run. Verify Docker is available for container operations: `docker --version`.
+
 ## Overview
 
 - Setting up CI/CD pipelines

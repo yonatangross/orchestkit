@@ -11,6 +11,8 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, Task
 
 Generate comprehensive test suites for existing code with real-service integration testing and automated failure healing.
 
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the precondition check for vitest/jest won't run. Verify a test runner is installed before proceeding: `npx vitest --version` or `npx jest --version`.
+
 ## Quick Start
 
 ```bash

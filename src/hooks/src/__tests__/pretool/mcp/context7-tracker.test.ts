@@ -55,9 +55,10 @@ vi.mock('node:fs', () => ({
   mkdirSync: (p: string, o?: unknown) => mockMkdirSync(p, o),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:path')>();
+  return { ...actual, join: vi.fn((...args: string[]) => args.join('/')) };
+});
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)

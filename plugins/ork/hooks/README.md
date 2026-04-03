@@ -22,6 +22,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
 - CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching, `auto` permission mode
 - CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
+- CC 2.1.91 compliant: MCP `_meta["anthropic/maxResultSizeChars"]` respected by mcp-output-transform, `disableSkillShellExecution` awareness
 - Event coverage: 24/26 CC events hooked; CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---

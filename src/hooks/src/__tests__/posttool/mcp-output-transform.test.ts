@@ -11,10 +11,15 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+  getProjectDir: vi.fn(() => '/tmp/test-project'),
 }));
 
 vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn(),
+}));
+
+vi.mock('../../lifecycle/webhook-forwarder.js', () => ({
+  webhookForwarder: vi.fn(() => Promise.resolve()),
 }));
 
 import { mcpOutputTransform } from '../../posttool/mcp-output-transform.js';
@@ -258,6 +263,83 @@ describe('posttool/mcp-output-transform', () => {
       const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
       // The email is in the tail section (last 600 chars)
       expect(output).not.toContain('secret@corp.com');
+    });
+  });
+
+  // ===========================================================================
+  // CC 2.1.91: Trust CC's decision for large results
+  // ===========================================================================
+
+  describe('CC trust heuristic (2.1.91)', () => {
+    test('skips truncation for results > 50K (CC kept them in context)', () => {
+      // 60K result — CC must have had a reason (likely _meta annotation)
+      const largeOutput = 'A'.repeat(60_000);
+      const result = mcpOutputTransform(createInput({ tool_output: largeOutput }));
+      // No transformation needed (no PII, and truncation skipped)
+      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+    });
+
+    test('still truncates results in the 2K–50K range', () => {
+      const midOutput = 'B'.repeat(10_000);
+      const result = mcpOutputTransform(createInput({ tool_output: midOutput }));
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      expect(output.length).toBeLessThan(10_000);
+      expect(output).toContain('[Result truncated');
+    });
+
+    test('PII redaction still runs on large results > 50K', () => {
+      const largeWithPII = `${'x'.repeat(55_000)} admin@corp.com ${'y'.repeat(5000)}`;
+      const result = mcpOutputTransform(createInput({ tool_output: largeWithPII }));
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('admin@corp.com');
+      // Result should NOT be truncated (> 50K threshold)
+      expect(output).not.toContain('[Result truncated');
+      expect(output.length).toBeGreaterThan(50_000);
+    });
+
+    test('respects _meta if CC passes it through (best-effort)', () => {
+      // Structured object with _meta — unlikely in practice but handled
+      const outputWithMeta = {
+        _meta: { 'anthropic/maxResultSizeChars': 100_000 },
+        content: [{ type: 'text', text: 'A'.repeat(5000) }],
+      };
+      const result = mcpOutputTransform(createInput({ tool_output: outputWithMeta }));
+      // _meta found → skip truncation even though stringified size may be small
+      // Since PII-free, result has no updatedMCPToolOutput
+      expect(result.hookSpecificOutput?.updatedMCPToolOutput).toBeUndefined();
+    });
+
+    test('respects _meta and still redacts PII', () => {
+      const outputWithMeta = {
+        _meta: { 'anthropic/maxResultSizeChars': 100_000 },
+        data: 'Contact admin@secret.com for the schema',
+      };
+      const result = mcpOutputTransform(createInput({ tool_output: outputWithMeta }));
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('[Result truncated');
+    });
+
+    test('clamps _meta to 500K max', () => {
+      const outputWithHugeMeta = {
+        _meta: { 'anthropic/maxResultSizeChars': 999_999 },
+        data: 'test',
+      };
+      // Should not throw, just clamp
+      const result = mcpOutputTransform(createInput({ tool_output: outputWithHugeMeta }));
+      expect(result.continue).toBe(true);
+    });
+
+    test('ignores invalid _meta values', () => {
+      const outputWithBadMeta = {
+        _meta: { 'anthropic/maxResultSizeChars': -1 },
+        data: 'A'.repeat(5000),
+      };
+      const result = mcpOutputTransform(createInput({ tool_output: outputWithBadMeta }));
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+      // Invalid _meta → falls back to normal truncation
+      expect(output).toContain('[Result truncated');
     });
   });
 });

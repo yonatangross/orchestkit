@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.90';
+export const MIN_CC_VERSION = '2.1.91';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -202,6 +202,15 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'transcript_write_perf',    minVersion: '2.1.90', description: 'SDK sessions with long conversations no longer slow down quadratically on transcript writes' },
   { feature: 'resume_hides_p_sessions',  minVersion: '2.1.90', description: '--resume picker no longer shows sessions created by claude -p or SDK invocations' },
   { feature: 'dns_cache_auto_allow_removed', minVersion: '2.1.90', description: 'Get-DnsClientCache and ipconfig /displaydns removed from auto-allow (DNS privacy)' },
+  // 2.1.91
+  { feature: 'mcp_result_size_override',    minVersion: '2.1.91', description: 'MCP tool result persistence via _meta["anthropic/maxResultSizeChars"] annotation (up to 500K)' },
+  { feature: 'disable_skill_shell_exec',    minVersion: '2.1.91', description: 'disableSkillShellExecution setting disables inline shell execution in skills/commands/plugins' },
+  { feature: 'deep_link_multiline',         minVersion: '2.1.91', description: 'Multi-line prompts supported in claude-cli://open?q= deep links (encoded newlines)' },
+  { feature: 'plugin_bin_executables',      minVersion: '2.1.91', description: 'Plugins can ship executables under bin/ invokable as bare Bash commands' },
+  { feature: 'transcript_chain_fix',        minVersion: '2.1.91', description: 'Transcript chain breaks on --resume fixed (async write failures no longer lose history)' },
+  { feature: 'edit_shorter_anchors',        minVersion: '2.1.91', description: 'Edit tool uses shorter old_string anchors, reducing output tokens' },
+  { feature: 'auto_permission_validation',  minVersion: '2.1.91', description: 'JSON schema validates permissions.defaultMode:"auto" in settings.json' },
+  { feature: 'plan_mode_remote_fix',        minVersion: '2.1.91', description: 'Plan mode in remote sessions retains plan file after container restart' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

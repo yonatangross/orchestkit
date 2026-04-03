@@ -11,6 +11,8 @@ allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, Tas
 
 Analyze git changes, generate targeted test plans, and execute them via AI-driven browser automation.
 
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the agent-browser install check won't run. Verify it's installed: `npx agent-browser --version`.
+
 ```bash
 /ork:expect                              # Auto-detect changes, test affected pages
 /ork:expect -m "test the checkout flow"  # Specific instruction

@@ -9,6 +9,17 @@
  * 1. Token-saving truncation: large results are head+tail truncated
  * 2. PII redaction: emails and phone numbers replaced with [REDACTED]
  *
+ * CC 2.1.91 integration — "Trust CC's decision" heuristic:
+ * CC strips _meta from tool_output before passing to hooks, so we can't
+ * read the annotation directly. Instead we use a size heuristic:
+ *   - Results > CC_PERSIST_THRESHOLD (50K): CC explicitly kept this in
+ *     context (likely due to _meta["anthropic/maxResultSizeChars"]).
+ *     We skip truncation to avoid defeating CC's decision.
+ *   - Results 2K–50K: Our token-saving truncation applies.
+ *   - Results <= 2K: No truncation needed.
+ * PII redaction always runs regardless of size.
+ * Best-effort _meta extraction kept as fallback (costs nothing if absent).
+ *
  * Returns updatedMCPToolOutput (CC 2.1.69) to replace the original result.
  *
  * This hook is registered as a SYNC PostToolUse hook (not async) because
@@ -25,8 +36,23 @@ import { join } from 'node:path';
 // Configuration
 // -----------------------------------------------------------------------------
 
-/** Maximum output length (chars) before truncation kicks in */
-const TRUNCATION_THRESHOLD = 2000;
+/**
+ * Default truncation threshold (chars). Applied to results in the 2K–50K range.
+ * Override via ORCHESTKIT_MCP_TRUNCATION_THRESHOLD env var.
+ */
+const DEFAULT_TRUNCATION_THRESHOLD =
+  Number(process.env.ORCHESTKIT_MCP_TRUNCATION_THRESHOLD) || 2000;
+
+/**
+ * CC 2.1.51+: results > 50K chars are normally persisted to disk (file ref).
+ * CC 2.1.91+: _meta["anthropic/maxResultSizeChars"] can raise this to 500K.
+ * If a result arrives at our hook ABOVE this threshold, CC explicitly chose
+ * to keep it in context — we must not re-truncate it.
+ */
+const CC_PERSIST_THRESHOLD = 50_000;
+
+/** CC 2.1.91 maximum allowed via _meta annotation (best-effort extraction) */
+const MAX_META_RESULT_SIZE = 500_000;
 
 /** How many chars to keep from the start */
 const HEAD_CHARS = 1200;
@@ -90,12 +116,28 @@ function redactPII(text: string): { text: string; redactionCount: number } {
 }
 
 /**
+ * Extract _meta["anthropic/maxResultSizeChars"] from MCP tool output (CC 2.1.91).
+ * Returns the declared max size clamped to MAX_META_RESULT_SIZE, or null if not present.
+ */
+function extractMetaResultSize(output: unknown): number | null {
+  if (output == null || typeof output !== 'object') return null;
+
+  const meta = (output as Record<string, unknown>)._meta;
+  if (meta == null || typeof meta !== 'object') return null;
+
+  const maxChars = (meta as Record<string, unknown>)['anthropic/maxResultSizeChars'];
+  if (typeof maxChars !== 'number' || maxChars <= 0) return null;
+
+  return Math.min(maxChars, MAX_META_RESULT_SIZE);
+}
+
+/**
  * Truncate text preserving head and tail with a truncation notice.
  */
 function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean } {
   const originalLength = text.length;
 
-  if (originalLength <= TRUNCATION_THRESHOLD) {
+  if (originalLength <= DEFAULT_TRUNCATION_THRESHOLD) {
     return { text, originalLength, truncated: false };
   }
 
@@ -183,11 +225,29 @@ export function mcpOutputTransform(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Phase 1: PII redaction (before truncation so we count all redactions)
+  // CC 2.1.91: "Trust CC's decision" heuristic
+  // If result is > CC_PERSIST_THRESHOLD (50K), CC explicitly kept it in context
+  // (likely _meta["anthropic/maxResultSizeChars"]). Don't re-truncate.
+  // Best-effort: also check _meta directly (works if CC passes it through).
+  const metaResultSize = extractMetaResultSize(rawOutput);
+  const ccKeptLargeResult = metaResultSize != null || outputStr.length > CC_PERSIST_THRESHOLD;
+
+  // Phase 1: PII redaction (ALWAYS runs regardless of size)
   const { text: redacted, redactionCount } = redactPII(outputStr);
 
-  // Phase 2: Truncation
-  const { text: final, originalLength, truncated } = truncateOutput(redacted);
+  // Phase 2: Truncation (skip if CC explicitly kept a large result)
+  let final: string;
+  let originalLength: number;
+  let truncated: boolean;
+
+  if (ccKeptLargeResult) {
+    // CC decided this result needs to be large — respect that decision
+    final = redacted;
+    originalLength = redacted.length;
+    truncated = false;
+  } else {
+    ({ text: final, originalLength, truncated } = truncateOutput(redacted));
+  }
 
   // Skip if no transformation was applied
   if (!truncated && redactionCount === 0) {

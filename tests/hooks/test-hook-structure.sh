@@ -67,7 +67,7 @@ fi
 # 4. All command hooks reference a known dispatcher script
 BAD_COMMANDS=$(python3 -c "
 import json
-KNOWN_DISPATCHERS = ['run-hook.mjs', 'run-hook-silent.mjs', 'stop-fire-and-forget.mjs', 'stop-uncommitted-check.mjs']
+KNOWN_DISPATCHERS = ['run-hook.mjs', 'run-hook-silent.mjs', 'stop-fire-and-forget.mjs', 'stop-uncommitted-check.mjs', 'telemetry-sync.mjs']
 data = json.load(open('$HOOKS_JSON'))
 bad = []
 for event, entries in data.get('hooks', {}).items():

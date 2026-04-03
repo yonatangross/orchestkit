@@ -85,4 +85,14 @@ Tool(
 - Include `description` for every schema property
 - Use `enum` for fixed option sets, `minimum`/`maximum` for numbers
 - Use `asyncio.to_thread()` for blocking synchronous operations
-- Limit response sizes (Claude has context limits)
+- Limit response sizes (Claude has context limits). For intentionally large results (DB schemas, API specs), use `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) so clients and hooks respect the declared size instead of truncating:
+
+```python
+@mcp.tool()
+async def get_schema() -> dict:
+    schema = await db.get_full_schema()
+    return {
+        "_meta": {"anthropic/maxResultSizeChars": 100000},
+        "content": [{"type": "text", "text": schema}]
+    }
+```

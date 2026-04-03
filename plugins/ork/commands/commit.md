@@ -11,6 +11,8 @@ allowed-tools: [Bash]
 
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
 
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the git repository check won't run. This skill requires a git repository.
+
 ## Quick Start
 
 ```bash

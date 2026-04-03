@@ -23,20 +23,25 @@ import { emit } from '../lib/telemetry.js';
 import { registerAllSinks } from '../lib/sink-registry.js';
 
 // ---------------------------------------------------------------------------
-// Module-scope sink registration (runs once per process on import)
-// Each CC hook = separate Node.js process, so this is deterministic.
-//
-// registerAllSinks() loads built-in sinks (JSONL + HTTP) plus any
-// additional sinks from plugin.json and settings.local.json configs.
-// See #1260 for config-based sink registry design.
+// Lazy sink registration — deferred to first call instead of module scope.
+// Each CC hook = separate Node.js process, so first-call = deterministic.
+// Avoids import-time side effects that break test mocks (#1260).
 // ---------------------------------------------------------------------------
-registerAllSinks();
+let sinksRegistered = false;
+
+function ensureSinks(): void {
+  if (!sinksRegistered) {
+    registerAllSinks();
+    sinksRegistered = true;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Public API (unchanged signature — dispatchers don't need updates)
 // ---------------------------------------------------------------------------
 
 export async function webhookForwarder(input: HookInput): Promise<HookResult> {
+  ensureSinks();
   emit(input);
   return outputSilentSuccess();
 }
