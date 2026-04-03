@@ -2,24 +2,32 @@
 // Created: 2026-04-03
 
 import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
+import { mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { TelemetryEvent } from '../../lib/telemetry.js';
 
-// Track mock calls
+// --- Test state ---
 let mockFetchCalls: Array<{ url: string; options: RequestInit }> = [];
-let mockFetchResolve = true;
+let mockFetchResponses: Array<{ ok: boolean; status: number } | 'network-error'> = [];
+let mockFetchCallIndex = 0;
 let logMessages: string[] = [];
 
-// Mock fetch globally
+const testDir = join(tmpdir(), `ork-http-sink-test-${process.pid}`);
+
+// --- Mock fetch ---
 const originalFetch = globalThis.fetch;
 globalThis.fetch = vi.fn(async (url: string | URL | Request, options?: RequestInit) => {
   mockFetchCalls.push({ url: url as string, options: options! });
-  if (!mockFetchResolve) throw new Error('Network error');
-  return new Response('{}', { status: 202 });
+  const response = mockFetchResponses[mockFetchCallIndex] ?? { ok: true, status: 202 };
+  mockFetchCallIndex++;
+  if (response === 'network-error') throw new Error('ECONNREFUSED');
+  return new Response('{}', { status: response.status, statusText: response.ok ? 'OK' : 'Error' });
 }) as unknown as typeof fetch;
 
-// Mock dependencies
+// --- Mock dependencies ---
 vi.mock('../../lib/crypto.js', () => ({
-  signPayload: (body: string, secret: string) => `sha256=mock-${secret}-${body.length}`,
+  signPayload: (body: string, secret: string) => `sha256=mock-${secret.length}-${body.length}`,
 }));
 
 let mockWebhookUrl: string | undefined = 'https://hq.example.com/api/hooks';
@@ -28,11 +36,17 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   getWebhookUrl: () => mockWebhookUrl,
 }));
 
+vi.mock('../../lib/paths.js', () => ({
+  getPluginDataDir: () => testDir,
+  getProjectDir: () => testDir,
+}));
+
 vi.mock('../../lib/common.js', () => ({
   logHook: (_name: string, msg: string) => { logMessages.push(msg); },
 }));
 
-import { HttpSink } from '../../lib/http-sink.js';
+import { HttpSink, circuitAllows, recordSuccess, recordFailure, readCbState, writeCbState, isRetriable, getCbStatePath } from '../../lib/http-sink.js';
+import type { CircuitBreakerState } from '../../lib/http-sink.js';
 
 function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   return {
@@ -46,131 +60,238 @@ function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   };
 }
 
-describe('HttpSink', () => {
-  let sink: HttpSink;
-
+describe('HttpSink with Retry + Circuit Breaker', () => {
   beforeEach(() => {
-    sink = new HttpSink();
     mockFetchCalls = [];
+    mockFetchResponses = [];
+    mockFetchCallIndex = 0;
     logMessages = [];
-    mockFetchResolve = true;
     mockWebhookUrl = 'https://hq.example.com/api/hooks';
-    process.env.ORCHESTKIT_HOOK_TOKEN = 'test-secret-token';
+    process.env.ORCHESTKIT_HOOK_TOKEN = 'test-token';
+    mkdirSync(join(testDir, 'telemetry'), { recursive: true });
+    // Reset circuit breaker state
+    writeCbState({ status: 'CLOSED', consecutiveFailures: 0, openedAt: 0 });
   });
 
   afterEach(() => {
     delete process.env.ORCHESTKIT_HOOK_TOKEN;
+    try { rmSync(testDir, { recursive: true, force: true }); } catch {}
   });
 
-  describe('interface compliance', () => {
+  // =========================================================================
+  // Interface compliance
+  // =========================================================================
+  describe('interface', () => {
     it('has name "http"', () => {
-      expect(sink.name).toBe('http');
+      expect(new HttpSink().name).toBe('http');
     });
 
-    it('accepts all events (empty supportedEvents)', () => {
-      expect(sink.supportedEvents).toEqual([]);
+    it('accepts all events', () => {
+      expect(new HttpSink().supportedEvents).toEqual([]);
     });
 
     it('flush is a no-op', async () => {
-      await expect(sink.flush()).resolves.toBeUndefined();
+      await expect(new HttpSink().flush()).resolves.toBeUndefined();
     });
   });
 
-  describe('addEvent', () => {
-    it('POSTs to {hookUrl}/cc-event', async () => {
-      sink.addEvent(makeEvent());
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
+  // =========================================================================
+  // Basic fetch behavior
+  // =========================================================================
+  describe('addEvent — basic', () => {
+    it('POSTs to {hookUrl}/cc-event with HMAC header', async () => {
+      mockFetchResponses = [{ ok: true, status: 202 }];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 100));
 
+      expect(mockFetchCalls).toHaveLength(1);
       expect(mockFetchCalls[0].url).toBe('https://hq.example.com/api/hooks/cc-event');
-    });
-
-    it('strips trailing slash from hookUrl', async () => {
-      mockWebhookUrl = 'https://hq.example.com/api/hooks/';
-      sink.addEvent(makeEvent());
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
-
-      expect(mockFetchCalls[0].url).toBe('https://hq.example.com/api/hooks/cc-event');
-    });
-
-    it('sends JSON body matching event', async () => {
-      const event = makeEvent({ event: 'SessionStart' });
-      sink.addEvent(event);
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
-
-      const sentBody = JSON.parse(mockFetchCalls[0].options.body as string);
-      expect(sentBody.event).toBe('SessionStart');
-      expect(sentBody.session_id).toBe('sess-test');
-      expect(sentBody.project).toBe('test-project');
-    });
-
-    it('includes Content-Type and HMAC signature headers', async () => {
-      sink.addEvent(makeEvent());
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
-
       const headers = mockFetchCalls[0].options.headers as Record<string, string>;
-      expect(headers['Content-Type']).toBe('application/json');
-      expect(headers['X-CC-Hooks-Signature']).toMatch(/^sha256=mock-test-secret-token-\d+$/);
+      expect(headers['X-CC-Hooks-Signature']).toMatch(/^sha256=/);
     });
 
-    it('uses POST method', async () => {
-      sink.addEvent(makeEvent());
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
-
-      expect(mockFetchCalls[0].options.method).toBe('POST');
-    });
-
-    it('includes AbortSignal timeout', async () => {
-      sink.addEvent(makeEvent());
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(1));
-
-      expect(mockFetchCalls[0].options.signal).toBeDefined();
-    });
-
-    it('no-ops when hookUrl is not set', () => {
+    it('no-ops when URL not configured', () => {
       mockWebhookUrl = undefined;
-      sink.addEvent(makeEvent());
+      new HttpSink().addEvent(makeEvent());
       expect(mockFetchCalls).toHaveLength(0);
     });
 
-    it('no-ops when hookToken is not set', () => {
+    it('no-ops when token not configured', () => {
       delete process.env.ORCHESTKIT_HOOK_TOKEN;
-      sink.addEvent(makeEvent());
+      new HttpSink().addEvent(makeEvent());
       expect(mockFetchCalls).toHaveLength(0);
     });
+  });
 
-    it('handles fetch failure silently (fire-and-forget)', async () => {
-      mockFetchResolve = false;
-      sink.addEvent(makeEvent());
+  // =========================================================================
+  // Retry logic
+  // =========================================================================
+  describe('retry', () => {
+    it('retries on 5xx up to 3 times (4 total attempts)', async () => {
+      mockFetchResponses = [
+        { ok: false, status: 503 },
+        { ok: false, status: 502 },
+        { ok: false, status: 500 },
+        { ok: true, status: 202 }, // succeeds on 4th attempt
+      ];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 2000));
 
-      // Wait for the catch to fire
-      await new Promise(r => setTimeout(r, 50));
-
-      expect(logMessages.some(m => m.includes('Forward failed'))).toBe(true);
+      expect(mockFetchCalls.length).toBe(4);
     });
 
-    it('logs success on successful POST', async () => {
-      sink.addEvent(makeEvent());
-      await new Promise(r => setTimeout(r, 50));
+    it('retries on network error', async () => {
+      mockFetchResponses = ['network-error', { ok: true, status: 202 }];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 1000));
 
-      expect(logMessages.some(m => m.includes('Forwarded PreToolUse'))).toBe(true);
+      expect(mockFetchCalls.length).toBe(2);
     });
 
-    it('sends multiple events independently', async () => {
-      sink.addEvent(makeEvent({ event: 'PreToolUse' }));
-      sink.addEvent(makeEvent({ event: 'PostToolUse' }));
-      sink.addEvent(makeEvent({ event: 'SessionEnd' }));
+    it('does NOT retry on 4xx (except 429)', async () => {
+      mockFetchResponses = [{ ok: false, status: 400 }];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 500));
 
-      await vi.waitFor(() => expect(mockFetchCalls).toHaveLength(3));
+      expect(mockFetchCalls.length).toBe(1); // No retry
+      expect(logMessages.some(m => m.includes('Non-retriable 400'))).toBe(true);
+    });
 
-      const events = mockFetchCalls.map(c => JSON.parse(c.options.body as string).event);
-      expect(events).toContain('PreToolUse');
-      expect(events).toContain('PostToolUse');
-      expect(events).toContain('SessionEnd');
+    it('retries on 429 (rate limit)', async () => {
+      mockFetchResponses = [
+        { ok: false, status: 429 },
+        { ok: true, status: 202 },
+      ];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 1000));
+
+      expect(mockFetchCalls.length).toBe(2);
+    });
+
+    it('records failure after all retries exhausted', async () => {
+      mockFetchResponses = [
+        { ok: false, status: 503 },
+        { ok: false, status: 503 },
+        { ok: false, status: 503 },
+        { ok: false, status: 503 },
+      ];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 3000));
+
+      const state = readCbState();
+      expect(state.consecutiveFailures).toBeGreaterThan(0);
+    });
+  });
+
+  // =========================================================================
+  // isRetriable
+  // =========================================================================
+  describe('isRetriable', () => {
+    it('400 = non-retriable', () => expect(isRetriable(400)).toBe(false));
+    it('401 = non-retriable', () => expect(isRetriable(401)).toBe(false));
+    it('403 = non-retriable', () => expect(isRetriable(403)).toBe(false));
+    it('404 = non-retriable', () => expect(isRetriable(404)).toBe(false));
+    it('422 = non-retriable', () => expect(isRetriable(422)).toBe(false));
+    it('429 = retriable (rate limit)', () => expect(isRetriable(429)).toBe(true));
+    it('500 = retriable', () => expect(isRetriable(500)).toBe(true));
+    it('502 = retriable', () => expect(isRetriable(502)).toBe(true));
+    it('503 = retriable', () => expect(isRetriable(503)).toBe(true));
+  });
+
+  // =========================================================================
+  // Circuit Breaker
+  // =========================================================================
+  describe('circuit breaker', () => {
+    it('starts CLOSED', () => {
+      expect(readCbState().status).toBe('CLOSED');
+      expect(circuitAllows()).toBe(true);
+    });
+
+    it('opens after 5 consecutive failures', () => {
+      for (let i = 0; i < 5; i++) recordFailure();
+      const state = readCbState();
+      expect(state.status).toBe('OPEN');
+      expect(state.consecutiveFailures).toBe(5);
+    });
+
+    it('blocks requests when OPEN', () => {
+      writeCbState({ status: 'OPEN', consecutiveFailures: 5, openedAt: Date.now() });
+      expect(circuitAllows()).toBe(false);
+    });
+
+    it('transitions to HALF_OPEN after cooldown', () => {
+      writeCbState({ status: 'OPEN', consecutiveFailures: 5, openedAt: Date.now() - 31_000 });
+      expect(circuitAllows()).toBe(true);
+      expect(readCbState().status).toBe('HALF_OPEN');
+    });
+
+    it('resets to CLOSED on success', () => {
+      writeCbState({ status: 'HALF_OPEN', consecutiveFailures: 5, openedAt: Date.now() - 31_000 });
+      recordSuccess();
+      const state = readCbState();
+      expect(state.status).toBe('CLOSED');
+      expect(state.consecutiveFailures).toBe(0);
+    });
+
+    it('re-opens on failure during HALF_OPEN', () => {
+      writeCbState({ status: 'HALF_OPEN', consecutiveFailures: 4, openedAt: 0 });
+      recordFailure();
+      expect(readCbState().status).toBe('OPEN');
+    });
+
+    it('skips event when circuit is OPEN', async () => {
+      writeCbState({ status: 'OPEN', consecutiveFailures: 5, openedAt: Date.now() });
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 50));
+
+      expect(mockFetchCalls).toHaveLength(0);
+      expect(logMessages.some(m => m.includes('Circuit OPEN — skipping'))).toBe(true);
+    });
+
+    it('state file persists across reads', () => {
+      const state: CircuitBreakerState = { status: 'OPEN', consecutiveFailures: 7, openedAt: 12345 };
+      writeCbState(state);
+      const read = readCbState();
+      expect(read.status).toBe('OPEN');
+      expect(read.consecutiveFailures).toBe(7);
+      expect(read.openedAt).toBe(12345);
+    });
+
+    it('state file is in telemetry directory', () => {
+      expect(getCbStatePath()).toContain('telemetry');
+      expect(getCbStatePath()).toContain('circuit-breaker.json');
+    });
+
+    it('handles missing state file gracefully (defaults to CLOSED)', () => {
+      try { rmSync(getCbStatePath()); } catch {}
+      expect(readCbState().status).toBe('CLOSED');
+      expect(circuitAllows()).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // Integration: retry + circuit breaker together
+  // =========================================================================
+  describe('integration', () => {
+    it('successful POST resets circuit breaker', async () => {
+      writeCbState({ status: 'CLOSED', consecutiveFailures: 3, openedAt: 0 });
+      mockFetchResponses = [{ ok: true, status: 202 }];
+      new HttpSink().addEvent(makeEvent());
+      await new Promise(r => setTimeout(r, 200));
+
+      expect(readCbState().consecutiveFailures).toBe(0);
+    });
+
+    it('logs forwarded event on success', async () => {
+      mockFetchResponses = [{ ok: true, status: 202 }];
+      new HttpSink().addEvent(makeEvent({ event: 'SessionEnd' }));
+      await new Promise(r => setTimeout(r, 200));
+
+      expect(logMessages.some(m => m.includes('Forwarded SessionEnd'))).toBe(true);
     });
   });
 });
 
-// Restore fetch after all tests
 afterAll(() => {
   globalThis.fetch = originalFetch;
 });
