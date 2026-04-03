@@ -19,24 +19,18 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
-import { getWebhookUrl } from '../lib/orchestration-state.js';
-import { emit, registerSink } from '../lib/telemetry.js';
-import { JsonlSink } from '../lib/jsonl-sink.js';
-import { HttpSink } from '../lib/http-sink.js';
+import { emit } from '../lib/telemetry.js';
+import { registerAllSinks } from '../lib/sink-registry.js';
 
 // ---------------------------------------------------------------------------
 // Module-scope sink registration (runs once per process on import)
 // Each CC hook = separate Node.js process, so this is deterministic.
+//
+// registerAllSinks() loads built-in sinks (JSONL + HTTP) plus any
+// additional sinks from plugin.json and settings.local.json configs.
+// See #1260 for config-based sink registry design.
 // ---------------------------------------------------------------------------
-// Always register JSONL sink — never-lose-data safety net (local backup)
-registerSink(new JsonlSink());
-
-// Conditionally register HTTP sink (requires remote API configuration)
-const hookUrl = getWebhookUrl();
-const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
-if (hookUrl && hookToken) {
-  registerSink(new HttpSink());
-}
+registerAllSinks();
 
 // ---------------------------------------------------------------------------
 // Public API (unchanged signature — dispatchers don't need updates)
