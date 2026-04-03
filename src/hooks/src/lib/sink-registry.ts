@@ -71,8 +71,9 @@ function extractSinkConfigs(config: Record<string, unknown> | undefined): SinkCo
 
   return telemetry.sinks.filter((s): s is SinkConfig => {
     if (!s || typeof s !== 'object') return false;
-    const sink = s as Record<string, unknown>;
-    return sink.type === 'http' && typeof sink.url === 'string' && typeof sink.token === 'string';
+    return (s as { type?: string }).type === 'http'
+      && typeof (s as { url?: string }).url === 'string'
+      && typeof (s as { token?: string }).token === 'string';
   });
 }
 
