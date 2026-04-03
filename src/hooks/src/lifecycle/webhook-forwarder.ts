@@ -2,89 +2,45 @@
 // Created: 2026-04-02
 
 /**
- * Universal Webhook Forwarder — streams ALL hook events to a remote API.
+ * Universal Webhook Forwarder — streams ALL hook events to registered sinks.
  *
  * Registered for every CC event type in hooks.json (async: true).
- * No-op when ORCHESTKIT_HOOK_URL or ORCHESTKIT_HOOK_TOKEN are unset.
- * Fire-and-forget: never blocks CC, never shows errors to user.
+ * Delegates to telemetry.emit() which fans out to pluggable sinks
+ * (JSONL local + HTTP remote). No-op when no sinks are active.
  *
- * How consumers use this:
- *   1. Set ORCHESTKIT_HOOK_URL=https://your-api.com/api/hooks
- *   2. Set ORCHESTKIT_HOOK_TOKEN=<bearer-or-hmac-secret>
- *   3. All 26 CC events stream to {url}/cc-event with HMAC signature
- *
- * yonatan-hq: hq-ext sets these via plugin config + 1Password.
- * Other users: set env vars or configure via /ork:setup.
+ * This function is the PUBLIC API — all dispatchers import it.
+ * The emit() machinery is internal plumbing.
  *
  * Auth: HMAC-SHA256 signature in X-CC-Hooks-Signature header.
  * The receiving API verifies the signature to ensure payload integrity.
+ *
+ * #1259: Simplified to thin wrapper around telemetry.emit().
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { getSessionId, getCachedBranch, logHook, outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
-import { signPayload, sanitizePayload } from '../lib/crypto.js';
-import { writeTelemetryEvent } from '../lib/telemetry-jsonl.js';
-import { getProjectSlug } from './usage-summary-reporter.js';
+import { emit, registerSink } from '../lib/telemetry.js';
+import { JsonlSink } from '../lib/jsonl-sink.js';
+import { HttpSink } from '../lib/http-sink.js';
 
-const HOOK_NAME = 'webhook-forwarder';
-const FETCH_TIMEOUT_MS = 3000;
+// ---------------------------------------------------------------------------
+// Module-scope sink registration (runs once per process on import)
+// Each CC hook = separate Node.js process, so this is deterministic.
+// ---------------------------------------------------------------------------
+const hookUrl = getWebhookUrl();
+const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+
+if (hookUrl && hookToken) {
+  registerSink(new JsonlSink());
+  registerSink(new HttpSink());
+}
+
+// ---------------------------------------------------------------------------
+// Public API (unchanged signature — dispatchers don't need updates)
+// ---------------------------------------------------------------------------
 
 export async function webhookForwarder(input: HookInput): Promise<HookResult> {
-  const hookUrl = getWebhookUrl();
-  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
-
-  // No-op when not configured — zero overhead
-  if (!hookUrl || !hookToken) {
-    return outputSilentSuccess();
-  }
-
-  try {
-    const payload = {
-      event: input.hook_event ?? 'unknown',
-      session_id: input.session_id || getSessionId(),
-      project: getProjectSlug(input),
-      timestamp: new Date().toISOString(),
-      data: {
-        tool_name: input.tool_name || undefined,
-        tool_input: sanitizePayload(input.tool_input as Record<string, unknown>) || undefined,
-        tool_output: sanitizePayload(
-          typeof input.tool_output === 'object' && input.tool_output !== null
-            ? input.tool_output as Record<string, unknown>
-            : input.tool_output ? { _raw: input.tool_output } : undefined
-        ) || undefined,
-        tool_error: input.tool_error || undefined,
-        agent_type: input.agent_type || (input.tool_input as Record<string, unknown>)?.subagent_type || undefined,
-        agent_id: input.agent_id || undefined,
-      },
-      metadata: {
-        branch: getCachedBranch(),
-        source_channel: 'orchestkit-forwarder',
-      },
-    };
-
-    // Local JSONL sink — write before HTTP to ensure local capture even if fetch fails
-    writeTelemetryEvent(payload);
-
-    const body = JSON.stringify(payload);
-    const signature = signPayload(body, hookToken);
-    const url = `${hookUrl.replace(/\/$/, '')}/cc-event`;
-
-    await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CC-Hooks-Signature': signature,
-      },
-      body,
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-
-    logHook(HOOK_NAME, `Forwarded ${input.hook_event} to ${url}`);
-  } catch {
-    // Best-effort — never block CC, never show errors
-    logHook(HOOK_NAME, `Forward failed for ${input.hook_event} (non-blocking)`);
-  }
-
+  emit(input);
   return outputSilentSuccess();
 }

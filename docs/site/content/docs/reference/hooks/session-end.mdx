@@ -12,4 +12,4 @@ description: "Hooks triggered on SessionEnd events (4 hooks)."
 | `sync-session-end-dispatcher` | `*` | 🛑 Blocks | Consolidates 2 synchronous SessionEnd hooks into a single dispatcher. |
 | `session-handoff-generator` | `*` | 🔇 Silent | Session Handoff Generator — Writes a structured handoff YAML at session end |
 | `usage-summary-reporter` | `*` | 🔇 Silent | Posts OrchestKit-specific session data to HQ API that CC's native |
-| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

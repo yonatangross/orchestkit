@@ -23,7 +23,7 @@ import { getTokenState } from '../lib/token-tracker.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
 import { signPayload as signPayloadFn } from '../lib/crypto.js';
-import { rotateTelemetryIfNeeded, cleanOldTelemetryFiles } from '../lib/telemetry-jsonl.js';
+import { flushAll } from '../lib/telemetry.js';
 
 // Re-export for backwards compatibility — canonical source is lib/crypto.ts
 export { signPayload } from '../lib/crypto.js';
@@ -107,9 +107,8 @@ export async function usageSummaryReporter(input: HookInput): Promise<HookResult
     logHook(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
   }
 
-  // Telemetry JSONL maintenance — rotate large files and clean old ones
-  await rotateTelemetryIfNeeded().catch(() => {});
-  await cleanOldTelemetryFiles().catch(() => {});
+  // Flush all telemetry sinks (JSONL rotation + cleanup)
+  await flushAll().catch(() => {});
 
   return outputSilentSuccess();
 }

@@ -10,4 +10,4 @@ description: "Hooks triggered on StopFailure events (2 hooks)."
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `stop-failure-handler` | `*` | 🔇 Silent | Fires when a turn ends due to an API error (rate limit, auth failure, etc.). |
-| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to a remote API. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
