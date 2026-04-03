@@ -92,8 +92,10 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       syncSessionEndDispatcher(input);
 
       // sync-session-end-dispatcher has 2 hooks (session-metrics-summary removed)
-      expect(sessionCleanup).toHaveBeenCalledWith(input);
-      expect(patternSyncPush).toHaveBeenCalledWith(input);
+      expect(sessionCleanup).toHaveBeenCalled();
+      expect(vi.mocked(sessionCleanup).mock.calls[0][0]).toEqual(input);
+      expect(patternSyncPush).toHaveBeenCalled();
+      expect(vi.mocked(patternSyncPush).mock.calls[0][0]).toEqual(input);
     });
   });
 

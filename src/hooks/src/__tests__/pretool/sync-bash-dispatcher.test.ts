@@ -152,13 +152,20 @@ describe('sync-bash-dispatcher', () => {
       const input = createBashInput('npm run build');
       syncBashDispatcher(input);
 
-      expect(dangerousCommandBlocker).toHaveBeenCalledWith(input);
-      expect(compoundCommandValidator).toHaveBeenCalledWith(input);
-      expect(gitValidator).toHaveBeenCalledWith(input);
-      expect(issueReferenceChecker).toHaveBeenCalledWith(input);
-      expect(ghLabelEnforcer).toHaveBeenCalledWith(input);
-      expect(ghMilestoneEnforcer).toHaveBeenCalledWith(input);
-      expect(unifiedBashAdvisoryDispatcher).toHaveBeenCalledWith(input);
+      expect(dangerousCommandBlocker).toHaveBeenCalled();
+      expect(vi.mocked(dangerousCommandBlocker).mock.calls[0][0]).toEqual(input);
+      expect(compoundCommandValidator).toHaveBeenCalled();
+      expect(vi.mocked(compoundCommandValidator).mock.calls[0][0]).toEqual(input);
+      expect(gitValidator).toHaveBeenCalled();
+      expect(vi.mocked(gitValidator).mock.calls[0][0]).toEqual(input);
+      expect(issueReferenceChecker).toHaveBeenCalled();
+      expect(vi.mocked(issueReferenceChecker).mock.calls[0][0]).toEqual(input);
+      expect(ghLabelEnforcer).toHaveBeenCalled();
+      expect(vi.mocked(ghLabelEnforcer).mock.calls[0][0]).toEqual(input);
+      expect(ghMilestoneEnforcer).toHaveBeenCalled();
+      expect(vi.mocked(ghMilestoneEnforcer).mock.calls[0][0]).toEqual(input);
+      expect(unifiedBashAdvisoryDispatcher).toHaveBeenCalled();
+      expect(vi.mocked(unifiedBashAdvisoryDispatcher).mock.calls[0][0]).toEqual(input);
     });
   });
 

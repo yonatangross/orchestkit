@@ -82,7 +82,7 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(safeCommandRetry).toHaveBeenCalledWith(input);
+      expect(safeCommandRetry).toHaveBeenCalledWith(input, undefined);
     });
 
     test('does NOT call safeCommandRetry for Write tool', () => {
@@ -117,7 +117,7 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(projectWriteRetry).toHaveBeenCalledWith(input);
+      expect(projectWriteRetry).toHaveBeenCalledWith(input, undefined);
     });
 
     test('calls projectWriteRetry for Edit tool', () => {
@@ -128,7 +128,7 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(projectWriteRetry).toHaveBeenCalledWith(input);
+      expect(projectWriteRetry).toHaveBeenCalledWith(input, undefined);
     });
 
     test('does NOT call projectWriteRetry for Bash tool', () => {
@@ -152,8 +152,8 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input);
-      expect(denialNotification).toHaveBeenCalledWith(input);
+      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
+      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
     });
 
     test('runs logger for Write denial', () => {
@@ -164,8 +164,8 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input);
-      expect(denialNotification).toHaveBeenCalledWith(input);
+      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
+      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
     });
 
     test('runs logger for unknown tool', () => {
@@ -176,8 +176,8 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input);
-      expect(denialNotification).toHaveBeenCalledWith(input);
+      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
+      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
     });
 
     test('still runs logger/notification even when retry sub-hook matches', () => {
@@ -189,8 +189,8 @@ describe('unified-dispatcher', () => {
       unifiedPermissionDeniedDispatcher(input);
 
       // Assert — logger and notification always run
-      expect(denialLogger).toHaveBeenCalledWith(input);
-      expect(denialNotification).toHaveBeenCalledWith(input);
+      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
+      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
     });
   });
 

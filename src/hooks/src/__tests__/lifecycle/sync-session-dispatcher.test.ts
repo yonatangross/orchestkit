@@ -122,9 +122,12 @@ describe('lifecycle/sync-session-dispatcher', () => {
       const input = createSessionStartInput();
       syncSessionDispatcher(input);
 
-      expect(analyticsConsentCheck).toHaveBeenCalledWith(input);
-      expect(prefillGuard).toHaveBeenCalledWith(input);
-      expect(mcpHealthCheck).toHaveBeenCalledWith(input);
+      expect(analyticsConsentCheck).toHaveBeenCalled();
+      expect(vi.mocked(analyticsConsentCheck).mock.calls[0][0]).toEqual(input);
+      expect(prefillGuard).toHaveBeenCalled();
+      expect(vi.mocked(prefillGuard).mock.calls[0][0]).toEqual(input);
+      expect(mcpHealthCheck).toHaveBeenCalled();
+      expect(vi.mocked(mcpHealthCheck).mock.calls[0][0]).toEqual(input);
     });
   });
 
