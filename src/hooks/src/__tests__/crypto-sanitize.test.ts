@@ -133,6 +133,63 @@ describe('Crypto Utilities', () => {
       expect(items[1].name).toBe('safe');
     });
 
+    // --- New secret patterns (security audit fix) ---
+
+    it('redacts Anthropic sk-ant- API keys', () => {
+      const result = sanitizePayload({
+        command: 'export ANTHROPIC_API_KEY=sk-ant-api03-abcdefghijklmnopqrstuvwxyz1234567890',
+      });
+      expect(result?.command).not.toContain('sk-ant-api03-abcdefghijklmnopqrstuvwxyz1234567890');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts AWS Access Key IDs (AKIA...)', () => {
+      const result = sanitizePayload({
+        command: 'aws configure set aws_access_key_id AKIAIOSFODNN7EXAMPLE',
+      });
+      expect(result?.command).not.toContain('AKIAIOSFODNN7EXAMPLE');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts Google/Firebase API keys (AIza...)', () => {
+      const result = sanitizePayload({
+        command: 'curl https://example.com/api?key=AIzaFAKE_TEST_KEY_NOT_REAL_000000000000',
+      });
+      expect(result?.command).not.toContain('AIzaFAKE_TEST_KEY_NOT_REAL_000000000000');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts MongoDB connection strings', () => {
+      const result = sanitizePayload({
+        command: 'mongosh mongodb+srv://testuser:fakepw@localhost/testdb',
+      });
+      expect(result?.command).not.toContain('mongodb+srv://testuser:fakepw@localhost/testdb');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts PostgreSQL connection strings', () => {
+      const result = sanitizePayload({
+        command: 'psql postgresql://user:password@localhost:5432/dbname',
+      });
+      expect(result?.command).not.toContain('postgresql://user:password@localhost:5432/dbname');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts MySQL connection strings', () => {
+      const result = sanitizePayload({
+        command: 'mysql -u root mysql://root:pass@127.0.0.1:3306/app',
+      });
+      expect(result?.command).not.toContain('mysql://root:pass@127.0.0.1:3306/app');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts Slack bot tokens (xoxb-)', () => {
+      const result = sanitizePayload({
+        command: 'curl -H "Authorization: Bearer xoxb-FAKE-TEST-TOKEN-00000000000"',
+      });
+      expect(result?.command).not.toContain('xoxb-FAKE-TEST-TOKEN-00000000000');
+    });
+
     // --- Real-world webhook payload simulation ---
 
     it('sanitizes a realistic Bash tool_input payload', () => {
