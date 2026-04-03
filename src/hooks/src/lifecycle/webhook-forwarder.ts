@@ -23,7 +23,8 @@
 import type { HookInput, HookResult } from '../types.js';
 import { getSessionId, getCachedBranch, logHook, outputSilentSuccess } from '../lib/common.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
-import { signPayload, getProjectSlug } from './usage-summary-reporter.js';
+import { signPayload, sanitizePayload } from '../lib/crypto.js';
+import { getProjectSlug } from './usage-summary-reporter.js';
 
 const HOOK_NAME = 'webhook-forwarder';
 const FETCH_TIMEOUT_MS = 3000;
@@ -45,8 +46,12 @@ export async function webhookForwarder(input: HookInput): Promise<HookResult> {
       timestamp: new Date().toISOString(),
       data: {
         tool_name: input.tool_name || undefined,
-        tool_input: input.tool_input || undefined,
-        tool_output: input.tool_output || undefined,
+        tool_input: sanitizePayload(input.tool_input as Record<string, unknown>) || undefined,
+        tool_output: sanitizePayload(
+          typeof input.tool_output === 'object' && input.tool_output !== null
+            ? input.tool_output as Record<string, unknown>
+            : input.tool_output ? { _raw: input.tool_output } : undefined
+        ) || undefined,
         tool_error: input.tool_error || undefined,
         agent_type: input.agent_type || (input.tool_input as Record<string, unknown>)?.subagent_type || undefined,
         agent_id: input.agent_id || undefined,

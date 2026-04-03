@@ -15,7 +15,6 @@
  * Replaces the deprecated session-end-reporter.ts (#1007).
  */
 
-import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
@@ -23,6 +22,10 @@ import { getSessionId, getCachedBranch, getProjectDir, logHook, outputSilentSucc
 import { getTokenState } from '../lib/token-tracker.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
+import { signPayload as signPayloadFn } from '../lib/crypto.js';
+
+// Re-export for backwards compatibility — canonical source is lib/crypto.ts
+export { signPayload } from '../lib/crypto.js';
 
 const HOOK_NAME = 'usage-summary-reporter';
 
@@ -40,10 +43,6 @@ const HOOK_VERSION = (() => {
     return '0.0.0';
   }
 })();
-
-export function signPayload(body: string, secret: string): string {
-  return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
-}
 
 export function getProjectSlug(input?: HookInput): string {
   const dir = input?.project_dir || getProjectDir();
@@ -89,7 +88,7 @@ export async function usageSummaryReporter(input: HookInput): Promise<HookResult
     };
 
     const body = JSON.stringify(payload);
-    const signature = signPayload(body, hookToken);
+    const signature = signPayloadFn(body, hookToken);
     const url = `${hookUrl.replace(/\/$/, '')}/ingest`;
 
     logHook(HOOK_NAME, `POSTing usage summary to ${url} (skills: ${summary.skills_used.length}, hooks: ${summary.hooks_triggered.length})`);
