@@ -61,7 +61,7 @@ export function getTelemetryPath(): string {
  *
  * Silently no-ops if the directory can't be created.
  */
-export function writeTelemetryEvent(payload: Record<string, unknown>): void {
+export function writeTelemetryEvent(payload: Record<string, unknown> | object): void {
   const dir = getTelemetryDir();
 
   // Ensure directory exists (sync — only runs once per process, fast)

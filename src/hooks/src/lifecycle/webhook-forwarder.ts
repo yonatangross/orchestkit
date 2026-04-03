@@ -28,11 +28,13 @@ import { HttpSink } from '../lib/http-sink.js';
 // Module-scope sink registration (runs once per process on import)
 // Each CC hook = separate Node.js process, so this is deterministic.
 // ---------------------------------------------------------------------------
+// Always register JSONL sink — never-lose-data safety net (local backup)
+registerSink(new JsonlSink());
+
+// Conditionally register HTTP sink (requires remote API configuration)
 const hookUrl = getWebhookUrl();
 const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
-
 if (hookUrl && hookToken) {
-  registerSink(new JsonlSink());
   registerSink(new HttpSink());
 }
 

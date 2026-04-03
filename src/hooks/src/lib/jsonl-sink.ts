@@ -18,7 +18,7 @@ export class JsonlSink implements TelemetrySink {
   readonly supportedEvents: string[] = []; // all events
 
   addEvent(event: TelemetryEvent): void {
-    writeTelemetryEvent(event as unknown as Record<string, unknown>);
+    writeTelemetryEvent(event);
   }
 
   async flush(): Promise<void> {
