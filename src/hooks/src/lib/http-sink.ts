@@ -177,12 +177,24 @@ async function fetchWithRetry(url: string, options: RequestInit): Promise<boolea
 // ---------------------------------------------------------------------------
 
 export class HttpSink implements TelemetrySink {
-  readonly name = 'http';
+  readonly name: string;
   readonly supportedEvents: string[] = []; // all events
+  private readonly configUrl?: string;
+  private readonly configToken?: string;
+
+  /**
+   * @param options - Optional overrides for URL + token (for plugin/user sinks).
+   *   If omitted, reads from env vars (built-in sink behavior).
+   */
+  constructor(options?: { name?: string; url?: string; token?: string }) {
+    this.name = options?.name ?? 'http';
+    this.configUrl = options?.url;
+    this.configToken = options?.token;
+  }
 
   addEvent(event: TelemetryEvent): void {
-    const hookUrl = getWebhookUrl();
-    const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+    const hookUrl = this.configUrl ?? getWebhookUrl();
+    const hookToken = this.configToken ?? process.env.ORCHESTKIT_HOOK_TOKEN;
 
     if (!hookUrl || !hookToken) return;
 

@@ -134,10 +134,8 @@ export function registerAllSinks(): void {
   const pluginSinks = loadPluginSinkConfigs();
   for (const config of pluginSinks) {
     try {
-      const sink = new HttpSink();
       const name = config.name || sinkNameFromUrl(config.url);
-      Object.defineProperty(sink, 'name', { value: name, writable: false });
-      registerSink(sink);
+      registerSink(new HttpSink({ name, url: config.url, token: config.token }));
       logHook(HOOK_NAME, `Registered plugin sink: ${name}`);
     } catch {
       logHook(HOOK_NAME, `Failed to create sink from plugin config: ${config.url}`);
@@ -148,10 +146,8 @@ export function registerAllSinks(): void {
   const userSinks = loadUserSinkConfigs();
   for (const config of userSinks) {
     try {
-      const sink = new HttpSink();
       const name = config.name || sinkNameFromUrl(config.url);
-      Object.defineProperty(sink, 'name', { value: name, writable: false });
-      registerSink(sink);
+      registerSink(new HttpSink({ name, url: config.url, token: config.token }));
       logHook(HOOK_NAME, `Registered user sink: ${name}`);
     } catch {
       logHook(HOOK_NAME, `Failed to create sink from user config: ${config.url}`);
