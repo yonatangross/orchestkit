@@ -150,8 +150,8 @@ describe('CC 2.1.78 Hooks Wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 131', () => {
-      expect(hooksConfig.description).toContain('131 total');
+    it('description total matches 132', () => {
+      expect(hooksConfig.description).toContain('132 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
