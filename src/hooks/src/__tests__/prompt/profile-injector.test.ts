@@ -8,24 +8,13 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
 import type { UserProfile, UsageStats, RecordedDecision } from '../../lib/user-profile.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: ctx,
-    },
-  })),
-  estimateTokenCount: vi.fn((content: string) => Math.ceil(content.length / 3.5)),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   writeRulesFile: vi.fn(),
 }));
 

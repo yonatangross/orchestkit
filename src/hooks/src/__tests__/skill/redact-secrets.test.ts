@@ -8,14 +8,13 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { redactSecrets } from '../../skill/redact-secrets.js';
 import { outputSilentSuccess } from '../../lib/common.js';

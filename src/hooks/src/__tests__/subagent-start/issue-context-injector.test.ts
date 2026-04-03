@@ -8,6 +8,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
 vi.mock('node:fs', () => ({
@@ -22,12 +23,7 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getCachedBranch: vi.fn(() => 'main'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { getCachedBranch } from '../../lib/common.js';
 import { issueContextInjector } from '../../subagent-start/issue-context-injector.js';

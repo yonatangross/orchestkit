@@ -10,6 +10,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput, } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
@@ -40,24 +41,7 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWarning: vi.fn((message: string) => ({
-    continue: true,
-    systemMessage: `\u26a0 ${message}`,
-  })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { subagentQualityGate } from '../../subagent-stop/subagent-quality-gate.js';
 import { outputSilentSuccess, outputWarning, outputBlock, logHook } from '../../lib/common.js';

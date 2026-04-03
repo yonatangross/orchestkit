@@ -7,6 +7,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -15,15 +16,12 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   outputWithContext: vi.fn((msg: string) => ({
     continue: true,
     suppressOutput: false,
     hookSpecificOutput: { additionalContext: msg },
   })),
-  getProjectDir: vi.fn(() => '/test/project'),
 }));
 
 import { monorepoDetector } from '../../setup/monorepo-detector.js';

@@ -2,6 +2,7 @@
 // Created: 2026-03-03
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockWriteFileSync = vi.fn();
@@ -19,9 +20,7 @@ vi.mock('node:fs', () => ({
   unlinkSync: (...args: unknown[]) => mockUnlinkSync(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session'),
 }));
 

@@ -8,14 +8,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/tmp/fake-project'),
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({
-    exit_code: 0,
-    suppressOutput: true,
-  })),
 }));
 vi.mock('../../lib/agent-teams.js', () => ({
   isAgentTeamsActive: vi.fn(() => false),

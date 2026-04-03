@@ -7,6 +7,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
@@ -15,10 +16,7 @@ vi.mock('node:fs', () => ({
   writeFileSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   fnv1aHash: vi.fn((s: string) => `hash_${s.length}`),
 }));
 

@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks — available to vi.mock factories
@@ -43,8 +44,7 @@ const mocks = vi.hoisted(() => {
 // Module mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: (...args: unknown[]) => mocks.logHook(...args),
 }));
 

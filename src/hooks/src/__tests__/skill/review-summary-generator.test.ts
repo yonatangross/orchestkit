@@ -7,6 +7,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
@@ -30,10 +31,7 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getLogDir: vi.fn(() => '/test/logs'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { reviewSummaryGenerator } from '../../skill/review-summary-generator.js';
 import { outputSilentSuccess, getLogDir } from '../../lib/common.js';

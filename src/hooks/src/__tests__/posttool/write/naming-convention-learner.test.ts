@@ -2,6 +2,7 @@
 // Created: 2026-03-29
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -22,20 +23,7 @@ vi.mock('node:path', () => ({
   basename: vi.fn((p: string) => p.split('/').pop() || ''),
 }));
 
-vi.mock('../../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 import { namingConventionLearner } from '../../../posttool/write/naming-convention-learner.js';
 import type { HookInput } from '../../../types.js';

@@ -7,22 +7,14 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => '{}'),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: ctx },
-  })),
-  getLogDir: vi.fn(() => '/test/logs'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { postCompactRecovery } from '../../lifecycle/post-compact-recovery.js';
 import { existsSync, readFileSync } from 'node:fs';

@@ -13,16 +13,14 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock child_process before imports
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { taskContextInjector } from '../../task-created/task-context-injector.js';
 import { outputSilentSuccess } from '../../lib/common.js';

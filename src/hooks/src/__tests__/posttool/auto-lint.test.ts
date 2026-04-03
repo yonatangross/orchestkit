@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock child_process before import — source uses execFileSync (not execSync)
 const mockExecFileSync = vi.fn();
@@ -18,19 +19,7 @@ vi.mock('../../lib/sanitize-shell.js', () => ({
   assertSafeCommandName: vi.fn((cmd: string) => cmd),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { autoLint } from '../../posttool/auto-lint.js';
 import type { HookInput } from '../../types.js';

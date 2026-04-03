@@ -11,17 +11,9 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, writeFileSync, mkdtempSync, rmSync, statSync, chmodSync, utimesSync, readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import os from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((msg: string) => ({
-    continue: true, suppressOutput: false,
-    hookSpecificOutput: { additionalContext: msg },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getPluginRoot: vi.fn(() => '/test/plugin-root'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/paths.js', () => ({
   getHomeDir: vi.fn(() => '/mock/home'),

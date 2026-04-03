@@ -4,19 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputWithUpdatedInput: vi.fn((updated: Record<string, unknown>) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      updatedInput: updated,
-    },
-  })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { defaultTimeoutSetter } from '../../pretool/bash/default-timeout-setter.js';
 import type { HookInput } from '../../types.js';

@@ -4,18 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: ctx },
-  })),
-  outputWarning: vi.fn((msg: string) => ({ continue: true, systemMessage: `\u26a0 ${msg}` })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/guards.js', () => ({
   guardCodeFiles: vi.fn(() => null),

@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -35,17 +36,7 @@ vi.mock('../../../lib/analytics-buffer.js', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-vi.mock('../../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputDeny: vi.fn((reason: string) => ({ continue: false, reason })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: { additionalContext: ctx },
-  })),
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  getLogDir: vi.fn(() => '/test/logs'),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', () => ({
   existsSync: (p: string) => mockExistsSync(p),

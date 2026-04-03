@@ -11,6 +11,7 @@ import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks — must be declared before imports
@@ -44,14 +45,7 @@ vi.mock('../../lib/paths.js', () => ({
   getHomeDir: vi.fn(() => testBaseDir),
 }));
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Import after mocks
 import { perfSnapshot } from '../../lifecycle/perf-snapshot.js';

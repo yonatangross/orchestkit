@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const { mockAppendFileSync } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
@@ -19,11 +20,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),

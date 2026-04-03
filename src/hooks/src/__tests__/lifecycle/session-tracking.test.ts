@@ -7,6 +7,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -17,15 +18,7 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => 'feature-branch'),
 }));
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/session-tracker.js', () => ({
   trackSessionStart: vi.fn(),

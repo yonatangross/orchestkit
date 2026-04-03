@@ -10,20 +10,13 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  estimateTokenCount: vi.fn((s: string) => Math.ceil(s.length / 4)),
-  extractContext: vi.fn((r: { hookSpecificOutput?: { additionalContext?: string } }) =>
-    r?.hookSpecificOutput?.additionalContext ?? null),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../subagent-start/context-gate.js', () => ({
   contextGate: vi.fn(() => ({ continue: true })),

@@ -9,10 +9,9 @@
 
 import { describe, test, expect, vi } from 'vitest';
 import type { LoadedFile } from '../../instructions-loaded/types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { contentDedupScanner } from '../../instructions-loaded/content-dedup.js';
 

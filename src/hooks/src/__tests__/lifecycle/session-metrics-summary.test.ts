@@ -11,6 +11,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const _METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
@@ -37,14 +38,7 @@ vi.mock('node:fs', () => ({
   }),
 }));
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Import after mocks
 import { sessionMetricsSummary } from '../../lifecycle/session-metrics-summary.js';

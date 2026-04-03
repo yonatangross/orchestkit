@@ -4,14 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWarning: vi.fn((msg: string) => ({ continue: true, systemMessage: `\u26a0 ${msg}` })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { memoryValidator } from '../../pretool/mcp/memory-validator.js';
 import type { HookInput } from '../../types.js';

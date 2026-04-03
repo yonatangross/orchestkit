@@ -13,6 +13,7 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -46,16 +47,8 @@ vi.mock('../../lib/analytics-buffer.js', async () => {
   };
 });
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
-  lineContainsAll: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.includes(t))
-  ),
-  lineContainsAllCI: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.toLowerCase().includes(t.toLowerCase()))
-  ),
 }));
 
 // =============================================================================

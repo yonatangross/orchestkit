@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -26,11 +27,8 @@ const { mockAnalyzeDecisionFlow, mockCompleteDecisionFlow } = vi.hoisted(() => (
 // ---------------------------------------------------------------------------
 // Module mocks
 // ---------------------------------------------------------------------------
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-001'),
-  logHook: vi.fn(),
 }));
 
 vi.mock('../../lib/decision-flow-tracker.js', () => ({

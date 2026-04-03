@@ -2,13 +2,13 @@
 // Created: 2026-04-03
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before importing
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: () => 'test-session-123',
   getCachedBranch: () => 'test-branch',
   logHook: () => {},
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
 }));
 
 vi.mock('../../lib/crypto.js', () => ({

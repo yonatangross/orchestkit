@@ -14,21 +14,10 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputDeny: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../../lib/agent-teams.js', () => ({
   getTeamMembers: vi.fn(() => []),

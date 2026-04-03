@@ -7,18 +7,17 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
 // Track stderr calls since outputStderrWarning calls process.exit(2)
 let stderrMessages: string[] = [];
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   outputStderrWarning: vi.fn((msg: string) => {
     stderrMessages.push(msg);
     // Don't actually call process.exit in tests
   }),
-  getCachedBranch: vi.fn(() => 'main'),
 }));
 
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';

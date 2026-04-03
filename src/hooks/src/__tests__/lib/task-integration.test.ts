@@ -11,13 +11,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 let tmpDir: string;
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => tmpDir),
-  getSessionId: vi.fn(() => 'test-session-123'),
-  logHook: vi.fn(),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({

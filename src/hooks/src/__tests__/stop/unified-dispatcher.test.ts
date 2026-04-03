@@ -7,14 +7,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
-  outputWithContext: vi.fn((ctx: string) => ({ continue: true, additionalContext: ctx })),
 }));
 
 // Mock all individual stop hooks — after #897 slimming: 7 hooks

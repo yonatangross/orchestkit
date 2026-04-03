@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock paths module to control telemetry directory
 const testDir = join(tmpdir(), `ork-telemetry-test-${process.pid}`);
@@ -14,7 +15,7 @@ vi.mock('../../lib/paths.js', () => ({
   getProjectDir: () => testDir,
 }));
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: () => {},
 }));
 

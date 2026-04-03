@@ -7,16 +7,9 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: ctx },
-  })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { fileChanged } from '../../lifecycle/file-changed.js';
 import type { HookInput } from '../../types.js';

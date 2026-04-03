@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock all 6 handlers so dispatcher logic is tested in isolation
 const mockTokenBudget = vi.fn();
@@ -40,14 +41,7 @@ vi.mock('../../instructions-loaded/smart-suggestions.js', () => ({
   smartRuleSuggestions: (...args: unknown[]) => mockSmartSuggestions(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
-  outputPromptContext: (ctx: string) =>
-    ctx?.trim()
-      ? { continue: true, suppressOutput: true, hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } }
-      : { continue: true, suppressOutput: true },
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { instructionsLoadedDispatcher } from '../../instructions-loaded/instructions-loaded-dispatcher.js';
 

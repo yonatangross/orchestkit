@@ -8,6 +8,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonReal } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -18,16 +19,11 @@ const mockSessionId = 'test-compact-session-123';
 const testBaseDir = join(tmpdir(), `pre-compact-saver-test-${process.pid}`);
 const mockLogDir = join(testBaseDir, '.claude', 'logs');
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    getLogDir: vi.fn(() => mockLogDir),
-    getSessionId: vi.fn(() => mockSessionId),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', async () => mockCommonReal({
+  getLogDir: vi.fn(() => mockLogDir),
+  getSessionId: vi.fn(() => mockSessionId),
+  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+}));
 
 // Import after mocks
 import { preCompactSaver } from '../../lifecycle/pre-compact-saver.js';

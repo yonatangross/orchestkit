@@ -9,6 +9,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { checkMemoryHealth, analyzeJsonlFile } from '../../lib/memory-health.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -17,10 +18,7 @@ vi.mock('node:fs', () => ({
   statSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 

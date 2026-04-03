@@ -7,6 +7,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput, } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Hoisted mocks — shared between node:fs and atomic-write mocks
@@ -30,12 +31,7 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { outputSilentSuccess, } from '../../lib/common.js';

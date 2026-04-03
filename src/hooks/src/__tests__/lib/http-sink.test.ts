@@ -6,6 +6,7 @@ import { mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { TelemetryEvent } from '../../lib/telemetry.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // --- Test state ---
 let mockFetchCalls: Array<{ url: string; options: RequestInit }> = [];
@@ -41,7 +42,7 @@ vi.mock('../../lib/paths.js', () => ({
   getProjectDir: () => testDir,
 }));
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: (_name: string, msg: string) => { logMessages.push(msg); },
 }));
 

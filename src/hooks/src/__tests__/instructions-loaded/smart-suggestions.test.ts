@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { LoadedFile } from '../../instructions-loaded/types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -22,9 +23,7 @@ vi.mock('../../lib/paths.js', () => ({
   getProjectDir: () => mockGetProjectDir(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { smartRuleSuggestions } from '../../instructions-loaded/smart-suggestions.js';
 

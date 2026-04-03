@@ -11,6 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -18,14 +19,8 @@ import { tmpdir } from 'node:os';
 
 const FAKE_PLUGIN_ROOT = mkdtempSync(path.join(tmpdir(), 'first-run-'));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getPluginRoot: vi.fn(() => FAKE_PLUGIN_ROOT),
-  outputWithContext: vi.fn((msg: string) => ({
-    continue: true,
-    suppressOutput: false,
-    hookSpecificOutput: { additionalContext: msg },
-  })),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({

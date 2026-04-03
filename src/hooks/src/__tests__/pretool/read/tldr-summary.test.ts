@@ -3,6 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../../types.js';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -12,16 +13,7 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock common.ts
-vi.mock('../../../lib/common.js', () => ({
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: ctx, permissionDecision: 'allow' },
-  })),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
-  estimateTokenCount: vi.fn((content: string) => Math.ceil(content.length / 3)),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 // Mock code-summarizer.ts
 vi.mock('../../../lib/code-summarizer.js', () => ({

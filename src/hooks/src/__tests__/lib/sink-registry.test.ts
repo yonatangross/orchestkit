@@ -5,17 +5,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // --- Test isolation ---
 const testDir = join(tmpdir(), `ork-sink-registry-test-${process.pid}`);
 let logMessages: string[] = [];
 
 // --- Mocks ---
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: () => 'test-session',
   getCachedBranch: () => 'main',
   logHook: (_name: string, msg: string) => { logMessages.push(msg); },
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
   getProjectDir: () => testDir,
 }));
 

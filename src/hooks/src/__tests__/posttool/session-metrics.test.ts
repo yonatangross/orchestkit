@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -15,10 +16,7 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { sessionMetrics } from '../../posttool/session-metrics.js';
 import type { HookInput } from '../../types.js';
