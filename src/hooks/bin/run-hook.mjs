@@ -104,6 +104,8 @@ function normalizeInput(input) {
   }
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
+  // CC sends hook_event_name; OrchestKit types use hook_event
+  input.hook_event = input.hook_event || input.hook_event_name || '';
   // SubagentStart/SubagentStop send `cwd` instead of `project_dir`
   // Validate each candidate — reject JSON strings that leak from hook stdout (#1250)
   const candidates = [input.project_dir, input.projectDir, input.cwd, process.env.CLAUDE_PROJECT_DIR];
