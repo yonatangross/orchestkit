@@ -17,6 +17,42 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.28.0",
+    "date": "2026-04-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**Telemetry Provider Architecture (M105)** — pluggable sink system with Grafana Echo-style interface\n  - `TelemetrySink` interface: `{ name, supportedEvents, addEvent, flush }` for pluggable sinks\n  - `emit()` API: central fan-out to registered sinks with per-sink failure isolation\n  - `JsonlSink`: local JSONL backup via `appendFile` (async, non-blocking). Always-on safety net — events never lost even when HTTP sink is down\n  - `HttpSink`: HMAC-signed POST with 3x retry (full-jitter exponential backoff) and circuit breaker (5 fails → OPEN, 30s cooldown → HALF_OPEN)\n  - `telemetry-sync.mjs`: batch replay CLI — reads JSONL, POSTs to `/batch-ingest` as NDJSON, deletes synced rotated files\n  - Config-based sink registry: plugin.json and settings.local.json can register custom HTTP sinks\n  - Webhook forwarder coverage validator: CI gate ensuring all 27 CC events have forwarder coverage\n  - Rotation: files >10MB renamed on SessionEnd, rotated files >7 days cleaned up",
+          "**Payload sanitization** — 15 secret patterns redacted before transmission\n  - API keys: `sk-ant-` (Anthropic), `sk-` (OpenAI), `AKIA` (AWS), `AIza` (Google/Firebase)\n  - Tokens: GitHub PATs (`ghp_`, `gho_`, `github_pat_`), Slack (`xoxb-`, `xoxp-`), Bearer\n  - Database URLs: MongoDB, PostgreSQL, MySQL connection strings\n  - Environment variable assignments with secret names\n  - Recursive sanitization with 500-char truncation",
+          "**27/27 CC event coverage** — all documented (20) and undocumented (7) CC hook events forwarded"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "Webhook forwarder coverage: 9 gaps fixed (FileChanged standalone, 8 dispatcher inlines)",
+          "`JsonlSink` always registers (was gated behind HTTP config — silent data loss when webhooks disabled)",
+          "Telemetry directory permissions: 0o755 → 0o700 (world-readable on shared systems)",
+          "`hook_event_name` → `hook_event` normalization in `run-hook.mjs` (all events logged as \"unknown\")",
+          "Plugin/user `HttpSink` instances now receive config URL/token (were all hitting env-configured default)",
+          "Stale test assertions: async hook counts, split-bundle counts, description totals, cross-reference prefixes",
+          "GitHub push protection: replaced realistic-looking test fixtures with obviously-fake tokens"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "`webhookForwarder()` simplified to thin wrapper around `emit()` (public API unchanged — dispatchers need zero changes)",
+          "`signPayload()` extracted from `usage-summary-reporter.ts` to shared `lib/crypto.ts`",
+          "`sanitizePayload()` extracted from `session-tracker.ts` to shared `lib/crypto.ts` with expanded patterns",
+          "Hook count: 131 → 132 (added `telemetry-sync` on SessionEnd)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.27.0",
     "date": "2026-04-02",
     "compareUrl": "",
