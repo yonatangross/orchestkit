@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant: Self-contained hook with stdin reading and self-guard
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -89,7 +89,7 @@ function detectSecurityIssues(content: string): string[] {
 /**
  * Security pattern validator - detects anti-patterns before write
  */
-export function securityPatternValidator(input: HookInput): HookResult {
+export function securityPatternValidator(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
 
@@ -107,17 +107,17 @@ export function securityPatternValidator(input: HookInput): HookResult {
   const securityIssues = detectSecurityIssues(content);
 
   if (securityIssues.length > 0) {
-    logHook('security-pattern-validator', `SECURITY_WARN: ${filePath} - ${securityIssues.join(', ')}`);
+    (ctx?.log ?? logHook)('security-pattern-validator', `SECURITY_WARN: ${filePath} - ${securityIssues.join(', ')}`);
 
     // Build warning message
     const warningMsg = `Security warnings for ${basename(filePath)}: ${securityIssues.join(', ')}`;
-    logPermissionFeedback('warn', `Security issues in ${filePath}: ${securityIssues.join(', ')}`, input);
+    (ctx?.logPermission ?? logPermissionFeedback)('warn', `Security issues in ${filePath}: ${securityIssues.join(', ')}`, input);
 
     // CC 2.1.9: Use additionalContext for warnings
     return outputWithContext(warningMsg);
   }
 
-  logHook('security-pattern-validator', `SECURITY_OK: ${filePath}`);
-  logPermissionFeedback('allow', `No security issues in ${filePath}`, input);
+  (ctx?.log ?? logHook)('security-pattern-validator', `SECURITY_OK: ${filePath}`);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `No security issues in ${filePath}`, input);
   return outputSilentSuccess();
 }

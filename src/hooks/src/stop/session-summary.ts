@@ -11,7 +11,7 @@
  * Graph-first replacement for memory-capture.ts — no local file writes.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
 import { getTotalTools } from '../lib/metrics.js';
 
@@ -37,18 +37,18 @@ function todayISO(): string {
  * Suggest a knowledge-graph entity capture at session end.
  * Only fires when session had meaningful work (>=20 tool calls).
  */
-export function sessionSummary(input: HookInput): HookResult {
-  logHook('session-summary', 'Stop hook — checking session for graph capture');
+export function sessionSummary(input: HookInput, ctx?: HookContext): HookResult {
+  (ctx?.log ?? logHook)('session-summary', 'Stop hook — checking session for graph capture');
 
   const totalTools = getTotalTools();
 
   if (totalTools < 20) {
-    logHook('session-summary', `Session had ${totalTools} tool calls (<20), skipping`);
+    (ctx?.log ?? logHook)('session-summary', `Session had ${totalTools} tool calls (<20), skipping`);
     return outputSilentSuccess();
   }
 
-  const projectDir = input.project_dir || getProjectDir();
-  const branch = getCachedBranch(projectDir);
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const branch = ctx?.branch ?? getCachedBranch(projectDir);
   const date = todayISO();
   const entityName = `Session-${date}-${branch}`;
 
@@ -80,7 +80,7 @@ export function sessionSummary(input: HookInput): HookResult {
 
   const additionalContext = lines.join('\n');
 
-  logHook('session-summary', `Built graph suggestion for entity "${entityName}"`);
+  (ctx?.log ?? logHook)('session-summary', `Built graph suggestion for entity "${entityName}"`);
 
   return {
     continue: true,

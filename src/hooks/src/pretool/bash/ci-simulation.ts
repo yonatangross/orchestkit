@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects CI suggestions via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -47,9 +47,9 @@ function detectCIChecks(projectDir: string): string[] {
 /**
  * Suggest CI checks before git push
  */
-export function ciSimulation(input: HookInput): HookResult {
+export function ciSimulation(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Only process git push commands
   if (!/git\s+push/.test(command)) {
@@ -69,7 +69,7 @@ ${checks.slice(0, 3).join('\n')}
 Run these locally to catch issues before CI fails.
 Or: git push --no-verify to skip (not recommended)`;
 
-  logPermissionFeedback('allow', 'CI simulation suggested', input);
-  logHook('ci-simulation', `Suggested checks: ${checks.join(', ')}`);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'CI simulation suggested', input);
+  (ctx?.log ?? logHook)('ci-simulation', `Suggested checks: ${checks.join(', ')}`);
   return outputAllowWithContext(context);
 }

@@ -12,6 +12,7 @@
 
 import { writeRulesFile } from '../lib/common.js';
 import { join } from 'node:path';
+import type { HookContext } from '../types.js';
 
 // Static anti-patterns — materialized to rules file at session start
 const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [

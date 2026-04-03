@@ -8,7 +8,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
 
@@ -99,17 +99,17 @@ function pushProjectPatterns(projectDir: string): void {
 /**
  * Pattern sync push hook
  */
-export function patternSyncPush(input: HookInput): HookResult {
-  const projectDir = input.project_dir || getProjectDir();
+export function patternSyncPush(input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
   // Check if sync is enabled
   if (!isSyncEnabled(projectDir)) {
-    logHook('pattern-sync-push', 'Global sync disabled, skipping push');
+    (ctx?.log ?? logHook)('pattern-sync-push', 'Global sync disabled, skipping push');
     return outputSilentSuccess();
   }
 
   // Push project patterns to global
-  logHook('pattern-sync-push', 'Pushing project patterns to global...');
+  (ctx?.log ?? logHook)('pattern-sync-push', 'Pushing project patterns to global...');
   pushProjectPatterns(projectDir);
 
   return outputSilentSuccess();

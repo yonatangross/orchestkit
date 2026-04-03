@@ -13,7 +13,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
@@ -291,7 +291,7 @@ function checkRequiredMcpServers(agentType: string): string {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function subagentContextStager(input: HookInput): HookResult {
+export function subagentContextStager(input: HookInput, ctx?: HookContext): HookResult {
   const toolInput = input.tool_input || {};
   const subagentType = (toolInput.subagent_type as string) || '';
   const taskDescription = (toolInput.task_description as string) || (toolInput.description as string) || '';
@@ -302,7 +302,7 @@ export function subagentContextStager(input: HookInput): HookResult {
   // but still inject critical guardrails and active issue context (~100 tokens vs ~500).
   const isFork = Boolean(input.is_fork);
 
-  logHook('subagent-context-stager', `Staging context for ${subagentType}${isFork ? ' (fork — lightweight mode)' : ''}`);
+  (ctx?.log ?? logHook)('subagent-context-stager', `Staging context for ${subagentType}${isFork ? ' (fork — lightweight mode)' : ''}`);
 
   let stagedContext = '';
 
@@ -310,7 +310,7 @@ export function subagentContextStager(input: HookInput): HookResult {
   const criticalReminder = injectCriticalReminder(subagentType);
   if (criticalReminder) {
     stagedContext += criticalReminder;
-    logHook('subagent-context-stager', `Injected critical_system_reminder for ${subagentType}`);
+    (ctx?.log ?? logHook)('subagent-context-stager', `Injected critical_system_reminder for ${subagentType}`);
   }
 
   // === CHECK REQUIRED MCP SERVERS (#1232) — always, even for forks ===
@@ -322,7 +322,7 @@ export function subagentContextStager(input: HookInput): HookResult {
   // === STAGE ISSUE DOCUMENTATION — always, even for forks ===
   const taskLower = taskDescription.toLowerCase();
   if (/issue|#\d+|bug|fix/.test(taskLower)) {
-    logHook('subagent-context-stager', 'Issue-related task detected');
+    (ctx?.log ?? logHook)('subagent-context-stager', 'Issue-related task detected');
 
     const issueMatch = taskDescription.match(/#(\d+)/);
     if (issueMatch) {
@@ -330,32 +330,32 @@ export function subagentContextStager(input: HookInput): HookResult {
       const issueDoc = findIssueDoc(issueNum);
       if (issueDoc) {
         stagedContext += `ISSUE DOCS: ${issueDoc}\n\n`;
-        logHook('subagent-context-stager', `Staged issue documentation for #${issueNum}`);
+        (ctx?.log ?? logHook)('subagent-context-stager', `Staged issue documentation for #${issueNum}`);
       }
     }
   }
 
   // === FORK: skip heavy context (CLAUDE.md rules, decisions, todos, testing reminders) ===
   if (isFork) {
-    logHook('subagent-context-stager', `Fork lightweight mode: skipped CLAUDE.md rules, decisions, todos`);
+    (ctx?.log ?? logHook)('subagent-context-stager', `Fork lightweight mode: skipped CLAUDE.md rules, decisions, todos`);
   } else {
     // === INJECT CRITICAL RULES FROM CLAUDE.md FILES ===
     const criticalRules = extractCriticalRules();
     if (criticalRules) {
       stagedContext += criticalRules;
-      logHook('subagent-context-stager', 'Injected critical rules from CLAUDE.md');
+      (ctx?.log ?? logHook)('subagent-context-stager', 'Injected critical rules from CLAUDE.md');
     }
 
     // === CHECK FOR ACTIVE TODOS (Context Protocol 2.0) ===
     const { count: pendingCount, summary: taskSummary } = extractPendingTasks();
     if (pendingCount > 0) {
-      logHook('subagent-context-stager', `Found ${pendingCount} pending tasks`);
+      (ctx?.log ?? logHook)('subagent-context-stager', `Found ${pendingCount} pending tasks`);
       stagedContext += `ACTIVE TODOS:\n${taskSummary}\n\n`;
     }
 
     // === STAGE RELEVANT ARCHITECTURE DECISIONS ===
     if (/backend|api|endpoint|database|migration/.test(taskLower)) {
-      logHook('subagent-context-stager', 'Backend task detected - staging backend decisions');
+      (ctx?.log ?? logHook)('subagent-context-stager', 'Backend task detected - staging backend decisions');
       const backendDecisions = extractRelevantDecisions(taskDescription, 'backend');
       if (backendDecisions) {
         stagedContext += `RELEVANT DECISIONS:\n${backendDecisions}\n\n`;
@@ -363,7 +363,7 @@ export function subagentContextStager(input: HookInput): HookResult {
     }
 
     if (/frontend|react|ui|component/.test(taskLower)) {
-      logHook('subagent-context-stager', 'Frontend task detected - staging frontend decisions');
+      (ctx?.log ?? logHook)('subagent-context-stager', 'Frontend task detected - staging frontend decisions');
       const frontendDecisions = extractRelevantDecisions(taskDescription, 'frontend');
       if (frontendDecisions) {
         stagedContext += `RELEVANT DECISIONS:\n${frontendDecisions}\n\n`;
@@ -372,7 +372,7 @@ export function subagentContextStager(input: HookInput): HookResult {
 
     // === STAGE TESTING REMINDERS ===
     if (/test|testing|pytest|jest/.test(taskLower)) {
-      logHook('subagent-context-stager', 'Testing task detected - staging test context');
+      (ctx?.log ?? logHook)('subagent-context-stager', 'Testing task detected - staging test context');
       stagedContext += `TESTING REMINDERS:
 - Use 'tee' for visible test output
 - Check test patterns in backend/tests/ or frontend/src/**/__tests__/
@@ -386,7 +386,7 @@ export function subagentContextStager(input: HookInput): HookResult {
   if (stagedContext) {
     const systemMessage = `${stagedContext}\nTask: ${taskDescription}\nSubagent: ${subagentType}`;
     const lineCount = stagedContext.split('\n').filter(Boolean).length;
-    logHook('subagent-context-stager', `Staged context with ${lineCount} lines`);
+    (ctx?.log ?? logHook)('subagent-context-stager', `Staged context with ${lineCount} lines`);
 
     return {
       continue: true,

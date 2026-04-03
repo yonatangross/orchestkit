@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
 import { basename, dirname as pathDirname } from 'node:path';
@@ -14,7 +14,7 @@ const MAX_DEPTH = 4;
 /**
  * Validate file structure and location
  */
-export function structureLocationValidator(input: HookInput): HookResult {
+export function structureLocationValidator(input: HookInput, ctx?: HookContext): HookResult {
   // Self-guard: Only run for code files
   const guard = guardCodeFiles(input);
   if (guard) return guard;

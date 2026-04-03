@@ -11,7 +11,7 @@
  * additionalContext from all hooks and forwards the combined result.
  */
 
-import type { HookInput, HookResult, HookFn } from '../types.js';
+import type { HookInput, HookResult, HookFn , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, estimateTokenCount } from '../lib/common.js';
 import { trackTokenUsage } from '../lib/token-tracker.js';
 // Import individual hook implementations (essential: security + local state only)
@@ -96,7 +96,7 @@ export function matchesTool(toolName: string, matcher: string | string[]): boole
  * - Consistent timeout behavior
  * - Easier to debug and maintain
  */
-export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
   const toolName = input.tool_name || '';
 
   // Filter hooks that match this tool
@@ -139,7 +139,7 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
   }
 
   if (failures.length > 0) {
-    logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
+    (hookCtx?.log ?? logHook)('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
   }
 
   // Forward collected additionalContext to CC (delivered on next turn for async hooks)

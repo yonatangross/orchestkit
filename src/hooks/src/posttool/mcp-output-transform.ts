@@ -26,7 +26,7 @@
  * updatedMCPToolOutput must be applied before Claude processes the result.
  */
 
-import type { HookInput, HookResult, HookMeta } from '../types.js';
+import type { HookInput, HookResult, HookMeta , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
@@ -206,7 +206,7 @@ function logTransform(entry: {
 // Hook Entry Point
 // -----------------------------------------------------------------------------
 
-export function mcpOutputTransform(input: HookInput): HookResult {
+export function mcpOutputTransform(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Guard: only process MCP tool calls
@@ -263,7 +263,7 @@ export function mcpOutputTransform(input: HookInput): HookResult {
     pii_redactions: redactionCount,
   });
 
-  logHook(
+  (ctx?.log ?? logHook)(
     'mcp-output-transform',
     `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions`,
     truncated || redactionCount > 0 ? 'info' : 'debug',

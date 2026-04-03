@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch } from '../lib/git.js';
 import { assertSafeGitRef } from '../lib/sanitize-shell.js';
@@ -102,7 +102,7 @@ function getBranchDivergence(baseBranch: string, currentBranch: string): { ahead
 /**
  * Predict merge conflicts before commit
  */
-export function mergeConflictPredictor(input: HookInput): HookResult {
+export function mergeConflictPredictor(input: HookInput, hookCtx?: HookContext): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
@@ -115,7 +115,7 @@ export function mergeConflictPredictor(input: HookInput): HookResult {
   const warnings: string[] = [];
   const conflicts: ConflictInfo[] = [];
 
-  const repoRoot = getRepoRoot() || getProjectDir();
+  const repoRoot = getRepoRoot() || (hookCtx?.projectDir ?? getProjectDir());
   const currentWorktree = repoRoot;
   const relPath = filePath.replace(`${repoRoot}/`, '').replace(repoRoot, '');
 

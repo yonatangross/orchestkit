@@ -7,14 +7,14 @@
 
 import { mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getLogDir } from '../lib/common.js';
 
 /**
  * Generate security scan summary on session stop
  */
-export function securitySummary(_input: HookInput): HookResult {
-  const logDir = getLogDir();
+export function securitySummary(_input: HookInput, ctx?: HookContext): HookResult {
+  const logDir = ctx?.logDir ?? getLogDir();
   const logFile = `${logDir}/security-summary.log`;
 
   // Ensure log directory exists

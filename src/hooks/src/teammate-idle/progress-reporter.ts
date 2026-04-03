@@ -8,13 +8,13 @@
  * @since CC 2.1.33
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { getProjectDir } from '../lib/common.js';
 import { appendEventLog } from '../lib/event-logger.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
-export async function progressReporter(input: HookInput): Promise<HookResult> {
-  if (!getProjectDir()) {
+export async function progressReporter(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+  if (!(ctx?.projectDir ?? getProjectDir())) {
     return { continue: true };
   }
 

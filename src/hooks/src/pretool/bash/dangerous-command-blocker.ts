@@ -10,7 +10,7 @@
  *   ALLOW — everything else (silent pass-through)
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -104,7 +104,7 @@ const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tcls
 // Main handler
 // =============================================================================
 
-export function dangerousCommandBlocker(input: HookInput): HookResult {
+export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
   if (!command) return outputSilentSuccess();
 
@@ -112,8 +112,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   const dangerousCheck = containsDangerousCommand(command, DENY_PATTERNS);
   if (dangerousCheck.matches) {
     const pattern = dangerousCheck.matched!;
-    logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
-    logPermissionFeedback('deny', `Dangerous pattern: ${pattern}`, input);
+    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Dangerous pattern: ${pattern}`, input);
     return outputDeny(
       `Command matches dangerous pattern: ${pattern}\n\n` +
         'This command could cause severe system damage and has been blocked.',
@@ -124,8 +124,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   const normalizedForRegex = normalizeSingle(command);
   for (const { pattern, label } of DENY_REGEX_PATTERNS) {
     if (pattern.test(normalizedForRegex)) {
-      logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
-      logPermissionFeedback('deny', `Dangerous pattern: ${label}`, input);
+      (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
+      (ctx?.logPermission ?? logPermissionFeedback)('deny', `Dangerous pattern: ${label}`, input);
       return outputDeny(
         `Command matches dangerous pattern: ${label}\n\n` +
           'This command could cause severe system damage and has been blocked.',
@@ -138,8 +138,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   // --- DENY tier: fork bomb ---
   if (normalizedCommand.includes(':(){:|:&};:')) {
     const reason = 'Fork bomb detected';
-    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    logPermissionFeedback('deny', reason, input);
+    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', reason, input);
     return outputDeny(
       `Command matches dangerous pattern: :(){:|:&};:\n\n` +
         'This command could cause severe system damage and has been blocked.',
@@ -149,8 +149,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   // --- DENY tier: piping to shell interpreters ---
   if (PIPE_TO_SHELL_RE.test(normalizedCommand)) {
     const reason = 'Piping to shell interpreter detected';
-    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    logPermissionFeedback('deny', reason, input);
+    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', reason, input);
     return outputDeny(
       `${reason}\n\n` +
         'Piping untrusted content to a shell interpreter is dangerous and has been blocked.',
@@ -165,8 +165,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   if (askSubstringCheck.matches) {
     const matched = ASK_PATTERNS.find((p) => p.pattern === askSubstringCheck.matched);
     if (matched) {
-      logHook('dangerous-command-blocker', `ASK: ${matched.reason}`);
-      logPermissionFeedback('ask', matched.reason, input);
+      (ctx?.log ?? logHook)('dangerous-command-blocker', `ASK: ${matched.reason}`);
+      (ctx?.logPermission ?? logPermissionFeedback)('ask', matched.reason, input);
       return outputAsk(matched.reason);
     }
   }
@@ -174,8 +174,8 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   // --- ASK tier: dangerous but sometimes legitimate (regex) ---
   for (const { pattern, reason } of ASK_REGEX_PATTERNS) {
     if (pattern.test(normalizedCommand)) {
-      logHook('dangerous-command-blocker', `ASK: ${reason}`);
-      logPermissionFeedback('ask', reason, input);
+      (ctx?.log ?? logHook)('dangerous-command-blocker', `ASK: ${reason}`);
+      (ctx?.logPermission ?? logPermissionFeedback)('ask', reason, input);
       return outputAsk(reason);
     }
   }

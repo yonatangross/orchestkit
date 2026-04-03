@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
 /**
@@ -140,10 +140,10 @@ function runTests(projectDir: string, _logFile: string): boolean {
 /**
  * Full test suite runner
  */
-export function fullTestSuite(input: HookInput): HookResult {
-  logHook('full-test-suite', '=== Full Test Suite Started ===');
+export function fullTestSuite(input: HookInput, ctx?: HookContext): HookResult {
+  (ctx?.log ?? logHook)('full-test-suite', '=== Full Test Suite Started ===');
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
   const logDir = `${projectDir}/.claude/hooks/logs`;
 
   // Ensure log directory exists
@@ -162,7 +162,7 @@ export function fullTestSuite(input: HookInput): HookResult {
   const passed = runTests(projectDir, logFile);
 
   if (passed) {
-    logHook('full-test-suite', '=== All tests passed ===');
+    (ctx?.log ?? logHook)('full-test-suite', '=== All tests passed ===');
     // Update last run file
     try {
       writeFileSync(`${logDir}/.last-test-run`, String(Date.now()));
@@ -170,7 +170,7 @@ export function fullTestSuite(input: HookInput): HookResult {
       // Ignore
     }
   } else {
-    logHook('full-test-suite', '=== Some tests failed ===');
+    (ctx?.log ?? logHook)('full-test-suite', '=== Some tests failed ===');
     // Don't block - just log the failure
   }
 

@@ -15,7 +15,7 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
 interface TypeErrorEntry {
@@ -77,11 +77,11 @@ function hasTypeScript(projectDir: string): boolean {
 /**
  * Type error indexer — runs tsc --noEmit and caches results.
  */
-export function typeErrorIndexer(input: HookInput): HookResult {
-  const projectDir = input.project_dir || getProjectDir();
+export function typeErrorIndexer(input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
   if (!hasTypeScript(projectDir)) {
-    logHook('type-error-indexer', 'No tsconfig.json found, skipping');
+    (ctx?.log ?? logHook)('type-error-indexer', 'No tsconfig.json found, skipping');
     return outputSilentSuccess();
   }
 
@@ -104,12 +104,12 @@ export function typeErrorIndexer(input: HookInput): HookResult {
       summary: 'No type errors found',
     };
     writeFileSync(getCacheFilePath(sessionId), JSON.stringify(cache, null, 2));
-    logHook('type-error-indexer', 'No type errors found');
+    (ctx?.log ?? logHook)('type-error-indexer', 'No type errors found');
   } catch (err: unknown) {
     const execErr = err as { stdout?: string; stderr?: string; killed?: boolean; status?: number };
 
     if (execErr.killed) {
-      logHook('type-error-indexer', `tsc timed out after ${TSC_TIMEOUT_MS}ms`, 'warn');
+      (ctx?.log ?? logHook)('type-error-indexer', `tsc timed out after ${TSC_TIMEOUT_MS}ms`, 'warn');
       return outputSilentSuccess();
     }
 
@@ -118,7 +118,7 @@ export function typeErrorIndexer(input: HookInput): HookResult {
     const errors = parseTscOutput(output);
 
     if (errors.length === 0) {
-      logHook('type-error-indexer', 'tsc failed but no parseable errors', 'warn');
+      (ctx?.log ?? logHook)('type-error-indexer', 'tsc failed but no parseable errors', 'warn');
       return outputSilentSuccess();
     }
 
@@ -134,7 +134,7 @@ export function typeErrorIndexer(input: HookInput): HookResult {
     };
 
     writeFileSync(getCacheFilePath(sessionId), JSON.stringify(cache, null, 2));
-    logHook('type-error-indexer', `Cached: ${summary}`);
+    (ctx?.log ?? logHook)('type-error-indexer', `Cached: ${summary}`);
   }
 
   return outputSilentSuccess();

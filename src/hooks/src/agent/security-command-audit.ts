@@ -10,17 +10,17 @@
 
 import { mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 
 /**
  * Security command audit hook
  */
-export function securityCommandAudit(input: HookInput): HookResult {
+export function securityCommandAudit(input: HookInput, ctx?: HookContext): HookResult {
   const agentId = process.env.CLAUDE_AGENT_ID || 'unknown';
   const toolName = input.tool_name;
-  const sessionId = input.session_id || getSessionId();
-  const projectDir = input.project_dir || getProjectDir();
+  const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
   const logFile = `${projectDir}/.claude/logs/security-audit.log`;
 

@@ -12,7 +12,7 @@
 
 import { readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback, getEnvFile } from '../lib/common.js';
 
 /** Dangerous patterns that should BLOCK the change */
@@ -155,11 +155,11 @@ function syncDebugMode(): void {
   }
 }
 
-export function settingsReload(input: HookInput): HookResult {
+export function settingsReload(input: HookInput, ctx?: HookContext): HookResult {
   const sessionId = input.session_id || 'unknown';
   const projectDir = input.project_dir || process.cwd();
 
-  logHook('config-change', `Settings changed mid-session (session: ${sessionId})`);
+  (ctx?.log ?? logHook)('config-change', `Settings changed mid-session (session: ${sessionId})`);
 
   // Sync debug mode with CC's /debug toggle (CC 2.1.71)
   syncDebugMode();
@@ -179,8 +179,8 @@ export function settingsReload(input: HookInput): HookResult {
     // BLOCK: dangerous patterns found
     if (allBlocks.length > 0) {
       const reason = `[ConfigChange] BLOCKED — dangerous config state detected:\n${allBlocks.map(b => `  - ${b}`).join('\n')}\n\nRevert the change or remove the dangerous pattern.`;
-      logHook('config-change', `BLOCKED: ${allBlocks.join('; ')}`, 'warn');
-      logPermissionFeedback('deny', `ConfigChange blocked: ${allBlocks.join('; ')}`);
+      (ctx?.log ?? logHook)('config-change', `BLOCKED: ${allBlocks.join('; ')}`, 'warn');
+      (ctx?.logPermission ?? logPermissionFeedback)('deny', `ConfigChange blocked: ${allBlocks.join('; ')}`);
       writeAuditEntry(projectDir, { session: sessionId, action: 'block', details: allBlocks });
       return outputBlock(reason);
     }
@@ -188,8 +188,8 @@ export function settingsReload(input: HookInput): HookResult {
     // WARN: risky patterns found
     if (allWarnings.length > 0) {
       const warningMsg = `Config change detected with risks:\n${allWarnings.map(w => `  - ${w}`).join('\n')}`;
-      logHook('config-change', `WARNING: ${allWarnings.join('; ')}`, 'warn');
-      logPermissionFeedback('warn', `ConfigChange warning: ${allWarnings.join('; ')}`);
+      (ctx?.log ?? logHook)('config-change', `WARNING: ${allWarnings.join('; ')}`, 'warn');
+      (ctx?.logPermission ?? logPermissionFeedback)('warn', `ConfigChange warning: ${allWarnings.join('; ')}`);
       writeAuditEntry(projectDir, { session: sessionId, action: 'warn', details: allWarnings });
       return outputWarning(warningMsg);
     }
@@ -203,7 +203,7 @@ export function settingsReload(input: HookInput): HookResult {
     );
   } catch (err) {
     // Never crash on config read errors — fall back to advisory
-    logHook('config-change', `Error scanning config: ${(err as Error).message}`, 'error');
+    (ctx?.log ?? logHook)('config-change', `Error scanning config: ${(err as Error).message}`, 'error');
     return outputSilentSuccess();
   }
 }

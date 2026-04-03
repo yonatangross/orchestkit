@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWarning, logHook, getPluginRoot } from '../lib/common.js';
 
 // Keyword signals for complexity detection (fallback when frontmatter unavailable)
@@ -216,7 +216,7 @@ function getModelAdvice(agentType: string, description: string): ModelAdvice | n
   return null;
 }
 
-export function modelCostAdvisor(input: HookInput): HookResult {
+export function modelCostAdvisor(input: HookInput, ctx?: HookContext): HookResult {
   const toolInput = input.tool_input || {};
   const agentType = (toolInput.subagent_type as string) || '';
   const description = (toolInput.description as string) || '';
@@ -230,11 +230,11 @@ export function modelCostAdvisor(input: HookInput): HookResult {
   const advice = getModelAdvice(agentType, description);
 
   if (!advice) {
-    logHook('model-cost-advisor', `${agentType}: ${currentModel} appropriate for ${complexity} task`);
+    (ctx?.log ?? logHook)('model-cost-advisor', `${agentType}: ${currentModel} appropriate for ${complexity} task`);
     return outputSilentSuccess();
   }
 
-  logHook('model-cost-advisor',
+  (ctx?.log ?? logHook)('model-cost-advisor',
     `${agentType}: Recommend ${advice.recommended} over ${advice.current} (${advice.reason})`,
     'info'
   );

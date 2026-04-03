@@ -11,7 +11,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -98,7 +98,7 @@ function scanForSecrets(content: string): { name: string; snippet: string } | nu
 /**
  * Scan Write/Edit content for secret patterns
  */
-export function contentSecretScanner(input: HookInput): HookResult {
+export function contentSecretScanner(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name;
   const filePath = input.tool_input.file_path || '';
 
@@ -123,8 +123,8 @@ export function contentSecretScanner(input: HookInput): HookResult {
 
   if (finding) {
     const fileName = basename(filePath);
-    logPermissionFeedback('deny', `Secret detected in ${fileName}: ${finding.name}`, input);
-    logHook('content-secret-scanner', `BLOCKED: ${finding.name} in ${filePath} (${finding.snippet})`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Secret detected in ${fileName}: ${finding.name}`, input);
+    (ctx?.log ?? logHook)('content-secret-scanner', `BLOCKED: ${finding.name} in ${filePath} (${finding.snippet})`);
 
     return outputDeny(
       `BLOCKED: Potential secret detected in file content.
@@ -143,6 +143,6 @@ move the file to a test-data/ or fixtures/ directory.`
     );
   }
 
-  logPermissionFeedback('allow', `Content scan clean: ${basename(filePath)}`, input);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Content scan clean: ${basename(filePath)}`, input);
   return outputSilentSuccess();
 }

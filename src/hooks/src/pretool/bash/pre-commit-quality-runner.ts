@@ -18,7 +18,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputBlock, logHook, getProjectDir } from '../../lib/common.js';
 import { getStagedSourceFiles } from '../../lib/git.js';
 
@@ -72,7 +72,7 @@ function runCheckWithArgs(name: string, cmd: string, args: string[], projectDir:
 /**
  * Run quality checks on staged files before commit
  */
-export function preCommitQualityRunner(input: HookInput): HookResult {
+export function preCommitQualityRunner(input: HookInput, ctx?: HookContext): HookResult {
   // Skip if disabled
   if (process.env.ORCHESTKIT_SKIP_PRE_COMMIT_CHECKS === 'true') {
     return outputSilentSuccess();
@@ -83,17 +83,17 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
 
   // Don't block --no-verify (user explicitly opted out) but log it
   if (/--no-verify/.test(command)) {
-    logHook(HOOK_NAME, 'Commit bypassed quality checks with --no-verify', 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, 'Commit bypassed quality checks with --no-verify', 'warn');
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   if (!projectDir) return outputSilentSuccess();
 
   const stagedFiles = getStagedSourceFiles();
   if (stagedFiles.length === 0) return outputSilentSuccess();
 
-  logHook(HOOK_NAME, `${stagedFiles.length} staged files, running quality checks`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `${stagedFiles.length} staged files, running quality checks`);
 
   const checks: CheckResult[] = [];
   const hasPackageJson = existsSync(join(projectDir, 'package.json'));
@@ -152,14 +152,14 @@ export function preCommitQualityRunner(input: HookInput): HookResult {
       `${f.name} FAILED (${f.durationMs}ms):\n${f.output}`
     ).join('\n\n');
 
-    logHook(HOOK_NAME, `${failures.length}/${checks.length} checks failed in ${totalMs}ms`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `${failures.length}/${checks.length} checks failed in ${totalMs}ms`);
 
     return outputBlock(
       `Pre-commit quality checks failed (${failures.length}/${checks.length}):\n\n${failureReport}\n\nFix the issues and try again. Skip with ORCHESTKIT_SKIP_PRE_COMMIT_CHECKS=true for emergency commits.`
     );
   }
 
-  logHook(HOOK_NAME, `All ${checks.length} checks passed in ${totalMs}ms`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `All ${checks.length} checks passed in ${totalMs}ms`);
 
   // All passed — inject confirmation context
   const checkNames = checks.map(c => `${c.name} (${c.durationMs}ms)`).join(', ');

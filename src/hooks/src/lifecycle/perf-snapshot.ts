@@ -19,7 +19,7 @@
 
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
 import { getHomeDir } from '../lib/paths.js';
@@ -99,7 +99,7 @@ function isPerfSnapshotEnabled(): boolean {
   return true;
 }
 
-export function perfSnapshot(_input: HookInput): HookResult {
+export function perfSnapshot(_input: HookInput, ctx?: HookContext): HookResult {
   if (!isPerfSnapshotEnabled()) {
     return outputSilentSuccess();
   }
@@ -128,7 +128,7 @@ export function perfSnapshot(_input: HookInput): HookResult {
     const snapPath = join(perfDir, `snap-${bucket}.json`);
     atomicWriteSync(snapPath, JSON.stringify(snapshot, null, 2));
 
-    logHook(
+    (ctx?.log ?? logHook)(
       HOOK_NAME,
       `Snapshot written: snap-${bucket}.json (${tokenState.totalTokensInjected}t, ${hookCount} hooks)`
     );
@@ -139,7 +139,7 @@ export function perfSnapshot(_input: HookInput): HookResult {
       systemMessage: summary,
     };
   } catch (err) {
-    logHook(
+    (ctx?.log ?? logHook)(
       HOOK_NAME,
       `Failed to write snapshot: ${err instanceof Error ? err.message : String(err)}`,
       'warn'

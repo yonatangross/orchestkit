@@ -4,7 +4,7 @@
  * CC 2.1.6 Compliant: includes continue field in all outputs
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentAllow,
   outputSilentSuccess,
@@ -19,11 +19,11 @@ import { resolve, isAbsolute } from 'node:path';
  * Auto-approve writes within project directory or any /add-dir added directories
  * (excluding sensitive directories). CC 2.1.47: respects added_dirs from statusline.
  */
-export function autoApproveProjectWrites(input: HookInput): HookResult {
+export function autoApproveProjectWrites(input: HookInput, ctx?: HookContext): HookResult {
   let filePath = input.tool_input.file_path || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
-  logHook('auto-approve-project-writes', `Evaluating write to: ${filePath}`);
+  (ctx?.log ?? logHook)('auto-approve-project-writes', `Evaluating write to: ${filePath}`);
 
   // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
   if (!isAbsolute(filePath)) {
@@ -44,17 +44,17 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
     if (!isInsideDir(filePath, rootDir)) continue;
 
     if (hasExcludedDir(filePath)) {
-      logHook('auto-approve-project-writes', `Write to excluded directory in: ${rootDir}`);
+      (ctx?.log ?? logHook)('auto-approve-project-writes', `Write to excluded directory in: ${rootDir}`);
       return outputSilentSuccess(); // Let user decide
     }
 
     const label = rootDir === projectDir ? 'project directory' : `added dir ${rootDir}`;
-    logHook('auto-approve-project-writes', `Auto-approved: within ${label}`);
-    logPermissionFeedback('allow', `In-project write: ${filePath}`, input);
+    (ctx?.log ?? logHook)('auto-approve-project-writes', `Auto-approved: within ${label}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', `In-project write: ${filePath}`, input);
     return outputSilentAllow();
   }
 
   // Outside all known directories - let user decide
-  logHook('auto-approve-project-writes', 'Write outside project directory - manual approval required');
+  (ctx?.log ?? logHook)('auto-approve-project-writes', 'Write outside project directory - manual approval required');
   return outputSilentSuccess();
 }

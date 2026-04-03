@@ -4,7 +4,7 @@
  * CC 2.1.9 Enhanced: injects additionalContext with learned error patterns
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -67,8 +67,8 @@ function countCommonWords(str1: string, str2: string): number {
 /**
  * Warn about commands matching known error patterns
  */
-export function errorPatternWarner(input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function errorPatternWarner(input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   const command = input.tool_input.command || '';
 
   if (!command) {
@@ -107,7 +107,7 @@ export function errorPatternWarner(input: HookInput): HookResult {
 
     const sampleCommand = rule.sample_input?.command;
     if (sampleCommand && countCommonWords(command, sampleCommand) > 3) {
-      logHook('error-pattern-warner', `Pattern match: ${rule.signature}`);
+      (ctx?.log ?? logHook)('error-pattern-warner', `Pattern match: ${rule.signature}`);
       if (rule.suggested_fix) {
         hints.push(`${rule.signature} (${rule.occurrence_count}x): ${rule.suggested_fix}`);
       } else {

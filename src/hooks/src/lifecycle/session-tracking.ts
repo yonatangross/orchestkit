@@ -6,7 +6,7 @@
  * Tracks session start event with context (project, branch, time).
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { trackSessionStart } from '../lib/session-tracker.js';
 import { execFileSync } from 'node:child_process';
@@ -31,9 +31,9 @@ function getGitBranch(projectDir: string): string | undefined {
 /**
  * Track session start event with context
  */
-export function sessionTracking(input: HookInput): HookResult {
+export function sessionTracking(input: HookInput, ctx?: HookContext): HookResult {
   try {
-    const projectDir = input.project_dir || getProjectDir();
+    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
     const gitBranch = getGitBranch(projectDir);
 
     trackSessionStart({
@@ -42,10 +42,10 @@ export function sessionTracking(input: HookInput): HookResult {
       added_dirs_count: (input.added_dirs ?? []).length,
     });
 
-    logHook('session-tracking', `Tracked session start: branch=${gitBranch || 'unknown'}`, 'debug');
+    (ctx?.log ?? logHook)('session-tracking', `Tracked session start: branch=${gitBranch || 'unknown'}`, 'debug');
     return outputSilentSuccess();
   } catch (error) {
-    logHook('session-tracking', `Error: ${error}`, 'warn');
+    (ctx?.log ?? logHook)('session-tracking', `Error: ${error}`, 'warn');
     return outputSilentSuccess();
   }
 }

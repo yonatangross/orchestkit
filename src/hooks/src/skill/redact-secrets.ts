@@ -5,7 +5,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 
 // API key patterns
@@ -27,7 +27,7 @@ const SECRET_PATTERNS = [
 /**
  * Check for potential secrets in command output
  */
-export function redactSecrets(input: HookInput): HookResult {
+export function redactSecrets(input: HookInput, ctx?: HookContext): HookResult {
   const toolOutput = (input as any).tool_result || (input as any).output || '';
 
   if (!toolOutput) return outputSilentSuccess();

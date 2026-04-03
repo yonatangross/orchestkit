@@ -11,7 +11,7 @@
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook } from '../lib/common.js';
 import { loadConfig } from '../lib/orchestration-state.js';
 import {
@@ -84,7 +84,7 @@ function isInActivePipeline(): boolean {
  * 2. Creates pipeline execution plan
  * 3. Outputs task creation instructions
  */
-export function pipelineDetector(input: HookInput): HookResult {
+export function pipelineDetector(input: HookInput, ctx?: HookContext): HookResult {
   const prompt = input.prompt || '';
 
   // Quick filters
@@ -104,21 +104,21 @@ export function pipelineDetector(input: HookInput): HookResult {
 
   // Check if already in pipeline
   if (isInActivePipeline()) {
-    logHook('pipeline-detector', 'Already in active pipeline, skipping detection');
+    (ctx?.log ?? logHook)('pipeline-detector', 'Already in active pipeline, skipping detection');
     return outputSilentSuccess();
   }
 
-  logHook('pipeline-detector', 'Checking for pipeline triggers...');
+  (ctx?.log ?? logHook)('pipeline-detector', 'Checking for pipeline triggers...');
 
   // Detect pipeline
   const pipeline = detectPipeline(prompt);
 
   if (!pipeline) {
-    logHook('pipeline-detector', 'No pipeline triggers detected');
+    (ctx?.log ?? logHook)('pipeline-detector', 'No pipeline triggers detected');
     return outputSilentSuccess();
   }
 
-  logHook('pipeline-detector', `Detected pipeline: ${pipeline.type}`);
+  (ctx?.log ?? logHook)('pipeline-detector', `Detected pipeline: ${pipeline.type}`);
 
   // Create pipeline execution
   const { execution, tasks } = createPipelineExecution(pipeline);
@@ -129,7 +129,7 @@ export function pipelineDetector(input: HookInput): HookResult {
   // Format plan message
   const message = formatPipelinePlan(pipeline, execution, tasks);
 
-  logHook(
+  (ctx?.log ?? logHook)(
     'pipeline-detector',
     `Created pipeline ${execution.pipelineId} with ${tasks.length} steps`
   );

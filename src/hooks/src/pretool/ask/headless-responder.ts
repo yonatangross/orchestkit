@@ -15,7 +15,7 @@
  * Never fires in interactive sessions.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 
 interface AskUserQuestionInput {
@@ -37,7 +37,7 @@ function isHeadless(): boolean {
   );
 }
 
-export default function headlessResponder(input: HookInput): HookResult {
+export default function headlessResponder(input: HookInput, ctx?: HookContext): HookResult {
   // Only activate in headless mode
   if (!isHeadless()) {
     return outputSilentSuccess();
@@ -63,7 +63,7 @@ export default function headlessResponder(input: HookInput): HookResult {
     }
   }
 
-  logHook('headless-responder', `Auto-answering ${toolInput.questions.length} question(s) in headless mode`);
+  (ctx?.log ?? logHook)('headless-responder', `Auto-answering ${toolInput.questions.length} question(s) in headless mode`);
 
   // CC 2.1.85: Return updatedInput with permissionDecision to satisfy AskUserQuestion
   return {

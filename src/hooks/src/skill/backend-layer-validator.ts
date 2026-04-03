@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook, lineContainsAll } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
@@ -12,7 +12,7 @@ import { basename } from 'node:path';
 /**
  * Validate FastAPI layer architecture rules
  */
-export function backendLayerValidator(input: HookInput): HookResult {
+export function backendLayerValidator(input: HookInput, ctx?: HookContext): HookResult {
   // Self-guard: Only run for Python files
   const guard = guardPythonFiles(input);
   if (guard) return guard;
@@ -67,7 +67,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
   if (errors.length > 0) {
     const filename = basename(filePath) || filePath;
     const reason = `Layer violation in ${filename}: ${errors[0]}`;
-    logHook('backend-layer-validator', `BLOCKED: ${reason}`);
+    (ctx?.log ?? logHook)('backend-layer-validator', `BLOCKED: ${reason}`);
     return outputBlock(reason);
   }
 

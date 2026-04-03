@@ -11,7 +11,7 @@
  * CC 2.1.33 Compliant: Single hook with internal parallel routing
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 
 // Import individual TeammateIdle hook implementations
@@ -23,7 +23,7 @@ import { teamQualityGate } from './team-quality-gate.js';
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, hookCtx?: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -45,12 +45,12 @@ const HOOKS: HookConfig[] = [
 // Dispatcher
 // -----------------------------------------------------------------------------
 
-export async function unifiedTeammateIdleDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedTeammateIdleDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
   const contextParts: string[] = [];
 
   for (const hook of HOOKS) {
     try {
-      const result = await hook.fn(input);
+      const result = await hook.fn(input, hookCtx);
 
       // Collect any additionalContext from sub-hooks
       const ctx = result?.hookSpecificOutput?.additionalContext;
@@ -58,7 +58,7 @@ export async function unifiedTeammateIdleDispatcher(input: HookInput): Promise<H
         contextParts.push(ctx.trim());
       }
     } catch (err) {
-      logHook(
+      (hookCtx?.log ?? logHook)(
         'teammate-idle-dispatcher',
         `Hook "${hook.name}" failed: ${err instanceof Error ? err.message : String(err)}`,
       );

@@ -9,7 +9,7 @@
 import { existsSync, statSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { basename, dirname } from 'node:path';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 
 interface ChangeAnalysis {
@@ -153,7 +153,7 @@ function findReadme(projectDir: string): string | null {
 /**
  * Sync README suggestions
  */
-export function readmeSync(input: HookInput): HookResult {
+export function readmeSync(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Only run for Write tool
@@ -182,7 +182,7 @@ export function readmeSync(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Analyze file for README-relevant changes
   const analysis = analyzeFileChange(filePath, projectDir);
@@ -236,7 +236,7 @@ export function readmeSync(input: HookInput): HookResult {
     // Ignore log errors
   }
 
-  logHook('readme-sync', `README_SYNC: ${analysis.changeType} change suggests README update`);
+  (ctx?.log ?? logHook)('readme-sync', `README_SYNC: ${analysis.changeType} change suggests README update`);
 
   // Output using CC 2.1.9 additionalContext format
   return {

@@ -9,13 +9,13 @@
  * CC 2.1.7 compliant output format
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
 
 /**
  * Block writes hook
  */
-export function blockWrites(input: HookInput): HookResult {
+export function blockWrites(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name;
   const agentId = process.env.CLAUDE_AGENT_ID || 'unknown';
 

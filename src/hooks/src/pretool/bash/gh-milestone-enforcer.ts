@@ -9,7 +9,7 @@
  * Phase 2 advisory check inside sync-bash-dispatcher.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -20,7 +20,7 @@ import {
  * Check for --milestone flag in gh issue create commands.
  * Advisory only — warns but never blocks.
  */
-export function ghMilestoneEnforcer(input: HookInput): HookResult {
+export function ghMilestoneEnforcer(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue create
@@ -36,6 +36,6 @@ export function ghMilestoneEnforcer(input: HookInput): HookResult {
   }
 
   const context = 'No --milestone set. Consider assigning to a milestone for sprint tracking.';
-  logHook('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
+  (ctx?.log ?? logHook)('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
   return outputAllowWithContext(context);
 }

@@ -11,7 +11,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook, lineContainsAllCI } from '../lib/common.js';
 
 // Edit pattern categories with detection patterns
@@ -85,7 +85,7 @@ function detectPatterns(diffContent: string): string[] {
 /**
  * Track skill edit patterns
  */
-export function skillEditTracker(input: HookInput): HookResult {
+export function skillEditTracker(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process Write/Edit tools
@@ -101,7 +101,7 @@ export function skillEditTracker(input: HookInput): HookResult {
   }
 
   // Get recently used skill
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   const sessionStateFile = `${projectDir}/.claude/context/session/state.json`;
   const skillId = getRecentSkill(sessionStateFile);
 
@@ -138,7 +138,7 @@ export function skillEditTracker(input: HookInput): HookResult {
   const patterns = detectPatterns(editContent);
 
   if (patterns.length > 0 && process.env.CLAUDE_HOOK_DEBUG) {
-    logHook('skill-edit-tracker', `Detected ${patterns.length} patterns for ${skillId}: ${JSON.stringify(patterns)}`);
+    (ctx?.log ?? logHook)('skill-edit-tracker', `Detected ${patterns.length} patterns for ${skillId}: ${JSON.stringify(patterns)}`);
   }
 
   return outputSilentSuccess();

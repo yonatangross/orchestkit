@@ -21,7 +21,7 @@
  * CC 2.1.9 Compliant: Single additionalContext output with 800-token budget
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -53,7 +53,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
 
 interface AdvisoryHookConfig {
   name: string;
@@ -97,25 +97,25 @@ export const registeredHookNames = () => [
  * 2. agent-browser-safety (can block)
  * 3. Advisory hooks (context producers, budget-capped)
  */
-export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
+export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   // --- Phase 1: Input modifier (default-timeout-setter) ---
   let updatedInput: Record<string, unknown> | undefined;
 
   try {
-    const timeoutResult = defaultTimeoutSetter(input);
+    const timeoutResult = defaultTimeoutSetter(input, ctx);
     if (timeoutResult.hookSpecificOutput?.updatedInput) {
       updatedInput = timeoutResult.hookSpecificOutput.updatedInput as Record<string, unknown>;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
   }
 
   // --- Phase 2: Blocking check (agent-browser-safety) ---
   // Fix #907: collect browser context without short-circuiting advisory hooks
   let browserContext: string | null = null;
   try {
-    const browserResult = agentBrowserSafety(input);
+    const browserResult = agentBrowserSafety(input, ctx);
     if (!browserResult.continue) {
       // Blocked — return the deny immediately
       return browserResult;
@@ -124,7 +124,7 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
     browserContext = extractContext(browserResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Advisory hooks (context producers) ---

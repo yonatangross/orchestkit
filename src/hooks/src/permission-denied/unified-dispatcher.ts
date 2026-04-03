@@ -19,7 +19,7 @@
  * @see #1208
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { safeCommandRetry } from './safe-command-retry.js';
 import { projectWriteRetry } from './project-write-retry.js';
@@ -40,23 +40,23 @@ export const registeredHookNames = () => [
  * Unified PermissionDenied dispatcher.
  * Runs retry hooks first (sync), then fires async loggers.
  */
-export function unifiedPermissionDeniedDispatcher(input: HookInput): HookResult {
+export function unifiedPermissionDeniedDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
-  logHook(HOOK_NAME, `Permission denied for tool: ${toolName}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Permission denied for tool: ${toolName}`);
 
   // --- Async hooks: always run regardless of retry decision ---
   try {
-    denialLogger(input);
+    denialLogger(input, ctx);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `denial-logger failed: ${msg}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `denial-logger failed: ${msg}`, 'warn');
   }
 
   try {
-    denialNotification(input);
+    denialNotification(input, ctx);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `denial-notification failed: ${msg}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `denial-notification failed: ${msg}`, 'warn');
   }
 
   // --- Retry hooks: first match wins ---
@@ -64,28 +64,28 @@ export function unifiedPermissionDeniedDispatcher(input: HookInput): HookResult 
   // Step 1: Try safe-command-retry for Bash commands
   if (toolName === 'Bash') {
     try {
-      const retryResult = safeCommandRetry(input);
+      const retryResult = safeCommandRetry(input, ctx);
       if (retryResult.hookSpecificOutput?.retry === true) {
-        logHook(HOOK_NAME, 'safe-command-retry: retrying known-safe command');
+        (ctx?.log ?? logHook)(HOOK_NAME, 'safe-command-retry: retrying known-safe command');
         return retryResult;
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `safe-command-retry failed: ${msg}`, 'warn');
+      (ctx?.log ?? logHook)(HOOK_NAME, `safe-command-retry failed: ${msg}`, 'warn');
     }
   }
 
   // Step 2: Try project-write-retry for Write/Edit commands
   if (toolName === 'Write' || toolName === 'Edit') {
     try {
-      const retryResult = projectWriteRetry(input);
+      const retryResult = projectWriteRetry(input, ctx);
       if (retryResult.hookSpecificOutput?.retry === true) {
-        logHook(HOOK_NAME, 'project-write-retry: retrying in-project write');
+        (ctx?.log ?? logHook)(HOOK_NAME, 'project-write-retry: retrying in-project write');
         return retryResult;
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `project-write-retry failed: ${msg}`, 'warn');
+      (ctx?.log ?? logHook)(HOOK_NAME, `project-write-retry failed: ${msg}`, 'warn');
     }
   }
 

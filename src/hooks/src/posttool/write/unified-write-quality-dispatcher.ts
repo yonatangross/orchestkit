@@ -17,7 +17,7 @@
  * CC 2.1.34 Compliant: Single hook entry with merged output
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   logHook,
@@ -44,7 +44,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
 
 interface WriteHookConfig {
   name: string;
@@ -76,17 +76,17 @@ export const registeredHookNames = () => WRITE_HOOKS.map(h => h.name);
  *
  * Runs all hooks, merges their context outputs with budget cap.
  */
-export function unifiedWriteQualityDispatcher(input: HookInput): HookResult {
+export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
 
   for (const hook of WRITE_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Check for blocking results (shouldn't happen in PostToolUse, but be safe)
       if (!result.continue && result.continue !== undefined) {
-        logHook(HOOK_NAME, `${hook.name} returned continue:false (unexpected in PostToolUse)`);
+        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} returned continue:false (unexpected in PostToolUse)`);
         continue;
       }
 
@@ -95,7 +95,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput): HookResult {
 
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-        logHook(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+        (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
         continue;
       }
 
@@ -103,7 +103,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput): HookResult {
       totalTokens += contextTokens;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -112,7 +112,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput): HookResult {
   }
 
   const consolidated = contextParts.join('\n');
-  logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
 
   return {
     continue: true,

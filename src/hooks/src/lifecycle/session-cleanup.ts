@@ -8,7 +8,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
@@ -258,10 +258,10 @@ function sanitizeSessionsIndex(projectDir: string): void {
 /**
  * Session cleanup hook
  */
-export function sessionCleanup(input: HookInput): HookResult {
-  logHook('session-cleanup', 'Session cleanup starting');
+export function sessionCleanup(input: HookInput, ctx?: HookContext): HookResult {
+  (ctx?.log ?? logHook)('session-cleanup', 'Session cleanup starting');
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
   const metricsFile = getMetricsFile(); // cross-platform path via lib/paths.ts
   const archiveDir = `${projectDir}/.claude/logs/sessions`;
   const logDir = `${projectDir}/.claude/logs`;
@@ -289,7 +289,7 @@ export function sessionCleanup(input: HookInput): HookResult {
   const teamName = process.env.CLAUDE_CODE_TEAM_NAME;
   if (teamName) {
     const cleaned = cleanupTeam(teamName);
-    logHook('session-cleanup', cleaned
+    (ctx?.log ?? logHook)('session-cleanup', cleaned
       ? `Cleaned team "${teamName}" directories`
       : `Warning: partial cleanup for team "${teamName}"`);
   }
@@ -308,7 +308,7 @@ export function sessionCleanup(input: HookInput): HookResult {
     });
   }
 
-  logHook('session-cleanup', 'Session cleanup complete');
+  (ctx?.log ?? logHook)('session-cleanup', 'Session cleanup complete');
 
   return outputSilentSuccess();
 }

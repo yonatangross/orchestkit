@@ -10,7 +10,7 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { dirname } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ const MAX_COMPLETED_TASKS = 50;
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function contextPublisher(input: HookInput): HookResult {
+export function contextPublisher(input: HookInput, ctx?: HookContext): HookResult {
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
@@ -197,7 +197,7 @@ export function contextPublisher(input: HookInput): HookResult {
   writeJsonFile(sessionStateFile, sessionState);
 
   // === Logging ===
-  const logDir = getLogDir();
+  const logDir = ctx?.logDir ?? getLogDir();
   ensureDir(logDir);
 
   const dateStr = new Date().toISOString().replace(/[-:]/g, '').substring(0, 15);

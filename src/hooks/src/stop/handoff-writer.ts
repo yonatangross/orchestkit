@@ -19,7 +19,7 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   logHook,
@@ -113,9 +113,9 @@ function extractSummary(lastMessage: string): string {
 /**
  * Handoff writer — Stop hook that writes .claude/HANDOFF.md
  */
-export function handoffWriter(input: HookInput): HookResult {
+export function handoffWriter(input: HookInput, ctx?: HookContext): HookResult {
   try {
-    const projectDir = input.project_dir || getProjectDir();
+    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
     const claudeDir = join(projectDir, '.claude');
     const handoffPath = join(claudeDir, 'HANDOFF.md');
 
@@ -124,8 +124,8 @@ export function handoffWriter(input: HookInput): HookResult {
       mkdirSync(claudeDir, { recursive: true });
     }
 
-    const branch = getCachedBranch(projectDir);
-    const sessionId = input.session_id || getSessionId();
+    const branch = ctx?.branch ?? getCachedBranch(projectDir);
+    const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
     const now = `${new Date().toISOString().replace('T', ' ').slice(0, 19)} UTC`;
     const lastMessage = input.last_assistant_message || '';
 
@@ -169,10 +169,10 @@ export function handoffWriter(input: HookInput): HookResult {
     const content = `${sections.join('\n')}\n`;
     atomicWriteSync(handoffPath, content);
 
-    logHook(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `Failed to write handoff: ${msg}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to write handoff: ${msg}`, 'warn');
   }
 
   return outputSilentSuccess();

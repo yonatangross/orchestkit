@@ -6,7 +6,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
 import { assertSafeGitRef, assertSafeGitArgs } from '../lib/sanitize-shell.js';
@@ -31,7 +31,7 @@ function gitExec(args: string[], cwd?: string): string {
 /**
  * Check merge readiness for branch
  */
-export function mergeReadinessChecker(input: HookInput): HookResult {
+export function mergeReadinessChecker(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input?.command || '';
 
   // Only run for merge-related commands
@@ -50,7 +50,7 @@ export function mergeReadinessChecker(input: HookInput): HookResult {
 
   process.stderr.write(`Checking merge readiness: ${currentBranch} -> ${targetBranch}\n\n`);
 
-  const projectRoot = getRepoRoot() || getProjectDir();
+  const projectRoot = getRepoRoot() || (ctx?.projectDir ?? getProjectDir());
   const errors: string[] = [];
   const warnings: string[] = [];
   const passes: string[] = [];

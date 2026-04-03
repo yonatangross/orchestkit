@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { readPackageJson } from './context-loader-utils.js';
 
@@ -21,8 +21,8 @@ import { readPackageJson } from './context-loader-utils.js';
  * Scans package.json, pyproject.toml, tsconfig.json to build a
  * framework standards summary injected once before agent spawning.
  */
-export function implementStandardsLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function implementStandardsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
+  const projectDir = hookCtx?.projectDir ?? getProjectDir();
   const standards: string[] = [];
 
   // Node/TypeScript detection
@@ -99,7 +99,7 @@ export function implementStandardsLoader(_input: HookInput): HookResult {
  * Static content: review dimensions and output contract so each
  * review agent doesn't need them repeated in its prompt.
  */
-export function reviewDimensionsLoader(_input: HookInput): HookResult {
+export function reviewDimensionsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
   const ctx = [
     '[Review Dimensions — loaded once]',
     'Score each dimension 0-10:',
@@ -121,7 +121,7 @@ export function reviewDimensionsLoader(_input: HookInput): HookResult {
  *
  * Static content: 0-10 dimension definitions and pass/fail thresholds.
  */
-export function verifyScoringRubricLoader(_input: HookInput): HookResult {
+export function verifyScoringRubricLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
   const ctx = [
     '[Verification Rubric — loaded once]',
     'Grade scale: 0-10 per dimension, composite = weighted average',
@@ -145,7 +145,7 @@ export function verifyScoringRubricLoader(_input: HookInput): HookResult {
  *
  * Static content: divergent thinking rules and evaluation dimensions.
  */
-export function brainstormInstructionsLoader(_input: HookInput): HookResult {
+export function brainstormInstructionsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
   const ctx = [
     '[Brainstorm Rules — loaded once]',
     'DIVERGENT MODE: Generate ideas WITHOUT filtering.',

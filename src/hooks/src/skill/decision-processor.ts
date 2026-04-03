@@ -13,7 +13,7 @@
  * Version: 2.0.0 - Consolidated from 2 hooks (~520 LOC → ~250 LOC)
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getPluginRoot, lineContainsAllCI } from '../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
@@ -414,7 +414,7 @@ function extractBestPractice(text: string): string | null {
 // MAIN HOOK
 // =============================================================================
 
-export function decisionProcessor(input: HookInput): HookResult {
+export function decisionProcessor(input: HookInput, ctx?: HookContext): HookResult {
   const skillName = (input as any).skill_name || input.tool_input?.skill || '';
   const toolResult = input.tool_result;
   const skillOutput = typeof toolResult === 'string'

@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
@@ -285,13 +285,13 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function subagentValidator(input: HookInput): HookResult {
+export function subagentValidator(input: HookInput, ctx?: HookContext): HookResult {
   const toolInput = input.tool_input || {};
   const subagentType = (toolInput.subagent_type as string) || '';
   const description = (toolInput.description as string) || '';
   const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
 
-  logHook('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
+  (ctx?.log ?? logHook)('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
   // Log spawn to tracking file
   logSpawn(subagentType, description, sessionId);
@@ -304,17 +304,17 @@ export function subagentValidator(input: HookInput): HookResult {
 
   // Validate
   if (!validTypes.has(subagentType) && !validTypes.has(agentTypeOnly)) {
-    logHook('subagent-validator', `WARNING: Unknown subagent type: ${subagentType}`);
+    (ctx?.log ?? logHook)('subagent-validator', `WARNING: Unknown subagent type: ${subagentType}`);
   }
 
   // Log spawn
-  logHook('subagent-validator', `Spawning ${subagentType} agent: ${description}`);
+  (ctx?.log ?? logHook)('subagent-validator', `Spawning ${subagentType} agent: ${description}`);
 
   // Validate agent skills
   const missingSkills = validateAgentSkills(agentTypeOnly);
   if (missingSkills.length > 0) {
     const missingList = missingSkills.join(', ');
-    logHook('subagent-validator', `WARNING: Agent '${agentTypeOnly}' references missing skills: ${missingList}`);
+    (ctx?.log ?? logHook)('subagent-validator', `WARNING: Agent '${agentTypeOnly}' references missing skills: ${missingList}`);
     // Output warning to stderr (visible to user but non-blocking)
     console.error(`Warning: Agent '${agentTypeOnly}' references ${missingSkills.length} missing skill(s): ${missingList}`);
   }
@@ -323,7 +323,7 @@ export function subagentValidator(input: HookInput): HookResult {
   const agentTools = extractAgentTools(agentTypeOnly);
   if (agentTools.length > 0) {
     const permissionProfile = getPermissionProfile(agentTypeOnly, agentTools);
-    logHook('subagent-validator', `Agent '${agentTypeOnly}' tools: ${agentTools.join(', ')}`);
+    (ctx?.log ?? logHook)('subagent-validator', `Agent '${agentTypeOnly}' tools: ${agentTools.join(', ')}`);
     return outputWithContext(permissionProfile);
   }
 

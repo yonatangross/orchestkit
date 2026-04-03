@@ -7,7 +7,7 @@
 import { existsSync, readFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { getReadCountFile } from '../lib/paths.js';
 
@@ -17,7 +17,7 @@ const readCountFile = getReadCountFile();
 /**
  * Log tool execution to audit file
  */
-export function auditLogger(input: HookInput): HookResult {
+export function auditLogger(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Skip logging for high-frequency read operations to reduce noise

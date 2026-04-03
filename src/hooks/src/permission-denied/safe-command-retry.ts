@@ -19,7 +19,7 @@
  * @see #1209
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
@@ -78,18 +78,18 @@ function outputRetry(reason: string): HookResult {
   };
 }
 
-export function safeCommandRetry(input: HookInput): HookResult {
+export function safeCommandRetry(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   if (!command) {
     return outputSilentSuccess();
   }
 
-  logHook(HOOK_NAME, `Evaluating denied command: ${command.slice(0, 80)}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Evaluating denied command: ${command.slice(0, 80)}`);
 
   // SEC: Never retry compound commands
   if (isCompoundCommand(command)) {
-    logHook(HOOK_NAME, 'Compound command — not retrying');
+    (ctx?.log ?? logHook)(HOOK_NAME, 'Compound command — not retrying');
     return outputSilentSuccess();
   }
 
@@ -98,7 +98,7 @@ export function safeCommandRetry(input: HookInput): HookResult {
   // SEC: Check reject patterns first
   for (const pattern of REJECT_PATTERNS) {
     if (pattern.test(normalized)) {
-      logHook(HOOK_NAME, `Matches reject pattern — not retrying`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `Matches reject pattern — not retrying`);
       return outputSilentSuccess();
     }
   }
@@ -106,11 +106,11 @@ export function safeCommandRetry(input: HookInput): HookResult {
   // Check against safe retry patterns
   for (const pattern of RETRY_SAFE_PATTERNS) {
     if (pattern.test(normalized)) {
-      logHook(HOOK_NAME, `Matches safe pattern: ${pattern} — retrying`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `Matches safe pattern: ${pattern} — retrying`);
       return outputRetry(`matches safe read-only pattern: ${pattern}`);
     }
   }
 
-  logHook(HOOK_NAME, 'No safe pattern matched — not retrying');
+  (ctx?.log ?? logHook)(HOOK_NAME, 'No safe pattern matched — not retrying');
   return outputSilentSuccess();
 }

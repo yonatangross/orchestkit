@@ -7,7 +7,7 @@
  * to prevent symlink-based bypasses of file protection.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -192,26 +192,26 @@ function isConfigFile(realPath: string): boolean {
 /**
  * Guard against modifying sensitive files
  */
-export function fileGuard(input: HookInput): HookResult {
+export function fileGuard(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.tool_input.file_path || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   if (!filePath) {
     return outputSilentSuccess();
   }
 
-  logHook('file-guard', `File write/edit: ${filePath}`);
+  (ctx?.log ?? logHook)('file-guard', `File write/edit: ${filePath}`);
 
   // Resolve symlinks to prevent bypass attacks (ME-001 fix)
   const realPath = resolveRealPath(filePath, projectDir);
-  logHook('file-guard', `Resolved path: ${realPath}`);
+  (ctx?.log ?? logHook)('file-guard', `Resolved path: ${realPath}`);
 
   // Check if file matches protected patterns
   const matchedPattern = isProtected(realPath);
 
   if (matchedPattern) {
-    logPermissionFeedback('deny', `Protected file blocked: ${filePath} (pattern: ${matchedPattern})`, input);
-    logHook('file-guard', `BLOCKED: ${filePath} matches ${matchedPattern}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Protected file blocked: ${filePath} (pattern: ${matchedPattern})`, input);
+    (ctx?.log ?? logHook)('file-guard', `BLOCKED: ${filePath} matches ${matchedPattern}`);
 
     return outputDeny(
       `Cannot modify protected file: ${filePath}
@@ -234,11 +234,11 @@ If you need to modify this file, do it manually outside Claude Code.`
 
   // Warn on config files (but allow)
   if (isConfigFile(realPath)) {
-    logHook('file-guard', `WARNING: Config file modification: ${realPath}`);
-    logPermissionFeedback('warn', `Config file modification: ${filePath}`, input);
+    (ctx?.log ?? logHook)('file-guard', `WARNING: Config file modification: ${realPath}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('warn', `Config file modification: ${filePath}`, input);
   }
 
   // Allow the write
-  logPermissionFeedback('allow', `File write allowed: ${filePath}`, input);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `File write allowed: ${filePath}`, input);
   return outputSilentSuccess();
 }

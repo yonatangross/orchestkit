@@ -12,7 +12,7 @@
  * @see #1229
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getPluginRoot } from '../lib/common.js';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -165,7 +165,7 @@ function matchSkillsByDirectory(dir: string): string[] {
   return [...matched].sort();
 }
 
-export function cwdChanged(input: HookInput): HookResult {
+export function cwdChanged(input: HookInput, ctx?: HookContext): HookResult {
   const oldCwd = input.old_cwd || '';
   const newCwd = input.new_cwd || '';
 
@@ -173,7 +173,7 @@ export function cwdChanged(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook(HOOK_NAME, `Directory changed: ${oldCwd} → ${newCwd}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Directory changed: ${oldCwd} → ${newCwd}`);
 
   const watchPaths = getWatchPaths(newCwd);
 

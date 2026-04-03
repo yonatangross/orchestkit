@@ -15,7 +15,7 @@
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
@@ -77,19 +77,19 @@ function isAgentationConfigured(projectDir: string): boolean {
  * Runs once per session. If the agentation MCP server is not configured,
  * returns silent success with no context injection.
  */
-export function agentationContext(input: HookInput): HookResult {
+export function agentationContext(input: HookInput, ctx?: HookContext): HookResult {
   try {
-    const projectDir = input.project_dir || getProjectDir();
+    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
     if (!isAgentationConfigured(projectDir)) {
-      logHook(HOOK_NAME, 'Agentation MCP not configured, skipping');
+      (ctx?.log ?? logHook)(HOOK_NAME, 'Agentation MCP not configured, skipping');
       return outputSilentSuccess();
     }
 
-    logHook(HOOK_NAME, 'Agentation MCP detected — injecting annotation reminder');
+    (ctx?.log ?? logHook)(HOOK_NAME, 'Agentation MCP detected — injecting annotation reminder');
     return outputPromptContext(AGENTATION_CONTEXT);
   } catch (err) {
-    logHook(HOOK_NAME, `Error checking agentation config: ${err}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Error checking agentation config: ${err}`, 'warn');
     return outputSilentSuccess();
   }
 }

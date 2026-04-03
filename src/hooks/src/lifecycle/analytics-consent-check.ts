@@ -9,7 +9,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
 interface ConsentLog {
@@ -84,13 +84,13 @@ function shouldShowReminder(lastTimestamp: string): boolean {
 /**
  * Analytics consent check hook
  */
-export function analyticsConsentCheck(input: HookInput): HookResult {
-  const projectDir = input.project_dir || getProjectDir();
+export function analyticsConsentCheck(input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
   const status = getConsentStatus(projectDir);
 
   // Already consented - nothing to do
   if (status.consented) {
-    logHook('analytics-consent-check', 'User has consented to analytics');
+    (ctx?.log ?? logHook)('analytics-consent-check', 'User has consented to analytics');
     return outputSilentSuccess();
   }
 
@@ -101,7 +101,7 @@ export function analyticsConsentCheck(input: HookInput): HookResult {
     if (lastEvent && (lastEvent.action === 'declined' || lastEvent.action === 'revoked')) {
       if (shouldShowReminder(lastEvent.timestamp)) {
         // Show gentle reminder (not blocking)
-        logHook('analytics-consent-check', 'Showing 30-day reminder');
+        (ctx?.log ?? logHook)('analytics-consent-check', 'Showing 30-day reminder');
         return {
           continue: true,
           systemMessage:
@@ -111,12 +111,12 @@ export function analyticsConsentCheck(input: HookInput): HookResult {
     }
 
     // Don't show anything if recently asked
-    logHook('analytics-consent-check', 'User recently declined, not prompting');
+    (ctx?.log ?? logHook)('analytics-consent-check', 'User recently declined, not prompting');
     return outputSilentSuccess();
   }
 
   // First time - show a brief notice (not the full prompt, to avoid blocking)
-  logHook('analytics-consent-check', 'First time user, showing brief notice');
+  (ctx?.log ?? logHook)('analytics-consent-check', 'First time user, showing brief notice');
   return {
     continue: true,
     systemMessage:

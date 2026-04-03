@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
@@ -33,7 +33,7 @@ function getLayer(filePath: string): string | null {
 /**
  * Enforce import direction rules
  */
-export function importDirectionEnforcer(input: HookInput): HookResult {
+export function importDirectionEnforcer(input: HookInput, ctx?: HookContext): HookResult {
   // Self-guard: Only run for code files
   const guard = guardCodeFiles(input);
   if (guard) return guard;

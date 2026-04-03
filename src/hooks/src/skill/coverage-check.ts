@@ -7,15 +7,15 @@
 import { existsSync, mkdirSync, } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getLogDir, getProjectDir } from '../lib/common.js';
 
 /**
  * Check coverage threshold on stop
  */
-export function coverageCheck(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
-  const logDir = getLogDir();
+export function coverageCheck(_input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const logDir = ctx?.logDir ?? getLogDir();
   const logFile = `${logDir}/coverage-check.log`;
   const threshold = parseInt(process.env.COVERAGE_THRESHOLD || '80', 10);
 

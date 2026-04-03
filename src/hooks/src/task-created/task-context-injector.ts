@@ -11,7 +11,7 @@
  * @since CC 2.1.84
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { execSync } from 'node:child_process';
 
@@ -41,7 +41,7 @@ function getRecentCommitSubject(): string | null {
   }
 }
 
-export function taskContextInjector(input: HookInput): HookResult {
+export function taskContextInjector(input: HookInput, ctx?: HookContext): HookResult {
   const taskSubject = input.task_subject || '';
   if (!taskSubject) return outputSilentSuccess();
 
@@ -52,7 +52,7 @@ export function taskContextInjector(input: HookInput): HookResult {
   const parts = [`Branch: ${branch}`];
   if (lastCommit) parts.push(`Last commit: ${lastCommit}`);
 
-  logHook(HOOK_NAME, `Injecting context for task: ${taskSubject}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Injecting context for task: ${taskSubject}`);
 
   return {
     continue: true,

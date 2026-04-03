@@ -14,7 +14,7 @@
  * Version: 4.0.0 - Removed dead queue, kept classification + logging
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
 
 // Priority keywords
@@ -83,7 +83,7 @@ function detectCategory(content: string): string {
  * Fix #903: No longer writes to pending queue files — zero file I/O.
  * Decision data reaches HQ via audit-logger + usage-summary-reporter.
  */
-export function realtimeSync(input: HookInput): HookResult {
+export function realtimeSync(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Self-guard: Only process relevant tools
@@ -136,7 +136,7 @@ export function realtimeSync(input: HookInput): HookResult {
   }
 
   const category = detectCategory(decision);
-  logHook('realtime-sync', `${priority} decision: category=${category}, "${decision.substring(0, 100)}"`);
+  (ctx?.log ?? logHook)('realtime-sync', `${priority} decision: category=${category}, "${decision.substring(0, 100)}"`);
 
   return outputSilentSuccess();
 }

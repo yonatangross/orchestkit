@@ -11,7 +11,7 @@
  * CC 2.1.9 Compliant: Uses additionalContext for quality warnings
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -216,10 +216,10 @@ function getCachedTypeErrors(filePath: string, projectDir: string): string {
 /**
  * Code quality gate - analyzes quality before allowing write
  */
-export function codeQualityGate(input: HookInput): HookResult {
+export function codeQualityGate(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
   // Apply guards
   const guardResult = runGuards(input, guardCodeFiles, guardSkipInternal);
@@ -247,7 +247,7 @@ export function codeQualityGate(input: HookInput): HookResult {
 
   // Build quality message
   if (allWarnings.length > 0) {
-    logHook('code-quality-gate', `Quality warnings for ${filePath}: ${allWarnings.join(', ')}`);
+    (ctx?.log ?? logHook)('code-quality-gate', `Quality warnings for ${filePath}: ${allWarnings.join(', ')}`);
 
     let qualityMsg = `Code quality: ${allWarnings.join(' | ')}`;
 
@@ -263,6 +263,6 @@ export function codeQualityGate(input: HookInput): HookResult {
     return outputWithContext(qualityMsg);
   }
 
-  logHook('code-quality-gate', `No quality issues in ${filePath}`);
+  (ctx?.log ?? logHook)('code-quality-gate', `No quality issues in ${filePath}`);
   return outputSilentSuccess();
 }

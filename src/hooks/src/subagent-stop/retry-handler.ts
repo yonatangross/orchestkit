@@ -10,7 +10,7 @@
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 import {
   makeRetryDecision,
@@ -120,7 +120,7 @@ function detectOutcome(input: HookInput): { outcome: AgentOutcome; error?: strin
  * 2. Evaluates whether to retry
  * 3. Suggests alternatives if retry not recommended
  */
-export function retryHandler(input: HookInput): HookResult {
+export function retryHandler(input: HookInput, ctx?: HookContext): HookResult {
   // Get agent type
   const toolInput = input.tool_input || {};
   const agentType =
@@ -141,7 +141,7 @@ export function retryHandler(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('retry-handler', `Agent ${agentType} completed with outcome: ${outcome}`);
+  (ctx?.log ?? logHook)('retry-handler', `Agent ${agentType} completed with outcome: ${outcome}`);
 
   // Partial results (CC 2.1.76): tag context but don't retry — agent was killed
   // mid-work and its partial output is already in the conversation context.
@@ -181,7 +181,7 @@ export function retryHandler(input: HookInput): HookResult {
     config.maxRetries
   );
 
-  logHook(
+  (ctx?.log ?? logHook)(
     'retry-handler',
     `Retry decision for ${agentType}: shouldRetry=${decision.shouldRetry}, ` +
     `alternative=${decision.alternativeAgent || 'none'}`

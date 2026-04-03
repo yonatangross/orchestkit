@@ -17,7 +17,7 @@
  * #1259: Simplified to thin wrapper around telemetry.emit().
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { emit } from '../lib/telemetry.js';
 import { registerAllSinks } from '../lib/sink-registry.js';
@@ -40,7 +40,7 @@ function ensureSinks(): void {
 // Public API (unchanged signature — dispatchers don't need updates)
 // ---------------------------------------------------------------------------
 
-export async function webhookForwarder(input: HookInput): Promise<HookResult> {
+export async function webhookForwarder(input: HookInput, ctx?: HookContext): Promise<HookResult> {
   ensureSinks();
   emit(input);
   return outputSilentSuccess();

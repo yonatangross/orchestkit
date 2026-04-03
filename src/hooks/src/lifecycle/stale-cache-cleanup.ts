@@ -9,7 +9,7 @@
 import { readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 
 /** Keep the N most recent versions */
@@ -33,7 +33,7 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-export function staleCacheCleanup(_input: HookInput): HookResult {
+export function staleCacheCleanup(_input: HookInput, ctx?: HookContext): HookResult {
   try {
     const entries = readdirSync(CACHE_DIR, { withFileTypes: true });
     const versionDirs = entries
@@ -56,12 +56,12 @@ export function staleCacheCleanup(_input: HookInput): HookResult {
         rmSync(dirPath, { recursive: true, force: true });
         cleaned++;
       } catch {
-        logHook('stale-cache-cleanup', `Failed to remove ${ver}`);
+        (ctx?.log ?? logHook)('stale-cache-cleanup', `Failed to remove ${ver}`);
       }
     }
 
     if (cleaned > 0) {
-      logHook(
+      (ctx?.log ?? logHook)(
         'stale-cache-cleanup',
         `Pruned ${cleaned} stale version(s): ${toRemove.join(', ')} (kept ${versionDirs.slice(-KEEP_VERSIONS).join(', ')})`,
       );

@@ -8,7 +8,7 @@
  * CC 2.1.7 compliant output format
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWithContext } from '../lib/common.js';
 
 // Production patterns that should be blocked
@@ -25,7 +25,7 @@ const PRODUCTION_PATTERNS: Array<{ test: (cmd: string) => boolean; source: strin
 /**
  * Deployment safety check hook
  */
-export function deploymentSafetyCheck(input: HookInput): HookResult {
+export function deploymentSafetyCheck(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   // Block production deployments without explicit markers

@@ -16,7 +16,7 @@
  * Failures are logged to file but not surfaced to users.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import hook implementations from lifecycle (they stay there, we just call them from Setup)
@@ -26,7 +26,7 @@ import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -56,8 +56,8 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  * Unified dispatcher that runs Setup hooks in parallel
  * Runs once at plugin load, not every session
  */
-export async function unifiedSetupDispatcher(input: HookInput): Promise<HookResult> {
-  logHook('setup-dispatcher', `Running ${HOOKS.length} Setup hooks in parallel`);
+export async function unifiedSetupDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+  (ctx?.log ?? logHook)('setup-dispatcher', `Running ${HOOKS.length} Setup hooks in parallel`);
 
   // Run all hooks in parallel
   const results = await Promise.allSettled(
@@ -89,9 +89,9 @@ export async function unifiedSetupDispatcher(input: HookInput): Promise<HookResu
 
   // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    logHook('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
+    (ctx?.log ?? logHook)('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
   } else {
-    logHook('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
+    (ctx?.log ?? logHook)('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
   }
 
   // Async hooks always return silent success - CC ignores other fields

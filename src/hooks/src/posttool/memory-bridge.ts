@@ -11,20 +11,20 @@
  * Version: 3.1.0 - Cleaned dead code per #1145
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 /**
  * Sync memory operations (Graph-First Architecture)
  * Only graph operations trigger this hook
  */
-export function memoryBridge(input: HookInput): HookResult {
+export function memoryBridge(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   switch (toolName) {
     case 'mcp__memory__create_entities':
       // Graph-First: No sync needed when writing to graph (it's already the primary)
-      logHook('memory-bridge', 'mcp__memory__create_entities - graph is primary, no sync needed');
+      (ctx?.log ?? logHook)('memory-bridge', 'mcp__memory__create_entities - graph is primary, no sync needed');
       return outputSilentSuccess();
 
     default:

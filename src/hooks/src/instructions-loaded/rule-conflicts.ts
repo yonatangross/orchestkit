@@ -15,6 +15,7 @@
 import { logHook } from '../lib/common.js';
 import { basename } from 'node:path';
 import type { LoadedFile } from './types.js';
+import type { HookContext } from '../types.js';
 
 const HOOK_NAME = 'instructions-loaded/rule-conflicts';
 

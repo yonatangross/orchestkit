@@ -8,7 +8,7 @@
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ function getLogDir(): string {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function outputValidator(input: HookInput): HookResult {
+export function outputValidator(input: HookInput, ctx?: HookContext): HookResult {
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
@@ -89,7 +89,7 @@ export function outputValidator(input: HookInput): HookResult {
   }
 
   // Log to file
-  const logDir = getLogDir();
+  const logDir = ctx?.logDir ?? getLogDir();
   const dateStr = new Date().toISOString().replace(/[-:]/g, '').substring(0, 15);
   const logFile = `${logDir}/${agentName}_${dateStr}.log`;
 

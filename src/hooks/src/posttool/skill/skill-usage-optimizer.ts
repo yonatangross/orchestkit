@@ -12,7 +12,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../../lib/common.js';
 
 interface SkillUsageFile {
@@ -144,7 +144,7 @@ function getUsageStats(usageFile: string): string {
 /**
  * Track and optimize skill usage
  */
-export function skillUsageOptimizer(input: HookInput): HookResult {
+export function skillUsageOptimizer(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
   const skillName = getField<string>(input, 'tool_input.skill') ||
                    getField<string>(input, 'tool_name') || '';
@@ -160,9 +160,9 @@ export function skillUsageOptimizer(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   const usageFile = `${projectDir}/.claude/feedback/skill-usage.json`;
-  const sessionId = getSessionId();
+  const sessionId = ctx?.sessionId ?? getSessionId();
 
   // Update usage
   updateUsage(skillName, sessionId, usageFile);
@@ -179,7 +179,7 @@ export function skillUsageOptimizer(input: HookInput): HookResult {
 
   if (overlapSuggestion) {
     contextMsg = `Skill overlap: ${overlapSuggestion}`;
-    logHook('skill-usage-optimizer', `Suggesting consolidation for: ${skillName}`);
+    (ctx?.log ?? logHook)('skill-usage-optimizer', `Suggesting consolidation for: ${skillName}`);
   }
 
   // Add stats info periodically (every 5th use of any skill)

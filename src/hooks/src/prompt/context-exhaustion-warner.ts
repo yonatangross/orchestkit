@@ -24,7 +24,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess, getSessionId } from '../lib/common.js';
 import { getTempDir } from '../lib/paths.js';
 import { sanitizeSessionId } from '../lib/sanitize-shell.js';
@@ -108,8 +108,8 @@ function readContextPercentage(sessionId: string): number | null {
 // Hook Implementation
 // ---------------------------------------------------------------------------
 
-export function contextExhaustionWarner(input: HookInput): HookResult {
-  const sessionId = input.session_id || getSessionId();
+export function contextExhaustionWarner(input: HookInput, ctx?: HookContext): HookResult {
+  const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
 
   if (!sessionId) {
     return outputSilentSuccess();
@@ -125,7 +125,7 @@ export function contextExhaustionWarner(input: HookInput): HookResult {
   // Reset if context dropped (after /compact or /clear)
   if (pct < 70) {
     if (highestWarnedPct > 0) {
-      logHook('context-exhaustion-warner', `Context dropped to ${pct}%, resetting warnings`);
+      (ctx?.log ?? logHook)('context-exhaustion-warner', `Context dropped to ${pct}%, resetting warnings`);
       highestWarnedPct = 0;
     }
     return outputSilentSuccess();
@@ -145,7 +145,7 @@ export function contextExhaustionWarner(input: HookInput): HookResult {
 
   // Escalate!
   highestWarnedPct = matchingTier.pct;
-  logHook('context-exhaustion-warner', `Context at ${pct}% — ${matchingTier.level} warning`);
+  (ctx?.log ?? logHook)('context-exhaustion-warner', `Context at ${pct}% — ${matchingTier.level} warning`);
 
   return {
     continue: true,

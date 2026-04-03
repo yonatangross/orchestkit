@@ -16,7 +16,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getLogDir } from '../lib/paths.js';
@@ -79,13 +79,13 @@ function isRecentCommit(command: string): boolean {
 /**
  * Commit nudge hook — escalating reminders based on dirty files and time
  */
-export function commitNudge(input: HookInput): HookResult {
+export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
   // Disabled by env var
   if (process.env.ORCHESTKIT_AUTO_COMMIT_NUDGE === 'false') {
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   if (!projectDir) return outputSilentSuccess();
 
   const state = loadState();
@@ -120,7 +120,7 @@ export function commitNudge(input: HookInput): HookResult {
     state.last_nudge_level = 'urgent';
     state.last_nudge_ts = now;
     saveState(state);
-    logHook(HOOK_NAME, `${dirtyCount} dirty files — urgent nudge`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — urgent nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files — this is a lot of unsaved work. Commit NOW to prevent loss from rate limits or session interruption. Use /ork:commit to commit.`
     );
@@ -130,7 +130,7 @@ export function commitNudge(input: HookInput): HookResult {
     state.last_nudge_level = 'warn';
     state.last_nudge_ts = now;
     saveState(state);
-    logHook(HOOK_NAME, `${dirtyCount} dirty files — warn nudge`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — warn nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files. Consider committing intermediate progress to avoid losing work.`
     );
@@ -140,7 +140,7 @@ export function commitNudge(input: HookInput): HookResult {
     state.last_nudge_level = 'info';
     state.last_nudge_ts = now;
     saveState(state);
-    logHook(HOOK_NAME, `${dirtyCount} dirty files — info nudge`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — info nudge`);
     // Info level: stderr only (user sees, Claude doesn't)
     process.stderr.write(`[commit-nudge] ${dirtyCount} uncommitted files — consider committing soon\n`);
     return outputSilentSuccess();
@@ -152,7 +152,7 @@ export function commitNudge(input: HookInput): HookResult {
     state.last_nudge_ts = now;
     saveState(state);
     const mins = Math.round(timeSinceCommit / 60000);
-    logHook(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
     return outputWithContext(
       `[Commit Nudge] ${mins} minutes since last commit with ${dirtyCount} uncommitted file(s). Consider committing to preserve progress. Use /ork:commit for a quick conventional commit.`
     );

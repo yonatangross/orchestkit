@@ -16,7 +16,7 @@
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputAllowWithContext,
   outputSilentSuccess,
@@ -33,7 +33,7 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB safety cap
 /** Session-level dedup: skip files already summarized this session */
 const summarizedThisSession = new Set<string>();
 
-export function tldrSummary(input: HookInput): HookResult {
+export function tldrSummary(input: HookInput, ctx?: HookContext): HookResult {
   try {
     const toolInput = input.tool_input || {};
     const filePath = toolInput.file_path as string | undefined;
@@ -45,7 +45,7 @@ export function tldrSummary(input: HookInput): HookResult {
 
     // Guard: already summarized this session (dedup)
     if (summarizedThisSession.has(filePath)) {
-      logHook(HOOK_NAME, `Skipping ${filePath}: already summarized this session`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `Skipping ${filePath}: already summarized this session`);
       return outputSilentSuccess();
     }
 
@@ -72,7 +72,7 @@ export function tldrSummary(input: HookInput): HookResult {
     // Guard: file too large (>2MB)
     const stats = statSync(filePath);
     if (stats.size > MAX_FILE_SIZE) {
-      logHook(HOOK_NAME, `Skipping ${filePath}: ${stats.size} bytes > 2MB cap`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `Skipping ${filePath}: ${stats.size} bytes > 2MB cap`);
       return outputSilentSuccess();
     }
 
@@ -93,11 +93,11 @@ export function tldrSummary(input: HookInput): HookResult {
     }
 
     summarizedThisSession.add(filePath);
-    logHook(HOOK_NAME, `Injecting summary for ${filePath} (${lineCount} lines, ~${tokenCount} tokens)`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Injecting summary for ${filePath} (${lineCount} lines, ~${tokenCount} tokens)`);
     return outputAllowWithContext(summary);
   } catch (err) {
     // Never block a Read — log and pass through
-    logHook(HOOK_NAME, `Error: ${err instanceof Error ? err.message : String(err)}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Error: ${err instanceof Error ? err.message : String(err)}`, 'warn');
     return outputSilentSuccess();
   }
 }

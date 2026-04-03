@@ -18,7 +18,7 @@
  * @see #1210
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
 import { isAbsolute, resolve } from 'node:path';
@@ -37,15 +37,15 @@ function outputRetry(reason: string): HookResult {
   };
 }
 
-export function projectWriteRetry(input: HookInput): HookResult {
+export function projectWriteRetry(input: HookInput, ctx?: HookContext): HookResult {
   let filePath = input.tool_input.file_path || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
 
   if (!filePath) {
     return outputSilentSuccess();
   }
 
-  logHook(HOOK_NAME, `Evaluating denied write to: ${filePath}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Evaluating denied write to: ${filePath}`);
 
   // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
   if (!isAbsolute(filePath)) {
@@ -66,15 +66,15 @@ export function projectWriteRetry(input: HookInput): HookResult {
     if (!isInsideDir(filePath, rootDir)) continue;
 
     if (hasExcludedDir(filePath)) {
-      logHook(HOOK_NAME, `File in excluded directory — not retrying`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `File in excluded directory — not retrying`);
       return outputSilentSuccess();
     }
 
     const label = rootDir === projectDir ? 'project directory' : `added dir ${rootDir}`;
-    logHook(HOOK_NAME, `File inside ${label} — retrying`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `File inside ${label} — retrying`);
     return outputRetry(`file is inside ${label}`);
   }
 
-  logHook(HOOK_NAME, 'File outside project — not retrying');
+  (ctx?.log ?? logHook)(HOOK_NAME, 'File outside project — not retrying');
   return outputSilentSuccess();
 }

@@ -11,7 +11,7 @@
  * Version: 1.0.0
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 
 /** Field names that should never appear in form-mode elicitation (secrets belong in URL mode) */
@@ -43,20 +43,20 @@ function containsSecretField(schema: Record<string, unknown> | undefined): strin
   return null;
 }
 
-export function elicitationGuard(input: HookInput): HookResult {
+export function elicitationGuard(input: HookInput, ctx?: HookContext): HookResult {
   const mode = input.elicitation_mode;
   const server = input.mcp_server_name || 'unknown';
 
   // Only gate form-mode — URL mode is already secure (browser-based)
   if (mode !== 'form') {
-    logHook('elicitation-guard', `Allowing ${mode || 'unknown'}-mode elicitation from ${server}`);
+    (ctx?.log ?? logHook)('elicitation-guard', `Allowing ${mode || 'unknown'}-mode elicitation from ${server}`);
     return outputSilentSuccess();
   }
 
   // Check for secret fields in the schema
   const secretField = containsSecretField(input.elicitation_schema);
   if (secretField) {
-    logHook('elicitation-guard',
+    (ctx?.log ?? logHook)('elicitation-guard',
       `BLOCKED: form-mode elicitation from ${server} requests secret field "${secretField}"`,
       'warn'
     );
@@ -66,6 +66,6 @@ export function elicitationGuard(input: HookInput): HookResult {
     );
   }
 
-  logHook('elicitation-guard', `Allowed form-mode elicitation from ${server}`);
+  (ctx?.log ?? logHook)('elicitation-guard', `Allowed form-mode elicitation from ${server}`);
   return outputSilentSuccess();
 }

@@ -21,7 +21,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, openSync, readSync, fstatSync, closeSync, readFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { platform } from 'node:os';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 
@@ -129,19 +129,19 @@ function sendDesktopNotification(title: string, message: string): void {
   }
 }
 
-export function denialNotification(input: HookInput): HookResult {
+export function denialNotification(input: HookInput, ctx?: HookContext): HookResult {
   const now = Date.now();
 
   // Read denial count from persisted log (written by denial-logger.ts)
   const denialCount = getRecentDenialCount(now);
 
-  logHook(HOOK_NAME, `Denial count in window: ${denialCount}/${THRESHOLD}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Denial count in window: ${denialCount}/${THRESHOLD}`);
 
   if (denialCount >= THRESHOLD) {
     const lastNotifiedAt = getLastNotifiedAt();
 
     if (now - lastNotifiedAt < COOLDOWN_MS) {
-      logHook(HOOK_NAME, 'Threshold reached but in cooldown period');
+      (ctx?.log ?? logHook)(HOOK_NAME, 'Threshold reached but in cooldown period');
       return outputSilentSuccess();
     }
 
@@ -153,7 +153,7 @@ export function denialNotification(input: HookInput): HookResult {
       `${denialCount} commands denied in ${WINDOW_MS / 1000}s. Last: ${toolName}. Check /permissions.`,
     );
 
-    logHook(HOOK_NAME, 'Desktop notification sent for repeated denials');
+    (ctx?.log ?? logHook)(HOOK_NAME, 'Desktop notification sent for repeated denials');
   }
 
   return outputSilentSuccess();

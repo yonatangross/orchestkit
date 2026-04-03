@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { spawn } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getPluginRoot, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 
 const CURRENT_VERSION = '4.25.0';
@@ -141,22 +141,22 @@ function updateMarker(markerFile: string, field: string, value: unknown): void {
 /**
  * Setup check hook
  */
-export function setupCheck(input: HookInput): HookResult {
+export function setupCheck(input: HookInput, hookCtx?: HookContext): HookResult {
   // Check bypass flags
   if (process.env.ORCHESTKIT_SKIP_SETUP === '1' || process.env.ORCHESTKIT_SKIP_SLOW_HOOKS === '1') {
     return outputSilentSuccess();
   }
 
-  const pluginRoot = getPluginRoot();
+  const pluginRoot = hookCtx?.pluginRoot ?? getPluginRoot();
   const markerFile = `${pluginRoot}/.setup-complete`;
   const setupDir = `${pluginRoot}/hooks/setup`;
 
-  logHook('setup-check', `Setup check starting (v${CURRENT_VERSION})`);
+  (hookCtx?.log ?? logHook)('setup-check', `Setup check starting (v${CURRENT_VERSION})`);
 
   // Check trigger mode from argv
   const args = process.argv;
   if (args.includes('--init') || args.includes('init')) {
-    logHook('setup-check', 'Explicit --init: Running full setup');
+    (hookCtx?.log ?? logHook)('setup-check', 'Explicit --init: Running full setup');
     // In TS we can't exec, but the bash wrapper will handle this
     return {
       continue: true,
@@ -165,7 +165,7 @@ export function setupCheck(input: HookInput): HookResult {
   }
 
   if (args.includes('--init-only') || args.includes('init-only')) {
-    logHook('setup-check', 'CI/CD mode (--init-only): Running silent setup');
+    (hookCtx?.log ?? logHook)('setup-check', 'CI/CD mode (--init-only): Running silent setup');
     return {
       continue: true,
       systemMessage: 'Running silent setup...',
@@ -173,7 +173,7 @@ export function setupCheck(input: HookInput): HookResult {
   }
 
   if (args.includes('--maintenance') || args.includes('maintenance')) {
-    logHook('setup-check', 'Explicit --maintenance: Running maintenance tasks');
+    (hookCtx?.log ?? logHook)('setup-check', 'Explicit --maintenance: Running maintenance tasks');
     return {
       continue: true,
       systemMessage: 'Running maintenance tasks...',
@@ -182,7 +182,7 @@ export function setupCheck(input: HookInput): HookResult {
 
   // Auto mode: Check marker file first (fast path)
   if (!existsSync(markerFile)) {
-    logHook('setup-check', 'No marker file found - first run detected');
+    (hookCtx?.log ?? logHook)('setup-check', 'No marker file found - first run detected');
 
     const hookEvent = input.hook_event || process.env.HOOK_EVENT;
     if (hookEvent === 'Setup') {
@@ -198,7 +198,7 @@ export function setupCheck(input: HookInput): HookResult {
   }
 
   // Marker exists - run quick validation
-  logHook('setup-check', 'Marker file exists - running quick validation');
+  (hookCtx?.log ?? logHook)('setup-check', 'Marker file exists - running quick validation');
 
   const validationResult = quickValidate(pluginRoot);
 
@@ -206,7 +206,7 @@ export function setupCheck(input: HookInput): HookResult {
     case 0:
       // All checks passed - check if maintenance is due
       if (isMaintenanceDue(markerFile)) {
-        logHook('setup-check', 'Maintenance due - queueing background tasks');
+        (hookCtx?.log ?? logHook)('setup-check', 'Maintenance due - queueing background tasks');
         // Run maintenance in background (spawn detached)
         const maintenanceScript = `${setupDir}/setup-maintenance.sh`;
         if (existsSync(maintenanceScript)) {
@@ -218,12 +218,12 @@ export function setupCheck(input: HookInput): HookResult {
         }
       }
 
-      logHook('setup-check', 'Setup check passed (fast path)');
+      (hookCtx?.log ?? logHook)('setup-check', 'Setup check passed (fast path)');
       return outputSilentSuccess();
 
     case 1: {
       // Validation failed - trigger repair in background
-      logHook('setup-check', 'Validation failed - triggering self-healing repair');
+      (hookCtx?.log ?? logHook)('setup-check', 'Validation failed - triggering self-healing repair');
       const repairScript = `${setupDir}/setup-repair.sh`;
       if (existsSync(repairScript)) {
         const child = spawn(repairScript, [], {
@@ -237,7 +237,7 @@ export function setupCheck(input: HookInput): HookResult {
 
     case 2: {
       // Version mismatch - run migration in background
-      logHook('setup-check', 'Version mismatch - running migration');
+      (hookCtx?.log ?? logHook)('setup-check', 'Version mismatch - running migration');
       const maintenanceScript = `${setupDir}/setup-maintenance.sh`;
       if (existsSync(maintenanceScript)) {
         const child = spawn(maintenanceScript, ['--migrate'], {

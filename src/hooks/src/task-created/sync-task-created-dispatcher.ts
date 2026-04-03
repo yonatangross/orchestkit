@@ -15,7 +15,7 @@
  * @since v7.28.0
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
 
 // Import existing handler functions
@@ -24,25 +24,25 @@ import { taskProgressInitializer } from './task-progress-initializer.js';
 
 const HOOK_NAME = 'sync-task-created-dispatcher';
 
-export async function syncTaskCreatedDispatcher(input: HookInput): Promise<HookResult> {
+export async function syncTaskCreatedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
   const contextParts: string[] = [];
 
   // Phase 1: Creation tracking (analytics + event log) — async
   try {
-    const result = await creationTracker(input);
+    const result = await creationTracker(input, hookCtx);
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    logHook(HOOK_NAME, `creation-tracker failed: ${(err as Error).message}`, 'warn');
+    (hookCtx?.log ?? logHook)(HOOK_NAME, `creation-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 2: Progress initializer (state setup for progress bar) — sync
   try {
-    const result = taskProgressInitializer(input);
+    const result = taskProgressInitializer(input, hookCtx);
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    logHook(HOOK_NAME, `task-progress-initializer failed: ${(err as Error).message}`, 'warn');
+    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-progress-initializer failed: ${(err as Error).message}`, 'warn');
   }
 
   if (contextParts.length === 0) return outputSilentSuccess();

@@ -14,7 +14,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getLogDir } from '../lib/paths.js';
@@ -73,7 +73,7 @@ function renderProgressBar(completed: number, total: number): string {
 /**
  * Track task progress and emit progress bar on completion
  */
-export function taskProgressTracker(input: HookInput): HookResult {
+export function taskProgressTracker(input: HookInput, ctx?: HookContext): HookResult {
   const taskStatus = input.task_status || '';
   const taskId = input.task_id || '';
   const taskSubject = input.task_subject || '';
@@ -105,7 +105,7 @@ export function taskProgressTracker(input: HookInput): HookResult {
     if (state.total >= 2) {
       const bar = renderProgressBar(state.completed, state.total);
       process.stderr.write(`${bar} phases complete\n`);
-      logHook(HOOK_NAME, `Progress: ${state.completed}/${state.total}`);
+      (ctx?.log ?? logHook)(HOOK_NAME, `Progress: ${state.completed}/${state.total}`);
     }
   }
 

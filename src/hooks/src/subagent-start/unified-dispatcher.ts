@@ -19,7 +19,7 @@
  * CC 2.1.49 Compliant: Single consolidated output with 800-token budget
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   logHook,
@@ -50,7 +50,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
 
 interface ContextHookConfig {
   name: string;
@@ -81,17 +81,17 @@ export const registeredHookNames = () => [
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
 
-export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
+export function unifiedSubagentStartDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   // --- Phase 1: Blocking check (context-gate) ---
   try {
-    const gateResult = contextGate(input);
+    const gateResult = contextGate(input, ctx);
     if (!gateResult.continue) {
-      logHook(HOOK_NAME, 'context-gate blocked agent spawn');
+      (ctx?.log ?? logHook)(HOOK_NAME, 'context-gate blocked agent spawn');
       return gateResult;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
   }
 
   // --- Phase 1b: Agent attribution setup (Issue #1195) ---
@@ -103,11 +103,11 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
   // --- Phase 2: Validation + tracking (subagent-validator) ---
   let validatorContext: string | null = null;
   try {
-    const validatorResult = subagentValidator(input);
+    const validatorResult = subagentValidator(input, ctx);
     validatorContext = extractContext(validatorResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `subagent-validator failed: ${message}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `subagent-validator failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Context injection hooks (budget-capped) ---
@@ -124,7 +124,7 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
 
   for (const hook of CONTEXT_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Collect systemMessage separately (merged at end)
       if (result.systemMessage && typeof result.systemMessage === 'string') {
@@ -136,16 +136,16 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
       if (context) {
         const contextTokens = estimateTokenCount(context);
         if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-          logHook(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+          (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
           continue;
         }
         contextParts.push(context);
         totalTokens += contextTokens;
-        logHook(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
+        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -168,7 +168,7 @@ export function unifiedSubagentStartDispatcher(input: HookInput): HookResult {
 
   if (hasContext) {
     const consolidated = contextParts.join('\n\n---\n\n');
-    logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
     result.hookSpecificOutput = {
       hookEventName: 'SubagentStart',
       additionalContext: consolidated,

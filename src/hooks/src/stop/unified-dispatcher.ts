@@ -15,7 +15,7 @@
  * but never surfaced. The same constraint applies to StopFailure handlers.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import individual stop hook implementations
@@ -37,7 +37,7 @@ import { cleanupStaleLedgers } from '../lib/agent-attribution.js';
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -88,17 +88,17 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
 /**
  * Unified dispatcher that runs all Stop hooks in parallel
  */
-export async function unifiedStopDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedStopDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
   // Prevent infinite re-entry (CC 2.1.25: stop_hook_active)
   if (input.stop_hook_active) {
-    logHook('stop-dispatcher', 'Skipping: stop_hook_active=true (re-entry prevention)');
+    (ctx?.log ?? logHook)('stop-dispatcher', 'Skipping: stop_hook_active=true (re-entry prevention)');
     return outputSilentSuccess();
   }
 
   // CC 2.1.49: Log last assistant message snippet for audit trail
   if (input.last_assistant_message) {
     const snippet = input.last_assistant_message.substring(0, 200);
-    logHook('stop-dispatcher', `last_assistant_message (first 200): ${snippet}`);
+    (ctx?.log ?? logHook)('stop-dispatcher', `last_assistant_message (first 200): ${snippet}`);
   }
 
   // Run all hooks in parallel
@@ -124,7 +124,7 @@ export async function unifiedStopDispatcher(input: HookInput): Promise<HookResul
   );
 
   if (errors.length > 0) {
-    logHook('stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
+    (ctx?.log ?? logHook)('stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
   }
 
   // CRITICAL: Always return silent success — never produce output that could

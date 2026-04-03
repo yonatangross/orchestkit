@@ -4,7 +4,7 @@
  * CC 2.1.9 Enhanced
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -137,7 +137,7 @@ function checkRateLimits(logFile: string): string | null {
 /**
  * Context7 tracker - tracks library lookups, enforces rate limits, and injects cache state
  */
-export function context7Tracker(input: HookInput): HookResult {
+export function context7Tracker(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process context7 MCP calls
@@ -149,7 +149,7 @@ export function context7Tracker(input: HookInput): HookResult {
   const query = (input.tool_input.query as string) || '';
 
   // Get log file path
-  const logDir = getLogDir();
+  const logDir = ctx?.logDir ?? getLogDir();
   try {
     mkdirSync(logDir, { recursive: true });
   } catch {
@@ -162,8 +162,8 @@ export function context7Tracker(input: HookInput): HookResult {
   // Rate limit check (before logging this query)
   const rateLimitMsg = checkRateLimits(telemetryLog);
   if (rateLimitMsg) {
-    logPermissionFeedback('deny', `Context7 rate limited: ${rateLimitMsg}`, input);
-    logHook('context7-tracker', `RATE LIMITED: ${rateLimitMsg}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Context7 rate limited: ${rateLimitMsg}`, input);
+    (ctx?.log ?? logHook)('context7-tracker', `RATE LIMITED: ${rateLimitMsg}`);
     return outputDeny(rateLimitMsg);
   }
 
@@ -180,8 +180,8 @@ export function context7Tracker(input: HookInput): HookResult {
   // Calculate cache context
   const cacheContext = calculateCacheContext(telemetryLog);
 
-  logPermissionFeedback('allow', `Documentation lookup: ${libraryId}`, input);
-  logHook('context7-tracker', `Query: ${toolName} library=${libraryId}`);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Documentation lookup: ${libraryId}`, input);
+  (ctx?.log ?? logHook)('context7-tracker', `Query: ${toolName} library=${libraryId}`);
 
   // Skip cache context injection for first 2 queries — not useful yet (#token-reduction)
   if (cacheContext) {

@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 
 /**
@@ -20,7 +20,7 @@ function isTestFile(filePath: string): boolean {
 /**
  * Validate test patterns and conventions
  */
-export function testPatternValidator(input: HookInput): HookResult {
+export function testPatternValidator(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.tool_input?.file_path || '';
   const content = input.tool_input?.content || (input as any).tool_result || '';
 
@@ -135,7 +135,7 @@ export function testPatternValidator(input: HookInput): HookResult {
 
   // Report errors and block
   if (errors.length > 0) {
-    logHook('test-pattern-validator', `BLOCKED: ${errors[0]}`);
+    (ctx?.log ?? logHook)('test-pattern-validator', `BLOCKED: ${errors[0]}`);
     return outputBlock(`Test pattern violations detected in ${filePath}`);
   }
 

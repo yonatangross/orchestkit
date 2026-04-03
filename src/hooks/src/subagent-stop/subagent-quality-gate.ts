@@ -13,7 +13,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWarning, outputBlock, logHook, getProjectDir } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
 
@@ -178,17 +178,17 @@ function updateMetrics(type: 'error' | 'threshold_failure' | 'check'): void {
 // -----------------------------------------------------------------------------
 
 /** Validates subagent output quality with score thresholds and structure checks. */
-export function subagentQualityGate(input: HookInput): HookResult {
+export function subagentQualityGate(input: HookInput, ctx?: HookContext): HookResult {
   const agentId = input.agent_id || '';
   const subagentType = input.subagent_type || '';
   const error = input.error || '';
   const outputText = input.agent_output || input.output || input.last_assistant_message || '';
 
-  logHook('subagent-quality-gate', `Quality gate check: ${subagentType} (${agentId})`);
+  (ctx?.log ?? logHook)('subagent-quality-gate', `Quality gate check: ${subagentType} (${agentId})`);
 
   // Gate 1: Error presence check (existing behavior)
   if (error && error !== 'null') {
-    logHook('subagent-quality-gate', `ERROR: Subagent failed - ${error}`);
+    (ctx?.log ?? logHook)('subagent-quality-gate', `ERROR: Subagent failed - ${error}`);
     updateMetrics('error');
     return outputWarning(`Subagent ${subagentType} failed: ${error}`);
   }
@@ -208,7 +208,7 @@ export function subagentQualityGate(input: HookInput): HookResult {
           /security|vuln|cve|owasp/i.test(score.dimension);
         const securityThreshold = policy.thresholds?.security_minimum ?? DEFAULT_THRESHOLDS.security_minimum;
 
-        logHook(
+        (ctx?.log ?? logHook)(
           'subagent-quality-gate',
           `Score below threshold: ${label}=${normalized.toFixed(1)}/10 (min: ${threshold})${isSecurityDimension ? ' [SECURITY — BLOCKING]' : ''}`,
           'warn',
@@ -235,7 +235,7 @@ export function subagentQualityGate(input: HookInput): HookResult {
 
   // Gate 3: Output structure validation (advisory only for long outputs)
   if (outputText.length > 200 && !hasStructuredOutput(outputText)) {
-    logHook(
+    (ctx?.log ?? logHook)(
       'subagent-quality-gate',
       `Subagent ${subagentType} output lacks structured findings`,
       'info',

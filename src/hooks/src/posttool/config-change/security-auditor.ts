@@ -10,7 +10,7 @@
  * Logs all config changes to .claude/logs/config-audit.jsonl and flags dangerous patterns.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, logHook, getField } from '../../lib/common.js';
 
 /** Patterns that indicate potentially dangerous config modifications */
@@ -47,7 +47,7 @@ function detectDangerousPatterns(content: string): string[] {
 /**
  * Main hook: audit .claude/ config file modifications
  */
-export function configChangeAuditor(input: HookInput): HookResult {
+export function configChangeAuditor(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Only audit Write and Edit operations
@@ -62,7 +62,7 @@ export function configChangeAuditor(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('config-change-auditor', `Config change: ${toolName} -> ${filePath}`);
+  (ctx?.log ?? logHook)('config-change-auditor', `Config change: ${toolName} -> ${filePath}`);
 
   try {
     // Check for dangerous patterns in the content being written/edited
@@ -72,18 +72,18 @@ export function configChangeAuditor(input: HookInput): HookResult {
       '';
 
     if (!content) {
-      logHook('config-change-auditor', `Warning: empty content for ${toolName} on ${filePath} — pattern detection skipped`);
+      (ctx?.log ?? logHook)('config-change-auditor', `Warning: empty content for ${toolName} on ${filePath} — pattern detection skipped`);
     }
 
     const findings = detectDangerousPatterns(content);
 
     if (findings.length > 0) {
       const auditNote = `Config audit: ${findings.join('; ')} in ${filePath}`;
-      logHook('config-change-auditor', `DANGEROUS: ${auditNote}`, 'warn');
+      (ctx?.log ?? logHook)('config-change-auditor', `DANGEROUS: ${auditNote}`, 'warn');
     }
   } catch (err) {
     // Never block on audit errors
-    logHook('config-change-auditor', `Error: ${(err as Error).message}`, 'error');
+    (ctx?.log ?? logHook)('config-change-auditor', `Error: ${(err as Error).message}`, 'error');
   }
 
   return outputSilentSuccess();

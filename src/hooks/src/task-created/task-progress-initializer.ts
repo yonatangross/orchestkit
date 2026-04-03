@@ -15,7 +15,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getLogDir } from '../lib/paths.js';
@@ -59,7 +59,7 @@ function saveState(state: ProgressState): void {
   }
 }
 
-export function taskProgressInitializer(input: HookInput): HookResult {
+export function taskProgressInitializer(input: HookInput, ctx?: HookContext): HookResult {
   const taskSubject = input.task_subject || '';
   const sessionId = input.session_id || '';
 
@@ -78,7 +78,7 @@ export function taskProgressInitializer(input: HookInput): HookResult {
   if (total > state.total) {
     state.total = total;
     saveState(state);
-    logHook(HOOK_NAME, `Initialized progress: 0/${total} tasks`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Initialized progress: 0/${total} tasks`);
   }
 
   return outputSilentSuccess();

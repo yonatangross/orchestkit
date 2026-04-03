@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects documentation reminders via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -25,7 +25,7 @@ const DOCS_CHECKLIST = `Documentation checklist for features:
 /**
  * Remind about documentation for feature branches/issues
  */
-export function issueDocsRequirement(input: HookInput): HookResult {
+export function issueDocsRequirement(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue close or gh pr merge for feature issues
@@ -48,7 +48,7 @@ ${DOCS_CHECKLIST}
 
 Skip with --no-edit if docs are already complete.`;
 
-  logPermissionFeedback('allow', 'Feature docs reminder', input);
-  logHook('issue-docs-requirement', 'Feature completion - docs reminder');
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Feature docs reminder', input);
+  (ctx?.log ?? logHook)('issue-docs-requirement', 'Feature completion - docs reminder');
   return outputAllowWithContext(context);
 }

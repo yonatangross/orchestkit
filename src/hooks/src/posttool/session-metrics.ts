@@ -5,7 +5,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
@@ -21,7 +21,7 @@ interface SessionMetrics {
 /**
  * Track tool usage metrics
  */
-export function sessionMetrics(input: HookInput): HookResult {
+export function sessionMetrics(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   if (!toolName) {
@@ -56,7 +56,7 @@ export function sessionMetrics(input: HookInput): HookResult {
     // Write updated metrics
     atomicWriteSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
   } catch (error) {
-    logHook('session-metrics', `Error updating metrics: ${error}`);
+    (ctx?.log ?? logHook)('session-metrics', `Error updating metrics: ${error}`);
   }
 
   return outputSilentSuccess();

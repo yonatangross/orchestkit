@@ -19,7 +19,7 @@
  * but the single-dispatcher pattern remains optimal for fewer hook invocations.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, extractContext, getProjectDir } from '../lib/common.js';
 import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
@@ -36,7 +36,7 @@ const HOOK_NAME = 'sync-session-dispatcher';
 
 interface SyncHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx?: HookContext) => HookResult;
 }
 
 /**
@@ -52,44 +52,44 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Consolidated sync SessionStart dispatcher.
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
-export function syncSessionDispatcher(input: HookInput): HookResult {
+export function syncSessionDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   const startMs = Date.now();
 
   // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
   // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
   try {
     materializeAntipatternRules(projectDir);
   } catch (err) {
-    logHook(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
   }
   try {
     materializeProfileRules();
   } catch (err) {
-    logHook(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
   }
 
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Collect systemMessage (primary output channel for SessionStart)
       if (result.systemMessage) {
         messages.push(result.systemMessage);
-        logHook(HOOK_NAME, `${hook.name}: systemMessage collected`);
+        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
 
       // Fallback: extract additionalContext (mcp-health-check uses outputWithContext)
       const context = extractContext(result);
       if (context && !result.systemMessage) {
         messages.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
+        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
@@ -97,15 +97,15 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
   // run-hook.mjs computes this from its own __dirname (two levels up from hooks/bin/).
   if (input.plugin_root) {
     messages.push(`CLAUDE_PLUGIN_ROOT=${input.plugin_root}`);
-    logHook(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
   }
 
   if (messages.length === 0) {
-    logHook(HOOK_NAME, 'All sync hooks silent');
+    (ctx?.log ?? logHook)(HOOK_NAME, 'All sync hooks silent');
     try {
       appendAnalytics('session-start-perf.jsonl', {
         ts: new Date().toISOString(),
-        pid: hashProject(input.project_dir || getProjectDir()),
+        pid: hashProject(input.project_dir || (ctx?.projectDir ?? getProjectDir())),
         duration_ms: Date.now() - startMs,
         hooks_fired: SYNC_HOOKS.length,
         messages_merged: 0,
@@ -115,14 +115,14 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
   }
 
   const merged = messages.join('\n');
-  logHook(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
 
   // SessionStart perf measurement — track sync dispatcher latency
   try {
     const durationMs = Date.now() - startMs;
     appendAnalytics('session-start-perf.jsonl', {
       ts: new Date().toISOString(),
-      pid: hashProject(input.project_dir || getProjectDir()),
+      pid: hashProject(input.project_dir || (ctx?.projectDir ?? getProjectDir())),
       duration_ms: durationMs,
       hooks_fired: SYNC_HOOKS.length,
       messages_merged: messages.length,

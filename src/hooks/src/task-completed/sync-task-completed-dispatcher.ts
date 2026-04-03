@@ -16,7 +16,7 @@
  * @since v7.28.0
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
 
 // Import existing handler functions
@@ -26,32 +26,32 @@ import { taskProgressTracker } from './task-progress-tracker.js';
 
 const HOOK_NAME = 'sync-task-completed-dispatcher';
 
-export async function syncTaskCompletedDispatcher(input: HookInput): Promise<HookResult> {
+export async function syncTaskCompletedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
   const contextParts: string[] = [];
 
   // Phase 1: Completion tracking (analytics + event log) — async
   try {
-    const result = await completionTracker(input);
+    const result = await completionTracker(input, hookCtx);
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    logHook(HOOK_NAME, `completion-tracker failed: ${(err as Error).message}`, 'warn');
+    (hookCtx?.log ?? logHook)(HOOK_NAME, `completion-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 2: Commit linker (advisory — only if dirty files) — sync
   try {
-    const result = taskCommitLinker(input);
+    const result = taskCommitLinker(input, hookCtx);
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    logHook(HOOK_NAME, `task-commit-linker failed: ${(err as Error).message}`, 'warn');
+    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-commit-linker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 3: Progress tracker (stderr progress bar) — sync
   try {
-    taskProgressTracker(input);
+    taskProgressTracker(input, hookCtx);
   } catch (err) {
-    logHook(HOOK_NAME, `task-progress-tracker failed: ${(err as Error).message}`, 'warn');
+    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-progress-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   if (contextParts.length === 0) return outputSilentSuccess();

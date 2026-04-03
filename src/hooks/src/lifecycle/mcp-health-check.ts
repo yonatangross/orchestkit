@@ -13,7 +13,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 
 interface McpServerEntry {
@@ -52,17 +52,17 @@ function checkServer(name: string, projectDir: string): string | null {
 /**
  * MCP health check hook
  */
-export function mcpHealthCheck(input: HookInput): HookResult {
+export function mcpHealthCheck(input: HookInput, ctx?: HookContext): HookResult {
   if (process.env.ORCHESTKIT_SKIP_SLOW_HOOKS === '1') {
-    logHook('mcp-health-check', 'Skipping MCP check (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
+    (ctx?.log ?? logHook)('mcp-health-check', 'Skipping MCP check (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
     return outputSilentSuccess();
   }
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
   const mcpJsonPath = join(projectDir, '.mcp.json');
 
   if (!existsSync(mcpJsonPath)) {
-    logHook('mcp-health-check', 'No .mcp.json found, skipping');
+    (ctx?.log ?? logHook)('mcp-health-check', 'No .mcp.json found, skipping');
     return outputSilentSuccess();
   }
 
@@ -70,7 +70,7 @@ export function mcpHealthCheck(input: HookInput): HookResult {
   try {
     config = JSON.parse(readFileSync(mcpJsonPath, 'utf-8'));
   } catch {
-    logHook('mcp-health-check', 'Failed to parse .mcp.json', 'warn');
+    (ctx?.log ?? logHook)('mcp-health-check', 'Failed to parse .mcp.json', 'warn');
     return outputSilentSuccess();
   }
 
@@ -86,10 +86,10 @@ export function mcpHealthCheck(input: HookInput): HookResult {
 
   if (warnings.length > 0) {
     const message = `MCP misconfiguration detected:\n${warnings.join('\n')}`;
-    logHook('mcp-health-check', message, 'warn');
+    (ctx?.log ?? logHook)('mcp-health-check', message, 'warn');
     return outputWithContext(message);
   }
 
-  logHook('mcp-health-check', 'All enabled MCPs are properly configured');
+  (ctx?.log ?? logHook)('mcp-health-check', 'All enabled MCPs are properly configured');
   return outputSilentSuccess();
 }

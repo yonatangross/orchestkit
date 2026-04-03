@@ -9,7 +9,7 @@
  * Phase 2 blocking check inside sync-bash-dispatcher.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -22,7 +22,7 @@ import {
  * Check for --label flag in gh issue/pr create commands.
  * Blocks issue creation without labels; warns on PR creation.
  */
-export function ghLabelEnforcer(input: HookInput): HookResult {
+export function ghLabelEnforcer(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue create or gh pr create
@@ -50,13 +50,13 @@ export function ghLabelEnforcer(input: HookInput): HookResult {
 
 Example: gh issue create --title "Fix auth" --label bug`;
 
-    logPermissionFeedback('deny', 'Issue creation blocked: missing --label', input);
-    logHook('gh-label-enforcer', 'Blocked gh issue create without --label');
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', 'Issue creation blocked: missing --label', input);
+    (ctx?.log ?? logHook)('gh-label-enforcer', 'Blocked gh issue create without --label');
     return outputDeny(msg);
   }
 
   // PR creation: WARN (advisory)
   const context = 'Consider adding --label to categorize this PR (bug, enhancement, chore, docs).';
-  logHook('gh-label-enforcer', 'Advisory: gh pr create without --label');
+  (ctx?.log ?? logHook)('gh-label-enforcer', 'Advisory: gh pr create without --label');
   return outputAllowWithContext(context);
 }

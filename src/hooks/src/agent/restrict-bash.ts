@@ -11,7 +11,7 @@
  * CC 2.1.7 compliant output format
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny, logHook, logPermissionFeedback } from '../lib/common.js';
 import { normalizeSingle } from '../lib/normalize-command.js';
 
@@ -63,7 +63,7 @@ function hasCompoundOperators(cmd: string): boolean {
  * Restrict Bash commands for read-only agents.
  * Allowlist-based: deny by default, only permit known safe commands.
  */
-export function restrictBash(input: HookInput): HookResult {
+export function restrictBash(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
   const agentId = process.env.CLAUDE_AGENT_ID || 'unknown';
 
@@ -73,8 +73,8 @@ export function restrictBash(input: HookInput): HookResult {
 
   // Block ALL compound commands for read-only agents
   if (hasCompoundOperators(command)) {
-    logPermissionFeedback('deny', `Compound command blocked for read-only agent ${agentId}`, input);
-    logHook('restrict-bash', `BLOCKED compound: ${command.substring(0, 80)}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Compound command blocked for read-only agent ${agentId}`, input);
+    (ctx?.log ?? logHook)('restrict-bash', `BLOCKED compound: ${command.substring(0, 80)}`);
 
     return outputDeny(
       `BLOCKED: Compound commands (&&, ||, |, ;) are not permitted for read-only agents.
@@ -93,8 +93,8 @@ Agent '${agentId}' has restricted Bash access. Run commands individually.`
   );
 
   if (!allowed) {
-    logPermissionFeedback('deny', `Command not in allowlist for ${agentId}: ${command.substring(0, 60)}`, input);
-    logHook('restrict-bash', `BLOCKED: ${command.substring(0, 80)}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Command not in allowlist for ${agentId}: ${command.substring(0, 60)}`, input);
+    (ctx?.log ?? logHook)('restrict-bash', `BLOCKED: ${command.substring(0, 80)}`);
 
     return outputDeny(
       `BLOCKED: Command not permitted for read-only agent '${agentId}'.
@@ -106,6 +106,6 @@ This agent investigates and reports — it does not modify the system.`
     );
   }
 
-  logPermissionFeedback('allow', `Allowed command for ${agentId}: ${normalized.substring(0, 60)}`, input);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Allowed command for ${agentId}: ${normalized.substring(0, 60)}`, input);
   return outputSilentSuccess();
 }

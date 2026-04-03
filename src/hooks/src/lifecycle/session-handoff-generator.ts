@@ -16,7 +16,7 @@
 import { existsSync, readFileSync, mkdirSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess, getSessionId, getCachedBranch, getProjectDir } from '../lib/common.js';
 import { hashProject } from '../lib/analytics.js';
 import { getMetricsFile, getHomeDir, joinPath } from '../lib/paths.js';
@@ -166,13 +166,13 @@ function rotateHandoffs(handoffDir: string): void {
   } catch { /* ignore */ }
 }
 
-export function sessionHandoffGenerator(input: HookInput): HookResult {
+export function sessionHandoffGenerator(input: HookInput, ctx?: HookContext): HookResult {
   try {
-    const projectDir = input.project_dir || getProjectDir();
+    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
     const projectHash = hashProject(projectDir);
     const handoffDir = getHandoffDir(projectHash);
-    const sessionId = input.session_id || getSessionId();
-    const branch = getCachedBranch(projectDir);
+    const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
+    const branch = ctx?.branch ?? getCachedBranch(projectDir);
     const timestamp = new Date().toISOString();
 
     const metrics = loadMetrics();
@@ -199,9 +199,9 @@ export function sessionHandoffGenerator(input: HookInput): HookResult {
     atomicWriteSync(archivePath, yaml);
     atomicWriteSync(join(handoffDir, 'latest.yaml'), yaml);
 
-    logHook(HOOK_NAME, `Handoff written: ${projectHash}/latest.yaml (${totalTools} tools, ${filesModified} files, status=${status})`);
+    (ctx?.log ?? logHook)(HOOK_NAME, `Handoff written: ${projectHash}/latest.yaml (${totalTools} tools, ${filesModified} files, status=${status})`);
   } catch (err) {
-    logHook(HOOK_NAME, `Failed to write handoff: ${err instanceof Error ? err.message : String(err)}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to write handoff: ${err instanceof Error ? err.message : String(err)}`, 'warn');
   }
 
   return outputSilentSuccess();

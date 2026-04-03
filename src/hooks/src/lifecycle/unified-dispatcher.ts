@@ -17,7 +17,7 @@
  * Failures are logged to file but not surfaced to users.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 
@@ -33,7 +33,7 @@ import { typeErrorIndexer } from './type-error-indexer.js';
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -100,7 +100,7 @@ async function checkWebhookHealth(): Promise<void> {
 /**
  * Unified dispatcher that runs all SessionStart hooks in parallel
  */
-export async function unifiedSessionStartDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedSessionStartDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
   // Check webhook health once per session (non-blocking, runs alongside hooks)
   const webhookCheck = checkWebhookHealth().catch(() => {});
 
@@ -134,7 +134,7 @@ export async function unifiedSessionStartDispatcher(input: HookInput): Promise<H
 
   // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    logHook('session-start-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
+    (ctx?.log ?? logHook)('session-start-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
   }
 
   // Wait for webhook health check to complete (non-blocking, errors already caught)

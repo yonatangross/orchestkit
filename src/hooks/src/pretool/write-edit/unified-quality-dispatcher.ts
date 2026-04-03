@@ -16,7 +16,7 @@
  * CC 2.1.9 Compliant: Single additionalContext output with 800-token budget
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -42,7 +42,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
 
 interface QualityHookConfig {
   name: string;
@@ -76,10 +76,10 @@ export const registeredHookNames = () => [
  * 1. security-pattern-validator (can block)
  * 2. Quality hooks (context producers, budget-capped)
  */
-export function unifiedWriteEditQualityDispatcher(input: HookInput): HookResult {
+export function unifiedWriteEditQualityDispatcher(input: HookInput, ctx?: HookContext): HookResult {
   // --- Phase 1: Security check (can block) ---
   try {
-    const securityResult = securityPatternValidator(input);
+    const securityResult = securityPatternValidator(input, ctx);
     if (!securityResult.continue) {
       return securityResult;
     }
@@ -90,7 +90,7 @@ export function unifiedWriteEditQualityDispatcher(input: HookInput): HookResult 
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `security-pattern-validator failed: ${message}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `security-pattern-validator failed: ${message}`, 'warn');
   }
 
   // --- Phase 2: Quality hooks (context producers) ---

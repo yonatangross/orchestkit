@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects pre-commit suggestions via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -35,9 +35,9 @@ function hasHuskyConfig(projectDir: string): boolean {
 /**
  * Suggest pre-commit checks before commit
  */
-export function preCommitSimulation(input: HookInput): HookResult {
+export function preCommitSimulation(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Only process git commit commands
   if (!/git\s+commit/.test(command)) {
@@ -50,8 +50,8 @@ export function preCommitSimulation(input: HookInput): HookResult {
 Consider removing it unless intentional.
 Skipped checks may cause CI failures.`;
 
-    logPermissionFeedback('allow', 'Skip pre-commit detected', input);
-    logHook('pre-commit-simulation', '--no-verify used');
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Skip pre-commit detected', input);
+    (ctx?.log ?? logHook)('pre-commit-simulation', '--no-verify used');
     return outputAllowWithContext(context);
   }
 
@@ -61,7 +61,7 @@ Skipped checks may cause CI failures.`;
 If hooks fail, fix issues and retry.
 Run manually: pre-commit run --all-files`;
 
-    logPermissionFeedback('allow', 'pre-commit config found', input);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'pre-commit config found', input);
     return outputAllowWithContext(context);
   }
 
@@ -70,7 +70,7 @@ Run manually: pre-commit run --all-files`;
     const context = `Husky hooks will run: .husky/
 If hooks fail, fix issues and retry.`;
 
-    logPermissionFeedback('allow', 'husky config found', input);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'husky config found', input);
     return outputAllowWithContext(context);
   }
 

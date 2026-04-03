@@ -4,7 +4,7 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
@@ -92,7 +92,7 @@ function validateObservationSizes(observationsInput: Array<Record<string, unknow
 /**
  * Memory validator - validates memory operations
  */
-export function memoryValidator(input: HookInput): HookResult {
+export function memoryValidator(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process memory MCP calls
@@ -107,8 +107,8 @@ export function memoryValidator(input: HookInput): HookResult {
       const entityCount = Array.isArray(entityNames) ? entityNames.length : 0;
 
       if (entityCount > 5) {
-        logPermissionFeedback('warn', `Bulk delete: ${entityCount} entities`, input);
-        logHook('memory-validator', `WARN: Bulk entity delete: ${entityCount} entities`);
+        (ctx?.logPermission ?? logPermissionFeedback)('warn', `Bulk delete: ${entityCount} entities`, input);
+        (ctx?.log ?? logHook)('memory-validator', `WARN: Bulk entity delete: ${entityCount} entities`);
 
         // Warn but allow - let user confirm
         return outputWarning(`Deleting ${entityCount} entities from knowledge graph`);
@@ -122,8 +122,8 @@ export function memoryValidator(input: HookInput): HookResult {
       const relationCount = Array.isArray(relations) ? relations.length : 0;
 
       if (relationCount > 10) {
-        logPermissionFeedback('warn', `Bulk relation delete: ${relationCount} relations`, input);
-        logHook('memory-validator', `WARN: Bulk relation delete: ${relationCount} relations`);
+        (ctx?.logPermission ?? logPermissionFeedback)('warn', `Bulk relation delete: ${relationCount} relations`, input);
+        (ctx?.log ?? logHook)('memory-validator', `WARN: Bulk relation delete: ${relationCount} relations`);
 
         return outputWarning(`Deleting ${relationCount} relations from knowledge graph`);
       }
@@ -134,7 +134,7 @@ export function memoryValidator(input: HookInput): HookResult {
       // Validate entity structure
       const entities = input.tool_input.entities;
       if (!Array.isArray(entities)) {
-        logPermissionFeedback('allow', 'Creating entities (non-array input)', input);
+        (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Creating entities (non-array input)', input);
         return outputSilentSuccess();
       }
 
@@ -146,8 +146,8 @@ export function memoryValidator(input: HookInput): HookResult {
       ).length;
 
       if (invalidCount > 0) {
-        logPermissionFeedback('warn', `Invalid entities: ${invalidCount} missing name or entityType`, input);
-        logHook('memory-validator', `WARN: ${invalidCount} entities missing required fields`);
+        (ctx?.logPermission ?? logPermissionFeedback)('warn', `Invalid entities: ${invalidCount} missing name or entityType`, input);
+        (ctx?.log ?? logHook)('memory-validator', `WARN: ${invalidCount} entities missing required fields`);
 
         return outputWarning(`${invalidCount} entities missing required fields (name, entityType)`);
       }
@@ -155,18 +155,18 @@ export function memoryValidator(input: HookInput): HookResult {
       // Size validation — block oversized (likely poisoning per OWASP ASI06)
       const sizeError = validateEntitySizes(entities as Array<Record<string, unknown>>);
       if (sizeError) {
-        logPermissionFeedback('deny', `Oversized entity: ${sizeError}`, input);
-        logHook('memory-validator', `BLOCKED: ${sizeError}`);
+        (ctx?.logPermission ?? logPermissionFeedback)('deny', `Oversized entity: ${sizeError}`, input);
+        (ctx?.log ?? logHook)('memory-validator', `BLOCKED: ${sizeError}`);
         return outputDeny(sizeError);
       }
 
       // Unknown entity type warning (don't block — types evolve)
       const unknownTypes = checkEntityTypes(entities as Array<Record<string, unknown>>);
       if (unknownTypes.length > 0) {
-        logHook('memory-validator', `WARN: Unknown entity types: ${unknownTypes.join(', ')}`);
+        (ctx?.log ?? logHook)('memory-validator', `WARN: Unknown entity types: ${unknownTypes.join(', ')}`);
       }
 
-      logPermissionFeedback('allow', `Creating ${entityCount} valid entities`, input);
+      (ctx?.logPermission ?? logPermissionFeedback)('allow', `Creating ${entityCount} valid entities`, input);
       break;
     }
 
@@ -174,7 +174,7 @@ export function memoryValidator(input: HookInput): HookResult {
       // Validate relation structure
       const relations = input.tool_input.relations;
       if (!Array.isArray(relations)) {
-        logPermissionFeedback('allow', 'Creating relations (non-array input)', input);
+        (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Creating relations (non-array input)', input);
         return outputSilentSuccess();
       }
 
@@ -186,13 +186,13 @@ export function memoryValidator(input: HookInput): HookResult {
       ).length;
 
       if (invalidCount > 0) {
-        logPermissionFeedback('warn', `Invalid relations: ${invalidCount} missing from/to/relationType`, input);
-        logHook('memory-validator', `WARN: ${invalidCount} relations missing required fields`);
+        (ctx?.logPermission ?? logPermissionFeedback)('warn', `Invalid relations: ${invalidCount} missing from/to/relationType`, input);
+        (ctx?.log ?? logHook)('memory-validator', `WARN: ${invalidCount} relations missing required fields`);
 
         return outputWarning(`${invalidCount} relations missing required fields`);
       }
 
-      logPermissionFeedback('allow', `Creating ${relationCount} valid relations`, input);
+      (ctx?.logPermission ?? logPermissionFeedback)('allow', `Creating ${relationCount} valid relations`, input);
       break;
     }
 
@@ -202,18 +202,18 @@ export function memoryValidator(input: HookInput): HookResult {
       if (Array.isArray(observations)) {
         const obsError = validateObservationSizes(observations as Array<Record<string, unknown>>);
         if (obsError) {
-          logPermissionFeedback('deny', `Oversized observation: ${obsError}`, input);
-          logHook('memory-validator', `BLOCKED: ${obsError}`);
+          (ctx?.logPermission ?? logPermissionFeedback)('deny', `Oversized observation: ${obsError}`, input);
+          (ctx?.log ?? logHook)('memory-validator', `BLOCKED: ${obsError}`);
           return outputDeny(obsError);
         }
       }
-      logPermissionFeedback('allow', `Adding observations`, input);
+      (ctx?.logPermission ?? logPermissionFeedback)('allow', `Adding observations`, input);
       break;
     }
 
     default:
       // Read operations - always allow
-      logPermissionFeedback('allow', `Read operation: ${toolName}`, input);
+      (ctx?.logPermission ?? logPermissionFeedback)('allow', `Read operation: ${toolName}`, input);
       break;
   }
 

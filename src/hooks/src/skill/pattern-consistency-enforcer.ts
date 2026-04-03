@@ -5,20 +5,20 @@
  */
 
 import { existsSync, } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputBlock, getProjectDir, lineContainsAll } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
 
 /**
  * Enforce pattern consistency across codebase
  */
-export function patternConsistencyEnforcer(input: HookInput): HookResult {
+export function patternConsistencyEnforcer(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
   if (!filePath || !content) return outputSilentSuccess();
 
-  const projectRoot = getRepoRoot() || getProjectDir();
+  const projectRoot = getRepoRoot() || (ctx?.projectDir ?? getProjectDir());
   const patternsFile = `${projectRoot}/.claude/context/knowledge/patterns/established.json`;
 
   // Skip if no patterns file

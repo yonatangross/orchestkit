@@ -5,7 +5,7 @@
  */
 
 import { readFileSync, readdirSync, } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
 
@@ -140,7 +140,7 @@ function checkUtilityPatterns(content: string, filePath: string): { errors: stri
 /**
  * Detect duplicate/redundant code across worktrees
  */
-export function duplicateCodeDetector(input: HookInput): HookResult {
+export function duplicateCodeDetector(input: HookInput, hookCtx?: HookContext): HookResult {
   const filePath = input.tool_input?.file_path || '';
   const content = input.tool_input?.content || (input as any).tool_result || '';
 
@@ -157,7 +157,7 @@ export function duplicateCodeDetector(input: HookInput): HookResult {
   // 1. Extract signatures and check for duplicates in main repo
   const signatures = extractSignatures(content, filePath);
   if (signatures.length > 0) {
-    const projectRoot = getRepoRoot() || getProjectDir();
+    const projectRoot = getRepoRoot() || (hookCtx?.projectDir ?? getProjectDir());
     const codeFiles = findCodeFiles(projectRoot, /\.(ts|tsx|js|jsx|py)$/);
 
     for (const signature of signatures) {

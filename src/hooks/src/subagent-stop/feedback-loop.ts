@@ -16,7 +16,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
 import { PIPELINES } from '../lib/multi-agent-coordinator.js';
@@ -286,7 +286,7 @@ function createHandoffContext(
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function feedbackLoop(input: HookInput): HookResult {
+export function feedbackLoop(input: HookInput, ctx?: HookContext): HookResult {
   // Issue #362: Yield to CC Agent Teams when active — Teams has native
   // task tracking and peer messaging, making custom decision-log redundant.
   if (isAgentTeamsActive()) {

@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects changelog suggestions via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -69,9 +69,9 @@ function groupCommitsByType(commits: string[]): Record<string, string[]> {
 /**
  * Suggest changelog entries for version commands
  */
-export function changelogGenerator(input: HookInput): HookResult {
+export function changelogGenerator(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Only process npm version, poetry version, or changelog commands
   if (!/npm\s+version|poetry\s+version|changelog/.test(command)) {
@@ -112,7 +112,7 @@ ${sections.join('\n\n')}
 
 Update CHANGELOG.md before releasing.`;
 
-  logPermissionFeedback('allow', 'Changelog suggestions generated', input);
-  logHook('changelog-generator', `Generated ${sections.length} sections`);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Changelog suggestions generated', input);
+  (ctx?.log ?? logHook)('changelog-generator', `Generated ${sections.length} sections`);
   return outputAllowWithContext(context);
 }

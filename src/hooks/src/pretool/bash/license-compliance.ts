@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects license warnings via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -53,9 +53,9 @@ function checkNpmLicenses(projectDir: string): string[] {
 /**
  * Check for license compliance on install commands
  */
-export function licenseCompliance(input: HookInput): HookResult {
+export function licenseCompliance(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Only process npm install, yarn add, or pip install commands
   if (!/npm\s+install|yarn\s+add|pip\s+install|poetry\s+add/.test(command)) {
@@ -87,8 +87,8 @@ Consider checking its license before adding.
 
 Use: npm view ${pkgName} license`;
 
-    logPermissionFeedback('allow', 'License compliance warning', input);
-    logHook('license-compliance', `Checking: ${pkgName}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'License compliance warning', input);
+    (ctx?.log ?? logHook)('license-compliance', `Checking: ${pkgName}`);
     return outputAllowWithContext(context);
   }
 
@@ -97,6 +97,6 @@ Use: npm view ${pkgName} license`;
 Verify license compatibility before production use.
 Check: npm view ${pkgName} license`;
 
-  logPermissionFeedback('allow', `Installing package: ${pkgName}`, input);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Installing package: ${pkgName}`, input);
   return outputAllowWithContext(context);
 }

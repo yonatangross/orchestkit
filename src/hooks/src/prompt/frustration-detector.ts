@@ -14,7 +14,7 @@
  * This hook does NOT modify Claude's behavior — analytics only.
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
@@ -59,7 +59,7 @@ export function detectFrustration(prompt: string): boolean {
  * Runs regex against the user prompt and logs a boolean signal
  * to cross-project analytics. Never produces context output.
  */
-export function frustrationDetector(input: HookInput): HookResult {
+export function frustrationDetector(input: HookInput, ctx?: HookContext): HookResult {
   const prompt = input.prompt || '';
 
   // Skip empty or trivial prompts
@@ -77,13 +77,13 @@ export function frustrationDetector(input: HookInput): HookResult {
 
     // Log only the boolean signal — never the matched text
     if (frustrated) {
-      logHook(HOOK_NAME, 'Frustration signal detected');
+      (ctx?.log ?? logHook)(HOOK_NAME, 'Frustration signal detected');
 
       // Cross-project analytics (Issue #459 pattern)
       // Privacy: only boolean + hashed project + timestamp
       appendAnalytics('dx-signals.jsonl', {
         ts: new Date().toISOString(),
-        pid: hashProject(getProjectDir()),
+        pid: hashProject(ctx?.projectDir ?? getProjectDir()),
         signal: 'frustration',
         value: true,
         ...getTeamContext(),
@@ -91,7 +91,7 @@ export function frustrationDetector(input: HookInput): HookResult {
     }
   } catch (error) {
     // Never crash the hook chain
-    logHook(HOOK_NAME, `Error: ${error}`, 'warn');
+    (ctx?.log ?? logHook)(HOOK_NAME, `Error: ${error}`, 'warn');
   }
 
   return outputSilentSuccess();

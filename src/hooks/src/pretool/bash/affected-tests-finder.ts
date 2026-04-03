@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects test suggestions via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -72,9 +72,9 @@ function getChangedFiles(projectDir: string): string[] {
 /**
  * Suggest running affected tests before push/commit
  */
-export function affectedTestsFinder(input: HookInput): HookResult {
+export function affectedTestsFinder(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   // Only process git push or npm test commands
   if (!/git\s+push|npm\s+run\s+test|pytest/.test(command)) {
@@ -109,8 +109,8 @@ ${uniqueTests.slice(0, 5).join('\n')}${uniqueTests.length > 5 ? '\n...' : ''}
 
 Consider running: npm run test -- ${uniqueTests[0]}`;
 
-    logPermissionFeedback('allow', `Found ${uniqueTests.length} related tests`, input);
-    logHook('affected-tests-finder', `Tests: ${uniqueTests.join(', ')}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', `Found ${uniqueTests.length} related tests`, input);
+    (ctx?.log ?? logHook)('affected-tests-finder', `Tests: ${uniqueTests.join(', ')}`);
     return outputAllowWithContext(context);
   }
 

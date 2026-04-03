@@ -4,7 +4,7 @@
  * CC 2.1.9: Injects issue creation context via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
@@ -70,7 +70,7 @@ function detectIssueType(command: string): string | null {
 /**
  * Provide guidance for GitHub issue creation
  */
-export function ghIssueCreationGuide(input: HookInput): HookResult {
+export function ghIssueCreationGuide(input: HookInput, ctx?: HookContext): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue create commands
@@ -94,8 +94,8 @@ ${ISSUE_TEMPLATES[issueType].slice(0, 200)}...
 
 Add --body with template or use --web for interactive creation.`;
 
-    logPermissionFeedback('allow', `Issue creation: ${issueType}`, input);
-    logHook('gh-issue-creation-guide', `Type: ${issueType}`);
+    (ctx?.logPermission ?? logPermissionFeedback)('allow', `Issue creation: ${issueType}`, input);
+    (ctx?.log ?? logHook)('gh-issue-creation-guide', `Type: ${issueType}`);
     return outputAllowWithContext(context);
   }
 
@@ -108,6 +108,6 @@ Add --body with template or use --web for interactive creation.`;
 
 Use --web for interactive creation with templates.`;
 
-  logPermissionFeedback('allow', 'Issue creation guidance', input);
+  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Issue creation guidance', input);
   return outputAllowWithContext(context);
 }

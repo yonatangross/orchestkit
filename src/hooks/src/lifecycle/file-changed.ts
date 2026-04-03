@@ -15,7 +15,7 @@
  * @see #1230
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 // outputWithContext used in describeChange path
 import { basename } from 'node:path';
@@ -42,7 +42,7 @@ function describeChange(filePath: string, fileName: string): string | null {
   return null;
 }
 
-export function fileChanged(input: HookInput): HookResult {
+export function fileChanged(input: HookInput, ctx?: HookContext): HookResult {
   const filePath = input.changed_file_path || '';
   const fileName = input.changed_file || basename(filePath);
 
@@ -50,7 +50,7 @@ export function fileChanged(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook(HOOK_NAME, `Watched file changed: ${filePath}`);
+  (ctx?.log ?? logHook)(HOOK_NAME, `Watched file changed: ${filePath}`);
 
   const description = describeChange(filePath, fileName);
   if (!description) {

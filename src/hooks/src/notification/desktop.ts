@@ -10,7 +10,7 @@
 
 import { execFileSync, spawn } from 'node:child_process';
 import { basename } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 
@@ -155,12 +155,12 @@ function sendLinuxNotification(title: string, subtitle: string, message: string)
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export async function desktopNotification(input: HookInput): Promise<HookResult> {
+export async function desktopNotification(input: HookInput, ctx?: HookContext): Promise<HookResult> {
   const toolInput = input.tool_input || {};
   const message = input.message || (toolInput.message as string) || '';
   const notificationType = input.notification_type || (toolInput.notification_type as string) || '';
 
-  logHook('desktop', `Notification: [${notificationType}] ${message.substring(0, 100)}`);
+  (ctx?.log ?? logHook)('desktop', `Notification: [${notificationType}] ${message.substring(0, 100)}`);
 
   // Only show for permission prompts and idle prompts
   if (notificationType !== 'permission_prompt' && notificationType !== 'idle_prompt') {
@@ -169,7 +169,7 @@ export async function desktopNotification(input: HookInput): Promise<HookResult>
 
   // Build rich notification content
   const repoName = getRepoName();
-  const branch = getCachedBranch();
+  const branch = ctx?.branch ?? getCachedBranch();
   const title = buildTitle(repoName, notificationType);
   const subtitle = buildSubtitle(branch);
   const body = buildMessage(message, notificationType);

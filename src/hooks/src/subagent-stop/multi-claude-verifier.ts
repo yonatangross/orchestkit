@@ -12,7 +12,7 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
@@ -102,9 +102,9 @@ interface VerificationQueue {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function multiClaudeVerifier(input: HookInput): HookResult {
+export function multiClaudeVerifier(input: HookInput, ctx?: HookContext): HookResult {
   const timestamp = new Date().toISOString();
-  const projectDir = getProjectDir();
+  const projectDir = ctx?.projectDir ?? getProjectDir();
 
   const toolInput = input.tool_input || {};
   const agentName =

@@ -15,7 +15,7 @@
  * Version: 3.0.0 — Simplified to error-logger
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
 
 // =============================================================================
@@ -83,7 +83,7 @@ function detectError(input: HookInput): ErrorInfo {
 // MAIN HOOK
 // =============================================================================
 
-export function unifiedErrorHandler(input: HookInput): HookResult {
+export function unifiedErrorHandler(input: HookInput, ctx?: HookContext): HookResult {
   const toolName = input.tool_name || '';
 
   // Self-guard: Skip trivial bash commands
@@ -101,6 +101,6 @@ export function unifiedErrorHandler(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('error-logger', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
+  (ctx?.log ?? logHook)('error-logger', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
   return outputSilentSuccess();
 }

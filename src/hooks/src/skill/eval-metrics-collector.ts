@@ -6,14 +6,14 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 /**
  * Collect and summarize LLM evaluation metrics
  */
-export function evalMetricsCollector(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function evalMetricsCollector(_input: HookInput, ctx?: HookContext): HookResult {
+  const projectDir = ctx?.projectDir ?? getProjectDir();
   const messages: string[] = [];
 
   messages.push('::group::LLM Evaluation Summary');

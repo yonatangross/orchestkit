@@ -11,7 +11,7 @@
  * @since CC 2.1.33
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import { appendAnalytics, hashProject } from '../../lib/analytics.js';
@@ -19,7 +19,7 @@ import { appendAnalytics, hashProject } from '../../lib/analytics.js';
 // Fix #904: TaskUpdate included in PostToolUse hooks.json matcher.
 // calibration-tracker removed in #960 (replaced by CC native skill matching).
 
-export function teamMemberStart(input: HookInput): HookResult {
+export function teamMemberStart(input: HookInput, ctx?: HookContext): HookResult {
   const toolInput = input.tool_input || {};
 
   // Only track team spawns
@@ -33,7 +33,7 @@ export function teamMemberStart(input: HookInput): HookResult {
   const model = (toolInput.model as string) || 'default';
   const description = (toolInput.description as string) || '';
 
-  logHook('team-member-start', `Team "${teamName}": member "${memberName}" (${subagentType}) started`);
+  (ctx?.log ?? logHook)('team-member-start', `Team "${teamName}": member "${memberName}" (${subagentType}) started`);
 
   appendEventLog('teammate-activity.jsonl', {
     timestamp: new Date().toISOString(),

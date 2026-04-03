@@ -11,15 +11,15 @@
  * Version: 1.0.0
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 
-export function elicitationResultLogger(input: HookInput): HookResult {
+export function elicitationResultLogger(input: HookInput, ctx?: HookContext): HookResult {
   const action = input.elicitation_action || 'unknown';
   const server = input.mcp_server_name || 'unknown';
   const mode = input.elicitation_mode || 'unknown';
 
-  logHook('elicitation-result-logger',
+  (ctx?.log ?? logHook)('elicitation-result-logger',
     `Elicitation ${action} — server: ${server}, mode: ${mode}`
   );
 
