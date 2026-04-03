@@ -1,12 +1,13 @@
 ---
 title: "TaskCompleted"
-description: "Hooks triggered on TaskCompleted events (1 hooks)."
+description: "Hooks triggered on TaskCompleted events (2 hooks)."
 ---
 
 # TaskCompleted Hooks
 
-**1 hooks** registered for the `TaskCompleted` lifecycle event.
+**2 hooks** registered for the `TaskCompleted` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `sync-task-completed-dispatcher` | `*` | 💡 Injects | Consolidates 3 TaskCompleted hooks + webhook forwarder into a single |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

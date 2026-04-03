@@ -38,7 +38,8 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
           "`hook_event_name` → `hook_event` normalization in `run-hook.mjs` (all events logged as \"unknown\")",
           "Plugin/user `HttpSink` instances now receive config URL/token (were all hitting env-configured default)",
           "Stale test assertions: async hook counts, split-bundle counts, description totals, cross-reference prefixes",
-          "GitHub push protection: replaced realistic-looking test fixtures with obviously-fake tokens"
+          "GitHub push protection: replaced realistic-looking test fixtures with obviously-fake tokens",
+          "**CC 2.1.91 integration**: MCP result size override, disableSkillShellExecution, plugin bin/ executables, Edit shorter anchors\n  - `mcp-output-transform` \"Trust CC's decision\" heuristic: results > 50K chars were explicitly kept by CC (likely `_meta[\"anthropic/maxResultSizeChars\"]`), so skip truncation. Results 2K–50K get token-saving truncation. PII redaction always runs regardless of size. Best-effort `_meta` extraction kept as fallback.\n  - `ORCHESTKIT_MCP_TRUNCATION_THRESHOLD` env var to override default 2K truncation threshold\n  - 7 new unit tests for CC trust heuristic (large result skip, PII on large results, _meta extraction, invalid _meta, env override)\n  - Fixed pre-existing test mock: `getProjectDir` + `webhookForwarder` missing from mcp-output-transform test mocks\n  - `disableSkillShellExecution` fallback notes added to 4 skills with invocation_hooks (cover, expect, commit, devops-deployment)\n  - cc-version-matrix.ts: +8 entries for CC 2.1.91 features\n  - mcp-patterns skill: added `_meta` annotation documentation, code example in server-setup rule\n  - cc-version-settings.md: new section covering disableSkillShellExecution, plugin bin/, Edit anchors, auto permission validation\n  - version-compatibility.md: +8 feature matrix entries, v7.29.x history row, 2.1.91 compatibility level"
         ]
       },
       {
@@ -47,7 +48,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
           "`webhookForwarder()` simplified to thin wrapper around `emit()` (public API unchanged — dispatchers need zero changes)",
           "`signPayload()` extracted from `usage-summary-reporter.ts` to shared `lib/crypto.ts`",
           "`sanitizePayload()` extracted from `session-tracker.ts` to shared `lib/crypto.ts` with expanded patterns",
-          "Hook count: 131 → 132 (added `telemetry-sync` on SessionEnd)"
+          "Hook count: 131 → 132 (added `telemetry-sync` on SessionEnd)",
+          "Minimum Claude Code version: 2.1.90 → 2.1.91",
+          "README badge updated from 2.1.90 to 2.1.91",
+          "mcp-patterns skill compatibility bumped from 2.1.76+ to 2.1.91+",
+          "mcp-output-transform uses \"Trust CC's decision\" heuristic for results > 50K instead of blindly truncating everything to 2K"
         ]
       }
     ]

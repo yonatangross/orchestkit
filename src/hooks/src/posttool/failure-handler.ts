@@ -9,7 +9,6 @@ import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { getLogDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { extractStructuredError } from '../lib/retry-manager.js';
@@ -97,9 +96,6 @@ function trackFailureAndMaybeEnableDebug(): void {
 }
 
 export function failureHandler(input: HookInput): HookResult {
-  // Fire-and-forget webhook forwarding (replaces separate hooks.json group)
-  webhookForwarder(input).catch(() => {});
-
   // Get error information from the input
   const errorMessage = input.tool_error || '';
   const toolName = input.tool_name || 'unknown';

@@ -197,11 +197,15 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const permissionGroups = hooksConfig.hooks.PermissionRequest || [];
       const allHooks = permissionGroups.flatMap(g => g.hooks);
 
+      // Permission decision hooks must be sync (blocking). Telemetry forwarders are allowed async.
       for (const hook of allHooks) {
-        expect(
-          hook.async,
-          `Permission hook ${hook.command} should not be async (blocking required)`
-        ).not.toBe(true);
+        const isForwarder = typeof hook.command === 'string' && hook.command.includes('webhook-forwarder');
+        if (!isForwarder) {
+          expect(
+            hook.async,
+            `Permission hook ${hook.command} should not be async (blocking required)`
+          ).not.toBe(true);
+        }
       }
     });
 
@@ -240,7 +244,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
       // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
-      expect(asyncHooks.length, 'Should have exactly 30 async hooks').toBe(30);
+      // 30 -> 44: v7.29.0 — webhook-forwarder decoupled from dispatchers to standalone async entries on all matcher groups
+      expect(asyncHooks.length, 'Should have exactly 44 async hooks').toBe(44);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -318,7 +323,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
       // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
-      expect(asyncCount).toBe(30);
+      // 30 -> 44: v7.29.0 — decoupled forwarder to standalone on all matcher groups
+      expect(asyncCount).toBe(44);
     });
 
     it('should have hooks for all critical security operations', () => {

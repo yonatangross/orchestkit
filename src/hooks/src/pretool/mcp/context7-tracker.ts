@@ -14,7 +14,6 @@ import {
   getLogDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
-import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join } from 'node:path';
 
@@ -139,7 +138,6 @@ function checkRateLimits(logFile: string): string | null {
  * Context7 tracker - tracks library lookups, enforces rate limits, and injects cache state
  */
 export function context7Tracker(input: HookInput): HookResult {
-  webhookForwarder(input).catch(() => {});
   const toolName = input.tool_name || '';
 
   // Only process context7 MCP calls

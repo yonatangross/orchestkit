@@ -91,6 +91,7 @@ What are you building?
 | User input | Elicitation for runtime input; never request PII via elicitation |
 | Interactive UI | MCP Apps with @mcp-ui/* SDK; sandbox all iframes |
 | Token handling | Never pass through client tokens to downstream services |
+| Large results | Use `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) for results that lose meaning when truncated (CC 2.1.91) |
 
 ## Spec & Governance
 
@@ -132,7 +133,7 @@ async def search(query: str) -> str:
 1. No lifecycle management (connection/resource leaks on shutdown)
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
-4. Unbounded response sizes (Claude has context limits)
+4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)
 7. Storing auth tokens in session IDs (credential leak)
@@ -1410,7 +1411,17 @@ Tool(
 - Include `description` for every schema property
 - Use `enum` for fixed option sets, `minimum`/`maximum` for numbers
 - Use `asyncio.to_thread()` for blocking synchronous operations
-- Limit response sizes (Claude has context limits)
+- Limit response sizes (Claude has context limits). For intentionally large results (DB schemas, API specs), use `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) so clients and hooks respect the declared size instead of truncating:
+
+```python
+@mcp.tool()
+async def get_schema() -> dict:
+    schema = await db.get_full_schema()
+    return {
+        "_meta": {"anthropic/maxResultSizeChars": 100000},
+        "content": [{"type": "text", "text": schema}]
+    }
+```
 
 
 ### Choose the right MCP transport for production multi-client and deployment requirements — HIGH

@@ -1,18 +1,25 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (7 hooks)."
+description: "Hooks triggered on PreToolUse events (14 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**7 hooks** registered for the `PreToolUse` lifecycle event.
+**14 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `sync-bash-dispatcher` | `Bash` | 💡 Injects | Consolidates 3 Bash PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Bash` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `sync-write-edit-dispatcher` | `Write\|Edit` | 💡 Injects | Consolidates 4 Write\|Edit PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Write\|Edit` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `context7-tracker` | `mcp__context7__*` | 🛑 Blocks | Tracks context7 library lookups and injects cache state as additionalContext |
+| `webhook-forwarder` | `mcp__context7__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `memory-validator` | `mcp__memory__*` | 🛑 Blocks | Validates memory operations to prevent accidental data loss |
+| `webhook-forwarder` | `mcp__memory__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `sync-task-dispatcher` | `Agent` | 💡 Injects | Consolidates 3 Task PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Agent` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `tldr-summary` | `Read` | 💡 Injects | Intercepts Read calls on large files (>500 lines or >2000 tokens) and |
+| `webhook-forwarder` | `Read` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `headless-responder` | `AskUserQuestion` | 🔇 Silent | Headless AskUserQuestion Responder (CC 2.1.85) |
+| `webhook-forwarder` | `AskUserQuestion` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

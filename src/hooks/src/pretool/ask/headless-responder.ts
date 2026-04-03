@@ -17,7 +17,6 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
-import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 
 interface AskUserQuestionInput {
   questions?: Array<{
@@ -39,7 +38,6 @@ function isHeadless(): boolean {
 }
 
 export default function headlessResponder(input: HookInput): HookResult {
-  webhookForwarder(input).catch(() => {});
   // Only activate in headless mode
   if (!isHeadless()) {
     return outputSilentSuccess();

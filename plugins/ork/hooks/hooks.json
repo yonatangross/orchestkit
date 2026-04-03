@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 63 global + 47 agent-scoped + 22 skill-scoped = 132 total hooks (18 once:true context loaders). Webhook forwarder covers all 27 events: inlined in dispatchers for PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest/TaskCreated/TaskCompleted, standalone for remaining 21 events. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 63 global + 47 agent-scoped + 22 skill-scoped = 132 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -11,6 +11,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher",
             "timeout": 15,
             "statusMessage": "Validating command..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -22,6 +28,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/sync-write-edit-dispatcher",
             "timeout": 15,
             "statusMessage": "Checking file safety..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -32,6 +44,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -42,6 +60,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -53,6 +77,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/sync-task-dispatcher",
             "timeout": 15,
             "statusMessage": "Preparing agent..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -64,6 +94,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/read/tldr-summary",
             "timeout": 15,
             "statusMessage": "Analyzing file structure..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -74,6 +110,12 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/ask/headless-responder",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
             "timeout": 5
           }
         ]
@@ -88,6 +130,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/mcp-output-transform",
             "timeout": 5,
             "statusMessage": "Processing MCP result..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -99,6 +147,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
             "async": true,
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       }
@@ -112,6 +166,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler",
             "timeout": 10,
             "statusMessage": "Analyzing failure..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       }
@@ -126,6 +186,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/unified-dispatcher",
             "timeout": 10,
             "statusMessage": "Evaluating permissions..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
@@ -136,6 +202,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       }
@@ -457,6 +529,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/sync-task-created-dispatcher",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       }
@@ -468,6 +546,12 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/sync-task-completed-dispatcher",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       }

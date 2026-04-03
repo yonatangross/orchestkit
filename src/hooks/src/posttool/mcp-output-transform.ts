@@ -28,7 +28,6 @@
 
 import type { HookInput, HookResult, HookMeta } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
 
@@ -208,7 +207,6 @@ function logTransform(entry: {
 // -----------------------------------------------------------------------------
 
 export function mcpOutputTransform(input: HookInput): HookResult {
-  webhookForwarder(input).catch(() => {});
   const toolName = input.tool_name || '';
 
   // Guard: only process MCP tool calls

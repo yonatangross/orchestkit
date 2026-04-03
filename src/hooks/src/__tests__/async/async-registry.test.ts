@@ -83,7 +83,8 @@ describe('Async Hooks Registry', () => {
       // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
       // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
-      expect(asyncHooks.length, 'Should have exactly 30 async hooks').toBe(30);
+      // 30 -> 44: v7.29.0 — decoupled forwarder to standalone async on all matcher groups
+      expect(asyncHooks.length, 'Should have exactly 44 async hooks').toBe(44);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

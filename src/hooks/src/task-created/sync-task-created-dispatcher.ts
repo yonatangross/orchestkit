@@ -17,7 +17,6 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 
 // Import existing handler functions
 import { creationTracker } from './creation-tracker.js';
@@ -45,9 +44,6 @@ export async function syncTaskCreatedDispatcher(input: HookInput): Promise<HookR
   } catch (err) {
     logHook(HOOK_NAME, `task-progress-initializer failed: ${(err as Error).message}`, 'warn');
   }
-
-  // Fire-and-forget: webhook forwarding
-  webhookForwarder(input).catch(() => {});
 
   if (contextParts.length === 0) return outputSilentSuccess();
 

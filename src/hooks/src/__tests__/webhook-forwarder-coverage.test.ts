@@ -136,10 +136,10 @@ describe('Webhook Forwarder Coverage Validator', () => {
     expect(standaloneEvents.length).toBeGreaterThanOrEqual(20);
   });
 
-  test('detects inlined webhookForwarder in dispatchers', () => {
+  test('no inlined webhookForwarder in dispatchers (decoupled in v7.29.0)', () => {
     const inlinedEntries = coverageMap.filter((e) => e.inlined);
-    // At least the 6 known inlined dispatchers (after gap fixes: more)
-    expect(inlinedEntries.length).toBeGreaterThanOrEqual(6);
+    // v7.29.0: all inline forwarder calls removed — standalone hooks.json entries handle telemetry
+    expect(inlinedEntries.length).toBe(0);
   });
 
   test('every event type and matcher group has webhook forwarder coverage', () => {
@@ -159,8 +159,7 @@ describe('Webhook Forwarder Coverage Validator', () => {
     expect(
       gaps,
       `Webhook forwarder coverage gaps found:\n${gaps.join('\n')}\n\n` +
-        'Fix: add lifecycle/webhook-forwarder to hooks.json OR\n' +
-        'add webhookForwarder(input).catch(() => {}) to the dispatcher source.',
+        'Fix: add lifecycle/webhook-forwarder as async hook entry in hooks.json for this event.',
     ).toEqual([]);
   });
 

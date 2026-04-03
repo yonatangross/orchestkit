@@ -19,7 +19,6 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { autoApproveSafeBash } from './auto-approve-safe-bash.js';
 import { learningTracker } from './learning-tracker.js';
 
@@ -63,9 +62,6 @@ export function unifiedPermissionBashDispatcher(input: HookInput): HookResult {
     const message = error instanceof Error ? error.message : String(error);
     logHook(HOOK_NAME, `learning-tracker failed: ${message}`, 'warn');
   }
-
-  // Fire-and-forget webhook forwarding (replaces separate hooks.json group)
-  webhookForwarder(input).catch(() => {});
 
   // --- Neither approved — pass through to user ---
   return outputSilentSuccess();

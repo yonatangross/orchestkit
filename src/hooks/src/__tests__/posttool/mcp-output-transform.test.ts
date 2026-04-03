@@ -18,10 +18,6 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn(),
 }));
 
-vi.mock('../../lifecycle/webhook-forwarder.js', () => ({
-  webhookForwarder: vi.fn(() => Promise.resolve()),
-}));
-
 import { mcpOutputTransform } from '../../posttool/mcp-output-transform.js';
 import type { HookInput } from '../../types.js';
 

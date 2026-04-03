@@ -1408,7 +1408,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.91. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1621,6 +1621,14 @@ OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC featur
 | Transcript write perf | 2.1.90 | Long conversations no longer slow down quadratically on transcript writes | Quadratic transcript slowdown |
 | `--resume` hides `-p` sessions | 2.1.90 | Resume picker no longer shows `claude -p` or SDK sessions | `-p` sessions in resume picker |
 | DNS cache auto-allow removed | 2.1.90 | `Get-DnsClientCache` and `ipconfig /displaydns` removed from auto-allow | DNS cache commands auto-allowed |
+| MCP `_meta` result size override | 2.1.91 | `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) — mcp-output-transform respects it | Large MCP results always truncated at 2000 chars |
+| `disableSkillShellExecution` | 2.1.91 | Setting disables inline shell in skills/commands/plugins | Shell execution always enabled |
+| Plugin `bin/` executables | 2.1.91 | Plugins ship executables under `bin/` invokable as bare Bash commands | Must use full paths to plugin scripts |
+| Deep link multiline prompts | 2.1.91 | `claude-cli://open?q=` supports `%0A` encoded newlines | Multi-line deep links rejected |
+| Edit tool shorter anchors | 2.1.91 | Edit uses shorter `old_string` anchors, reducing output tokens | Longer anchors, more output tokens |
+| `--resume` transcript chain fix | 2.1.91 | Async transcript write failures no longer lose conversation history | History loss on async write failure |
+| `permissions.defaultMode:"auto"` validation | 2.1.91 | JSON schema validates `auto` as permission mode | `auto` accepted but could cause issues |
+| Plan mode remote session fix | 2.1.91 | Plan file retained after container restart in remote sessions | Plan lost after container restart |
 
 ## Version Detection
 
@@ -1662,7 +1670,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.84 | Full++++++++++++++ | TaskCreated hook, WorktreeCreate HTTP, paths: globs, ANTHROPIC_DEFAULT_*, stream timeout, MCP 2KB cap, json-schema fix |
 | >= 2.1.88 | Full+++++++++++++++ | PermissionDenied hook, auto permission mode, absolute file_path, compound if matching, NO_FLICKER |
 | >= 2.1.89 | Full++++++++++++++++ | defer permission, TaskCreated blocking, MCP_CONNECTION_NONBLOCKING, named subagent typeahead, hook disk spill |
-| >= 2.1.90 | **Recommended** | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf — **current minimum** |
+| >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
+| >= 2.1.91 | **Recommended** | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix — **current minimum** |
 
 ## Doctor Check Implementation
 
@@ -1741,6 +1750,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.29.x | 2.1.91 | MCP result size override (_meta annotation), disableSkillShellExecution, plugin bin/ executables, Edit shorter anchors, deep link multiline |
 | v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |
 | v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |
 | v7.23.x | 2.1.83 | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig sensitive, env scrub |

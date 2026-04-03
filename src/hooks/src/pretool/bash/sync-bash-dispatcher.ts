@@ -18,7 +18,6 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
-import { webhookForwarder } from '../../lifecycle/webhook-forwarder.js';
 
 // Import consolidated hook implementations
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
@@ -150,9 +149,6 @@ export function syncBashDispatcher(input: HookInput): HookResult {
       logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
-
-  // Fire-and-forget webhook forwarding (replaces separate hooks.json group)
-  webhookForwarder(input).catch(() => {});
 
   return buildMergedResult(contextParts, updatedInput);
 }

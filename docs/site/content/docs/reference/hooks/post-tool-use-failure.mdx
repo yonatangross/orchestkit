@@ -1,12 +1,13 @@
 ---
 title: "PostToolUseFailure"
-description: "Hooks triggered on PostToolUseFailure events (1 hooks)."
+description: "Hooks triggered on PostToolUseFailure events (2 hooks)."
 ---
 
 # PostToolUseFailure Hooks
 
-**1 hooks** registered for the `PostToolUseFailure` lifecycle event.
+**2 hooks** registered for the `PostToolUseFailure` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `failure-handler` | `Bash\|Write\|Edit\|Agent` | 🔇 Silent | PostToolUseFailure Handler |
+| `webhook-forwarder` | `Bash\|Write\|Edit\|Agent` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

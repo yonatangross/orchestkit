@@ -18,7 +18,6 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 
 // Import existing handler functions
 import { completionTracker } from './completion-tracker.js';
@@ -54,9 +53,6 @@ export async function syncTaskCompletedDispatcher(input: HookInput): Promise<Hoo
   } catch (err) {
     logHook(HOOK_NAME, `task-progress-tracker failed: ${(err as Error).message}`, 'warn');
   }
-
-  // Fire-and-forget: webhook forwarding
-  webhookForwarder(input).catch(() => {});
 
   if (contextParts.length === 0) return outputSilentSuccess();
 

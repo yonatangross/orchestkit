@@ -12,7 +12,6 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
 import { resolve, isAbsolute } from 'node:path';
 
@@ -21,7 +20,6 @@ import { resolve, isAbsolute } from 'node:path';
  * (excluding sensitive directories). CC 2.1.47: respects added_dirs from statusline.
  */
 export function autoApproveProjectWrites(input: HookInput): HookResult {
-  webhookForwarder(input).catch(() => {});
   let filePath = input.tool_input.file_path || '';
   const projectDir = input.project_dir || getProjectDir();
 

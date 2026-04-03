@@ -13,7 +13,6 @@
 
 import type { HookInput, HookResult, HookFn } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, estimateTokenCount } from '../lib/common.js';
-import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { trackTokenUsage } from '../lib/token-tracker.js';
 // Import individual hook implementations (essential: security + local state only)
 // Analytics/telemetry hooks removed — now handled by HQ
@@ -142,9 +141,6 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
   if (failures.length > 0) {
     logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
   }
-
-  // Fire-and-forget webhook forwarding (replaces separate hooks.json group)
-  webhookForwarder(input).catch(() => {});
 
   // Forward collected additionalContext to CC (delivered on next turn for async hooks)
   if (contexts.length > 0) {
