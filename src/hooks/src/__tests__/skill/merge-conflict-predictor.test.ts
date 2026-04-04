@@ -127,7 +127,7 @@ describe('merge-conflict-predictor', () => {
       mockGitCommands({ 'worktree list': '' }); // No worktrees
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -144,7 +144,7 @@ describe('merge-conflict-predictor', () => {
       });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -160,7 +160,7 @@ describe('merge-conflict-predictor', () => {
       });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -174,7 +174,7 @@ describe('merge-conflict-predictor', () => {
       });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -191,7 +191,7 @@ describe('merge-conflict-predictor', () => {
       const input = createWriteInput('', 'content');
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -203,7 +203,7 @@ describe('merge-conflict-predictor', () => {
       const input = createWriteInput('/test/project/file.ts', '');
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -216,7 +216,7 @@ describe('merge-conflict-predictor', () => {
       mockGitCommands({ 'worktree list': '' });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -242,7 +242,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list --porcelain': worktreeOutput });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -263,7 +263,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -277,7 +277,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list --porcelain': worktreeOutput });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert - should only check /test/other-wt, not /test/project
       const statusCalls = vi.mocked(execFileSync).mock.calls.filter(
@@ -310,7 +310,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
@@ -334,7 +334,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -358,7 +358,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -391,7 +391,7 @@ branch refs/heads/feature`;
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -412,7 +412,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -427,7 +427,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list': '' });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -457,7 +457,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -481,7 +481,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -505,7 +505,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
@@ -527,7 +527,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -549,7 +549,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list --porcelain': worktreeOutput });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -573,7 +573,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -593,7 +593,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list': '' });
 
       // Act
-      const result = mergeConflictPredictor(input);
+      const result = mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -613,7 +613,7 @@ branch refs/heads/feature`;
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       // Should check /test/wt/src/deep/nested/file.ts
@@ -639,7 +639,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -676,7 +676,7 @@ branch refs/heads/feature`;
       });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -697,7 +697,7 @@ branch refs/heads/feature`;
       mockGitCommands({ 'worktree list': '' });
 
       // Act
-      mergeConflictPredictor(input);
+      mergeConflictPredictor(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(

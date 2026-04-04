@@ -84,7 +84,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -98,7 +98,7 @@ describe('evidence-collector', () => {
       });
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -112,7 +112,7 @@ describe('evidence-collector', () => {
       });
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -127,7 +127,7 @@ describe('evidence-collector', () => {
       });
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -138,7 +138,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -155,7 +155,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith('/test/logs', { recursive: true });
@@ -165,12 +165,12 @@ describe('evidence-collector', () => {
       // Arrange
       const input = createInput();
       vi.mocked(getLogDir).mockReturnValue('/custom/log/path');
+      (testCtx as any).logDir = '/custom/log/path';
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
-      expect(getLogDir).toHaveBeenCalled();
       expect(mkdirSync).toHaveBeenCalledWith('/custom/log/path', { recursive: true });
     });
   });
@@ -186,7 +186,7 @@ describe('evidence-collector', () => {
       process.env.CC_LAST_EXIT_CODE = '0';
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -199,7 +199,7 @@ describe('evidence-collector', () => {
       process.env.CC_LAST_EXIT_CODE = '1';
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -211,7 +211,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -233,7 +233,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -249,7 +249,7 @@ describe('evidence-collector', () => {
       vi.mocked(readdirSync).mockReturnValue(['test1.json', 'test2.json'] as any);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -270,7 +270,7 @@ describe('evidence-collector', () => {
       ] as any);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -295,7 +295,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -308,7 +308,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -330,7 +330,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockImplementation((path) => path === filePath);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -347,9 +347,10 @@ describe('evidence-collector', () => {
       // Arrange
       const input = createInput();
       vi.mocked(getLogDir).mockReturnValue('/custom/logs');
+      (testCtx as any).logDir = '/custom/logs';
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalledWith(
@@ -363,7 +364,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -376,7 +377,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -388,7 +389,7 @@ describe('evidence-collector', () => {
       const input = createInput();
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -406,7 +407,7 @@ describe('evidence-collector', () => {
       const input = createInput({ tool_input: {} });
 
       // Act & Assert
-      expect(() => evidenceCollector(input)).not.toThrow();
+      expect(() => evidenceCollector(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
@@ -415,7 +416,7 @@ describe('evidence-collector', () => {
       const input = createInput({ project_dir: undefined });
 
       // Act & Assert
-      expect(() => evidenceCollector(input)).not.toThrow();
+      expect(() => evidenceCollector(input, testCtx)).not.toThrow();
     });
 
     test('handles all evidence types present simultaneously', () => {
@@ -426,7 +427,7 @@ describe('evidence-collector', () => {
       vi.mocked(readdirSync).mockReturnValue(['test.json'] as any);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -442,7 +443,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0]?.[1] as string;
@@ -454,12 +455,12 @@ describe('evidence-collector', () => {
       // Arrange
       const input = createInput();
       vi.mocked(getProjectDir).mockReturnValue('/custom/project');
+      (testCtx as any).projectDir = '/custom/project';
 
       // Act
-      evidenceCollector(input);
+      evidenceCollector(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -476,7 +477,7 @@ describe('evidence-collector', () => {
       vi.mocked(mkdirSync).mockImplementation(() => { throw error; });
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -491,7 +492,7 @@ describe('evidence-collector', () => {
       });
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -510,7 +511,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -522,7 +523,7 @@ describe('evidence-collector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      const result = evidenceCollector(input);
+      const result = evidenceCollector(input, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });

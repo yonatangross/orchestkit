@@ -41,7 +41,7 @@ describe('sessionMetrics', () => {
 
   it('returns silent success for empty tool name', () => {
     // Act
-    const result = sessionMetrics(makeInput({ tool_name: '' }));
+    const result = sessionMetrics(makeInput({ tool_name: '' }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -54,7 +54,7 @@ describe('sessionMetrics', () => {
     mockExistsSync.mockReturnValue(false);
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Bash' }));
+    sessionMetrics(makeInput({ tool_name: 'Bash' }), testCtx);
 
     // Assert
     expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -75,7 +75,7 @@ describe('sessionMetrics', () => {
     }));
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Bash' }));
+    sessionMetrics(makeInput({ tool_name: 'Bash' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -89,7 +89,7 @@ describe('sessionMetrics', () => {
     mockReadFileSync.mockReturnValue('not valid json');
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Write' }));
+    sessionMetrics(makeInput({ tool_name: 'Write' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -102,7 +102,7 @@ describe('sessionMetrics', () => {
     mockExistsSync.mockReturnValue(false);
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Glob' }));
+    sessionMetrics(makeInput({ tool_name: 'Glob' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);

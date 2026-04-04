@@ -94,7 +94,7 @@ describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () =
       const pd = path.join(tmpDir, 'pd'), proj = path.join(tmpDir, 'proj'), sid = 'pd-001';
       setEnv(pd, proj, sid);
 
-      unifiedPromptDispatcher(makeInput(sid, proj));
+      unifiedPromptDispatcher(makeInput(sid, proj), testCtx);
 
       // once-flag under PLUGIN_DATA
       expect(existsSync(path.join(pd, 'sessions', sid, 'once-flags', 'handoff-injector.done'))).toBe(true);
@@ -110,7 +110,7 @@ describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () =
       const proj = path.join(tmpDir, 'proj-leg'), sid = 'leg-001';
       setEnv(undefined, proj, sid);
 
-      unifiedPromptDispatcher(makeInput(sid, proj));
+      unifiedPromptDispatcher(makeInput(sid, proj), testCtx);
 
       const base = path.join(proj, '.claude', 'memory', 'sessions', sid);
       expect(existsSync(path.join(base, 'once-flags', 'handoff-injector.done'))).toBe(true);
@@ -123,9 +123,9 @@ describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () =
       const pd = path.join(tmpDir, 'pd-per'), proj = path.join(tmpDir, 'proj-per'), sid = 'per-001';
       setEnv(pd, proj, sid);
 
-      const r1 = unifiedPromptDispatcher(makeInput(sid, proj));
+      const r1 = unifiedPromptDispatcher(makeInput(sid, proj), testCtx);
       // Second call with DIFFERENT prompt to avoid hash-delta skip
-      const r2 = unifiedPromptDispatcher(makeInput(sid, proj, 'different prompt'));
+      const r2 = unifiedPromptDispatcher(makeInput(sid, proj, 'different prompt'), testCtx);
 
       // First call produced handoff context
       expect(r1.hookSpecificOutput?.additionalContext).toContain('test-handoff');
@@ -140,11 +140,11 @@ describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () =
       setEnv(pd, proj, sid);
       const prompt = 'identical prompt for hashing';
 
-      const r1 = unifiedPromptDispatcher(makeInput(sid, proj, prompt));
+      const r1 = unifiedPromptDispatcher(makeInput(sid, proj, prompt), testCtx);
       expect(r1.hookSpecificOutput?.additionalContext).toBeDefined();
 
       // Same prompt again — once-hooks already ran, hash unchanged → silent
-      const r2 = unifiedPromptDispatcher(makeInput(sid, proj, prompt));
+      const r2 = unifiedPromptDispatcher(makeInput(sid, proj, prompt), testCtx);
       expect(r2.suppressOutput).toBe(true);
       expect(r2.hookSpecificOutput?.additionalContext).toBeUndefined();
     });
@@ -153,8 +153,8 @@ describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () =
       const pd = path.join(tmpDir, 'pd-hd'), proj = path.join(tmpDir, 'proj-hd'), sid = 'hd-001';
       setEnv(pd, proj, sid);
 
-      unifiedPromptDispatcher(makeInput(sid, proj, 'prompt alpha'));
-      unifiedPromptDispatcher(makeInput(sid, proj, 'prompt beta'));
+      unifiedPromptDispatcher(makeInput(sid, proj, 'prompt alpha'), testCtx);
+      unifiedPromptDispatcher(makeInput(sid, proj, 'prompt beta'), testCtx);
 
       // Hash file should exist and have been updated
       expect(existsSync(path.join(pd, 'sessions', sid, 'prompt-hash.txt'))).toBe(true);

@@ -42,7 +42,7 @@ describe('error-pattern-warner', () => {
 
   it('returns silent success for empty command', () => {
     const input = createBashInput('');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -52,7 +52,7 @@ describe('error-pattern-warner', () => {
     vi.mocked(existsSync).mockReturnValue(false);
 
     const input = createBashInput('npm run build');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -74,7 +74,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('psql -U postgres -d mydb');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('DB role error');
@@ -100,7 +100,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('docker exec -it my-container psql -U user -d database');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Learned error patterns');
@@ -123,7 +123,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('git status');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -134,7 +134,7 @@ describe('error-pattern-warner', () => {
     vi.mocked(readFileSync).mockReturnValue('invalid json{');
 
     const input = createBashInput('npm run build');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

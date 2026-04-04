@@ -70,40 +70,40 @@ describe('prompt/cache-break-detector', () => {
     });
 
     test('detects system-reminder tags', () => {
-      const markers = extractPromptShape('before <system-reminder>content</system-reminder> after');
+      const markers = extractPromptShape('before <system-reminder>content</system-reminder> after', testCtx);
       expect(markers).toContain('<system-reminder>');
       expect(markers).toContain('</system-reminder>');
     });
 
     test('detects TLDR marker', () => {
-      const markers = extractPromptShape('some context [TLDR] summary here');
+      const markers = extractPromptShape('some context [TLDR] summary here', testCtx);
       expect(markers).toContain('[TLDR]');
     });
 
     test('detects cross-project context', () => {
-      const markers = extractPromptShape('[Cross-project context: some data]');
+      const markers = extractPromptShape('[Cross-project context: some data]', testCtx);
       expect(markers).toContain('[Cross-project context:');
     });
 
     test('detects currentDate marker', () => {
-      const markers = extractPromptShape('blah # currentDate blah');
+      const markers = extractPromptShape('blah # currentDate blah', testCtx);
       expect(markers).toContain('# currentDate');
     });
 
     test('detects skill format markers', () => {
-      const markers = extractPromptShape('<skill-format>...</skill-format>');
+      const markers = extractPromptShape('<skill-format>...</skill-format>', testCtx);
       expect(markers).toContain('<skill-format>');
     });
 
     test('detects command markers', () => {
-      const markers = extractPromptShape('<command-name>foo</command-name> <command-message>bar</command-message>');
+      const markers = extractPromptShape('<command-name>foo</command-name> <command-message>bar</command-message>', testCtx);
       expect(markers).toContain('<command-name>');
       expect(markers).toContain('<command-message>');
     });
 
     test('returns sorted markers', () => {
       const prompt = '<command-name>x</command-name> <system-reminder>y</system-reminder> [TLDR] z';
-      const markers = extractPromptShape(prompt);
+      const markers = extractPromptShape(prompt, testCtx);
       const sorted = [...markers].sort();
       expect(markers).toEqual(sorted);
     });
@@ -117,7 +117,7 @@ describe('prompt/cache-break-detector', () => {
         HANDOFF.md
         [TLDR] summary
       `;
-      const markers = extractPromptShape(prompt);
+      const markers = extractPromptShape(prompt, testCtx);
       expect(markers.length).toBeGreaterThanOrEqual(5);
     });
   });
@@ -125,12 +125,12 @@ describe('prompt/cache-break-detector', () => {
   describe('hashShape', () => {
     test('returns consistent hash for same input', () => {
       const markers = ['a', 'b', 'c'];
-      expect(hashShape(markers)).toBe(hashShape(markers));
+      expect(hashShape(markers)).toBe(hashShape(markers, testCtx));
     });
 
     test('different markers produce different hashes', () => {
       // 'a|b' (length 3) vs 'a|cd' (length 4) — different lengths → different mock hashes
-      expect(hashShape(['a', 'b'])).not.toBe(hashShape(['a', 'cd']));
+      expect(hashShape(['a', 'b'])).not.toBe(hashShape(['a', 'cd'], testCtx));
     });
 
     test('empty markers produce a hash', () => {
@@ -140,37 +140,37 @@ describe('prompt/cache-break-detector', () => {
 
   describe('computeDelta', () => {
     test('no change returns empty delta', () => {
-      const delta = computeDelta(['a', 'b'], ['a', 'b']);
+      const delta = computeDelta(['a', 'b'], ['a', 'b'], testCtx);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual([]);
     });
 
     test('detects added markers', () => {
-      const delta = computeDelta(['a'], ['a', 'b', 'c']);
+      const delta = computeDelta(['a'], ['a', 'b', 'c'], testCtx);
       expect(delta.added).toEqual(['b', 'c']);
       expect(delta.removed).toEqual([]);
     });
 
     test('detects removed markers', () => {
-      const delta = computeDelta(['a', 'b', 'c'], ['a']);
+      const delta = computeDelta(['a', 'b', 'c'], ['a'], testCtx);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual(['b', 'c']);
     });
 
     test('detects both added and removed', () => {
-      const delta = computeDelta(['a', 'b'], ['b', 'c']);
+      const delta = computeDelta(['a', 'b'], ['b', 'c'], testCtx);
       expect(delta.added).toEqual(['c']);
       expect(delta.removed).toEqual(['a']);
     });
 
     test('handles empty prev', () => {
-      const delta = computeDelta([], ['a', 'b']);
+      const delta = computeDelta([], ['a', 'b'], testCtx);
       expect(delta.added).toEqual(['a', 'b']);
       expect(delta.removed).toEqual([]);
     });
 
     test('handles empty curr', () => {
-      const delta = computeDelta(['a', 'b'], []);
+      const delta = computeDelta(['a', 'b'], [], testCtx);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual(['a', 'b']);
     });
@@ -182,7 +182,7 @@ describe('prompt/cache-break-detector', () => {
 
   describe('cacheBreakDetector', () => {
     test('returns silent success for short prompts', () => {
-      const result = cacheBreakDetector(createInput('hi'));
+      const result = cacheBreakDetector(createInput('hi'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -191,7 +191,7 @@ describe('prompt/cache-break-detector', () => {
       const result = cacheBreakDetector(createInput(
         'a'.repeat(100),
         { session_id: '' },
-      ));
+      ), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -199,7 +199,7 @@ describe('prompt/cache-break-detector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       const result = cacheBreakDetector(createInput(
         '<system-reminder>some context</system-reminder> '.repeat(5),
-      ));
+      ), testCtx);
       expect(result.continue).toBe(true);
       expect(writeFileSync).toHaveBeenCalled();
       expect(appendAnalytics).not.toHaveBeenCalled();
@@ -210,12 +210,12 @@ describe('prompt/cache-break-detector', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       cacheBreakDetector(createInput(
         '<system-reminder>content</system-reminder> '.repeat(5),
-      ));
+      ), testCtx);
 
       // Second call: simulate same shape from persisted state
       vi.mocked(existsSync).mockReturnValue(true);
-      const markers = extractPromptShape('<system-reminder>content</system-reminder> '.repeat(5));
-      const hash = hashShape(markers);
+      const markers = extractPromptShape('<system-reminder>content</system-reminder> '.repeat(5), testCtx);
+      const hash = hashShape(markers, testCtx);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
         lastShapeHash: hash,
         lastMarkers: markers,
@@ -224,7 +224,7 @@ describe('prompt/cache-break-detector', () => {
 
       const result = cacheBreakDetector(createInput(
         '<system-reminder>content</system-reminder> '.repeat(5),
-      ));
+      ), testCtx);
       expect(result.continue).toBe(true);
       expect(appendAnalytics).not.toHaveBeenCalled();
     });
@@ -239,7 +239,7 @@ describe('prompt/cache-break-detector', () => {
       }));
 
       const prompt = `<system-reminder>x</system-reminder> [TLDR] new markers # currentDate ${'a'.repeat(50)}`;
-      cacheBreakDetector(createInput(prompt));
+      cacheBreakDetector(createInput(prompt), testCtx);
       expect(appendAnalytics).toHaveBeenCalledWith('cache-breaks.jsonl', expect.objectContaining({
         added_count: expect.any(Number),
         removed_count: expect.any(Number),
@@ -248,7 +248,7 @@ describe('prompt/cache-break-detector', () => {
 
     test('always continues regardless of state', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cacheBreakDetector(createInput('x'.repeat(100)));
+      const result = cacheBreakDetector(createInput('x'.repeat(100)), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -256,7 +256,7 @@ describe('prompt/cache-break-detector', () => {
     test('survives read errors gracefully', () => {
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockImplementation(() => { throw new Error('EACCES'); });
-      const result = cacheBreakDetector(createInput('x'.repeat(100)));
+      const result = cacheBreakDetector(createInput('x'.repeat(100)), testCtx);
       expect(result.continue).toBe(true);
     });
   });

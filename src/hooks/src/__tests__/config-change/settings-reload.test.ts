@@ -96,7 +96,7 @@ describe('config-change/settings-reload (drift detector)', () => {
 
   describe('safe changes', () => {
     it('returns advisory context when no config files exist', () => {
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputPromptContext).toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('config-change/settings-reload (drift detector)', () => {
         hooks: { PreToolUse: [{ hooks: [{ type: 'command' }] }] },
       });
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputPromptContext).toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('context message mentions [ConfigChange]', () => {
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       const msg = vi.mocked(outputPromptContext).mock.calls[0][0];
@@ -133,7 +133,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('blocks when --no-verify found in project settings', () => {
       mockFiles[PROJECT_SETTINGS] = '{"scripts": {"pre-commit": "git commit --no-verify"}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('--no-verify'));
@@ -142,7 +142,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('blocks when secret key found in config', () => {
       mockFiles[PROJECT_SETTINGS] = '{"env": {"API_KEY": "sk-1234"}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('secret-exposure'));
@@ -151,7 +151,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('blocks when secret found in user settings', () => {
       mockFiles[USER_SETTINGS] = '{"SECRET_KEY": "hunter2"}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('secret-exposure'));
@@ -160,9 +160,9 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('logs permission feedback as deny on block', () => {
       mockFiles[PROJECT_SETTINGS] = '{"scripts": {"hook": "--no-verify"}}';
 
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
-      expect(logPermissionFeedback).toHaveBeenCalledWith(
+      expect(testCtx.logPermission).toHaveBeenCalledWith(
         'deny',
         expect.stringContaining('blocked'),
       );
@@ -177,7 +177,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when permissionMode is dontAsk', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk"}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('dontAsk'));
@@ -186,7 +186,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when Bash is in allow list', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissions": {"allow": ["Read", "Bash"]}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('permission-escalation'));
@@ -195,7 +195,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when deny list is empty', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissions": {"deny": []}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('permission-gap'));
@@ -204,7 +204,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when all hooks cleared', () => {
       mockFiles[PROJECT_SETTINGS] = '{"hooks": {}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('hooks-removed'));
@@ -213,9 +213,9 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('logs permission feedback as warn', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk"}';
 
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
-      expect(logPermissionFeedback).toHaveBeenCalledWith(
+      expect(testCtx.logPermission).toHaveBeenCalledWith(
         'warn',
         expect.stringContaining('warning'),
       );
@@ -230,7 +230,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when PreToolUse hooks array is empty', () => {
       mockFiles[PROJECT_SETTINGS] = '{"hooks": {"PreToolUse": []}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('security-hooks-cleared'));
@@ -239,7 +239,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('warns when PermissionRequest hooks array is empty', () => {
       mockFiles[PROJECT_SETTINGS] = '{"hooks": {"PermissionRequest": []}}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputWarning).toHaveBeenCalledWith(expect.stringContaining('permission-hooks-cleared'));
@@ -248,7 +248,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('does not warn when hooks arrays have entries', () => {
       mockFiles[PROJECT_SETTINGS] = '{"hooks": {"PreToolUse": [{"hooks": []}], "PermissionRequest": [{"hooks": []}]}}';
 
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
       expect(outputWarning).not.toHaveBeenCalled();
     });
@@ -262,7 +262,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('blocks even when warnings also present', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk", "scripts": "--no-verify"}';
 
-      const result = settingsReload(createInput());
+      const result = settingsReload(createInput(), testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalled();
@@ -276,18 +276,18 @@ describe('config-change/settings-reload (drift detector)', () => {
 
   describe('logging', () => {
     it('logs session id', () => {
-      settingsReload(createInput({ session_id: 'sess-xyz' }));
+      settingsReload(createInput({ session_id: 'sess-xyz' }), testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'config-change',
         expect.stringContaining('sess-xyz'),
       );
     });
 
     it('uses "unknown" when session_id is absent', () => {
-      settingsReload(createInput({ session_id: undefined }));
+      settingsReload(createInput({ session_id: undefined }), testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'config-change',
         expect.stringContaining('unknown'),
       );
@@ -302,7 +302,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('writes JSONL audit entry on block', () => {
       mockFiles[PROJECT_SETTINGS] = '{"scripts": {"hook": "--no-verify"}}';
 
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
       expect(mockAppendFileSync).toHaveBeenCalledWith(
         '/test/project/.claude/logs/config-changes.jsonl',
@@ -313,7 +313,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('writes JSONL audit entry on warn', () => {
       mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk"}';
 
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
       expect(mockAppendFileSync).toHaveBeenCalledWith(
         '/test/project/.claude/logs/config-changes.jsonl',
@@ -322,7 +322,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('writes JSONL audit entry on pass (safe change)', () => {
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
       expect(mockAppendFileSync).toHaveBeenCalledWith(
         '/test/project/.claude/logs/config-changes.jsonl',
@@ -331,7 +331,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('audit entry includes session ID and timestamp', () => {
-      settingsReload(createInput({ session_id: 'audit-sess-123' }));
+      settingsReload(createInput({ session_id: 'audit-sess-123' }), testCtx);
 
       // Find the JSONL audit call (not env file writes like "export ORK_DEBUG=...")
       const auditCall = mockAppendFileSync.mock.calls.find(
@@ -344,7 +344,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('creates logs directory before writing', () => {
-      settingsReload(createInput());
+      settingsReload(createInput(), testCtx);
 
       expect(mockMkdirSync).toHaveBeenCalledWith(
         '/test/project/.claude/logs',
@@ -355,7 +355,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     it('does not crash when audit write fails', () => {
       mockAppendFileSync.mockImplementation(() => { throw new Error('disk full'); });
 
-      expect(() => settingsReload(createInput())).not.toThrow();
+      expect(() => settingsReload(createInput(), testCtx)).not.toThrow();
     });
   });
 
@@ -365,11 +365,11 @@ describe('config-change/settings-reload (drift detector)', () => {
 
   describe('error resilience', () => {
     it('handles empty tool_input gracefully', () => {
-      expect(() => settingsReload(createInput({ tool_input: {} }))).not.toThrow();
+      expect(() => settingsReload(createInput({ tool_input: {} }), testCtx)).not.toThrow();
     });
 
     it('handles missing project_dir gracefully', () => {
-      expect(() => settingsReload(createInput({ project_dir: undefined }))).not.toThrow();
+      expect(() => settingsReload(createInput({ project_dir: undefined }), testCtx)).not.toThrow();
     });
 
     it('never throws even with minimal input', () => {
@@ -378,7 +378,7 @@ describe('config-change/settings-reload (drift detector)', () => {
         tool_name: '',
         tool_input: {},
       } as unknown as HookInput;
-      expect(() => settingsReload(input)).not.toThrow();
+      expect(() => settingsReload(input, testCtx)).not.toThrow();
     });
   });
 });

@@ -61,19 +61,21 @@ describe('creation-tracker', () => {
     testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
   });
 
   describe('basic behavior', () => {
     test('always returns continue: true', async () => {
       const input = createTaskInput();
-      const result = await creationTracker(input);
+      const result = await creationTracker(input, testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('returns early when project dir is not available', async () => {
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createTaskInput();
-      const result = await creationTracker(input);
+      const result = await creationTracker(input, testCtx);
       expect(result.continue).toBe(true);
       expect(appendEventLog).not.toHaveBeenCalled();
       expect(appendAnalytics).not.toHaveBeenCalled();
@@ -88,7 +90,7 @@ describe('creation-tracker', () => {
         session_id: 'session-abc',
       });
 
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendEventLog).toHaveBeenCalledWith(
         'task-creations.jsonl',
@@ -103,7 +105,7 @@ describe('creation-tracker', () => {
 
     test('includes ISO timestamp in log entry', async () => {
       const input = createTaskInput();
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendEventLog).toHaveBeenCalledWith(
         'task-creations.jsonl',
@@ -115,7 +117,7 @@ describe('creation-tracker', () => {
 
     test('defaults task_id to "unknown" when not provided', async () => {
       const input = createTaskInput({ task_id: undefined });
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendEventLog).toHaveBeenCalledWith(
         'task-creations.jsonl',
@@ -127,7 +129,7 @@ describe('creation-tracker', () => {
 
     test('defaults task_subject to empty string when not provided', async () => {
       const input = createTaskInput({ task_subject: undefined });
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendEventLog).toHaveBeenCalledWith(
         'task-creations.jsonl',
@@ -139,7 +141,7 @@ describe('creation-tracker', () => {
 
     test('defaults session_id to empty string when not provided', async () => {
       const input = createTaskInput({ session_id: '' });
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendEventLog).toHaveBeenCalledWith(
         'task-creations.jsonl',
@@ -153,7 +155,7 @@ describe('creation-tracker', () => {
   describe('analytics', () => {
     test('sends cross-project analytics with "created" event', async () => {
       const input = createTaskInput({ task_subject: 'Refactor DB layer' });
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendAnalytics).toHaveBeenCalledWith(
         'task-usage.jsonl',
@@ -166,7 +168,7 @@ describe('creation-tracker', () => {
 
     test('includes ISO timestamp in analytics entry', async () => {
       const input = createTaskInput();
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendAnalytics).toHaveBeenCalledWith(
         'task-usage.jsonl',
@@ -178,7 +180,7 @@ describe('creation-tracker', () => {
 
     test('hashes project directory for analytics', async () => {
       const input = createTaskInput();
-      await creationTracker(input);
+      await creationTracker(input, testCtx);
 
       expect(appendAnalytics).toHaveBeenCalledWith(
         'task-usage.jsonl',

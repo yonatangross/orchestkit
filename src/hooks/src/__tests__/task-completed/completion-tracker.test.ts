@@ -65,6 +65,7 @@ describe('completion-tracker', () => {
     testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
   });
 
   describe('basic behavior', () => {
@@ -73,7 +74,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput();
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -82,10 +83,11 @@ describe('completion-tracker', () => {
     test('returns early when project dir is not available', async () => {
       // Arrange
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createTaskInput();
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -105,7 +107,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -126,7 +128,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput();
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -142,7 +144,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput({ task_id: undefined });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -158,7 +160,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput({ task_subject: undefined });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -174,7 +176,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput({ task_status: undefined });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -190,7 +192,7 @@ describe('completion-tracker', () => {
       const input = createTaskInput({ duration_ms: undefined });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -209,7 +211,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -229,7 +231,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       const logCall = vi.mocked(appendEventLog).mock.calls[0][1] as Record<string, unknown>;
@@ -245,7 +247,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       expect(appendAnalytics).toHaveBeenCalledWith(
@@ -265,7 +267,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      await completionTracker(input);
+      await completionTracker(input, testCtx);
 
       // Assert
       const analyticsCall = vi.mocked(appendAnalytics).mock.calls[0][1] as Record<string, unknown>;
@@ -293,7 +295,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeDefined();
@@ -316,7 +318,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -330,7 +332,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -344,7 +346,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -359,7 +361,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('45s');
@@ -374,7 +376,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain(
@@ -393,7 +395,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('2000 tokens');
@@ -411,7 +413,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).not.toContain('tokens');
@@ -429,7 +431,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -445,7 +447,7 @@ describe('completion-tracker', () => {
       });
 
       // Act
-      const result = await completionTracker(input);
+      const result = await completionTracker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

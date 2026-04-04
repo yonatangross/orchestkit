@@ -25,19 +25,19 @@ describe('unifiedErrorHandler', () => {
   });
 
   it('returns silent success when no error detected', () => {
-    const result = unifiedErrorHandler(makeInput({ exit_code: 0 }));
+    const result = unifiedErrorHandler(makeInput({ exit_code: 0 }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
 
   it('detects error from non-zero exit code', () => {
-    unifiedErrorHandler(makeInput({ exit_code: 1 }));
-    expect(logHook).toHaveBeenCalledWith('error-logger', expect.stringContaining('exit_code'));
+    unifiedErrorHandler(makeInput({ exit_code: 1 }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith('error-logger', expect.stringContaining('exit_code'));
   });
 
   it('detects error from tool_error field', () => {
-    unifiedErrorHandler(makeInput({ tool_error: 'ENOENT: no such file' }));
-    expect(logHook).toHaveBeenCalledWith('error-logger', expect.stringContaining('tool_error'));
+    unifiedErrorHandler(makeInput({ tool_error: 'ENOENT: no such file' }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith('error-logger', expect.stringContaining('tool_error'));
   });
 
   it('skips trivial bash commands like echo and ls', () => {
@@ -45,7 +45,7 @@ describe('unifiedErrorHandler', () => {
       tool_name: 'Bash',
       tool_input: { command: 'echo hello' },
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -54,12 +54,12 @@ describe('unifiedErrorHandler', () => {
     unifiedErrorHandler(makeInput({
       tool_output: 'Error: Module not found\nFATAL: compilation failed',
       exit_code: 0,
-    }));
-    expect(logHook).toHaveBeenCalledWith('error-logger', expect.stringContaining('output_pattern'));
+    }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith('error-logger', expect.stringContaining('output_pattern'));
   });
 
   it('always returns silent success even on error', () => {
-    const result = unifiedErrorHandler(makeInput({ exit_code: 1 }));
+    const result = unifiedErrorHandler(makeInput({ exit_code: 1 }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

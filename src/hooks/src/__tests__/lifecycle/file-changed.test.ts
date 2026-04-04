@@ -34,13 +34,13 @@ describe('lifecycle/file-changed', () => {
 
   describe('guard clauses', () => {
     test('returns silent success when changed_file_path is empty', () => {
-      const result = fileChanged(createInput({ changed_file_path: '' }));
+      const result = fileChanged(createInput({ changed_file_path: '' }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent success when changed_file_path is undefined', () => {
-      const result = fileChanged(createInput());
+      const result = fileChanged(createInput(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -51,7 +51,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/CLAUDE.md',
         changed_file: 'CLAUDE.md',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('CLAUDE.md');
       expect(ctx).toContain('instructions');
@@ -61,7 +61,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/package.json',
         changed_file: 'package.json',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('package.json');
       expect(ctx).toContain('Dependencies');
@@ -71,7 +71,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/.env',
         changed_file: '.env',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('.env');
       expect(ctx).toContain('secrets');
@@ -81,7 +81,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/.env.local',
         changed_file: '.env.local',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('.env');
     });
@@ -90,7 +90,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/.claude/rules/security.md',
         changed_file: 'security.md',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('security.md');
       expect(ctx).toContain('Rules');
@@ -100,7 +100,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/.claude/settings.json',
         changed_file: 'settings.json',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('settings');
     });
@@ -109,7 +109,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/random.txt',
         changed_file: 'random.txt',
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -119,7 +119,7 @@ describe('lifecycle/file-changed', () => {
     test('extracts filename from path when changed_file not provided', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/CLAUDE.md',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('CLAUDE.md');
     });
@@ -130,7 +130,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/CLAUDE.md',
         changed_file: 'CLAUDE.md',
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -138,7 +138,7 @@ describe('lifecycle/file-changed', () => {
       const result = fileChanged(createInput({
         changed_file_path: '/project/CLAUDE.md',
         changed_file: 'CLAUDE.md',
-      }));
+      }), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('[FileChanged]');
     });

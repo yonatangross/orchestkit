@@ -89,7 +89,7 @@ function seedPluginRoot() {
 
 let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
+  testCtx = createTestContext({ pluginRoot: FAKE_PLUGIN_ROOT });
   vi.clearAllMocks();
   // Clean the fake plugin root between tests
   rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });
@@ -102,16 +102,16 @@ afterAll(() => {
 
 describe('setup-repair', () => {
   // =========================================================================
-  // Main export — setupRepair()
+  // Main export — setupRepair(testCtx)
   // =========================================================================
 
-  describe('setupRepair()', () => {
+  describe('setupRepair(testCtx)', () => {
     test('returns silent success when all components are present and healthy', () => {
       // Arrange
       seedPluginRoot();
 
       // Act
-      const result = setupRepair(createHookInput());
+      const result = setupRepair(createHookInput(), testCtx);
 
       // Assert — no critical failures, should be silent
       expect(result.continue).toBe(true);
@@ -122,7 +122,7 @@ describe('setup-repair', () => {
       seedPluginRoot();
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert — directories should exist after repair
       expect(fs.existsSync(path.join(FAKE_PLUGIN_ROOT, '.claude', 'defaults'))).toBe(true);
@@ -136,7 +136,7 @@ describe('setup-repair', () => {
       vi.mocked(isAgentTeamsActive).mockReturnValue(false);
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert
       expect(fs.existsSync(path.join(FAKE_PLUGIN_ROOT, '.claude', 'coordination'))).toBe(true);
@@ -148,7 +148,7 @@ describe('setup-repair', () => {
       vi.mocked(isAgentTeamsActive).mockReturnValue(true);
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert — coordination dir should NOT be created
       expect(fs.existsSync(path.join(FAKE_PLUGIN_ROOT, '.claude', 'coordination'))).toBe(false);
@@ -159,7 +159,7 @@ describe('setup-repair', () => {
       seedPluginRoot();
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert
       const markerPath = path.join(FAKE_PLUGIN_ROOT, '.setup-complete');
@@ -179,7 +179,7 @@ describe('setup-repair', () => {
       seedPluginRoot();
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert
       const configPath = path.join(FAKE_PLUGIN_ROOT, '.claude', 'defaults', 'config.json');
@@ -199,7 +199,7 @@ describe('setup-repair', () => {
       writeFileSync(path.join(configDir, 'config.json'), '{ invalid json !!!');
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert — corrupt file backed up, fresh one written
       const configPath = path.join(configDir, 'config.json');
@@ -220,7 +220,7 @@ describe('setup-repair', () => {
       writeFileSync(path.join(configDir, 'config.json'), JSON.stringify(customConfig));
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert — custom config preserved, not overwritten
       const config = JSON.parse(fs.readFileSync(path.join(configDir, 'config.json'), 'utf-8'));
@@ -243,7 +243,7 @@ describe('setup-repair', () => {
       seedPluginRoot();
 
       // Act
-      const result = setupRepair(createHookInput());
+      const result = setupRepair(createHookInput(), testCtx);
 
       // Assert — should complete successfully
       expect(result.continue).toBe(true);
@@ -253,7 +253,7 @@ describe('setup-repair', () => {
       // Arrange — empty plugin root, no hooks/skills/common.sh
 
       // Act
-      const result = setupRepair(createHookInput());
+      const result = setupRepair(createHookInput(), testCtx);
 
       // Assert — should notify user about missing critical components
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -275,7 +275,7 @@ describe('setup-repair', () => {
       fs.chmodSync(nonExecHook, 0o644);
 
       // Act
-      setupRepair(createHookInput());
+      setupRepair(createHookInput(), testCtx);
 
       // Assert — file should now be executable
       const stats = fs.statSync(nonExecHook);

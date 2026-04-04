@@ -36,7 +36,7 @@ describe('conflict-predictor', () => {
 
   it('returns silent success for non-merge/rebase commands', () => {
     const input = createBashInput('git status');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -46,7 +46,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -65,7 +65,7 @@ describe('conflict-predictor', () => {
     });
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Potential conflicts');
@@ -75,7 +75,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git rebase develop');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     // Should process and call execSync with 'develop' as target
     expect(result.continue).toBe(true);
@@ -85,7 +85,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git pull');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
   });
@@ -96,7 +96,7 @@ describe('conflict-predictor', () => {
     });
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

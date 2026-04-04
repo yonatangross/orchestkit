@@ -25,7 +25,6 @@ import { createTestContext } from '../fixtures/test-context.js';
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('Session End Tracking Hook', () => {
-  const mockLogHook = vi.mocked(logHook);
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockTrackSessionEnd = vi.mocked(trackSessionEnd);
 
@@ -47,7 +46,7 @@ describe('Session End Tracking Hook', () => {
   describe('Happy Path', () => {
     it('should call trackSessionEnd', () => {
       // Act
-      sessionEndTracking(defaultInput);
+      sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(mockTrackSessionEnd).toHaveBeenCalledTimes(1);
@@ -55,7 +54,7 @@ describe('Session End Tracking Hook', () => {
 
     it('should return silent success', () => {
       // Act
-      const result = sessionEndTracking(defaultInput);
+      const result = sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -63,10 +62,10 @@ describe('Session End Tracking Hook', () => {
 
     it('should log debug message on success', () => {
       // Act
-      sessionEndTracking(defaultInput);
+      sessionEndTracking(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-end-tracking',
         'Tracked session end',
         'debug'
@@ -75,7 +74,7 @@ describe('Session End Tracking Hook', () => {
 
     it('should call outputSilentSuccess on success', () => {
       // Act
-      sessionEndTracking(defaultInput);
+      sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(mockOutputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -93,7 +92,7 @@ describe('Session End Tracking Hook', () => {
       });
 
       // Act
-      const result = sessionEndTracking(defaultInput);
+      const result = sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -106,10 +105,10 @@ describe('Session End Tracking Hook', () => {
       });
 
       // Act
-      sessionEndTracking(defaultInput);
+      sessionEndTracking(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-end-tracking',
         expect.stringContaining('Error:'),
         'warn'
@@ -123,7 +122,7 @@ describe('Session End Tracking Hook', () => {
       });
 
       // Act
-      const result = sessionEndTracking(defaultInput);
+      const result = sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -137,11 +136,11 @@ describe('Session End Tracking Hook', () => {
       });
 
       // Act
-      const result = sessionEndTracking(defaultInput);
+      const result = sessionEndTracking(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-end-tracking',
         expect.stringContaining('Error:'),
         'warn'

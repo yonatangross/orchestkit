@@ -111,7 +111,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -126,7 +126,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -139,7 +139,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert - should not short-circuit
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -164,7 +164,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -181,7 +181,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const _result = prefillGuard(input);
+      const _result = prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -197,7 +197,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -229,7 +229,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -245,7 +245,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -263,7 +263,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -279,7 +279,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -295,7 +295,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -311,7 +311,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -327,7 +327,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -344,7 +344,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -362,7 +362,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -386,7 +386,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -407,7 +407,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -423,7 +423,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -439,7 +439,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -461,7 +461,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -479,7 +479,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -498,7 +498,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -514,7 +514,7 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      const result = prefillGuard(input);
+      const result = prefillGuard(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -529,10 +529,10 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'prefill-guard',
         'No prefilling patterns detected in skills',
       );
@@ -547,10 +547,10 @@ describe('prefill-guard', () => {
       const input = createHookInput();
 
       // Act
-      prefillGuard(input);
+      prefillGuard(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'prefill-guard',
         expect.stringContaining('2 skills'),
         'warn',

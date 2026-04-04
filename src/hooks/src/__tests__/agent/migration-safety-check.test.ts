@@ -77,7 +77,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -93,7 +93,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -123,7 +123,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -136,7 +136,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'DELETE FROM users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -150,7 +150,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -169,7 +169,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -183,7 +183,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -196,7 +196,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -209,7 +209,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -237,7 +237,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -257,7 +257,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'DROP TABLE users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('BLOCKED');
@@ -270,7 +270,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('destructive database command');
@@ -281,7 +281,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'DROP DATABASE mydb' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
@@ -293,7 +293,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'TRUNCATE sessions' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('confirm this operation');
@@ -304,7 +304,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'DROP TABLE users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -329,7 +329,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -341,7 +341,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', {});
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -353,7 +353,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: undefined });
 
       // Act & Assert
-      expect(() => migrationSafetyCheck(input)).not.toThrow();
+      expect(() => migrationSafetyCheck(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
     });
 
@@ -362,7 +362,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'drop table users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -373,7 +373,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'DROP TABLE users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -384,7 +384,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'Drop Table users' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -395,7 +395,7 @@ describe('migration-safety-check', () => {
       const input = createToolInput('Bash', { command: 'truncate orders' });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -408,7 +408,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert - first pattern match triggers deny
       expect(result.continue).toBe(false);
@@ -422,7 +422,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -435,7 +435,7 @@ describe('migration-safety-check', () => {
       });
 
       // Act
-      const result = migrationSafetyCheck(input);
+      const result = migrationSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -463,7 +463,7 @@ describe('migration-safety-check', () => {
       for (const cmd of dangerousCommands) {
         vi.clearAllMocks();
         const input = createToolInput('Bash', { command: cmd });
-        const result = migrationSafetyCheck(input);
+        const result = migrationSafetyCheck(input, testCtx);
         expect(result.continue).toBe(false);
       }
     });
@@ -482,7 +482,7 @@ describe('migration-safety-check', () => {
       for (const toolName of tools) {
         vi.clearAllMocks();
         const input = createToolInput(toolName, { command: 'DROP TABLE users' });
-        const result = migrationSafetyCheck(input);
+        const result = migrationSafetyCheck(input, testCtx);
         expect(result.continue).toBe(true);
         expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
         expect(outputDeny).not.toHaveBeenCalled();

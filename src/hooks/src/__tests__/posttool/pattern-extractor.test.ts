@@ -47,20 +47,20 @@ describe('patternExtractor', () => {
   });
 
   it('returns silent success for non-Bash tools', () => {
-    const result = patternExtractor(makeInput({ tool_name: 'Write' }));
+    const result = patternExtractor(makeInput({ tool_name: 'Write' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('returns silent success when command is empty', () => {
-    const result = patternExtractor(makeInput({ tool_input: { command: '' } }));
+    const result = patternExtractor(makeInput({ tool_input: { command: '' } }), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('extracts pattern from git commit with tech detection', () => {
-    patternExtractor(makeInput());
+    patternExtractor(makeInput(), testCtx);
     expect(mockWriteFileSync).toHaveBeenCalled();
     // Get the last write call (the one with the actual pattern)
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
@@ -75,7 +75,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'pytest tests/ -v' },
       exit_code: 0,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const testPattern = written.patterns.find((p: { source: string }) => p.source === 'test-run');
@@ -88,7 +88,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'npm run build' },
       exit_code: 1,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const buildPattern = written.patterns.find((p: { source: string }) => p.source === 'build');
@@ -100,7 +100,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'gh pr merge 42' },
       exit_code: 0,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const prPattern = written.patterns.find((p: { source: string }) => p.source === 'pr-merge');
@@ -112,7 +112,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'gh pr merge 42' },
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 });

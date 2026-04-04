@@ -64,6 +64,7 @@ describe('team-quality-gate', () => {
     testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
     vi.mocked(getTeamName).mockReturnValue(null);
     vi.mocked(existsSync).mockReturnValue(false);
   });
@@ -75,7 +76,7 @@ describe('team-quality-gate', () => {
       const input = createIdleInput();
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -86,10 +87,11 @@ describe('team-quality-gate', () => {
       // Arrange
       vi.mocked(getTeamName).mockReturnValue('my-team');
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createIdleInput();
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -116,7 +118,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -137,7 +139,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -165,7 +167,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('without completing');
@@ -183,7 +185,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert — fallback-id appears in the warning context
       expect(result.hookSpecificOutput?.additionalContext).toContain('fallback-id');
@@ -198,7 +200,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert — "unknown" appears in the warning context
       expect(result.hookSpecificOutput?.additionalContext).toContain('unknown');
@@ -213,7 +215,7 @@ describe('team-quality-gate', () => {
       });
 
       // Act
-      const result = teamQualityGate(input);
+      const result = teamQualityGate(input, testCtx);
 
       // Assert — subagent_type fallback appears in the warning context
       expect(result.hookSpecificOutput?.additionalContext).toContain('code-reviewer');

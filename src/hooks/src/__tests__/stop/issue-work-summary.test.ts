@@ -42,8 +42,6 @@ describe('Issue Work Summary Hook', () => {
   const _mockUnlinkSync = vi.mocked(unlinkSync);
   const _mockRmdirSync = vi.mocked(rmdirSync);
   const mockExecFileSync = vi.mocked(execFileSync);
-  const mockLogHook = vi.mocked(logHook);
-
   const defaultInput: HookInput = {
     hook_event: 'Stop',
     tool_name: '',
@@ -66,7 +64,7 @@ describe('Issue Work Summary Hook', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -77,10 +75,10 @@ describe('Issue Work Summary Hook', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      issueWorkSummary(defaultInput);
+      issueWorkSummary(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         expect.stringContaining('No progress file found')
       );
@@ -91,7 +89,7 @@ describe('Issue Work Summary Hook', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      issueWorkSummary(defaultInput);
+      issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(mockExecFileSync).not.toHaveBeenCalled();
@@ -118,11 +116,11 @@ describe('Issue Work Summary Hook', () => {
       });
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         'gh CLI not available or not authenticated, skipping'
       );
@@ -142,7 +140,7 @@ describe('Issue Work Summary Hook', () => {
       });
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -168,11 +166,11 @@ describe('Issue Work Summary Hook', () => {
       });
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         'Not a GitHub repository, skipping'
       );
@@ -193,7 +191,7 @@ describe('Issue Work Summary Hook', () => {
       });
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -235,11 +233,11 @@ describe('Issue Work Summary Hook', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(progressData));
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         expect.stringContaining('Successfully posted comment to issue #42')
       );
@@ -259,10 +257,10 @@ describe('Issue Work Summary Hook', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(progressData));
 
       // Act
-      issueWorkSummary(defaultInput);
+      issueWorkSummary(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         'No commits for issue #42, skipping'
       );
@@ -273,11 +271,11 @@ describe('Issue Work Summary Hook', () => {
       mockReadFileSync.mockReturnValue('invalid json');
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         'Failed to read progress file'
       );
@@ -288,11 +286,11 @@ describe('Issue Work Summary Hook', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify({ issues: {} }));
 
       // Act
-      const result = issueWorkSummary(defaultInput);
+      const result = issueWorkSummary(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'issue-work-summary',
         'No issues to process'
       );
@@ -312,7 +310,7 @@ describe('Issue Work Summary Hook', () => {
       };
 
       // Act - should not throw
-      const result = issueWorkSummary(inputWithSpecialChars);
+      const result = issueWorkSummary(inputWithSpecialChars, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });

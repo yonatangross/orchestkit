@@ -45,7 +45,6 @@ import { createTestContext } from '../fixtures/test-context.js';
 let testCtx: ReturnType<typeof createTestContext>;
 describe('Session Profile Aggregator Hook', () => {
   // Type-cast mocks for better TypeScript support
-  const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockResolveUserIdentity = vi.mocked(resolveUserIdentity);
   const mockCanShare = vi.mocked(canShare);
@@ -163,7 +162,7 @@ describe('Session Profile Aggregator Hook', () => {
       const _summary = { ...defaultSummary };
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -178,10 +177,10 @@ describe('Session Profile Aggregator Hook', () => {
       // Arrange - default mocks
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Aggregated session: 3 skills, 2 agents, 3 decisions',
         'info'
@@ -196,7 +195,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('bob@example.com');
@@ -208,7 +207,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockLoadUserProfile.mockReturnValue(profile);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockAggregateSession).toHaveBeenCalledWith(
@@ -223,7 +222,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockAggregateSession.mockReturnValue(updatedProfile);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockSaveUserProfile).toHaveBeenCalledWith(updatedProfile);
@@ -231,7 +230,7 @@ describe('Session Profile Aggregator Hook', () => {
 
     it('should always return silent success result', () => {
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -252,12 +251,12 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockLoadUserProfile).not.toHaveBeenCalled();
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'No meaningful activity to aggregate',
         'debug'
@@ -274,7 +273,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockAggregateSession).not.toHaveBeenCalled();
@@ -291,7 +290,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).not.toHaveBeenCalled();
@@ -307,7 +306,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalled();
@@ -324,7 +323,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalled();
@@ -341,7 +340,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalled();
@@ -358,7 +357,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -378,7 +377,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('config-user@test.com');
@@ -394,7 +393,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('git-user@example.com');
@@ -409,7 +408,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('envuser@dev-machine');
@@ -426,7 +425,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('anon-abc12345');
@@ -440,10 +439,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Aggregating session for debug-user@test.com',
         'debug'
@@ -458,7 +457,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - team_id flows through to profile
       expect(mockLoadUserProfile).toHaveBeenCalled();
@@ -472,7 +471,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalled();
@@ -493,7 +492,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockLoadUserProfile.mockReturnValue(existingProfile);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockAggregateSession).toHaveBeenCalledWith(
@@ -514,7 +513,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockLoadUserProfile.mockReturnValue(emptyProfile);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockAggregateSession).toHaveBeenCalledWith(
@@ -528,11 +527,11 @@ describe('Session Profile Aggregator Hook', () => {
       mockSaveUserProfile.mockReturnValue(true);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockSaveUserProfile).toHaveBeenCalled();
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('Aggregated session'),
         'info'
@@ -544,10 +543,10 @@ describe('Session Profile Aggregator Hook', () => {
       mockSaveUserProfile.mockReturnValue(false);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Failed to save profile',
         'warn'
@@ -559,7 +558,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockSaveUserProfile.mockReturnValue(false);
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -575,7 +574,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockCanShare.mockReturnValue(true);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockExportForGlobal).not.toHaveBeenCalled();
@@ -594,7 +593,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockExportForGlobal).not.toHaveBeenCalled();
@@ -609,7 +608,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockCanShare.mockReturnValue(false);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockExportForGlobal).not.toHaveBeenCalled();
@@ -631,7 +630,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockExportForGlobal).toHaveBeenCalled();
@@ -646,7 +645,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockCanShare.mockReturnValue(true);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockCanShare).toHaveBeenCalledWith('decisions', 'global');
@@ -662,7 +661,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockCanShare.mockReturnValue(true);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockGetPrivacySettings).toHaveBeenCalled();
@@ -691,10 +690,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - the filtering happens in the hook, check log was called
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         '1 decisions eligible for global sharing',
         'info'
@@ -718,10 +717,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         '1 decisions eligible for global sharing',
         'info'
@@ -744,10 +743,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         '1 decisions eligible for global sharing',
         'info'
@@ -771,10 +770,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - should NOT log "decisions eligible" message
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('eligible for global sharing'),
         'info'
@@ -795,10 +794,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('eligible for global sharing'),
         'info'
@@ -824,10 +823,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         '3 decisions eligible for global sharing',
         'info'
@@ -846,11 +845,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('Error aggregating session'),
         'error'
@@ -864,11 +863,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Summary generation failed',
         'error'
@@ -882,11 +881,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Profile load failed',
         'error'
@@ -900,11 +899,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Aggregation failed',
         'error'
@@ -918,11 +917,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Save failed',
         'error'
@@ -936,11 +935,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Privacy settings failed',
         'error'
@@ -959,11 +958,11 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Error aggregating session: Error: Export failed',
         'error'
@@ -977,7 +976,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -1005,7 +1004,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act - should not throw
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -1027,10 +1026,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - should filter out zero confidence
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('eligible for global sharing'),
         'info'
@@ -1053,10 +1052,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         '1 decisions eligible for global sharing',
         'info'
@@ -1079,10 +1078,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - empty string is falsy, should not pass filter
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-profile-aggregator',
         expect.stringContaining('eligible for global sharing'),
         'info'
@@ -1100,7 +1099,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -1118,7 +1117,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -1133,7 +1132,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('user+tag@sub.domain.com');
@@ -1148,7 +1147,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).toHaveBeenCalledWith('unicode@test.com');
@@ -1166,7 +1165,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      const result = sessionProfileAggregator(defaultInput);
+      const result = sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -1187,10 +1186,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Aggregated session: 5 skills, 1 agents, 2 decisions',
         'info'
@@ -1207,10 +1206,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Aggregated session: 1 skills, 3 agents, 1 decisions',
         'info'
@@ -1227,10 +1226,10 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-profile-aggregator',
         'Aggregated session: 1 skills, 0 agents, 10 decisions',
         'info'
@@ -1249,7 +1248,7 @@ describe('Session Profile Aggregator Hook', () => {
       mockGenerateSessionSummary.mockReturnValue(customSummary);
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockAggregateSession).toHaveBeenCalledWith(
@@ -1297,7 +1296,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert - verify order
       expect(callOrder).toEqual([
@@ -1351,7 +1350,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(callOrder).toContain('exportForGlobal');
@@ -1370,7 +1369,7 @@ describe('Session Profile Aggregator Hook', () => {
       });
 
       // Act
-      sessionProfileAggregator(defaultInput);
+      sessionProfileAggregator(defaultInput, testCtx);
 
       // Assert
       expect(mockLoadUserProfile).not.toHaveBeenCalled();

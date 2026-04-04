@@ -58,10 +58,11 @@ describe('issue-context-injector', () => {
     it('returns silent success when branch does not match issue pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
+      (testCtx as any).branch = 'main';
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -71,10 +72,11 @@ describe('issue-context-injector', () => {
     it('returns silent success for dev branch', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('dev');
+      (testCtx as any).branch = 'dev';
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -84,10 +86,11 @@ describe('issue-context-injector', () => {
     it('returns silent success for feature branch without issue number', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('feature/add-auth');
+      (testCtx as any).branch = 'feature/add-auth';
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -103,6 +106,7 @@ describe('issue-context-injector', () => {
     it('injects context with issue title when cache hit', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -115,7 +119,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -128,6 +132,7 @@ describe('issue-context-injector', () => {
     it('injects context with labels when available', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/456-bug-fix');
+      (testCtx as any).branch = 'issue/456-bug-fix';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -139,7 +144,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Working on GitHub Issue #456');
@@ -151,6 +156,7 @@ describe('issue-context-injector', () => {
       // Arrange
       const freshTime = Date.now() - 2 * 60 * 1000; // 2 minutes ago
       vi.mocked(getCachedBranch).mockReturnValue('issue/789-feature');
+      (testCtx as any).branch = 'issue/789-feature';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: freshTime } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -162,7 +168,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Add dark mode');
@@ -178,6 +184,7 @@ describe('issue-context-injector', () => {
     it('falls back to branch-name-only when gh fails', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       vi.mocked(existsSync).mockReturnValue(false); // No cache
       vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('gh not installed');
@@ -185,7 +192,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -198,6 +205,7 @@ describe('issue-context-injector', () => {
       // Arrange
       const staleTime = Date.now() - 10 * 60 * 1000; // 10 minutes ago
       vi.mocked(getCachedBranch).mockReturnValue('issue/456-test');
+      (testCtx as any).branch = 'issue/456-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: staleTime } as any);
       vi.mocked(execFileSync).mockReturnValue(
@@ -209,7 +217,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -244,6 +252,7 @@ describe('issue-context-injector', () => {
     it.each(patterns)('handles $branch pattern', ({ branch, expectedIssue }) => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue(branch);
+      (testCtx as any).branch = branch;
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('gh fail');
@@ -251,7 +260,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain(`Working on GitHub Issue #${expectedIssue}`);
@@ -271,7 +280,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -281,10 +290,11 @@ describe('issue-context-injector', () => {
     it('validates issue number is numeric before execFileSync', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/abc-desc');
+      (testCtx as any).branch = 'issue/abc-desc';
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -295,6 +305,7 @@ describe('issue-context-injector', () => {
     it('handles cache directory creation failure gracefully', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockReturnValue(
         JSON.stringify({
@@ -308,14 +319,15 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act & Assert - should not throw
-      expect(() => issueContextInjector(input)).not.toThrow();
-      const result = issueContextInjector(input);
+      expect(() => issueContextInjector(input, testCtx)).not.toThrow();
+      const result = issueContextInjector(input, testCtx);
       expect(result.systemMessage).toContain('Test issue');
     });
 
     it('handles JSON.parse failure for cached data', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue('invalid json');
@@ -325,7 +337,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert - falls back to branch-name-only
       expect(result.systemMessage).toContain('Working on GitHub Issue #123');
@@ -334,12 +346,13 @@ describe('issue-context-injector', () => {
     it('handles malformed gh CLI output', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockReturnValue('not valid json');
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert - falls back to branch-name-only
       expect(result.systemMessage).toContain('Working on GitHub Issue #123');
@@ -354,6 +367,7 @@ describe('issue-context-injector', () => {
     it('writes fetched issue data to cache', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       const issueData = {
         title: 'Test issue',
@@ -364,7 +378,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      issueContextInjector(input);
+      issueContextInjector(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -377,6 +391,7 @@ describe('issue-context-injector', () => {
     it('handles cache write failure without blocking', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockReturnValue(
         JSON.stringify({ title: 'Test', labels: [] })
@@ -387,14 +402,15 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act & Assert - should not throw
-      expect(() => issueContextInjector(input)).not.toThrow();
-      const result = issueContextInjector(input);
+      expect(() => issueContextInjector(input, testCtx)).not.toThrow();
+      const result = issueContextInjector(input, testCtx);
       expect(result.systemMessage).toContain('Test');
     });
 
     it('cache path includes issue number', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/456-test');
+      (testCtx as any).branch = 'issue/456-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -403,7 +419,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      issueContextInjector(input);
+      issueContextInjector(input, testCtx);
 
       // Assert
       expect(readFileSync).toHaveBeenCalledWith(
@@ -415,6 +431,7 @@ describe('issue-context-injector', () => {
     it('treats cache miss as stale', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false); // Cache miss
       vi.mocked(execFileSync).mockReturnValue(
         JSON.stringify({ title: 'Fresh', labels: [] })
@@ -422,7 +439,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalled();
@@ -438,6 +455,7 @@ describe('issue-context-injector', () => {
     it('includes issue number, title, and commit instructions', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -449,7 +467,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Working on GitHub Issue #123: Add feature X');
@@ -460,6 +478,7 @@ describe('issue-context-injector', () => {
     it('formats labels correctly', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -475,7 +494,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Labels: bug, priority: high, backend');
@@ -484,6 +503,7 @@ describe('issue-context-injector', () => {
     it('omits labels section when no labels present', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(statSync).mockReturnValue({ mtimeMs: Date.now() - 1000 } as any);
       vi.mocked(readFileSync).mockReturnValue(
@@ -495,7 +515,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).not.toContain('Labels:');
@@ -504,6 +524,7 @@ describe('issue-context-injector', () => {
     it('builds context without title when only branch name available', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('gh fail');
@@ -511,7 +532,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBe(
@@ -528,6 +549,7 @@ describe('issue-context-injector', () => {
     it('includes continue: true in success result', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(execFileSync).mockImplementation(() => {
         throw new Error('gh fail');
@@ -535,7 +557,7 @@ describe('issue-context-injector', () => {
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -545,10 +567,11 @@ describe('issue-context-injector', () => {
     it('includes continue: true in silent success result', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
+      (testCtx as any).branch = 'main';
       const input = createToolInput();
 
       // Act
-      const result = issueContextInjector(input);
+      const result = issueContextInjector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

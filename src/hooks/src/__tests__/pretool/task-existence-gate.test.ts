@@ -78,7 +78,7 @@ describe('task-existence-gate', () => {
     ])('exempt agent "%s" passes silently', (agentType) => {
       const input = createAgentInput(agentType);
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
@@ -95,7 +95,7 @@ describe('task-existence-gate', () => {
         },
       };
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
@@ -111,7 +111,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('No task registered')
@@ -124,7 +124,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('security-auditor');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('security-auditor')
@@ -140,7 +140,7 @@ describe('task-existence-gate', () => {
       });
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
@@ -165,7 +165,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('backend-system-architect');
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputDeny).toHaveBeenCalledWith(
@@ -178,7 +178,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('test-generator');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputDeny).toHaveBeenCalledWith(
         expect.stringContaining('test-generator')
@@ -190,7 +190,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('security-auditor');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputDeny).toHaveBeenCalledWith(
         expect.stringContaining('TaskCreate')
@@ -206,7 +206,7 @@ describe('task-existence-gate', () => {
       });
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
@@ -226,7 +226,7 @@ describe('task-existence-gate', () => {
         tool_input: {},
       };
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       // Empty subagent_type defaults to 'unknown', not exempt
       expect(result.continue).toBeDefined();
@@ -240,7 +240,7 @@ describe('task-existence-gate', () => {
         tool_input: { subagent_type: 42 },
       };
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       expect(result.continue).toBeDefined();
     });
@@ -269,7 +269,7 @@ describe('task-existence-gate', () => {
         mockGetTaskByAgent.mockReturnValue(undefined);
 
         const input = createAgentInput(agent);
-        const result = taskExistenceGate(input);
+        const result = taskExistenceGate(input, testCtx);
 
         expect(result.continue).toBe(false);
       }

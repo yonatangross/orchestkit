@@ -65,6 +65,7 @@ describe('team-synthesis-trigger', () => {
     testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
     vi.mocked(getTeamName).mockReturnValue(null);
     vi.mocked(getTeamMembers).mockReturnValue([]);
     vi.mocked(existsSync).mockReturnValue(false);
@@ -77,7 +78,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -91,7 +92,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -103,10 +104,11 @@ describe('team-synthesis-trigger', () => {
       vi.mocked(getTeamName).mockReturnValue('my-team');
       vi.mocked(getTeamMembers).mockReturnValue([{ name: 'a', agentType: 'sonnet' }]);
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -135,7 +137,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'member-2' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       // 2 idle out of 3 → not all idle → silent
@@ -154,7 +156,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'agent-1' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -183,7 +185,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'auditor-2' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -211,7 +213,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'b' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('All 2 teammates');

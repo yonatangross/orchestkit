@@ -52,7 +52,7 @@ describe('issueSubtaskUpdater', () => {
   // -- Guard conditions --
 
   it('returns silent success for non-Bash tools', () => {
-    const result = issueSubtaskUpdater(makeInput({ tool_name: 'Write' }));
+    const result = issueSubtaskUpdater(makeInput({ tool_name: 'Write' }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockExecFileSync).not.toHaveBeenCalled();
   });
@@ -60,12 +60,12 @@ describe('issueSubtaskUpdater', () => {
   it('returns silent success for non-git-commit commands', () => {
     const result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'npm test' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('returns silent success for failed git commit (non-zero exit)', () => {
-    const result = issueSubtaskUpdater(makeInput({ exit_code: 1 }));
+    const result = issueSubtaskUpdater(makeInput({ exit_code: 1 }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -75,7 +75,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -86,7 +86,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -97,7 +97,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -114,7 +114,7 @@ describe('issueSubtaskUpdater', () => {
 
     const result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "chore: update deps"' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -138,7 +138,7 @@ describe('issueSubtaskUpdater', () => {
 
     const _result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "feat: add input validation"' },
-    }));
+    }), testCtx);
 
     // Should have called gh issue view for issue 42
     const ghIssueCalls = mockExecFileSync.mock.calls.filter(
@@ -157,7 +157,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    issueSubtaskUpdater(makeInput());
+    issueSubtaskUpdater(makeInput(), testCtx);
     // Verify it attempted to get unchecked tasks for issue 99
     const ghCalls = mockExecFileSync.mock.calls.filter(
       (c: unknown[]) => c[0] === 'gh' && (c[1] as string[])?.includes('99')
@@ -175,7 +175,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    issueSubtaskUpdater(makeInput());
+    issueSubtaskUpdater(makeInput(), testCtx);
     const ghCalls = mockExecFileSync.mock.calls.filter(
       (c: unknown[]) => c[0] === 'gh' && (c[1] as string[])?.includes('55')
     );
@@ -192,7 +192,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    issueSubtaskUpdater(makeInput());
+    issueSubtaskUpdater(makeInput(), testCtx);
     const ghCalls = mockExecFileSync.mock.calls.filter(
       (c: unknown[]) => c[0] === 'gh' && (c[1] as string[])?.includes('77')
     );
@@ -213,7 +213,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -240,7 +240,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(result.hookSpecificOutput).toBeDefined();
@@ -261,7 +261,7 @@ describe('issueSubtaskUpdater', () => {
 
     const result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "feat: completely unrelated change"' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -295,7 +295,7 @@ describe('issueSubtaskUpdater', () => {
 
     issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "fix(#10): resolve login bug"' },
-    }));
+    }), testCtx);
 
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -316,7 +316,7 @@ describe('issueSubtaskUpdater', () => {
 
     const result = issueSubtaskUpdater(makeInput({
       tool_input: { command: 'git commit -m "feat(#42):"' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -330,7 +330,7 @@ describe('issueSubtaskUpdater', () => {
       return '';
     });
 
-    const result = issueSubtaskUpdater(makeInput());
+    const result = issueSubtaskUpdater(makeInput(), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 });

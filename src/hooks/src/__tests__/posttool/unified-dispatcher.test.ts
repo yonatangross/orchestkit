@@ -37,13 +37,13 @@ describe('unifiedDispatcher', () => {
   });
 
   it('returns silent success for all dispatches', async () => {
-    const result = await unifiedDispatcher(makeInput());
+    const result = await unifiedDispatcher(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
 
   it('returns silent success when no hooks match', async () => {
-    const result = await unifiedDispatcher(makeInput({ tool_name: 'UnknownTool' }));
+    const result = await unifiedDispatcher(makeInput({ tool_name: 'UnknownTool' }), testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -52,7 +52,7 @@ describe('unifiedDispatcher', () => {
     const { redactSecrets } = await import('../../skill/redact-secrets.js');
     vi.mocked(redactSecrets).mockImplementation(() => { throw new Error('boom'); });
 
-    const result = await unifiedDispatcher(makeInput());
+    const result = await unifiedDispatcher(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

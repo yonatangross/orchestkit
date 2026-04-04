@@ -48,7 +48,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('npm run build');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -60,7 +60,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git status');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -72,7 +72,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -92,7 +92,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update files"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -106,7 +106,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update many files"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -122,7 +122,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -142,7 +142,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -156,7 +156,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update multiple areas"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -172,7 +172,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update config"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -193,7 +193,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -207,7 +207,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update auth"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -223,7 +223,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Add tests"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -237,7 +237,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Big update"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -257,7 +257,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Fix authentication bug"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -271,7 +271,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Fix auth and update docs"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -286,7 +286,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Fix auth And update docs"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -300,7 +300,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Fix auth AND update docs"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -314,7 +314,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Add android support"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -334,7 +334,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Fix auth and update"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Commit message contains "and"');
@@ -347,7 +347,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput("git commit -m 'Fix auth and update'");
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Commit message contains "and"');
@@ -360,7 +360,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit --message="Fix auth and update"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Commit message contains "and"');
@@ -373,7 +373,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput("git commit --message 'Fix auth and update'");
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Commit message contains "and"');
@@ -386,7 +386,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m fixbug');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert - should extract "fixbug" and not find "and"
       expect(result.continue).toBe(true);
@@ -400,7 +400,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit --amend');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -421,7 +421,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -434,7 +434,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -447,7 +447,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -483,7 +483,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update auth and docs and tests"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert - should have all 4 warnings
       expect(result.continue).toBe(true);
@@ -500,7 +500,7 @@ describe('commit-atomicity-checker', () => {
       const input = createBashInput('git commit -m "Update files"');
 
       // Act
-      const result = commitAtomicityChecker(input);
+      const result = commitAtomicityChecker(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Consider splitting into atomic commits');

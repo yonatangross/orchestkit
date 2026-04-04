@@ -89,7 +89,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -103,7 +103,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -118,7 +118,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -135,7 +135,7 @@ describe('pattern-consistency-enforcer', () => {
       const input = createWriteInput('', 'content');
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -147,7 +147,7 @@ describe('pattern-consistency-enforcer', () => {
       const input = createWriteInput('/test/project/file.py', '');
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -162,7 +162,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -183,7 +183,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -200,7 +200,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -214,7 +214,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -228,7 +228,7 @@ describe('pattern-consistency-enforcer', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -251,7 +251,7 @@ from sqlalchemy.orm import Session, sessionmaker
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -268,7 +268,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -297,7 +297,7 @@ class User(BaseModel):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -318,7 +318,7 @@ class User(BaseModel):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -341,7 +341,7 @@ class User(BaseModel):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -367,7 +367,7 @@ const Button: React.FC<ButtonProps> = ({ children }) => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -389,7 +389,7 @@ function Button({ children }: ButtonProps): React.ReactNode {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -414,7 +414,7 @@ async function fetchUser(id: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -435,7 +435,7 @@ async function fetchUser(id: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -458,7 +458,7 @@ async function fetchUser(id: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -487,7 +487,7 @@ function MyForm() {
       );
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -518,7 +518,7 @@ function MyForm() {
       );
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -543,7 +543,7 @@ function DateDisplay({ date }: { date: Date }) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -563,7 +563,7 @@ function DateDisplay({ date }: { date: Date }) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -594,7 +594,7 @@ expect(result).toBeDefined();
       const input = createWriteInput(path, content);
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -614,7 +614,7 @@ def test_user_creation():
       );
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -644,7 +644,7 @@ describe('API', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -664,7 +664,7 @@ describe('API', () => {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -685,7 +685,7 @@ const server = setupServer(
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -707,7 +707,7 @@ const server = setupServer(
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -726,7 +726,7 @@ class TestUserService:
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert - Now correctly catches multiline unittest patterns
       expect(result.continue).toBe(false);
@@ -749,7 +749,7 @@ def test_user(user):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -772,7 +772,7 @@ def create_prompt(user):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -789,7 +789,7 @@ def create_prompt(user):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -813,7 +813,7 @@ async def generate(prompt):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -832,7 +832,7 @@ async def generate(prompt):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -853,7 +853,7 @@ async def generate(prompt):
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -872,7 +872,7 @@ async function generate(prompt: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -894,7 +894,7 @@ async function generate(prompt: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -919,7 +919,7 @@ async function generate(prompt: string) {
       );
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       if (shouldTrigger && path.includes('/routers/')) {
@@ -937,7 +937,7 @@ async function generate(prompt: string) {
       const input = createWriteInput(path, content);
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       if (isFrontend) {
@@ -964,7 +964,7 @@ async function generate(prompt: string) {
       };
 
       // Act
-      const result = patternConsistencyEnforcer(input);
+      const result = patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -974,6 +974,7 @@ async function generate(prompt: string) {
       // Arrange
       vi.mocked(getRepoRoot).mockReturnValue('');
       vi.mocked(getProjectDir).mockReturnValue('/fallback/project');
+      (testCtx as any).projectDir = '/fallback/project';
       vi.mocked(existsSync).mockImplementation((path) =>
         (path as string).includes('/fallback/project')
       );
@@ -981,7 +982,7 @@ async function generate(prompt: string) {
       const input = createWriteInput('/fallback/project/file.py', 'content');
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       expect(existsSync).toHaveBeenCalledWith(
@@ -997,7 +998,7 @@ async function generate(prompt: string) {
       );
 
       // Act
-      patternConsistencyEnforcer(input);
+      patternConsistencyEnforcer(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');

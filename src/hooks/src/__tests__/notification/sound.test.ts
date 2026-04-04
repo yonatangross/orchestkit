@@ -89,8 +89,8 @@ describe('notification/sound', () => {
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();
-    _resetAfplayCacheForTesting();
-    _resetLinuxPlayerCacheForTesting();
+    _resetAfplayCacheForTesting(testCtx);
+    _resetLinuxPlayerCacheForTesting(testCtx);
     // Default: afplay is available
     vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
       const argStr = (args as string[])?.join(' ') ?? '';
@@ -121,7 +121,7 @@ describe('notification/sound', () => {
       const input = createSoundInput(notificationType);
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -146,7 +146,7 @@ describe('notification/sound', () => {
       const input = createSoundInput(notificationType);
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - spawn should not have been called
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -159,7 +159,7 @@ describe('notification/sound', () => {
       });
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -176,7 +176,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith('which', ['afplay'], { stdio: 'ignore' });
@@ -190,7 +190,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert - spawn should not have been called
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -203,7 +203,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledTimes(1);
@@ -220,7 +220,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -235,7 +235,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockUnref).toHaveBeenCalledTimes(1);
@@ -246,7 +246,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - second arg is an array with the sound path (no shell interpolation)
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -261,7 +261,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('idle_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -276,7 +276,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('unknown_type');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockUnref).not.toHaveBeenCalled();
@@ -290,7 +290,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -311,7 +311,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert - must not crash
       expect(result.continue).toBe(true);
@@ -326,7 +326,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -340,7 +340,7 @@ describe('notification/sound', () => {
       });
 
       // Act & Assert - should not throw
-      expect(() => soundNotification(input)).not.toThrow();
+      expect(() => soundNotification(input, testCtx)).not.toThrow();
     });
 
     test('handles null tool_input gracefully', () => {
@@ -350,7 +350,7 @@ describe('notification/sound', () => {
       });
 
       // Act & Assert - should not throw
-      expect(() => soundNotification(input)).not.toThrow();
+      expect(() => soundNotification(input, testCtx)).not.toThrow();
     });
 
     test('handles spawn returning object without unref method', () => {
@@ -359,7 +359,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert - TypeError from missing unref is swallowed
       expect(result.continue).toBe(true);
@@ -377,10 +377,10 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sound',
         expect.stringContaining('permission_prompt'),
       );
@@ -391,10 +391,10 @@ describe('notification/sound', () => {
       const input = createSoundInput('');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith('sound', expect.stringContaining('[]'));
+      expect(testCtx.log).toHaveBeenCalledWith('sound', expect.stringContaining('[]'));
     });
   });
 
@@ -408,7 +408,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -426,7 +426,7 @@ describe('notification/sound', () => {
       const input = createSoundInput(notificationType);
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -440,7 +440,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -451,7 +451,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      const result = soundNotification(input);
+      const result = soundNotification(input, testCtx);
 
       // Assert
       expect(result.stopReason).toBeUndefined();
@@ -469,8 +469,8 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act - call twice
-      soundNotification(input);
-      soundNotification(input);
+      soundNotification(input, testCtx);
+      soundNotification(input, testCtx);
 
       // Assert - which afplay should only be called once (cached)
       const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
@@ -482,11 +482,11 @@ describe('notification/sound', () => {
     test('cache is reset by _resetAfplayCacheForTesting', () => {
       // Arrange - first call caches the result
       const input = createSoundInput('permission_prompt');
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Act - reset cache, call again
-      _resetAfplayCacheForTesting();
-      soundNotification(input);
+      _resetAfplayCacheForTesting(testCtx);
+      soundNotification(input, testCtx);
 
       // Assert - which afplay called twice (once before reset, once after)
       const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
@@ -509,7 +509,7 @@ describe('notification/sound', () => {
       });
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - Sosumi.aiff (permission_prompt) played, not Ping.aiff (idle_prompt)
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -524,7 +524,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('idle_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - Ping.aiff (idle_prompt) played
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -542,10 +542,10 @@ describe('notification/sound', () => {
       });
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - log contains auth_success, not permission_prompt
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sound',
         expect.stringContaining('auth_success'),
       );
@@ -572,7 +572,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - pw-play chosen as player
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -594,7 +594,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - paplay chosen as player
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -617,7 +617,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - aplay chosen as player
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -632,7 +632,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - freedesktop .oga path used
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -647,7 +647,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('idle_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -662,7 +662,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('auth_success');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -680,7 +680,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -691,8 +691,8 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act - call twice
-      soundNotification(input);
-      soundNotification(input);
+      soundNotification(input, testCtx);
+      soundNotification(input, testCtx);
 
       // Assert - pw-play check only happens once (cached)
       const pwPlayChecks = vi.mocked(execFileSync).mock.calls.filter(
@@ -704,11 +704,11 @@ describe('notification/sound', () => {
     test('cache is reset by _resetLinuxPlayerCacheForTesting', () => {
       // Arrange - first call populates the cache
       const input = createSoundInput('permission_prompt');
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Act - reset and call again
-      _resetLinuxPlayerCacheForTesting();
-      soundNotification(input);
+      _resetLinuxPlayerCacheForTesting(testCtx);
+      soundNotification(input, testCtx);
 
       // Assert - pw-play check runs twice (once before reset, once after)
       const pwPlayChecks = vi.mocked(execFileSync).mock.calls.filter(
@@ -735,7 +735,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - custom path overrides default Sosumi.aiff
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -751,7 +751,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('idle_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -767,7 +767,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('auth_success');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -782,7 +782,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - default Sosumi.aiff used
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -804,7 +804,7 @@ describe('notification/sound', () => {
       const input = createSoundInput('permission_prompt');
 
       // Act
-      soundNotification(input);
+      soundNotification(input, testCtx);
 
       // Assert - custom path used with Linux player
       expect(mockSpawn).toHaveBeenCalledWith(

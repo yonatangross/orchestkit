@@ -74,7 +74,7 @@ function createProjectDir(): string {
 let testCtx: ReturnType<typeof createTestContext>;
 describe('StopFailure E2E (real filesystem)', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
+    testCtx = createTestContext({ projectDir: '/fallback/project', sessionId: 'e2e-session-001', branch: 'feat/cc-2177-adoption' });
     vi.clearAllMocks();
     tmpDir = createProjectDir();
   });
@@ -104,7 +104,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         api_status_code: 429,
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const handoffPath = path.join(tmpDir, '.claude', 'HANDOFF.md');
       expect(existsSync(handoffPath)).toBe(true);
@@ -121,7 +121,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         api_status_code: 401,
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const handoffPath = path.join(tmpDir, '.claude', 'HANDOFF.md');
       const content = readFileSync(handoffPath, 'utf8');
@@ -139,7 +139,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         stop_failure_reason: 'rate_limit',
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const content = readFileSync(path.join(tmpDir, '.claude', 'HANDOFF.md'), 'utf8');
       expect(content).toContain('feat/cc-2177-adoption');
@@ -155,7 +155,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         stop_failure_reason: 'rate_limit',
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const content = readFileSync(path.join(tmpDir, '.claude', 'HANDOFF.md'), 'utf8');
       expect(content).toContain('stop-failure-handler.ts');
@@ -173,7 +173,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         last_assistant_message: 'I was working on implementing the StopFailure handler when the rate limit hit.',
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const content = readFileSync(path.join(tmpDir, '.claude', 'HANDOFF.md'), 'utf8');
       expect(content).toContain('I was working on implementing the StopFailure handler');
@@ -190,7 +190,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         api_status_code: 500,
       };
 
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       const content = readFileSync(path.join(tmpDir, '.claude', 'HANDOFF.md'), 'utf8');
       expect(content).toContain('Emergency');
@@ -210,7 +210,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         tool_input: {},
         project_dir: tmpDir,
         stop_failure_reason: 'rate_limit',
-      });
+      }, testCtx);
 
       expect(mockFlushEventCounter).toHaveBeenCalledOnce();
     });
@@ -223,7 +223,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         tool_input: {},
         project_dir: tmpDir,
         stop_failure_reason: 'rate_limit',
-      });
+      }, testCtx);
 
       expect(mockFlushAnalytics).toHaveBeenCalledOnce();
     });
@@ -237,7 +237,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         project_dir: tmpDir,
         stop_failure_reason: 'rate_limit',
         api_status_code: 429,
-      });
+      }, testCtx);
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'session_end',
@@ -262,7 +262,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         tool_input: {},
         project_dir: tmpDir,
         stop_failure_reason: 'rate_limit',
-      });
+      }, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result).not.toHaveProperty('hookSpecificOutput');
@@ -277,7 +277,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         tool_input: {},
         project_dir: '/nonexistent/readonly/path/that/will/fail',
         stop_failure_reason: 'rate_limit',
-      });
+      }, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -291,7 +291,7 @@ describe('StopFailure E2E (real filesystem)', () => {
         project_dir: tmpDir,
         stop_failure_reason: 'rate_limit',
         stop_hook_active: true,
-      });
+      }, testCtx);
 
       expect(result.continue).toBe(true);
       expect(mockFlushEventCounter).not.toHaveBeenCalled();

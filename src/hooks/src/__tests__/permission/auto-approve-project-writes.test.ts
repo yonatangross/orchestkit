@@ -52,7 +52,7 @@ describe('auto-approve-project-writes', () => {
 
     test.each(projectWrites)('auto-approves: %s', (filePath) => {
       const input = createWriteInput(filePath);
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -69,7 +69,7 @@ describe('auto-approve-project-writes', () => {
 
     test.each(relativePaths)('auto-approves relative path: %s', (filePath) => {
       const input = createWriteInput(filePath);
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -90,7 +90,7 @@ describe('auto-approve-project-writes', () => {
 
     test.each(excludedPaths)('requires manual approval for excluded: %s', (filePath) => {
       const input = createWriteInput(filePath);
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
       // Should NOT have permissionDecision (let user decide)
@@ -111,7 +111,7 @@ describe('auto-approve-project-writes', () => {
 
     test.each(outsidePaths)('requires manual approval: %s', (filePath) => {
       const input = createWriteInput(filePath);
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
       // Should NOT have permissionDecision (let user decide)
@@ -122,7 +122,7 @@ describe('auto-approve-project-writes', () => {
       // Tilde paths may be resolved to absolute paths by the system
       // The hook behavior depends on whether tilde is expanded
       const input = createWriteInput('~/.bashrc');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       // May or may not auto-approve depending on path resolution
       expect(result.continue).toBe(true);
@@ -132,7 +132,7 @@ describe('auto-approve-project-writes', () => {
   describe('Edge cases', () => {
     test('handles empty file path', () => {
       const input = createWriteInput('');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -144,14 +144,14 @@ describe('auto-approve-project-writes', () => {
         tool_input: { content: 'test' },
         project_dir: '/test/project',
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     test('handles path traversal attempts', () => {
       const input = createWriteInput('/test/project/../../../etc/passwd');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       // Path doesn't start with project dir after traversal
       expect(result.continue).toBe(true);
@@ -161,7 +161,7 @@ describe('auto-approve-project-writes', () => {
       // Path that starts with project dir prefix but is a different directory
       // Fix: Uses path.relative() instead of startsWith() to properly detect escape
       const input = createWriteInput('/test/project-malicious/file.txt');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       // Should NOT auto-approve - /test/project-malicious is not inside /test/project
       // path.relative('/test/project', '/test/project-malicious/file.txt') => '../project-malicious/file.txt'
@@ -170,7 +170,7 @@ describe('auto-approve-project-writes', () => {
 
     test('handles deep nesting in excluded directory', () => {
       const input = createWriteInput('/test/project/node_modules/deep/nested/pkg/file.js');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
@@ -178,7 +178,7 @@ describe('auto-approve-project-writes', () => {
     test('handles file named like excluded directory', () => {
       // File named "node_modules.txt" should be fine
       const input = createWriteInput('/test/project/docs/node_modules.txt');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -186,7 +186,7 @@ describe('auto-approve-project-writes', () => {
     test('handles case sensitivity in paths', () => {
       // node_modules vs NODE_MODULES
       const input = createWriteInput('/test/project/NODE_MODULES/pkg/file.js');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       // Case sensitive, so NODE_MODULES should be allowed
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -195,21 +195,21 @@ describe('auto-approve-project-writes', () => {
     test('handles very long path', () => {
       const longPath = `/test/project/${'subdir/'.repeat(100)}file.txt`;
       const input = createWriteInput(longPath);
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
     test('handles special characters in path', () => {
       const input = createWriteInput('/test/project/src/file with spaces.ts');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
     test('handles unicode in path', () => {
       const input = createWriteInput('/test/project/src/\u00E9\u00E8\u00EA.ts');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -227,7 +227,7 @@ describe('auto-approve-project-writes', () => {
         },
         project_dir: '/test/project',
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -243,7 +243,7 @@ describe('auto-approve-project-writes', () => {
         },
         project_dir: '/test/project',
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
@@ -258,7 +258,7 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
         added_dirs: ['/other/service'],
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -270,7 +270,7 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
         added_dirs: ['/other/service'],
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
@@ -282,7 +282,7 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
         added_dirs: ['/other/service'],
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
@@ -294,7 +294,7 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
         added_dirs: [],
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -305,7 +305,7 @@ describe('auto-approve-project-writes', () => {
         tool_input: { file_path: '/test/project/src/index.ts', content: 'x' },
         project_dir: '/test/project',
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -317,7 +317,7 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
         added_dirs: ['/other/service'],
       };
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
@@ -327,14 +327,14 @@ describe('auto-approve-project-writes', () => {
       const common = await import('../../lib/common.js');
       vi.mocked(common.getProjectDir).mockReturnValue('/');
       const input = createWriteInput('/src/file.ts', '/');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     test('handles project with trailing slash', () => {
       const input = createWriteInput('/test/project/src/file.ts');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -342,7 +342,7 @@ describe('auto-approve-project-writes', () => {
     test('handles Windows-style paths', () => {
       // Even on Unix, test handling of backslashes
       const input = createWriteInput('/test/project\\src\\file.ts');
-      const result = autoApproveProjectWrites(input);
+      const result = autoApproveProjectWrites(input, testCtx);
 
       // Depends on path normalization
       expect(result.continue).toBe(true);

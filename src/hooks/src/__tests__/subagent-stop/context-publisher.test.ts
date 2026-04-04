@@ -86,7 +86,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -98,7 +98,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -112,7 +112,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -127,7 +127,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -138,7 +138,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -156,7 +156,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith(
@@ -171,7 +171,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'Implemented API', subagent_type: 'backend-system-architect' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -204,7 +204,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'New result', subagent_type: 'new-agent' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -225,7 +225,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: longOutput });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -246,7 +246,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ subagent_type: 'my-special-agent' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -272,7 +272,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith(
@@ -302,7 +302,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'Task done', subagent_type: 'test-agent' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -334,7 +334,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -364,7 +364,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -388,7 +388,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'Test output' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -403,7 +403,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'Output text', subagent_type: 'my-agent' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -419,7 +419,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: 'Detailed results here' });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -441,7 +441,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: '' });
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -456,7 +456,7 @@ describe('context-publisher', () => {
       });
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -468,7 +468,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ subagent_type: undefined, agent_type: undefined });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -488,7 +488,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -504,7 +504,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -525,7 +525,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -540,7 +540,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = contextPublisher(input);
+      const result = contextPublisher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -564,7 +564,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ subagent_type: agentName });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;
@@ -597,7 +597,7 @@ describe('context-publisher', () => {
       const input = createSubagentStopInput({ agent_output: output });
 
       // Act
-      contextPublisher(input);
+      contextPublisher(input, testCtx);
 
       // Assert
       const writeCalls = vi.mocked(writeFileSync).mock.calls;

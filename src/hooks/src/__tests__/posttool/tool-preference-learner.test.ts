@@ -42,14 +42,14 @@ describe('toolPreferenceLearner', () => {
   });
 
   it('returns silent success for empty tool name', () => {
-    const result = toolPreferenceLearner(makeInput({ tool_name: '' }));
+    const result = toolPreferenceLearner(makeInput({ tool_name: '' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('tracks Grep as content_search category', () => {
-    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -60,7 +60,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    }));
+    }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -72,7 +72,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'echo hello' },
-    }));
+    }), testCtx);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
@@ -103,7 +103,7 @@ describe('toolPreferenceLearner', () => {
       },
       updated_at: new Date().toISOString(),
     }));
-    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.content_search.Grep).toBe(6);
@@ -113,7 +113,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'pytest tests/ -v' },
-    }));
+    }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.testing['Bash:pytest']).toBe(1);

@@ -35,7 +35,7 @@ describe('headless-defer', () => {
 
   describe('non-headless mode (interactive)', () => {
     it('returns silent success for any tool', () => {
-      headlessDefer(makeInput('Bash', 'git push --force origin main'));
+      headlessDefer(makeInput('Bash', 'git push --force origin main'), testCtx);
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
       expect(mockOutputDefer).not.toHaveBeenCalled();
     });
@@ -47,87 +47,87 @@ describe('headless-defer', () => {
     });
 
     it('defers git push --force', () => {
-      headlessDefer(makeInput('Bash', 'git push --force origin main'));
+      headlessDefer(makeInput('Bash', 'git push --force origin main'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('git push --force origin main')
       );
     });
 
     it('defers npm publish', () => {
-      headlessDefer(makeInput('Bash', 'npm publish --access public'));
+      headlessDefer(makeInput('Bash', 'npm publish --access public'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('npm publish')
       );
     });
 
     it('defers terraform apply', () => {
-      headlessDefer(makeInput('Bash', 'terraform apply -auto-approve'));
+      headlessDefer(makeInput('Bash', 'terraform apply -auto-approve'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('terraform apply')
       );
     });
 
     it('defers kubectl apply', () => {
-      headlessDefer(makeInput('Bash', 'kubectl apply -f deploy.yaml'));
+      headlessDefer(makeInput('Bash', 'kubectl apply -f deploy.yaml'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('kubectl apply')
       );
     });
 
     it('defers kubectl delete', () => {
-      headlessDefer(makeInput('Bash', 'kubectl delete deployment my-app'));
+      headlessDefer(makeInput('Bash', 'kubectl delete deployment my-app'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('kubectl delete')
       );
     });
 
     it('defers docker push', () => {
-      headlessDefer(makeInput('Bash', 'docker push myrepo/myimage:latest'));
+      headlessDefer(makeInput('Bash', 'docker push myrepo/myimage:latest'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('docker push')
       );
     });
 
     it('defers gh pr merge', () => {
-      headlessDefer(makeInput('Bash', 'gh pr merge 42 --squash'));
+      headlessDefer(makeInput('Bash', 'gh pr merge 42 --squash'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('gh pr merge')
       );
     });
 
     it('defers gh release create', () => {
-      headlessDefer(makeInput('Bash', 'gh release create v1.0.0'));
+      headlessDefer(makeInput('Bash', 'gh release create v1.0.0'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('gh release create')
       );
     });
 
     it('allows safe commands through', () => {
-      headlessDefer(makeInput('Bash', 'git status'));
+      headlessDefer(makeInput('Bash', 'git status'), testCtx);
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
       expect(mockOutputDefer).not.toHaveBeenCalled();
     });
 
     it('allows non-Bash tools through', () => {
-      headlessDefer(makeInput('Read', ''));
+      headlessDefer(makeInput('Read', ''), testCtx);
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
     });
 
     it('allows regular git push (no --force) through', () => {
-      headlessDefer(makeInput('Bash', 'git push origin feature-branch'));
+      headlessDefer(makeInput('Bash', 'git push origin feature-branch'), testCtx);
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
       expect(mockOutputDefer).not.toHaveBeenCalled();
     });
 
     it('defers npx wrangler deploy', () => {
-      headlessDefer(makeInput('Bash', 'npx wrangler deploy --env production'));
+      headlessDefer(makeInput('Bash', 'npx wrangler deploy --env production'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('npx wrangler deploy')
       );
     });
 
     it('defers alembic upgrade head', () => {
-      headlessDefer(makeInput('Bash', 'alembic upgrade head'));
+      headlessDefer(makeInput('Bash', 'alembic upgrade head'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalledWith(
         expect.stringContaining('alembic upgrade head')
       );
@@ -137,7 +137,7 @@ describe('headless-defer', () => {
   describe('CLAUDE_NONINTERACTIVE mode', () => {
     it('defers destructive commands', () => {
       process.env.CLAUDE_NONINTERACTIVE = '1';
-      headlessDefer(makeInput('Bash', 'npm publish'));
+      headlessDefer(makeInput('Bash', 'npm publish'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalled();
     });
   });
@@ -149,13 +149,13 @@ describe('headless-defer', () => {
 
     it('uses custom patterns from env', () => {
       process.env.ORCHESTKIT_DEFER_TOOLS = 'Bash(make deploy*),Bash(ansible-playbook*)';
-      headlessDefer(makeInput('Bash', 'make deploy-prod'));
+      headlessDefer(makeInput('Bash', 'make deploy-prod'), testCtx);
       expect(mockOutputDefer).toHaveBeenCalled();
     });
 
     it('ignores default patterns when custom set', () => {
       process.env.ORCHESTKIT_DEFER_TOOLS = 'Bash(make deploy*)';
-      headlessDefer(makeInput('Bash', 'git push --force origin main'));
+      headlessDefer(makeInput('Bash', 'git push --force origin main'), testCtx);
       expect(mockOutputSilentSuccess).toHaveBeenCalled();
     });
   });

@@ -75,7 +75,7 @@ describe('gh-milestone-enforcer', () => {
       '',
     ])('returns silent success for: %s', (command) => {
       const input = createBashInput(command);
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe('gh-milestone-enforcer', () => {
         project_dir: '/test/project',
         tool_input: {},
       };
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -100,7 +100,7 @@ describe('gh-milestone-enforcer', () => {
   describe('gh issue create — without --milestone (advisory only)', () => {
     it('returns advisory context, never blocks', () => {
       const input = createBashInput('gh issue create --title "Fix auth" --label bug');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputAllowWithContext).toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('gh-milestone-enforcer', () => {
 
     it('advisory message mentions --milestone', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
-      ghMilestoneEnforcer(input);
+      ghMilestoneEnforcer(input, testCtx);
 
       const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
       expect(ctxCall).toContain('--milestone');
@@ -116,7 +116,7 @@ describe('gh-milestone-enforcer', () => {
 
     it('advisory message mentions sprint tracking', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
-      ghMilestoneEnforcer(input);
+      ghMilestoneEnforcer(input, testCtx);
 
       const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
       expect(ctxCall).toContain('milestone');
@@ -124,9 +124,9 @@ describe('gh-milestone-enforcer', () => {
 
     it('logs advisory for missing milestone', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
-      ghMilestoneEnforcer(input);
+      ghMilestoneEnforcer(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'gh-milestone-enforcer',
         expect.stringContaining('Advisory'),
       );
@@ -134,7 +134,7 @@ describe('gh-milestone-enforcer', () => {
 
     it('never returns continue: false', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).not.toBe(false);
     });
@@ -147,7 +147,7 @@ describe('gh-milestone-enforcer', () => {
   describe('gh issue create — with --milestone (silent pass-through)', () => {
     it('returns silent success with --milestone flag', () => {
       const input = createBashInput('gh issue create --title "Fix auth" --milestone "v7.0"');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -156,14 +156,14 @@ describe('gh-milestone-enforcer', () => {
 
     it('returns silent success with --milestone and no space issue', () => {
       const input = createBashInput('gh issue create --milestone v7 --title "Feature"');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     it('returns silent success with -m shorthand', () => {
       const input = createBashInput('gh issue create --title "Chore" -m 5');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -177,14 +177,14 @@ describe('gh-milestone-enforcer', () => {
   describe('advisory-only contract', () => {
     it('never blocks even without any flags', () => {
       const input = createBashInput('gh issue create');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     it('never produces a stopReason', () => {
       const input = createBashInput('gh issue create --title "test"');
-      const result = ghMilestoneEnforcer(input);
+      const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.stopReason).toBeUndefined();
     });

@@ -65,7 +65,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput();
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -81,7 +81,7 @@ describe('team-size-gate', () => {
       };
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -98,7 +98,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'my-team' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -115,7 +115,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'my-team' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -135,7 +135,7 @@ describe('team-size-gate', () => {
       });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -154,7 +154,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'big-team' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -172,7 +172,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'my-team', model: 'opus' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -193,7 +193,7 @@ describe('team-size-gate', () => {
       });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -210,7 +210,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'my-team', model: 'sonnet' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -226,7 +226,7 @@ describe('team-size-gate', () => {
       const input = createTaskInput({ team_name: 'my-team', model: 'haiku' });
 
       // Act
-      const result = teamSizeGate(input);
+      const result = teamSizeGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

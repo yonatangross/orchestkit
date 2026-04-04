@@ -63,7 +63,7 @@ describe('skill-tracker', () => {
       project_dir: '/test/project',
       tool_input: {},
     };
-    const result = skillTracker(input);
+    const result = skillTracker(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -71,7 +71,7 @@ describe('skill-tracker', () => {
 
   it('logs skill invocation to usage log file', () => {
     const input = createSkillInput('unit-testing');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
     expect(mockAppendFileSync).toHaveBeenCalledTimes(1); // usage log only (analytics JSONL removed #919)
     const usageCall = mockAppendFileSync.mock.calls[0];
@@ -81,7 +81,7 @@ describe('skill-tracker', () => {
 
   it('always returns silent success after logging', () => {
     const input = createSkillInput('recall', '--graph database');
-    const result = skillTracker(input);
+    const result = skillTracker(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -89,9 +89,9 @@ describe('skill-tracker', () => {
 
   it('calls logHook with skill name', () => {
     const input = createSkillInput('e2e-testing');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
-    expect(logHook).toHaveBeenCalledWith(
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-tracker',
       expect.stringContaining('e2e-testing')
     );
@@ -99,7 +99,7 @@ describe('skill-tracker', () => {
 
   it('handles skill invocation without args', () => {
     const input = createSkillInput('run-tests');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
     const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[1])).toContain('no args');

@@ -41,7 +41,7 @@ describe('ci-simulation', () => {
 
   it('returns silent success for non-git-push commands', () => {
     const input = createBashInput('npm run build');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -51,7 +51,7 @@ describe('ci-simulation', () => {
     vi.mocked(existsSync).mockReturnValue(false);
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -63,7 +63,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('npm run lint');
@@ -76,7 +76,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin feature');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('pytest');
@@ -89,7 +89,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('go vet');

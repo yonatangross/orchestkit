@@ -73,26 +73,26 @@ describe('task-context-injector', () => {
     test('returns continue: true', () => {
       mockGitCommands('feat/auth', 'add login form');
       const input = createTaskInput();
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('returns silent success when task_subject is empty', () => {
       const input = createTaskInput({ task_subject: '' });
-      taskContextInjector(input);
+      taskContextInjector(input, testCtx);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
     test('returns silent success when task_subject is undefined', () => {
       const input = createTaskInput({ task_subject: undefined });
-      taskContextInjector(input);
+      taskContextInjector(input, testCtx);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
     test('returns silent success when not in a git repo', () => {
       mockGitCommands(null, null);
       const input = createTaskInput();
-      taskContextInjector(input);
+      taskContextInjector(input, testCtx);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
   });
@@ -101,7 +101,7 @@ describe('task-context-injector', () => {
     test('injects branch name via additionalContext', () => {
       mockGitCommands('feat/auth-flow', 'add JWT validation');
       const input = createTaskInput({ task_subject: 'Build auth' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Branch: feat/auth-flow');
     });
@@ -109,7 +109,7 @@ describe('task-context-injector', () => {
     test('injects last commit subject when available', () => {
       mockGitCommands('main', 'fix: resolve null pointer');
       const input = createTaskInput({ task_subject: 'Debug NPE' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Last commit: fix: resolve null pointer');
     });
@@ -117,7 +117,7 @@ describe('task-context-injector', () => {
     test('omits commit when git log fails', () => {
       mockGitCommands('feat/new-feature', null);
       const input = createTaskInput({ task_subject: 'Build feature' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Branch: feat/new-feature');
       expect(result.hookSpecificOutput?.additionalContext).not.toContain('Last commit');
@@ -126,7 +126,7 @@ describe('task-context-injector', () => {
     test('prefixes context with [TaskCreated]', () => {
       mockGitCommands('dev', 'init');
       const input = createTaskInput({ task_subject: 'Setup project' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toMatch(/^\[TaskCreated\]/);
     });
@@ -134,7 +134,7 @@ describe('task-context-injector', () => {
     test('separates branch and commit with pipe', () => {
       mockGitCommands('feat/api', 'add endpoint');
       const input = createTaskInput({ task_subject: 'Build API' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Branch: feat/api | Last commit: add endpoint');
     });
@@ -144,7 +144,7 @@ describe('task-context-injector', () => {
     test('handles branch with special characters', () => {
       mockGitCommands('feature/CC-2184/adoption', 'initial commit');
       const input = createTaskInput({ task_subject: 'CC adoption' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Branch: feature/CC-2184/adoption');
     });
@@ -153,7 +153,7 @@ describe('task-context-injector', () => {
       const longBranch = `feat/${'a'.repeat(200)}`;
       mockGitCommands(longBranch, 'commit');
       const input = createTaskInput({ task_subject: 'Task' });
-      const result = taskContextInjector(input);
+      const result = taskContextInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain(longBranch);

@@ -76,7 +76,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/router_users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -87,7 +87,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -100,7 +100,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/services/bad_name.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -120,7 +120,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.ts');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -132,7 +132,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/lib/utils.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -144,7 +144,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/__init__.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -171,7 +171,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/routers/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -189,7 +189,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/routers/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -202,7 +202,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/backend/app/routers/v1/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -228,7 +228,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/services/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -244,7 +244,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/services/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -256,7 +256,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/backend/services/domain/user.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -280,7 +280,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/repositories/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -296,7 +296,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/repositories/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -323,7 +323,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/schemas/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -339,7 +339,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/schemas/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -364,7 +364,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/models/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -380,7 +380,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/models/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -403,7 +403,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -419,7 +419,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput(`/app/core/${filename}`);
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       // Note: HTTPClient.py matches PascalCase pattern, so it will be blocked
@@ -441,7 +441,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -456,7 +456,7 @@ describe('backend-file-naming', () => {
       };
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -467,7 +467,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/Makefile');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -478,7 +478,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/project/backend/src/app/routers/v2/admin/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -490,7 +490,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/Routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       // Should not match /routers/ - only lowercase matches
@@ -502,7 +502,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/user-auth.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -519,10 +519,10 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.py');
 
       // Act
-      backendFileNaming(input);
+      backendFileNaming(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'backend-file-naming',
         expect.stringContaining('BLOCKED'),
       );
@@ -533,10 +533,10 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/router_users.py');
 
       // Act
-      backendFileNaming(input);
+      backendFileNaming(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalled();
+      expect(testCtx.log).not.toHaveBeenCalled();
     });
   });
 
@@ -550,7 +550,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('users.py');
@@ -561,7 +561,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.py');
 
       // Act
-      backendFileNaming(input);
+      backendFileNaming(input, testCtx);
 
       // Assert
       const blockCall = vi.mocked(outputBlock).mock.calls[0][0];
@@ -573,7 +573,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/services/user.py');
 
       // Act
-      backendFileNaming(input);
+      backendFileNaming(input, testCtx);
 
       // Assert
       const blockCall = vi.mocked(outputBlock).mock.calls[0][0];
@@ -591,7 +591,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/backend/routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -602,7 +602,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -613,7 +613,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/frontend/routers/users.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -630,7 +630,7 @@ describe('backend-file-naming', () => {
       const input = createFileInput('/app/routers/UserRoutes.py');
 
       // Act
-      const result = backendFileNaming(input);
+      const result = backendFileNaming(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);

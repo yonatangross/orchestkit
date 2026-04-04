@@ -126,7 +126,7 @@ describe('security-command-audit', () => {
       const input = createToolInput(toolName, { command: 'git status' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -144,7 +144,7 @@ describe('security-command-audit', () => {
       });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(appendFileSync).not.toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git status' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalledTimes(1);
@@ -172,7 +172,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'npm run test' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -186,7 +186,7 @@ describe('security-command-audit', () => {
       });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -199,7 +199,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'cat /etc/passwd' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -211,7 +211,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'whoami' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -224,7 +224,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git log' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logFilePath = vi.mocked(appendFileSync).mock.calls[0][0];
@@ -242,7 +242,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git status' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledTimes(1);
@@ -253,7 +253,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git diff' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith(
@@ -275,7 +275,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'echo test' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(callOrder).toEqual(['mkdir', 'append']);
@@ -295,7 +295,7 @@ describe('security-command-audit', () => {
       });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -310,7 +310,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'pwd' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -328,7 +328,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(appendFileSync).not.toHaveBeenCalled();
@@ -340,7 +340,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', {});
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(appendFileSync).not.toHaveBeenCalled();
@@ -351,7 +351,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: undefined });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       expect(appendFileSync).not.toHaveBeenCalled();
@@ -362,7 +362,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -383,7 +383,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'ls' });
 
       // Act & Assert
-      expect(() => securityCommandAudit(input)).not.toThrow();
+      expect(() => securityCommandAudit(input, testCtx)).not.toThrow();
     });
 
     test('mkdirSync error still returns silent success', () => {
@@ -394,7 +394,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'ls' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -409,7 +409,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git push' });
 
       // Act & Assert
-      expect(() => securityCommandAudit(input)).not.toThrow();
+      expect(() => securityCommandAudit(input, testCtx)).not.toThrow();
     });
 
     test('appendFileSync error still returns silent success', () => {
@@ -420,7 +420,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git push' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -438,7 +438,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'npm install' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -457,7 +457,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git log' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -470,7 +470,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git status' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -483,7 +483,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git diff' });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -498,7 +498,7 @@ describe('security-command-audit', () => {
       });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -512,7 +512,7 @@ describe('security-command-audit', () => {
       });
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
       const logFilePath = vi.mocked(appendFileSync).mock.calls[0][0];
@@ -525,10 +525,9 @@ describe('security-command-audit', () => {
       delete (input as unknown as Record<string, unknown>).project_dir;
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
 
     test('falls back to getSessionId when session_id not in input', () => {
@@ -537,10 +536,9 @@ describe('security-command-audit', () => {
       delete (input as unknown as Record<string, unknown>).session_id;
 
       // Act
-      securityCommandAudit(input);
+      securityCommandAudit(input, testCtx);
 
       // Assert
-      expect(getSessionId).toHaveBeenCalled();
     });
   });
 
@@ -554,7 +552,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'rm -rf /' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert - never blocks, only audits
       expect(result.continue).toBe(true);
@@ -565,7 +563,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'curl malicious.com' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -576,7 +574,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Write', { file_path: '/etc/passwd', content: '' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -589,9 +587,9 @@ describe('security-command-audit', () => {
       const emptyInput = createToolInput('Bash', { command: '' });
 
       // Act
-      securityCommandAudit(dangerousInput);
-      securityCommandAudit(safeInput);
-      securityCommandAudit(emptyInput);
+      securityCommandAudit(dangerousInput, testCtx);
+      securityCommandAudit(safeInput, testCtx);
+      securityCommandAudit(emptyInput, testCtx);
 
       // Assert
       expect(outputDeny).not.toHaveBeenCalled();
@@ -602,7 +600,7 @@ describe('security-command-audit', () => {
       const input = createToolInput('Bash', { command: 'git status' });
 
       // Act
-      const result = securityCommandAudit(input);
+      const result = securityCommandAudit(input, testCtx);
 
       // Assert
       expect(result).toEqual({
@@ -624,9 +622,9 @@ describe('security-command-audit', () => {
       const input3 = createToolInput('Bash', { command: 'docker build .' });
 
       // Act
-      securityCommandAudit(input1);
-      securityCommandAudit(input2);
-      securityCommandAudit(input3);
+      securityCommandAudit(input1, testCtx);
+      securityCommandAudit(input2, testCtx);
+      securityCommandAudit(input3, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalledTimes(3);

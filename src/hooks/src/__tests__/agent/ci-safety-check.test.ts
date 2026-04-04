@@ -75,7 +75,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -90,7 +90,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -104,7 +104,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -128,7 +128,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -141,7 +141,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm run deploy' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -153,7 +153,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm publish' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -183,7 +183,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -204,7 +204,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'git push --force' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('BLOCKED');
@@ -215,7 +215,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'gh secret delete TOKEN' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
@@ -227,7 +227,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'rm -rf .github' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('explicit user approval');
@@ -240,7 +240,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -265,7 +265,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'gh release create v2.0' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -278,7 +278,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm run deploy' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -302,7 +302,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -315,7 +315,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', {});
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -327,7 +327,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: undefined });
 
       // Act & Assert
-      expect(() => ciSafetyCheck(input)).not.toThrow();
+      expect(() => ciSafetyCheck(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
     });
 
@@ -338,7 +338,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -351,7 +351,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -364,7 +364,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert - dangerous pattern should take precedence (deny, not warn)
       expect(result.continue).toBe(false);
@@ -379,7 +379,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert - first match (gh secret delete) triggers deny
       expect(result.continue).toBe(false);
@@ -408,7 +408,7 @@ describe('ci-safety-check', () => {
       // Act & Assert
       for (const cmd of dangerousCommands) {
         const input = createToolInput('Bash', { command: cmd });
-        const result = ciSafetyCheck(input);
+        const result = ciSafetyCheck(input, testCtx);
         expect(result.continue).toBe(false);
       }
     });

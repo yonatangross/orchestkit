@@ -60,7 +60,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput(filePath);
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -86,7 +86,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput(filePath);
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -111,7 +111,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput(filePath);
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -127,7 +127,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -141,7 +141,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -154,7 +154,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -167,7 +167,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -178,7 +178,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('/test/project/src/index.ts');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -191,7 +191,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -204,7 +204,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('src/index.ts');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert — relative path resolved to /test/project/src/index.ts
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -215,7 +215,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('./lib/utils.js');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -226,7 +226,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('/test/project/../../../etc/passwd');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -239,7 +239,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -257,7 +257,7 @@ describe('project-write-retry', () => {
       };
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -271,7 +271,7 @@ describe('project-write-retry', () => {
       });
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -282,7 +282,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('/test/project-malicious/file.txt');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -293,7 +293,7 @@ describe('project-write-retry', () => {
       const input = createDeniedWriteInput('/test/project/src/index.ts');
 
       // Act
-      const result = projectWriteRetry(input);
+      const result = projectWriteRetry(input, testCtx);
 
       // Assert
       expect(result).toEqual({

@@ -99,7 +99,7 @@ describe('Stop Hook Lifecycle E2E', () => {
     test('should save session context on stop', async () => {
       const input = createStopInput();
 
-      const result = await Promise.resolve(handoffWriter(input));
+      const result = await Promise.resolve(handoffWriter(input, testCtx));
 
       expect(result.continue).toBe(true);
     });
@@ -108,7 +108,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       mockExistsSync.mockReturnValue(false);
       const input = createStopInput();
 
-      const result = await Promise.resolve(handoffWriter(input));
+      const result = await Promise.resolve(handoffWriter(input, testCtx));
 
       expect(result.continue).toBe(true);
     });
@@ -119,7 +119,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       });
       const input = createStopInput();
 
-      const result = await Promise.resolve(handoffWriter(input));
+      const result = await Promise.resolve(handoffWriter(input, testCtx));
 
       // Should continue even on error
       expect(result.continue).toBe(true);
@@ -136,7 +136,7 @@ describe('Stop Hook Lifecycle E2E', () => {
     test('should check for incomplete tasks on stop', async () => {
       const input = createStopInput();
 
-      const result = await Promise.resolve(taskCompletionCheck(input));
+      const result = await Promise.resolve(taskCompletionCheck(input, testCtx));
 
       expect(result.continue).toBe(true);
     });
@@ -152,7 +152,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       const input = createStopInput();
 
-      const result = await Promise.resolve(taskCompletionCheck(input));
+      const result = await Promise.resolve(taskCompletionCheck(input, testCtx));
 
       expect(result.continue).toBe(true);
     });
@@ -164,7 +164,7 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       const input = createStopInput();
 
-      const result = await Promise.resolve(taskCompletionCheck(input));
+      const result = await Promise.resolve(taskCompletionCheck(input, testCtx));
 
       expect(result.continue).toBe(true);
     });
@@ -176,8 +176,8 @@ describe('Stop Hook Lifecycle E2E', () => {
       const results: HookResult[] = [];
 
       // Simulate the stop lifecycle sequence
-      results.push(await Promise.resolve(handoffWriter(input)));
-      results.push(await Promise.resolve(taskCompletionCheck(input)));
+      results.push(await Promise.resolve(handoffWriter(input, testCtx)));
+      results.push(await Promise.resolve(taskCompletionCheck(input, testCtx)));
 
       // All hooks should continue
       expect(results.every(r => r.continue)).toBe(true);
@@ -191,12 +191,12 @@ describe('Stop Hook Lifecycle E2E', () => {
         throw new Error('First write failed');
       });
 
-      const result1 = await Promise.resolve(handoffWriter(input));
+      const result1 = await Promise.resolve(handoffWriter(input, testCtx));
       expect(result1.continue).toBe(true);
 
       // Subsequent hooks should still work
       mockWriteFileSync.mockImplementation(() => {});
-      const result2 = await Promise.resolve(taskCompletionCheck(input));
+      const result2 = await Promise.resolve(taskCompletionCheck(input, testCtx));
       expect(result2.continue).toBe(true);
     });
 
@@ -205,8 +205,8 @@ describe('Stop Hook Lifecycle E2E', () => {
 
       // Simulate rapid stop
       const stopResults = await Promise.all([
-        Promise.resolve(handoffWriter(input)),
-        Promise.resolve(taskCompletionCheck(input)),
+        Promise.resolve(handoffWriter(input, testCtx)),
+        Promise.resolve(taskCompletionCheck(input, testCtx)),
       ]);
 
       expect(stopResults.every(r => r.continue)).toBe(true);
@@ -216,7 +216,7 @@ describe('Stop Hook Lifecycle E2E', () => {
       vi.clearAllMocks();
 
       const newInput = createStopInput({ session_id: 'new-session-789' });
-      const newResult = await Promise.resolve(handoffWriter(newInput));
+      const newResult = await Promise.resolve(handoffWriter(newInput, testCtx));
 
       expect(newResult.continue).toBe(true);
     });
@@ -228,8 +228,8 @@ describe('Stop Hook Lifecycle E2E', () => {
       const startTime = Date.now();
 
       await Promise.all([
-        Promise.resolve(handoffWriter(input)),
-        Promise.resolve(taskCompletionCheck(input)),
+        Promise.resolve(handoffWriter(input, testCtx)),
+        Promise.resolve(taskCompletionCheck(input, testCtx)),
       ]);
 
       const elapsed = Date.now() - startTime;
@@ -262,7 +262,7 @@ describe('Stop Hook Lifecycle E2E', () => {
     test('prevents re-entry when stop_hook_active is true', async () => {
       const result = await unifiedStopDispatcher(createStopInput({
         stop_hook_active: true,
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -270,12 +270,12 @@ describe('Stop Hook Lifecycle E2E', () => {
     test('runs normally when stop_hook_active is false', async () => {
       const result = await unifiedStopDispatcher(createStopInput({
         stop_hook_active: false,
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('runs normally when stop_hook_active is undefined', async () => {
-      const result = await unifiedStopDispatcher(createStopInput());
+      const result = await unifiedStopDispatcher(createStopInput(), testCtx);
       expect(result.continue).toBe(true);
     });
   });

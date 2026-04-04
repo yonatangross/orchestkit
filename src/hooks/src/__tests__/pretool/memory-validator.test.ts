@@ -34,7 +34,7 @@ describe('memory-validator', () => {
 
   it('returns silent success for non-memory MCP tools', () => {
     const input = createMcpInput('Bash', { command: 'ls' });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -43,7 +43,7 @@ describe('memory-validator', () => {
   it('warns on bulk entity deletion (more than 5)', () => {
     const entityNames = ['entity1', 'entity2', 'entity3', 'entity4', 'entity5', 'entity6'];
     const input = createMcpInput('mcp__memory__delete_entities', { entityNames });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('Deleting 6 entities');
@@ -52,7 +52,7 @@ describe('memory-validator', () => {
   it('allows small entity deletion without warning', () => {
     const entityNames = ['entity1', 'entity2'];
     const input = createMcpInput('mcp__memory__delete_entities', { entityNames });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -65,7 +65,7 @@ describe('memory-validator', () => {
       relationType: 'USES',
     }));
     const input = createMcpInput('mcp__memory__delete_relations', { relations });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('Deleting 12 relations');
@@ -78,7 +78,7 @@ describe('memory-validator', () => {
       { name: 'noType', entityType: '' },
     ];
     const input = createMcpInput('mcp__memory__create_entities', { entities });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('2 entities missing required fields');
@@ -89,7 +89,7 @@ describe('memory-validator', () => {
       { name: 'PostgreSQL', entityType: 'Technology', observations: ['Used for DB'] },
     ];
     const input = createMcpInput('mcp__memory__create_entities', { entities });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -97,7 +97,7 @@ describe('memory-validator', () => {
 
   it('allows read operations silently', () => {
     const input = createMcpInput('mcp__memory__search_nodes', { query: 'database' });
-    const result = memoryValidator(input);
+    const result = memoryValidator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

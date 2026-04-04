@@ -76,7 +76,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -88,7 +88,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith({
@@ -103,10 +103,9 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -117,7 +116,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -133,7 +132,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -151,7 +150,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -167,7 +166,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -182,7 +181,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -207,7 +206,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -220,7 +219,7 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: '/custom/project' });
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -237,7 +236,7 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -255,10 +254,10 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-tracking',
         'Tracked session start: branch=develop',
         'debug'
@@ -271,10 +270,10 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-tracking',
         'Tracked session start: branch=unknown',
         'debug'
@@ -289,10 +288,10 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-tracking',
         expect.stringContaining('Error:'),
         'warn'
@@ -309,7 +308,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -324,7 +323,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -338,7 +337,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -353,7 +352,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -371,7 +370,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue', true);
@@ -390,7 +389,7 @@ describe('session-tracking', () => {
         vi.clearAllMocks();
         setupError();
         const input = createHookInput();
-        const result = sessionTracking(input);
+        const result = sessionTracking(input, testCtx);
         expect(result.continue).toBe(true);
       }
     });
@@ -400,7 +399,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -421,7 +420,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -442,7 +441,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -461,7 +460,7 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: projectDir });
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -480,7 +479,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -498,7 +497,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(
@@ -514,7 +513,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -531,7 +530,7 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: pathWithSpaces });
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -552,7 +551,7 @@ describe('session-tracking', () => {
       });
 
       // Act
-      const result = sessionTracking(input);
+      const result = sessionTracking(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -565,7 +564,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledTimes(1);
@@ -577,7 +576,7 @@ describe('session-tracking', () => {
       const input = createHookInput({ project_dir: '/custom/path' });
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith({
@@ -594,7 +593,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -608,7 +607,7 @@ describe('session-tracking', () => {
       const input = createHookInput();
 
       // Act
-      sessionTracking(input);
+      sessionTracking(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();

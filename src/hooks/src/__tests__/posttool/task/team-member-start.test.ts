@@ -62,7 +62,7 @@ describe('team-member-start', () => {
       const input = createTaskInput();
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -79,7 +79,7 @@ describe('team-member-start', () => {
       };
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -99,7 +99,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -120,7 +120,7 @@ describe('team-member-start', () => {
       const input = createTaskInput({ team_name: 'my-team', name: 'worker' });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -139,7 +139,7 @@ describe('team-member-start', () => {
       );
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -158,7 +158,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -173,7 +173,7 @@ describe('team-member-start', () => {
       const input = createTaskInput({ team_name: 'my-team' });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -191,7 +191,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -208,7 +208,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(

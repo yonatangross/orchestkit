@@ -93,7 +93,7 @@ function createNotificationInput(
 let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/unified-dispatcher', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
+    testCtx = createTestContext({ projectDir: '/test/projects/orchestkit' });
     vi.clearAllMocks();
   });
 
@@ -136,7 +136,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(desktopNotification).toHaveBeenCalledWith(input);
@@ -148,7 +148,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('auth_success');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(desktopNotification).toHaveBeenCalledTimes(1);
@@ -160,7 +160,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('idle_prompt', 'Custom message');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(desktopNotification).toHaveBeenCalledWith(
@@ -194,7 +194,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - both hooks were called
       expect(callOrder).toContain('desktop');
@@ -217,7 +217,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - sound still ran, result is still success
       expect(soundNotification).toHaveBeenCalledWith(input);
@@ -234,7 +234,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - desktop still ran, result is still success
       expect(desktopNotification).toHaveBeenCalledWith(input);
@@ -250,15 +250,15 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - individual error is still logged
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('desktop failed'),
       );
       // Summary also shows the failure
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('desktop=FAIL'),
       );
@@ -275,14 +275,14 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('desktop=FAIL'),
       );
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('sound=FAIL'),
       );
@@ -295,10 +295,10 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - dispatcher always logs a Results summary
-      const dispatcherCalls = vi.mocked(logHook).mock.calls.filter(
+      const dispatcherCalls = testCtx.log.mock.calls.filter(
         ([name]) => name === 'notification-dispatcher',
       );
       // Should have the Results summary
@@ -316,7 +316,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -334,7 +334,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -345,7 +345,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -356,7 +356,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = unifiedNotificationDispatcher(input);
+      const result = unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result).toBeInstanceOf(Promise);
@@ -373,7 +373,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput(notificationType);
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -384,7 +384,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result.stopReason).toBeUndefined();
@@ -421,7 +421,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -444,7 +444,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act - should NOT reject
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - both hooks were invoked despite errors
       expect(desktopCalled).toBe(true);
@@ -465,10 +465,10 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         'Results: desktop=ok, sound=ok',
       );
@@ -483,10 +483,10 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         'Results: desktop=ok, sound=FAIL(sound broke)',
       );
@@ -503,10 +503,10 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         'Results: desktop=FAIL(d), sound=FAIL(s)',
       );
@@ -523,7 +523,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createToolInput({ tool_input: {} });
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -540,7 +540,7 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      const result = await unifiedNotificationDispatcher(input);
+      const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -555,10 +555,10 @@ describe('notification/unified-dispatcher', () => {
       const input = createNotificationInput('permission_prompt');
 
       // Act
-      await unifiedNotificationDispatcher(input);
+      await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - should handle non-Error thrown values
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'notification-dispatcher',
         expect.stringContaining('desktop failed'),
       );

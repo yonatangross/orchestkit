@@ -53,7 +53,6 @@ import { createTestContext } from '../fixtures/test-context.js';
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('StopFailure Handler (CC 2.1.78)', () => {
-  const mockLogHook = vi.mocked(logHook);
   const mockAtomicWrite = vi.mocked(atomicWriteSync);
   const mockFlushCounter = vi.mocked(flushEventCounter);
   const mockFlushAnalytics = vi.mocked(flushAnalyticsBuffer);
@@ -78,18 +77,18 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
   // ===========================================================================
   describe('Error-Loop Safety', () => {
     it('should always return silent success', async () => {
-      const result = await stopFailureHandler(defaultInput);
+      const result = await stopFailureHandler(defaultInput, testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
     it('should never include additionalContext in result', async () => {
-      const result = await stopFailureHandler(defaultInput);
+      const result = await stopFailureHandler(defaultInput, testCtx);
       expect(result).not.toHaveProperty('hookSpecificOutput');
       expect(result).not.toHaveProperty('additionalContext');
     });
 
     it('should never include systemMessage in result', async () => {
-      const result = await stopFailureHandler(defaultInput);
+      const result = await stopFailureHandler(defaultInput, testCtx);
       expect(result).not.toHaveProperty('systemMessage');
     });
 
@@ -99,7 +98,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
       mockAtomicWrite.mockImplementation(() => { throw new Error('write failed'); });
       mockTrackEvent.mockImplementation(() => { throw new Error('track failed'); });
 
-      const result = await stopFailureHandler(defaultInput);
+      const result = await stopFailureHandler(defaultInput, testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });
@@ -110,10 +109,10 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
   describe('Re-Entry Prevention', () => {
     it('should skip when stop_hook_active is true', async () => {
       const input: HookInput = { ...defaultInput, stop_hook_active: true };
-      const result = await stopFailureHandler(input);
+      const result = await stopFailureHandler(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'stop-failure-handler',
         'Skipping: stop_hook_active=true (re-entry prevention)',
       );
@@ -121,7 +120,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
 
     it('should not flush or write when stop_hook_active is true', async () => {
       const input: HookInput = { ...defaultInput, stop_hook_active: true };
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
 
       expect(mockFlushCounter).not.toHaveBeenCalled();
       expect(mockFlushAnalytics).not.toHaveBeenCalled();
@@ -134,17 +133,17 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
   // ===========================================================================
   describe('State Flushing', () => {
     it('should flush event counter', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       expect(mockFlushCounter).toHaveBeenCalled();
     });
 
     it('should flush analytics buffer', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       expect(mockFlushAnalytics).toHaveBeenCalled();
     });
 
     it('should track the failure event', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'session_end',
         'stop-failure',
@@ -156,7 +155,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
     });
 
     it('should include HTTP status in tracked event', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'session_end',
         'stop-failure',
@@ -172,7 +171,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
   // ===========================================================================
   describe('Emergency Handoff', () => {
     it('should write handoff file', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       expect(mockAtomicWrite).toHaveBeenCalledWith(
         '/test/project/.claude/HANDOFF.md',
         expect.stringContaining('Emergency'),
@@ -180,20 +179,20 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
     });
 
     it('should include failure reason in handoff', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       const content = mockAtomicWrite.mock.calls[0][1] as string;
       expect(content).toContain('rate_limit');
       expect(content).toContain('429');
     });
 
     it('should include branch in handoff', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       const content = mockAtomicWrite.mock.calls[0][1] as string;
       expect(content).toContain('feat/test-branch');
     });
 
     it('should include modified files in handoff', async () => {
-      await stopFailureHandler(defaultInput);
+      await stopFailureHandler(defaultInput, testCtx);
       const content = mockAtomicWrite.mock.calls[0][1] as string;
       expect(content).toContain('src/index.ts');
     });
@@ -203,7 +202,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
         ...defaultInput,
         last_assistant_message: 'I was working on implementing the feature when...',
       };
-      await stopFailureHandler(input);
+      await stopFailureHandler(input, testCtx);
       const content = mockAtomicWrite.mock.calls[0][1] as string;
       expect(content).toContain('implementing the feature');
     });
@@ -215,7 +214,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
         session_id: 'test-session-001',
         tool_input: {},
       };
-      const result = await stopFailureHandler(input);
+      const result = await stopFailureHandler(input, testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
       const content = mockAtomicWrite.mock.calls[0][1] as string;
       expect(content).toContain('unknown');

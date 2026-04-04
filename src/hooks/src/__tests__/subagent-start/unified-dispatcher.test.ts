@@ -76,13 +76,13 @@ describe('unified-subagent-start-dispatcher', () => {
 
   describe('silent success (no context)', () => {
     test('returns silent success when no context produced', () => {
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('calls context-gate, validator, and context hooks', () => {
-      unifiedSubagentStartDispatcher(input());
+      unifiedSubagentStartDispatcher(input(), testCtx);
       expect(contextGate).toHaveBeenCalled();
       expect(subagentValidator).toHaveBeenCalled();
       expect(issueContextInjector).toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe('unified-subagent-start-dispatcher', () => {
         },
       });
 
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.hookSpecificOutput).toBeDefined();
       expect(result.hookSpecificOutput!.hookEventName).toBe('SubagentStart');
       expect(result.hookSpecificOutput!.additionalContext).toContain('Permission profile');
@@ -113,7 +113,7 @@ describe('unified-subagent-start-dispatcher', () => {
         },
       });
 
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.hookSpecificOutput?.hookEventName).toBe('SubagentStart');
       expect(result.hookSpecificOutput?.additionalContext).toContain('Issue #123');
     });
@@ -126,7 +126,7 @@ describe('unified-subagent-start-dispatcher', () => {
         stopReason: 'Too many concurrent agents',
       });
 
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.continue).toBe(false);
       expect(result.stopReason).toBe('Too many concurrent agents');
     });
@@ -134,7 +134,7 @@ describe('unified-subagent-start-dispatcher', () => {
     test('does not call validator or context hooks when blocked', () => {
       vi.mocked(contextGate).mockReturnValueOnce({ continue: false });
 
-      unifiedSubagentStartDispatcher(input());
+      unifiedSubagentStartDispatcher(input(), testCtx);
       expect(subagentValidator).not.toHaveBeenCalled();
       expect(issueContextInjector).not.toHaveBeenCalled();
     });
@@ -142,12 +142,12 @@ describe('unified-subagent-start-dispatcher', () => {
 
   describe('agent attribution', () => {
     test('records agent start when agent_id present', () => {
-      unifiedSubagentStartDispatcher(input({ agent_id: 'agent-abc123' }));
+      unifiedSubagentStartDispatcher(input({ agent_id: 'agent-abc123' }), testCtx);
       expect(recordAgentStart).toHaveBeenCalledWith('agent-abc123');
     });
 
     test('skips attribution when no agent_id', () => {
-      unifiedSubagentStartDispatcher(input({ agent_id: undefined }));
+      unifiedSubagentStartDispatcher(input({ agent_id: undefined }), testCtx);
       expect(recordAgentStart).not.toHaveBeenCalled();
     });
   });
@@ -155,13 +155,13 @@ describe('unified-subagent-start-dispatcher', () => {
   describe('error resilience', () => {
     test('returns silent success when context-gate throws', () => {
       vi.mocked(contextGate).mockImplementationOnce(() => { throw new Error('boom'); });
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('returns silent success when validator throws', () => {
       vi.mocked(subagentValidator).mockImplementationOnce(() => { throw new Error('boom'); });
-      const result = unifiedSubagentStartDispatcher(input());
+      const result = unifiedSubagentStartDispatcher(input(), testCtx);
       expect(result.continue).toBe(true);
     });
   });

@@ -54,7 +54,7 @@ describe('auditLogger', () => {
 
   it('returns silent success for all tool calls', () => {
     // Act
-    const result = auditLogger(makeInput());
+    const result = auditLogger(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -66,7 +66,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'npm run build && npm test' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Write',
       tool_input: { file_path: '/src/index.ts', content: 'code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -94,7 +94,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Task',
       tool_input: { subagent_type: 'code-reviewer' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe('auditLogger', () => {
     // which is not divisible by 10, so it should return silent success early
 
     // Act
-    const result = auditLogger(makeInput({ tool_name: 'Read', tool_input: { file_path: '/foo.ts' } }));
+    const result = auditLogger(makeInput({ tool_name: 'Read', tool_input: { file_path: '/foo.ts' } }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -122,7 +122,7 @@ describe('auditLogger', () => {
     vi.mocked(existsSync).mockReturnValue(true);
 
     // Act
-    auditLogger(makeInput());
+    auditLogger(makeInput(), testCtx);
 
     // Assert
     expect(renameSync).toHaveBeenCalled();

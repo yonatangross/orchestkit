@@ -68,7 +68,7 @@ describe('issueProgressCommenter', () => {
   });
 
   it('returns silent success for non-Bash tools', () => {
-    const result = issueProgressCommenter(makeInput({ tool_name: 'Write' }));
+    const result = issueProgressCommenter(makeInput({ tool_name: 'Write' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -76,13 +76,13 @@ describe('issueProgressCommenter', () => {
   it('returns silent success for non-git-commit commands', () => {
     const result = issueProgressCommenter(makeInput({
       tool_input: { command: 'npm test' },
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
 
   it('returns silent success for failed git commits', () => {
-    const result = issueProgressCommenter(makeInput({ exit_code: 1 }));
+    const result = issueProgressCommenter(makeInput({ exit_code: 1 }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -94,7 +94,7 @@ describe('issueProgressCommenter', () => {
       issues: {},
     }));
 
-    issueProgressCommenter(makeInput());
+    issueProgressCommenter(makeInput(), testCtx);
 
     // The second write should include the issue number
     const writeCall = mockWriteFileSync.mock.calls.find(
@@ -110,7 +110,7 @@ describe('issueProgressCommenter', () => {
       if (cmd === 'which' && argStr.includes('gh')) throw new Error('not found');
       return '';
     });
-    const result = issueProgressCommenter(makeInput());
+    const result = issueProgressCommenter(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
@@ -122,7 +122,7 @@ describe('issueProgressCommenter', () => {
       if (cmd === 'git' && argStr.includes('remote')) return 'git@gitlab.com:user/repo.git';
       return '';
     });
-    const result = issueProgressCommenter(makeInput());
+    const result = issueProgressCommenter(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });

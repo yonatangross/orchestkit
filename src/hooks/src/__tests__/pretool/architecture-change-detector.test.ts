@@ -50,7 +50,7 @@ describe('architecture-change-detector', () => {
 
   it('returns silent success for empty file path', () => {
     const input = createWriteInput('', 'content');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -60,7 +60,7 @@ describe('architecture-change-detector', () => {
     vi.mocked(guardPathPattern).mockReturnValue({ continue: true, suppressOutput: true });
 
     const input = createWriteInput('/test/project/src/utils/helper.ts', 'code');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -68,7 +68,7 @@ describe('architecture-change-detector', () => {
 
   it('detects api-layer changes and injects context for new files', () => {
     const input = createWriteInput('/test/project/src/api/users.ts', 'export function getUsers() {}');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('New api-layer file');
@@ -82,7 +82,7 @@ describe('architecture-change-detector', () => {
     });
 
     const input = createWriteInput('/test/project/src/services/auth.ts', 'updated code');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Modifying service-layer');
@@ -91,7 +91,7 @@ describe('architecture-change-detector', () => {
 
   it('detects data-layer changes for models directory', () => {
     const input = createWriteInput('/test/project/src/models/user.ts', 'interface User {}');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('data-layer');
@@ -101,7 +101,7 @@ describe('architecture-change-detector', () => {
     vi.mocked(isDontAskMode).mockReturnValue(true);
 
     const input = createWriteInput('/test/project/src/api/routes.ts', 'route code');
-    const result = architectureChangeDetector(input);
+    const result = architectureChangeDetector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('Quality Gate');

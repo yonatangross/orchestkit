@@ -105,7 +105,7 @@ function clearCache(): void {
 
 let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
+  testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
   vi.clearAllMocks();
 
   // Store original environment
@@ -151,7 +151,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -164,7 +164,7 @@ describe('dependency-version-check', () => {
       // No package.json, requirements.txt, etc.
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -180,7 +180,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -195,7 +195,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -210,7 +210,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('axios');
@@ -224,7 +224,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('jsonwebtoken');
@@ -243,7 +243,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -261,7 +261,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       const context = result.hookSpecificOutput?.additionalContext || '';
@@ -277,7 +277,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('lodash');
@@ -296,7 +296,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       if (expectVulnerable) {
@@ -315,7 +315,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('django');
@@ -329,7 +329,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('pyyaml');
@@ -343,7 +343,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('urllib3');
@@ -360,7 +360,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -377,7 +377,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -396,7 +396,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -409,7 +409,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -430,7 +430,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('Cached warning');
@@ -449,7 +449,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).not.toContain('STALE');
@@ -464,7 +464,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      dependencyVersionCheck(input);
+      dependencyVersionCheck(input, testCtx);
 
       // Assert
       const cacheFile = `${TEST_PROJECT_DIR}/.claude/feedback/dependency-check-cache.json`;
@@ -482,7 +482,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -498,7 +498,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('critical');
@@ -511,7 +511,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('high');
@@ -528,7 +528,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('critical');
@@ -544,7 +544,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -557,7 +557,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -570,7 +570,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -583,7 +583,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -597,7 +597,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       const context = result.hookSpecificOutput?.additionalContext || '';
@@ -614,7 +614,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -625,7 +625,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput({ project_dir: '/non/existent/path' });
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -637,7 +637,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -650,7 +650,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -664,7 +664,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue');
@@ -678,7 +678,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -702,7 +702,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -715,7 +715,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeDefined();
@@ -731,7 +731,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('npm audit');
@@ -744,7 +744,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('pip-audit');
@@ -757,7 +757,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('upgrade to');
@@ -772,7 +772,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -786,7 +786,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -803,7 +803,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -819,7 +819,7 @@ describe('dependency-version-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = dependencyVersionCheck(input);
+      const result = dependencyVersionCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

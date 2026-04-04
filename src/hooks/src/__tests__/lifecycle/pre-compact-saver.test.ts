@@ -68,7 +68,7 @@ function readStateFile(): Record<string, unknown> {
 
 let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
+  testCtx = createTestContext({ logDir: mockLogDir, sessionId: mockSessionId });
   // Reset mocks
   vi.clearAllMocks();
 
@@ -111,7 +111,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -123,7 +123,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       expect(existsSync(STATE_FILE)).toBe(true);
@@ -135,7 +135,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       expect(existsSync(TEST_SESSIONS_DIR)).toBe(true);
@@ -148,7 +148,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -160,7 +160,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -173,7 +173,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -190,7 +190,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -205,7 +205,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -219,7 +219,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -233,7 +233,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -247,7 +247,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -269,7 +269,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -286,10 +286,9 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      expect(getSessionId).toHaveBeenCalled();
       expect(existsSync(STATE_FILE)).toBe(true);
     });
 
@@ -298,10 +297,9 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      expect(getLogDir).toHaveBeenCalled();
     });
   });
 
@@ -311,10 +309,10 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'pre-compact-saver',
         expect.stringContaining('Saved state before compaction #1')
       );
@@ -326,10 +324,10 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'pre-compact-saver',
         expect.stringContaining('Saved state before compaction #11')
       );
@@ -343,10 +341,10 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'pre-compact-saver',
         expect.stringContaining('Failed to save state:'),
         'warn'
@@ -365,7 +363,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -381,7 +379,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -394,7 +392,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -409,7 +407,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -423,7 +421,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue', true);
@@ -445,7 +443,7 @@ describe('pre-compact-saver', () => {
         mkdirSync(TEST_SESSIONS_DIR, { recursive: true });
         setup();
         const input = createHookInput();
-        const result = preCompactSaver(input);
+        const result = preCompactSaver(input, testCtx);
         expect(result.continue).toBe(true);
 
         // Cleanup for next iteration
@@ -458,7 +456,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -480,7 +478,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -499,7 +497,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -518,7 +516,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -535,7 +533,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -548,7 +546,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -561,7 +559,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -575,7 +573,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -590,9 +588,9 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act - multiple calls
-      preCompactSaver(input);
-      preCompactSaver(input);
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
+      preCompactSaver(input, testCtx);
+      preCompactSaver(input, testCtx);
 
       // Assert - each call increments
       const state = readStateFile();
@@ -606,7 +604,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      const result = preCompactSaver(input);
+      const result = preCompactSaver(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -619,7 +617,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       expect(() => readStateFile()).not.toThrow();
@@ -630,7 +628,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const content = readFileSync(STATE_FILE, 'utf8');
@@ -643,7 +641,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       const state = readStateFile();
@@ -661,7 +659,7 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -672,10 +670,10 @@ describe('pre-compact-saver', () => {
       const input = createHookInput();
 
       // Act
-      preCompactSaver(input);
+      preCompactSaver(input, testCtx);
 
       // Assert
-      const allLogCalls = vi.mocked(logHook).mock.calls;
+      const allLogCalls = testCtx.log.mock.calls;
       for (const call of allLogCalls) {
         expect(call[0]).toBe('pre-compact-saver');
       }

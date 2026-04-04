@@ -69,7 +69,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('');
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -82,7 +82,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('help');
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -95,7 +95,7 @@ describe('prompt/todo-enforcer', () => {
       input.prompt = undefined;
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -107,10 +107,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('test prompt');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith('todo-enforcer', 'Prompt length: 11 chars');
+      expect(testCtx.log).toHaveBeenCalledWith('todo-enforcer', 'Prompt length: 11 chars');
     });
   });
 
@@ -133,10 +133,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -147,10 +147,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('what is the weather today?');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -161,10 +161,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('IMPLEMENT the user dashboard');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -182,10 +182,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(longPrompt);
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -197,10 +197,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(exactPrompt);
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -212,10 +212,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(shortPrompt);
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -232,10 +232,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement api'); // Short but has pattern
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -246,10 +246,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('x'.repeat(501)); // Long but no pattern
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -260,10 +260,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(`implement ${'a'.repeat(500)}`); // Both
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -287,7 +287,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -298,7 +298,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement a complex system');
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -309,7 +309,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement user auth');
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -340,10 +340,10 @@ describe('prompt/todo-enforcer', () => {
         const input = createPromptInput(example);
 
         // Act
-        todoEnforcer(input);
+        todoEnforcer(input, testCtx);
 
         // Assert
-        expect(logHook).toHaveBeenCalledWith(
+        expect(testCtx.log).toHaveBeenCalledWith(
           'todo-enforcer',
           'Complex task detected - todo tracking recommended'
         );
@@ -361,8 +361,8 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement $pecial ch@rs feature <test>');
 
       // Act & Assert
-      expect(() => todoEnforcer(input)).not.toThrow();
-      expect(logHook).toHaveBeenCalledWith(
+      expect(() => todoEnforcer(input, testCtx)).not.toThrow();
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -373,7 +373,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement\na\nfeature');
 
       // Act & Assert
-      expect(() => todoEnforcer(input)).not.toThrow();
+      expect(() => todoEnforcer(input, testCtx)).not.toThrow();
     });
 
     test('handles very long prompts', () => {
@@ -382,7 +382,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(veryLongPrompt);
 
       // Act & Assert
-      expect(() => todoEnforcer(input)).not.toThrow();
+      expect(() => todoEnforcer(input, testCtx)).not.toThrow();
     });
 
     test('handles unicode characters', () => {
@@ -390,7 +390,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement feature in Japanese');
 
       // Act & Assert
-      expect(() => todoEnforcer(input)).not.toThrow();
+      expect(() => todoEnforcer(input, testCtx)).not.toThrow();
     });
 
     test('first matching pattern triggers detection (short circuit)', () => {
@@ -398,11 +398,11 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement and refactor and migrate the system');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
       // Should only log once (first pattern match)
-      const complexCalls = vi.mocked(logHook).mock.calls.filter(
+      const complexCalls = testCtx.log.mock.calls.filter(
         call => call[1] === 'Complex task detected - todo tracking recommended'
       );
       expect(complexCalls.length).toBe(1);
@@ -413,10 +413,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('create a new user profile component for the app');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -427,10 +427,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('build the entire authentication system');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -456,10 +456,10 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'todo-enforcer',
         'Complex task detected - todo tracking recommended'
       );
@@ -482,16 +482,16 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('x'.repeat(length));
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
       if (shouldBeComplex) {
-        expect(logHook).toHaveBeenCalledWith(
+        expect(testCtx.log).toHaveBeenCalledWith(
           'todo-enforcer',
           'Complex task detected - todo tracking recommended'
         );
       } else {
-        expect(logHook).not.toHaveBeenCalledWith(
+        expect(testCtx.log).not.toHaveBeenCalledWith(
           'todo-enforcer',
           'Complex task detected - todo tracking recommended'
         );
@@ -509,7 +509,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement a complex feature');
 
       // Act
-      todoEnforcer(input);
+      todoEnforcer(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -520,7 +520,7 @@ describe('prompt/todo-enforcer', () => {
       const input = createPromptInput('implement something');
 
       // Act
-      const result = todoEnforcer(input);
+      const result = todoEnforcer(input, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });

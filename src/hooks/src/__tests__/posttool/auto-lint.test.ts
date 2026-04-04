@@ -47,7 +47,7 @@ describe('autoLint', () => {
 
   it('returns silent success for non-Write/Edit tools', () => {
     // Act
-    const result = autoLint(makeInput({ tool_name: 'Read' }));
+    const result = autoLint(makeInput({ tool_name: 'Read' }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -58,7 +58,7 @@ describe('autoLint', () => {
     // Act
     const result = autoLint(makeInput({
       tool_input: { file_path: '/test/project/.claude/config.json', content: '{}' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -69,7 +69,7 @@ describe('autoLint', () => {
     // Act
     const r1 = autoLint(makeInput({
       tool_input: { file_path: '/test/project/node_modules/pkg/index.js', content: 'x' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(r1.suppressOutput).toBe(true);
@@ -77,7 +77,7 @@ describe('autoLint', () => {
     // Act
     const r2 = autoLint(makeInput({
       tool_input: { file_path: '/test/project/dist/bundle.js', content: 'x' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(r2.suppressOutput).toBe(true);
@@ -88,7 +88,7 @@ describe('autoLint', () => {
     process.env.SKIP_AUTO_LINT = '1';
 
     // Act
-    const result = autoLint(makeInput());
+    const result = autoLint(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -99,7 +99,7 @@ describe('autoLint', () => {
     // Act
     const result = autoLint(makeInput({
       tool_input: { file_path: '/test/project/README.md', content: '# Hello' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -117,7 +117,7 @@ describe('autoLint', () => {
     // Act
     const result = autoLint(makeInput({
       tool_input: { file_path: '/test/project/src/app.ts', content: 'code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -138,7 +138,7 @@ describe('autoLint', () => {
       // Act
       autoLint(makeInput({
         tool_input: { file_path: '/test/project/src/app.ts', content: 'code' },
-      }));
+      }), testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalledWith(
@@ -151,7 +151,7 @@ describe('autoLint', () => {
       // Act
       autoLint(makeInput({
         tool_input: { file_path: '/test/project/config.json', content: '{}' },
-      }));
+      }), testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalledWith(
@@ -164,7 +164,7 @@ describe('autoLint', () => {
       // Act
       autoLint(makeInput({
         tool_input: { file_path: '/test/project/styles.css', content: 'body{}' },
-      }));
+      }), testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalledWith(
@@ -185,7 +185,7 @@ describe('autoLint', () => {
       // Act
       autoLint(makeInput({
         tool_input: { file_path: '/test/project/app.py', content: 'x = 1' },
-      }));
+      }), testCtx);
 
       // Assert — ruff check --output-format=concise
       expect(mockExecFileSync).toHaveBeenCalledWith(

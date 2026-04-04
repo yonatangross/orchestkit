@@ -145,7 +145,7 @@ describe('sync-bash-dispatcher', () => {
   describe('all hooks pass silently', () => {
     it('returns silent success when all hooks are silent', () => {
       const input = createBashInput('git status');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -153,7 +153,7 @@ describe('sync-bash-dispatcher', () => {
 
     it('calls all 7 hooks exactly once', () => {
       const input = createBashInput('npm run build');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
       expect(dangerousCommandBlocker).toHaveBeenCalled();
       expect(vi.mocked(dangerousCommandBlocker).mock.calls[0][0]).toEqual(input);
@@ -182,7 +182,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(dangerousCommandBlocker).mockReturnValue(blockResult);
 
       const input = createBashInput('rm -rf /');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(result.stopReason).toBe('rm -rf / is dangerous');
@@ -192,7 +192,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(dangerousCommandBlocker).mockReturnValue(makeBlockResult('blocked'));
 
       const input = createBashInput('rm -rf /');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
       expect(compoundCommandValidator).not.toHaveBeenCalled();
       expect(gitValidator).not.toHaveBeenCalled();
@@ -205,7 +205,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(compoundCommandValidator).mockReturnValue(blockResult);
 
       const input = createBashInput('rm -rf . && exit');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.continue).toBe(false);
     });
@@ -214,7 +214,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(gitValidator).mockReturnValue(makeBlockResult('git: direct push to main blocked'));
 
       const input = createBashInput('git push origin main --force');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
       expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
     });
@@ -223,9 +223,9 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(dangerousCommandBlocker).mockReturnValue(makeBlockResult('blocked'));
 
       const input = createBashInput('rm -rf /');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sync-bash-dispatcher',
         expect.stringContaining('short-circuiting'),
       );
@@ -242,7 +242,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(ghMilestoneEnforcer).mockReturnValue(makeContextResult('Consider --milestone'));
 
       const input = createBashInput('gh issue create --title "Test"');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
@@ -255,7 +255,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(ghMilestoneEnforcer).mockReturnValue(makeContextResult('Context B'));
 
       const input = createBashInput('gh issue create --title "Test"');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('---');
@@ -265,7 +265,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(ghLabelEnforcer).mockReturnValue(makeContextResult('Only this advice'));
 
       const input = createBashInput('gh issue create --title "Test"');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('Only this advice');
@@ -273,7 +273,7 @@ describe('sync-bash-dispatcher', () => {
 
     it('returns silent success when no hooks produce context', () => {
       const input = createBashInput('git status');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -292,7 +292,7 @@ describe('sync-bash-dispatcher', () => {
       );
 
       const input = createBashInput('git status');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.hookSpecificOutput?.updatedInput).toEqual({ command: 'git status', timeout: 30000 });
     });
@@ -304,7 +304,7 @@ describe('sync-bash-dispatcher', () => {
       );
 
       const input = createBashInput('gh issue create --title "Test" --label bug');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       expect(result.hookSpecificOutput?.updatedInput).toBeDefined();
       const ctx = result.hookSpecificOutput?.additionalContext as string;
@@ -323,7 +323,7 @@ describe('sync-bash-dispatcher', () => {
       });
 
       const input = createBashInput('git status');
-      const result = syncBashDispatcher(input);
+      const result = syncBashDispatcher(input, testCtx);
 
       // Dispatcher should not crash
       expect(result).toBeDefined();
@@ -336,9 +336,9 @@ describe('sync-bash-dispatcher', () => {
       });
 
       const input = createBashInput('git status');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sync-bash-dispatcher',
         expect.stringContaining('gh-milestone-enforcer failed'),
         'warn',
@@ -351,7 +351,7 @@ describe('sync-bash-dispatcher', () => {
       });
 
       const input = createBashInput('git status');
-      syncBashDispatcher(input);
+      syncBashDispatcher(input, testCtx);
 
       // gh-label-enforcer comes after git-validator — should still run
       expect(ghLabelEnforcer).toHaveBeenCalled();
@@ -363,7 +363,7 @@ describe('sync-bash-dispatcher', () => {
       });
 
       const input = createBashInput('git status');
-      expect(() => syncBashDispatcher(input)).not.toThrow();
+      expect(() => syncBashDispatcher(input, testCtx)).not.toThrow();
     });
   });
 
@@ -377,7 +377,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(dangerousCommandBlocker).mockImplementation(() => { order.push('dangerous'); return { continue: true, suppressOutput: true }; });
       vi.mocked(compoundCommandValidator).mockImplementation(() => { order.push('compound'); return { continue: true, suppressOutput: true }; });
 
-      syncBashDispatcher(createBashInput('git status'));
+      syncBashDispatcher(createBashInput('git status'), testCtx);
 
       expect(order.indexOf('dangerous')).toBeLessThan(order.indexOf('compound'));
     });
@@ -387,7 +387,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(gitValidator).mockImplementation(() => { order.push('git-validator'); return { continue: true, suppressOutput: true }; });
       vi.mocked(ghLabelEnforcer).mockImplementation(() => { order.push('gh-label-enforcer'); return { continue: true, suppressOutput: true }; });
 
-      syncBashDispatcher(createBashInput('git commit'));
+      syncBashDispatcher(createBashInput('git commit'), testCtx);
 
       expect(order.indexOf('git-validator')).toBeLessThan(order.indexOf('gh-label-enforcer'));
     });
@@ -397,7 +397,7 @@ describe('sync-bash-dispatcher', () => {
       vi.mocked(ghMilestoneEnforcer).mockImplementation(() => { order.push('gh-milestone'); return { continue: true, suppressOutput: true }; });
       vi.mocked(unifiedBashAdvisoryDispatcher).mockImplementation(() => { order.push('advisory'); return { continue: true, suppressOutput: true }; });
 
-      syncBashDispatcher(createBashInput('git status'));
+      syncBashDispatcher(createBashInput('git status'), testCtx);
 
       expect(order.indexOf('gh-milestone')).toBeLessThan(order.indexOf('advisory'));
     });

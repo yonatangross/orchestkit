@@ -124,7 +124,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('git status');
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -135,7 +135,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -150,7 +150,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -175,7 +175,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput(command);
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
@@ -195,7 +195,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput(command);
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -207,7 +207,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('GIT MERGE main');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -226,7 +226,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(getCurrentBranch).mockReturnValue('main');
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -248,7 +248,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(getCurrentBranch).mockReturnValue('feature');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -267,7 +267,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(hasUncommittedChanges).mockReturnValue(false);
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -283,7 +283,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -301,7 +301,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -325,7 +325,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -342,7 +342,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -360,7 +360,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -373,7 +373,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -397,7 +397,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -414,7 +414,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -428,7 +428,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -448,7 +448,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -471,7 +471,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -486,7 +486,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -508,7 +508,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(readFileSync).mockReturnValue('{"scripts": {"test": "vitest"}}');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -523,7 +523,7 @@ describe('merge-readiness-checker', () => {
       );
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -538,7 +538,7 @@ describe('merge-readiness-checker', () => {
       );
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -556,7 +556,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -569,7 +569,7 @@ describe('merge-readiness-checker', () => {
       vi.mocked(getCurrentBranch).mockReturnValue('my-feature');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -581,7 +581,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -596,7 +596,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -610,7 +610,7 @@ describe('merge-readiness-checker', () => {
       mockGitCommands({ 'status --short': 'M  file.ts\n' });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -622,7 +622,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -637,7 +637,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -655,7 +655,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('');
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -672,7 +672,7 @@ describe('merge-readiness-checker', () => {
       };
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -686,7 +686,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act & Assert
-      expect(() => mergeReadinessChecker(input)).not.toThrow();
+      expect(() => mergeReadinessChecker(input, testCtx)).not.toThrow();
     });
 
     test('handles readFileSync failure gracefully with silent success', () => {
@@ -698,7 +698,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert - Non-merge commands skip validation
       expect(result.continue).toBe(true);
@@ -709,12 +709,12 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
       vi.mocked(getRepoRoot).mockReturnValue('');
       vi.mocked(getProjectDir).mockReturnValue('/fallback/project');
+      (testCtx as any).projectDir = '/fallback/project';
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -728,7 +728,7 @@ describe('merge-readiness-checker', () => {
       const input = createBashInput('gh pr merge 123');
 
       // Act
-      mergeReadinessChecker(input);
+      mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -756,7 +756,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -774,7 +774,7 @@ describe('merge-readiness-checker', () => {
       });
 
       // Act
-      const result = mergeReadinessChecker(input);
+      const result = mergeReadinessChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

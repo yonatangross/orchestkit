@@ -92,7 +92,7 @@ function createSubagentStopInput(
 let testCtx: ReturnType<typeof createTestContext>;
 describe('multi-claude-verifier', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
+    testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
@@ -108,7 +108,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -119,7 +119,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -131,7 +131,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('debug-investigator', 'Bug found');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -143,7 +143,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('unknown', 'Output');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -160,7 +160,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Created 25 tests');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -173,7 +173,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -223,7 +223,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('frontend-ui-developer', output);
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -239,7 +239,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -254,7 +254,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('security-auditor');
@@ -278,7 +278,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('backend-system-architect', output);
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -294,7 +294,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -329,7 +329,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('data-pipeline-engineer', output);
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -345,7 +345,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const _result = multiClaudeVerifier(input);
+      const _result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -375,7 +375,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -397,7 +397,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -419,7 +419,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const _result = multiClaudeVerifier(input);
+      const _result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -442,7 +442,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('code-quality-reviewer');
@@ -463,7 +463,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput(agent, output);
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -488,7 +488,7 @@ describe('multi-claude-verifier', () => {
       };
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -505,7 +505,7 @@ describe('multi-claude-verifier', () => {
       };
 
       // Act & Assert
-      expect(() => multiClaudeVerifier(input)).not.toThrow();
+      expect(() => multiClaudeVerifier(input, testCtx)).not.toThrow();
     });
 
     test('handles empty output gracefully', () => {
@@ -513,7 +513,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', '');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -531,7 +531,7 @@ describe('multi-claude-verifier', () => {
       };
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('security-auditor');
@@ -549,7 +549,7 @@ describe('multi-claude-verifier', () => {
       };
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('code-quality-reviewer');
@@ -566,7 +566,7 @@ describe('multi-claude-verifier', () => {
       };
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('security-layer-auditor');
@@ -583,7 +583,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(mkdirSync).mock.calls;
@@ -599,7 +599,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('database-engineer', 'Schema done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(mkdirSync).mock.calls;
@@ -620,7 +620,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -636,7 +636,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('debug-investigator', 'Done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -652,7 +652,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('workflow-architect', 'Workflow done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(appendFileSync).mock.calls;
@@ -673,7 +673,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -689,7 +689,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('database-engineer', 'Done');
 
       // Act
-      multiClaudeVerifier(input);
+      multiClaudeVerifier(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -710,7 +710,7 @@ describe('multi-claude-verifier', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toMatch(
@@ -726,7 +726,7 @@ describe('multi-claude-verifier', () => {
       );
 
       // Act
-      const result = multiClaudeVerifier(input);
+      const result = multiClaudeVerifier(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain(';');

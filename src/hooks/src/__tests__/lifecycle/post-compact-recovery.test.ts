@@ -47,14 +47,14 @@ describe('lifecycle/post-compact-recovery', () => {
   describe('guard clauses', () => {
     test('returns silent when no state file exists', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = postCompactRecovery(createInput());
+      const result = postCompactRecovery(createInput(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent when state has no preservedContext', () => {
       mockStateFile({ compactionCount: 1 });
-      const result = postCompactRecovery(createInput());
+      const result = postCompactRecovery(createInput(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -66,7 +66,7 @@ describe('lifecycle/post-compact-recovery', () => {
         compactionCount: 2,
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('Compaction #2'),
       );
@@ -77,7 +77,7 @@ describe('lifecycle/post-compact-recovery', () => {
         compactionCount: 2,
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput({ compaction_count: 5 }));
+      postCompactRecovery(createInput({ compaction_count: 5 }), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('Compaction #5'),
       );
@@ -87,7 +87,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { branch: 'feat/my-feature' },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('feat/my-feature'),
       );
@@ -97,7 +97,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { activeFiles: ['src/index.ts', 'package.json'] },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('src/index.ts'),
       );
@@ -108,7 +108,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { activeFiles: files },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).toContain('file0.ts');
       expect(ctx).toContain('file9.ts');
@@ -119,7 +119,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { activeTasks: ['Fix auth bug', 'Write tests'] },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('Fix auth bug'),
       );
@@ -129,7 +129,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { decisionLog: ['Use Postgres over MongoDB'] },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('Use Postgres over MongoDB'),
       );
@@ -140,7 +140,7 @@ describe('lifecycle/post-compact-recovery', () => {
         avgCompactionIntervalMs: 300000,
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('5m'),
       );
@@ -152,7 +152,7 @@ describe('lifecycle/post-compact-recovery', () => {
           memoryTierSnapshot: { localEntries: 42 },
         },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('42'),
       );
@@ -170,7 +170,7 @@ describe('lifecycle/post-compact-recovery', () => {
           },
         },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).toContain('450');
       expect(ctx).toContain('550');
@@ -188,7 +188,7 @@ describe('lifecycle/post-compact-recovery', () => {
           },
         },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).not.toContain('Token budget');
     });
@@ -202,7 +202,7 @@ describe('lifecycle/post-compact-recovery', () => {
           },
         },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).toContain('~0k used');
       expect(ctx).toContain('500');
@@ -217,7 +217,7 @@ describe('lifecycle/post-compact-recovery', () => {
           },
         },
       });
-      postCompactRecovery(createInput());
+      postCompactRecovery(createInput(), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).toContain('effort: default');
     });
@@ -229,7 +229,7 @@ describe('lifecycle/post-compact-recovery', () => {
         compactionCount: 3,
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput({ compaction_count: 3 }));
+      postCompactRecovery(createInput({ compaction_count: 3 }), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('consider wrapping up'),
       );
@@ -240,7 +240,7 @@ describe('lifecycle/post-compact-recovery', () => {
         compactionCount: 2,
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput({ compaction_count: 2 }));
+      postCompactRecovery(createInput({ compaction_count: 2 }), testCtx);
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
       expect(ctx).not.toContain('consider wrapping up');
     });
@@ -251,7 +251,7 @@ describe('lifecycle/post-compact-recovery', () => {
       mockStateFile({
         preservedContext: { branch: 'main' },
       });
-      postCompactRecovery(createInput({ context_size_after: 150000 }));
+      postCompactRecovery(createInput({ context_size_after: 150000 }), testCtx);
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('150k tokens'),
       );

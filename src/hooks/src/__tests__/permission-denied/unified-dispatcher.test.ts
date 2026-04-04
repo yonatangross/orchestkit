@@ -82,10 +82,10 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'git status' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(safeCommandRetry).toHaveBeenCalledWith(input, undefined);
+      expect(safeCommandRetry).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('does NOT call safeCommandRetry for Write tool', () => {
@@ -93,7 +93,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/test/project/file.ts' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(safeCommandRetry).not.toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Read', { file_path: '/test/project/file.ts' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(safeCommandRetry).not.toHaveBeenCalled();
@@ -117,10 +117,10 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/test/project/src/file.ts' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(projectWriteRetry).toHaveBeenCalledWith(input, undefined);
+      expect(projectWriteRetry).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('calls projectWriteRetry for Edit tool', () => {
@@ -128,10 +128,10 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Edit', { file_path: '/test/project/src/file.ts' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(projectWriteRetry).toHaveBeenCalledWith(input, undefined);
+      expect(projectWriteRetry).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('does NOT call projectWriteRetry for Bash tool', () => {
@@ -139,7 +139,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(projectWriteRetry).not.toHaveBeenCalled();
@@ -152,11 +152,11 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
-      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
+      expect(denialLogger).toHaveBeenCalledWith(input, testCtx);
+      expect(denialNotification).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('runs logger for Write denial', () => {
@@ -164,11 +164,11 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/test/file.ts' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
-      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
+      expect(denialLogger).toHaveBeenCalledWith(input, testCtx);
+      expect(denialNotification).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('runs logger for unknown tool', () => {
@@ -176,11 +176,11 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('CustomTool', {});
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
-      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
-      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
+      expect(denialLogger).toHaveBeenCalledWith(input, testCtx);
+      expect(denialNotification).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('still runs logger/notification even when retry sub-hook matches', () => {
@@ -189,11 +189,11 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'git status' });
 
       // Act
-      unifiedPermissionDeniedDispatcher(input);
+      unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert — logger and notification always run
-      expect(denialLogger).toHaveBeenCalledWith(input, undefined);
-      expect(denialNotification).toHaveBeenCalledWith(input, undefined);
+      expect(denialLogger).toHaveBeenCalledWith(input, testCtx);
+      expect(denialNotification).toHaveBeenCalledWith(input, testCtx);
     });
   });
 
@@ -204,7 +204,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'git status' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -217,7 +217,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/test/project/src/file.ts' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -231,7 +231,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'npm install evil-pkg' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -245,7 +245,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/etc/passwd' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -256,7 +256,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Glob', { pattern: '**/*.ts' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -275,7 +275,7 @@ describe('unified-dispatcher', () => {
       vi.mocked(safeCommandRetry).mockReturnValue(RETRY_RESULT);
 
       // Act — should not throw
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert — retry from safeCommandRetry still propagated
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -290,7 +290,7 @@ describe('unified-dispatcher', () => {
       vi.mocked(safeCommandRetry).mockReturnValue(RETRY_RESULT);
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -304,7 +304,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Bash', { command: 'git status' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert — falls through to silent success
       expect(result.continue).toBe(true);
@@ -319,7 +319,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('Write', { file_path: '/test/project/file.ts' });
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -348,7 +348,7 @@ describe('unified-dispatcher', () => {
       const input = createDeniedInput('', {});
 
       // Act
-      const result = unifiedPermissionDeniedDispatcher(input);
+      const result = unifiedPermissionDeniedDispatcher(input, testCtx);
 
       // Assert — no retry hooks match empty tool_name
       expect(result.continue).toBe(true);

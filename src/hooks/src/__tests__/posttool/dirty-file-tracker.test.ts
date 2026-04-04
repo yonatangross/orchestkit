@@ -50,9 +50,9 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 let testCtx: ReturnType<typeof createTestContext>;
 describe('dirtyFileTracker', () => {
   beforeEach(() => {
-    testCtx = createTestContext({ sessionId: 'test-session' });
+    testCtx = createTestContext({ sessionId: 'test-session', logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
-    _resetForTesting();
+    _resetForTesting(testCtx);
     mockExistsSync.mockReturnValue(true); // log dir exists
   });
 
@@ -62,7 +62,7 @@ describe('dirtyFileTracker', () => {
 
   it('returns silent success for non-Write/Edit tools', () => {
     for (const tool of ['Bash', 'Read', 'Glob', 'Grep', 'WebSearch']) {
-      const result = dirtyFileTracker(makeInput({ tool_name: tool }));
+      const result = dirtyFileTracker(makeInput({ tool_name: tool }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     }
@@ -77,7 +77,7 @@ describe('dirtyFileTracker', () => {
     dirtyFileTracker(makeInput({
       tool_name: 'Write',
       tool_input: { file_path: '/src/a.ts', content: 'x' },
-    }));
+    }), testCtx);
 
     // atomicWriteSync calls writeFileSync then renameSync
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe('dirtyFileTracker', () => {
     dirtyFileTracker(makeInput({
       tool_name: 'Edit',
       tool_input: { file_path: '/src/b.ts', old_string: 'a', new_string: 'b' },
-    }));
+    }), testCtx);
 
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
   });
@@ -103,7 +103,7 @@ describe('dirtyFileTracker', () => {
           { old_string: 'c', new_string: 'd' },
         ],
       },
-    }));
+    }), testCtx);
 
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
   });
@@ -117,7 +117,7 @@ describe('dirtyFileTracker', () => {
           { file_path: '/src/e.ts', old_string: 'c', new_string: 'd' },
         ],
       },
-    }));
+    }), testCtx);
 
     // Should have tracked both files from edits array
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
@@ -134,7 +134,7 @@ describe('dirtyFileTracker', () => {
           { file_path: '/src/f.ts', old_string: 'a', new_string: 'b' },
         ],
       },
-    }));
+    }), testCtx);
 
     // file_path appears both at top level and in edits — should dedupe
     expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
@@ -145,9 +145,9 @@ describe('dirtyFileTracker', () => {
   // ---------------------------------------------------------------------------
 
   it('deduplicates same file edited multiple times', () => {
-    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v1' } }));
-    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v2' } }));
-    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v3' } }));
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v1' } }), testCtx);
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v2' } }), testCtx);
+    dirtyFileTracker(makeInput({ tool_input: { file_path: '/src/dup.ts', content: 'v3' } }), testCtx);
 
     // Last renameSync call has the final state — read from the tmp path
     const lastWrite = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
@@ -164,7 +164,7 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < WARN_THRESHOLD - 1; i++) {
       const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -175,12 +175,12 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < WARN_THRESHOLD - 1; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     const result = dirtyFileTracker(makeInput({
       tool_input: { file_path: `/src/file-${WARN_THRESHOLD - 1}.ts`, content: 'x' },
-    }));
+    }), testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain(`${WARN_THRESHOLD}`);
@@ -192,13 +192,13 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < WARN_THRESHOLD; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     for (let i = WARN_THRESHOLD; i < WARN_THRESHOLD + 3; i++) {
       const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -209,12 +209,12 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < HANDOFF_THRESHOLD - 1; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     const result = dirtyFileTracker(makeInput({
       tool_input: { file_path: `/src/file-${HANDOFF_THRESHOLD - 1}.ts`, content: 'x' },
-    }));
+    }), testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain(`${HANDOFF_THRESHOLD}`);
@@ -226,13 +226,13 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < HANDOFF_THRESHOLD; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     for (let i = HANDOFF_THRESHOLD; i < HANDOFF_THRESHOLD + 3; i++) {
       const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -244,20 +244,20 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < WARN_THRESHOLD; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     // Add more to reach HANDOFF_THRESHOLD — should trigger handoff
     for (let i = WARN_THRESHOLD; i < HANDOFF_THRESHOLD - 1; i++) {
       const result = dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
       expect(result.hookSpecificOutput).toBeUndefined();
     }
 
     const result = dirtyFileTracker(makeInput({
       tool_input: { file_path: `/src/file-${HANDOFF_THRESHOLD - 1}.ts`, content: 'x' },
-    }));
+    }), testCtx);
     expect(result.hookSpecificOutput?.additionalContext).toContain('handoff');
   });
 
@@ -269,7 +269,7 @@ describe('dirtyFileTracker', () => {
     const result = dirtyFileTracker(makeInput({
       tool_name: 'Write',
       tool_input: { content: 'no path here' },
-    }));
+    }), testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -277,7 +277,7 @@ describe('dirtyFileTracker', () => {
   });
 
   it('handles empty tool_name gracefully', () => {
-    const result = dirtyFileTracker(makeInput({ tool_name: '' }));
+    const result = dirtyFileTracker(makeInput({ tool_name: '' }), testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -289,7 +289,7 @@ describe('dirtyFileTracker', () => {
 
     dirtyFileTracker(makeInput({
       tool_input: { file_path: '/src/mkdir.ts', content: 'x' },
-    }));
+    }), testCtx);
 
     expect(mockMkdirSync).toHaveBeenCalledWith(
       expect.any(String),
@@ -309,7 +309,7 @@ describe('dirtyFileTracker', () => {
 
     const result = dirtyFileTracker(makeInput({
       tool_input: { file_path: '/src/fail.ts', content: 'x' },
-    }));
+    }), testCtx);
 
     // Should still return success (not propagate the error)
     expect(result.continue).toBe(true);
@@ -324,16 +324,16 @@ describe('dirtyFileTracker', () => {
     for (let i = 0; i < WARN_THRESHOLD; i++) {
       dirtyFileTracker(makeInput({
         tool_input: { file_path: `/src/file-${i}.ts`, content: 'x' },
-      }));
+      }), testCtx);
     }
 
     // Reset
-    _resetForTesting();
+    _resetForTesting(testCtx);
 
     // First file after reset should be silent (count=1, below threshold)
     const result = dirtyFileTracker(makeInput({
       tool_input: { file_path: '/src/fresh.ts', content: 'x' },
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(result.hookSpecificOutput).toBeUndefined();

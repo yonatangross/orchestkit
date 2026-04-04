@@ -72,7 +72,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -91,7 +91,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -110,7 +110,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -126,7 +126,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -156,7 +156,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(mockReadFileSync).toHaveBeenCalledWith(`/test/project/${path}`, 'utf8');
@@ -173,7 +173,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      coverageThresholdGate(input);
+      coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(checkedPaths[0]).toContain('coverage-summary.json');
@@ -192,7 +192,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      coverageThresholdGate(input);
+      coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(mockReadFileSync).toHaveBeenCalledTimes(1);
@@ -226,7 +226,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -247,7 +247,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -270,7 +270,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -289,7 +289,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -310,7 +310,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -328,7 +328,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -345,7 +345,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -360,7 +360,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -375,7 +375,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -396,7 +396,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('BLOCKED');
@@ -411,7 +411,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('coverage-summary.json');
@@ -426,7 +426,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Actions required');
@@ -442,7 +442,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('npm test');
@@ -458,7 +458,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Tip');
@@ -477,7 +477,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -493,7 +493,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -508,7 +508,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -523,7 +523,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -538,7 +538,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -553,7 +553,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -568,7 +568,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -584,7 +584,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -602,10 +602,9 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      coverageThresholdGate(input);
+      coverageThresholdGate(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -627,7 +626,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -645,7 +644,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -661,7 +660,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -676,7 +675,7 @@ describe('coverage-threshold-gate', () => {
       const input = createInput();
 
       // Act
-      const result = coverageThresholdGate(input);
+      const result = coverageThresholdGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

@@ -96,7 +96,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -113,7 +113,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -128,7 +128,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -139,7 +139,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -181,7 +181,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert — 2 hooks after #897
       expect(handoffPreparer).toHaveBeenCalledWith(input);
@@ -196,7 +196,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(handoffPreparer).toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -230,7 +230,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(settleSpy).toHaveBeenCalled();
@@ -249,7 +249,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -266,7 +266,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -285,7 +285,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -304,7 +304,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -323,7 +323,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -345,7 +345,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -365,7 +365,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -384,7 +384,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -403,7 +403,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -421,7 +421,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -444,10 +444,10 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-stop-dispatcher',
         expect.stringContaining('hooks had errors')
       );
@@ -461,10 +461,10 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-stop-dispatcher',
         expect.stringContaining('handoff-preparer')
       );
@@ -475,14 +475,14 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Reset all hook mocks to succeed
       vi.mocked(handoffPreparer).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(feedbackLoop).mockReturnValue({ continue: true, suppressOutput: true });
-      vi.mocked(logHook).mockClear();
+      testCtx.log.mockClear();
       const input = createSubagentStopInput();
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'subagent-stop-dispatcher',
         expect.stringContaining('had errors')
       );
@@ -501,7 +501,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -525,7 +525,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -539,7 +539,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -551,7 +551,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -565,7 +565,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -580,7 +580,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       };
 
       // Act
-      const result = await unifiedSubagentStopDispatcher(input);
+      const result = await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -602,7 +602,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       const input = createSubagentStopInput(overrides);
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(trackEvent).toHaveBeenCalledWith(
@@ -620,7 +620,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(appendAnalytics).toHaveBeenCalledWith(
@@ -640,7 +640,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       });
 
       // Act
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert
       expect(appendAnalytics).toHaveBeenCalledWith(
@@ -672,7 +672,7 @@ describe('unified-subagent-stop-dispatcher', () => {
 
       // Act
       const start = Date.now();
-      await unifiedSubagentStopDispatcher(input);
+      await unifiedSubagentStopDispatcher(input, testCtx);
       const duration = Date.now() - start;
 
       // Assert

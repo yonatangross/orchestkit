@@ -36,7 +36,7 @@ describe('changelog-generator', () => {
 
   it('returns silent success for non-version commands', () => {
     const input = createBashInput('npm run build');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -46,7 +46,7 @@ describe('changelog-generator', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('npm version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -58,7 +58,7 @@ describe('changelog-generator', () => {
     );
 
     const input = createBashInput('npm version minor');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Features');
@@ -72,7 +72,7 @@ describe('changelog-generator', () => {
     );
 
     const input = createBashInput('poetry version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Maintenance');
@@ -82,7 +82,7 @@ describe('changelog-generator', () => {
     vi.mocked(execFileSync).mockReturnValue('update readme\nmerge branch main');
 
     const input = createBashInput('npm version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -94,7 +94,7 @@ describe('changelog-generator', () => {
     });
 
     const input = createBashInput('npm version major');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

@@ -118,7 +118,7 @@ describe('workflow-preference-learner', () => {
   });
 
   // =========================================================================
-  // workflowPreferenceLearner (main hook)
+  // workflowPreferenceLearner (main hook, testCtx)
   // =========================================================================
   describe('workflowPreferenceLearner', () => {
     it('returns silent success when no decision flow found', () => {
@@ -126,11 +126,11 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(null);
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('No decision flow found'),
         'debug',
@@ -144,11 +144,11 @@ describe('workflow-preference-learner', () => {
       }));
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Too few actions'),
         'debug',
@@ -160,7 +160,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow({ inferred_pattern: 'mixed' }));
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -175,7 +175,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false); // No existing file
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -196,7 +196,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       const writtenJson = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
@@ -209,7 +209,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(null);
 
       // Act
-      workflowPreferenceLearner(makeInput({ session_id: 'custom-session' }));
+      workflowPreferenceLearner(makeInput({ session_id: 'custom-session' }), testCtx);
 
       // Assert
       expect(mockAnalyzeDecisionFlow).toHaveBeenCalledWith('custom-session');
@@ -223,10 +223,10 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Strong workflow preference'),
         'info',
@@ -240,7 +240,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -253,7 +253,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(mockMkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
@@ -266,11 +266,11 @@ describe('workflow-preference-learner', () => {
       mockAtomicWriteSync.mockImplementation(() => { throw new Error('disk full'); });
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Failed to save'),
         'warn',
@@ -287,7 +287,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getPrimaryWorkflowPreference();
+      const result = getPrimaryWorkflowPreference(testCtx);
 
       // Assert
       expect(result).toBeNull();
@@ -299,7 +299,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getPrimaryWorkflowPreference();
+      const result = getPrimaryWorkflowPreference(testCtx);
 
       // Assert
       expect(result).not.toBeNull();
@@ -317,7 +317,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getAllWorkflowPreferences();
+      const result = getAllWorkflowPreferences(testCtx);
 
       // Assert
       expect(result).toEqual([]);
@@ -329,7 +329,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getAllWorkflowPreferences();
+      const result = getAllWorkflowPreferences(testCtx);
 
       // Assert
       expect(result).toHaveLength(2);
@@ -348,7 +348,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData({ total_sessions: 2 })));
 
       // Act
-      const result = getWorkflowSummary();
+      const result = getWorkflowSummary(testCtx);
 
       // Assert
       expect(result).toBeNull();
@@ -365,7 +365,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(data));
 
       // Act
-      const result = getWorkflowSummary();
+      const result = getWorkflowSummary(testCtx);
 
       // Assert
       expect(result).toBeNull();
@@ -376,7 +376,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getWorkflowSummary();
+      const result = getWorkflowSummary(testCtx);
 
       // Assert
       expect(result).toBeNull();
@@ -388,7 +388,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getWorkflowSummary();
+      const result = getWorkflowSummary(testCtx);
 
       // Assert
       expect(result).not.toBeNull();
@@ -409,7 +409,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(data));
 
       // Act
-      const result = getWorkflowSummary();
+      const result = getWorkflowSummary(testCtx);
 
       // Assert
       expect(result).toContain('reads existing code before making changes');
@@ -435,7 +435,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow({ stats: { success_rate: 0.95, total: 10 } }));
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       const writtenJson = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);

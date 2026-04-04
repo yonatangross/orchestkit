@@ -118,7 +118,7 @@ describe('prompt/handoff-injector', () => {
     it('returns silent success when file does not exist', () => {
       mockExistsSync.mockReturnValue(false);
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -128,9 +128,9 @@ describe('prompt/handoff-injector', () => {
     it('logs "No HANDOFF.md found" when absent', () => {
       mockExistsSync.mockReturnValue(false);
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'handoff-injector',
         expect.stringContaining('No HANDOFF.md'),
       );
@@ -143,7 +143,7 @@ describe('prompt/handoff-injector', () => {
       mockStatSync.mockReturnValue({ mtimeMs: Date.now() - MAX_AGE_MS - 1 });
 
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -155,9 +155,9 @@ describe('prompt/handoff-injector', () => {
       mockStatSync.mockReturnValue({ mtimeMs: Date.now() - 30 * 3600 * 1000 }); // 30 hours ago
 
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'handoff-injector',
         expect.stringContaining('> 24h'),
       );
@@ -168,7 +168,7 @@ describe('prompt/handoff-injector', () => {
       mockStatSync.mockImplementation(() => { throw new Error('EACCES'); });
 
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe('prompt/handoff-injector', () => {
     it('returns silent success when content is empty', () => {
       mockFreshHandoff('');
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -188,7 +188,7 @@ describe('prompt/handoff-injector', () => {
     it('returns silent success when content is < 20 chars after trim', () => {
       mockFreshHandoff('Short.');
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe('prompt/handoff-injector', () => {
       mockReadFileSync.mockImplementation(() => { throw new Error('EPERM'); });
 
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -214,7 +214,7 @@ describe('prompt/handoff-injector', () => {
     it('calls outputPromptContext with HANDOFF.md content', () => {
       mockFreshHandoff();
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       expect(outputPromptContext).toHaveBeenCalled();
     });
@@ -222,7 +222,7 @@ describe('prompt/handoff-injector', () => {
     it('injected context includes [Previous Session Handoff] marker', () => {
       mockFreshHandoff();
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       const injected = vi.mocked(outputPromptContext).mock.calls[0][0];
       expect(injected).toContain('[Previous Session Handoff]');
@@ -231,7 +231,7 @@ describe('prompt/handoff-injector', () => {
     it('injected context includes [End Handoff] marker', () => {
       mockFreshHandoff();
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       const injected = vi.mocked(outputPromptContext).mock.calls[0][0];
       expect(injected).toContain('[End Handoff');
@@ -240,7 +240,7 @@ describe('prompt/handoff-injector', () => {
     it('injected context includes the HANDOFF.md body', () => {
       mockFreshHandoff(VALID_HANDOFF_CONTENT);
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       const injected = vi.mocked(outputPromptContext).mock.calls[0][0];
       expect(injected).toContain('feat/my-feature');
@@ -249,7 +249,7 @@ describe('prompt/handoff-injector', () => {
     it('returns result with continue: true after injection', () => {
       mockFreshHandoff();
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -263,7 +263,7 @@ describe('prompt/handoff-injector', () => {
     it('renames HANDOFF.md to HANDOFF.md.consumed after injection', () => {
       mockFreshHandoff();
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       expect(mockRenameSync).toHaveBeenCalledWith(HANDOFF_PATH, CONSUMED_PATH);
     });
@@ -273,7 +273,7 @@ describe('prompt/handoff-injector', () => {
       mockRenameSync.mockImplementation(() => { throw new Error('EACCES'); });
 
       const input = createPromptInput();
-      const result = handoffInjector(input);
+      const result = handoffInjector(input, testCtx);
 
       // Injection still happened
       expect(outputPromptContext).toHaveBeenCalled();
@@ -285,9 +285,9 @@ describe('prompt/handoff-injector', () => {
       mockRenameSync.mockImplementation(() => { throw new Error('rename failed'); });
 
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'handoff-injector',
         expect.stringContaining('Could not rename'),
         'warn',
@@ -306,7 +306,7 @@ describe('prompt/handoff-injector', () => {
       mockFreshHandoff(longContent);
 
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       const injected = vi.mocked(outputPromptContext).mock.calls[0][0];
       expect(injected).toContain('[...truncated for token budget]');
@@ -316,7 +316,7 @@ describe('prompt/handoff-injector', () => {
       mockFreshHandoff(VALID_HANDOFF_CONTENT); // ~300 chars, well under budget
 
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       const injected = vi.mocked(outputPromptContext).mock.calls[0][0];
       expect(injected).not.toContain('[...truncated');
@@ -327,9 +327,9 @@ describe('prompt/handoff-injector', () => {
       mockFreshHandoff(longContent);
 
       const input = createPromptInput();
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'handoff-injector',
         expect.stringContaining('Truncated'),
       );
@@ -349,7 +349,7 @@ describe('prompt/handoff-injector', () => {
       mockReadFileSync.mockReturnValue(VALID_HANDOFF_CONTENT);
 
       const input = createPromptInput({ project_dir: '/custom/project' });
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       expect(mockExistsSync).toHaveBeenCalledWith('/custom/project/.claude/HANDOFF.md');
     });
@@ -362,7 +362,7 @@ describe('prompt/handoff-injector', () => {
       mockReadFileSync.mockReturnValue(VALID_HANDOFF_CONTENT);
 
       const input = createPromptInput({ project_dir: undefined });
-      handoffInjector(input);
+      handoffInjector(input, testCtx);
 
       expect(mockExistsSync).toHaveBeenCalledWith('/test/project/.claude/HANDOFF.md');
     });

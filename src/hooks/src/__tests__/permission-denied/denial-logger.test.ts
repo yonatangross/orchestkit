@@ -61,7 +61,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'rm -rf /' });
 
       // Act
-      const result = denialLogger(input);
+      const result = denialLogger(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalledTimes(1);
@@ -85,7 +85,7 @@ describe('denial-logger', () => {
       });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];
@@ -100,7 +100,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('CustomTool', { foo: 'bar' });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];
@@ -114,7 +114,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: longCommand });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];
@@ -131,7 +131,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith(
@@ -147,7 +147,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       expect(mkdirSync).not.toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe('denial-logger', () => {
 
       for (const toolName of tools) {
         // Act
-        const result = denialLogger(createDeniedInput(toolName, { command: 'git status' }));
+        const result = denialLogger(createDeniedInput(toolName, { command: 'git status' }), testCtx);
 
         // Assert
         expect(result.hookSpecificOutput?.retry).toBeUndefined();
@@ -180,7 +180,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act — should not throw
-      const result = denialLogger(input);
+      const result = denialLogger(input, testCtx);
 
       // Assert — still returns silent success
       expect(result.continue).toBe(true);
@@ -196,7 +196,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'ls' });
 
       // Act — should not throw
-      const result = denialLogger(input);
+      const result = denialLogger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -210,7 +210,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('Bash', { command: 'git push --force' });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];
@@ -227,7 +227,7 @@ describe('denial-logger', () => {
       });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];
@@ -240,7 +240,7 @@ describe('denial-logger', () => {
       const input = createDeniedInput('SomeTool', { random_field: 'value' });
 
       // Act
-      denialLogger(input);
+      denialLogger(input, testCtx);
 
       // Assert
       const [, content] = vi.mocked(appendFileSync).mock.calls[0];

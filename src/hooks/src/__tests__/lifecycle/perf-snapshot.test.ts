@@ -104,101 +104,101 @@ afterEach(() => {
 describe('perfSnapshot', () => {
   describe('basic behaviour', () => {
     test('returns continue: true', () => {
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('returns systemMessage with token summary', () => {
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.systemMessage).toContain('1500 tokens');
       expect(result.systemMessage).toContain('[perf-snapshot]');
     });
 
     test('systemMessage contains hook count', () => {
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       // 4 hooks in byHook map
       expect(result.systemMessage).toContain('4 hooks');
     });
 
     test('systemMessage contains top categories', () => {
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.systemMessage).toContain('prompt');
     });
 
     test('systemMessage contains snapshot path', () => {
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.systemMessage).toContain('snap-');
     });
   });
 
   describe('snapshot file', () => {
     test('creates perf directory if it does not exist', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       expect(existsSync(mockPerfDir)).toBe(true);
     });
 
     test('writes valid JSON file', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       expect(() => readLatestSnapshot()).not.toThrow();
     });
 
     test('snapshot has schemaVersion 1', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.schemaVersion).toBe(1);
     });
 
     test('snapshot contains totalTokensInjected', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.totalTokensInjected).toBe(1500);
     });
 
     test('snapshot contains byCategory', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.byCategory).toEqual(mockTokenState.byCategory);
     });
 
     test('snapshot contains byHook', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.byHook).toEqual(mockTokenState.byHook);
     });
 
     test('snapshot contains sessionId', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.sessionId).toBe('test-session-abc');
     });
 
     test('snapshot contains hookCount equal to byHook size', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.hookCount).toBe(4);
     });
 
     test('snapshot topCategories sorted by tokens descending', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot() as { topCategories: Array<{ category: string; tokens: number }> };
       expect(snap.topCategories[0].category).toBe('prompt');
       expect(snap.topCategories[0].tokens).toBe(800);
     });
 
     test('snapshot topCategories limited to 3', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot() as { topCategories: Array<unknown> };
       expect(snap.topCategories.length).toBeLessThanOrEqual(3);
     });
 
     test('snapshot capturedAt is ISO timestamp', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.capturedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
     test('snapshot bucket matches YYYY-MM-DD-HH pattern', () => {
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot();
       expect(snap.bucket).toMatch(/^\d{4}-\d{2}-\d{2}-\d{2}$/);
     });
@@ -213,7 +213,7 @@ describe('perfSnapshot', () => {
         byHook: {},
         records: [],
       });
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.systemMessage).toContain('0 tokens');
     });
@@ -226,7 +226,7 @@ describe('perfSnapshot', () => {
         byHook: {},
         records: [],
       });
-      perfSnapshot(createInput());
+      perfSnapshot(createInput(), testCtx);
       const snap = readLatestSnapshot() as { topCategories: unknown[] };
       expect(snap.topCategories).toEqual([]);
     });
@@ -239,7 +239,7 @@ describe('perfSnapshot', () => {
         byHook: {},
         records: [],
       });
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.systemMessage).toContain('none');
     });
 
@@ -251,7 +251,7 @@ describe('perfSnapshot', () => {
         byHook: { 'only-hook': 100 },
         records: [],
       });
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.systemMessage).toContain('1 hook');
       expect(result.systemMessage).not.toContain('1 hooks');
     });
@@ -263,7 +263,7 @@ describe('perfSnapshot', () => {
       vi.mocked(getTokenState).mockImplementationOnce(() => {
         throw new Error('token tracker crashed');
       });
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -271,8 +271,8 @@ describe('perfSnapshot', () => {
       vi.mocked(getTokenState).mockImplementationOnce(() => {
         throw new Error('token tracker crashed');
       });
-      perfSnapshot(createInput());
-      expect(logHook).toHaveBeenCalledWith(
+      perfSnapshot(createInput(), testCtx);
+      expect(testCtx.log).toHaveBeenCalledWith(
         'perf-snapshot',
         expect.stringContaining('Failed to write snapshot'),
         'warn'
@@ -283,7 +283,7 @@ describe('perfSnapshot', () => {
       vi.mocked(getTokenState).mockImplementationOnce(() => {
         throw new Error('critical failure');
       });
-      const result = perfSnapshot(createInput());
+      const result = perfSnapshot(createInput(), testCtx);
       expect(result.stopReason).toBeUndefined();
       expect(result.continue).toBe(true);
     });
@@ -291,16 +291,16 @@ describe('perfSnapshot', () => {
 
   describe('logging', () => {
     test('logs successful snapshot with bucket name', () => {
-      perfSnapshot(createInput());
-      expect(logHook).toHaveBeenCalledWith(
+      perfSnapshot(createInput(), testCtx);
+      expect(testCtx.log).toHaveBeenCalledWith(
         'perf-snapshot',
         expect.stringContaining('snap-')
       );
     });
 
     test('log message includes token count', () => {
-      perfSnapshot(createInput());
-      expect(logHook).toHaveBeenCalledWith(
+      perfSnapshot(createInput(), testCtx);
+      expect(testCtx.log).toHaveBeenCalledWith(
         'perf-snapshot',
         expect.stringContaining('1500t')
       );

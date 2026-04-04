@@ -60,7 +60,7 @@ describe('Hook Chain Integration Tests', () => {
         };
 
         // Step 1: Permission hook evaluates command
-        const permResult = autoApproveSafeBash(input);
+        const permResult = autoApproveSafeBash(input, testCtx);
 
         expect(permResult.continue).toBe(true);
         expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -74,7 +74,7 @@ describe('Hook Chain Integration Tests', () => {
           project_dir: '/test/project',
         };
 
-        const permResult = autoApproveSafeBash(input);
+        const permResult = autoApproveSafeBash(input, testCtx);
 
         expect(permResult.continue).toBe(true);
         // No auto-approval - requires user decision
@@ -96,7 +96,7 @@ describe('Hook Chain Integration Tests', () => {
             project_dir: '/test/project',
           };
 
-          const result = autoApproveSafeBash(input);
+          const result = autoApproveSafeBash(input, testCtx);
           expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
         });
       });
@@ -114,7 +114,7 @@ describe('Hook Chain Integration Tests', () => {
           project_dir: '/test/project',
         };
 
-        const permResult = autoApproveProjectWrites(input);
+        const permResult = autoApproveProjectWrites(input, testCtx);
 
         expect(permResult.continue).toBe(true);
         expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -131,7 +131,7 @@ describe('Hook Chain Integration Tests', () => {
           project_dir: '/test/project',
         };
 
-        const permResult = autoApproveProjectWrites(input);
+        const permResult = autoApproveProjectWrites(input, testCtx);
 
         expect(permResult.continue).toBe(true);
         expect(permResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -148,7 +148,7 @@ describe('Hook Chain Integration Tests', () => {
           project_dir: '/test/project',
         };
 
-        const permResult = autoApproveProjectWrites(input);
+        const permResult = autoApproveProjectWrites(input, testCtx);
 
         expect(permResult.continue).toBe(true);
         expect(permResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -178,7 +178,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const writeResult = autoApproveProjectWrites(writeInput);
+      const writeResult = autoApproveProjectWrites(writeInput, testCtx);
       expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
 
       // Step 3: User runs tests
@@ -189,7 +189,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const testResult = autoApproveSafeBash(testInput);
+      const testResult = autoApproveSafeBash(testInput, testCtx);
       expect(testResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -209,7 +209,7 @@ describe('Hook Chain Integration Tests', () => {
           project_dir: '/test/project',
         };
 
-        const result = autoApproveSafeBash(input);
+        const result = autoApproveSafeBash(input, testCtx);
 
         if (shouldAutoApprove) {
           expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -234,7 +234,7 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       // Permission hook should still allow
-      const permResult = autoApproveProjectWrites(input);
+      const permResult = autoApproveProjectWrites(input, testCtx);
       expect(permResult.continue).toBe(true);
       expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -258,10 +258,10 @@ describe('Hook Chain Integration Tests', () => {
       malformedInputs.forEach(input => {
         // Should not throw
         if (input.tool_name === 'Bash') {
-          const result = autoApproveSafeBash(input);
+          const result = autoApproveSafeBash(input, testCtx);
           expect(result.continue).toBe(true);
         } else {
-          const result = autoApproveProjectWrites(input);
+          const result = autoApproveProjectWrites(input, testCtx);
           expect(result.continue).toBe(true);
         }
       });
@@ -299,11 +299,11 @@ describe('Hook Chain Integration Tests', () => {
 
       operations.forEach(input => {
         if (input.tool_name === 'Bash') {
-          const result = autoApproveSafeBash(input);
+          const result = autoApproveSafeBash(input, testCtx);
           expect(result.continue).toBe(true);
           expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
         } else {
-          const result = autoApproveProjectWrites(input);
+          const result = autoApproveProjectWrites(input, testCtx);
           expect(result.continue).toBe(true);
           expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
         }
@@ -324,7 +324,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const writeResult = autoApproveProjectWrites(writeInput);
+      const writeResult = autoApproveProjectWrites(writeInput, testCtx);
       expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
 
       // Run the tests
@@ -335,7 +335,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const testResult = autoApproveSafeBash(testInput);
+      const testResult = autoApproveSafeBash(testInput, testCtx);
       expect(testResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -348,7 +348,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const mkdirResult = autoApproveSafeBash(mkdirInput);
+      const mkdirResult = autoApproveSafeBash(mkdirInput, testCtx);
       expect(mkdirResult.continue).toBe(true);
       // mkdir is not in safe patterns
       expect(mkdirResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -364,7 +364,7 @@ describe('Hook Chain Integration Tests', () => {
         project_dir: '/test/project',
       };
 
-      const writeResult = autoApproveProjectWrites(writeInput);
+      const writeResult = autoApproveProjectWrites(writeInput, testCtx);
       expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
   });

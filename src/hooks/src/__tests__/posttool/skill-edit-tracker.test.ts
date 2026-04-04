@@ -51,7 +51,7 @@ describe('skillEditTracker', () => {
   });
 
   it('returns silent success for non-Write/Edit tools', () => {
-    const result = skillEditTracker(makeInput({ tool_name: 'Read' }));
+    const result = skillEditTracker(makeInput({ tool_name: 'Read' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -59,21 +59,21 @@ describe('skillEditTracker', () => {
   it('returns silent success when no file path provided', () => {
     const result = skillEditTracker(makeInput({
       tool_input: { content: 'some code' },
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns silent success when no recent skill usage', () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ recentSkills: [] }));
-    const result = skillEditTracker(makeInput());
+    const result = skillEditTracker(makeInput(), testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('detects logging patterns in written content', () => {
     skillEditTracker(makeInput({
       tool_input: { file_path: '/test/project/src/app.py', content: 'import logging\nlogger.info("test")' },
-    }));
-    expect(logHook).toHaveBeenCalledWith(
+    }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-edit-tracker',
       expect.stringContaining('add_logging'),
     );
@@ -87,8 +87,8 @@ describe('skillEditTracker', () => {
         old_string: 'doSomething()',
         new_string: 'try { doSomething() } catch (error) { handleError(error) }',
       },
-    }));
-    expect(logHook).toHaveBeenCalledWith(
+    }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-edit-tracker',
       expect.stringContaining('add_error_handling'),
     );
@@ -100,7 +100,7 @@ describe('skillEditTracker', () => {
         { skillId: 'old-skill', timestamp: Math.floor(Date.now() / 1000) - 600 },
       ],
     }));
-    const result = skillEditTracker(makeInput());
+    const result = skillEditTracker(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

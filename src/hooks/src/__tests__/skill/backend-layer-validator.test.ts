@@ -87,7 +87,7 @@ async def get_users(service: UserService = Depends(get_user_service)):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -109,7 +109,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -121,7 +121,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('/app/routers/test.py', 'from sqlalchemy import Column');
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -138,7 +138,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('/app/routers/users.ts', 'db.execute()');
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -150,7 +150,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('', 'db.execute()');
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -161,7 +161,7 @@ async def get_users(db: AsyncSession):
       const input = createFileInput('/app/routers/users.py', '');
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -198,7 +198,7 @@ async def create_user(db: AsyncSession):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -216,7 +216,7 @@ router = APIRouter()
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -242,7 +242,7 @@ async def get_user(
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -254,7 +254,7 @@ async def get_user(
       const input = createFileInput('/backend/app/routers/v1/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -281,7 +281,7 @@ class UserService:
       const input = createFileInput('/app/services/user_service.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -301,7 +301,7 @@ class UserService:
       const input = createFileInput('/app/services/user_service.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -320,7 +320,7 @@ class UserService:
       const input = createFileInput('/app/services/user_service.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -342,7 +342,7 @@ class UserService:
       const input = createFileInput('/app/services/user_service.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -363,7 +363,7 @@ class UserService:
       const input = createFileInput('/app/services/user_service.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -390,7 +390,7 @@ class UserRepository:
       const input = createFileInput('/app/repositories/user_repository.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -409,7 +409,7 @@ class UserRepository:
       const input = createFileInput('/app/repositories/user_repository.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -428,7 +428,7 @@ class UserRepository:
       const input = createFileInput('/app/repositories/user_repository.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -452,7 +452,7 @@ class UserRepository:
       const input = createFileInput('/app/repositories/user_repository.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -473,7 +473,7 @@ class UserRepository:
       };
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -489,7 +489,7 @@ class UserRepository:
       } as any;
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -500,7 +500,7 @@ class UserRepository:
       const input = createFileInput('/app/routers/users.py', '');
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -515,7 +515,7 @@ class UserRepository:
       };
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -538,7 +538,7 @@ async def root():
       const input = createFileInput('/app/routers/root.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -556,7 +556,7 @@ from sqlalchemy import (
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -574,7 +574,7 @@ from sqlalchemy import (
       const input = createFileInput('/app/core/database.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -586,7 +586,7 @@ from sqlalchemy import (
       const input = createFileInput('/app/exceptions/handlers.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -604,10 +604,10 @@ from sqlalchemy import (
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      backendLayerValidator(input);
+      backendLayerValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'backend-layer-validator',
         expect.stringContaining('BLOCKED'),
       );
@@ -619,10 +619,10 @@ from sqlalchemy import (
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      backendLayerValidator(input);
+      backendLayerValidator(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalled();
+      expect(testCtx.log).not.toHaveBeenCalled();
     });
   });
 
@@ -637,7 +637,7 @@ from sqlalchemy import (
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('users.py');
@@ -649,7 +649,7 @@ from sqlalchemy import (
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('IMPORT');
@@ -672,7 +672,7 @@ async def create_user(user_service: UserService = Depends()):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -689,7 +689,7 @@ async def create(db):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -714,7 +714,7 @@ async def get(db):
       const input = createFileInput('/app/routers/users.py', content);
 
       // Act
-      const result = backendLayerValidator(input);
+      const result = backendLayerValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);

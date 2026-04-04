@@ -73,7 +73,6 @@ import { createTestContext } from '../fixtures/test-context.js';
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('Usage Summary Reporter Hook', () => {
-  const mockLogHook = vi.mocked(logHook);
   const mockGetWebhookUrl = vi.mocked(getWebhookUrl);
   let originalFetch: typeof globalThis.fetch;
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -107,11 +106,11 @@ describe('Usage Summary Reporter Hook', () => {
     it('should skip when webhook URL is missing', async () => {
       mockGetWebhookUrl.mockReturnValue(undefined);
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockFetch).not.toHaveBeenCalled();
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'usage-summary-reporter',
         'No webhookUrl/TOKEN configured, skipping',
       );
@@ -121,7 +120,7 @@ describe('Usage Summary Reporter Hook', () => {
       mockGetWebhookUrl.mockReturnValue('https://api.example.com');
       vi.stubEnv('ORCHESTKIT_HOOK_TOKEN', '');
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockFetch).not.toHaveBeenCalled();
@@ -131,7 +130,7 @@ describe('Usage Summary Reporter Hook', () => {
       mockGetWebhookUrl.mockReturnValue(undefined);
       vi.stubEnv('ORCHESTKIT_HOOK_TOKEN', '');
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockFetch).not.toHaveBeenCalled();
@@ -147,7 +146,7 @@ describe('Usage Summary Reporter Hook', () => {
     });
 
     it('should POST to /ingest endpoint', async () => {
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const [url] = mockFetch.mock.calls[0];
@@ -157,21 +156,21 @@ describe('Usage Summary Reporter Hook', () => {
     it('should strip trailing slash from webhook URL', async () => {
       mockGetWebhookUrl.mockReturnValue('https://hq.example.com/api/hooks/');
 
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       const [url] = mockFetch.mock.calls[0];
       expect(url).toBe('https://hq.example.com/api/hooks/ingest');
     });
 
     it('should include HMAC signature header', async () => {
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       const [, options] = mockFetch.mock.calls[0];
       expect(options.headers['X-CC-Hooks-Signature']).toMatch(/^sha256=[a-f0-9]{64}$/);
     });
 
     it('should send correct payload shape', async () => {
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       const [, options] = mockFetch.mock.calls[0];
       const payload = JSON.parse(options.body);
@@ -202,7 +201,7 @@ describe('Usage Summary Reporter Hook', () => {
     });
 
     it('should NOT leak user_id or anonymous_id in payload', async () => {
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       const [, options] = mockFetch.mock.calls[0];
       const body = options.body;
@@ -214,7 +213,7 @@ describe('Usage Summary Reporter Hook', () => {
 
     it('should use hook_event from input when present', async () => {
       const input = { ...defaultInput, hook_event: 'Stop' as HookInput['hook_event'] };
-      await usageSummaryReporter(input);
+      await usageSummaryReporter(input, testCtx);
 
       const [, options] = mockFetch.mock.calls[0];
       const payload = JSON.parse(options.body);
@@ -222,14 +221,14 @@ describe('Usage Summary Reporter Hook', () => {
     });
 
     it('should set AbortSignal timeout of 4000ms', async () => {
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
       const [, options] = mockFetch.mock.calls[0];
       expect(options.signal).toBeDefined();
     });
 
     it('should return silent success after successful POST', async () => {
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
@@ -237,9 +236,9 @@ describe('Usage Summary Reporter Hook', () => {
     it('should log POST status on success', async () => {
       mockFetch.mockResolvedValue({ status: 202 });
 
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'usage-summary-reporter',
         'POST complete: 202',
       );
@@ -257,7 +256,7 @@ describe('Usage Summary Reporter Hook', () => {
     it('should return silent success on network error', async () => {
       mockFetch.mockRejectedValue(new Error('ECONNREFUSED'));
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
@@ -265,9 +264,9 @@ describe('Usage Summary Reporter Hook', () => {
     it('should log warning on network error', async () => {
       mockFetch.mockRejectedValue(new Error('ECONNREFUSED'));
 
-      await usageSummaryReporter(defaultInput);
+      await usageSummaryReporter(defaultInput, testCtx);
 
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'usage-summary-reporter',
         'POST failed (non-blocking): ECONNREFUSED',
         'warn',
@@ -277,7 +276,7 @@ describe('Usage Summary Reporter Hook', () => {
     it('should return silent success on fetch timeout', async () => {
       mockFetch.mockRejectedValue(new DOMException('The operation was aborted', 'AbortError'));
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
@@ -285,10 +284,10 @@ describe('Usage Summary Reporter Hook', () => {
     it('should handle non-Error throws gracefully', async () => {
       mockFetch.mockRejectedValue('string error');
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'usage-summary-reporter',
         'POST failed (non-blocking): string error',
         'warn',
@@ -298,7 +297,7 @@ describe('Usage Summary Reporter Hook', () => {
     it('should return silent success on HTTP 500', async () => {
       mockFetch.mockResolvedValue({ status: 500 });
 
-      const result = await usageSummaryReporter(defaultInput);
+      const result = await usageSummaryReporter(defaultInput, testCtx);
 
       // Fire-and-forget: even 500 is non-blocking
       expect(result).toEqual({ continue: true, suppressOutput: true });

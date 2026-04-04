@@ -72,7 +72,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('Normal output without secrets');
 
       // Act
-      const result = redactSecrets(input);
+      const result = redactSecrets(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -83,7 +83,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('API key: sk-1234567890abcdefghijklmn');
 
       // Act
-      const result = redactSecrets(input);
+      const result = redactSecrets(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -94,7 +94,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('');
 
       // Act
-      const result = redactSecrets(input);
+      const result = redactSecrets(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -106,7 +106,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('sk-1234567890abcdefghijklmn');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -130,7 +130,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('sk-short'); // Too short
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -178,7 +178,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('ghp_short'); // Too short
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -200,7 +200,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('AKIA1234'); // Too short
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -250,7 +250,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('xoxz-invalid'); // Invalid prefix
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -274,7 +274,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -287,7 +287,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('The password field should not be empty');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -310,7 +310,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -324,7 +324,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('SECRET_KEY="very_secret"');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert - Current implementation does not catch this pattern
       // This is a known limitation of the regex pattern
@@ -336,7 +336,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('Keep this secret safe');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -357,7 +357,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert - Only one warning for API keys
       const apiKeyWarnings = stderrSpy.mock.calls.filter(
@@ -375,7 +375,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert - Warnings for both types
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -402,7 +402,7 @@ describe('redact-secrets', () => {
       };
 
       // Act & Assert
-      expect(() => redactSecrets(input)).not.toThrow();
+      expect(() => redactSecrets(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
@@ -417,7 +417,7 @@ describe('redact-secrets', () => {
       } as any;
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -431,7 +431,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(longOutput);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -450,7 +450,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(multilineOutput);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith(
@@ -464,7 +464,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       // Should detect despite special characters
@@ -482,7 +482,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('sk-1234567890abcdefghijklmn');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith('::warning::Potential API key detected in output - verify redaction\n');
@@ -493,7 +493,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('password: "secret"');
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalledWith('::warning::Potential hardcoded credential in output\n');
@@ -517,7 +517,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -529,7 +529,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput(output);
 
       // Act
-      redactSecrets(input);
+      redactSecrets(input, testCtx);
 
       // Assert
       expect(stderrSpy).not.toHaveBeenCalled();
@@ -557,7 +557,7 @@ describe('redact-secrets', () => {
         const input = createPostBashInput(example);
 
         // Act
-        redactSecrets(input);
+        redactSecrets(input, testCtx);
 
         // Assert
         expect(stderrSpy).toHaveBeenCalled();
@@ -580,7 +580,7 @@ describe('redact-secrets', () => {
         const input = createPostBashInput(pattern);
 
         // Act
-        redactSecrets(input);
+        redactSecrets(input, testCtx);
 
         // Assert
         expect(stderrSpy).toHaveBeenCalled();
@@ -599,8 +599,8 @@ describe('redact-secrets', () => {
       const secretInput = createPostBashInput('sk-1234567890abcdefghijklmn');
 
       // Act
-      const cleanResult = redactSecrets(cleanInput);
-      const secretResult = redactSecrets(secretInput);
+      const cleanResult = redactSecrets(cleanInput, testCtx);
+      const secretResult = redactSecrets(secretInput, testCtx);
 
       // Assert
       expect(cleanResult).toEqual(secretResult);
@@ -612,7 +612,7 @@ describe('redact-secrets', () => {
       const input = createPostBashInput('sk-1234567890abcdefghijklmn');
 
       // Act
-      const result = redactSecrets(input);
+      const result = redactSecrets(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);

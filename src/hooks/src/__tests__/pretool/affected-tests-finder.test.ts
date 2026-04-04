@@ -51,7 +51,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('npm run build');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -63,7 +63,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('npm run test');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -76,7 +76,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -93,7 +93,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -107,7 +107,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -122,7 +122,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);

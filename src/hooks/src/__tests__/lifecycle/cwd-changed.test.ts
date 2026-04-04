@@ -45,13 +45,13 @@ describe('lifecycle/cwd-changed', () => {
 
   describe('guard clauses', () => {
     test('returns silent success when new_cwd is empty', () => {
-      const result = cwdChanged(createInput({ new_cwd: '' }));
+      const result = cwdChanged(createInput({ new_cwd: '' }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent success when new_cwd is undefined', () => {
-      const result = cwdChanged(createInput({ new_cwd: undefined }));
+      const result = cwdChanged(createInput({ new_cwd: undefined }), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -62,7 +62,7 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('package.json'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Node.js');
     });
 
@@ -70,7 +70,7 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('pyproject.toml'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Python');
     });
 
@@ -78,7 +78,7 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('requirements.txt'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Python');
     });
 
@@ -86,7 +86,7 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('go.mod'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Go');
     });
 
@@ -94,7 +94,7 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('Cargo.toml'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Rust');
     });
 
@@ -102,13 +102,13 @@ describe('lifecycle/cwd-changed', () => {
       vi.mocked(existsSync).mockImplementation((p: unknown) =>
         String(p).endsWith('Gemfile'),
       );
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('Ruby');
     });
 
     test('reports unknown when no stack detected', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('unknown');
     });
 
@@ -117,7 +117,7 @@ describe('lifecycle/cwd-changed', () => {
         const s = String(p);
         return s.endsWith('package.json') || s.endsWith('pyproject.toml');
       });
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('Node.js');
       expect(ctx).toContain('Python');
@@ -130,7 +130,7 @@ describe('lifecycle/cwd-changed', () => {
         const s = String(p);
         return s.endsWith('CLAUDE.md') || s.endsWith('package.json');
       });
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const watchPaths = result.hookSpecificOutput?.watchPaths as string[];
       expect(watchPaths).toBeDefined();
       expect(watchPaths.some((p: string) => p.includes('CLAUDE.md'))).toBe(true);
@@ -139,7 +139,7 @@ describe('lifecycle/cwd-changed', () => {
 
     test('filters out non-existent files from watchPaths', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const watchPaths = result.hookSpecificOutput?.watchPaths as string[];
       expect(watchPaths).toEqual([]);
     });
@@ -148,13 +148,13 @@ describe('lifecycle/cwd-changed', () => {
   describe('output format', () => {
     test('includes new directory in additionalContext', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cwdChanged(createInput({ new_cwd: '/my/project' }));
+      const result = cwdChanged(createInput({ new_cwd: '/my/project' }), testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('/my/project');
     });
 
     test('always continues', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -180,7 +180,7 @@ describe('lifecycle/cwd-changed', () => {
         '---\nname: testing-unit\npath_patterns: ["*.test.*", "*.spec.*"]\n---\n# Testing',
       );
 
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:testing-unit');
     });
@@ -199,14 +199,14 @@ describe('lifecycle/cwd-changed', () => {
         '---\nname: testing-unit\npath_patterns: ["*.test.*"]\n---\n# Testing',
       );
 
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).not.toContain('/ork:');
     });
 
     test('handles missing plugin root gracefully', () => {
       vi.mocked(existsSync).mockReturnValue(false);
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.continue).toBe(true);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).not.toContain('/ork:');
@@ -230,7 +230,7 @@ describe('lifecycle/cwd-changed', () => {
         '---\nname: database-patterns\npath_patterns: ["**/migrations/**", "*.sql"]\n---\n# DB',
       );
 
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:database-patterns');
     });
@@ -255,7 +255,7 @@ describe('lifecycle/cwd-changed', () => {
       );
 
       // Should not throw — node_modules and .git are skipped
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -276,7 +276,7 @@ describe('lifecycle/cwd-changed', () => {
         '---\nname: security-patterns\npath_patterns: ["**/auth/**", "**/middleware/**"]\n---\n# Sec',
       );
 
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:security-patterns');
     });
@@ -300,7 +300,7 @@ describe('lifecycle/cwd-changed', () => {
       );
 
       // Should not throw, and should still find routes via src/
-      const result = cwdChanged(createInput());
+      const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:api-design');
     });

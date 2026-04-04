@@ -99,7 +99,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -110,7 +110,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('This is just regular output without decisions.');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -121,7 +121,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -132,7 +132,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('short');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -149,7 +149,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('x'.repeat(99));
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -162,7 +162,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(longOutput);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -179,7 +179,7 @@ describe('decision-processor', () => {
       };
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -197,7 +197,7 @@ describe('decision-processor', () => {
       };
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -227,7 +227,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -240,7 +240,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -259,7 +259,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('postgresql');
@@ -275,7 +275,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('database-engineer');
@@ -289,7 +289,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('repository-pattern');
@@ -307,7 +307,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL for the database.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       expect(decisions.length).toBeGreaterThan(0);
@@ -319,7 +319,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL because it supports ACID transactions well.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       // Note: Due to regex global flag behavior with .match(), rationale extraction
@@ -346,7 +346,7 @@ describe('decision-processor', () => {
       const output = `We decided to use Redis ${keyword} ${reason}.`;
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       if (decisions.length > 0 && decisions[0].rationale) {
@@ -359,7 +359,7 @@ describe('decision-processor', () => {
       const output = 'We chose cursor-pagination instead of offset-pagination for scalability.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       expect(decisions[0].alternatives).toBeDefined();
@@ -375,7 +375,7 @@ describe('decision-processor', () => {
       const output = `We chose PostgreSQL ${keyword} ${alternative}.`;
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       if (decisions.length > 0 && decisions[0].alternatives) {
@@ -390,7 +390,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL. We must ensure ACID compliance for transactions.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       if (decisions[0].constraints) {
@@ -403,7 +403,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use eventual consistency. The tradeoff is increased complexity.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       if (decisions[0].tradeoffs) {
@@ -416,7 +416,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL because it is reliable instead of MongoDB.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output);
+      const decisions = extractEnrichedDecisions(output, testCtx);
 
       // Assert
       expect(decisions[0].confidence).toBeGreaterThan(0);
@@ -429,8 +429,8 @@ describe('decision-processor', () => {
       const withoutRationale = 'We decided to use PostgreSQL.';
 
       // Act
-      const decisionsWithRationale = extractEnrichedDecisions(withRationale);
-      const decisionsWithoutRationale = extractEnrichedDecisions(withoutRationale);
+      const decisionsWithRationale = extractEnrichedDecisions(withRationale, testCtx);
+      const decisionsWithoutRationale = extractEnrichedDecisions(withoutRationale, testCtx);
 
       // Assert
       if (decisionsWithRationale.length > 0 && decisionsWithoutRationale.length > 0) {
@@ -464,7 +464,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('category:');
@@ -485,7 +485,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('importance:');
@@ -508,7 +508,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       // Should have systemMessage when decision indicators are present
@@ -528,7 +528,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('[Decisions]');
@@ -540,7 +540,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('[Entities]');
@@ -553,7 +553,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: uses MCP graph memory instead of add-memory.py
       expect(result.systemMessage).toContain('mcp__memory__create_entities');
@@ -566,7 +566,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('category');
@@ -579,7 +579,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Confidence:');
@@ -600,7 +600,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: cc_version is in internal metadata, output contains decision summary
       expect(result.systemMessage).toBeDefined();
@@ -619,7 +619,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -636,7 +636,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       // Should not throw and should have output
@@ -656,7 +656,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: plugin_version is in internal metadata, not in systemMessage
       expect(result.systemMessage).toBeDefined();
@@ -672,7 +672,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -696,7 +696,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -717,7 +717,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(longOutput);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -732,7 +732,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(manyDecisions);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -744,7 +744,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -756,7 +756,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -768,7 +768,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -786,7 +786,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       if (result.systemMessage) {
@@ -807,7 +807,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();

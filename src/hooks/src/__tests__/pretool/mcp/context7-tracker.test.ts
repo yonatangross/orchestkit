@@ -97,7 +97,7 @@ describe('context7-tracker', () => {
   describe('guard clause', () => {
     it('returns silent success for non-context7 tools', () => {
       // Act
-      const result = context7Tracker(makeInput('Write'));
+      const result = context7Tracker(makeInput('Write'), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -105,7 +105,7 @@ describe('context7-tracker', () => {
 
     it('returns silent success for tools starting with mcp__ but not context7', () => {
       // Act
-      const result = context7Tracker(makeInput('mcp__memory__search'));
+      const result = context7Tracker(makeInput('mcp__memory__search'), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -121,7 +121,7 @@ describe('context7-tracker', () => {
       mockExistsSync.mockReturnValue(false); // no log file yet
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -131,7 +131,7 @@ describe('context7-tracker', () => {
 
     it('creates log directory', () => {
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve'));
+      context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(mockMkdirSync).toHaveBeenCalledWith('/test/logs', { recursive: true });
@@ -142,10 +142,10 @@ describe('context7-tracker', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve', 'nextjs'));
+      context7Tracker(makeInput('mcp__context7__resolve', 'nextjs'), testCtx);
 
       // Assert
-      expect(logPermissionFeedback).toHaveBeenCalledWith(
+      expect(testCtx.logPermission).toHaveBeenCalledWith(
         'allow',
         expect.stringContaining('nextjs'),
         expect.any(Object),
@@ -157,10 +157,10 @@ describe('context7-tracker', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      context7Tracker(makeInput('mcp__context7__getLibraryDocs', 'prisma'));
+      context7Tracker(makeInput('mcp__context7__getLibraryDocs', 'prisma'), testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'context7-tracker',
         expect.stringContaining('prisma'),
       );
@@ -178,7 +178,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 100 });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(outputWithContext).not.toHaveBeenCalled();
@@ -192,7 +192,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 200 });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(expect.stringContaining('Context7'));
@@ -211,7 +211,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 200 });
 
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve', 'react'));
+      context7Tracker(makeInput('mcp__context7__resolve', 'react'), testCtx);
 
       // Assert
       const ctxCall = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -231,7 +231,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 5000 });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(outputDeny).toHaveBeenCalledWith(expect.stringContaining('session limit'));
@@ -251,7 +251,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 1000 });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(outputDeny).toHaveBeenCalledWith(expect.stringContaining('rate limit'));
@@ -270,7 +270,7 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 500 });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(outputDeny).not.toHaveBeenCalled();
@@ -284,10 +284,10 @@ describe('context7-tracker', () => {
       mockStatSync.mockReturnValue({ size: 5000 });
 
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve'));
+      context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
-      expect(logPermissionFeedback).toHaveBeenCalledWith(
+      expect(testCtx.logPermission).toHaveBeenCalledWith(
         'deny',
         expect.stringContaining('rate limited'),
         expect.any(Object),
@@ -306,7 +306,7 @@ describe('context7-tracker', () => {
       mockReadFileSync.mockReturnValue(''); // empty after rotation
 
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve'));
+      context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(mockRenameSync).toHaveBeenCalledWith(
@@ -322,7 +322,7 @@ describe('context7-tracker', () => {
       mockReadFileSync.mockReturnValue('');
 
       // Act
-      context7Tracker(makeInput('mcp__context7__resolve'));
+      context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       expect(mockRenameSync).not.toHaveBeenCalled();
@@ -335,7 +335,7 @@ describe('context7-tracker', () => {
   describe('edge cases', () => {
     it('handles empty libraryId gracefully', () => {
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve', '', ''));
+      const result = context7Tracker(makeInput('mcp__context7__resolve', '', ''), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -351,7 +351,7 @@ describe('context7-tracker', () => {
       };
 
       // Act
-      const result = context7Tracker(input);
+      const result = context7Tracker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -364,7 +364,7 @@ describe('context7-tracker', () => {
       mockReadFileSync.mockImplementation(() => { throw new Error('EACCES'); });
 
       // Act
-      const result = context7Tracker(makeInput('mcp__context7__resolve'));
+      const result = context7Tracker(makeInput('mcp__context7__resolve'), testCtx);
 
       // Assert
       // Rate limit check catches the error and allows; cache context also catches

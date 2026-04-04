@@ -102,7 +102,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput(command);
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -126,7 +126,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput(command);
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -152,7 +152,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput(command);
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -180,7 +180,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput(command);
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -194,7 +194,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput('');
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -212,7 +212,7 @@ describe('safe-command-retry', () => {
       };
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -224,7 +224,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput('  git status');
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert — normalizeSingle trims whitespace
       expect(result.hookSpecificOutput?.retry).toBe(true);
@@ -233,7 +233,7 @@ describe('safe-command-retry', () => {
     test('reject pattern takes priority over safe pattern', () => {
       // "git push -f" matches reject, even though "git push" could theoretically match
       const input = createDeniedBashInput('git push -f origin main');
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
     });
@@ -243,7 +243,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput('git status');
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert — verify full result shape
       expect(result).toEqual({
@@ -262,7 +262,7 @@ describe('safe-command-retry', () => {
       const input = createDeniedBashInput('npm install something');
 
       // Act
-      const result = safeCommandRetry(input);
+      const result = safeCommandRetry(input, testCtx);
 
       // Assert
       expect(result).toEqual({

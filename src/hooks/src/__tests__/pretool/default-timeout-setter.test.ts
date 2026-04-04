@@ -39,7 +39,7 @@ describe('default-timeout-setter', () => {
 
   it('sets default timeout of 120000ms when no timeout specified', () => {
     const input = createBashInput('npm run build');
-    const result = defaultTimeoutSetter(input);
+    const result = defaultTimeoutSetter(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.updatedInput).toBeDefined();
@@ -49,7 +49,7 @@ describe('default-timeout-setter', () => {
 
   it('preserves existing timeout when already set', () => {
     const input = createBashInput('npm run build', 60000);
-    const result = defaultTimeoutSetter(input);
+    const result = defaultTimeoutSetter(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -59,7 +59,7 @@ describe('default-timeout-setter', () => {
 
   it('preserves description field in updated input', () => {
     const input = createBashInput('npm test', undefined, 'Run test suite');
-    const result = defaultTimeoutSetter(input);
+    const result = defaultTimeoutSetter(input, testCtx);
 
     expect(result.hookSpecificOutput?.updatedInput?.description).toBe('Run test suite');
     expect(result.hookSpecificOutput?.updatedInput?.timeout).toBe(120000);
@@ -67,7 +67,7 @@ describe('default-timeout-setter', () => {
 
   it('does not include description when not provided', () => {
     const input = createBashInput('git status');
-    const result = defaultTimeoutSetter(input);
+    const result = defaultTimeoutSetter(input, testCtx);
 
     expect(result.hookSpecificOutput?.updatedInput?.description).toBeUndefined();
     expect(result.hookSpecificOutput?.updatedInput?.command).toBe('git status');
@@ -75,7 +75,7 @@ describe('default-timeout-setter', () => {
 
   it('handles empty command string', () => {
     const input = createBashInput('');
-    const result = defaultTimeoutSetter(input);
+    const result = defaultTimeoutSetter(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.updatedInput?.timeout).toBe(120000);

@@ -49,7 +49,7 @@ describe('coveragePredictor', () => {
 
   it('returns silent success for non-Write tools', () => {
     // Act
-    const result = coveragePredictor(makeInput({ tool_name: 'Edit' }));
+    const result = coveragePredictor(makeInput({ tool_name: 'Edit' }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -60,7 +60,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { file_path: '/test/project/src/__tests__/auth.test.ts', content: 'test code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -71,7 +71,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { file_path: '/test/project/README.md', content: '# Readme' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -83,7 +83,7 @@ describe('coveragePredictor', () => {
     mockExecSync.mockReturnValue('');
 
     // Act
-    const result = coveragePredictor(makeInput());
+    const result = coveragePredictor(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -95,7 +95,7 @@ describe('coveragePredictor', () => {
     mockExecSync.mockReturnValue('/test/project/src/__tests__/auth.test.ts');
 
     // Act
-    const result = coveragePredictor(makeInput());
+    const result = coveragePredictor(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -107,7 +107,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { content: 'code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);

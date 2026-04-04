@@ -105,26 +105,26 @@ describe('prompt/frustration-detector', () => {
   });
 
   // ===========================================================================
-  // frustrationDetector (main hook)
+  // frustrationDetector (main hook, testCtx)
   // ===========================================================================
 
   describe('frustrationDetector', () => {
     describe('guard clauses', () => {
       test('skips empty prompts', () => {
-        const result = frustrationDetector(createInput(''));
+        const result = frustrationDetector(createInput(''), testCtx);
         expect(result.continue).toBe(true);
         expect(result.suppressOutput).toBe(true);
         expect(appendAnalytics).not.toHaveBeenCalled();
       });
 
       test('skips very short prompts', () => {
-        const result = frustrationDetector(createInput('hi'));
+        const result = frustrationDetector(createInput('hi'), testCtx);
         expect(result.continue).toBe(true);
         expect(appendAnalytics).not.toHaveBeenCalled();
       });
 
       test('skips slash commands', () => {
-        const result = frustrationDetector(createInput('/ork:implement wtf'));
+        const result = frustrationDetector(createInput('/ork:implement wtf'), testCtx);
         expect(result.continue).toBe(true);
         expect(appendAnalytics).not.toHaveBeenCalled();
       });
@@ -132,7 +132,7 @@ describe('prompt/frustration-detector', () => {
 
     describe('analytics logging', () => {
       test('logs frustration signal to analytics', () => {
-        frustrationDetector(createInput('wtf is wrong with this'));
+        frustrationDetector(createInput('wtf is wrong with this'), testCtx);
         expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
           signal: 'frustration',
           value: true,
@@ -140,19 +140,19 @@ describe('prompt/frustration-detector', () => {
       });
 
       test('does NOT log when no frustration detected', () => {
-        frustrationDetector(createInput('please help me fix the login'));
+        frustrationDetector(createInput('please help me fix the login'), testCtx);
         expect(appendAnalytics).not.toHaveBeenCalled();
       });
 
       test('includes hashed project ID (privacy)', () => {
-        frustrationDetector(createInput('this is horrible code'));
+        frustrationDetector(createInput('this is horrible code'), testCtx);
         expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
           pid: 'proj_hash',
         }));
       });
 
       test('includes timestamp', () => {
-        frustrationDetector(createInput('damn it this is broken'));
+        frustrationDetector(createInput('damn it this is broken'), testCtx);
         expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
           ts: expect.any(String),
         }));
@@ -161,7 +161,7 @@ describe('prompt/frustration-detector', () => {
 
     describe('output behavior', () => {
       test('always returns silent success (analytics-only)', () => {
-        const result = frustrationDetector(createInput('wtf happened'));
+        const result = frustrationDetector(createInput('wtf happened'), testCtx);
         expect(result.continue).toBe(true);
         expect(result.suppressOutput).toBe(true);
         // Should NOT modify Claude's behavior
@@ -170,14 +170,14 @@ describe('prompt/frustration-detector', () => {
       });
 
       test('never blocks execution', () => {
-        const result = frustrationDetector(createInput('fucking broken useless shit'));
+        const result = frustrationDetector(createInput('fucking broken useless shit'), testCtx);
         expect(result.continue).toBe(true);
       });
     });
 
     describe('privacy', () => {
       test('analytics entry does NOT contain the matched text', () => {
-        frustrationDetector(createInput('what the fuck is this garbage'));
+        frustrationDetector(createInput('what the fuck is this garbage'), testCtx);
         const call = vi.mocked(appendAnalytics).mock.calls[0];
         const entry = call[1] as Record<string, unknown>;
         const entryStr = JSON.stringify(entry);
@@ -190,7 +190,7 @@ describe('prompt/frustration-detector', () => {
     describe('error resilience', () => {
       test('survives analytics write failure', () => {
         vi.mocked(appendAnalytics).mockImplementation(() => { throw new Error('disk full'); });
-        const result = frustrationDetector(createInput('wtf broke'));
+        const result = frustrationDetector(createInput('wtf broke'), testCtx);
         expect(result.continue).toBe(true);
       });
     });

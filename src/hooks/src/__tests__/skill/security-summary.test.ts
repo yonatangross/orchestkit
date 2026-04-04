@@ -83,7 +83,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -97,7 +97,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -111,7 +111,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -122,7 +122,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -133,7 +133,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -150,7 +150,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith('/test/logs', { recursive: true });
@@ -160,9 +160,10 @@ describe('security-summary', () => {
       // Arrange
       const input = createStopInput();
       vi.mocked(getLogDir).mockReturnValue('/security/logs');
+      (testCtx as any).logDir = '/security/logs';
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith('/security/logs', { recursive: true });
@@ -178,7 +179,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -196,7 +197,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const calls = vi.mocked(appendFileSync).mock.calls;
@@ -209,7 +210,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -227,7 +228,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -239,7 +240,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -251,7 +252,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -264,7 +265,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -277,7 +278,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -290,7 +291,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -308,7 +309,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -320,7 +321,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -332,7 +333,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -344,7 +345,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -370,7 +371,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -391,7 +392,7 @@ describe('security-summary', () => {
       });
 
       // Act & Assert
-      expect(() => securitySummary(input)).not.toThrow();
+      expect(() => securitySummary(input, testCtx)).not.toThrow();
     });
 
     test('silently ignores appendFileSync write errors', () => {
@@ -402,7 +403,7 @@ describe('security-summary', () => {
       });
 
       // Act & Assert
-      expect(() => securitySummary(input)).not.toThrow();
+      expect(() => securitySummary(input, testCtx)).not.toThrow();
     });
 
     test('silently ignores read-only filesystem errors', () => {
@@ -416,7 +417,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -430,7 +431,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -447,7 +448,7 @@ describe('security-summary', () => {
       const input = createStopInput({});
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -462,7 +463,7 @@ describe('security-summary', () => {
       };
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -480,11 +481,12 @@ describe('security-summary', () => {
 
       for (const path of paths) {
         vi.mocked(getLogDir).mockReturnValue(path);
+        (testCtx as any).logDir = path;
         vi.clearAllMocks();
         const input = createStopInput();
 
         // Act
-        securitySummary(input);
+        securitySummary(input, testCtx);
 
         // Assert
         expect(appendFileSync).toHaveBeenCalledWith(
@@ -502,7 +504,7 @@ describe('security-summary', () => {
         const input = createStopInput({ session_id: sessionId });
 
         // Act
-        const result = securitySummary(input);
+        const result = securitySummary(input, testCtx);
 
         // Assert
         expect(result.continue).toBe(true);
@@ -525,7 +527,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -537,7 +539,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      const result = securitySummary(input);
+      const result = securitySummary(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -553,7 +555,7 @@ describe('security-summary', () => {
       });
 
       // Act
-      const result = securitySummary(inputWithData);
+      const result = securitySummary(inputWithData, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -573,7 +575,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -590,7 +592,7 @@ describe('security-summary', () => {
       const input = createStopInput();
 
       // Act
-      securitySummary(input);
+      securitySummary(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
