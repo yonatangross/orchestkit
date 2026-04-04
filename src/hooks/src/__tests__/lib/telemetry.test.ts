@@ -33,6 +33,7 @@ import {
   sinkCount,
   _resetSinksForTesting,
 } from '../../lib/telemetry.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 /** Minimal HookInput for testing */
 function mockInput(overrides: Record<string, unknown> = {}) {
@@ -81,8 +82,10 @@ class FailingSink implements TelemetrySink {
   }
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Telemetry Emitter', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     _resetSinksForTesting();
   });
 

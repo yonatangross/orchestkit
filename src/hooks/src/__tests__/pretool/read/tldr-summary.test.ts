@@ -25,6 +25,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { outputAllowWithContext, outputSilentSuccess } from '../../../lib/common.js';
 import { summarizeCode } from '../../../lib/code-summarizer.js';
 import { tldrSummary } from '../../../pretool/read/tldr-summary.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput['tool_input']> = {}): HookInput {
   return {
@@ -39,7 +40,9 @@ function makeContent(lines: number): string {
   return Array.from({ length: lines }, (_, i) => `// line ${i + 1}`).join('\n');
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: file exists, reasonable size, large content
   (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);

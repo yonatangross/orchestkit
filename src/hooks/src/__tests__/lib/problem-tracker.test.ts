@@ -48,8 +48,11 @@ import {
   type Problem,
   type ProblemSolutionPair,
 } from '../../lib/problem-tracker.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-problem-test-'));
   fs.mkdirSync(path.join(tmpDir, '.claude', 'memory'), { recursive: true });
 });

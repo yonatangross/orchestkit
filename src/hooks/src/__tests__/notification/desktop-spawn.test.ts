@@ -56,6 +56,7 @@ vi.mock('node:path', async () => {
 
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -76,8 +77,10 @@ function createNotificationInput(notificationType: string): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop — spawn behavior', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
     // execFileSync used for `which` availability checks

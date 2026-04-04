@@ -53,6 +53,7 @@ vi.mock('../../lib/common.js', async () => {
 
 import { settingsReload } from '../../config-change/settings-reload.js';
 import { logHook, logPermissionFeedback, outputBlock, outputWarning, outputPromptContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -77,8 +78,10 @@ const USER_SETTINGS = `${globalThis.process?.env?.HOME || '/tmp'}/.claude/settin
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('config-change/settings-reload (drift detector)', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockFiles = {};
   });

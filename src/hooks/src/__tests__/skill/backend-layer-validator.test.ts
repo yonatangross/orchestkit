@@ -29,6 +29,7 @@ vi.mock('../../lib/guards.js', () => ({
 import { backendLayerValidator } from '../../skill/backend-layer-validator.js';
 import { logHook } from '../../lib/common.js';
 import { guardPythonFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -55,8 +56,10 @@ function createFileInput(
 // Backend Layer Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('backend-layer-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

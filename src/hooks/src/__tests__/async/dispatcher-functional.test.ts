@@ -96,6 +96,7 @@ import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 import { unifiedSubagentStopDispatcher } from '../../subagent-stop/unified-dispatcher.js';
 import { unifiedNotificationDispatcher } from '../../notification/unified-dispatcher.js';
 import { unifiedSetupDispatcher } from '../../setup/unified-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -160,7 +161,9 @@ const setupMap: Record<string, ReturnType<typeof vi.fn>> = {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
 });
 

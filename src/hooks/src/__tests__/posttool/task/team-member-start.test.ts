@@ -26,6 +26,7 @@ vi.mock('../../../lib/event-logger.js', () => ({
 import { teamMemberStart } from '../../../posttool/task/team-member-start.js';
 import { appendEventLog } from '../../../lib/event-logger.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -48,8 +49,10 @@ function createTaskInput(toolInputOverrides: Record<string, unknown> = {}, overr
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-member-start', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

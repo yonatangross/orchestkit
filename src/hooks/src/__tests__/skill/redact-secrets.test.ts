@@ -18,6 +18,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { redactSecrets } from '../../skill/redact-secrets.js';
 import { outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -46,10 +47,12 @@ function createPostBashInput(
 // Redact Secrets Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('redact-secrets', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });

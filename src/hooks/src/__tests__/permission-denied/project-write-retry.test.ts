@@ -6,6 +6,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { projectWriteRetry } from '../../permission-denied/project-write-retry.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -35,8 +36,10 @@ function createDeniedWriteInput(
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('project-write-retry', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

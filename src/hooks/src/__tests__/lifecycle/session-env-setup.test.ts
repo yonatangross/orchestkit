@@ -25,6 +25,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
 import { execFileSync } from 'node:child_process';
 import { logHook, getProjectDir, } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -64,7 +65,9 @@ let originalEnv: {
   CLAUDE_METRICS_FILE?: string;
 };
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Generate unique path per test to avoid parallel worker collisions
   const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   TEST_PROJECT_DIR = join(tmpdir(), `session-env-setup-test-${unique}`);

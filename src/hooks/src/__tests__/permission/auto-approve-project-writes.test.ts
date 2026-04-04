@@ -6,6 +6,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -30,8 +31,10 @@ function createWriteInput(filePath: string, projectDir = '/test/project'): HookI
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auto-approve-project-writes', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

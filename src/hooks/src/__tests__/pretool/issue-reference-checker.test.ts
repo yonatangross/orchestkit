@@ -23,6 +23,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
 import type { HookInput } from '../../types.js';
 import { getCachedBranch, outputStderrWarning } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -33,8 +34,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('issue-reference-checker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrMessages = [];
   });

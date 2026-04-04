@@ -26,6 +26,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { coveragePredictor } from '../../posttool/write/coverage-predictor.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -36,8 +37,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('coveragePredictor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/home/user/myproject' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(true);
     // Default: no test file found

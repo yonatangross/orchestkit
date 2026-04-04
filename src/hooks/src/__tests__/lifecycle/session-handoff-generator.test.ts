@@ -71,6 +71,7 @@ vi.mock('../../lib/paths.js', () => ({
 }));
 
 import { sessionHandoffGenerator } from '../../lifecycle/session-handoff-generator.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -98,8 +99,10 @@ function getLatestYaml(): string {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/session-handoff-generator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     mockExistsSync.mockReturnValue(false);
     mockReadFileSync.mockReturnValue('{}');

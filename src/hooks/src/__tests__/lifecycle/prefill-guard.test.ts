@@ -30,6 +30,7 @@ import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { logHook, outputSilentSuccess, outputWarning } from '../../lib/common.js';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helper
@@ -85,10 +86,12 @@ function setupSkills(skills: Record<string, string>) {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prefill-guard', () => {
   const originalModel = process.env.CLAUDE_MODEL;
 
   beforeEach(() => {
+    testCtx = createTestContext({ pluginRoot: '/test/plugin' });
     vi.clearAllMocks();
     process.env.CLAUDE_MODEL = 'claude-opus-4-6';
   });

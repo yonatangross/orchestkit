@@ -65,6 +65,7 @@ import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { fileGuard } from '../../pretool/write-edit/file-guard.js';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 /**
  * Create a mock HookInput for Bash commands
@@ -90,10 +91,12 @@ function createWriteInput(filePath: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Security Boundaries E2E', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env = {
       ...originalEnv,

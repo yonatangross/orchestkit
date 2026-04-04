@@ -26,6 +26,7 @@ vi.mock('node:child_process', () => ({
 
 import { agentBrowserSafety } from '../../pretool/bash/agent-browser-safety.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -36,8 +37,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('agent-browser-safety', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-orchestkit' });
     vi.clearAllMocks();
   });
 

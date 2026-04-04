@@ -33,6 +33,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { auditLogger } from '../../posttool/audit-logger.js';
 import type { HookInput } from '../../types.js';
 import { appendFileSync, statSync, renameSync, existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -43,8 +44,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auditLogger', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/test/project/.claude/logs' });
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

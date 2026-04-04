@@ -40,6 +40,7 @@ vi.mock('../../lib/git.js', () => ({
 
 import { duplicateCodeDetector } from '../../skill/duplicate-code-detector.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -82,8 +83,10 @@ function _mockCodeFiles(files: string[]): void {
 // Duplicate Code Detector Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('duplicate-code-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(true);
     mockReaddirSync.mockReturnValue([]);
@@ -381,7 +384,6 @@ const c = 3;
       mockReaddirSync.mockReturnValue([]);
       const code = `
 const a = 1;
-
 
 const b = 2;
 `;

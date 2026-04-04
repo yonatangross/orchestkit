@@ -47,11 +47,14 @@ vi.mock('../../lib/guards.js', async () => {
 // Import hooks
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Session Lifecycle E2E Tests', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env = { ...originalEnv, CLAUDE_SESSION_ID: 'e2e-session-123' };
   });

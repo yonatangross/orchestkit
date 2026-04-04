@@ -36,6 +36,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { outputSilentSuccess, } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -62,8 +63,10 @@ function createSubagentStopInput(
 // Context Publisher Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('context-publisher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

@@ -50,6 +50,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 }));
 
 import { driftDetection } from '../../instructions-loaded/drift-detection.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Helper: build a DriftCache JSON string
 function buildCache(fileHashes: Record<string, string>, lastSession = '2026-03-07T10:00:00.000Z'): string {
@@ -61,7 +62,9 @@ function makeFile(path: string): LoadedFile {
   return { path };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: cache file does not exist
   mockExistsSync.mockReturnValue(false);

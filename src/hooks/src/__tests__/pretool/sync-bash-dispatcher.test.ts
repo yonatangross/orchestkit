@@ -73,6 +73,7 @@ import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checke
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
 import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -120,8 +121,10 @@ function makeUpdatedInputResult(updatedInput: Record<string, unknown>): HookResu
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('sync-bash-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     // resetAllMocks resets mock implementations back to their vi.mock() defaults,
     // preventing bleed-over from tests that override implementations (e.g., block scenarios)
     vi.resetAllMocks();

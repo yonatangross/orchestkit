@@ -43,6 +43,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 // Import after mocks
 import { sessionMetricsSummary } from '../../lifecycle/session-metrics-summary.js';
 import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -100,7 +101,9 @@ function createToolMetrics(tools: Record<string, number>, errors: number = 0): v
   });
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Reset mocks
   vi.clearAllMocks();
 

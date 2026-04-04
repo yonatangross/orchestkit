@@ -24,6 +24,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -35,8 +36,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('patternExtractor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/home/user/myproject' });
     vi.clearAllMocks();
     // Default: queue file exists with empty patterns array
     mockExistsSync.mockReturnValue(true);

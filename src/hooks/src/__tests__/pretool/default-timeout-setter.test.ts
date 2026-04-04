@@ -11,6 +11,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { defaultTimeoutSetter } from '../../pretool/bash/default-timeout-setter.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(
   command: string,
@@ -29,8 +30,10 @@ function createBashInput(
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('default-timeout-setter', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

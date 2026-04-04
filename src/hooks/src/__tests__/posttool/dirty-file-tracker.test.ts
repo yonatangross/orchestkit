@@ -36,6 +36,7 @@ import {
   WARN_THRESHOLD,
   HANDOFF_THRESHOLD,
 } from '../../posttool/dirty-file-tracker.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -46,8 +47,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('dirtyFileTracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session' });
     vi.clearAllMocks();
     _resetForTesting();
     mockExistsSync.mockReturnValue(true); // log dir exists

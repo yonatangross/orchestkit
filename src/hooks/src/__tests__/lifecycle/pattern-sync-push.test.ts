@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -118,7 +119,9 @@ let originalEnv: {
   CLAUDE_PROJECT_DIR?: string;
 };
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Generate unique paths per test to avoid parallel worker collisions
   const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   TEST_PROJECT_DIR = join(tmpdir(), `pattern-sync-push-test-${unique}`);

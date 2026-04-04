@@ -39,6 +39,7 @@ import {
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -52,8 +53,10 @@ function createInput(prompt: string, overrides: Partial<HookInput> = {}): HookIn
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/cache-break-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

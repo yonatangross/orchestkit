@@ -31,6 +31,7 @@ import type { HookInput } from '../../types.js';
 import { execSync, execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { logHook, outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -41,8 +42,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('pre-commit-quality-runner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.ORCHESTKIT_SKIP_PRE_COMMIT_CHECKS;
     vi.mocked(existsSync).mockReturnValue(false);

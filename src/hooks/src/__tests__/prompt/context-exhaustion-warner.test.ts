@@ -47,6 +47,7 @@ import {
   TIERS,
   _resetForTesting,
 } from '../../prompt/context-exhaustion-warner.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
@@ -80,8 +81,10 @@ function mockNoContextFile(): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/context-exhaustion-warner', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-fallback-session' });
     _resetForTesting();
     vi.clearAllMocks();
   });

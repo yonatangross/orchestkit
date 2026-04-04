@@ -21,6 +21,7 @@ vi.mock('node:path', () => ({
 import { errorPatternWarner } from '../../pretool/bash/error-pattern-warner.js';
 import type { HookInput } from '../../types.js';
 import { existsSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -31,8 +32,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('error-pattern-warner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });

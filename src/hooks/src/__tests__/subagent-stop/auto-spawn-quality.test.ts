@@ -57,6 +57,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { autoSpawnQuality } from '../../subagent-stop/auto-spawn-quality.js';
 import { writeFileSync, mkdirSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -86,8 +87,10 @@ function createSubagentStopInput(
 // Auto Spawn Quality Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auto-spawn-quality', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';

@@ -49,6 +49,7 @@ vi.mock('../../lib/common.js', async () => {
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, openSync, readSync, fstatSync, closeSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
@@ -120,10 +121,12 @@ function setupMocks(opts: {
   });
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('denial-notification (disk-based)', () => {
   let denialNotification: typeof import('../../permission-denied/denial-notification.js').denialNotification;
 
   beforeEach(async () => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-31T12:00:00Z'));

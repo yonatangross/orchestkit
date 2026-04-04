@@ -24,6 +24,7 @@ vi.mock('../../lib/common.js', async () => mockCommonReal());
 
 import { antipatternDetector } from '../../prompt/antipattern-detector.js';
 import { getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -53,8 +54,10 @@ function getContext(result: HookResult): string | undefined {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/antipattern-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

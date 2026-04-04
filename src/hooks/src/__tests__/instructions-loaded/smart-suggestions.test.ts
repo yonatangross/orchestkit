@@ -26,6 +26,7 @@ vi.mock('../../lib/paths.js', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { smartRuleSuggestions } from '../../instructions-loaded/smart-suggestions.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const EMPTY_CONTENTS = new Map<string, string>();
 
@@ -33,7 +34,9 @@ function makeFile(path: string): LoadedFile {
   return { path };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   mockGetProjectDir.mockReturnValue('/test/project');
   // Default: no project signals exist

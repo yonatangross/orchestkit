@@ -26,9 +26,12 @@ import {
   rotateTelemetryIfNeeded,
   cleanOldTelemetryFiles,
 } from '../../lib/telemetry-jsonl.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Telemetry JSONL Sink', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     // Create fresh test directory
     mkdirSync(join(testDir, 'telemetry'), { recursive: true });
   });

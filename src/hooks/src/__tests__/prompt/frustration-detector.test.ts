@@ -20,6 +20,7 @@ vi.mock('../../lib/analytics.js', () => ({
 import { detectFrustration, frustrationDetector } from '../../prompt/frustration-detector.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -32,8 +33,10 @@ function createInput(prompt: string, overrides: Partial<HookInput> = {}): HookIn
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/frustration-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

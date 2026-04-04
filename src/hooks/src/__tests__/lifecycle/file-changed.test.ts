@@ -13,6 +13,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { fileChanged } from '../../lifecycle/file-changed.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -24,8 +25,10 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/file-changed', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

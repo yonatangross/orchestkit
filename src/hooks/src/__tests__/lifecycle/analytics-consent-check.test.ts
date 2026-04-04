@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -73,7 +74,9 @@ function daysAgo(days: number): string {
   return date.toISOString();
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
 
   // Set environment

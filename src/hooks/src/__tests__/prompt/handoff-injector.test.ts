@@ -50,6 +50,7 @@ vi.mock('node:fs', () => ({
 
 import { handoffInjector } from '../../prompt/handoff-injector.js';
 import { logHook, outputSilentSuccess, outputPromptContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Constants matching the hook's internal values
@@ -101,8 +102,10 @@ function mockFreshHandoff(content = VALID_HANDOFF_CONTENT) {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/handoff-injector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });

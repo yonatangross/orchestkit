@@ -15,6 +15,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { compoundCommandValidator } from '../../pretool/bash/compound-command-validator.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -25,8 +26,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('compound-command-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

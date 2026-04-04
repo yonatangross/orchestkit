@@ -22,6 +22,7 @@ vi.mock('../../lib/guards.js', () => ({
 import { structureLocationValidator } from '../../skill/structure-location-validator.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -49,8 +50,10 @@ function createWriteInput(
 // Structure Location Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('structure-location-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardCodeFiles).mockReturnValue(null); // Reset guard
   });

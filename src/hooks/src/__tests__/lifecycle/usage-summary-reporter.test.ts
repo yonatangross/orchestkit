@@ -69,7 +69,9 @@ import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecyc
 import { logHook } from '../../lib/common.js';
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Usage Summary Reporter Hook', () => {
   const mockLogHook = vi.mocked(logHook);
   const mockGetWebhookUrl = vi.mocked(getWebhookUrl);
@@ -85,6 +87,7 @@ describe('Usage Summary Reporter Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-001', projectDir: '/Users/test/coding/orchestkit' });
     vi.clearAllMocks();
     originalFetch = globalThis.fetch;
     mockFetch = vi.fn().mockResolvedValue({ status: 200 });

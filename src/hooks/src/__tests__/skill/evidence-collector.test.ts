@@ -38,6 +38,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { evidenceCollector } from '../../skill/evidence-collector.js';
 import { outputSilentSuccess, getLogDir, getProjectDir } from '../../lib/common.js';
 import { existsSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -60,8 +61,10 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
 // Evidence Collector Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('evidence-collector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Reset process.env
     delete process.env.CC_LAST_EXIT_CODE;

@@ -46,6 +46,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { subagentQualityGate } from '../../subagent-stop/subagent-quality-gate.js';
 import { outputSilentSuccess, outputWarning, outputBlock, logHook } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -73,8 +74,10 @@ function createSubagentStopInput(
 // Subagent Quality Gate Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('subagent-quality-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

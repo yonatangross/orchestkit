@@ -43,6 +43,7 @@ import { getDirtyFileCount } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -66,10 +67,12 @@ function mockStateFile(state: Record<string, unknown>): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('commit-nudge', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.ORCHESTKIT_AUTO_COMMIT_NUDGE;
     vi.mocked(getProjectDir).mockReturnValue('/test/project');

@@ -28,6 +28,7 @@ vi.mock('../../lib/common.js', async () => mockCommonReal({
 // Import after mocks
 import { preCompactSaver } from '../../lifecycle/pre-compact-saver.js';
 import { logHook, getLogDir, getSessionId, outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -65,7 +66,9 @@ function readStateFile(): Record<string, unknown> {
   return JSON.parse(readFileSync(STATE_FILE, 'utf8'));
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Reset mocks
   vi.clearAllMocks();
 

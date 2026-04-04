@@ -35,6 +35,7 @@ import {
 import { existsSync, readFileSync } from 'node:fs';
 
 import { agentationContext } from '../../prompt/agentation-context.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -69,6 +70,7 @@ function makeMcpConfig(agentationConfig: Record<string, unknown> | null = {}): s
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/agentation-context', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
@@ -77,6 +79,7 @@ describe('prompt/agentation-context', () => {
   const mockLogHook = vi.mocked(logHook);
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
     mockOutputPromptContext.mockImplementation((ctx: string) => ({

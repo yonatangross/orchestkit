@@ -59,6 +59,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { multiClaudeVerifier } from '../../subagent-stop/multi-claude-verifier.js';
 import { writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -88,8 +89,10 @@ function createSubagentStopInput(
 // Multi-Claude Verifier Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('multi-claude-verifier', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';

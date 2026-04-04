@@ -27,6 +27,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { monorepoDetector } from '../../setup/monorepo-detector.js';
 import { existsSync, readdirSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReaddirSync = vi.mocked(readdirSync);
@@ -41,7 +42,9 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: no monorepo indicators, no nested packages
   mockExistsSync.mockReturnValue(false);

@@ -39,6 +39,7 @@ import { contextGate } from '../../subagent-start/context-gate.js';
 import { subagentValidator } from '../../subagent-start/subagent-validator.js';
 import { issueContextInjector } from '../../subagent-start/issue-context-injector.js';
 import { recordAgentStart } from '../../lib/agent-attribution.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -57,8 +58,10 @@ function input(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('unified-subagent-start-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

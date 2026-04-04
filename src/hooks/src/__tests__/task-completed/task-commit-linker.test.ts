@@ -22,6 +22,7 @@ import { taskCommitLinker } from '../../task-completed/task-commit-linker.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../../lib/common.js';
 import { getDirtyFileCount } from '../../lib/git.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -44,8 +45,10 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-commit-linker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
     vi.mocked(getDirtyFileCount).mockReturnValue(0);

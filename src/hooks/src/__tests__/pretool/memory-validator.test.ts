@@ -11,6 +11,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { memoryValidator } from '../../pretool/mcp/memory-validator.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createMcpInput(
   toolName: string,
@@ -24,8 +25,10 @@ function createMcpInput(
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('memory-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

@@ -15,6 +15,7 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 });
 
 import { priorityMap } from '../../instructions-loaded/priority-map.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const EMPTY_CONTENTS = new Map<string, string>();
 
@@ -22,6 +23,7 @@ function makeFile(path: string): LoadedFile {
   return { path };
 }
 
+const testCtx = createTestContext();
 describe('priorityMap', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty list', () => {

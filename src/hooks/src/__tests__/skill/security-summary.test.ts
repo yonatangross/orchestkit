@@ -36,6 +36,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { securitySummary } from '../../skill/security-summary.js';
 import { outputSilentSuccess, getLogDir } from '../../lib/common.js';
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -58,8 +59,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Security Summary Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('security-summary', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-01-15T10:30:45.000Z'));

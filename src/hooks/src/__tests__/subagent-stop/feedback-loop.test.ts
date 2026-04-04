@@ -78,6 +78,7 @@ vi.mock('../../lib/agent-teams.js', () => ({
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
 import { writeFileSync, mkdirSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../../lib/task-integration.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -107,8 +108,10 @@ function createSubagentStopInput(
 // Feedback Loop Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('feedback-loop', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';

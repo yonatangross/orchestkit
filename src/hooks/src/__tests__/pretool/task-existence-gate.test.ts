@@ -28,6 +28,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
 import { outputSilentSuccess, outputWithContext, outputDeny } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -50,8 +51,10 @@ function createAgentInput(subagentType: string, overrides: Partial<HookInput> = 
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-existence-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session' });
     vi.clearAllMocks();
     mockGetActivePipeline.mockReturnValue(undefined);
     mockGetTaskByAgent.mockReturnValue(undefined);

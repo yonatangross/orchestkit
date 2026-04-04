@@ -29,6 +29,7 @@ import { patternConsistencyEnforcer } from '../../skill/pattern-consistency-enfo
 import { outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
 import { getRepoRoot } from '../../lib/git.js';
 import { existsSync, } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -58,10 +59,12 @@ function createWriteInput(
 // Pattern Consistency Enforcer Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('pattern-consistency-enforcer', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     // Default: patterns file exists

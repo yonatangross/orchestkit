@@ -32,6 +32,7 @@ import { getProjectDir } from '../../lib/common.js';
 import { getTeamName } from '../../lib/agent-teams.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -57,8 +58,10 @@ function makeCompletionLog(entries: Array<{ event: string; timestamp: string }>)
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-quality-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
     vi.mocked(getTeamName).mockReturnValue(null);

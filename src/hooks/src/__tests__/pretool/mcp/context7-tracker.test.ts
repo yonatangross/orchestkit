@@ -57,6 +57,7 @@ vi.mock('node:path', async (importOriginal) => {
 import { context7Tracker } from '../../../pretool/mcp/context7-tracker.js';
 import { logHook, logPermissionFeedback, outputDeny, outputWithContext } from '../../../lib/common.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -82,8 +83,10 @@ function makeLogContent(count: number, library = 'react'): string {
 // ===========================================================================
 // TESTS
 // ===========================================================================
+let testCtx: ReturnType<typeof createTestContext>;
 describe('context7-tracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });

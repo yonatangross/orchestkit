@@ -40,6 +40,7 @@ vi.mock('node:child_process', () => ({
 import { firstRunSetup } from '../../setup/first-run-setup.js';
 import { outputWithContext } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -103,7 +104,9 @@ function mockJqMissing() {
 
 const originalArgv = [...process.argv];
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   process.argv = [...originalArgv];
   rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });

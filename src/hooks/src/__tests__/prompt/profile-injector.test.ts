@@ -32,6 +32,7 @@ vi.mock('../../lib/user-profile.js', () => ({
 import { materializeProfileRules, profileInjector } from '../../prompt/profile-injector.js';
 import { loadUserProfile, getTopSkills, getTopAgents, getRecentDecisions } from '../../lib/user-profile.js';
 import { outputSilentSuccess, writeRulesFile } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -125,6 +126,7 @@ function createPartialProfile(): UserProfile {
 // Tests for materializeProfileRules (the active function)
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/materializeProfileRules', () => {
   const mockLoadUserProfile = vi.mocked(loadUserProfile);
   const mockGetTopSkills = vi.mocked(getTopSkills);
@@ -133,6 +135,7 @@ describe('prompt/materializeProfileRules', () => {
   const mockWriteRulesFile = vi.mocked(writeRulesFile);
 
   beforeEach(() => {
+    testCtx = createTestContext({ writeRules: vi.fn() });
     vi.clearAllMocks();
   });
 

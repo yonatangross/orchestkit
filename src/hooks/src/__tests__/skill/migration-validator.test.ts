@@ -30,6 +30,7 @@ import { migrationValidator } from '../../skill/migration-validator.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -101,10 +102,12 @@ function createValidMigration(options: {
 // Migration Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('migration-validator', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.mocked(existsSync).mockReturnValue(true);

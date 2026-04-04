@@ -51,6 +51,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { perfSnapshot } from '../../lifecycle/perf-snapshot.js';
 import { getTokenState } from '../../lib/token-tracker.js';
 import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -79,7 +80,9 @@ function readLatestSnapshot(): Record<string, unknown> {
 // Setup
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   vi.mocked(getTokenState).mockReturnValue({ ...mockTokenState } as ReturnType<typeof getTokenState>);
   if (existsSync(testBaseDir)) {

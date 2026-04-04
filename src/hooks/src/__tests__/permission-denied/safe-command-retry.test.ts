@@ -9,6 +9,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { safeCommandRetry } from '../../permission-denied/safe-command-retry.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -33,8 +34,10 @@ function createDeniedBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('safe-command-retry', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

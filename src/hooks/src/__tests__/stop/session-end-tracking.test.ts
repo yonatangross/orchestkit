@@ -21,7 +21,9 @@ import { sessionEndTracking } from '../../stop/session-end-tracking.js';
 import { logHook, outputSilentSuccess } from '../../lib/common.js';
 import { trackSessionEnd } from '../../lib/session-tracker.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Session End Tracking Hook', () => {
   const mockLogHook = vi.mocked(logHook);
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
@@ -35,6 +37,7 @@ describe('Session End Tracking Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

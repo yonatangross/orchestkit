@@ -33,6 +33,7 @@ import { getProjectDir } from '../../lib/common.js';
 import { getTeamName, getTeamMembers } from '../../lib/agent-teams.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -58,8 +59,10 @@ function makeActivityLog(entries: Array<{ event: string; teammate_id: string; ti
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-synthesis-trigger', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
     vi.mocked(getTeamName).mockReturnValue(null);

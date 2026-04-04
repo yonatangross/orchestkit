@@ -19,6 +19,7 @@ vi.mock('../../lib/guards.js', () => ({
 import { docstringEnforcer } from '../../pretool/Write/docstring-enforcer.js';
 import type { HookInput } from '../../types.js';
 import { isDontAskMode } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createWriteInput(filePath: string, content: string): HookInput {
   return {
@@ -29,8 +30,10 @@ function createWriteInput(filePath: string, content: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('docstring-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(isDontAskMode).mockReturnValue(false);
   });

@@ -43,6 +43,7 @@ import {
   registerAllSinks,
 } from '../../lib/sink-registry.js';
 import { sinkCount, _resetSinksForTesting } from '../../lib/telemetry.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function writePluginJson(content: object): void {
   writeFileSync(join(testDir, 'plugin.json'), JSON.stringify(content), 'utf8');
@@ -54,8 +55,10 @@ function writeSettingsLocalJson(content: object): void {
   writeFileSync(join(claudeDir, 'settings.local.json'), JSON.stringify(content), 'utf8');
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Sink Registry', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     _resetSinksForTesting();
     logMessages = [];
     mkdirSync(testDir, { recursive: true });

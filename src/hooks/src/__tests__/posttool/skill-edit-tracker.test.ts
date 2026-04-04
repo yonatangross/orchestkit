@@ -20,6 +20,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';
 import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -30,8 +31,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('skillEditTracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     process.env.CLAUDE_HOOK_DEBUG = '1';
     // Default: session state with recent skill

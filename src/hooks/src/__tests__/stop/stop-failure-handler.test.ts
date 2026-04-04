@@ -49,7 +49,9 @@ import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { flushEventCounter, trackEvent } from '../../lib/session-tracker.js';
 import { flush as flushAnalyticsBuffer } from '../../lib/analytics-buffer.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('StopFailure Handler (CC 2.1.78)', () => {
   const mockLogHook = vi.mocked(logHook);
   const mockAtomicWrite = vi.mocked(atomicWriteSync);
@@ -67,6 +69,7 @@ describe('StopFailure Handler (CC 2.1.78)', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id', branch: 'feat/test-branch' });
     vi.clearAllMocks();
   });
 

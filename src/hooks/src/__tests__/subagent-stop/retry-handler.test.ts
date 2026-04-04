@@ -69,6 +69,7 @@ import {
 } from '../../lib/retry-manager.js';
 import { loadConfig, loadState, updateAgentStatus } from '../../lib/orchestration-state.js';
 import { updateTaskStatus, getTaskByAgent } from '../../lib/task-integration.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -95,8 +96,10 @@ function createSubagentStopInput(
 // Retry Handler Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('retry-handler', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

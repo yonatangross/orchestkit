@@ -51,6 +51,7 @@ vi.mock('../../prompt/pipeline-detector.js', () => ({
 
 import { unifiedPromptDispatcher } from '../../prompt/unified-dispatcher.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 let tmpDir: string;
 const savedEnv: Record<string, string | undefined> = {};
@@ -74,8 +75,10 @@ function setEnv(pluginData: string | undefined, projectDir: string, sid: string)
   process.env.CLAUDE_SESSION_ID = sid;
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('unified-dispatcher once-flags + hash with PLUGIN_DATA (real fs)', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     tmpDir = mkdtempSync(path.join(os.tmpdir(), 'ork-onceflag-'));
     saveEnv('CLAUDE_PLUGIN_DATA', 'CLAUDE_PROJECT_DIR', 'CLAUDE_SESSION_ID');
   });

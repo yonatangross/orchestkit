@@ -33,6 +33,7 @@ import {
 import type { Decision, AggregatedDecisions } from '../../lib/decision-history.js';
 import { getProjectDir, getPluginRoot } from '../../lib/common.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeDecision(o: Partial<Decision> = {}): Decision {
   return { id: 'v1-general-1', date: '2026-01-15', summary: 'Added hook system',
@@ -59,6 +60,7 @@ const CHANGELOG = `# Changelog
 
 // === Utilities ===
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('hashString', () => {
   it('returns consistent 64-char hex', () => {
     expect(hashString('hello')).toBe(hashString('hello'));
@@ -156,6 +158,7 @@ describe('changelogToDecisions', () => {
 describe('loadSessionDecisions', () => {
   let tmpDir: string;
   beforeEach(() => { tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-dh-s-')); vi.mocked(getProjectDir).mockReturnValue(tmpDir); });
+    testCtx = createTestContext({ projectDir: '/tmp/fake-project', pluginRoot: '/tmp/fake-plugin' });
   afterEach(() => { fs.rmSync(tmpDir, { recursive: true, force: true }); });
 
   it('returns [] when file missing', () => { expect(loadSessionDecisions()).toEqual([]); });

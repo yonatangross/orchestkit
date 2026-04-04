@@ -27,6 +27,7 @@ import { architectureChangeDetector } from '../../pretool/Write/architecture-cha
 import type { HookInput } from '../../types.js';
 import { guardPathPattern, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createWriteInput(filePath: string, content: string = ''): HookInput {
   return {
@@ -37,8 +38,10 @@ function createWriteInput(filePath: string, content: string = ''): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('architecture-change-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardPathPattern).mockReturnValue(null);
     vi.mocked(isDontAskMode).mockReturnValue(false);

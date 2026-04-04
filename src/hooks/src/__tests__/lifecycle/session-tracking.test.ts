@@ -29,6 +29,7 @@ import { sessionTracking } from '../../lifecycle/session-tracking.js';
 import { execFileSync } from 'node:child_process';
 import { logHook, getProjectDir, outputSilentSuccess } from '../../lib/common.js';
 import { trackSessionStart } from '../../lib/session-tracker.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -49,7 +50,9 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Reset mocks
   vi.clearAllMocks();
 

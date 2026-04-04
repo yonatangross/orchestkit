@@ -23,6 +23,7 @@ vi.mock('../../lib/guards.js', () => ({
 import { importDirectionEnforcer } from '../../skill/import-direction-enforcer.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -52,8 +53,10 @@ function createWriteInput(
 // Import Direction Enforcer Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('import-direction-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardCodeFiles).mockReturnValue(null); // Default: pass guard
   });

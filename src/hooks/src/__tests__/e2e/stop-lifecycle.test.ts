@@ -59,6 +59,7 @@ vi.mock('../../lib/common.js', async () => {
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 /**
  * Create a mock HookInput for Stop event
@@ -73,10 +74,12 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Stop Hook Lifecycle E2E', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env = {
       ...originalEnv,

@@ -62,6 +62,7 @@ import {
 } from '../../stop/workflow-preference-learner.js';
 import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -108,8 +109,10 @@ function makePreferencesData(overrides: Record<string, unknown> = {}) {
 // ===========================================================================
 // TESTS
 // ===========================================================================
+let testCtx: ReturnType<typeof createTestContext>;
 describe('workflow-preference-learner', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-001' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });

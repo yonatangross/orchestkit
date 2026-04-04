@@ -42,6 +42,7 @@ vi.mock('node:fs', () => ({
 import { securityCommandAudit } from '../../agent/security-command-audit.js';
 import { outputSilentSuccess, outputDeny, getProjectDir, getSessionId } from '../../lib/common.js';
 import { mkdirSync, appendFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -73,8 +74,10 @@ let originalAgentId: string | undefined;
 // Security Command Audit Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('security-command-audit', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-456' });
     // Reset all mocks (clears calls AND implementations set by mockImplementation)
     // This ensures error-throwing mocks from previous tests don't persist
     vi.resetAllMocks();

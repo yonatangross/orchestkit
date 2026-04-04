@@ -41,6 +41,7 @@ import { syncSessionEndDispatcher } from '../../lifecycle/sync-session-end-dispa
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
 import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,8 +65,10 @@ function makeSystemMessageResult(msg: string) {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/sync-session-end-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     // Re-establish default silent passing implementations after reset
     // sync-session-end-dispatcher has 2 hooks: session-cleanup (runOnFail) + pattern-sync-push

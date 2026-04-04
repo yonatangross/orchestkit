@@ -29,6 +29,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { existsSync, mkdirSync, appendFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 /**
  * Create a mock HookInput for a denied tool call
@@ -46,8 +47,10 @@ function createDeniedInput(
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('denial-logger', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(true);
   });

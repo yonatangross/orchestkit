@@ -35,6 +35,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { issueProgressCommenter } from '../../posttool/bash/issue-progress-commenter.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -46,8 +47,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('issueProgressCommenter', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     // Default: gh exists, github remote, on issue branch

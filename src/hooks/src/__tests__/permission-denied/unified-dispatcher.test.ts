@@ -41,6 +41,7 @@ import { safeCommandRetry } from '../../permission-denied/safe-command-retry.js'
 import { projectWriteRetry } from '../../permission-denied/project-write-retry.js';
 import { denialLogger } from '../../permission-denied/denial-logger.js';
 import { denialNotification } from '../../permission-denied/denial-notification.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const SILENT_SUCCESS: HookResult = { continue: true, suppressOutput: true };
 const RETRY_RESULT: HookResult = {
@@ -63,8 +64,10 @@ function createDeniedInput(toolName: string, toolInput: Record<string, unknown> 
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('unified-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Default: all sub-hooks return silent success (no retry)
     vi.mocked(safeCommandRetry).mockReturnValue(SILENT_SUCCESS);

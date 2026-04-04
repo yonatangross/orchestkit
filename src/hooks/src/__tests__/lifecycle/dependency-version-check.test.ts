@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { dependencyVersionCheck } from '../../lifecycle/dependency-version-check.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -102,7 +103,9 @@ function clearCache(): void {
   }
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
 
   // Store original environment

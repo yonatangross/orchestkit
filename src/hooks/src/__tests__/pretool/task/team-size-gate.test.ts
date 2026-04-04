@@ -28,6 +28,7 @@ vi.mock('../../../lib/agent-teams.js', () => ({
 import { teamSizeGate } from '../../../pretool/task/team-size-gate.js';
 import { getTeamMembers } from '../../../lib/agent-teams.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -50,8 +51,10 @@ function createTaskInput(toolInputOverrides: Record<string, unknown> = {}, overr
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-size-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getTeamMembers).mockReturnValue([]);
   });

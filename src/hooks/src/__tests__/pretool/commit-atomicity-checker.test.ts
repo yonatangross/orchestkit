@@ -20,6 +20,7 @@ vi.mock('node:child_process', () => ({
 import { commitAtomicityChecker } from '../../pretool/bash/commit-atomicity-checker.js';
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -30,8 +31,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('commit-atomicity-checker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

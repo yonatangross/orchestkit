@@ -9,6 +9,7 @@ import type { HookInput, HookResult } from '../../types.js';
 // Import hooks for integration testing
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock common module for all hooks
 vi.mock('../../lib/common.js', async () => {
@@ -41,8 +42,10 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Hook Chain Integration Tests', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

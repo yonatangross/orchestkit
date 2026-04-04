@@ -35,6 +35,7 @@ import { getPluginRoot } from '../../lib/common.js';
 import { getHomeDir, getTempDir } from '../../lib/paths.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockGetPluginRoot = vi.mocked(getPluginRoot);
 const mockGetHomeDir = vi.mocked(getHomeDir);
@@ -55,7 +56,9 @@ function readMarker(): Record<string, unknown> {
   return JSON.parse(readFileSync(join(tmpDir, '.setup-complete'), 'utf-8'));
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   tmpDir = mkdtempSync(join(os.tmpdir(), 'setup-maint-test-'));
   mockGetPluginRoot.mockReturnValue(tmpDir);

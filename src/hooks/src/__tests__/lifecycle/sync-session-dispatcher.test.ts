@@ -62,6 +62,7 @@ import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../../lifecycle/mcp-health-check.js';
 import { materializeAntipatternRules } from '../../prompt/antipattern-warning.js';
 import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -94,8 +95,10 @@ function makeContextResult(ctx: string) {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/sync-session-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     // Re-establish default silent passing implementations after reset
     vi.mocked(analyticsConsentCheck).mockReturnValue({ continue: true, suppressOutput: true });

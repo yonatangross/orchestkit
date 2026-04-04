@@ -28,6 +28,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { evalMetricsCollector } from '../../skill/eval-metrics-collector.js';
 import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -71,8 +72,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Eval Metrics Collector Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('eval-metrics-collector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     captureStderr();
   });

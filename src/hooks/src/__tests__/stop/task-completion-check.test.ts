@@ -32,7 +32,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { logHook, outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../../lib/task-integration.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Task Completion Check Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
@@ -50,6 +52,7 @@ describe('Task Completion Check Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     mockGetOrphanedTasks.mockReturnValue([]);

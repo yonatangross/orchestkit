@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir, } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -108,7 +109,9 @@ function readProjectPatterns(): Array<{ text: string; [key: string]: unknown }> 
   return content.patterns || [];
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Generate unique paths per test to avoid parallel worker collisions
   const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   TEST_PROJECT_DIR = join(tmpdir(), `pattern-sync-pull-test-${unique}`);

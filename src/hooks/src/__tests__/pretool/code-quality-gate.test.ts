@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { codeQualityGate } from '../../pretool/Write/code-quality-gate.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock dependencies
 vi.mock('../../lib/common.js', async () => {
@@ -89,8 +90,10 @@ function generateDeepNesting(depth: number, lang: 'ts' | 'py'): string {
   }
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('code-quality-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

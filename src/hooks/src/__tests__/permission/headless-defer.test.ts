@@ -10,6 +10,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 import { headlessDefer } from '../../permission/headless-defer.js';
 import { outputSilentSuccess, outputDefer } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
 const mockOutputDefer = vi.mocked(outputDefer);
@@ -22,8 +23,10 @@ function makeInput(toolName: string, command = ''): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('headless-defer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.CLAUDE_HEADLESS;
     delete process.env.CLAUDE_NONINTERACTIVE;

@@ -33,6 +33,7 @@ import { getProjectDir } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -58,8 +59,10 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('completion-tracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
   });

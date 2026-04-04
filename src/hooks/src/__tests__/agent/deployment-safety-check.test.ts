@@ -18,6 +18,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { deploymentSafetyCheck } from '../../agent/deployment-safety-check.js';
 import { outputSilentSuccess, outputDeny, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -44,8 +45,10 @@ function createToolInput(
 // Deployment Safety Check Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('deployment-safety-check', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

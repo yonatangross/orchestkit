@@ -27,6 +27,7 @@ import { affectedTestsFinder } from '../../pretool/bash/affected-tests-finder.js
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -37,8 +38,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('affected-tests-finder', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });

@@ -48,6 +48,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { HttpSink, circuitAllows, recordSuccess, recordFailure, readCbState, writeCbState, isRetriable, getCbStatePath } from '../../lib/http-sink.js';
 import type { CircuitBreakerState } from '../../lib/http-sink.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   return {
@@ -61,8 +62,10 @@ function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('HttpSink with Retry + Circuit Breaker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     mockFetchCalls = [];
     mockFetchResponses = [];
     mockFetchCallIndex = 0;

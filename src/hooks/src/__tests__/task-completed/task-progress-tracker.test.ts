@@ -36,6 +36,7 @@ import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -58,10 +59,12 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-progress-tracker', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Default: no state file exists
     vi.mocked(existsSync).mockReturnValue(false);

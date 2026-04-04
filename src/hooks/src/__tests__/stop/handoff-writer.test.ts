@@ -66,6 +66,7 @@ vi.mock('../../lib/learning-extractor.js', () => ({
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { logHook } from '../../lib/common.js';
 import { extractLearnings, formatLearnings } from '../../lib/learning-extractor.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -86,8 +87,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('stop/handoff-writer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     // Default: .claude/ exists, no decisions/tasks files
     mockExistsSync.mockImplementation((p: string) => {

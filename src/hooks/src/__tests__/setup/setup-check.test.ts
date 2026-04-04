@@ -40,6 +40,7 @@ import { setupCheck } from '../../setup/setup-check.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { spawn } from 'node:child_process';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -98,7 +99,9 @@ function seedConfig() {
 const originalArgv = [...process.argv];
 const originalEnv = { ...process.env };
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   process.argv = [...originalArgv];
   delete process.env.ORCHESTKIT_SKIP_SETUP;

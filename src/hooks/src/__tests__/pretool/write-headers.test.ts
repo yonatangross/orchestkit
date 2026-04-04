@@ -23,6 +23,7 @@ vi.mock('node:path', () => ({
 import { writeHeaders } from '../../pretool/input-mod/write-headers.js';
 import type { HookInput } from '../../types.js';
 import { existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createWriteInput(filePath: string, content: string): HookInput {
   return {
@@ -33,8 +34,10 @@ function createWriteInput(filePath: string, content: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('write-headers', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });

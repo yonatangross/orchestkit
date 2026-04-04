@@ -37,6 +37,7 @@ import { outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getRepoRoot, getCurrentBranch, getDefaultBranch } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -98,10 +99,12 @@ function mockGitCommands(overrides: Record<string, string | Error> = {}): void {
 // Merge Conflict Predictor Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('merge-conflict-predictor', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     mockGitCommands();

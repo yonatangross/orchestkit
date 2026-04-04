@@ -29,6 +29,7 @@ vi.mock('../../lib/guards.js', () => ({
 import { backendFileNaming } from '../../skill/backend-file-naming.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
 import { guardPythonFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -54,8 +55,10 @@ function createFileInput(
 // Backend File Naming Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('backend-file-naming', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

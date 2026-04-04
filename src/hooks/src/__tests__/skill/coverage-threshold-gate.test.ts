@@ -26,6 +26,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { coverageThresholdGate } from '../../skill/coverage-threshold-gate.js';
 import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -48,8 +49,10 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
 // Coverage Threshold Gate Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('coverage-threshold-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.COVERAGE_THRESHOLD;
   });

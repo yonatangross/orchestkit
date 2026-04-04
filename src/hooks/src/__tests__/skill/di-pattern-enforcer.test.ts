@@ -18,6 +18,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { diPatternEnforcer } from '../../skill/di-pattern-enforcer.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -44,8 +45,10 @@ function createFileInput(
 // DI Pattern Enforcer Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('di-pattern-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

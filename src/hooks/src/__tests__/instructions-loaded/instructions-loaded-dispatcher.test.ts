@@ -44,6 +44,7 @@ vi.mock('../../instructions-loaded/smart-suggestions.js', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { instructionsLoadedDispatcher } from '../../instructions-loaded/instructions-loaded-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(filesLoaded?: unknown): HookInput {
   return {
@@ -55,7 +56,9 @@ function makeInput(filesLoaded?: unknown): HookInput {
   } as unknown as HookInput;
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: all handlers return null (silent)
   mockTokenBudget.mockReturnValue(null);

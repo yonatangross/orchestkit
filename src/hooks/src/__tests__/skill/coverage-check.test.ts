@@ -46,6 +46,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { coverageCheck } from '../../skill/coverage-check.js';
 import { outputSilentSuccess, getLogDir, getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -69,8 +70,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Coverage Check Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('coverage-check', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/test/.claude/logs' });
     vi.clearAllMocks();
     // Reset environment
     delete process.env.COVERAGE_THRESHOLD;

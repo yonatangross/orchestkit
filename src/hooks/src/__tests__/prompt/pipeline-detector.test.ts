@@ -67,6 +67,7 @@ import { loadConfig } from '../../lib/orchestration-state.js';
 import { detectPipeline, createPipelineExecution, registerPipelineExecution, formatPipelinePlan } from '../../lib/multi-agent-coordinator.js';
 import { getActivePipeline } from '../../lib/task-integration.js';
 import type { PipelineType } from '../../lib/orchestration-types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -120,8 +121,10 @@ function createPipelineDefinition(type: string, triggers: string[]) {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/pipeline-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

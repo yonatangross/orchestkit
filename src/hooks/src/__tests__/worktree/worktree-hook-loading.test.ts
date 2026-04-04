@@ -37,16 +37,19 @@ import { worktreeLifecycleLogger } from '../../worktree/worktree-lifecycle-logge
 
 // Also validate hooks.json registration — use actual fs (not mocked) to read hooks.json
 import { resolve } from 'node:path';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let hooksJson: any;
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
   beforeAll(async () => {
     const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs');
     hooksJson = JSON.parse(actualFs.readFileSync(resolve(__dirname, '..', '..', '..', 'hooks.json'), 'utf-8'));
   });
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

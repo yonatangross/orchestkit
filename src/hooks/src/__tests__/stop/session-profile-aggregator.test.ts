@@ -40,7 +40,9 @@ import { resolveUserIdentity, canShare, getPrivacySettings } from '../../lib/use
 import { generateSessionSummary } from '../../lib/session-tracker.js';
 import { loadUserProfile, saveUserProfile, aggregateSession, exportForGlobal } from '../../lib/user-profile.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Session Profile Aggregator Hook', () => {
   // Type-cast mocks for better TypeScript support
   const mockLogHook = vi.mocked(logHook);
@@ -131,6 +133,7 @@ describe('Session Profile Aggregator Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-001' });
     vi.clearAllMocks();
 
     // Setup default mock returns

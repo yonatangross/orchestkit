@@ -29,6 +29,7 @@ import { getCachedBranch } from '../../lib/common.js';
 import { issueContextInjector } from '../../subagent-start/issue-context-injector.js';
 import { existsSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createToolInput(): HookInput {
   return {
@@ -42,8 +43,10 @@ function createToolInput(): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('issue-context-injector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

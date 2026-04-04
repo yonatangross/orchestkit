@@ -39,6 +39,7 @@ vi.mock('../../lib/git.js', () => ({
 
 import { crossInstanceTestValidator } from '../../skill/cross-instance-test-validator.js';
 import { outputSilentSuccess, outputBlock, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -65,8 +66,10 @@ function createFileInput(
 // Cross-Instance Test Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('cross-instance-test-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

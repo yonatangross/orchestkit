@@ -92,6 +92,7 @@ import {
   unifiedPromptDispatcher,
   registeredHookNames as promptHookNames,
 } from '../../prompt/unified-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -110,8 +111,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests: PostToolUse Unified Dispatcher
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('PostToolUse Unified Dispatcher — execution', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

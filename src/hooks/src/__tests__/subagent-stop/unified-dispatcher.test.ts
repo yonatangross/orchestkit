@@ -43,6 +43,7 @@ import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import { handoffPreparer } from '../../subagent-stop/handoff-preparer.js';
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -72,8 +73,10 @@ function createSubagentStopInput(
 // Unified Dispatcher Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('unified-subagent-stop-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

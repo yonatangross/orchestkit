@@ -48,9 +48,12 @@ function createWriteInput(
 function createValidTestContent(): string {
   return `
 import { describe, test, expect } from 'vitest';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('MyComponent', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     // Reset state
   });
 

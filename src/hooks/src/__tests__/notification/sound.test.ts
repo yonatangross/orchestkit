@@ -50,6 +50,7 @@ import {
 } from '../../notification/sound.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -83,8 +84,10 @@ function createSoundInput(notificationType: string): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/sound', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     _resetAfplayCacheForTesting();
     _resetLinuxPlayerCacheForTesting();

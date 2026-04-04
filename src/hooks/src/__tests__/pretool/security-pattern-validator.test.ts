@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { securityPatternValidator } from '../../pretool/Write/security-pattern-validator.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock dependencies
 vi.mock('../../lib/common.js', async () => {
@@ -39,8 +40,10 @@ function createWriteInput(filePath: string, content: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('security-pattern-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

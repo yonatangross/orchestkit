@@ -20,6 +20,7 @@ import { postCompactRecovery } from '../../lifecycle/post-compact-recovery.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { outputWithContext } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -36,8 +37,10 @@ function mockStateFile(state: Record<string, unknown>): void {
   vi.mocked(readFileSync).mockReturnValue(JSON.stringify(state));
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/post-compact-recovery', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

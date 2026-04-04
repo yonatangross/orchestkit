@@ -38,6 +38,7 @@ import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import type { HookInput } from '../../types.js';
 // appendFileSync import removed — use mockAppendFileSync directly
 import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createSkillInput(skillName: string, args: string = ''): HookInput {
   return {
@@ -48,8 +49,10 @@ function createSkillInput(skillName: string, args: string = ''): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('skill-tracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

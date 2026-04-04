@@ -102,7 +102,9 @@ import {
 } from '../../lib/user-profile.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { analyzeDecisionFlow } from '../../lib/decision-flow-tracker.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('User Profile Management', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
@@ -111,6 +113,7 @@ describe('User Profile Management', () => {
   const mockAnalyzeDecisionFlow = vi.mocked(analyzeDecisionFlow);
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.HOME = "/test/home";
     delete process.env.USERPROFILE;

@@ -34,6 +34,7 @@ import {
 } from '../../skill/decision-processor.js';
 import { outputSilentSuccess, } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -75,8 +76,10 @@ function createDecisionText(
 // Decision Processor Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('decision-processor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ pluginRoot: '/test/plugin' });
     vi.clearAllMocks();
   });
 

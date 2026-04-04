@@ -54,6 +54,7 @@ vi.mock('node:path', async () => {
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { outputSilentSuccess, getProjectDir, getCachedBranch } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -91,8 +92,10 @@ function osascriptScript(): string {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
     // execFileSync is only used for `which` checks in hasCommand.

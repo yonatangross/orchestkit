@@ -19,6 +19,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
 
 import { mcpOutputTransform } from '../../posttool/mcp-output-transform.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -30,8 +31,10 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('posttool/mcp-output-transform', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/tmp/test-project' });
     vi.clearAllMocks();
   });
 

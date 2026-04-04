@@ -22,6 +22,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { cwdChanged, _resetSkillPathIndex } from '../../lifecycle/cwd-changed.js';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -35,8 +36,10 @@ function createInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/cwd-changed', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ pluginRoot: '/test/plugin' });
     vi.clearAllMocks();
   });
 

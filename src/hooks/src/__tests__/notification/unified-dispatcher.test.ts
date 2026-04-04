@@ -50,6 +50,7 @@ import {
 import { desktopNotification } from '../../notification/desktop.js';
 import { soundNotification } from '../../notification/sound.js';
 import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -89,8 +90,10 @@ function createNotificationInput(
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/unified-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

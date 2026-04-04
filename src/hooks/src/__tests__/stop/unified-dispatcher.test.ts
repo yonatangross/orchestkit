@@ -42,7 +42,9 @@ import { logHook, outputSilentSuccess } from '../../lib/common.js';
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Unified Stop Dispatcher Hook', () => {
   const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
@@ -57,6 +59,7 @@ describe('Unified Stop Dispatcher Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
   });
 

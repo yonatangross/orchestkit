@@ -40,6 +40,7 @@ import { setupRepair } from '../../setup/setup-repair.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import { outputWithContext, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -86,7 +87,9 @@ function seedPluginRoot() {
 // Test suites
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Clean the fake plugin root between tests
   rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });

@@ -26,6 +26,7 @@ import { taskContextInjector } from '../../task-created/task-context-injector.js
 import { outputSilentSuccess } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -61,8 +62,10 @@ function mockGitCommands(branch: string | null, commit: string | null): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-context-injector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

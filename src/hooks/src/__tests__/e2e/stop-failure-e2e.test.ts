@@ -56,6 +56,7 @@ vi.mock('../../lib/common.js', async () => {
 
 import { stopFailureHandler } from '../../stop/stop-failure-handler.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Real temp directory setup
@@ -70,8 +71,10 @@ function createProjectDir(): string {
   return dir;
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('StopFailure E2E (real filesystem)', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     tmpDir = createProjectDir();
   });

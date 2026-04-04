@@ -21,6 +21,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { todoEnforcer } from '../../prompt/todo-enforcer.js';
 import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -45,8 +46,10 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/todo-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

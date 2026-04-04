@@ -37,6 +37,7 @@ import { outputSilentSuccess } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -63,8 +64,10 @@ function mockExistingState(state: Record<string, unknown>): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-progress-initializer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });

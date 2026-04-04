@@ -21,6 +21,7 @@ vi.mock('node:fs', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
@@ -36,8 +37,10 @@ function mockStat(size: number, mtime: Date = new Date('2025-01-15T10:00:00Z')):
   } as unknown as ReturnType<typeof statSync>;
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('analyzeJsonlFile', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

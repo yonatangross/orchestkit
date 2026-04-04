@@ -56,6 +56,7 @@ vi.mock('node:path', () => ({
 import { readmeSync } from '../../../posttool/write/readme-sync.js';
 import { logHook } from '../../../lib/common.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -71,8 +72,10 @@ function makeInput(filePath: string, toolName = 'Write'): HookInput {
 // ===========================================================================
 // TESTS
 // ===========================================================================
+let testCtx: ReturnType<typeof createTestContext>;
 describe('readme-sync', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/mock/proj' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });

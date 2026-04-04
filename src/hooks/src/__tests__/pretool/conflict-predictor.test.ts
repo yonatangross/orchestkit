@@ -16,6 +16,7 @@ vi.mock('node:child_process', () => ({
 import { conflictPredictor } from '../../pretool/bash/conflict-predictor.js';
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -26,8 +27,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('conflict-predictor', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

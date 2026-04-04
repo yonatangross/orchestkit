@@ -33,6 +33,7 @@ vi.mock('../../lib/common.js', async () => {
 
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
 import { logHook, outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -52,8 +53,10 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

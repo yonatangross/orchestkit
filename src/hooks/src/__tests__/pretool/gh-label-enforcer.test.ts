@@ -40,6 +40,7 @@ vi.mock('../../lib/common.js', async () => {
 
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
 import { logHook, logPermissionFeedback, outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -59,8 +60,10 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

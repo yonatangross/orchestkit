@@ -30,6 +30,7 @@ import { testRunner } from '../../skill/test-runner.js';
 import { outputSilentSuccess } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -57,10 +58,12 @@ function createWriteInput(
 // Test Runner Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('test-runner', () => {
   let stderrWriteSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Mock stderr.write to prevent actual output and avoid hangs
     stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);

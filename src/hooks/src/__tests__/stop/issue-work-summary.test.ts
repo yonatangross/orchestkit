@@ -33,7 +33,9 @@ import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Issue Work Summary Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
@@ -50,6 +52,7 @@ describe('Issue Work Summary Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
