@@ -190,6 +190,73 @@ describe('Crypto Utilities', () => {
       expect(result?.command).not.toContain('xoxb-FAKE-TEST-TOKEN-00000000000');
     });
 
+    it('redacts Slack user tokens (xoxp-)', () => {
+      const result = sanitizePayload({
+        command: 'curl -H "Authorization: Bearer xoxp-FAKE-USER-TOKEN-12345678901"',
+      });
+      expect(result?.command).not.toContain('xoxp-FAKE-USER-TOKEN-12345678901');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts GitHub OAuth tokens (gho_)', () => {
+      const result = sanitizePayload({
+        command: 'git clone https://gho_FAKETESTTOKENabcdefghij1234567890123456789@github.com/user/repo',
+      });
+      expect(result?.command).not.toContain('gho_FAKETESTTOKENabcdefghij1234567890123456789');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    it('redacts GitHub fine-grained PATs (github_pat_)', () => {
+      const result = sanitizePayload({
+        command: 'curl -H "Authorization: token github_pat_11AAAAAAA0faketestfinegrainedtokenabcdefghijklmnopqrstuvwxyz1234567890"',
+      });
+      expect(result?.command).not.toContain('github_pat_11AAAAAAA0faketestfinegrainedtokenabcdefghijklmnopqrstuvwxyz1234567890');
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    // --- Boundary / minimum-length validation ---
+
+    it('does NOT redact too-short sk-ant- prefixes (below 20 chars)', () => {
+      // sk-ant- needs 20+ alphanumeric after prefix
+      const result = sanitizePayload({ command: 'token: sk-ant-short123' });
+      expect(result?.command).toBe('token: sk-ant-short123');
+    });
+
+    it('does NOT redact too-short Bearer tokens (below 20 chars)', () => {
+      const result = sanitizePayload({ command: 'Bearer shorttoken' });
+      expect(result?.command).toBe('Bearer shorttoken');
+    });
+
+    it('does NOT redact too-short GitHub PATs (below 36 chars)', () => {
+      const result = sanitizePayload({ command: 'token: ghp_tooshort1234567890' });
+      expect(result?.command).toBe('token: ghp_tooshort1234567890');
+    });
+
+    it('redacts sk-ant- at exactly minimum length (20 chars)', () => {
+      const result = sanitizePayload({
+        command: 'token: sk-ant-abcdefghij0123456789',  // 20 chars after sk-ant-
+      });
+      expect(result?.command).toContain('[REDACTED]');
+    });
+
+    // --- False positive prevention ---
+
+    it('does NOT redact legitimate text that happens to contain "sk-"', () => {
+      const result = sanitizePayload({ command: 'deploy sk-demo-v2 to staging' });
+      expect(result?.command).toBe('deploy sk-demo-v2 to staging');
+    });
+
+    it('does NOT redact "AKIA" without the required 16 trailing uppercase chars', () => {
+      const result = sanitizePayload({ command: 'AKIA is an AWS prefix' });
+      expect(result?.command).toBe('AKIA is an AWS prefix');
+    });
+
+    it('does NOT redact AKIA followed by lowercase characters', () => {
+      // AWS keys are UPPERCASE [A-Z0-9]{16}
+      const result = sanitizePayload({ command: 'AKIAlowercasekeyxxxx' });
+      expect(result?.command).toBe('AKIAlowercasekeyxxxx');
+    });
+
     // --- Real-world webhook payload simulation ---
 
     it('sanitizes a realistic Bash tool_input payload', () => {

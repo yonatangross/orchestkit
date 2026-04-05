@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **72 new tests for P0 coverage gaps**:
+  - 54 tests for `normalizeInput()` edge cases: JSON-string unwrapping (12), STRING_FIELDS allowlist (12), tool_name/session_id/hook_event normalization (8), project_dir isValidPath resolution (6), agent_type/agent_id promotion (5), tool_input fallback (6), isValidPath validation (5)
+  - 11 tests for crypto sanitization: 3 missing patterns (gho_, github_pat_, xoxp-), 4 boundary/minimum-length tests, 3 false-positive prevention tests, 1 extra short-PAT rejection test
+  - 7 tests for `HookContext` shape: compile-time type assertion, runtime property audit across all 11 HookContext properties, NOOP_CTX callability, `buildContext()` shape parity
 - **CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)
   - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings
   - Stop hook `preventContinuation:true` semantics restored
@@ -26,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **HookContext DI migration completed** — all 208 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback
+- **HookContext DI migration completed** — all 214 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback
   - `buildContext()` factory + `createTestContext()` test helper for dependency injection
   - Shared mock factory replaces inline mocks across 137 test files
   - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`
@@ -147,7 +151,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Option E**: Replaced 32 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)
+- **Option E**: Replaced 37 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)
 - `scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes
 - `vendor/vercel-skills/mapping.json` — 37 refs across 4 Vercel repos → 6 skill dirs (committed for offline builds)
 - `docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files
