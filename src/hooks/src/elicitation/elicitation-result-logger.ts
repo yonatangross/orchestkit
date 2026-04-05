@@ -12,14 +12,15 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
-export function elicitationResultLogger(input: HookInput, ctx?: HookContext): HookResult {
+export function elicitationResultLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const action = input.elicitation_action || 'unknown';
   const server = input.mcp_server_name || 'unknown';
   const mode = input.elicitation_mode || 'unknown';
 
-  (ctx?.log ?? logHook)('elicitation-result-logger',
+  ctx.log('elicitation-result-logger',
     `Elicitation ${action} — server: ${server}, mode: ${mode}`
   );
 

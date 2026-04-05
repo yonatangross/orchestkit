@@ -31,7 +31,6 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 import { issueWorkSummary } from '../../stop/issue-work-summary.js';
 import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 

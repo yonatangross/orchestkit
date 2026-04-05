@@ -15,9 +15,10 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getLogDir } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'task-progress-tracker';
 
@@ -48,14 +49,14 @@ function loadState(sessionId: string): ProgressState {
   return { total: 0, completed: 0, task_ids: [], session_id: sessionId };
 }
 
-function saveState(state: ProgressState): void {
+function saveState(state: ProgressState, ctx: HookContext = NOOP_CTX): void {
   try {
     const path = getStatePath();
     const dir = dirname(path);
     mkdirSync(dir, { recursive: true });
     atomicWriteSync(path, JSON.stringify(state));
   } catch {
-    logHook(HOOK_NAME, 'Failed to persist state', 'warn');
+    ctx.log(HOOK_NAME, 'Failed to persist state', 'warn');
   }
 }
 
@@ -73,7 +74,7 @@ function renderProgressBar(completed: number, total: number): string {
 /**
  * Track task progress and emit progress bar on completion
  */
-export function taskProgressTracker(input: HookInput, ctx?: HookContext): HookResult {
+export function taskProgressTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const taskStatus = input.task_status || '';
   const taskId = input.task_id || '';
   const taskSubject = input.task_subject || '';
@@ -99,13 +100,13 @@ export function taskProgressTracker(input: HookInput, ctx?: HookContext): HookRe
       if (total > state.total) state.total = total;
     }
 
-    saveState(state);
+    saveState(state, ctx);
 
     // Only show progress bar if we have a meaningful total
     if (state.total >= 2) {
       const bar = renderProgressBar(state.completed, state.total);
       process.stderr.write(`${bar} phases complete\n`);
-      (ctx?.log ?? logHook)(HOOK_NAME, `Progress: ${state.completed}/${state.total}`);
+      ctx.log(HOOK_NAME, `Progress: ${state.completed}/${state.total}`);
     }
   }
 

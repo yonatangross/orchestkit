@@ -13,9 +13,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getPluginRoot } from '../lib/common.js';
+import { outputSilentSuccess, getPluginRoot } from '../lib/common.js';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'cwd-changed';
 
@@ -165,7 +166,7 @@ function matchSkillsByDirectory(dir: string): string[] {
   return [...matched].sort();
 }
 
-export function cwdChanged(input: HookInput, ctx?: HookContext): HookResult {
+export function cwdChanged(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const oldCwd = input.old_cwd || '';
   const newCwd = input.new_cwd || '';
 
@@ -173,7 +174,7 @@ export function cwdChanged(input: HookInput, ctx?: HookContext): HookResult {
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Directory changed: ${oldCwd} → ${newCwd}`);
+  ctx.log(HOOK_NAME, `Directory changed: ${oldCwd} → ${newCwd}`);
 
   const watchPaths = getWatchPaths(newCwd);
 

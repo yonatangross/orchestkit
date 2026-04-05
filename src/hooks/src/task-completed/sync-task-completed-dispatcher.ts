@@ -17,16 +17,17 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
+import { outputSilentSuccess, extractContext } from '../lib/common.js';
 
 // Import existing handler functions
 import { completionTracker } from './completion-tracker.js';
 import { taskCommitLinker } from './task-commit-linker.js';
 import { taskProgressTracker } from './task-progress-tracker.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-task-completed-dispatcher';
 
-export async function syncTaskCompletedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
+export async function syncTaskCompletedDispatcher(input: HookInput, hookCtx: HookContext = NOOP_CTX): Promise<HookResult> {
   const contextParts: string[] = [];
 
   // Phase 1: Completion tracking (analytics + event log) — async
@@ -35,7 +36,7 @@ export async function syncTaskCompletedDispatcher(input: HookInput, hookCtx?: Ho
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    (hookCtx?.log ?? logHook)(HOOK_NAME, `completion-tracker failed: ${(err as Error).message}`, 'warn');
+    hookCtx.log(HOOK_NAME, `completion-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 2: Commit linker (advisory — only if dirty files) — sync
@@ -44,14 +45,14 @@ export async function syncTaskCompletedDispatcher(input: HookInput, hookCtx?: Ho
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-commit-linker failed: ${(err as Error).message}`, 'warn');
+    hookCtx.log(HOOK_NAME, `task-commit-linker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 3: Progress tracker (stderr progress bar) — sync
   try {
     taskProgressTracker(input, hookCtx);
   } catch (err) {
-    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-progress-tracker failed: ${(err as Error).message}`, 'warn');
+    hookCtx.log(HOOK_NAME, `task-progress-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   if (contextParts.length === 0) return outputSilentSuccess();

@@ -66,7 +66,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecycle/usage-summary-reporter.js';
-import { logHook } from '../../lib/common.js';
+
 import { getWebhookUrl } from '../../lib/orchestration-state.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';

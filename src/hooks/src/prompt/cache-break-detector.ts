@@ -21,11 +21,12 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, fnv1aHash } from '../lib/common.js';
+import { outputSilentSuccess, fnv1aHash } from '../lib/common.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -174,7 +175,7 @@ export function computeDelta(prev: string[], curr: string[]): ShapeDelta {
  * and logs a cache-break signal when the shape changes.
  * Never produces context output — analytics only.
  */
-export function cacheBreakDetector(input: HookInput, ctx?: HookContext): HookResult {
+export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const prompt = input.prompt || '';
 
   // Skip empty/trivial prompts (no injections to detect)
@@ -205,7 +206,7 @@ export function cacheBreakDetector(input: HookInput, ctx?: HookContext): HookRes
 
     // First turn: no comparison possible — just record baseline
     if (!prevState) {
-      (ctx?.log ?? logHook)(HOOK_NAME, `Baseline shape recorded: ${currentMarkers.length} markers, hash=${currentHash}`);
+      ctx.log(HOOK_NAME, `Baseline shape recorded: ${currentMarkers.length} markers, hash=${currentHash}`);
       return outputSilentSuccess();
     }
 
@@ -217,7 +218,7 @@ export function cacheBreakDetector(input: HookInput, ctx?: HookContext): HookRes
     // Shape changed — potential cache break
     const delta = computeDelta(prevState.lastMarkers, currentMarkers);
 
-    (ctx?.log ?? logHook)(HOOK_NAME, `Shape change detected at turn ${turnCount}: +${delta.added.length}/-${delta.removed.length} markers`);
+    ctx.log(HOOK_NAME, `Shape change detected at turn ${turnCount}: +${delta.added.length}/-${delta.removed.length} markers`);
 
     // Estimate token cost of re-tokenization
     // Rough heuristic: each marker indicates ~200-500 tokens of injected context
@@ -226,7 +227,7 @@ export function cacheBreakDetector(input: HookInput, ctx?: HookContext): HookRes
     // Log to cross-project analytics
     appendAnalytics('cache-breaks.jsonl', {
       ts: new Date().toISOString(),
-      pid: hashProject(ctx?.projectDir ?? getProjectDir()),
+      pid: hashProject(ctx.projectDir),
       turn: turnCount,
       prev_hash: prevState.lastShapeHash,
       curr_hash: currentHash,
@@ -240,7 +241,7 @@ export function cacheBreakDetector(input: HookInput, ctx?: HookContext): HookRes
     });
   } catch (error) {
     // Never crash the hook chain
-    (ctx?.log ?? logHook)(HOOK_NAME, `Error: ${error}`, 'warn');
+    ctx.log(HOOK_NAME, `Error: ${error}`, 'warn');
   }
 
   return outputSilentSuccess();

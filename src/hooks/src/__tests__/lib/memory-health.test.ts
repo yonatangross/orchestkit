@@ -8,7 +8,6 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { checkMemoryHealth, analyzeJsonlFile } from '../../lib/memory-health.js';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
@@ -20,8 +19,9 @@ vi.mock('node:fs', () => ({
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
+// Import after mocks
+import { checkMemoryHealth, analyzeJsonlFile } from '../../lib/memory-health.js';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
@@ -37,10 +37,8 @@ function mockStat(size: number, mtime: Date = new Date('2025-01-15T10:00:00Z')):
   } as unknown as ReturnType<typeof statSync>;
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('analyzeJsonlFile', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 

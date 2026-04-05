@@ -12,8 +12,9 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, getField, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface ProgressFile {
   session_id: string;
@@ -181,7 +182,7 @@ function queueCommitProgress(
 /**
  * Queue commit progress for GitHub issue updates
  */
-export function issueProgressCommenter(input: HookInput, ctx?: HookContext): HookResult {
+export function issueProgressCommenter(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process Bash tool
@@ -197,13 +198,13 @@ export function issueProgressCommenter(input: HookInput, ctx?: HookContext): Hoo
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)('issue-progress-commenter', 'Processing git commit command...');
+  ctx.log('issue-progress-commenter', 'Processing git commit command...');
 
   // Check if gh CLI is available
   try {
     execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
   } catch {
-    (ctx?.log ?? logHook)('issue-progress-commenter', 'gh CLI not available, skipping issue progress tracking');
+    ctx.log('issue-progress-commenter', 'gh CLI not available, skipping issue progress tracking');
     return outputSilentSuccess();
   }
 
@@ -215,7 +216,7 @@ export function issueProgressCommenter(input: HookInput, ctx?: HookContext): Hoo
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     if (!remote.includes('github')) {
-      (ctx?.log ?? logHook)('issue-progress-commenter', 'Not a GitHub repository, skipping');
+      ctx.log('issue-progress-commenter', 'Not a GitHub repository, skipping');
       return outputSilentSuccess();
     }
   } catch {
@@ -225,7 +226,7 @@ export function issueProgressCommenter(input: HookInput, ctx?: HookContext): Hoo
   // Get branch and commit info
   const branch = getCurrentBranch();
   if (!branch) {
-    (ctx?.log ?? logHook)('issue-progress-commenter', 'Could not determine current branch');
+    ctx.log('issue-progress-commenter', 'Could not determine current branch');
     return outputSilentSuccess();
   }
 
@@ -248,29 +249,29 @@ export function issueProgressCommenter(input: HookInput, ctx?: HookContext): Hoo
 
   // If no issue number found, skip silently
   if (!issueNum) {
-    (ctx?.log ?? logHook)('issue-progress-commenter', `No issue number found in branch '${branch}' or commit message`);
+    ctx.log('issue-progress-commenter', `No issue number found in branch '${branch}' or commit message`);
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)('issue-progress-commenter', `Found issue #${issueNum}`);
+  ctx.log('issue-progress-commenter', `Found issue #${issueNum}`);
 
   // Verify issue exists (quick check)
   try {
     execFileSync('gh', ['issue', 'view', issueNum, '--json', 'number'], { stdio: ['pipe', 'pipe', 'pipe'], timeout: 5000 });
   } catch {
-    (ctx?.log ?? logHook)('issue-progress-commenter', `Issue #${issueNum} not found or not accessible`);
+    ctx.log('issue-progress-commenter', `Issue #${issueNum} not found or not accessible`);
     return outputSilentSuccess();
   }
 
   // Get commit info and queue it
   const commit = getLatestCommit();
   if (!commit) {
-    (ctx?.log ?? logHook)('issue-progress-commenter', 'Could not get commit info');
+    ctx.log('issue-progress-commenter', 'Could not get commit info');
     return outputSilentSuccess();
   }
 
   // Sanitize session ID - prefer input.session_id, fallback to getSessionId()
-  const sessionId = (input.session_id || (ctx?.sessionId ?? getSessionId())).replace(/[^a-zA-Z0-9_-]/g, '');
+  const sessionId = (input.session_id || (ctx.sessionId)).replace(/[^a-zA-Z0-9_-]/g, '');
   const progressFile = `${getSessionTempDir(sessionId)}/issue-progress.json`;
 
   queueCommitProgress(issueNum, commit, branch, progressFile, sessionId);

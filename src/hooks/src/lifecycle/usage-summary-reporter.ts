@@ -18,12 +18,13 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { getSessionId, getCachedBranch, getProjectDir, logHook, outputSilentSuccess } from '../lib/common.js';
+import { getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
 import { signPayload as signPayloadFn } from '../lib/crypto.js';
 import { flushAll } from '../lib/telemetry.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Re-export for backwards compatibility — canonical source is lib/crypto.ts
 export { signPayload } from '../lib/crypto.js';
@@ -50,12 +51,12 @@ export function getProjectSlug(input?: HookInput): string {
   return dir.split('/').pop() || 'unknown';
 }
 
-export async function usageSummaryReporter(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function usageSummaryReporter(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   const hookUrl = getWebhookUrl();
   const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
 
   if (!hookUrl || !hookToken) {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
+    ctx.log(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
     return outputSilentSuccess();
   }
 
@@ -65,7 +66,7 @@ export async function usageSummaryReporter(input: HookInput, ctx?: HookContext):
 
     const payload = {
       event: input.hook_event ?? 'SessionEnd',
-      session_id: input.session_id || (ctx?.sessionId ?? getSessionId()),
+      session_id: input.session_id || (ctx.sessionId),
       project: getProjectSlug(input),
       timestamp: new Date().toISOString(),
       data: {
@@ -83,7 +84,7 @@ export async function usageSummaryReporter(input: HookInput, ctx?: HookContext):
         },
       },
       metadata: {
-        branch: ctx?.branch ?? getCachedBranch(),
+        branch: ctx.branch,
         hook_version: HOOK_VERSION,
       },
     };
@@ -92,7 +93,7 @@ export async function usageSummaryReporter(input: HookInput, ctx?: HookContext):
     const signature = signPayloadFn(body, hookToken);
     const url = `${hookUrl.replace(/\/$/, '')}/ingest`;
 
-    (ctx?.log ?? logHook)(HOOK_NAME, `POSTing usage summary to ${url} (skills: ${summary.skills_used.length}, hooks: ${summary.hooks_triggered.length})`);
+    ctx.log(HOOK_NAME, `POSTing usage summary to ${url} (skills: ${summary.skills_used.length}, hooks: ${summary.hooks_triggered.length})`);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -101,10 +102,10 @@ export async function usageSummaryReporter(input: HookInput, ctx?: HookContext):
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
-    (ctx?.log ?? logHook)(HOOK_NAME, `POST complete: ${response.status}`);
+    ctx.log(HOOK_NAME, `POST complete: ${response.status}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    (ctx?.log ?? logHook)(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
   }
 
   // Flush all telemetry sinks (JSONL rotation + cleanup)

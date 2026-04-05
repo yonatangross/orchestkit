@@ -6,19 +6,20 @@
 
 import { existsSync, } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, getProjectDir, lineContainsAll } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock, lineContainsAll } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Enforce pattern consistency across codebase
  */
-export function patternConsistencyEnforcer(input: HookInput, ctx?: HookContext): HookResult {
+export function patternConsistencyEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
   if (!filePath || !content) return outputSilentSuccess();
 
-  const projectRoot = getRepoRoot() || (ctx?.projectDir ?? getProjectDir());
+  const projectRoot = getRepoRoot() || (ctx.projectDir);
   const patternsFile = `${projectRoot}/.claude/context/knowledge/patterns/established.json`;
 
   // Skip if no patterns file

@@ -9,12 +9,12 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { getProjectDir } from '../lib/common.js';
 import { appendEventLog } from '../lib/event-logger.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { NOOP_CTX } from '../lib/context.js';
 
-export async function progressReporter(input: HookInput, ctx?: HookContext): Promise<HookResult> {
-  if (!(ctx?.projectDir ?? getProjectDir())) {
+export async function progressReporter(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  if (!(ctx.projectDir)) {
     return { continue: true };
   }
 

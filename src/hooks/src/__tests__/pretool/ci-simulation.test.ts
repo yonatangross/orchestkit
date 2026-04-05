@@ -13,9 +13,10 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { ciSimulation } from '../../pretool/bash/ci-simulation.js';
 import type { HookInput } from '../../types.js';

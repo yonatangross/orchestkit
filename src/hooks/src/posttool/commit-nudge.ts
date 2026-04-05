@@ -17,10 +17,11 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getLogDir } from '../lib/paths.js';
 import { getDirtyFileCount } from '../lib/git.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'commit-nudge';
 
@@ -56,14 +57,14 @@ function loadState(): NudgeState {
   };
 }
 
-function saveState(state: NudgeState): void {
+function saveState(state: NudgeState, ctx: HookContext = NOOP_CTX): void {
   try {
     const path = getStatePath();
     const dir = dirname(path);
     mkdirSync(dir, { recursive: true });
     atomicWriteSync(path, JSON.stringify(state));
   } catch {
-    logHook(HOOK_NAME, 'Failed to persist state', 'warn');
+    ctx.log(HOOK_NAME, 'Failed to persist state', 'warn');
   }
 }
 
@@ -79,13 +80,13 @@ function isRecentCommit(command: string): boolean {
 /**
  * Commit nudge hook — escalating reminders based on dirty files and time
  */
-export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
+export function commitNudge(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Disabled by env var
   if (process.env.ORCHESTKIT_AUTO_COMMIT_NUDGE === 'false') {
     return outputSilentSuccess();
   }
 
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
   if (!projectDir) return outputSilentSuccess();
 
   const state = loadState();
@@ -98,7 +99,7 @@ export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
     state.last_commit_ts = now;
     state.last_nudge_level = 'none';
     state.last_nudge_ts = 0;
-    saveState(state);
+    saveState(state, ctx);
     return outputSilentSuccess();
   }
 
@@ -119,8 +120,8 @@ export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
   if (dirtyCount >= URGENT_THRESHOLD && state.last_nudge_level !== 'urgent') {
     state.last_nudge_level = 'urgent';
     state.last_nudge_ts = now;
-    saveState(state);
-    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — urgent nudge`);
+    saveState(state, ctx);
+    ctx.log(HOOK_NAME, `${dirtyCount} dirty files — urgent nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files — this is a lot of unsaved work. Commit NOW to prevent loss from rate limits or session interruption. Use /ork:commit to commit.`
     );
@@ -129,8 +130,8 @@ export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
   if (dirtyCount >= WARN_THRESHOLD && (state.last_nudge_level === 'none' || state.last_nudge_level === 'info' || state.last_nudge_level === 'time')) {
     state.last_nudge_level = 'warn';
     state.last_nudge_ts = now;
-    saveState(state);
-    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — warn nudge`);
+    saveState(state, ctx);
+    ctx.log(HOOK_NAME, `${dirtyCount} dirty files — warn nudge`);
     return outputWithContext(
       `[Commit Nudge] ${dirtyCount} uncommitted files. Consider committing intermediate progress to avoid losing work.`
     );
@@ -139,8 +140,8 @@ export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
   if (dirtyCount >= INFO_THRESHOLD && state.last_nudge_level === 'none') {
     state.last_nudge_level = 'info';
     state.last_nudge_ts = now;
-    saveState(state);
-    (ctx?.log ?? logHook)(HOOK_NAME, `${dirtyCount} dirty files — info nudge`);
+    saveState(state, ctx);
+    ctx.log(HOOK_NAME, `${dirtyCount} dirty files — info nudge`);
     // Info level: stderr only (user sees, Claude doesn't)
     process.stderr.write(`[commit-nudge] ${dirtyCount} uncommitted files — consider committing soon\n`);
     return outputSilentSuccess();
@@ -150,9 +151,9 @@ export function commitNudge(input: HookInput, ctx?: HookContext): HookResult {
   if (timeSinceCommit >= TIME_NUDGE_MS && state.last_nudge_level !== 'urgent') {
     state.last_nudge_level = 'time';
     state.last_nudge_ts = now;
-    saveState(state);
+    saveState(state, ctx);
     const mins = Math.round(timeSinceCommit / 60000);
-    (ctx?.log ?? logHook)(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
+    ctx.log(HOOK_NAME, `${mins}min since last commit, ${dirtyCount} dirty files`);
     return outputWithContext(
       `[Commit Nudge] ${mins} minutes since last commit with ${dirtyCount} uncommitted file(s). Consider committing to preserve progress. Use /ork:commit for a quick conventional commit.`
     );

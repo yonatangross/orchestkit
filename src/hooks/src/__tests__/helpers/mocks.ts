@@ -123,7 +123,7 @@ export function createChildProcessMock(overrides: Record<string, unknown> = {}) 
  * Use with vi.mock('node:path', () => createPathMock())
  */
 export function createPathMock(overrides: Record<string, unknown> = {}) {
-  return {
+  const named = {
     join: vi.fn((...args: string[]) => args.join('/')),
     basename: vi.fn((p: string) => p.split('/').pop() || ''),
     dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
@@ -132,8 +132,10 @@ export function createPathMock(overrides: Record<string, unknown> = {}) {
       const lastDot = p.lastIndexOf('.');
       return lastDot > 0 ? p.slice(lastDot) : '';
     }),
+    sep: '/',
     ...overrides,
   };
+  return { ...named, default: named };
 }
 
 // =============================================================================

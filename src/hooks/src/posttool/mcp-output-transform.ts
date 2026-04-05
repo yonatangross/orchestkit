@@ -27,9 +27,10 @@
  */
 
 import type { HookInput, HookResult, HookMeta , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -206,7 +207,7 @@ function logTransform(entry: {
 // Hook Entry Point
 // -----------------------------------------------------------------------------
 
-export function mcpOutputTransform(input: HookInput, ctx?: HookContext): HookResult {
+export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Guard: only process MCP tool calls
@@ -263,7 +264,7 @@ export function mcpOutputTransform(input: HookInput, ctx?: HookContext): HookRes
     pii_redactions: redactionCount,
   });
 
-  (ctx?.log ?? logHook)(
+  ctx.log(
     'mcp-output-transform',
     `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions`,
     truncated || redactionCount > 0 ? 'info' : 'debug',

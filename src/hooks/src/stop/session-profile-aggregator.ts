@@ -13,7 +13,7 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { resolveUserIdentity, canShare, getPrivacySettings } from '../lib/user-identity.js';
 // GAP-012: Removed trackSessionEnd import - handled by session-end-tracking.ts
 import { generateSessionSummary } from '../lib/session-tracker.js';
@@ -23,18 +23,19 @@ import {
   aggregateSession,
   exportForGlobal,
 } from '../lib/user-profile.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Aggregate session data into user profile
  */
-export function sessionProfileAggregator(_input: HookInput, ctx?: HookContext): HookResult {
+export function sessionProfileAggregator(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     // GAP-012: trackSessionEnd() removed - handled by session-end-tracking.ts hook
     // Both hooks run in Stop dispatcher, avoiding duplicate session_end events
 
     // Get user identity
     const identity = resolveUserIdentity();
-    (ctx?.log ?? logHook)('session-profile-aggregator', `Aggregating session for ${identity.user_id}`, 'debug');
+    ctx.log('session-profile-aggregator', `Aggregating session for ${identity.user_id}`, 'debug');
 
     // Generate session summary
     const summary = generateSessionSummary();
@@ -45,7 +46,7 @@ export function sessionProfileAggregator(_input: HookInput, ctx?: HookContext): 
       summary.agents_spawned.length === 0 &&
       summary.decisions_made === 0
     ) {
-      (ctx?.log ?? logHook)('session-profile-aggregator', 'No meaningful activity to aggregate', 'debug');
+      ctx.log('session-profile-aggregator', 'No meaningful activity to aggregate', 'debug');
       return outputSilentSuccess();
     }
 
@@ -56,11 +57,11 @@ export function sessionProfileAggregator(_input: HookInput, ctx?: HookContext): 
     // Save updated profile
     const saved = saveUserProfile(updatedProfile);
     if (!saved) {
-      (ctx?.log ?? logHook)('session-profile-aggregator', 'Failed to save profile', 'warn');
+      ctx.log('session-profile-aggregator', 'Failed to save profile', 'warn');
       return outputSilentSuccess();
     }
 
-    (ctx?.log ?? logHook)(
+    ctx.log(
       'session-profile-aggregator',
       `Aggregated session: ${summary.skills_used.length} skills, ${summary.agents_spawned.length} agents, ${summary.decisions_made} decisions`,
       'info'
@@ -77,7 +78,7 @@ export function sessionProfileAggregator(_input: HookInput, ctx?: HookContext): 
       );
 
       if (generalizableDecisions.length > 0) {
-        (ctx?.log ?? logHook)(
+        ctx.log(
           'session-profile-aggregator',
           `${generalizableDecisions.length} decisions eligible for global sharing`,
           'info'
@@ -87,7 +88,7 @@ export function sessionProfileAggregator(_input: HookInput, ctx?: HookContext): 
 
     return outputSilentSuccess();
   } catch (error) {
-    (ctx?.log ?? logHook)('session-profile-aggregator', `Error aggregating session: ${error}`, 'error');
+    ctx.log('session-profile-aggregator', `Error aggregating session: ${error}`, 'error');
     return outputSilentSuccess();
   }
 }

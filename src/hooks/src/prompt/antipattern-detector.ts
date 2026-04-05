@@ -5,7 +5,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Keywords that suggest implementation work where antipatterns matter
 const IMPLEMENTATION_KEYWORDS = [
@@ -43,9 +44,9 @@ function detectCategory(prompt: string): string {
 /**
  * Antipattern detector - suggests checking graph memory for known failures
  */
-export function antipatternDetector(input: HookInput, ctx?: HookContext): HookResult {
+export function antipatternDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const prompt = input.prompt || '';
-  const _projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const _projectDir = input.project_dir || (ctx.projectDir);
 
   // Skip if prompt too short
   if (prompt.length < 30) {
@@ -67,12 +68,12 @@ export function antipatternDetector(input: HookInput, ctx?: HookContext): HookRe
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)('antipattern-detector', `Implementation keyword detected: ${matchedKeyword}`);
+  ctx.log('antipattern-detector', `Implementation keyword detected: ${matchedKeyword}`);
 
   // Get category for search suggestion
   const category = detectCategory(prompt);
 
-  (ctx?.log ?? logHook)('antipattern-detector', `Suggesting antipattern check for: ${matchedKeyword} (category: ${category})`);
+  ctx.log('antipattern-detector', `Suggesting antipattern check for: ${matchedKeyword} (category: ${category})`);
 
   // Build search suggestion using graph memory MCP
   const systemMsg = `[Antipattern Check] Before implementing ${matchedKeyword}, check for known failures:

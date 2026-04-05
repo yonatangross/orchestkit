@@ -24,16 +24,13 @@ import { appendEventLog } from '../../lib/event-logger.js';
 import { getProjectDir } from '../../lib/common.js';
 import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Tests
 // =============================================================================
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('appendEventLog', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
     vi.mocked(existsSync).mockReturnValue(true);

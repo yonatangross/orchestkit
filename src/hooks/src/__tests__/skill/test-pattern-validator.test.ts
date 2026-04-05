@@ -18,6 +18,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { testPatternValidator } from '../../skill/test-pattern-validator.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -75,8 +76,10 @@ describe('MyComponent', () => {
 // Test Pattern Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('test-pattern-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -842,10 +845,10 @@ async def test_async_user():
       );
 
       // Act
-      testPatternValidator(input);
+      testPatternValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'test-pattern-validator',
         expect.stringContaining('BLOCKED'),
       );

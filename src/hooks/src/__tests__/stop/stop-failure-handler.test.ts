@@ -44,7 +44,6 @@ vi.mock('node:fs', () => ({
 }));
 
 import { stopFailureHandler } from '../../stop/stop-failure-handler.js';
-import { logHook } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { flushEventCounter, trackEvent } from '../../lib/session-tracker.js';
 import { flush as flushAnalyticsBuffer } from '../../lib/analytics-buffer.js';

@@ -23,6 +23,7 @@ import { commitNudge } from './commit-nudge.js';
 import { fingerprintSaver } from './expect/fingerprint-saver.js';
 // CC 2.1.90: format-on-save is now safe — the "File content has changed" race was fixed
 import { autoLint } from './auto-lint.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -96,7 +97,7 @@ export function matchesTool(toolName: string, matcher: string | string[]): boole
  * - Consistent timeout behavior
  * - Easier to debug and maintain
  */
-export async function unifiedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
+export async function unifiedDispatcher(input: HookInput, hookCtx: HookContext = NOOP_CTX): Promise<HookResult> {
   const toolName = input.tool_name || '';
 
   // Filter hooks that match this tool
@@ -110,7 +111,7 @@ export async function unifiedDispatcher(input: HookInput, hookCtx?: HookContext)
   const results = await Promise.allSettled(
     matchingHooks.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, hookCtx);
         // Handle both sync and async hooks
         const hookResult = result instanceof Promise ? await result : result;
         return { hook: hook.name, status: 'success' as const, result: hookResult };
@@ -139,7 +140,7 @@ export async function unifiedDispatcher(input: HookInput, hookCtx?: HookContext)
   }
 
   if (failures.length > 0) {
-    (hookCtx?.log ?? logHook)('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
+    hookCtx.log('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
   }
 
   // Forward collected additionalContext to CC (delivered on next turn for async hooks)

@@ -29,7 +29,7 @@ vi.mock('../../lib/task-integration.js', () => ({
 
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { logHook, outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../../lib/task-integration.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';

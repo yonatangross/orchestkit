@@ -11,14 +11,12 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface PRStatus {
   number: number;
@@ -52,9 +50,9 @@ function getPRStatus(projectDir: string, prNumber?: number): PRStatus | null {
 /**
  * Check PR status before merge
  */
-export function prMergeGate(input: HookInput, ctx?: HookContext): HookResult {
+export function prMergeGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process gh pr merge commands
   if (!/gh\s+pr\s+merge/.test(command)) {
@@ -74,7 +72,7 @@ export function prMergeGate(input: HookInput, ctx?: HookContext): HookResult {
 2. You're in a git repository
 3. PR exists and is accessible`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'PR status unavailable', input);
+    ctx.logPermission('allow', 'PR status unavailable', input);
     return outputAllowWithContext(context);
   }
 
@@ -106,7 +104,7 @@ export function prMergeGate(input: HookInput, ctx?: HookContext): HookResult {
     issues.push(
       'Feature merge — verify docs are updated: README, JSDoc, CHANGELOG, examples'
     );
-    (ctx?.log ?? logHook)('pr-merge-gate', 'Feature docs reminder added');
+    ctx.log('pr-merge-gate', 'Feature docs reminder added');
   }
 
   // --- Multi-instance quality gate (moved from multi-instance-quality-gate — #915) ---
@@ -122,7 +120,7 @@ export function prMergeGate(input: HookInput, ctx?: HookContext): HookResult {
           const failedGates = requiredGates.filter((g: string) => !gates[g]);
           if (failedGates.length > 0) {
             issues.push(`Quality gates failed: ${failedGates.join(', ')} — run before merging`);
-            (ctx?.log ?? logHook)('pr-merge-gate', `Quality gates: ${failedGates.join(', ')}`);
+            ctx.log('pr-merge-gate', `Quality gates: ${failedGates.join(', ')}`);
           }
         }
       } catch {
@@ -133,12 +131,12 @@ export function prMergeGate(input: HookInput, ctx?: HookContext): HookResult {
 
   if (issues.length > 0) {
     const context = `PR #${status.number} pre-merge check:\n${issues.join('\n')}\n\nResolve these before merging.`;
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', `PR issues: ${issues.join(', ')}`, input);
-    (ctx?.log ?? logHook)('pr-merge-gate', `PR #${status.number} has ${issues.length} issues`);
+    ctx.logPermission('allow', `PR issues: ${issues.join(', ')}`, input);
+    ctx.log('pr-merge-gate', `PR #${status.number} has ${issues.length} issues`);
     return outputAllowWithContext(context);
   }
 
   // PR looks good
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', `PR #${status.number} ready to merge`, input);
+  ctx.logPermission('allow', `PR #${status.number} ready to merge`, input);
   return outputSilentSuccess();
 }

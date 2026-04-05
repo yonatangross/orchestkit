@@ -32,7 +32,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { taskProgressTracker } from '../../task-completed/task-progress-tracker.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';

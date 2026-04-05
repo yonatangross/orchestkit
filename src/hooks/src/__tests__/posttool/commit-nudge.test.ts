@@ -32,13 +32,13 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { commitNudge } from '../../posttool/commit-nudge.js';
-import { outputWithContext, getProjectDir, logHook } from '../../lib/common.js';
+import { outputWithContext, getProjectDir } from '../../lib/common.js';
 import { getDirtyFileCount } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';

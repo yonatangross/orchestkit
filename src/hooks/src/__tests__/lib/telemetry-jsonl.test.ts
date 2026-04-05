@@ -26,12 +26,8 @@ import {
   rotateTelemetryIfNeeded,
   cleanOldTelemetryFiles,
 } from '../../lib/telemetry-jsonl.js';
-import { createTestContext } from '../fixtures/test-context.js';
-
-let testCtx: ReturnType<typeof createTestContext>;
 describe('Telemetry JSONL Sink', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     // Create fresh test directory
     mkdirSync(join(testDir, 'telemetry'), { recursive: true });
   });
@@ -131,7 +127,7 @@ describe('Telemetry JSONL Sink', () => {
 
     it('rotates file when it exceeds 10MB', async () => {
       // Create a file > 10MB
-      const bigLine = JSON.stringify({ event: 'test', data: 'x'.repeat(1000) }) + '\n';
+      const bigLine = `${JSON.stringify({ event: 'test', data: 'x'.repeat(1000) })}\n`;
       const lines = Math.ceil((10 * 1024 * 1024 + 1) / bigLine.length);
       writeFileSync(getTelemetryPath(), bigLine.repeat(lines));
 

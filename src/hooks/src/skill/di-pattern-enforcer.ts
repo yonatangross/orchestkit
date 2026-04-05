@@ -5,13 +5,14 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Enforce dependency injection patterns in FastAPI routers
  */
-export function diPatternEnforcer(input: HookInput, hookCtx?: HookContext): HookResult {
+export function diPatternEnforcer(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input?.file_path || '';
   const content = input.tool_input?.content || (input as any).tool_result || '';
 
@@ -137,7 +138,7 @@ export function diPatternEnforcer(input: HookInput, hookCtx?: HookContext): Hook
 
   // Report errors and block
   if (errors.length > 0) {
-    (hookCtx?.log ?? logHook)('di-pattern-enforcer', `BLOCKED: DI violation in ${filePath}`);
+    hookCtx.log('di-pattern-enforcer', `BLOCKED: DI violation in ${filePath}`);
     const ctx = `Dependency injection violation in ${filePath}. See stderr for details.`;
     return outputWithContext(ctx);
   }

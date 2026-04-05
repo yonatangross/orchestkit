@@ -17,7 +17,7 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { diPatternEnforcer } from '../../skill/di-pattern-enforcer.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================

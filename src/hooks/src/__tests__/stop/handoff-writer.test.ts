@@ -64,7 +64,6 @@ vi.mock('../../lib/learning-extractor.js', () => ({
 }));
 
 import { handoffWriter } from '../../stop/handoff-writer.js';
-import { logHook } from '../../lib/common.js';
 import { extractLearnings, formatLearnings } from '../../lib/learning-extractor.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -373,7 +372,7 @@ describe('stop/handoff-writer', () => {
       handoffWriter(input, testCtx);
 
       // logHook should have been called with handoff-writer and a message containing HANDOFF.md
-      const calls = testCtx.log.mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSuccessLog = calls.some(
         ([name, msg]) => name === 'handoff-writer' && String(msg).includes('HANDOFF.md'),
       );

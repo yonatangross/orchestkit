@@ -39,6 +39,7 @@ import { errorPatternWarner } from './error-pattern-warner.js';
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
 import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -53,7 +54,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface AdvisoryHookConfig {
   name: string;
@@ -97,7 +98,7 @@ export const registeredHookNames = () => [
  * 2. agent-browser-safety (can block)
  * 3. Advisory hooks (context producers, budget-capped)
  */
-export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // --- Phase 1: Input modifier (default-timeout-setter) ---
   let updatedInput: Record<string, unknown> | undefined;
 
@@ -108,7 +109,7 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx?: HookContex
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
   }
 
   // --- Phase 2: Blocking check (agent-browser-safety) ---
@@ -124,12 +125,12 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx?: HookContex
     browserContext = extractContext(browserResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Advisory hooks (context producers) ---
   // Always run all advisory hooks, prepend browser safety context if present
-  return mergeAdvisoryContext(input, updatedInput, browserContext);
+  return mergeAdvisoryContext(input, ctx, updatedInput, browserContext);
 }
 
 /**
@@ -137,6 +138,7 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx?: HookContex
  */
 function mergeAdvisoryContext(
   input: HookInput,
+  ctx: HookContext,
   updatedInput: Record<string, unknown> | undefined,
   prependContext: string | null,
 ): HookResult {
@@ -153,7 +155,7 @@ function mergeAdvisoryContext(
   // Run advisory hooks
   for (const hook of ADVISORY_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       const context = extractContext(result);
       if (!context) continue;

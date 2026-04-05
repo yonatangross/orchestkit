@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.91. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.92. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -223,6 +223,17 @@ OrchestKit requires Claude Code >= 2.1.91. This matrix documents which CC featur
 | `--resume` transcript chain fix | 2.1.91 | Async transcript write failures no longer lose conversation history | History loss on async write failure |
 | `permissions.defaultMode:"auto"` validation | 2.1.91 | JSON schema validates `auto` as permission mode | `auto` accepted but could cause issues |
 | Plan mode remote session fix | 2.1.91 | Plan file retained after container restart in remote sessions | Plan lost after container restart |
+| `forceRemoteSettingsRefresh` policy | 2.1.92 | Fail-closed startup: blocks until remote managed settings fetched, exits on failure | Stale managed settings on startup |
+| Stop hook `preventContinuation` fix | 2.1.92 | prompt-type Stop hooks no longer fail when small fast model returns `ok:false`; `preventContinuation:true` restored | Stop hooks could incorrectly fail |
+| Tool input JSON-string streaming fix | 2.1.92 | Array/object `tool_input` fields no longer emitted as JSON-encoded strings during streaming | PreToolUse hooks receive malformed tool_input |
+| Plugin MCP stuck "connecting" fix | 2.1.92 | Plugin MCP servers no longer stuck connecting when duplicating unauthenticated claude.ai connectors | MCP servers hang on session start |
+| Write tool diff perf | 2.1.92 | 60% faster diff computation for large files with tabs/&/$ characters | Slower Write tool on large files |
+| Remote Control hostname prefix | 2.1.92 | Session names default to hostname prefix, overridable with `--remote-control-session-name-prefix` | Generic session names |
+| Per-model `/cost` breakdown | 2.1.92 | `/cost` shows per-model and cache-hit breakdown for subscription users | Aggregate cost only |
+| `/tag` command removed | 2.1.92 | Removed — no OrchestKit references | N/A |
+| `/vim` command removed | 2.1.92 | Removed — toggle via `/config` → Editor mode | N/A |
+| Subagent tmux pane fix | 2.1.92 | Subagent spawning no longer fails after tmux windows killed/renumbered | "Could not determine pane count" error |
+| Prompt cache expiry hint | 2.1.92 | Pro users see uncached token count when returning after cache expires | No cache expiry visibility |
 
 ## Version Detection
 
@@ -265,7 +276,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.88 | Full+++++++++++++++ | PermissionDenied hook, auto permission mode, absolute file_path, compound if matching, NO_FLICKER |
 | >= 2.1.89 | Full++++++++++++++++ | defer permission, TaskCreated blocking, MCP_CONNECTION_NONBLOCKING, named subagent typeahead, hook disk spill |
 | >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
-| >= 2.1.91 | **Recommended** | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix — **current minimum** |
+| >= 2.1.91 | Full | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix |
+| >= 2.1.92 | **Recommended** | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix — **current minimum** |
 
 ## Doctor Check Implementation
 
@@ -344,7 +356,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
-| v7.29.x | 2.1.91 | MCP result size override (_meta annotation), disableSkillShellExecution, plugin bin/ executables, Edit shorter anchors, deep link multiline |
+| v7.29.x | 2.1.92 | forceRemoteSettingsRefresh policy, Stop hook preventContinuation fix, tool input JSON-string fix, plugin MCP dedup fix, Write perf 60%, /tag + /vim removed, MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors |
 | v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |
 | v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |
 | v7.23.x | 2.1.83 | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig sensitive, env scrub |

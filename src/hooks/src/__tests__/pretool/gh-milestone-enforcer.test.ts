@@ -32,7 +32,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
-import { logHook, outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------

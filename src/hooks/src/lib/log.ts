@@ -7,7 +7,7 @@ import { existsSync, statSync, renameSync, mkdirSync, readSync, readFileSync } f
 import { join } from 'node:path';
 import { atomicWriteSync } from './atomic-write.js';
 import { bufferWrite } from './analytics-buffer.js';
-import type { HookResult, HookInput } from '../types.js';
+import type { HookInput } from '../types.js';
 import { getLogDir, getSessionId, shouldLog } from './env.js';
 import { fnv1aHash } from './output.js';
 

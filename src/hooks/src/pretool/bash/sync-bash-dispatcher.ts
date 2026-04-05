@@ -34,12 +34,13 @@ import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 // Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
 import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
 
 interface BlockingHookConfig {
   name: string;
-  fn: (input: HookInput, ctx?: HookContext) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
 }
 
 /**
@@ -115,7 +116,7 @@ function buildMergedResult(
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext and updatedInput from all hooks.
  */
-export function syncBashDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
 
@@ -124,29 +125,29 @@ export function syncBashDispatcher(input: HookInput, ctx?: HookContext): HookRes
       const result = hook.fn(input, ctx);
 
       if (!result.continue) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
         return result;
       }
 
       // Short-circuit on defer decision (headless-defer returns permissionDecision: 'defer')
       if (result.hookSpecificOutput?.permissionDecision === 'defer') {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} deferred — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name} deferred — short-circuiting`);
         return result;
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
         updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: updatedInput collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);
       }
 
       const context = extractContext(result);
       if (context) {
         contextParts.push(context);
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: additionalContext collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 

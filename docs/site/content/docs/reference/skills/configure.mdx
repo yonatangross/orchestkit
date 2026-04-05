@@ -782,6 +782,39 @@ CC 2.1.91 uses shorter `old_string` anchors in the Edit tool, reducing output to
 
 `permissions.defaultMode: "auto"` is now validated by JSON schema in settings.json. Previously this value was silently accepted but could cause issues. OrchestKit's settings already use valid permission modes.
 
+## CC 2.1.92 Settings
+
+### forceRemoteSettingsRefresh Policy
+
+New managed policy setting for enterprise deployments. When set, CC blocks startup until remote managed settings are freshly fetched and exits if the fetch fails (fail-closed):
+
+```json
+{
+  "policy": {
+    "forceRemoteSettingsRefresh": true
+  }
+}
+```
+
+**Use case**: Enterprise environments where stale managed settings (permission policies, plugin allowlists, sandbox rules) are a compliance risk. Without this, CC falls back to cached `remote-settings.json` from a prior session.
+
+**Trade-off**: Startup requires network access — offline/air-gapped environments will fail to launch. Combine with `managed-settings.d/` (CC 2.1.83) for local policy fragments as fallback.
+
+**Doctor check**: `ork:doctor` warns if `forceRemoteSettingsRefresh` is set without a configured remote settings endpoint.
+
+### Remote Control Session Naming
+
+Remote Control session names now default to your hostname as prefix (e.g. `myhost-graceful-unicorn`). Override with:
+
+```bash
+claude --remote-control-session-name-prefix "my-prefix"
+```
+
+### Removed Commands
+
+- `/tag` — removed. No replacement needed.
+- `/vim` — removed. Toggle vim mode via `/config` → Editor mode instead.
+
 
 ### Http Hooks
 

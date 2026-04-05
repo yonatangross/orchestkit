@@ -8,12 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Problematic license patterns
@@ -53,9 +51,9 @@ function checkNpmLicenses(projectDir: string): string[] {
 /**
  * Check for license compliance on install commands
  */
-export function licenseCompliance(input: HookInput, ctx?: HookContext): HookResult {
+export function licenseCompliance(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process npm install, yarn add, or pip install commands
   if (!/npm\s+install|yarn\s+add|pip\s+install|poetry\s+add/.test(command)) {
@@ -87,8 +85,8 @@ Consider checking its license before adding.
 
 Use: npm view ${pkgName} license`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'License compliance warning', input);
-    (ctx?.log ?? logHook)('license-compliance', `Checking: ${pkgName}`);
+    ctx.logPermission('allow', 'License compliance warning', input);
+    ctx.log('license-compliance', `Checking: ${pkgName}`);
     return outputAllowWithContext(context);
   }
 
@@ -97,6 +95,6 @@ Use: npm view ${pkgName} license`;
 Verify license compatibility before production use.
 Check: npm view ${pkgName} license`;
 
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Installing package: ${pkgName}`, input);
+  ctx.logPermission('allow', `Installing package: ${pkgName}`, input);
   return outputAllowWithContext(context);
 }

@@ -22,13 +22,10 @@ import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  logHook,
-  getProjectDir,
-  getSessionId,
-  getCachedBranch,
 } from '../lib/common.js';
 import { extractLearnings, formatLearnings } from '../lib/learning-extractor.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'handoff-writer';
 
@@ -113,9 +110,9 @@ function extractSummary(lastMessage: string): string {
 /**
  * Handoff writer — Stop hook that writes .claude/HANDOFF.md
  */
-export function handoffWriter(input: HookInput, ctx?: HookContext): HookResult {
+export function handoffWriter(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
-    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+    const projectDir = input.project_dir || (ctx.projectDir);
     const claudeDir = join(projectDir, '.claude');
     const handoffPath = join(claudeDir, 'HANDOFF.md');
 
@@ -124,8 +121,8 @@ export function handoffWriter(input: HookInput, ctx?: HookContext): HookResult {
       mkdirSync(claudeDir, { recursive: true });
     }
 
-    const branch = ctx?.branch ?? getCachedBranch(projectDir);
-    const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
+    const branch = ctx.branch;
+    const sessionId = input.session_id || (ctx.sessionId);
     const now = `${new Date().toISOString().replace('T', ' ').slice(0, 19)} UTC`;
     const lastMessage = input.last_assistant_message || '';
 
@@ -169,10 +166,10 @@ export function handoffWriter(input: HookInput, ctx?: HookContext): HookResult {
     const content = `${sections.join('\n')}\n`;
     atomicWriteSync(handoffPath, content);
 
-    (ctx?.log ?? logHook)(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);
+    ctx.log(HOOK_NAME, `Wrote ${handoffPath} (${content.length} chars, ${modifiedFiles.length} files, ${learnings.length} learnings)`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to write handoff: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `Failed to write handoff: ${msg}`, 'warn');
   }
 
   return outputSilentSuccess();

@@ -13,9 +13,10 @@
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
+import { outputSilentSuccess, getField } from '../lib/common.js';
 import { basename } from 'node:path';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Get language from file extension
@@ -57,7 +58,7 @@ function commandExists(cmd: string): boolean {
 /**
  * Run auto-lint on written files
  */
-export function autoLint(input: HookInput, ctx?: HookContext): HookResult {
+export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Self-guard: Only run for Write/Edit
@@ -187,7 +188,7 @@ export function autoLint(input: HookInput, ctx?: HookContext): HookResult {
         break;
     }
   } catch (error) {
-    (ctx?.log ?? logHook)('auto-lint', `Error: ${error}`);
+    ctx.log('auto-lint', `Error: ${error}`);
   }
 
   // Build output message

@@ -24,10 +24,9 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
-  logHook,
-  getProjectDir,
   estimateTokenCount,
 } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'handoff-injector';
 
@@ -40,13 +39,13 @@ const MAX_TOKENS = 600;
 /**
  * Handoff injector — reads HANDOFF.md on first prompt and injects context
  */
-export function handoffInjector(input: HookInput, ctx?: HookContext): HookResult {
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+export function handoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = input.project_dir || (ctx.projectDir);
   const handoffPath = join(projectDir, '.claude', 'HANDOFF.md');
 
   // No handoff file — nothing to inject
   if (!existsSync(handoffPath)) {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'No HANDOFF.md found');
+    ctx.log(HOOK_NAME, 'No HANDOFF.md found');
     return outputSilentSuccess();
   }
 
@@ -55,11 +54,11 @@ export function handoffInjector(input: HookInput, ctx?: HookContext): HookResult
     const stats = statSync(handoffPath);
     const ageMs = Date.now() - stats.mtimeMs;
     if (ageMs > MAX_AGE_MS) {
-      (ctx?.log ?? logHook)(HOOK_NAME, `HANDOFF.md is ${Math.round(ageMs / 3600000)}h old (> 24h), skipping`);
+      ctx.log(HOOK_NAME, `HANDOFF.md is ${Math.round(ageMs / 3600000)}h old (> 24h), skipping`);
       return outputSilentSuccess();
     }
   } catch {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Cannot stat HANDOFF.md, skipping');
+    ctx.log(HOOK_NAME, 'Cannot stat HANDOFF.md, skipping');
     return outputSilentSuccess();
   }
 
@@ -69,12 +68,12 @@ export function handoffInjector(input: HookInput, ctx?: HookContext): HookResult
     content = readFileSync(handoffPath, 'utf8').trim();
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `Cannot read HANDOFF.md: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `Cannot read HANDOFF.md: ${msg}`, 'warn');
     return outputSilentSuccess();
   }
 
   if (!content || content.length < 20) {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'HANDOFF.md is empty or too short');
+    ctx.log(HOOK_NAME, 'HANDOFF.md is empty or too short');
     return outputSilentSuccess();
   }
 
@@ -84,20 +83,20 @@ export function handoffInjector(input: HookInput, ctx?: HookContext): HookResult
     // Truncate to roughly MAX_TOKENS worth of content
     const maxChars = MAX_TOKENS * 3; // ~3 chars per token
     content = `${content.substring(0, maxChars)}\n\n[...truncated for token budget]`;
-    (ctx?.log ?? logHook)(HOOK_NAME, `Truncated from ${tokens}t to ~${MAX_TOKENS}t`);
+    ctx.log(HOOK_NAME, `Truncated from ${tokens}t to ~${MAX_TOKENS}t`);
   }
 
   // Consume the handoff file (rename so it's not re-injected)
   try {
     const consumedPath = join(projectDir, '.claude', 'HANDOFF.md.consumed');
     renameSync(handoffPath, consumedPath);
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Renamed HANDOFF.md → HANDOFF.md.consumed');
+    ctx.log(HOOK_NAME, 'Renamed HANDOFF.md → HANDOFF.md.consumed');
   } catch {
     // Non-critical — the runOnce flag will prevent re-injection anyway
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Could not rename HANDOFF.md (runOnce flag will prevent re-run)', 'warn');
+    ctx.log(HOOK_NAME, 'Could not rename HANDOFF.md (runOnce flag will prevent re-run)', 'warn');
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Injecting handoff context (${estimateTokenCount(content)}t)`);
+  ctx.log(HOOK_NAME, `Injecting handoff context (${estimateTokenCount(content)}t)`);
 
   // Wrap with clear markers for Claude
   const injection = `[Previous Session Handoff]\n${content}\n[End Handoff — Continue from where the previous session left off]`;

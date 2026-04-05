@@ -20,7 +20,7 @@ const SENSITIVE_KEYS = ['password', 'secret', 'token', 'key', 'credential', 'aut
 
 // Patterns in string VALUES that indicate embedded secrets
 const SECRET_VALUE_PATTERNS = [
-  /sk-ant-[a-zA-Z0-9\-]{20,}/,                  // Anthropic API keys (sk-ant-api03-...)
+  /sk-ant-[a-zA-Z0-9-]{20,}/,                  // Anthropic API keys (sk-ant-api03-...)
   /sk-[a-zA-Z0-9]{20,}/,                       // OpenAI API keys (sk-...)
   /ghp_[a-zA-Z0-9]{36,}/,                      // GitHub PATs
   /gho_[a-zA-Z0-9]{36,}/,                      // GitHub OAuth tokens
@@ -28,8 +28,8 @@ const SECRET_VALUE_PATTERNS = [
   /xoxb-[a-zA-Z0-9-]{20,}/,                    // Slack bot tokens
   /xoxp-[a-zA-Z0-9-]{20,}/,                    // Slack user tokens
   /AKIA[A-Z0-9]{16}/,                          // AWS Access Key IDs
-  /AIza[a-zA-Z0-9_\-]{35}/,                    // Google/Firebase API keys
-  /Bearer\s+[a-zA-Z0-9._\-]{20,}/,             // Bearer tokens in headers
+  /AIza[a-zA-Z0-9_-]{35}/,                    // Google/Firebase API keys
+  /Bearer\s+[a-zA-Z0-9._-]{20,}/,             // Bearer tokens in headers
   /(?:export\s+\w*(?:KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)\w*\s*=\s*)([^\s;]+)/i, // env var assignments
   /(?:mongodb(?:\+srv)?:\/\/)[^\s]+/,           // MongoDB connection strings
   /(?:postgres(?:ql)?:\/\/)[^\s]+/,             // PostgreSQL connection strings
@@ -55,9 +55,9 @@ function redactSecretValues(value: string): string {
   for (const pattern of SECRET_VALUE_PATTERNS) {
     result = result.replace(pattern, (match) => {
       // Keep the prefix (export, Bearer, etc.) but redact the secret part
-      const prefixEnd = match.search(/[a-zA-Z0-9._\-]{20,}$/);
+      const prefixEnd = match.search(/[a-zA-Z0-9._-]{20,}$/);
       if (prefixEnd > 0) {
-        return match.slice(0, prefixEnd) + '[REDACTED]';
+        return `${match.slice(0, prefixEnd)}[REDACTED]`;
       }
       return '[REDACTED]';
     });

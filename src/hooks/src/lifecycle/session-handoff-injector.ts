@@ -18,9 +18,10 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { hashProject } from '../lib/analytics.js';
 import { getHomeDir, joinPath } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'session-handoff-injector';
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -39,36 +40,36 @@ function isStale(filePath: string): boolean {
   }
 }
 
-export function sessionHandoffInjector(input: HookInput, ctx?: HookContext): HookResult {
+export function sessionHandoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
-    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+    const projectDir = input.project_dir || (ctx.projectDir);
     const projectHash = hashProject(projectDir);
     const handoffPath = getHandoffPath(projectHash);
 
     if (!existsSync(handoffPath)) {
-      (ctx?.log ?? logHook)(HOOK_NAME, 'No handoff file found for this project');
+      ctx.log(HOOK_NAME, 'No handoff file found for this project');
       return outputSilentSuccess();
     }
 
     if (isStale(handoffPath)) {
-      (ctx?.log ?? logHook)(HOOK_NAME, 'Handoff file is >24h old, skipping injection');
+      ctx.log(HOOK_NAME, 'Handoff file is >24h old, skipping injection');
       return outputSilentSuccess();
     }
 
     const fileSize = statSync(handoffPath).size;
     if (fileSize > MAX_FILE_SIZE) {
-      (ctx?.log ?? logHook)(HOOK_NAME, `Handoff file too large (${fileSize} bytes), skipping injection`);
+      ctx.log(HOOK_NAME, `Handoff file too large (${fileSize} bytes), skipping injection`);
       return outputSilentSuccess();
     }
 
     const yaml = readFileSync(handoffPath, 'utf-8').trim();
     if (!yaml) {
-      (ctx?.log ?? logHook)(HOOK_NAME, 'Handoff file is empty');
+      ctx.log(HOOK_NAME, 'Handoff file is empty');
       return outputSilentSuccess();
     }
 
     const context = `[Previous Session Handoff]\n${yaml}\n[End Handoff]`;
-    (ctx?.log ?? logHook)(HOOK_NAME, `Injecting handoff context for project ${projectHash}`);
+    ctx.log(HOOK_NAME, `Injecting handoff context for project ${projectHash}`);
 
     return {
       continue: true,
@@ -78,7 +79,7 @@ export function sessionHandoffInjector(input: HookInput, ctx?: HookContext): Hoo
       },
     };
   } catch (err) {
-    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to inject handoff: ${err instanceof Error ? err.message : String(err)}`, 'warn');
+    ctx.log(HOOK_NAME, `Failed to inject handoff: ${err instanceof Error ? err.message : String(err)}`, 'warn');
     return outputSilentSuccess();
   }
 }

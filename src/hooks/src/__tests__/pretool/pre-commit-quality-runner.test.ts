@@ -22,15 +22,16 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { preCommitQualityRunner } from '../../pretool/bash/pre-commit-quality-runner.js';
 import type { HookInput } from '../../types.js';
 import { execSync, execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { logHook, outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
@@ -818,7 +819,7 @@ describe('pre-commit-quality-runner', () => {
       preCommitQualityRunner(input, testCtx);
 
       // Assert
-      const logCalls = testCtx.log.mock.calls;
+      const logCalls = vi.mocked(testCtx.log).mock.calls;
       const failureLog = logCalls.find(([, msg]) => String(msg).includes('failed'));
       expect(failureLog).toBeDefined();
     });

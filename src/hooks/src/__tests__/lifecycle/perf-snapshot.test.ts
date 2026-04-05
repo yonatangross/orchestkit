@@ -50,7 +50,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 // Import after mocks
 import { perfSnapshot } from '../../lifecycle/perf-snapshot.js';
 import { getTokenState } from '../../lib/token-tracker.js';
-import { logHook } from '../../lib/common.js';
+
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================

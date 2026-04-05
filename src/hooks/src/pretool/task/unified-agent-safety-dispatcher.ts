@@ -22,7 +22,6 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
-  logHook,
   estimateTokenCount,
   extractContext,
 } from '../../lib/common.js';
@@ -33,6 +32,7 @@ import { migrationSafetyCheck } from '../../agent/migration-safety-check.js';
 import { securityCommandAudit } from '../../agent/security-command-audit.js';
 import { ciSafetyCheck } from '../../agent/ci-safety-check.js';
 import { deploymentSafetyCheck } from '../../agent/deployment-safety-check.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -47,7 +47,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface SafetyHookConfig {
   name: string;
@@ -84,7 +84,7 @@ export const registeredHookNames = () => SAFETY_HOOKS.map(h => h.name);
  * Runs all hooks sequentially. If any blocking hook denies, returns immediately.
  * Otherwise, merges context from advisory hooks.
  */
-export function unifiedAgentSafetyDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedAgentSafetyDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
 
@@ -94,7 +94,7 @@ export function unifiedAgentSafetyDispatcher(input: HookInput, ctx?: HookContext
 
       // If hook blocks, return immediately
       if (!result.continue) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} blocked operation`);
+        ctx.log(HOOK_NAME, `${hook.name} blocked operation`);
         return result;
       }
 
@@ -104,16 +104,16 @@ export function unifiedAgentSafetyDispatcher(input: HookInput, ctx?: HookContext
 
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+        ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
         continue;
       }
 
       contextParts.push(context);
       totalTokens += contextTokens;
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
+      ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -124,6 +124,6 @@ export function unifiedAgentSafetyDispatcher(input: HookInput, ctx?: HookContext
 
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
-  (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
   return outputWithContext(consolidated);
 }

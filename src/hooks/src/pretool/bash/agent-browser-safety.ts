@@ -23,13 +23,12 @@ import {
   outputSilentSuccess,
   outputDeny,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
   getLogDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // =============================================================================
 // Configuration
@@ -449,14 +448,14 @@ function isSensitiveAction(command: string): boolean {
 /**
  * Validate agent-browser commands for safety
  */
-export function agentBrowserSafety(input: HookInput, ctx?: HookContext): HookResult {
+export function agentBrowserSafety(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
   // Check 0: AGENT_BROWSER_ENCRYPTION_KEY leak prevention (v0.16)
   // This check runs on ALL bash commands, not just agent-browser
   if (/AGENT_BROWSER_ENCRYPTION_KEY/.test(command) && /\b(echo|printf|cat|log|print)\b|>/.test(command)) {
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', 'Attempted to leak AGENT_BROWSER_ENCRYPTION_KEY', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', 'BLOCKED: encryption key leak attempt');
+    ctx.logPermission('deny', 'Attempted to leak AGENT_BROWSER_ENCRYPTION_KEY', input);
+    ctx.log('agent-browser-safety', 'BLOCKED: encryption key leak attempt');
 
     return outputDeny(
       `agent-browser blocked: AGENT_BROWSER_ENCRYPTION_KEY must never be echoed, logged, or piped.
@@ -479,8 +478,8 @@ This bypasses the file:// URL blocklist and allows reading local filesystem file
 Only use this flag when explicitly required for local file testing.
 Never combine with untrusted URLs or user-supplied paths.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', '--allow-file-access warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', '--allow-file-access flag detected');
+    ctx.logPermission('allow', '--allow-file-access warning', input);
+    ctx.log('agent-browser-safety', '--allow-file-access flag detected');
     return outputAllowWithContext(context);
   }
 
@@ -489,8 +488,8 @@ Never combine with untrusted URLs or user-supplied paths.`;
 
   // Check 1: URL blocklist
   if (url && isBlockedUrl(url)) {
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Blocked URL: ${url}`, input);
-    (ctx?.log ?? logHook)('agent-browser-safety', `BLOCKED: ${url}`);
+    ctx.logPermission('deny', `Blocked URL: ${url}`, input);
+    ctx.log('agent-browser-safety', `BLOCKED: ${url}`);
 
     return outputDeny(
       `agent-browser blocked: URL matches blocked pattern.
@@ -508,8 +507,8 @@ If this is intentional, use direct browser access instead.`
     if (domain) {
       const rateCheck = checkRateLimit(domain);
       if (!rateCheck.allowed) {
-        (ctx?.logPermission ?? logPermissionFeedback)('deny', rateCheck.reason || 'Rate limited', input);
-        (ctx?.log ?? logHook)('agent-browser-safety', `RATE LIMITED: ${domain}`);
+        ctx.logPermission('deny', rateCheck.reason || 'Rate limited', input);
+        ctx.log('agent-browser-safety', `RATE LIMITED: ${domain}`);
 
         return outputDeny(
           `agent-browser rate limited.
@@ -529,8 +528,8 @@ Wait a moment before retrying, or use --session <name> for isolated sessions.`
   if (url) {
     const robotsCheck = isAllowedByRobots(url);
     if (!robotsCheck.allowed) {
-      (ctx?.logPermission ?? logPermissionFeedback)('deny', robotsCheck.reason || 'Blocked by robots.txt', input);
-      (ctx?.log ?? logHook)('agent-browser-safety', `ROBOTS BLOCKED: ${url}`);
+      ctx.logPermission('deny', robotsCheck.reason || 'Blocked by robots.txt', input);
+      ctx.log('agent-browser-safety', `ROBOTS BLOCKED: ${url}`);
 
       return outputDeny(
         `agent-browser blocked by robots.txt.
@@ -562,8 +561,8 @@ Auto-denies after 60s timeout.
 
 Rate limit remaining: ${rateCheck.remaining}/${RATE_LIMITS.requestsPerMinute} per minute`;
 
-      (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Sensitive action — native confirmation enabled', input);
-      (ctx?.log ?? logHook)('agent-browser-safety', 'Sensitive action: native confirmation');
+      ctx.logPermission('allow', 'Sensitive action — native confirmation enabled', input);
+      ctx.log('agent-browser-safety', 'Sensitive action: native confirmation');
       return outputAllowWithContext(context);
     }
 
@@ -580,8 +579,8 @@ Rate limit remaining: ${rateCheck.remaining}/${RATE_LIMITS.requestsPerMinute} pe
 
 Proceed with caution. Verify target elements.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Sensitive action warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', 'Sensitive action detected');
+    ctx.logPermission('allow', 'Sensitive action warning', input);
+    ctx.log('agent-browser-safety', 'Sensitive action detected');
     return outputAllowWithContext(context);
   }
 
@@ -592,8 +591,8 @@ Proceed with caution. Verify target elements.`;
     const routeUrl = routeUrlMatch ? routeUrlMatch[1] : null;
 
     if (routeUrl && isBlockedUrl(routeUrl)) {
-      (ctx?.logPermission ?? logPermissionFeedback)('deny', `Blocked network route target: ${routeUrl}`, input);
-      (ctx?.log ?? logHook)('agent-browser-safety', `BLOCKED ROUTE: ${routeUrl}`);
+      ctx.logPermission('deny', `Blocked network route target: ${routeUrl}`, input);
+      ctx.log('agent-browser-safety', `BLOCKED ROUTE: ${routeUrl}`);
       return outputDeny(
         `agent-browser network route blocked: target URL matches blocked pattern.
 
@@ -610,8 +609,8 @@ Mocked responses bypass real server validation.
 Ensure mocked data matches expected API contracts.
 Use 'agent-browser network unroute' to clean up after testing.`;
 
-      (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Network mock warning', input);
-      (ctx?.log ?? logHook)('agent-browser-safety', 'Network mock detected');
+      ctx.logPermission('allow', 'Network mock warning', input);
+      ctx.log('agent-browser-safety', 'Network mock detected');
       return outputAllowWithContext(context);
     }
   }
@@ -624,8 +623,8 @@ Use 'agent-browser network unroute' to clean up after testing.`;
 These commands create a local network attack surface — avoid in shared/CI environments.
 Never expose the CDP port beyond localhost.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'DevTools inspect warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', 'inspect/cdp-url detected');
+    ctx.logPermission('allow', 'DevTools inspect warning', input);
+    ctx.log('agent-browser-safety', 'inspect/cdp-url detected');
     return outputAllowWithContext(context);
   }
 
@@ -635,8 +634,8 @@ Never expose the CDP port beyond localhost.`;
 Clipboard may contain sensitive data (passwords, tokens, personal information).
 Never log or transmit clipboard contents to external services.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Clipboard read warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', 'clipboard read detected');
+    ctx.logPermission('allow', 'Clipboard read warning', input);
+    ctx.log('agent-browser-safety', 'clipboard read detected');
     return outputAllowWithContext(context);
   }
 
@@ -647,8 +646,8 @@ Never log or transmit clipboard contents to external services.`;
 Treat HAR output files as credentials — never commit to git or share publicly.
 Clean up HAR files after use.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'HAR capture warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', 'network har stop detected');
+    ctx.logPermission('allow', 'HAR capture warning', input);
+    ctx.log('agent-browser-safety', 'network har stop detected');
     return outputAllowWithContext(context);
   }
 
@@ -659,12 +658,12 @@ Use --user-agent only to identify your automation tool (e.g., "MyBot/1.0").
 Do NOT spoof real browser user-agents to bypass bot detection — this violates ethical scraping rules.
 agent-browser identifies itself by default; only override when the target site requires a specific UA string.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', '--user-agent spoofing warning', input);
-    (ctx?.log ?? logHook)('agent-browser-safety', '--user-agent flag detected');
+    ctx.logPermission('allow', '--user-agent spoofing warning', input);
+    ctx.log('agent-browser-safety', '--user-agent flag detected');
     return outputAllowWithContext(context);
   }
 
   // Safe command
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'agent-browser command validated', input);
+  ctx.logPermission('allow', 'agent-browser command validated', input);
   return outputSilentSuccess();
 }

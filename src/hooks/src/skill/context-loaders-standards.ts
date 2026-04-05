@@ -11,8 +11,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { readPackageJson } from './context-loader-utils.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Implement Standards Loader — detects project framework stack.
@@ -21,8 +22,8 @@ import { readPackageJson } from './context-loader-utils.js';
  * Scans package.json, pyproject.toml, tsconfig.json to build a
  * framework standards summary injected once before agent spawning.
  */
-export function implementStandardsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
-  const projectDir = hookCtx?.projectDir ?? getProjectDir();
+export function implementStandardsLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
   const standards: string[] = [];
 
   // Node/TypeScript detection
@@ -99,7 +100,7 @@ export function implementStandardsLoader(_input: HookInput, hookCtx?: HookContex
  * Static content: review dimensions and output contract so each
  * review agent doesn't need them repeated in its prompt.
  */
-export function reviewDimensionsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
+export function reviewDimensionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Review Dimensions — loaded once]',
     'Score each dimension 0-10:',
@@ -121,7 +122,7 @@ export function reviewDimensionsLoader(_input: HookInput, hookCtx?: HookContext)
  *
  * Static content: 0-10 dimension definitions and pass/fail thresholds.
  */
-export function verifyScoringRubricLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
+export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Verification Rubric — loaded once]',
     'Grade scale: 0-10 per dimension, composite = weighted average',
@@ -145,7 +146,7 @@ export function verifyScoringRubricLoader(_input: HookInput, hookCtx?: HookConte
  *
  * Static content: divergent thinking rules and evaluation dimensions.
  */
-export function brainstormInstructionsLoader(_input: HookInput, hookCtx?: HookContext): HookResult {
+export function brainstormInstructionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Brainstorm Rules — loaded once]',
     'DIVERGENT MODE: Generate ideas WITHOUT filtering.',

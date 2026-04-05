@@ -46,10 +46,10 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (p: string, d: string) => mockAtomicWriteSync(p, d),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
@@ -270,7 +270,7 @@ describe('workflow-preference-learner', () => {
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(testCtx.log).toHaveBeenCalledWith(
+      expect(vi.mocked(logHook)).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Failed to save'),
         'warn',
@@ -287,7 +287,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getPrimaryWorkflowPreference(testCtx);
+      const result = getPrimaryWorkflowPreference();
 
       // Assert
       expect(result).toBeNull();
@@ -299,7 +299,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getPrimaryWorkflowPreference(testCtx);
+      const result = getPrimaryWorkflowPreference();
 
       // Assert
       expect(result).not.toBeNull();
@@ -317,7 +317,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getAllWorkflowPreferences(testCtx);
+      const result = getAllWorkflowPreferences();
 
       // Assert
       expect(result).toEqual([]);
@@ -329,7 +329,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getAllWorkflowPreferences(testCtx);
+      const result = getAllWorkflowPreferences();
 
       // Assert
       expect(result).toHaveLength(2);
@@ -348,7 +348,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData({ total_sessions: 2 })));
 
       // Act
-      const result = getWorkflowSummary(testCtx);
+      const result = getWorkflowSummary();
 
       // Assert
       expect(result).toBeNull();
@@ -365,7 +365,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(data));
 
       // Act
-      const result = getWorkflowSummary(testCtx);
+      const result = getWorkflowSummary();
 
       // Assert
       expect(result).toBeNull();
@@ -376,7 +376,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = getWorkflowSummary(testCtx);
+      const result = getWorkflowSummary();
 
       // Assert
       expect(result).toBeNull();
@@ -388,7 +388,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(makePreferencesData()));
 
       // Act
-      const result = getWorkflowSummary(testCtx);
+      const result = getWorkflowSummary();
 
       // Assert
       expect(result).not.toBeNull();
@@ -409,7 +409,7 @@ describe('workflow-preference-learner', () => {
       mockReadFileSync.mockReturnValue(JSON.stringify(data));
 
       // Act
-      const result = getWorkflowSummary(testCtx);
+      const result = getWorkflowSummary();
 
       // Assert
       expect(result).toContain('reads existing code before making changes');

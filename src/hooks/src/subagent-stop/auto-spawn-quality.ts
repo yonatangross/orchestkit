@@ -15,6 +15,7 @@ import { dirname } from 'node:path';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -264,7 +265,7 @@ function checkAutoSpawnConditions(agentType: string, agentOutput: string, error:
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function autoSpawnQuality(input: HookInput, ctx?: HookContext): HookResult {
+export function autoSpawnQuality(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const timestamp = new Date().toISOString();
 
   const toolInput = input.tool_input || {};

@@ -45,16 +45,15 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), join: vi.fn((...a: string[]) => a.join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 import { readmeSync } from '../../../posttool/write/readme-sync.js';
-import { logHook } from '../../../lib/common.js';
 import type { HookInput } from '../../../types.js';
 import { createTestContext } from '../../fixtures/test-context.js';
 

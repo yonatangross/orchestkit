@@ -41,7 +41,6 @@ vi.mock('../../lib/common.js', async () => {
 
 import { trackEvent, resetEventCounter, flushEventCounter } from '../../lib/session-tracker.js';
 import { flush as flushAnalytics } from '../../lib/analytics-buffer.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Real temp directory setup
@@ -67,10 +66,8 @@ function restoreEnv(): void {
   }
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('PLUGIN_DATA → session-tracker integration (real filesystem)', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     // Create a fresh temp dir per test
     tmpDir = mkdtempSync(path.join(os.tmpdir(), 'ork-integ-'));
     pluginDataDir = path.join(tmpDir, 'plugin-data');

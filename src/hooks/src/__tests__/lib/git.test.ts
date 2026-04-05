@@ -33,16 +33,13 @@ import {
   hasUncommittedChanges,
 } from '../../lib/git.js';
 import { execFileSync } from 'node:child_process';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Tests
 // =============================================================================
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('lib/git', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.ORCHESTKIT_PROTECTED_BRANCHES;
   });

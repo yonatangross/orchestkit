@@ -15,13 +15,12 @@ import {
   outputSilentSuccess,
   outputDeny,
   outputAsk,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
 import {
   containsDangerousCommand,
   normalizeSingle,
 } from '../../lib/normalize-command.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // =============================================================================
 // DENY tier — catastrophic system damage, NEVER legitimate
@@ -104,7 +103,7 @@ const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash|python[23]?|node|perl|ruby|tcls
 // Main handler
 // =============================================================================
 
-export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): HookResult {
+export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
   if (!command) return outputSilentSuccess();
 
@@ -112,8 +111,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   const dangerousCheck = containsDangerousCommand(command, DENY_PATTERNS);
   if (dangerousCheck.matches) {
     const pattern = dangerousCheck.matched!;
-    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Dangerous pattern: ${pattern}`, input);
+    ctx.log('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
+    ctx.logPermission('deny', `Dangerous pattern: ${pattern}`, input);
     return outputDeny(
       `Command matches dangerous pattern: ${pattern}\n\n` +
         'This command could cause severe system damage and has been blocked.',
@@ -124,8 +123,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   const normalizedForRegex = normalizeSingle(command);
   for (const { pattern, label } of DENY_REGEX_PATTERNS) {
     if (pattern.test(normalizedForRegex)) {
-      (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
-      (ctx?.logPermission ?? logPermissionFeedback)('deny', `Dangerous pattern: ${label}`, input);
+      ctx.log('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);
+      ctx.logPermission('deny', `Dangerous pattern: ${label}`, input);
       return outputDeny(
         `Command matches dangerous pattern: ${label}\n\n` +
           'This command could cause severe system damage and has been blocked.',
@@ -138,8 +137,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   // --- DENY tier: fork bomb ---
   if (normalizedCommand.includes(':(){:|:&};:')) {
     const reason = 'Fork bomb detected';
-    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', reason, input);
+    ctx.log('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    ctx.logPermission('deny', reason, input);
     return outputDeny(
       `Command matches dangerous pattern: :(){:|:&};:\n\n` +
         'This command could cause severe system damage and has been blocked.',
@@ -149,8 +148,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   // --- DENY tier: piping to shell interpreters ---
   if (PIPE_TO_SHELL_RE.test(normalizedCommand)) {
     const reason = 'Piping to shell interpreter detected';
-    (ctx?.log ?? logHook)('dangerous-command-blocker', `BLOCKED: ${reason}`);
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', reason, input);
+    ctx.log('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    ctx.logPermission('deny', reason, input);
     return outputDeny(
       `${reason}\n\n` +
         'Piping untrusted content to a shell interpreter is dangerous and has been blocked.',
@@ -165,8 +164,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   if (askSubstringCheck.matches) {
     const matched = ASK_PATTERNS.find((p) => p.pattern === askSubstringCheck.matched);
     if (matched) {
-      (ctx?.log ?? logHook)('dangerous-command-blocker', `ASK: ${matched.reason}`);
-      (ctx?.logPermission ?? logPermissionFeedback)('ask', matched.reason, input);
+      ctx.log('dangerous-command-blocker', `ASK: ${matched.reason}`);
+      ctx.logPermission('ask', matched.reason, input);
       return outputAsk(matched.reason);
     }
   }
@@ -174,8 +173,8 @@ export function dangerousCommandBlocker(input: HookInput, ctx?: HookContext): Ho
   // --- ASK tier: dangerous but sometimes legitimate (regex) ---
   for (const { pattern, reason } of ASK_REGEX_PATTERNS) {
     if (pattern.test(normalizedCommand)) {
-      (ctx?.log ?? logHook)('dangerous-command-blocker', `ASK: ${reason}`);
-      (ctx?.logPermission ?? logPermissionFeedback)('ask', reason, input);
+      ctx.log('dangerous-command-blocker', `ASK: ${reason}`);
+      ctx.logPermission('ask', reason, input);
       return outputAsk(reason);
     }
   }

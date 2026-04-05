@@ -13,12 +13,10 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  extname: vi.fn((p: string) => {
-    const dot = p.lastIndexOf('.');
-    return dot >= 0 ? p.slice(dot) : '';
-  }),
-}));
+vi.mock('node:path', () => {
+  const named = { extname: vi.fn((p: string) => { const dot = p.lastIndexOf('.'); return dot >= 0 ? p.slice(dot) : ''; }), join: vi.fn((...a: string[]) => a.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { writeHeaders } from '../../pretool/input-mod/write-headers.js';
 import type { HookInput } from '../../types.js';

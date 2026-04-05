@@ -13,13 +13,12 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputSilentAllow,
-  logHook,
-  logPermissionFeedback,
   getPluginRoot,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Security blocklist - commands that should never be auto-approved
@@ -90,30 +89,30 @@ function shouldAutoApprove(command: string): boolean {
 /**
  * Learning tracker hook - observes permissions for learning, optionally auto-approves
  */
-export function learningTracker(input: HookInput, ctx?: HookContext): HookResult {
+export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name;
   const command = input.tool_input.command || input.tool_input.file_path || '';
 
-  (ctx?.log ?? logHook)('learning-tracker', `Processing permission for tool: ${toolName}, command: ${command.slice(0, 50)}...`);
+  ctx.log('learning-tracker', `Processing permission for tool: ${toolName}, command: ${command.slice(0, 50)}...`);
 
   // For Bash commands, check if we should auto-approve based on learned patterns
   if (toolName === 'Bash' && command) {
     // First check security blocklist - never auto-approve these
     if (isSecurityBlocked(command)) {
-      (ctx?.log ?? logHook)('learning-tracker', 'Command matches security blocklist, skipping');
+      ctx.log('learning-tracker', 'Command matches security blocklist, skipping');
       return outputSilentSuccess();
     }
 
     // SEC: Never auto-approve compound commands — require manual review
     if (isCompoundCommand(command)) {
-      (ctx?.log ?? logHook)('learning-tracker', 'Compound command detected, skipping auto-approve');
+      ctx.log('learning-tracker', 'Compound command detected, skipping auto-approve');
       return outputSilentSuccess();
     }
 
     // Check if this command matches a learned auto-approve pattern
     if (shouldAutoApprove(command)) {
-      (ctx?.log ?? logHook)('learning-tracker', 'Command matches learned auto-approve pattern');
-      (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Learned pattern match', input);
+      ctx.log('learning-tracker', 'Command matches learned auto-approve pattern');
+      ctx.logPermission('allow', 'Learned pattern match', input);
       return outputSilentAllow();
     }
   }

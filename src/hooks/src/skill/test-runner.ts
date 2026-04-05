@@ -10,6 +10,7 @@ import { execSync, execFileSync } from 'node:child_process';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { basename, dirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Find project root by looking for package.json
@@ -38,7 +39,7 @@ function isSafeFilePath(p: string): boolean {
 /**
  * Auto-run test file that was just created/modified
  */
-export function testRunner(input: HookInput, ctx?: HookContext): HookResult {
+export function testRunner(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input?.file_path || process.env.CC_TOOL_FILE_PATH || '';
 
   // Early exit if no file path or path contains shell metacharacters

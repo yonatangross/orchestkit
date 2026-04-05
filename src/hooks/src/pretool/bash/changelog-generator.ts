@@ -8,11 +8,9 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Get recent commits for changelog
@@ -69,9 +67,9 @@ function groupCommitsByType(commits: string[]): Record<string, string[]> {
 /**
  * Suggest changelog entries for version commands
  */
-export function changelogGenerator(input: HookInput, ctx?: HookContext): HookResult {
+export function changelogGenerator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process npm version, poetry version, or changelog commands
   if (!/npm\s+version|poetry\s+version|changelog/.test(command)) {
@@ -112,7 +110,7 @@ ${sections.join('\n\n')}
 
 Update CHANGELOG.md before releasing.`;
 
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Changelog suggestions generated', input);
-  (ctx?.log ?? logHook)('changelog-generator', `Generated ${sections.length} sections`);
+  ctx.logPermission('allow', 'Changelog suggestions generated', input);
+  ctx.log('changelog-generator', `Generated ${sections.length} sections`);
   return outputAllowWithContext(context);
 }

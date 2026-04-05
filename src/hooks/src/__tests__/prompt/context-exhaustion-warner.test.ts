@@ -85,7 +85,7 @@ let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/context-exhaustion-warner', () => {
   beforeEach(() => {
     testCtx = createTestContext({ sessionId: 'test-fallback-session' });
-    _resetForTesting(testCtx);
+    _resetForTesting();
     vi.clearAllMocks();
   });
 
@@ -161,7 +161,7 @@ describe('prompt/context-exhaustion-warner', () => {
     });
 
     test('sanitizes path separators in session ID', () => {
-      const path = getContextPctFilePath('../../etc/evil', testCtx);
+      const path = getContextPctFilePath('../../etc/evil');
       // sanitizeSessionId replaces / with _ — no directory traversal
       expect(path).not.toContain('/etc/');
       // Result is under getTempDir(), not escaped out
@@ -169,7 +169,7 @@ describe('prompt/context-exhaustion-warner', () => {
     });
 
     test('sanitizes shell metacharacters in session ID', () => {
-      const path = getContextPctFilePath('session;rm -rf /', testCtx);
+      const path = getContextPctFilePath('session;rm -rf /');
       expect(path).not.toContain(';');
       expect(path).not.toContain(' ');
     });
@@ -400,9 +400,8 @@ describe('prompt/context-exhaustion-warner', () => {
       contextExhaustionWarner(input, testCtx);
 
       // logHook should NOT be called with 'resetting warnings'
-      const { logHook } = await import('../../lib/common.js');
-      const calls = testCtx.log.mock.calls;
-      const resetCalls = calls.filter(c => String(c[1]).includes('resetting'));
+      const calls = vi.mocked(testCtx.log).mock.calls;
+      const resetCalls = calls.filter((c: unknown[]) => String(c[1]).includes('resetting'));
       expect(resetCalls).toHaveLength(0);
     });
   });
@@ -483,7 +482,7 @@ describe('prompt/context-exhaustion-warner', () => {
 
     test('always continues execution (never blocks)', () => {
       for (const pct of ['0', '50', '70', '80', '90', 'abc', '-1', '200']) {
-        _resetForTesting(testCtx);
+        _resetForTesting();
         vi.clearAllMocks();
         mockContextFile(pct);
         const input = createPromptInput('hello');

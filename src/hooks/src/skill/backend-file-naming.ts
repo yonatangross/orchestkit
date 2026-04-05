@@ -5,14 +5,15 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
 import { basename, dirname as pathDirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Validate backend Python file naming conventions
  */
-export function backendFileNaming(input: HookInput, ctx?: HookContext): HookResult {
+export function backendFileNaming(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Self-guard: Only run for Python files
   const guard = guardPythonFiles(input);
   if (guard) return guard;
@@ -96,7 +97,7 @@ export function backendFileNaming(input: HookInput, ctx?: HookContext): HookResu
   // Report errors and block
   if (errors.length > 0) {
     const reason = `Backend naming violation in ${filename}: ${errors[0]}`;
-    (ctx?.log ?? logHook)('backend-file-naming', `BLOCKED: ${reason}`);
+    ctx.log('backend-file-naming', `BLOCKED: ${reason}`);
     return outputBlock(reason);
   }
 

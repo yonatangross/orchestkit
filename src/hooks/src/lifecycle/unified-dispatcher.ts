@@ -28,12 +28,13 @@ import { sessionEnvSetup } from './session-env-setup.js';
 import { staleTeamCleanup } from './stale-team-cleanup.js';
 import { staleCacheCleanup } from './stale-cache-cleanup.js';
 import { typeErrorIndexer } from './type-error-indexer.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -100,7 +101,7 @@ async function checkWebhookHealth(): Promise<void> {
 /**
  * Unified dispatcher that runs all SessionStart hooks in parallel
  */
-export async function unifiedSessionStartDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function unifiedSessionStartDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Check webhook health once per session (non-blocking, runs alongside hooks)
   const webhookCheck = checkWebhookHealth().catch(() => {});
 
@@ -108,14 +109,14 @@ export async function unifiedSessionStartDispatcher(input: HookInput, ctx?: Hook
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, ctx);
         if (result instanceof Promise) {
           await result;
         }
         return { hook: hook.name, status: 'success' };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logHook('session-start-dispatcher', `${hook.name} failed: ${message}`);
+        ctx.log('session-start-dispatcher', `${hook.name} failed: ${message}`);
         return { hook: hook.name, status: 'error', message };
       }
     })
@@ -134,7 +135,7 @@ export async function unifiedSessionStartDispatcher(input: HookInput, ctx?: Hook
 
   // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    (ctx?.log ?? logHook)('session-start-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
+    ctx.log('session-start-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
   }
 
   // Wait for webhook health check to complete (non-blocking, errors already caught)

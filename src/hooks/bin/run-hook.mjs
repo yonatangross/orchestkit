@@ -102,6 +102,31 @@ function normalizeInput(input) {
   if (!input.tool_input) {
     input.tool_input = {};
   }
+
+  // CC 2.1.92 fix: streaming could emit array/object tool_input fields as
+  // JSON-encoded strings (e.g. "[1,2]" instead of [1,2]). CC fixed this in
+  // 2.1.92, but we defensively unwrap any string-encoded arrays/objects to
+  // protect hooks on older CC versions or if the bug regresses.
+  // Skip known string fields (command, file_path, content, etc.) to avoid
+  // mangling legitimate string values that happen to look like JSON.
+  const STRING_FIELDS = new Set([
+    'command', 'file_path', 'content', 'old_string', 'new_string',
+    'pattern', 'description', 'prompt', 'skill', 'args', 'path',
+  ]);
+  for (const [key, val] of Object.entries(input.tool_input)) {
+    if (STRING_FIELDS.has(key)) continue;
+    if (typeof val === 'string' && (val.startsWith('[') || val.startsWith('{'))) {
+      try {
+        const parsed = JSON.parse(val);
+        if (typeof parsed === 'object' && parsed !== null) {
+          input.tool_input[key] = parsed;
+        }
+      } catch {
+        // Not valid JSON ��� leave as-is
+      }
+    }
+  }
+
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
   // CC sends hook_event_name; OrchestKit types use hook_event

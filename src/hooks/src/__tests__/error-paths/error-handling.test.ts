@@ -9,7 +9,6 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi, } from 'vitest';
 import type { HookInput, HookResult } from '../../types.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // MOCK SETUP - Configure mocks to throw errors when needed
@@ -147,10 +146,8 @@ function expectValidResult(result: unknown): void {
 // ERROR PATH TESTS
 // =============================================================================
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('Error Path Coverage', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     vi.clearAllMocks();
     // Reset to defaults
     mockExistsSync.mockReturnValue(false);

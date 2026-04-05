@@ -13,11 +13,12 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
-export async function fingerprintSaver(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Guard: only fire for /ork:expect skill completion
   if (input.tool_name !== 'Skill') {
     return outputSilentSuccess();
@@ -31,7 +32,7 @@ export async function fingerprintSaver(input: HookInput, ctx?: HookContext): Pro
   // Check if the run passed
   const output = String(input.tool_output ?? '');
   if (!output.includes('RUN_COMPLETED|passed')) {
-    (ctx?.log ?? logHook)('fingerprint-saver', 'Expect run did not pass — skipping fingerprint save');
+    ctx.log('fingerprint-saver', 'Expect run did not pass — skipping fingerprint save');
     return outputSilentSuccess();
   }
 
@@ -45,11 +46,11 @@ export async function fingerprintSaver(input: HookInput, ctx?: HookContext): Pro
       stdio: 'pipe',
       cwd: input.project_dir || process.cwd(),
     });
-    (ctx?.log ?? logHook)('fingerprint-saver', 'Fingerprint saved after successful expect run');
+    ctx.log('fingerprint-saver', 'Fingerprint saved after successful expect run');
     return outputWithContext('Fingerprint saved — next /ork:expect will skip if code unchanged.');
   } catch (err) {
     // Non-fatal — don't block on fingerprint save failure
-    (ctx?.log ?? logHook)('fingerprint-saver', `Fingerprint save failed: ${err}`);
+    ctx.log('fingerprint-saver', `Fingerprint save failed: ${err}`);
     return outputSilentSuccess();
   }
 }

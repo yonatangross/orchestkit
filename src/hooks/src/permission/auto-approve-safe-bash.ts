@@ -8,11 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentAllow,
   outputSilentSuccess,
-  logHook,
-  logPermissionFeedback,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Safe command patterns that should be auto-approved.
@@ -89,14 +88,14 @@ const SAFE_PATTERNS: RegExp[] = [
 /**
  * Auto-approve safe bash commands
  */
-export function autoApproveSafeBash(input: HookInput, ctx?: HookContext): HookResult {
+export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  (ctx?.log ?? logHook)('auto-approve-safe-bash', `Evaluating bash command: ${command.slice(0, 50)}...`);
+  ctx.log('auto-approve-safe-bash', `Evaluating bash command: ${command.slice(0, 50)}...`);
 
   // SEC: Reject compound commands — "git status && rm -rf /" must NOT auto-approve
   if (command && isCompoundCommand(command)) {
-    (ctx?.log ?? logHook)('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
+    ctx.log('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
     return outputSilentSuccess();
   }
 
@@ -106,7 +105,7 @@ export function autoApproveSafeBash(input: HookInput, ctx?: HookContext): HookRe
   // SEC: Check reject patterns first (e.g., git checkout -- .)
   for (const pattern of REJECT_PATTERNS) {
     if (pattern.test(normalized)) {
-      (ctx?.log ?? logHook)('auto-approve-safe-bash', `Rejected: matches reject pattern ${pattern}`);
+      ctx.log('auto-approve-safe-bash', `Rejected: matches reject pattern ${pattern}`);
       return outputSilentSuccess();
     }
   }
@@ -114,13 +113,13 @@ export function autoApproveSafeBash(input: HookInput, ctx?: HookContext): HookRe
   // Check against safe patterns using normalized command
   for (const pattern of SAFE_PATTERNS) {
     if (pattern.test(normalized)) {
-      (ctx?.log ?? logHook)('auto-approve-safe-bash', `Auto-approved: matches safe pattern ${pattern}`);
-      (ctx?.logPermission ?? logPermissionFeedback)('allow', `Matches safe pattern: ${pattern}`, input);
+      ctx.log('auto-approve-safe-bash', `Auto-approved: matches safe pattern ${pattern}`);
+      ctx.logPermission('allow', `Matches safe pattern: ${pattern}`, input);
       return outputSilentAllow();
     }
   }
 
   // Not a recognized safe command - let user decide (silent passthrough)
-  (ctx?.log ?? logHook)('auto-approve-safe-bash', 'Command requires manual approval');
+  ctx.log('auto-approve-safe-bash', 'Command requires manual approval');
   return outputSilentSuccess();
 }

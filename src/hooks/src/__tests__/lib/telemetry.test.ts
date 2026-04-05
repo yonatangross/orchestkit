@@ -24,6 +24,7 @@ vi.mock('../../lifecycle/usage-summary-reporter.js', () => ({
   getProjectSlug: () => 'test-project',
 }));
 
+import type { HookInput } from '../../types.js';
 import type { TelemetrySink, TelemetryEvent } from '../../lib/telemetry.js';
 import {
   registerSink,
@@ -33,10 +34,8 @@ import {
   sinkCount,
   _resetSinksForTesting,
 } from '../../lib/telemetry.js';
-import { createTestContext } from '../fixtures/test-context.js';
-
 /** Minimal HookInput for testing */
-function mockInput(overrides: Record<string, unknown> = {}) {
+function mockInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
     hook_event: 'PreToolUse',
     session_id: 'sess-abc',
@@ -82,10 +81,8 @@ class FailingSink implements TelemetrySink {
   }
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('Telemetry Emitter', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     _resetSinksForTesting();
   });
 

@@ -72,7 +72,6 @@ import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
-import { logHook } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------

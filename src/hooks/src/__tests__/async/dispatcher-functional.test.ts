@@ -263,7 +263,7 @@ describe('Dispatcher Functional Tests', () => {
 
       await unifiedSessionStartDispatcher(input(), testCtx);
 
-      expect(mocks.logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-start-dispatcher',
         expect.stringContaining('1/5 hooks failed'),
       );
@@ -364,7 +364,7 @@ describe('Dispatcher Functional Tests', () => {
 
     it('logs startup message', async () => {
       await unifiedSetupDispatcher(input(), testCtx);
-      expect(mocks.logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'setup-dispatcher',
         expect.stringContaining('Running 1 Setup hooks'),
       );

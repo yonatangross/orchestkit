@@ -20,7 +20,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputDefer, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputDefer } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'headless-defer';
 
@@ -72,7 +73,7 @@ function matchesPattern(toolName: string, command: string, pattern: string): boo
   return regex.test(command);
 }
 
-export function headlessDefer(input: HookInput, ctx?: HookContext): HookResult {
+export function headlessDefer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Only active in headless -p mode
   if (!process.env.CLAUDE_HEADLESS && !process.env.CLAUDE_NONINTERACTIVE) {
     return outputSilentSuccess();
@@ -85,7 +86,7 @@ export function headlessDefer(input: HookInput, ctx?: HookContext): HookResult {
   for (const pattern of patterns) {
     if (matchesPattern(toolName, command, pattern)) {
       const reason = `Deferred for human approval: ${toolName}(${command.slice(0, 80)})`;
-      (ctx?.log ?? logHook)(HOOK_NAME, reason);
+      ctx.log(HOOK_NAME, reason);
       return outputDefer(reason);
     }
   }

@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.91';
+export const MIN_CC_VERSION = '2.1.92';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -211,6 +211,15 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'edit_shorter_anchors',        minVersion: '2.1.91', description: 'Edit tool uses shorter old_string anchors, reducing output tokens' },
   { feature: 'auto_permission_validation',  minVersion: '2.1.91', description: 'JSON schema validates permissions.defaultMode:"auto" in settings.json' },
   { feature: 'plan_mode_remote_fix',        minVersion: '2.1.91', description: 'Plan mode in remote sessions retains plan file after container restart' },
+  // 2.1.92
+  { feature: 'force_remote_settings_refresh', minVersion: '2.1.92', description: 'forceRemoteSettingsRefresh policy blocks startup until remote managed settings fetched (fail-closed)' },
+  { feature: 'stop_hook_prevent_continuation_fix', minVersion: '2.1.92', description: 'prompt-type Stop hooks no longer fail when small fast model returns ok:false; preventContinuation:true restored' },
+  { feature: 'tool_input_json_string_fix', minVersion: '2.1.92', description: 'Array/object tool_input fields no longer emitted as JSON-encoded strings during streaming' },
+  { feature: 'plugin_mcp_connecting_fix',  minVersion: '2.1.92', description: 'Plugin MCP servers no longer stuck connecting when duplicating unauthenticated claude.ai connectors' },
+  { feature: 'write_diff_perf',            minVersion: '2.1.92', description: 'Write tool diff computation 60% faster for large files with tabs/&/$ characters' },
+  { feature: 'remote_control_hostname',    minVersion: '2.1.92', description: 'Remote Control session names default to hostname prefix, overridable with --remote-control-session-name-prefix' },
+  { feature: 'cost_per_model_breakdown',   minVersion: '2.1.92', description: '/cost shows per-model and cache-hit breakdown for subscription users' },
+  { feature: 'subagent_tmux_pane_fix',     minVersion: '2.1.92', description: 'Subagent spawning no longer permanently fails after tmux windows killed/renumbered' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

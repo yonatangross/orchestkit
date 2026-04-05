@@ -17,7 +17,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputWithContext, logHook, getLogDir, getSessionId } from '../lib/common.js';
+import { outputWithContext, getLogDir, getSessionId } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface PreservedContext {
   branch?: string;
@@ -68,12 +69,12 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 60_000)}m`;
 }
 
-export function postCompactRecovery(input: HookInput, hookCtx?: HookContext): HookResult {
+export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const stateFile = getSessionStateFile();
   const state = loadSessionState(stateFile);
 
   if (!state?.preservedContext) {
-    (hookCtx?.log ?? logHook)('post-compact-recovery', 'No preserved context found — skipping recovery');
+    hookCtx.log('post-compact-recovery', 'No preserved context found — skipping recovery');
     return { continue: true, suppressOutput: true };
   }
 
@@ -135,7 +136,7 @@ export function postCompactRecovery(input: HookInput, hookCtx?: HookContext): Ho
 
   const context = parts.join('\n');
 
-  (hookCtx?.log ?? logHook)('post-compact-recovery',
+  hookCtx.log('post-compact-recovery',
     `Recovered context after compaction #${state.compactionCount} ` +
     `(${ctx.activeFiles?.length || 0} files, ${ctx.activeTasks?.length || 0} tasks, ` +
     `${ctx.decisionLog?.length || 0} decisions)`

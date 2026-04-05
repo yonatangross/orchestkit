@@ -49,7 +49,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { handoffInjector } from '../../prompt/handoff-injector.js';
-import { logHook, outputSilentSuccess, outputPromptContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputPromptContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------

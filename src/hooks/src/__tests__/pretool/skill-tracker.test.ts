@@ -28,16 +28,14 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import type { HookInput } from '../../types.js';
 // appendFileSync import removed — use mockAppendFileSync directly
-import { logHook } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 function createSkillInput(skillName: string, args: string = ''): HookInput {

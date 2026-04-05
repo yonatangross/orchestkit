@@ -15,8 +15,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getTeamName } from '../lib/agent-teams.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Window within which completions count as "recent" */
 const COMPLETION_WINDOW_MS = 300_000;
@@ -69,13 +70,13 @@ function hasRecentCompletion(projectDir: string): boolean {
 }
 
 /** Team quality gate for idle teammate detection. */
-export function teamQualityGate(input: HookInput, ctx?: HookContext): HookResult {
+export function teamQualityGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const teamName = getTeamName();
   if (!teamName) {
     return outputSilentSuccess();
   }
 
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
   if (!projectDir) {
     return outputSilentSuccess();
   }
@@ -91,7 +92,7 @@ export function teamQualityGate(input: HookInput, ctx?: HookContext): HookResult
 
   // Only warn if BOTH signals are negative: no meaningful output AND no recent completion
   if (!productive && !recentCompletion) {
-    (ctx?.log ?? logHook)(
+    ctx.log(
       'team-quality-gate',
       `Teammate "${teammateId}" (${teammateType}) idle without productive output or recent completion`,
     );
@@ -101,6 +102,6 @@ export function teamQualityGate(input: HookInput, ctx?: HookContext): HookResult
     );
   }
 
-  (ctx?.log ?? logHook)('team-quality-gate', `Teammate "${teammateId}" quality check passed`);
+  ctx.log('team-quality-gate', `Teammate "${teammateId}" quality check passed`);
   return outputSilentSuccess();
 }

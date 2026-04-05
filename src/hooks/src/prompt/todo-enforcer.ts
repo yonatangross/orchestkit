@@ -5,7 +5,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Complex task indicators (regex patterns)
 const COMPLEX_PATTERNS: Array<{ test: (s: string) => boolean }> = [
@@ -25,11 +26,11 @@ const LONG_PROMPT_THRESHOLD = 500;
 /**
  * Todo enforcer hook - detects complex tasks
  */
-export function todoEnforcer(input: HookInput, ctx?: HookContext): HookResult {
+export function todoEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const prompt = input.prompt || '';
   const promptLength = prompt.length;
 
-  (ctx?.log ?? logHook)('todo-enforcer', `Prompt length: ${promptLength} chars`);
+  ctx.log('todo-enforcer', `Prompt length: ${promptLength} chars`);
 
   let isComplex = false;
 
@@ -47,7 +48,7 @@ export function todoEnforcer(input: HookInput, ctx?: HookContext): HookResult {
   }
 
   if (isComplex) {
-    (ctx?.log ?? logHook)('todo-enforcer', 'Complex task detected - todo tracking recommended');
+    ctx.log('todo-enforcer', 'Complex task detected - todo tracking recommended');
   }
 
   // Output systemMessage for user visibility

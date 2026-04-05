@@ -5,9 +5,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, outputWithUpdatedInput, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithUpdatedInput } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Get current date in YYYY-MM-DD format
@@ -101,7 +102,7 @@ function createUpdatedInputResult(filePath: string, content: string): HookResult
 /**
  * Write headers hook - adds headers to new files
  */
-export function writeHeaders(input: HookInput, ctx?: HookContext): HookResult {
+export function writeHeaders(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
@@ -121,7 +122,7 @@ export function writeHeaders(input: HookInput, ctx?: HookContext): HookResult {
 
   // Skip if content already contains OrchestKit header
   if (content.includes('OrchestKit')) {
-    (ctx?.log ?? logHook)('write-headers', `Skipping header for ${filePath} (already has OrchestKit marker)`);
+    ctx.log('write-headers', `Skipping header for ${filePath} (already has OrchestKit marker)`);
     return outputSilentSuccess();
   }
 
@@ -130,7 +131,7 @@ export function writeHeaders(input: HookInput, ctx?: HookContext): HookResult {
   const headerAdded = updatedContent !== content;
 
   if (headerAdded) {
-    (ctx?.log ?? logHook)('write-headers', `Added header to ${filePath}`);
+    ctx.log('write-headers', `Added header to ${filePath}`);
     // Use canonical updatedInput to modify tool input (CC 2.1.25)
     return createUpdatedInputResult(filePath, updatedContent);
   }

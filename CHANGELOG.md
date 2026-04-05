@@ -5,6 +5,33 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)
+  - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings
+  - Stop hook `preventContinuation:true` semantics restored
+  - Tool input JSON-string streaming fix
+  - Plugin MCP stuck "connecting" fix
+  - Write tool 60% faster diff computation
+  - Remote Control hostname-based session naming
+  - Per-model `/cost` breakdown
+  - Subagent tmux pane count fix
+  - `/tag` and `/vim` commands removed (no OrchestKit impact)
+- **`forceRemoteSettingsRefresh` in configure/doctor skills** — enterprise policy docs, health check outputs for managed settings and MCP connector conflicts
+- **Defensive JSON-string unwrap in `run-hook.mjs`** — `normalizeInput()` auto-parses string-encoded array/object `tool_input` fields while preserving known string fields via allowlist (defense against CC streaming regression)
+
+### Changed
+
+- **HookContext DI migration completed** — all 208 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback
+  - `buildContext()` factory + `createTestContext()` test helper for dependency injection
+  - Shared mock factory replaces inline mocks across 137 test files
+  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`
+  - Telemetry decoupled — inline webhookForwarder removed from common module
+  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)
+  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files
+
 ## [7.28.0] - 2026-04-03
 
 ### Added

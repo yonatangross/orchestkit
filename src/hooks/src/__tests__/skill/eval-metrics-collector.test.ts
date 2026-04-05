@@ -27,7 +27,7 @@ vi.mock('node:fs', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { evalMetricsCollector } from '../../skill/eval-metrics-collector.js';
-import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================

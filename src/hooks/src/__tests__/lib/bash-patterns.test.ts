@@ -15,7 +15,9 @@ function matchesReject(command: string): boolean {
 describe('REJECT_PATTERNS', () => {
   test('is a non-empty array of RegExp', () => {
     expect(REJECT_PATTERNS.length).toBeGreaterThan(0);
-    REJECT_PATTERNS.forEach((p) => expect(p).toBeInstanceOf(RegExp));
+    for (const p of REJECT_PATTERNS) {
+      expect(p).toBeInstanceOf(RegExp);
+    }
   });
 
   describe('git checkout destructive variants', () => {

@@ -35,7 +35,7 @@ vi.mock('../../lib/user-profile.js', () => ({
 }));
 
 import { sessionProfileAggregator } from '../../stop/session-profile-aggregator.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { resolveUserIdentity, canShare, getPrivacySettings } from '../../lib/user-identity.js';
 import { generateSessionSummary } from '../../lib/session-tracker.js';
 import { loadUserProfile, saveUserProfile, aggregateSession, exportForGlobal } from '../../lib/user-profile.js';

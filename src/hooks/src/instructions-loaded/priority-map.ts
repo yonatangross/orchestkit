@@ -12,7 +12,6 @@ import { logHook } from '../lib/common.js';
 import { basename } from 'node:path';
 import type { LoadedFile } from './types.js';
 import { classifySource } from './classify-source.js';
-import type { HookContext } from '../types.js';
 
 const HOOK_NAME = 'instructions-loaded/priority-map';
 

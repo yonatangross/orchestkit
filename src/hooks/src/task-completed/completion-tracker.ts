@@ -9,15 +9,15 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { getProjectDir } from '../lib/common.js';
 import { appendEventLog } from '../lib/event-logger.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Match code implementation tasks — require 2+ word subjects to avoid false positives */
 const IMPLEMENTATION_PATTERN = /\b(?:implement|refactor|build|migrate)\b.{5,}/i;
 
-export async function completionTracker(input: HookInput, ctx?: HookContext): Promise<HookResult> {
-  if (!(ctx?.projectDir ?? getProjectDir())) {
+export async function completionTracker(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  if (!(ctx.projectDir)) {
     return { continue: true };
   }
 

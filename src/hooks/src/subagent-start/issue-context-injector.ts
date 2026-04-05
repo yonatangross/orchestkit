@@ -21,7 +21,8 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Dedicated cache directory with restricted permissions */
 const CACHE_DIR = join(tmpdir(), 'orchestkit-issue-cache');
@@ -128,33 +129,33 @@ function buildContextMessage(issueNum: string, issue: IssueData | null): string 
   return parts.join('\n');
 }
 
-export function issueContextInjector(_input: HookInput, ctx?: HookContext): HookResult {
+export function issueContextInjector(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
-    const projectDir = ctx?.projectDir ?? getProjectDir();
-    const branch = ctx?.branch ?? getCachedBranch(projectDir);
+    const projectDir = ctx.projectDir;
+    const branch = ctx.branch;
 
-    (ctx?.log ?? logHook)('issue-context-injector', `Branch: ${branch}`);
+    ctx.log('issue-context-injector', `Branch: ${branch}`);
 
     const issueNum = extractIssueNumber(branch);
     if (!issueNum) {
-      (ctx?.log ?? logHook)('issue-context-injector', 'No issue number in branch name');
+      ctx.log('issue-context-injector', 'No issue number in branch name');
       return outputSilentSuccess();
     }
 
-    (ctx?.log ?? logHook)('issue-context-injector', `Detected issue #${issueNum}`);
+    ctx.log('issue-context-injector', `Detected issue #${issueNum}`);
 
     // Try cache first, then fetch from gh
     const issue = getCachedIssue(issueNum) ?? fetchAndCacheIssue(issueNum, projectDir);
     const contextMsg = buildContextMessage(issueNum, issue);
 
-    (ctx?.log ?? logHook)('issue-context-injector', `Injecting context for issue #${issueNum}`);
+    ctx.log('issue-context-injector', `Injecting context for issue #${issueNum}`);
 
     return {
       continue: true,
       systemMessage: contextMsg,
     };
   } catch {
-    (ctx?.log ?? logHook)('issue-context-injector', 'Unexpected error, falling back to silent success', 'warn');
+    ctx.log('issue-context-injector', 'Unexpected error, falling back to silent success', 'warn');
     return outputSilentSuccess();
   }
 }

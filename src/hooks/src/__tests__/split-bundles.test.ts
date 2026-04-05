@@ -4,6 +4,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { createTestContext } from './fixtures/test-context.js';
 
 // Import all entry points
 import * as permissionBundle from '../entries/permission.js';
@@ -352,13 +353,14 @@ describe('Hook Execution Smoke Tests', () => {
     session_id: 'test-session',
     tool_input: {},
   };
+  const ctx = createTestContext();
 
   test('permission hooks return valid HookResult', async () => {
     const resultOrPromise = permissionBundle.hooks['permission/auto-approve-safe-bash']({
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    });
+    }, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -370,7 +372,7 @@ describe('Hook Execution Smoke Tests', () => {
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    });
+    }, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -379,7 +381,7 @@ describe('Hook Execution Smoke Tests', () => {
 
   test('lifecycle hooks return valid HookResult', async () => {
     const hookName = Object.keys(lifecycleBundle.hooks)[0];
-    const resultOrPromise = lifecycleBundle.hooks[hookName](baseInput);
+    const resultOrPromise = lifecycleBundle.hooks[hookName](baseInput, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -388,7 +390,7 @@ describe('Hook Execution Smoke Tests', () => {
 
   test('stop hooks return valid HookResult', async () => {
     const hookName = Object.keys(stopBundle.hooks)[0];
-    const resultOrPromise = stopBundle.hooks[hookName](baseInput);
+    const resultOrPromise = stopBundle.hooks[hookName](baseInput, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');

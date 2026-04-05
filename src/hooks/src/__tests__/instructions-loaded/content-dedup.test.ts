@@ -14,8 +14,6 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { contentDedupScanner } from '../../instructions-loaded/content-dedup.js';
-import { createTestContext } from '../fixtures/test-context.js';
-
 function makeFile(path: string): LoadedFile {
   return { path };
 }
@@ -23,8 +21,6 @@ function makeFile(path: string): LoadedFile {
 // A line long enough to pass the 30-char minimum, not starting with # or |
 const SHARED_LINE = 'Always use cursor-based pagination for large datasets here.';
 const ANOTHER_SHARED_LINE = 'Never commit directly to main or master branch ever.';
-
-const testCtx = createTestContext();
 describe('contentDedupScanner', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty file list', () => {

@@ -10,8 +10,9 @@
 import { existsSync, readFileSync, statSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface PatternFile {
   version?: string;
@@ -127,18 +128,18 @@ function pullGlobalPatterns(projectDir: string): void {
 /**
  * Pattern sync pull hook
  */
-export function patternSyncPull(input: HookInput, ctx?: HookContext): HookResult {
+export function patternSyncPull(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Bypass if slow hooks are disabled
   if (shouldSkipSlowHooks()) {
-    (ctx?.log ?? logHook)('pattern-sync-pull', 'Skipping pattern sync (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
+    ctx.log('pattern-sync-pull', 'Skipping pattern sync (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
     return outputSilentSuccess();
   }
 
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   // Check if sync is enabled
   if (!isSyncEnabled(projectDir)) {
-    (ctx?.log ?? logHook)('pattern-sync-pull', 'Global sync disabled, skipping pull');
+    ctx.log('pattern-sync-pull', 'Global sync disabled, skipping pull');
     return outputSilentSuccess();
   }
 
@@ -147,14 +148,14 @@ export function patternSyncPull(input: HookInput, ctx?: HookContext): HookResult
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 
   if (!checkFileSize(globalPatternsFile) || !checkFileSize(projectPatternsFile)) {
-    (ctx?.log ?? logHook)('pattern-sync-pull', 'Skipping pattern sync due to large files');
+    ctx.log('pattern-sync-pull', 'Skipping pattern sync due to large files');
     return outputSilentSuccess();
   }
 
   // Pull global patterns
-  (ctx?.log ?? logHook)('pattern-sync-pull', 'Pulling global patterns...');
+  ctx.log('pattern-sync-pull', 'Pulling global patterns...');
   pullGlobalPatterns(projectDir);
-  (ctx?.log ?? logHook)('pattern-sync-pull', 'Global patterns pulled successfully');
+  ctx.log('pattern-sync-pull', 'Global patterns pulled successfully');
 
   return outputSilentSuccess();
 }

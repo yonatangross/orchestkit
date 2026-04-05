@@ -9,16 +9,16 @@ vi.mock('node:fs', () => ({
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), join: vi.fn((...a: string[]) => a.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';
-import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 

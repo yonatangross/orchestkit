@@ -12,8 +12,9 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getCachedBranch } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getTotalTools } from '../lib/metrics.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Classify session outcome from last assistant message (CC 2.1.47)
@@ -37,18 +38,18 @@ function todayISO(): string {
  * Suggest a knowledge-graph entity capture at session end.
  * Only fires when session had meaningful work (>=20 tool calls).
  */
-export function sessionSummary(input: HookInput, ctx?: HookContext): HookResult {
-  (ctx?.log ?? logHook)('session-summary', 'Stop hook — checking session for graph capture');
+export function sessionSummary(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('session-summary', 'Stop hook — checking session for graph capture');
 
   const totalTools = getTotalTools();
 
   if (totalTools < 20) {
-    (ctx?.log ?? logHook)('session-summary', `Session had ${totalTools} tool calls (<20), skipping`);
+    ctx.log('session-summary', `Session had ${totalTools} tool calls (<20), skipping`);
     return outputSilentSuccess();
   }
 
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
-  const branch = ctx?.branch ?? getCachedBranch(projectDir);
+  const projectDir = input.project_dir || (ctx.projectDir);
+  const branch = ctx.branch;
   const date = todayISO();
   const entityName = `Session-${date}-${branch}`;
 
@@ -80,7 +81,7 @@ export function sessionSummary(input: HookInput, ctx?: HookContext): HookResult 
 
   const additionalContext = lines.join('\n');
 
-  (ctx?.log ?? logHook)('session-summary', `Built graph suggestion for entity "${entityName}"`);
+  ctx.log('session-summary', `Built graph suggestion for entity "${entityName}"`);
 
   return {
     continue: true,

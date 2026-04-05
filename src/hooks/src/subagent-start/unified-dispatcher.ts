@@ -22,7 +22,6 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  logHook,
   estimateTokenCount,
   extractContext,
 } from '../lib/common.js';
@@ -36,6 +35,7 @@ import { subagentValidator } from './subagent-validator.js';
 // - model-cost-advisor (informational only, HQ Langfuse tracks costs)
 import { issueContextInjector } from './issue-context-injector.js';
 import { recordAgentStart } from '../lib/agent-attribution.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -50,7 +50,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface ContextHookConfig {
   name: string;
@@ -81,17 +81,17 @@ export const registeredHookNames = () => [
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
 
-export function unifiedSubagentStartDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedSubagentStartDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // --- Phase 1: Blocking check (context-gate) ---
   try {
     const gateResult = contextGate(input, ctx);
     if (!gateResult.continue) {
-      (ctx?.log ?? logHook)(HOOK_NAME, 'context-gate blocked agent spawn');
+      ctx.log(HOOK_NAME, 'context-gate blocked agent spawn');
       return gateResult;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `context-gate failed: ${message}`, 'warn');
   }
 
   // --- Phase 1b: Agent attribution setup (Issue #1195) ---
@@ -107,7 +107,7 @@ export function unifiedSubagentStartDispatcher(input: HookInput, ctx?: HookConte
     validatorContext = extractContext(validatorResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `subagent-validator failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `subagent-validator failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Context injection hooks (budget-capped) ---
@@ -136,16 +136,16 @@ export function unifiedSubagentStartDispatcher(input: HookInput, ctx?: HookConte
       if (context) {
         const contextTokens = estimateTokenCount(context);
         if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-          (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+          ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
           continue;
         }
         contextParts.push(context);
         totalTokens += contextTokens;
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
+        ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -168,7 +168,7 @@ export function unifiedSubagentStartDispatcher(input: HookInput, ctx?: HookConte
 
   if (hasContext) {
     const consolidated = contextParts.join('\n\n---\n\n');
-    (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+    ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
     result.hookSpecificOutput = {
       hookEventName: 'SubagentStart',
       additionalContext: consolidated,

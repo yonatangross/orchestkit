@@ -66,7 +66,7 @@ function createSubagentStopInput(
 let testCtx: ReturnType<typeof createTestContext>;
 describe('context-publisher', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
+    testCtx = createTestContext({ logDir: '/test/project/.claude/logs/agent-context' });
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });

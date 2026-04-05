@@ -20,10 +20,11 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
 import { getHomeDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'perf-snapshot';
 
@@ -99,7 +100,7 @@ function isPerfSnapshotEnabled(): boolean {
   return true;
 }
 
-export function perfSnapshot(_input: HookInput, ctx?: HookContext): HookResult {
+export function perfSnapshot(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (!isPerfSnapshotEnabled()) {
     return outputSilentSuccess();
   }
@@ -128,7 +129,7 @@ export function perfSnapshot(_input: HookInput, ctx?: HookContext): HookResult {
     const snapPath = join(perfDir, `snap-${bucket}.json`);
     atomicWriteSync(snapPath, JSON.stringify(snapshot, null, 2));
 
-    (ctx?.log ?? logHook)(
+    ctx.log(
       HOOK_NAME,
       `Snapshot written: snap-${bucket}.json (${tokenState.totalTokensInjected}t, ${hookCount} hooks)`
     );
@@ -139,7 +140,7 @@ export function perfSnapshot(_input: HookInput, ctx?: HookContext): HookResult {
       systemMessage: summary,
     };
   } catch (err) {
-    (ctx?.log ?? logHook)(
+    ctx.log(
       HOOK_NAME,
       `Failed to write snapshot: ${err instanceof Error ? err.message : String(err)}`,
       'warn'

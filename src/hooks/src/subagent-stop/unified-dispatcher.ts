@@ -11,7 +11,7 @@
 
 import { openSync, readSync, closeSync, fstatSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution.js';
@@ -22,12 +22,13 @@ import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution
 // - agent-memory-store (HQ stores in cc_sessions.agents JSONB)
 import { handoffPreparer } from './handoff-preparer.js';
 import { feedbackLoop } from './feedback-loop.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -333,11 +334,11 @@ function trackAgentResult(input: HookInput): void {
 /** One-time field name diagnostic — log CC input fields on first invocation */
 let _fieldNamesLogged = false;
 
-export async function unifiedSubagentStopDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function unifiedSubagentStopDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Diagnostic: log CC input field names once for runtime verification (#1227)
   if (!_fieldNamesLogged) {
     _fieldNamesLogged = true;
-    (ctx?.log ?? logHook)('subagent-stop-dispatcher', `CC input fields: ${Object.keys(input).sort().join(', ')}`, 'debug');
+    ctx.log('subagent-stop-dispatcher', `CC input fields: ${Object.keys(input).sort().join(', ')}`, 'debug');
   }
 
   // Track agent result (Issue #245: Multi-User Intelligent Decision Capture)
@@ -347,14 +348,14 @@ export async function unifiedSubagentStopDispatcher(input: HookInput, ctx?: Hook
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, ctx);
         if (result instanceof Promise) {
           await result;
         }
         return { hook: hook.name, status: 'success' };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logHook('subagent-stop-dispatcher', `${hook.name} failed: ${message}`);
+        ctx.log('subagent-stop-dispatcher', `${hook.name} failed: ${message}`);
         return { hook: hook.name, status: 'error', message };
       }
     })
@@ -366,7 +367,7 @@ export async function unifiedSubagentStopDispatcher(input: HookInput, ctx?: Hook
   );
 
   if (errors.length > 0) {
-    (ctx?.log ?? logHook)('subagent-stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
+    ctx.log('subagent-stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
   }
 
   return outputSilentSuccess();

@@ -5,14 +5,15 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook, lineContainsAll } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock, lineContainsAll } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Validate FastAPI layer architecture rules
  */
-export function backendLayerValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function backendLayerValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Self-guard: Only run for Python files
   const guard = guardPythonFiles(input);
   if (guard) return guard;
@@ -67,7 +68,7 @@ export function backendLayerValidator(input: HookInput, ctx?: HookContext): Hook
   if (errors.length > 0) {
     const filename = basename(filePath) || filePath;
     const reason = `Layer violation in ${filename}: ${errors[0]}`;
-    (ctx?.log ?? logHook)('backend-layer-validator', `BLOCKED: ${reason}`);
+    ctx.log('backend-layer-validator', `BLOCKED: ${reason}`);
     return outputBlock(reason);
   }
 

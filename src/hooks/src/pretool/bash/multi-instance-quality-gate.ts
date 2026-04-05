@@ -8,13 +8,11 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Check if multi-instance coordination is enabled
@@ -45,14 +43,14 @@ function getQualityGateStatus(projectDir: string): Record<string, boolean> {
 /**
  * Enforce quality gates before merge/deploy in multi-instance mode
  */
-export function multiInstanceQualityGate(input: HookInput, ctx?: HookContext): HookResult {
+export function multiInstanceQualityGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Issue #362: Yield to CC Agent Teams when active
   if (isAgentTeamsActive()) {
     return outputSilentSuccess();
   }
 
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process merge/deploy commands
   if (!/gh\s+pr\s+merge|git\s+merge|deploy/.test(command)) {
@@ -80,12 +78,12 @@ ${failedGates.map((g) => `- npm run ${g}`).join('\n')}
 
 Quality gates ensure consistency across instances.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', `Quality gates failed: ${failedGates.join(', ')}`, input);
-    (ctx?.log ?? logHook)('multi-instance-quality-gate', `Failed: ${failedGates.join(', ')}`);
+    ctx.logPermission('allow', `Quality gates failed: ${failedGates.join(', ')}`, input);
+    ctx.log('multi-instance-quality-gate', `Failed: ${failedGates.join(', ')}`);
     return outputAllowWithContext(context);
   }
 
   // All gates passed
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'All quality gates passed', input);
+  ctx.logPermission('allow', 'All quality gates passed', input);
   return outputSilentSuccess();
 }

@@ -16,10 +16,11 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { trackCommunicationStyle } from '../lib/session-tracker.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // TYPES
@@ -283,9 +284,9 @@ function getAndIncrementCounter(projectDir: string): number {
  * Analyzes user prompts to detect communication patterns and stores them
  * in the user profile for personalized interactions.
  */
-export function communicationStyleTracker(input: HookInput, ctx?: HookContext): HookResult {
+export function communicationStyleTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const prompt = input.prompt || '';
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   // Get sample rate from environment (default: 5 - analyze every 5th prompt)
   const sampleRate = parseInt(process.env.COMM_STYLE_SAMPLE_RATE || '5', 10);
@@ -298,7 +299,7 @@ export function communicationStyleTracker(input: HookInput, ctx?: HookContext): 
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Analyzing communication style (sample ${counter})`);
+  ctx.log(HOOK_NAME, `Analyzing communication style (sample ${counter})`);
 
   // Skip empty or very short prompts
   if (!prompt || prompt.length < MIN_PROMPT_LENGTH) {
@@ -317,13 +318,13 @@ export function communicationStyleTracker(input: HookInput, ctx?: HookContext): 
     // Track in session tracker for user profile aggregation
     trackCommunicationStyle(style);
 
-    (ctx?.log ?? logHook)(
+    ctx.log(
       HOOK_NAME,
       `Detected: verbosity=${style.verbosity}, type=${style.interaction_type}, level=${style.technical_level}`
     );
   } catch (error) {
     // Never crash the hook chain
-    (ctx?.log ?? logHook)(HOOK_NAME, `Error tracking communication style: ${error}`, 'warn');
+    ctx.log(HOOK_NAME, `Error tracking communication style: ${error}`, 'warn');
   }
 
   return outputSilentSuccess();

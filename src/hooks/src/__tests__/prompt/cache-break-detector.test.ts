@@ -70,40 +70,40 @@ describe('prompt/cache-break-detector', () => {
     });
 
     test('detects system-reminder tags', () => {
-      const markers = extractPromptShape('before <system-reminder>content</system-reminder> after', testCtx);
+      const markers = extractPromptShape('before <system-reminder>content</system-reminder> after');
       expect(markers).toContain('<system-reminder>');
       expect(markers).toContain('</system-reminder>');
     });
 
     test('detects TLDR marker', () => {
-      const markers = extractPromptShape('some context [TLDR] summary here', testCtx);
+      const markers = extractPromptShape('some context [TLDR] summary here');
       expect(markers).toContain('[TLDR]');
     });
 
     test('detects cross-project context', () => {
-      const markers = extractPromptShape('[Cross-project context: some data]', testCtx);
+      const markers = extractPromptShape('[Cross-project context: some data]');
       expect(markers).toContain('[Cross-project context:');
     });
 
     test('detects currentDate marker', () => {
-      const markers = extractPromptShape('blah # currentDate blah', testCtx);
+      const markers = extractPromptShape('blah # currentDate blah');
       expect(markers).toContain('# currentDate');
     });
 
     test('detects skill format markers', () => {
-      const markers = extractPromptShape('<skill-format>...</skill-format>', testCtx);
+      const markers = extractPromptShape('<skill-format>...</skill-format>');
       expect(markers).toContain('<skill-format>');
     });
 
     test('detects command markers', () => {
-      const markers = extractPromptShape('<command-name>foo</command-name> <command-message>bar</command-message>', testCtx);
+      const markers = extractPromptShape('<command-name>foo</command-name> <command-message>bar</command-message>');
       expect(markers).toContain('<command-name>');
       expect(markers).toContain('<command-message>');
     });
 
     test('returns sorted markers', () => {
       const prompt = '<command-name>x</command-name> <system-reminder>y</system-reminder> [TLDR] z';
-      const markers = extractPromptShape(prompt, testCtx);
+      const markers = extractPromptShape(prompt);
       const sorted = [...markers].sort();
       expect(markers).toEqual(sorted);
     });
@@ -117,7 +117,7 @@ describe('prompt/cache-break-detector', () => {
         HANDOFF.md
         [TLDR] summary
       `;
-      const markers = extractPromptShape(prompt, testCtx);
+      const markers = extractPromptShape(prompt);
       expect(markers.length).toBeGreaterThanOrEqual(5);
     });
   });
@@ -125,12 +125,12 @@ describe('prompt/cache-break-detector', () => {
   describe('hashShape', () => {
     test('returns consistent hash for same input', () => {
       const markers = ['a', 'b', 'c'];
-      expect(hashShape(markers)).toBe(hashShape(markers, testCtx));
+      expect(hashShape(markers)).toBe(hashShape(markers));
     });
 
     test('different markers produce different hashes', () => {
       // 'a|b' (length 3) vs 'a|cd' (length 4) — different lengths → different mock hashes
-      expect(hashShape(['a', 'b'])).not.toBe(hashShape(['a', 'cd'], testCtx));
+      expect(hashShape(['a', 'b'])).not.toBe(hashShape(['a', 'cd']));
     });
 
     test('empty markers produce a hash', () => {
@@ -140,37 +140,37 @@ describe('prompt/cache-break-detector', () => {
 
   describe('computeDelta', () => {
     test('no change returns empty delta', () => {
-      const delta = computeDelta(['a', 'b'], ['a', 'b'], testCtx);
+      const delta = computeDelta(['a', 'b'], ['a', 'b']);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual([]);
     });
 
     test('detects added markers', () => {
-      const delta = computeDelta(['a'], ['a', 'b', 'c'], testCtx);
+      const delta = computeDelta(['a'], ['a', 'b', 'c']);
       expect(delta.added).toEqual(['b', 'c']);
       expect(delta.removed).toEqual([]);
     });
 
     test('detects removed markers', () => {
-      const delta = computeDelta(['a', 'b', 'c'], ['a'], testCtx);
+      const delta = computeDelta(['a', 'b', 'c'], ['a']);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual(['b', 'c']);
     });
 
     test('detects both added and removed', () => {
-      const delta = computeDelta(['a', 'b'], ['b', 'c'], testCtx);
+      const delta = computeDelta(['a', 'b'], ['b', 'c']);
       expect(delta.added).toEqual(['c']);
       expect(delta.removed).toEqual(['a']);
     });
 
     test('handles empty prev', () => {
-      const delta = computeDelta([], ['a', 'b'], testCtx);
+      const delta = computeDelta([], ['a', 'b']);
       expect(delta.added).toEqual(['a', 'b']);
       expect(delta.removed).toEqual([]);
     });
 
     test('handles empty curr', () => {
-      const delta = computeDelta(['a', 'b'], [], testCtx);
+      const delta = computeDelta(['a', 'b'], []);
       expect(delta.added).toEqual([]);
       expect(delta.removed).toEqual(['a', 'b']);
     });
@@ -214,8 +214,8 @@ describe('prompt/cache-break-detector', () => {
 
       // Second call: simulate same shape from persisted state
       vi.mocked(existsSync).mockReturnValue(true);
-      const markers = extractPromptShape('<system-reminder>content</system-reminder> '.repeat(5), testCtx);
-      const hash = hashShape(markers, testCtx);
+      const markers = extractPromptShape('<system-reminder>content</system-reminder> '.repeat(5));
+      const hash = hashShape(markers);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
         lastShapeHash: hash,
         lastMarkers: markers,

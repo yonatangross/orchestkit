@@ -55,7 +55,7 @@ vi.mock('node:path', async (importOriginal) => {
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 import { context7Tracker } from '../../../pretool/mcp/context7-tracker.js';
-import { logHook, logPermissionFeedback, outputDeny, outputWithContext } from '../../../lib/common.js';
+import { outputDeny, outputWithContext } from '../../../lib/common.js';
 import type { HookInput } from '../../../types.js';
 import { createTestContext } from '../../fixtures/test-context.js';
 

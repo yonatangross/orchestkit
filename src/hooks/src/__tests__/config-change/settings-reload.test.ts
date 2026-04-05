@@ -52,7 +52,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { settingsReload } from '../../config-change/settings-reload.js';
-import { logHook, logPermissionFeedback, outputBlock, outputWarning, outputPromptContext } from '../../lib/common.js';
+import { outputBlock, outputWarning, outputPromptContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------

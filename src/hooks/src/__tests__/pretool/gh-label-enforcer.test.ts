@@ -39,7 +39,7 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
-import { logHook, logPermissionFeedback, outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------

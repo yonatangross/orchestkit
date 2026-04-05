@@ -5,9 +5,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Check if file is a test file
@@ -26,7 +27,7 @@ function isTestFile(filePath: string): boolean {
 /**
  * Validate test file location
  */
-export function testLocationValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function testLocationValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Self-guard: Only run for code files
   const guard = guardCodeFiles(input);
   if (guard) return guard;
@@ -41,7 +42,7 @@ export function testLocationValidator(input: HookInput, ctx?: HookContext): Hook
   if (isTest) {
     if (!/(tests\/|__tests__\/|\/test\/|test\/)/.test(filePath)) {
       const reason = `Test file must be in tests/, __tests__/, or test/ directory: ${filename}`;
-      (ctx?.log ?? logHook)('test-location-validator', `BLOCKED: ${reason}`);
+      ctx.log('test-location-validator', `BLOCKED: ${reason}`);
       return outputBlock(reason);
     }
   }
@@ -59,7 +60,7 @@ export function testLocationValidator(input: HookInput, ctx?: HookContext): Hook
 
     if (!isAllowed && !isInAllowedDir) {
       const reason = `Source files cannot be in test directories: ${filename}`;
-      (ctx?.log ?? logHook)('test-location-validator', `BLOCKED: ${reason}`);
+      ctx.log('test-location-validator', `BLOCKED: ${reason}`);
       return outputBlock(reason);
     }
   }
@@ -74,7 +75,7 @@ export function testLocationValidator(input: HookInput, ctx?: HookContext): Hook
     // Must have .test or .spec suffix
     if (!/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filename)) {
       const reason = `Test files must use .test.ts or .spec.ts suffix: ${filename}`;
-      (ctx?.log ?? logHook)('test-location-validator', `BLOCKED: ${reason}`);
+      ctx.log('test-location-validator', `BLOCKED: ${reason}`);
       return outputBlock(reason);
     }
   }
@@ -89,7 +90,7 @@ export function testLocationValidator(input: HookInput, ctx?: HookContext): Hook
     // Must start with test_ or end with _test.py
     if (!/^test_.*\.py$/.test(filename) && !/_test\.py$/.test(filename)) {
       const reason = `Python test files must be named test_*.py or *_test.py: ${filename}`;
-      (ctx?.log ?? logHook)('test-location-validator', `BLOCKED: ${reason}`);
+      ctx.log('test-location-validator', `BLOCKED: ${reason}`);
       return outputBlock(reason);
     }
   }

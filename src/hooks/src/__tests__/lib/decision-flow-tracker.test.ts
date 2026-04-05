@@ -42,7 +42,6 @@ import {
 } from '../../lib/decision-flow-tracker.js';
 import type { ToolAction, } from '../../lib/decision-flow-tracker.js';
 import { getProjectDir } from '../../lib/common.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // Helper to build ToolAction stubs
 function makeAction(overrides: Partial<ToolAction> = {}): ToolAction {
@@ -56,9 +55,7 @@ function makeAction(overrides: Partial<ToolAction> = {}): ToolAction {
   };
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext({ projectDir: '/tmp/fake-project' });
   vi.restoreAllMocks();
   // Re-apply mock return value after restoreAllMocks
   vi.mocked(getProjectDir).mockReturnValue('/tmp/fake-project');

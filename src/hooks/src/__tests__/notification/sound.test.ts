@@ -48,7 +48,7 @@ import {
   _resetAfplayCacheForTesting,
   _resetLinuxPlayerCacheForTesting,
 } from '../../notification/sound.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -89,8 +89,8 @@ describe('notification/sound', () => {
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();
-    _resetAfplayCacheForTesting(testCtx);
-    _resetLinuxPlayerCacheForTesting(testCtx);
+    _resetAfplayCacheForTesting();
+    _resetLinuxPlayerCacheForTesting();
     // Default: afplay is available
     vi.mocked(execFileSync).mockImplementation((cmd: unknown, args: unknown) => {
       const argStr = (args as string[])?.join(' ') ?? '';
@@ -485,7 +485,7 @@ describe('notification/sound', () => {
       soundNotification(input, testCtx);
 
       // Act - reset cache, call again
-      _resetAfplayCacheForTesting(testCtx);
+      _resetAfplayCacheForTesting();
       soundNotification(input, testCtx);
 
       // Assert - which afplay called twice (once before reset, once after)
@@ -707,7 +707,7 @@ describe('notification/sound', () => {
       soundNotification(input, testCtx);
 
       // Act - reset and call again
-      _resetLinuxPlayerCacheForTesting(testCtx);
+      _resetLinuxPlayerCacheForTesting();
       soundNotification(input, testCtx);
 
       // Assert - pw-play check runs twice (once before reset, once after)

@@ -51,11 +51,7 @@ import {
 } from '../../lib/task-integration.js';
 
 import type { PipelineExecution } from '../../lib/orchestration-types.js';
-import { createTestContext } from '../fixtures/test-context.js';
-
-let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-task-test-'));
 });
 

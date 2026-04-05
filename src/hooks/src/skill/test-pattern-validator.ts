@@ -5,7 +5,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Check if file is a test file
@@ -20,7 +21,7 @@ function isTestFile(filePath: string): boolean {
 /**
  * Validate test patterns and conventions
  */
-export function testPatternValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function testPatternValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input?.file_path || '';
   const content = input.tool_input?.content || (input as any).tool_result || '';
 
@@ -135,7 +136,7 @@ export function testPatternValidator(input: HookInput, ctx?: HookContext): HookR
 
   // Report errors and block
   if (errors.length > 0) {
-    (ctx?.log ?? logHook)('test-pattern-validator', `BLOCKED: ${errors[0]}`);
+    ctx.log('test-pattern-validator', `BLOCKED: ${errors[0]}`);
     return outputBlock(`Test pattern violations detected in ${filePath}`);
   }
 

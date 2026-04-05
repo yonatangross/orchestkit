@@ -42,7 +42,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Import after mocks
 import { sessionMetricsSummary } from '../../lifecycle/session-metrics-summary.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -332,7 +332,7 @@ describe('session-metrics-summary', () => {
 
       // Assert
       // The log should show Bash first (highest), then Read, then Edit
-      const topToolsCall = testCtx.log.mock.calls.find(
+      const topToolsCall = vi.mocked(testCtx.log).mock.calls.find(
         call => call[1].includes('Top tools:')
       );
       expect(topToolsCall).toBeDefined();
@@ -549,7 +549,7 @@ describe('session-metrics-summary', () => {
       sessionMetricsSummary(input, testCtx);
 
       // Assert
-      const topToolsCall = testCtx.log.mock.calls.find(
+      const topToolsCall = vi.mocked(testCtx.log).mock.calls.find(
         call => call[1].includes('Top tools:')
       );
       if (Object.keys(tools).length > 0) {
@@ -680,7 +680,7 @@ describe('session-metrics-summary', () => {
       sessionMetricsSummary(input, testCtx);
 
       // Assert
-      const allLogCalls = testCtx.log.mock.calls;
+      const allLogCalls = vi.mocked(testCtx.log).mock.calls;
       for (const call of allLogCalls) {
         expect(call[0]).toBe('session-metrics-summary');
       }

@@ -27,7 +27,7 @@ vi.mock('../../lib/guards.js', () => ({
 }));
 
 import { backendFileNaming } from '../../skill/backend-file-naming.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../../lib/common.js';
 import { guardPythonFiles } from '../../lib/guards.js';
 import { createTestContext } from '../fixtures/test-context.js';
 

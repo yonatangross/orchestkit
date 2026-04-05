@@ -28,6 +28,7 @@ import {
 // Import hook implementations
 import { securityPatternValidator } from '../Write/security-pattern-validator.js';
 import { architectureChangeDetector } from '../Write/architecture-change-detector.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -42,7 +43,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface QualityHookConfig {
   name: string;
@@ -76,7 +77,7 @@ export const registeredHookNames = () => [
  * 1. security-pattern-validator (can block)
  * 2. Quality hooks (context producers, budget-capped)
  */
-export function unifiedWriteEditQualityDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedWriteEditQualityDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // --- Phase 1: Security check (can block) ---
   try {
     const securityResult = securityPatternValidator(input, ctx);
@@ -86,15 +87,15 @@ export function unifiedWriteEditQualityDispatcher(input: HookInput, ctx?: HookCo
     // If security produced a warning context, collect it as high-priority
     const securityContext = extractContext(securityResult);
     if (securityContext) {
-      return mergeQualityContext(input, securityContext);
+      return mergeQualityContext(input, ctx, securityContext);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `security-pattern-validator failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `security-pattern-validator failed: ${message}`, 'warn');
   }
 
   // --- Phase 2: Quality hooks (context producers) ---
-  return mergeQualityContext(input, null);
+  return mergeQualityContext(input, ctx, null);
 }
 
 /**
@@ -102,6 +103,7 @@ export function unifiedWriteEditQualityDispatcher(input: HookInput, ctx?: HookCo
  */
 function mergeQualityContext(
   input: HookInput,
+  ctx: HookContext,
   prependContext: string | null,
 ): HookResult {
   const contextParts: string[] = [];
@@ -117,7 +119,7 @@ function mergeQualityContext(
   // Run quality hooks
   for (const hook of QUALITY_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       const context = extractContext(result);
       if (!context) continue;

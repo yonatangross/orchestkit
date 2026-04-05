@@ -20,7 +20,6 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  logHook,
   estimateTokenCount,
   extractContext,
 } from '../../lib/common.js';
@@ -30,6 +29,7 @@ import { autoLint } from '../auto-lint.js';
 import { readmeSync } from './readme-sync.js';
 import { mergeConflictPredictor } from '../../skill/merge-conflict-predictor.js';
 import { coveragePredictor } from './coverage-predictor.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -44,7 +44,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface WriteHookConfig {
   name: string;
@@ -76,7 +76,7 @@ export const registeredHookNames = () => WRITE_HOOKS.map(h => h.name);
  *
  * Runs all hooks, merges their context outputs with budget cap.
  */
-export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedWriteQualityDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
 
@@ -86,7 +86,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContex
 
       // Check for blocking results (shouldn't happen in PostToolUse, but be safe)
       if (!result.continue && result.continue !== undefined) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} returned continue:false (unexpected in PostToolUse)`);
+        ctx.log(HOOK_NAME, `${hook.name} returned continue:false (unexpected in PostToolUse)`);
         continue;
       }
 
@@ -95,7 +95,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContex
 
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > MAX_OUTPUT_TOKENS) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
+        ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${MAX_OUTPUT_TOKENS}t cap)`);
         continue;
       }
 
@@ -103,7 +103,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContex
       totalTokens += contextTokens;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -112,7 +112,7 @@ export function unifiedWriteQualityDispatcher(input: HookInput, ctx?: HookContex
   }
 
   const consolidated = contextParts.join('\n');
-  (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
 
   return {
     continue: true,

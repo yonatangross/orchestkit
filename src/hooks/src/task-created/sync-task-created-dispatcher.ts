@@ -16,15 +16,16 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
+import { outputSilentSuccess, extractContext } from '../lib/common.js';
 
 // Import existing handler functions
 import { creationTracker } from './creation-tracker.js';
 import { taskProgressInitializer } from './task-progress-initializer.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-task-created-dispatcher';
 
-export async function syncTaskCreatedDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
+export async function syncTaskCreatedDispatcher(input: HookInput, hookCtx: HookContext = NOOP_CTX): Promise<HookResult> {
   const contextParts: string[] = [];
 
   // Phase 1: Creation tracking (analytics + event log) — async
@@ -33,7 +34,7 @@ export async function syncTaskCreatedDispatcher(input: HookInput, hookCtx?: Hook
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    (hookCtx?.log ?? logHook)(HOOK_NAME, `creation-tracker failed: ${(err as Error).message}`, 'warn');
+    hookCtx.log(HOOK_NAME, `creation-tracker failed: ${(err as Error).message}`, 'warn');
   }
 
   // Phase 2: Progress initializer (state setup for progress bar) — sync
@@ -42,7 +43,7 @@ export async function syncTaskCreatedDispatcher(input: HookInput, hookCtx?: Hook
     const ctx = extractContext(result);
     if (ctx) contextParts.push(ctx);
   } catch (err) {
-    (hookCtx?.log ?? logHook)(HOOK_NAME, `task-progress-initializer failed: ${(err as Error).message}`, 'warn');
+    hookCtx.log(HOOK_NAME, `task-progress-initializer failed: ${(err as Error).message}`, 'warn');
   }
 
   if (contextParts.length === 0) return outputSilentSuccess();

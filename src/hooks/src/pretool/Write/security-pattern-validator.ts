@@ -8,11 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
 import { guardCodeFiles, runGuards } from '../../lib/guards.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Security patterns to detect
@@ -89,7 +88,7 @@ function detectSecurityIssues(content: string): string[] {
 /**
  * Security pattern validator - detects anti-patterns before write
  */
-export function securityPatternValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function securityPatternValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
 
@@ -107,17 +106,17 @@ export function securityPatternValidator(input: HookInput, ctx?: HookContext): H
   const securityIssues = detectSecurityIssues(content);
 
   if (securityIssues.length > 0) {
-    (ctx?.log ?? logHook)('security-pattern-validator', `SECURITY_WARN: ${filePath} - ${securityIssues.join(', ')}`);
+    ctx.log('security-pattern-validator', `SECURITY_WARN: ${filePath} - ${securityIssues.join(', ')}`);
 
     // Build warning message
     const warningMsg = `Security warnings for ${basename(filePath)}: ${securityIssues.join(', ')}`;
-    (ctx?.logPermission ?? logPermissionFeedback)('warn', `Security issues in ${filePath}: ${securityIssues.join(', ')}`, input);
+    ctx.logPermission('warn', `Security issues in ${filePath}: ${securityIssues.join(', ')}`, input);
 
     // CC 2.1.9: Use additionalContext for warnings
     return outputWithContext(warningMsg);
   }
 
-  (ctx?.log ?? logHook)('security-pattern-validator', `SECURITY_OK: ${filePath}`);
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', `No security issues in ${filePath}`, input);
+  ctx.log('security-pattern-validator', `SECURITY_OK: ${filePath}`);
+  ctx.logPermission('allow', `No security issues in ${filePath}`, input);
   return outputSilentSuccess();
 }

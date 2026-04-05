@@ -450,11 +450,12 @@ export function listHooks(): string[] {
  */
 export async function runHook(
   name: string,
-  input: Parameters<HookFn>[0]
+  input: Parameters<HookFn>[0],
+  ctx: Parameters<HookFn>[1]
 ): Promise<ReturnType<HookFn>> {
   const hook = getHook(name);
   if (!hook) {
     return { continue: true, suppressOutput: true };
   }
-  return hook(input);
+  return hook(input, ctx);
 }

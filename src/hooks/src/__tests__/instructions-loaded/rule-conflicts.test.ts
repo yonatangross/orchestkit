@@ -14,13 +14,11 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { ruleConflictDetector } from '../../instructions-loaded/rule-conflicts.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 function makeFile(path: string): LoadedFile {
   return { path };
 }
 
-const testCtx = createTestContext();
 describe('ruleConflictDetector', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty file list', () => {

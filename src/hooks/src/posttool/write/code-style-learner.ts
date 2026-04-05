@@ -16,7 +16,8 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, getField } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface StyleProfile {
   version: string;
@@ -260,7 +261,7 @@ function updateProfile(
 /**
  * Learn code style from written files
  */
-export function codeStyleLearner(input: HookInput, ctx?: HookContext): HookResult {
+export function codeStyleLearner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Guard: Only run for Write/Edit
@@ -295,7 +296,7 @@ export function codeStyleLearner(input: HookInput, ctx?: HookContext): HookResul
 
   if (!content) {
     // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
-    const projectDir = ctx?.projectDir ?? getProjectDir();
+    const projectDir = ctx.projectDir;
     const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
     if (existsSync(fullPath)) {
@@ -338,7 +339,7 @@ export function codeStyleLearner(input: HookInput, ctx?: HookContext): HookResul
   }
 
   // Load and update profile
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
   const profilePath = `${projectDir}/.claude/feedback/code-style-profile.json`;
 
   try {
@@ -347,10 +348,10 @@ export function codeStyleLearner(input: HookInput, ctx?: HookContext): HookResul
     updateProfile(profile, language, indentation, quoteStyle, semiStyle, trailingComma, typeHints, docstringStyle);
     atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
   } catch (error) {
-    (ctx?.log ?? logHook)('code-style-learner', `Error updating profile: ${error}`);
+    ctx.log('code-style-learner', `Error updating profile: ${error}`);
   }
 
-  (ctx?.log ?? logHook)('code-style-learner',
+  ctx.log('code-style-learner',
     `Analyzed ${language} file: indent=${indentation.style}(${indentation.size}) quotes=${quoteStyle}`);
 
   return outputSilentSuccess();

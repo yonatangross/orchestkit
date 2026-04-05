@@ -20,7 +20,7 @@ vi.mock('../../lib/guards.js', () => ({
 }));
 
 import { structureLocationValidator } from '../../skill/structure-location-validator.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
 import { createTestContext } from '../fixtures/test-context.js';
 

@@ -24,6 +24,7 @@ import { platform } from 'node:os';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'denial-notification';
 
@@ -129,19 +130,19 @@ function sendDesktopNotification(title: string, message: string): void {
   }
 }
 
-export function denialNotification(input: HookInput, ctx?: HookContext): HookResult {
+export function denialNotification(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const now = Date.now();
 
   // Read denial count from persisted log (written by denial-logger.ts)
   const denialCount = getRecentDenialCount(now);
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Denial count in window: ${denialCount}/${THRESHOLD}`);
+  ctx.log(HOOK_NAME, `Denial count in window: ${denialCount}/${THRESHOLD}`);
 
   if (denialCount >= THRESHOLD) {
     const lastNotifiedAt = getLastNotifiedAt();
 
     if (now - lastNotifiedAt < COOLDOWN_MS) {
-      (ctx?.log ?? logHook)(HOOK_NAME, 'Threshold reached but in cooldown period');
+      ctx.log(HOOK_NAME, 'Threshold reached but in cooldown period');
       return outputSilentSuccess();
     }
 
@@ -153,7 +154,7 @@ export function denialNotification(input: HookInput, ctx?: HookContext): HookRes
       `${denialCount} commands denied in ${WINDOW_MS / 1000}s. Last: ${toolName}. Check /permissions.`,
     );
 
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Desktop notification sent for repeated denials');
+    ctx.log(HOOK_NAME, 'Desktop notification sent for repeated denials');
   }
 
   return outputSilentSuccess();

@@ -2,7 +2,7 @@
 // Created: 2026-04-03
 
 import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
-import { mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { TelemetryEvent } from '../../lib/telemetry.js';
@@ -48,7 +48,6 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { HttpSink, circuitAllows, recordSuccess, recordFailure, readCbState, writeCbState, isRetriable, getCbStatePath } from '../../lib/http-sink.js';
 import type { CircuitBreakerState } from '../../lib/http-sink.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   return {
@@ -62,10 +61,8 @@ function makeEvent(overrides: Partial<TelemetryEvent> = {}): TelemetryEvent {
   };
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('HttpSink with Retry + Circuit Breaker', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     mockFetchCalls = [];
     mockFetchResponses = [];
     mockFetchCallIndex = 0;

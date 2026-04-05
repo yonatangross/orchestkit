@@ -43,6 +43,7 @@ import {
   getRecentDecisions,
   type UserProfile,
 } from '../lib/user-profile.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -312,8 +313,8 @@ export function materializeProfileRules(): void {
  * @deprecated Use materializeProfileRules() from SessionStart instead.
  * Kept for backward compatibility — returns silent success (materialization moved to SessionStart).
  */
-export function profileInjector(_input: HookInput, ctx?: HookContext): HookResult {
-  (ctx?.log ?? logHook)('profile-injector', 'Skipping — materialization moved to SessionStart');
+export function profileInjector(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('profile-injector', 'Skipping — materialization moved to SessionStart');
   return outputSilentSuccess();
 }
 

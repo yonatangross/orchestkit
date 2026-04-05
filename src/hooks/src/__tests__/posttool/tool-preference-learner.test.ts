@@ -13,10 +13,10 @@ vi.mock('node:fs', () => ({
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...parts: string[]) => parts.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...parts: string[]) => parts.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 

@@ -261,7 +261,7 @@ export interface HookResult {
 /**
  * Hook function signature
  */
-export type HookFn = (input: HookInput, ctx?: HookContext) => Promise<HookResult> | HookResult;
+export type HookFn = (input: HookInput, ctx: HookContext) => Promise<HookResult> | HookResult;
 
 /**
  * Hook metadata for auto-discovery and governance

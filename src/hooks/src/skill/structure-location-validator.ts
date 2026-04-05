@@ -5,16 +5,17 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
 import { basename, dirname as pathDirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 const MAX_DEPTH = 4;
 
 /**
  * Validate file structure and location
  */
-export function structureLocationValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function structureLocationValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Self-guard: Only run for code files
   const guard = guardCodeFiles(input);
   if (guard) return guard;
@@ -96,7 +97,7 @@ export function structureLocationValidator(input: HookInput, ctx?: HookContext):
   // Report errors and block
   if (errors.length > 0) {
     const reason = `Structure violation: ${errors[0]}`;
-    logHook('structure-location-validator', `BLOCKED: ${reason}`);
+    ctx.log('structure-location-validator', `BLOCKED: ${reason}`);
     return outputBlock(reason);
   }
 

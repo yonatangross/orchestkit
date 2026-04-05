@@ -9,13 +9,14 @@ import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { execSync } from 'node:child_process';
 import { basename } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, getField, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { assertSafeShellArg, assertSafeGlobPattern } from '../../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Predict test coverage for written files
  */
-export function coveragePredictor(input: HookInput, ctx?: HookContext): HookResult {
+export function coveragePredictor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only run for Write tool
@@ -40,7 +41,7 @@ export function coveragePredictor(input: HookInput, ctx?: HookContext): HookResu
     return outputSilentSuccess();
   }
 
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Determine corresponding test file location
   let testPattern = '';

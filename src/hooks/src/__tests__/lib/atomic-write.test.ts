@@ -33,13 +33,10 @@ import {
   releaseLock,
   lockedAtomicWriteSync,
 } from '../../lib/atomic-write.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 let tmpDir: string;
 
-let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-atomic-test-'));
 });
 

@@ -13,14 +13,14 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Check for --milestone flag in gh issue create commands.
  * Advisory only — warns but never blocks.
  */
-export function ghMilestoneEnforcer(input: HookInput, ctx?: HookContext): HookResult {
+export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue create
@@ -36,6 +36,6 @@ export function ghMilestoneEnforcer(input: HookInput, ctx?: HookContext): HookRe
   }
 
   const context = 'No --milestone set. Consider assigning to a milestone for sprint tracking.';
-  (ctx?.log ?? logHook)('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
+  ctx.log('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
   return outputAllowWithContext(context);
 }

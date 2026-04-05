@@ -17,14 +17,14 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.91', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.91');
+    test('is 2.1.92', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.92');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(171);
+      expect(CC_FEATURE_MATRIX.length).toBe(179);
     });
 
     test('is sorted by version ascending', () => {
@@ -72,7 +72,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.91');
+      const features = getAvailableFeatures('2.1.92');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -98,8 +98,8 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.91', () => {
-      const missing = getMissingFeatures('2.1.91');
+    test('no missing features at 2.1.92', () => {
+      const missing = getMissingFeatures('2.1.92');
       expect(missing.length).toBe(0);
     });
 

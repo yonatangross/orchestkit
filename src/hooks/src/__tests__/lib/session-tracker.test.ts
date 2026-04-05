@@ -69,9 +69,6 @@ import {
   // GAP-008/009: Removed listSessionIds and getRecentUserSessions (dead code)
 } from '../../lib/session-tracker.js';
 import { existsSync, readFileSync, appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { createTestContext } from '../fixtures/test-context.js';
-
-let testCtx: ReturnType<typeof createTestContext>;
 describe('Session Event Tracker', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
@@ -80,7 +77,6 @@ describe('Session Event Tracker', () => {
   const mockWriteFileSync = vi.mocked(writeFileSync);
 
   beforeEach(() => {
-    testCtx = createTestContext({ sessionId: 'test-session-456' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     // Reset counter state between tests

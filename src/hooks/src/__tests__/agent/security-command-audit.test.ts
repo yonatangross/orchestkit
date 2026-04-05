@@ -40,7 +40,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { securityCommandAudit } from '../../agent/security-command-audit.js';
-import { outputSilentSuccess, outputDeny, getProjectDir, getSessionId } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { mkdirSync, appendFileSync } from 'node:fs';
 import { createTestContext } from '../fixtures/test-context.js';
 

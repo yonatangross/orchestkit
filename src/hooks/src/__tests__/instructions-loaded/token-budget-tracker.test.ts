@@ -16,7 +16,6 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 });
 
 import { tokenBudgetTracker } from '../../instructions-loaded/token-budget-tracker.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // 1,000,000 tokens estimated context; warn threshold is 15% = 150,000 tokens = 600,000 bytes
 const EMPTY_CONTENTS = new Map<string, string>();
@@ -25,7 +24,6 @@ function makeFile(path: string, byte_size: number): LoadedFile {
   return { path, byte_size };
 }
 
-const testCtx = createTestContext();
 describe('tokenBudgetTracker', () => {
   describe('null returns (silent path)', () => {
     test('returns null for empty file list', () => {

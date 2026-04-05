@@ -16,9 +16,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 // outputWithContext used in describeChange path
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'file-changed';
 
@@ -42,7 +43,7 @@ function describeChange(filePath: string, fileName: string): string | null {
   return null;
 }
 
-export function fileChanged(input: HookInput, ctx?: HookContext): HookResult {
+export function fileChanged(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.changed_file_path || '';
   const fileName = input.changed_file || basename(filePath);
 
@@ -50,7 +51,7 @@ export function fileChanged(input: HookInput, ctx?: HookContext): HookResult {
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Watched file changed: ${filePath}`);
+  ctx.log(HOOK_NAME, `Watched file changed: ${filePath}`);
 
   const description = describeChange(filePath, fileName);
   if (!description) {

@@ -6,9 +6,10 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const METRICS_FILE = getMetricsFile();
 
@@ -21,7 +22,7 @@ interface SessionMetrics {
 /**
  * Track tool usage metrics
  */
-export function sessionMetrics(input: HookInput, ctx?: HookContext): HookResult {
+export function sessionMetrics(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   if (!toolName) {
@@ -56,7 +57,7 @@ export function sessionMetrics(input: HookInput, ctx?: HookContext): HookResult 
     // Write updated metrics
     atomicWriteSync(METRICS_FILE, JSON.stringify(metrics, null, 2));
   } catch (error) {
-    (ctx?.log ?? logHook)('session-metrics', `Error updating metrics: ${error}`);
+    ctx.log('session-metrics', `Error updating metrics: ${error}`);
   }
 
   return outputSilentSuccess();

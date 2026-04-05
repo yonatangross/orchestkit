@@ -32,10 +32,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
-  logHook,
   estimateTokenCount,
-  getProjectDir,
-  getSessionId,
   extractContext,
   fnv1aHash,
 } from '../lib/common.js';
@@ -55,6 +52,7 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
 import { agentationContext } from './agentation-context.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -69,7 +67,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface PromptHookConfig {
   name: string;
@@ -179,15 +177,15 @@ function isNoisyOutput(context: string): boolean {
  * Unified dispatcher that runs all every-turn UserPromptSubmit hooks
  * and consolidates their output into a single additionalContext response.
  */
-export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Guard: skip all processing for oversized or binary prompts (image paste, base64 data)
   const prompt = input.prompt || '';
   if (prompt.length > MAX_PROMPT_LENGTH) {
-    (ctx?.log ?? logHook)(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
+    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
     return outputSilentSuccess();
   }
   if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
-    (ctx?.log ?? logHook)(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
+    ctx.log(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
     return outputSilentSuccess();
   }
 
@@ -198,18 +196,18 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
   if (effort !== 'medium') {
-    (ctx?.log ?? logHook)(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
+    ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
   }
 
   // Resolve session/project for once-flag tracking
-  const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const sessionId = input.session_id || (ctx.sessionId);
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   for (const hook of HOOKS) {
     try {
       // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
       if (effort === 'low' && hook.runOnce && hook.producesContext) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: skipped at low effort`);
+        ctx.log(HOOK_NAME, `${hook.name}: skipped at low effort`);
         continue;
       }
 
@@ -217,9 +215,9 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
       if (hook.runOnce) {
         if (!sessionId) {
           // No session_id available — allow re-run (same as legacy behavior)
-          (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: no session_id, running without once-gate`);
+          ctx.log(HOOK_NAME, `${hook.name}: no session_id, running without once-gate`);
         } else if (hasOnceFlagRun(hook.name, sessionId, projectDir)) {
-          (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: already ran this session, skipping`);
+          ctx.log(HOOK_NAME, `${hook.name}: already ran this session, skipping`);
           continue;
         }
       }
@@ -231,7 +229,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
         try {
           setOnceFlagDone(hook.name, sessionId, projectDir);
         } catch (flagErr) {
-          (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: failed to write once-flag: ${flagErr}`, 'warn');
+          ctx.log(HOOK_NAME, `${hook.name}: failed to write once-flag: ${flagErr}`, 'warn');
         }
       }
 
@@ -248,24 +246,24 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
 
       // Filter noisy/low-value context before consuming budget
       if (isNoisyOutput(context)) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: noisy output filtered`);
+        ctx.log(HOOK_NAME, `${hook.name}: noisy output filtered`);
         continue;
       }
 
       // Budget check: don't exceed effort-adjusted token budget
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > tokenBudget) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
+        ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
         continue;
       }
 
       contextParts.push(context);
       totalTokens += contextTokens;
 
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
+      ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
@@ -286,7 +284,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
     if (existsSync(hashFile)) {
       const lastHash = readFileSync(hashFile, 'utf8').trim();
       if (lastHash === consolidatedHash) {
-        (ctx?.log ?? logHook)(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
         return outputSilentSuccess();
       }
     }
@@ -296,11 +294,11 @@ export function unifiedPromptDispatcher(input: HookInput, ctx?: HookContext): Ho
     }
     writeFileSync(hashFile, consolidatedHash, 'utf8');
   } catch (err) {
-    (ctx?.log ?? logHook)(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
+    ctx.log(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
     // Proceed with injection on error
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
 
   // Track token usage for budget enforcement
   if (totalTokens > 0) {

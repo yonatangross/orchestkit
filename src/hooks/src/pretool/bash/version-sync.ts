@@ -8,12 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface VersionSource {
   file: string;
@@ -75,9 +73,9 @@ function getVersionSources(projectDir: string): VersionSource[] {
 /**
  * Check version sync on version bump commands
  */
-export function versionSync(input: HookInput, ctx?: HookContext): HookResult {
+export function versionSync(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process npm version or poetry version commands
   if (!/npm\s+version|poetry\s+version/.test(command)) {
@@ -101,12 +99,12 @@ ${sources.map((s) => `${s.file}: ${s.version}`).join('\n')}
 
 Consider syncing versions across all files.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Version mismatch detected', input);
-    (ctx?.log ?? logHook)('version-sync', `Versions: ${versions.join(', ')}`);
+    ctx.logPermission('allow', 'Version mismatch detected', input);
+    ctx.log('version-sync', `Versions: ${versions.join(', ')}`);
     return outputAllowWithContext(context);
   }
 
   // All in sync
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Versions in sync: ${uniqueVersions[0]}`, input);
+  ctx.logPermission('allow', `Versions in sync: ${uniqueVersions[0]}`, input);
   return outputSilentSuccess();
 }

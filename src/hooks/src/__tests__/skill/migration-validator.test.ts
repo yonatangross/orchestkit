@@ -27,7 +27,7 @@ vi.mock('node:child_process', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { migrationValidator } from '../../skill/migration-validator.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
 import { createTestContext } from '../fixtures/test-context.js';

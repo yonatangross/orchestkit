@@ -11,9 +11,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, outputSilentSuccess, outputPromptContext, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Heuristic: repos with many top-level dirs are likely monorepos. */
 const MONOREPO_DIR_THRESHOLD = 15;
@@ -76,17 +77,17 @@ function hasSparsePathsConfigured(projectDir: string): boolean {
   }
 }
 
-export function worktreeLifecycleLogger(input: HookInput, ctx?: HookContext): HookResult {
+export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const event = input.hook_event;
 
   if (event === 'WorktreeCreate') {
     // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth')
     const name = input.name || 'unknown';
     const hookType = input.type;
-    (ctx?.log ?? logHook)('worktree-lifecycle', `Worktree creating: name=${name}, type=${hookType || 'command'}`);
+    ctx.log('worktree-lifecycle', `Worktree creating: name=${name}, type=${hookType || 'command'}`);
 
     // CC 2.1.76: Suggest worktree.sparsePaths for monorepos without sparse config
-    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+    const projectDir = input.project_dir || (ctx.projectDir);
     const { isMonorepo, topDirCount } = detectMonorepo(projectDir);
     const hasSparse = hasSparsePathsConfigured(projectDir);
 
@@ -98,13 +99,13 @@ export function worktreeLifecycleLogger(input: HookInput, ctx?: HookContext): Ho
         'Consider configuring `worktree.sparsePaths` in `.claude/settings.json` to speed up worktree creation. ' +
         'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
         'only those directories will be checked out in worktrees (CC 2.1.76+).';
-      (ctx?.log ?? logHook)('worktree-lifecycle', `Monorepo (${topDirCount} dirs) without sparsePaths — advisory injected`);
+      ctx.log('worktree-lifecycle', `Monorepo (${topDirCount} dirs) without sparsePaths — advisory injected`);
     }
 
     // CC 2.1.84: HTTP type hooks return worktree path via hookSpecificOutput
     if (hookType === 'http') {
       const worktreePath = join(projectDir, '.worktrees', name);
-      (ctx?.log ?? logHook)('worktree-lifecycle', `HTTP type — returning worktreePath: ${worktreePath}`);
+      ctx.log('worktree-lifecycle', `HTTP type — returning worktreePath: ${worktreePath}`);
       return {
         ...outputPromptContext(advisory),
         hookSpecificOutput: { worktreePath },
@@ -117,13 +118,13 @@ export function worktreeLifecycleLogger(input: HookInput, ctx?: HookContext): Ho
   if (event === 'WorktreeRemove') {
     // CC 2.1.69: WorktreeRemove sends `worktree_path` (absolute path)
     const worktreePath = input.worktree_path || 'unknown';
-    (ctx?.log ?? logHook)('worktree-lifecycle', `Worktree removed: ${worktreePath}`);
+    ctx.log('worktree-lifecycle', `Worktree removed: ${worktreePath}`);
     return outputPromptContext(
       `[WorktreeRemove] Worktree removed: ${worktreePath}. ` +
       'The isolated worktree has been cleaned up. You are back in the main working tree.'
     );
   }
 
-  (ctx?.log ?? logHook)('worktree-lifecycle', `Unexpected event: ${event}`);
+  ctx.log('worktree-lifecycle', `Unexpected event: ${event}`);
   return outputSilentSuccess();
 }

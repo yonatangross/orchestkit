@@ -8,12 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Detect available CI checks based on project files
@@ -47,9 +45,9 @@ function detectCIChecks(projectDir: string): string[] {
 /**
  * Suggest CI checks before git push
  */
-export function ciSimulation(input: HookInput, ctx?: HookContext): HookResult {
+export function ciSimulation(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process git push commands
   if (!/git\s+push/.test(command)) {
@@ -69,7 +67,7 @@ ${checks.slice(0, 3).join('\n')}
 Run these locally to catch issues before CI fails.
 Or: git push --no-verify to skip (not recommended)`;
 
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'CI simulation suggested', input);
-  (ctx?.log ?? logHook)('ci-simulation', `Suggested checks: ${checks.join(', ')}`);
+  ctx.logPermission('allow', 'CI simulation suggested', input);
+  ctx.log('ci-simulation', `Suggested checks: ${checks.join(', ')}`);
   return outputAllowWithContext(context);
 }

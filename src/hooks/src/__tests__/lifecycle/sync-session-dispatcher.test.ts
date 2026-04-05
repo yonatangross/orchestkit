@@ -61,7 +61,7 @@ import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.j
 import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../../lifecycle/mcp-health-check.js';
 import { materializeAntipatternRules } from '../../prompt/antipattern-warning.js';
-import { logHook } from '../../lib/common.js';
+
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -352,7 +352,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       const input = createSessionStartInput();
       syncSessionDispatcher(input, testCtx);
 
-      const calls = testCtx.log.mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSilentLog = calls.some(
         ([name, msg]) => name === 'sync-session-dispatcher' && String(msg).includes('silent'),
       );
@@ -370,7 +370,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       const input = createSessionStartInput();
       syncSessionDispatcher(input, testCtx);
 
-      const calls = testCtx.log.mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasMergedLog = calls.some(
         ([name, msg]) => name === 'sync-session-dispatcher' && String(msg).includes('Merged'),
       );

@@ -12,15 +12,14 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
 import { detectSuspiciousShellFeatures } from '../../lib/normalize-command.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Validate compound commands for suspicious shell features
  */
-export function compoundCommandValidator(input: HookInput, ctx?: HookContext): HookResult {
+export function compoundCommandValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
   if (!command) {
@@ -33,8 +32,8 @@ export function compoundCommandValidator(input: HookInput, ctx?: HookContext): H
   const suspiciousFeatures = detectSuspiciousShellFeatures(command);
   if (suspiciousFeatures.length > 0) {
     const reason = suspiciousFeatures.join('; ');
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Suspicious shell feature: ${reason}`, input);
-    (ctx?.log ?? logHook)('compound-command-validator', `BLOCKED: ${reason}`);
+    ctx.logPermission('deny', `Suspicious shell feature: ${reason}`, input);
+    ctx.log('compound-command-validator', `BLOCKED: ${reason}`);
 
     return outputDeny(
       `BLOCKED: Suspicious shell feature detected.
@@ -47,6 +46,6 @@ Please rewrite the command using standard shell syntax.`
   }
 
   // Safe compound command - allow execution
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Compound command validated: safe', input);
+  ctx.logPermission('allow', 'Compound command validated: safe', input);
   return outputSilentSuccess();
 }

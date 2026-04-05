@@ -12,6 +12,7 @@ import { atomicWriteSync } from '../lib/atomic-write.js';
 import { dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -23,10 +24,6 @@ function getDecisionsFile(): string {
 
 function getSessionState(): string {
   return `${getProjectDir()}/.claude/context/session/state.json`;
-}
-
-function getLogDir(): string {
-  return `${getProjectDir()}/.claude/logs/agent-context`;
 }
 
 // -----------------------------------------------------------------------------
@@ -101,7 +98,7 @@ const MAX_COMPLETED_TASKS = 50;
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function contextPublisher(input: HookInput, ctx?: HookContext): HookResult {
+export function contextPublisher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
@@ -197,7 +194,7 @@ export function contextPublisher(input: HookInput, ctx?: HookContext): HookResul
   writeJsonFile(sessionStateFile, sessionState);
 
   // === Logging ===
-  const logDir = ctx?.logDir ?? getLogDir();
+  const logDir = ctx.logDir;
   ensureDir(logDir);
 
   const dateStr = new Date().toISOString().replace(/[-:]/g, '').substring(0, 15);

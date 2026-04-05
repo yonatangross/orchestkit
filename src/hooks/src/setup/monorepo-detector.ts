@@ -8,7 +8,8 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { logHook, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Monorepo indicator files
 const MONOREPO_INDICATORS = [
@@ -60,12 +61,12 @@ function countNestedPackageJsons(projectDir: string): number {
 /**
  * Monorepo detector hook
  */
-export function monorepoDetector(input: HookInput, ctx?: HookContext): HookResult {
-  (ctx?.log ?? logHook)('monorepo-detector', 'Checking for monorepo structure');
+export function monorepoDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('monorepo-detector', 'Checking for monorepo structure');
 
   // CC 2.1.49: When added_dirs are active, surface package context instead of skipping
   if (input.added_dirs && input.added_dirs.length > 0) {
-    (ctx?.log ?? logHook)('monorepo-detector', `${input.added_dirs.length} added_dirs active, surfacing context`);
+    ctx.log('monorepo-detector', `${input.added_dirs.length} added_dirs active, surfacing context`);
 
     // Extract package names from added directories
     const packageNames: string[] = [];
@@ -94,11 +95,11 @@ export function monorepoDetector(input: HookInput, ctx?: HookContext): HookResul
 
   // Skip if env var already set
   if (process.env.CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD === '1') {
-    (ctx?.log ?? logHook)('monorepo-detector', 'CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD already set, skipping');
+    ctx.log('monorepo-detector', 'CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD already set, skipping');
     return outputSilentSuccess();
   }
 
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const projectDir = input.project_dir || (ctx.projectDir);
   const detectedIndicators: string[] = [];
 
   // Check for monorepo indicator files
@@ -113,7 +114,7 @@ export function monorepoDetector(input: HookInput, ctx?: HookContext): HookResul
   const isMonorepo = detectedIndicators.length > 0 || nestedPackageCount >= 3;
 
   if (!isMonorepo) {
-    (ctx?.log ?? logHook)('monorepo-detector', 'No monorepo detected');
+    ctx.log('monorepo-detector', 'No monorepo detected');
     return outputSilentSuccess();
   }
 
@@ -121,7 +122,7 @@ export function monorepoDetector(input: HookInput, ctx?: HookContext): HookResul
     ? `Detected: ${detectedIndicators.join(', ')}`
     : `Found ${nestedPackageCount} nested packages`;
 
-  (ctx?.log ?? logHook)('monorepo-detector', `Monorepo detected: ${indicators}`);
+  ctx.log('monorepo-detector', `Monorepo detected: ${indicators}`);
 
   return outputWithContext(
     `**Monorepo Detected** (${indicators})\n\n` +

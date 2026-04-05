@@ -23,14 +23,11 @@ import path from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  logHook,
-  getProjectDir,
-  getSessionId,
-  getCachedBranch,
 } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { flushEventCounter, trackEvent } from '../lib/session-tracker.js';
 import { flush as flushAnalyticsBuffer } from '../lib/analytics-buffer.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'stop-failure-handler';
 
@@ -43,10 +40,10 @@ const HOOK_NAME = 'stop-failure-handler';
  * 2. Write a minimal handoff file for session recovery
  * 3. Return silent success (NEVER produce output)
  */
-export async function stopFailureHandler(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function stopFailureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Re-entry guard (same as Stop dispatcher)
   if (input.stop_hook_active) {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Skipping: stop_hook_active=true (re-entry prevention)');
+    ctx.log(HOOK_NAME, 'Skipping: stop_hook_active=true (re-entry prevention)');
     return outputSilentSuccess();
   }
 
@@ -63,9 +60,9 @@ export async function stopFailureHandler(input: HookInput, ctx?: HookContext): P
   // Log available input keys for debugging when reason is unknown
   if (failureReason === 'unknown') {
     const inputKeys = Object.keys(input).filter(k => !['hook_event_name', 'session_id', 'project_dir', 'stop_hook_active'].includes(k));
-    (ctx?.log ?? logHook)(HOOK_NAME, `StopFailure: reason=unknown (available keys: ${inputKeys.join(', ') || 'none'})`, 'warn');
+    ctx.log(HOOK_NAME, `StopFailure: reason=unknown (available keys: ${inputKeys.join(', ') || 'none'})`, 'warn');
   } else {
-    (ctx?.log ?? logHook)(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}`, 'warn');
+    ctx.log(HOOK_NAME, `StopFailure: reason=${failureReason} status=${apiStatus ?? 'N/A'}`, 'warn');
   }
 
   // Track the failure event for analytics
@@ -82,20 +79,20 @@ export async function stopFailureHandler(input: HookInput, ctx?: HookContext): P
   try {
     flushEventCounter();
   } catch {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Failed to flush event counter', 'warn');
+    ctx.log(HOOK_NAME, 'Failed to flush event counter', 'warn');
   }
 
   try {
     flushAnalyticsBuffer();
   } catch {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'Failed to flush analytics buffer', 'warn');
+    ctx.log(HOOK_NAME, 'Failed to flush analytics buffer', 'warn');
   }
 
   // Write emergency handoff
   try {
-    const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
-    const sessionId = input.session_id || (ctx?.sessionId ?? getSessionId());
-    const branch = ctx?.branch ?? getCachedBranch(projectDir);
+    const projectDir = input.project_dir || (ctx.projectDir);
+    const sessionId = input.session_id || (ctx.sessionId);
+    const branch = ctx.branch;
     const handoffDir = path.join(projectDir, '.claude');
     const handoffPath = path.join(handoffDir, 'HANDOFF.md');
 
@@ -150,10 +147,10 @@ export async function stopFailureHandler(input: HookInput, ctx?: HookContext): P
     }
 
     atomicWriteSync(handoffPath, `${sections.join('\n')}\n`);
-    (ctx?.log ?? logHook)(HOOK_NAME, `Wrote emergency handoff: ${handoffPath}`);
+    ctx.log(HOOK_NAME, `Wrote emergency handoff: ${handoffPath}`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to write emergency handoff: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `Failed to write emergency handoff: ${msg}`, 'warn');
   }
 
   // CRITICAL: Always return silent success — never produce output

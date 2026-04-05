@@ -16,7 +16,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
+import { outputSilentSuccess, getField } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -83,7 +84,7 @@ function detectError(input: HookInput): ErrorInfo {
 // MAIN HOOK
 // =============================================================================
 
-export function unifiedErrorHandler(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedErrorHandler(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Self-guard: Skip trivial bash commands
@@ -101,6 +102,6 @@ export function unifiedErrorHandler(input: HookInput, ctx?: HookContext): HookRe
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)('error-logger', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
+  ctx.log('error-logger', `ERROR: ${input.tool_name} - ${errorInfo.errorType}`);
   return outputSilentSuccess();
 }

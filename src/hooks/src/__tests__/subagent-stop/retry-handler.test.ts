@@ -60,7 +60,7 @@ vi.mock('../../lib/task-integration.js', () => ({
 }));
 
 import { retryHandler } from '../../subagent-stop/retry-handler.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import {
   makeRetryDecision,
   formatRetryDecision,

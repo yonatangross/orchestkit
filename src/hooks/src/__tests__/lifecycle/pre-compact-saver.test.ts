@@ -27,7 +27,7 @@ vi.mock('../../lib/common.js', async () => mockCommonReal({
 
 // Import after mocks
 import { preCompactSaver } from '../../lifecycle/pre-compact-saver.js';
-import { logHook, getLogDir, getSessionId, outputSilentSuccess } from '../../lib/common.js';
+import { getLogDir, getSessionId, outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -673,7 +673,7 @@ describe('pre-compact-saver', () => {
       preCompactSaver(input, testCtx);
 
       // Assert
-      const allLogCalls = testCtx.log.mock.calls;
+      const allLogCalls = vi.mocked(testCtx.log).mock.calls;
       for (const call of allLogCalls) {
         expect(call[0]).toBe('pre-compact-saver');
       }

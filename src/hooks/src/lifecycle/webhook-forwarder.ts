@@ -21,6 +21,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { emit } from '../lib/telemetry.js';
 import { registerAllSinks } from '../lib/sink-registry.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // ---------------------------------------------------------------------------
 // Lazy sink registration — deferred to first call instead of module scope.
@@ -40,7 +41,7 @@ function ensureSinks(): void {
 // Public API (unchanged signature — dispatchers don't need updates)
 // ---------------------------------------------------------------------------
 
-export async function webhookForwarder(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function webhookForwarder(input: HookInput, _ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   ensureSinks();
   emit(input);
   return outputSilentSuccess();

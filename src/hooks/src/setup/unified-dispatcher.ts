@@ -17,16 +17,17 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 
 // Import hook implementations from lifecycle (they stay there, we just call them from Setup)
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -56,21 +57,21 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  * Unified dispatcher that runs Setup hooks in parallel
  * Runs once at plugin load, not every session
  */
-export async function unifiedSetupDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
-  (ctx?.log ?? logHook)('setup-dispatcher', `Running ${HOOKS.length} Setup hooks in parallel`);
+export async function unifiedSetupDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  ctx.log('setup-dispatcher', `Running ${HOOKS.length} Setup hooks in parallel`);
 
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, ctx);
         if (result instanceof Promise) {
           await result;
         }
         return { hook: hook.name, status: 'success' };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logHook('setup-dispatcher', `${hook.name} failed: ${message}`);
+        ctx.log('setup-dispatcher', `${hook.name} failed: ${message}`);
         return { hook: hook.name, status: 'error', message };
       }
     })
@@ -89,9 +90,9 @@ export async function unifiedSetupDispatcher(input: HookInput, ctx?: HookContext
 
   // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    (ctx?.log ?? logHook)('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
+    ctx.log('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
   } else {
-    (ctx?.log ?? logHook)('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
+    ctx.log('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
   }
 
   // Async hooks always return silent success - CC ignores other fields

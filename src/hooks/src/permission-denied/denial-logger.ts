@@ -18,7 +18,8 @@
 import { existsSync, mkdirSync, appendFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'denial-logger';
 
@@ -27,7 +28,7 @@ function getDenialLogPath(): string {
   return join(projectDir, '.claude', 'feedback', 'permission-denials.jsonl');
 }
 
-export function denialLogger(input: HookInput, ctx?: HookContext): HookResult {
+export function denialLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const logPath = getDenialLogPath();
     const logDir = dirname(logPath);
@@ -44,10 +45,10 @@ export function denialLogger(input: HookInput, ctx?: HookContext): HookResult {
     };
 
     appendFileSync(logPath, `${JSON.stringify(entry)}\n`, 'utf-8');
-    (ctx?.log ?? logHook)(HOOK_NAME, `Logged denial for ${entry.tool_name}`);
+    ctx.log(HOOK_NAME, `Logged denial for ${entry.tool_name}`);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `Failed to log denial: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `Failed to log denial: ${msg}`, 'warn');
   }
 
   // Never retry — logger is observation-only

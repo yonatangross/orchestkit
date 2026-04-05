@@ -73,7 +73,7 @@ export function writeTelemetryEvent(payload: Record<string, unknown> | object): 
     }
   }
 
-  const line = JSON.stringify(payload) + '\n';
+  const line = `${JSON.stringify(payload)}\n`;
   const filePath = getTelemetryPath();
 
   // Async append — non-blocking, process stays alive until cb fires

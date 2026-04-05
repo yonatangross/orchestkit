@@ -8,9 +8,8 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Documentation checklist for features
@@ -25,7 +24,7 @@ const DOCS_CHECKLIST = `Documentation checklist for features:
 /**
  * Remind about documentation for feature branches/issues
  */
-export function issueDocsRequirement(input: HookInput, ctx?: HookContext): HookResult {
+export function issueDocsRequirement(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue close or gh pr merge for feature issues
@@ -48,7 +47,7 @@ ${DOCS_CHECKLIST}
 
 Skip with --no-edit if docs are already complete.`;
 
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Feature docs reminder', input);
-  (ctx?.log ?? logHook)('issue-docs-requirement', 'Feature completion - docs reminder');
+  ctx.logPermission('allow', 'Feature docs reminder', input);
+  ctx.log('issue-docs-requirement', 'Feature completion - docs reminder');
   return outputAllowWithContext(context);
 }

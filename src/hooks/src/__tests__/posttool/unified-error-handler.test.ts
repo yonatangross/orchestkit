@@ -4,7 +4,7 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { unifiedErrorHandler } from '../../posttool/unified-error-handler.js';
-import { logHook } from '../../lib/common.js';
+
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 

@@ -18,7 +18,7 @@ vi.mock('../../lib/session-tracker.js', () => ({
 }));
 
 import { sessionEndTracking } from '../../stop/session-end-tracking.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { trackSessionEnd } from '../../lib/session-tracker.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';

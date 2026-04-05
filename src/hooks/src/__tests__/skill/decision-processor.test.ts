@@ -307,7 +307,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL for the database.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       expect(decisions.length).toBeGreaterThan(0);
@@ -319,7 +319,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL because it supports ACID transactions well.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       // Note: Due to regex global flag behavior with .match(), rationale extraction
@@ -346,7 +346,7 @@ describe('decision-processor', () => {
       const output = `We decided to use Redis ${keyword} ${reason}.`;
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       if (decisions.length > 0 && decisions[0].rationale) {
@@ -359,7 +359,7 @@ describe('decision-processor', () => {
       const output = 'We chose cursor-pagination instead of offset-pagination for scalability.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       expect(decisions[0].alternatives).toBeDefined();
@@ -375,7 +375,7 @@ describe('decision-processor', () => {
       const output = `We chose PostgreSQL ${keyword} ${alternative}.`;
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       if (decisions.length > 0 && decisions[0].alternatives) {
@@ -390,7 +390,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL. We must ensure ACID compliance for transactions.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       if (decisions[0].constraints) {
@@ -403,7 +403,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use eventual consistency. The tradeoff is increased complexity.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       if (decisions[0].tradeoffs) {
@@ -416,7 +416,7 @@ describe('decision-processor', () => {
       const output = 'We decided to use PostgreSQL because it is reliable instead of MongoDB.';
 
       // Act
-      const decisions = extractEnrichedDecisions(output, testCtx);
+      const decisions = extractEnrichedDecisions(output);
 
       // Assert
       expect(decisions[0].confidence).toBeGreaterThan(0);
@@ -429,8 +429,8 @@ describe('decision-processor', () => {
       const withoutRationale = 'We decided to use PostgreSQL.';
 
       // Act
-      const decisionsWithRationale = extractEnrichedDecisions(withRationale, testCtx);
-      const decisionsWithoutRationale = extractEnrichedDecisions(withoutRationale, testCtx);
+      const decisionsWithRationale = extractEnrichedDecisions(withRationale);
+      const decisionsWithoutRationale = extractEnrichedDecisions(withoutRationale);
 
       // Assert
       if (decisionsWithRationale.length > 0 && decisionsWithoutRationale.length > 0) {

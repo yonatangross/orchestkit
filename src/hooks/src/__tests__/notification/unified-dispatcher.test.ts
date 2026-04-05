@@ -49,7 +49,7 @@ import {
 } from '../../notification/unified-dispatcher.js';
 import { desktopNotification } from '../../notification/desktop.js';
 import { soundNotification } from '../../notification/sound.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -139,8 +139,8 @@ describe('notification/unified-dispatcher', () => {
       await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert
-      expect(desktopNotification).toHaveBeenCalledWith(input);
-      expect(soundNotification).toHaveBeenCalledWith(input);
+      expect(desktopNotification).toHaveBeenCalledWith(input, testCtx);
+      expect(soundNotification).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('calls both hooks even for non-notification types', async () => {
@@ -170,6 +170,7 @@ describe('notification/unified-dispatcher', () => {
             message: 'Custom message',
           }),
         }),
+        testCtx,
       );
       expect(soundNotification).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -177,6 +178,7 @@ describe('notification/unified-dispatcher', () => {
             notification_type: 'idle_prompt',
           }),
         }),
+        testCtx,
       );
     });
 
@@ -220,7 +222,7 @@ describe('notification/unified-dispatcher', () => {
       const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - sound still ran, result is still success
-      expect(soundNotification).toHaveBeenCalledWith(input);
+      expect(soundNotification).toHaveBeenCalledWith(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -237,7 +239,7 @@ describe('notification/unified-dispatcher', () => {
       const result = await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - desktop still ran, result is still success
-      expect(desktopNotification).toHaveBeenCalledWith(input);
+      expect(desktopNotification).toHaveBeenCalledWith(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -298,7 +300,7 @@ describe('notification/unified-dispatcher', () => {
       await unifiedNotificationDispatcher(input, testCtx);
 
       // Assert - dispatcher always logs a Results summary
-      const dispatcherCalls = testCtx.log.mock.calls.filter(
+      const dispatcherCalls = vi.mocked(testCtx.log).mock.calls.filter(
         ([name]) => name === 'notification-dispatcher',
       );
       // Should have the Results summary

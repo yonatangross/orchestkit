@@ -5,7 +5,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { logHook, outputWithUpdatedInput } from '../../lib/common.js';
+import { outputWithUpdatedInput } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Default timeout: 2 minutes (120000ms)
@@ -15,7 +16,7 @@ const DEFAULT_TIMEOUT = 120000;
 /**
  * Set default timeout if not specified
  */
-export function defaultTimeoutSetter(input: HookInput, ctx?: HookContext): HookResult {
+export function defaultTimeoutSetter(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
   const timeout = input.tool_input.timeout;
   const description = input.tool_input.description;
@@ -35,7 +36,7 @@ export function defaultTimeoutSetter(input: HookInput, ctx?: HookContext): HookR
     updated.description = description;
   }
 
-  (ctx?.log ?? logHook)('default-timeout-setter', `Setting default timeout: ${DEFAULT_TIMEOUT}ms`);
+  ctx.log('default-timeout-setter', `Setting default timeout: ${DEFAULT_TIMEOUT}ms`);
 
   return outputWithUpdatedInput(updated);
 }

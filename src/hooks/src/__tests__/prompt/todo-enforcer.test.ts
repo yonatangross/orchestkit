@@ -20,7 +20,7 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { todoEnforcer } from '../../prompt/todo-enforcer.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -402,8 +402,8 @@ describe('prompt/todo-enforcer', () => {
 
       // Assert
       // Should only log once (first pattern match)
-      const complexCalls = testCtx.log.mock.calls.filter(
-        call => call[1] === 'Complex task detected - todo tracking recommended'
+      const complexCalls = vi.mocked(testCtx.log).mock.calls.filter(
+        (call: unknown[]) => call[1] === 'Complex task detected - todo tracking recommended'
       );
       expect(complexCalls.length).toBe(1);
     });

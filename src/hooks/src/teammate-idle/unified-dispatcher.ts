@@ -12,18 +12,19 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 
 // Import individual TeammateIdle hook implementations
 import { progressReporter } from './progress-reporter.js';
 import { teamSynthesisTrigger } from './team-synthesis-trigger.js';
 import { teamQualityGate } from './team-quality-gate.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput, hookCtx?: HookContext) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, hookCtx: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -45,7 +46,7 @@ const HOOKS: HookConfig[] = [
 // Dispatcher
 // -----------------------------------------------------------------------------
 
-export async function unifiedTeammateIdleDispatcher(input: HookInput, hookCtx?: HookContext): Promise<HookResult> {
+export async function unifiedTeammateIdleDispatcher(input: HookInput, hookCtx: HookContext = NOOP_CTX): Promise<HookResult> {
   const contextParts: string[] = [];
 
   for (const hook of HOOKS) {
@@ -58,7 +59,7 @@ export async function unifiedTeammateIdleDispatcher(input: HookInput, hookCtx?: 
         contextParts.push(ctx.trim());
       }
     } catch (err) {
-      (hookCtx?.log ?? logHook)(
+      hookCtx.log(
         'teammate-idle-dispatcher',
         `Hook "${hook.name}" failed: ${err instanceof Error ? err.message : String(err)}`,
       );

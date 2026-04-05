@@ -45,7 +45,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 }));
 
 import { coverageCheck } from '../../skill/coverage-check.js';
-import { outputSilentSuccess, getLogDir, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================

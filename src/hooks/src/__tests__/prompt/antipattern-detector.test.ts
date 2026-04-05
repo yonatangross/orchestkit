@@ -23,7 +23,6 @@ import { mockCommonReal } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', async () => mockCommonReal());
 
 import { antipatternDetector } from '../../prompt/antipattern-detector.js';
-import { getProjectDir } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================

@@ -38,7 +38,7 @@ vi.mock('../../skill/cross-instance-test-validator.js', () => ({
 }));
 
 import { unifiedStopDispatcher, registeredHookNames } from '../../stop/unified-dispatcher.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import type { HookInput } from '../../types.js';
@@ -79,8 +79,8 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
-      expect(mockTaskCompletionCheck).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput, testCtx);
+      expect(mockTaskCompletionCheck).toHaveBeenCalledWith(defaultInput, testCtx);
     });
 
     it('should pass input to all hooks', async () => {
@@ -88,7 +88,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput, testCtx);
     });
   });
 

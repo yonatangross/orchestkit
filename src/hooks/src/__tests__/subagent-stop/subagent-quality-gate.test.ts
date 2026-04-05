@@ -44,7 +44,7 @@ vi.mock('../../lib/atomic-write.js', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { subagentQualityGate } from '../../subagent-stop/subagent-quality-gate.js';
-import { outputSilentSuccess, outputWarning, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWarning, outputBlock } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { createTestContext } from '../fixtures/test-context.js';
 

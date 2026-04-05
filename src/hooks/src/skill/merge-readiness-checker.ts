@@ -10,6 +10,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getRepoRoot, getCurrentBranch, hasUncommittedChanges } from '../lib/git.js';
 import { assertSafeGitRef, assertSafeGitArgs } from '../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Execute git command safely (no shell — args passed as array)
@@ -31,7 +32,7 @@ function gitExec(args: string[], cwd?: string): string {
 /**
  * Check merge readiness for branch
  */
-export function mergeReadinessChecker(input: HookInput, ctx?: HookContext): HookResult {
+export function mergeReadinessChecker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input?.command || '';
 
   // Only run for merge-related commands
@@ -50,7 +51,7 @@ export function mergeReadinessChecker(input: HookInput, ctx?: HookContext): Hook
 
   process.stderr.write(`Checking merge readiness: ${currentBranch} -> ${targetBranch}\n\n`);
 
-  const projectRoot = getRepoRoot() || (ctx?.projectDir ?? getProjectDir());
+  const projectRoot = getRepoRoot() || (ctx.projectDir);
   const errors: string[] = [];
   const warnings: string[] = [];
   const passes: string[] = [];

@@ -52,7 +52,7 @@ describe('dirtyFileTracker', () => {
   beforeEach(() => {
     testCtx = createTestContext({ sessionId: 'test-session', logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
-    _resetForTesting(testCtx);
+    _resetForTesting();
     mockExistsSync.mockReturnValue(true); // log dir exists
   });
 
@@ -328,7 +328,7 @@ describe('dirtyFileTracker', () => {
     }
 
     // Reset
-    _resetForTesting(testCtx);
+    _resetForTesting();
 
     // First file after reset should be silent (count=1, below threshold)
     const result = dirtyFileTracker(makeInput({

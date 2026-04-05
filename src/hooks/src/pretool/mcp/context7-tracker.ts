@@ -9,13 +9,12 @@ import {
   outputSilentSuccess,
   outputDeny,
   outputWithContext,
-  logHook,
-  logPermissionFeedback,
   getLogDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync, statSync, renameSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const MAX_LOG_SIZE = 102400; // 100KB
 
@@ -137,7 +136,7 @@ function checkRateLimits(logFile: string): string | null {
 /**
  * Context7 tracker - tracks library lookups, enforces rate limits, and injects cache state
  */
-export function context7Tracker(input: HookInput, ctx?: HookContext): HookResult {
+export function context7Tracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process context7 MCP calls
@@ -149,7 +148,7 @@ export function context7Tracker(input: HookInput, ctx?: HookContext): HookResult
   const query = (input.tool_input.query as string) || '';
 
   // Get log file path
-  const logDir = ctx?.logDir ?? getLogDir();
+  const logDir = ctx.logDir;
   try {
     mkdirSync(logDir, { recursive: true });
   } catch {
@@ -162,8 +161,8 @@ export function context7Tracker(input: HookInput, ctx?: HookContext): HookResult
   // Rate limit check (before logging this query)
   const rateLimitMsg = checkRateLimits(telemetryLog);
   if (rateLimitMsg) {
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', `Context7 rate limited: ${rateLimitMsg}`, input);
-    (ctx?.log ?? logHook)('context7-tracker', `RATE LIMITED: ${rateLimitMsg}`);
+    ctx.logPermission('deny', `Context7 rate limited: ${rateLimitMsg}`, input);
+    ctx.log('context7-tracker', `RATE LIMITED: ${rateLimitMsg}`);
     return outputDeny(rateLimitMsg);
   }
 
@@ -180,8 +179,8 @@ export function context7Tracker(input: HookInput, ctx?: HookContext): HookResult
   // Calculate cache context
   const cacheContext = calculateCacheContext(telemetryLog);
 
-  (ctx?.logPermission ?? logPermissionFeedback)('allow', `Documentation lookup: ${libraryId}`, input);
-  (ctx?.log ?? logHook)('context7-tracker', `Query: ${toolName} library=${libraryId}`);
+  ctx.logPermission('allow', `Documentation lookup: ${libraryId}`, input);
+  ctx.log('context7-tracker', `Query: ${toolName} library=${libraryId}`);
 
   // Skip cache context injection for first 2 queries — not useful yet (#token-reduction)
   if (cacheContext) {

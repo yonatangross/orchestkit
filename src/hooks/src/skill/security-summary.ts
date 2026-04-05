@@ -8,13 +8,14 @@
 import { mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, getLogDir } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Generate security scan summary on session stop
  */
-export function securitySummary(_input: HookInput, ctx?: HookContext): HookResult {
-  const logDir = ctx?.logDir ?? getLogDir();
+export function securitySummary(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const logDir = ctx.logDir;
   const logFile = `${logDir}/security-summary.log`;
 
   // Ensure log directory exists

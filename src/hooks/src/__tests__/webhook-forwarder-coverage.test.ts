@@ -74,7 +74,7 @@ function hasInlinedForwarder(hookPath: string): boolean {
   // Skip the webhook-forwarder itself
   if (hookPath === 'lifecycle/webhook-forwarder') return false;
 
-  const sourceFile = join(srcRoot, hookPath + '.ts');
+  const sourceFile = join(srcRoot, `${hookPath}.ts`);
   if (!existsSync(sourceFile)) return false;
 
   const content = readFileSync(sourceFile, 'utf8');

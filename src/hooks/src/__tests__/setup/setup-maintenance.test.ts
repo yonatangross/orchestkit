@@ -58,9 +58,9 @@ function readMarker(): Record<string, unknown> {
 
 let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext();
   vi.clearAllMocks();
   tmpDir = mkdtempSync(join(os.tmpdir(), 'setup-maint-test-'));
+  testCtx = createTestContext({ pluginRoot: tmpDir, projectDir: tmpDir });
   mockGetPluginRoot.mockReturnValue(tmpDir);
   mockGetHomeDir.mockReturnValue(join(tmpDir, 'home'));
   mockGetTempDir.mockReturnValue(join(tmpDir, 'tmp'));

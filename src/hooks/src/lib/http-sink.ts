@@ -134,7 +134,7 @@ function isRetriable(status: number): boolean {
 }
 
 function jitterDelay(attempt: number): number {
-  const expDelay = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS);
+  const expDelay = Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS);
   return Math.random() * expDelay; // Full jitter: uniform [0, expDelay]
 }
 

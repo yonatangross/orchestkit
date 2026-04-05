@@ -27,7 +27,7 @@ vi.mock('../../lib/session-tracker.js', () => ({
 // Import after mocks
 import { sessionTracking } from '../../lifecycle/session-tracking.js';
 import { execFileSync } from 'node:child_process';
-import { logHook, getProjectDir, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { trackSessionStart } from '../../lib/session-tracker.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -232,11 +232,11 @@ describe('session-tracking', () => {
     test('uses environment variable when project_dir not in input', () => {
       // Arrange
       process.env.CLAUDE_PROJECT_DIR = '/env/project';
-      vi.mocked(getProjectDir).mockReturnValueOnce('/env/project');
+      const envCtx = createTestContext({ projectDir: '/env/project' });
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      sessionTracking(input, testCtx);
+      sessionTracking(input, envCtx);
 
       // Assert
       expect(trackSessionStart).toHaveBeenCalledWith(

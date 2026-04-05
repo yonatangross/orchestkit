@@ -15,7 +15,6 @@ import { basename, join } from 'node:path';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { getProjectDir } from '../lib/paths.js';
 import type { LoadedFile, DriftCache } from './types.js';
-import type { HookContext } from '../types.js';
 
 const HOOK_NAME = 'instructions-loaded/drift-detection';
 

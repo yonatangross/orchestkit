@@ -5,9 +5,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Determine the architectural layer of a file
@@ -33,7 +34,7 @@ function getLayer(filePath: string): string | null {
 /**
  * Enforce import direction rules
  */
-export function importDirectionEnforcer(input: HookInput, ctx?: HookContext): HookResult {
+export function importDirectionEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Self-guard: Only run for code files
   const guard = guardCodeFiles(input);
   if (guard) return guard;
@@ -97,7 +98,7 @@ export function importDirectionEnforcer(input: HookInput, ctx?: HookContext): Ho
   if (errors.length > 0) {
     const filename = basename(filePath) || filePath;
     const reason = `Import direction violation in ${filename}: ${errors[0]}`;
-    logHook('import-direction-enforcer', `BLOCKED: ${reason}`);
+    ctx.log('import-direction-enforcer', `BLOCKED: ${reason}`);
     return outputBlock(reason);
   }
 

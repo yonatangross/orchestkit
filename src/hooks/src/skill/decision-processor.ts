@@ -18,6 +18,7 @@ import { outputSilentSuccess, getPluginRoot, lineContainsAllCI } from '../lib/co
 import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -414,7 +415,7 @@ function extractBestPractice(text: string): string | null {
 // MAIN HOOK
 // =============================================================================
 
-export function decisionProcessor(input: HookInput, ctx?: HookContext): HookResult {
+export function decisionProcessor(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const skillName = (input as any).skill_name || input.tool_input?.skill || '';
   const toolResult = input.tool_result;
   const skillOutput = typeof toolResult === 'string'

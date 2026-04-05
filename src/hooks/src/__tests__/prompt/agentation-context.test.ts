@@ -30,7 +30,6 @@ vi.mock('node:fs', async () => {
 import {
   outputSilentSuccess,
   outputPromptContext,
-  logHook,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 

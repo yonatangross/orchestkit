@@ -40,7 +40,7 @@ vi.mock('../../lifecycle/pattern-sync-push.js', () => ({
 import { syncSessionEndDispatcher } from '../../lifecycle/sync-session-end-dispatcher.js';
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
-import { logHook } from '../../lib/common.js';
+
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -244,7 +244,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       syncSessionEndDispatcher(input, testCtx);
 
       // Check that at least one logHook call contains 'silent'
-      const calls = testCtx.log.mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSilentLog = calls.some(
         ([name, msg]) => name === 'sync-session-end-dispatcher' && String(msg).includes('silent'),
       );
@@ -258,7 +258,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       const input = createSessionEndInput();
       syncSessionEndDispatcher(input, testCtx);
 
-      const calls = testCtx.log.mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasMergedLog = calls.some(
         ([name, msg]) => name === 'sync-session-end-dispatcher' && String(msg).includes('Merged'),
       );

@@ -11,9 +11,10 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), join: vi.fn((...a: string[]) => a.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 vi.mock('../../lib/sanitize-shell.js', () => ({
   assertSafeCommandName: vi.fn((cmd: string) => cmd),

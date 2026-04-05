@@ -16,12 +16,11 @@ import {
   outputSilentSuccess,
   outputWithContext,
   outputWarning,
-  logHook,
-  getProjectDir,
 } from '../../lib/common.js';
 import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, extname, basename } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // Thresholds
 const MAX_FUNCTION_LINES = 50;
@@ -216,10 +215,10 @@ function getCachedTypeErrors(filePath: string, projectDir: string): string {
 /**
  * Code quality gate - analyzes quality before allowing write
  */
-export function codeQualityGate(input: HookInput, ctx?: HookContext): HookResult {
+export function codeQualityGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   // Apply guards
   const guardResult = runGuards(input, guardCodeFiles, guardSkipInternal);
@@ -247,7 +246,7 @@ export function codeQualityGate(input: HookInput, ctx?: HookContext): HookResult
 
   // Build quality message
   if (allWarnings.length > 0) {
-    (ctx?.log ?? logHook)('code-quality-gate', `Quality warnings for ${filePath}: ${allWarnings.join(', ')}`);
+    ctx.log('code-quality-gate', `Quality warnings for ${filePath}: ${allWarnings.join(', ')}`);
 
     let qualityMsg = `Code quality: ${allWarnings.join(' | ')}`;
 
@@ -263,6 +262,6 @@ export function codeQualityGate(input: HookInput, ctx?: HookContext): HookResult
     return outputWithContext(qualityMsg);
   }
 
-  (ctx?.log ?? logHook)('code-quality-gate', `No quality issues in ${filePath}`);
+  ctx.log('code-quality-gate', `No quality issues in ${filePath}`);
   return outputSilentSuccess();
 }

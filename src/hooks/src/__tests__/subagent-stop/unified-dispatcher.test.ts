@@ -38,7 +38,6 @@ vi.mock('../../subagent-stop/feedback-loop.js', () => ({
 }));
 
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
-import { logHook } from '../../lib/common.js';
 import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
 import { handoffPreparer } from '../../subagent-stop/handoff-preparer.js';
@@ -184,8 +183,8 @@ describe('unified-subagent-stop-dispatcher', () => {
       await unifiedSubagentStopDispatcher(input, testCtx);
 
       // Assert — 2 hooks after #897
-      expect(handoffPreparer).toHaveBeenCalledWith(input);
-      expect(feedbackLoop).toHaveBeenCalledWith(input);
+      expect(handoffPreparer).toHaveBeenCalledWith(input, testCtx);
+      expect(feedbackLoop).toHaveBeenCalledWith(input, testCtx);
     });
 
     test('calls all hooks even when some fail', async () => {
@@ -475,7 +474,7 @@ describe('unified-subagent-stop-dispatcher', () => {
       // Reset all hook mocks to succeed
       vi.mocked(handoffPreparer).mockReturnValue({ continue: true, suppressOutput: true });
       vi.mocked(feedbackLoop).mockReturnValue({ continue: true, suppressOutput: true });
-      testCtx.log.mockClear();
+      vi.mocked(testCtx.log).mockClear();
       const input = createSubagentStopInput();
 
       // Act

@@ -8,12 +8,10 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Check if pre-commit is configured
@@ -35,9 +33,9 @@ function hasHuskyConfig(projectDir: string): boolean {
 /**
  * Suggest pre-commit checks before commit
  */
-export function preCommitSimulation(input: HookInput, ctx?: HookContext): HookResult {
+export function preCommitSimulation(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = ctx?.projectDir ?? getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process git commit commands
   if (!/git\s+commit/.test(command)) {
@@ -50,8 +48,8 @@ export function preCommitSimulation(input: HookInput, ctx?: HookContext): HookRe
 Consider removing it unless intentional.
 Skipped checks may cause CI failures.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'Skip pre-commit detected', input);
-    (ctx?.log ?? logHook)('pre-commit-simulation', '--no-verify used');
+    ctx.logPermission('allow', 'Skip pre-commit detected', input);
+    ctx.log('pre-commit-simulation', '--no-verify used');
     return outputAllowWithContext(context);
   }
 
@@ -61,7 +59,7 @@ Skipped checks may cause CI failures.`;
 If hooks fail, fix issues and retry.
 Run manually: pre-commit run --all-files`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'pre-commit config found', input);
+    ctx.logPermission('allow', 'pre-commit config found', input);
     return outputAllowWithContext(context);
   }
 
@@ -70,7 +68,7 @@ Run manually: pre-commit run --all-files`;
     const context = `Husky hooks will run: .husky/
 If hooks fail, fix issues and retry.`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('allow', 'husky config found', input);
+    ctx.logPermission('allow', 'husky config found', input);
     return outputAllowWithContext(context);
   }
 

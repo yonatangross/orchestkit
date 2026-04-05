@@ -14,15 +14,14 @@ import {
   outputSilentSuccess,
   outputDeny,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Check for --label flag in gh issue/pr create commands.
  * Blocks issue creation without labels; warns on PR creation.
  */
-export function ghLabelEnforcer(input: HookInput, ctx?: HookContext): HookResult {
+export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
   // Only process gh issue create or gh pr create
@@ -50,13 +49,13 @@ export function ghLabelEnforcer(input: HookInput, ctx?: HookContext): HookResult
 
 Example: gh issue create --title "Fix auth" --label bug`;
 
-    (ctx?.logPermission ?? logPermissionFeedback)('deny', 'Issue creation blocked: missing --label', input);
-    (ctx?.log ?? logHook)('gh-label-enforcer', 'Blocked gh issue create without --label');
+    ctx.logPermission('deny', 'Issue creation blocked: missing --label', input);
+    ctx.log('gh-label-enforcer', 'Blocked gh issue create without --label');
     return outputDeny(msg);
   }
 
   // PR creation: WARN (advisory)
   const context = 'Consider adding --label to categorize this PR (bug, enhancement, chore, docs).';
-  (ctx?.log ?? logHook)('gh-label-enforcer', 'Advisory: gh pr create without --label');
+  ctx.log('gh-label-enforcer', 'Advisory: gh pr create without --label');
   return outputAllowWithContext(context);
 }

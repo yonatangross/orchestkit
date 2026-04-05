@@ -39,7 +39,6 @@ import {
 import type { GuardResult } from '../../lib/guards.js';
 import type { HookInput } from '../../types.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
-import { createTestContext } from '../fixtures/test-context.js';
 
 // Helper to build minimal HookInput
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
@@ -56,9 +55,7 @@ function isSkip(result: GuardResult): boolean {
   return result !== null;
 }
 
-let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
-  testCtx = createTestContext({ projectDir: '/tmp/fake-project' });
   vi.restoreAllMocks();
   vi.mocked(isAgentTeamsActive).mockReturnValue(false);
 });

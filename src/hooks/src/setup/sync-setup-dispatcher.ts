@@ -24,7 +24,7 @@ import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
+import { outputSilentSuccess, extractContext } from '../lib/common.js';
 
 // Import consolidated hook implementations
 import { unifiedSetupDispatcher } from './unified-dispatcher.js';
@@ -33,6 +33,7 @@ import { firstRunSetup } from './first-run-setup.js';
 import { setupMaintenance } from './setup-maintenance.js';
 import { setupRepair } from './setup-repair.js';
 import { monorepoDetector } from './monorepo-detector.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-setup-dispatcher';
 
@@ -58,7 +59,7 @@ function markAsRun(hookName: string): void {
 
 interface SyncHookConfig {
   name: string;
-  fn: (input: HookInput, ctx?: HookContext) => HookResult | Promise<HookResult>;
+  fn: (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
   once?: boolean;
 }
 
@@ -85,13 +86,13 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * Runs all Setup hooks sequentially, respecting once-gate for hooks marked once: true.
  * Merges systemMessage/additionalContext outputs.
  */
-export async function syncSetupDispatcher(input: HookInput, ctx?: HookContext): Promise<HookResult> {
+export async function syncSetupDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
     // Skip once-gated hooks that have already run
     if (hook.once && hasRunOnce(hook.name)) {
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: skipped (already ran once)`);
+      ctx.log(HOOK_NAME, `${hook.name}: skipped (already ran once)`);
       continue;
     }
 
@@ -107,28 +108,28 @@ export async function syncSetupDispatcher(input: HookInput, ctx?: HookContext): 
       // Collect systemMessage (primary output channel for Setup)
       if (result.systemMessage) {
         messages.push(result.systemMessage);
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: systemMessage collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
 
       // Fallback: extract additionalContext
       const context = extractContext(result);
       if (context && !result.systemMessage) {
         messages.push(context);
-        (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
   if (messages.length === 0) {
-    (ctx?.log ?? logHook)(HOOK_NAME, 'All Setup hooks silent');
+    ctx.log(HOOK_NAME, 'All Setup hooks silent');
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
-  (ctx?.log ?? logHook)(HOOK_NAME, `Merged ${messages.length} messages from Setup hooks`);
+  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from Setup hooks`);
 
   return {
     continue: true,

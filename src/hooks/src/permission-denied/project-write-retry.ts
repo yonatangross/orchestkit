@@ -19,9 +19,10 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
 import { isAbsolute, resolve } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'project-write-retry';
 
@@ -37,15 +38,15 @@ function outputRetry(reason: string): HookResult {
   };
 }
 
-export function projectWriteRetry(input: HookInput, ctx?: HookContext): HookResult {
+export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   let filePath = input.tool_input.file_path || '';
-  const projectDir = input.project_dir || (ctx?.projectDir ?? getProjectDir());
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   if (!filePath) {
     return outputSilentSuccess();
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, `Evaluating denied write to: ${filePath}`);
+  ctx.log(HOOK_NAME, `Evaluating denied write to: ${filePath}`);
 
   // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
   if (!isAbsolute(filePath)) {
@@ -66,15 +67,15 @@ export function projectWriteRetry(input: HookInput, ctx?: HookContext): HookResu
     if (!isInsideDir(filePath, rootDir)) continue;
 
     if (hasExcludedDir(filePath)) {
-      (ctx?.log ?? logHook)(HOOK_NAME, `File in excluded directory — not retrying`);
+      ctx.log(HOOK_NAME, `File in excluded directory — not retrying`);
       return outputSilentSuccess();
     }
 
     const label = rootDir === projectDir ? 'project directory' : `added dir ${rootDir}`;
-    (ctx?.log ?? logHook)(HOOK_NAME, `File inside ${label} — retrying`);
+    ctx.log(HOOK_NAME, `File inside ${label} — retrying`);
     return outputRetry(`file is inside ${label}`);
   }
 
-  (ctx?.log ?? logHook)(HOOK_NAME, 'File outside project — not retrying');
+  ctx.log(HOOK_NAME, 'File outside project — not retrying');
   return outputSilentSuccess();
 }

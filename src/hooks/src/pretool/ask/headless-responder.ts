@@ -16,7 +16,8 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../../types.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface AskUserQuestionInput {
   questions?: Array<{
@@ -37,7 +38,7 @@ function isHeadless(): boolean {
   );
 }
 
-export default function headlessResponder(input: HookInput, ctx?: HookContext): HookResult {
+export default function headlessResponder(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Only activate in headless mode
   if (!isHeadless()) {
     return outputSilentSuccess();
@@ -63,7 +64,7 @@ export default function headlessResponder(input: HookInput, ctx?: HookContext): 
     }
   }
 
-  (ctx?.log ?? logHook)('headless-responder', `Auto-answering ${toolInput.questions.length} question(s) in headless mode`);
+  ctx.log('headless-responder', `Auto-answering ${toolInput.questions.length} question(s) in headless mode`);
 
   // CC 2.1.85: Return updatedInput with permissionDecision to satisfy AskUserQuestion
   return {

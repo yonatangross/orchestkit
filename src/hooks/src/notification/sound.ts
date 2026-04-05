@@ -10,7 +10,8 @@
 
 import { execFileSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -96,13 +97,13 @@ function playSound(player: string, soundFile: string): void {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function soundNotification(input: HookInput, ctx?: HookContext): HookResult {
+export function soundNotification(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // CC sends notification_type at root level; tool_input is a fallback
   const notificationType = input.notification_type
     || (input.tool_input?.notification_type as string)
     || '';
 
-  (ctx?.log ?? logHook)('sound', `Sound notification check: [${notificationType}]`);
+  ctx.log('sound', `Sound notification check: [${notificationType}]`);
 
   // Play sound based on notification_type — macOS first, then Linux
   if (hasAfplay()) {

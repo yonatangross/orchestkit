@@ -22,12 +22,9 @@ vi.mock('node:fs', () => ({
 
 import { trackTokenUsage, getCategoryUsage, getTotalUsage, getHookUsage, getTokenState } from '../../lib/token-tracker.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { createTestContext } from '../fixtures/test-context.js';
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('token-tracker', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
     vi.clearAllMocks();
     // Default: no existing state file
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);

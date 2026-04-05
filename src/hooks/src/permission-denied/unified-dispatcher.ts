@@ -25,6 +25,7 @@ import { safeCommandRetry } from './safe-command-retry.js';
 import { projectWriteRetry } from './project-write-retry.js';
 import { denialLogger } from './denial-logger.js';
 import { denialNotification } from './denial-notification.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'permission-denied-dispatcher';
 
@@ -40,23 +41,23 @@ export const registeredHookNames = () => [
  * Unified PermissionDenied dispatcher.
  * Runs retry hooks first (sync), then fires async loggers.
  */
-export function unifiedPermissionDeniedDispatcher(input: HookInput, ctx?: HookContext): HookResult {
+export function unifiedPermissionDeniedDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
-  (ctx?.log ?? logHook)(HOOK_NAME, `Permission denied for tool: ${toolName}`);
+  ctx.log(HOOK_NAME, `Permission denied for tool: ${toolName}`);
 
   // --- Async hooks: always run regardless of retry decision ---
   try {
     denialLogger(input, ctx);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `denial-logger failed: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `denial-logger failed: ${msg}`, 'warn');
   }
 
   try {
     denialNotification(input, ctx);
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    (ctx?.log ?? logHook)(HOOK_NAME, `denial-notification failed: ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `denial-notification failed: ${msg}`, 'warn');
   }
 
   // --- Retry hooks: first match wins ---
@@ -66,12 +67,12 @@ export function unifiedPermissionDeniedDispatcher(input: HookInput, ctx?: HookCo
     try {
       const retryResult = safeCommandRetry(input, ctx);
       if (retryResult.hookSpecificOutput?.retry === true) {
-        (ctx?.log ?? logHook)(HOOK_NAME, 'safe-command-retry: retrying known-safe command');
+        ctx.log(HOOK_NAME, 'safe-command-retry: retrying known-safe command');
         return retryResult;
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `safe-command-retry failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `safe-command-retry failed: ${msg}`, 'warn');
     }
   }
 
@@ -80,12 +81,12 @@ export function unifiedPermissionDeniedDispatcher(input: HookInput, ctx?: HookCo
     try {
       const retryResult = projectWriteRetry(input, ctx);
       if (retryResult.hookSpecificOutput?.retry === true) {
-        (ctx?.log ?? logHook)(HOOK_NAME, 'project-write-retry: retrying in-project write');
+        ctx.log(HOOK_NAME, 'project-write-retry: retrying in-project write');
         return retryResult;
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      (ctx?.log ?? logHook)(HOOK_NAME, `project-write-retry failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `project-write-retry failed: ${msg}`, 'warn');
     }
   }
 
