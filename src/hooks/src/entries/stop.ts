@@ -17,6 +17,7 @@ import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 import { stopFailureHandler } from '../stop/stop-failure-handler.js';
+import { ledgerCleanup } from '../stop/ledger-cleanup.js';
 
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
@@ -37,6 +38,7 @@ export const hooks: Record<string, HookFn> = {
   'stop/task-completion-check': taskCompletionCheck,
   'stop/unified-dispatcher': unifiedStopDispatcher,
   'stop/stop-failure-handler': stopFailureHandler,
+  'stop/ledger-cleanup': ledgerCleanup,
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
   'stop/session-end-tracking': sessionEndTracking,

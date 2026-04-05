@@ -231,7 +231,8 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
       UserPromptSubmit: ['prompt', 'lifecycle'],
       SessionStart: ['lifecycle'],
       SessionEnd: ['lifecycle'],
-      Stop: ['stop', 'lifecycle'],
+      // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      Stop: ['stop', 'lifecycle', 'skill'],
       StopFailure: ['stop', 'lifecycle'],
       SubagentStart: ['subagent-start', 'lifecycle'],
       SubagentStop: ['subagent-stop', 'lifecycle'],

@@ -339,7 +339,8 @@ describe('Cross-Bundle Consistency', () => {
     // 191 -> 195: CC 2.1.89 — mcp-output-transform (posttool), cwd-changed + file-changed (lifecycle), +1 posttool registry
     // 195 -> 194: Removed dead antipatternWarning from prompt bundle (#1145)
     // 194 -> 196: #1256 — webhookForwarder inlined in 8 more dispatchers (import adds to bundle export count)
-    expect(totalHooks).toBe(196);
+    // 196 -> 197: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+    expect(totalHooks).toBe(197);
   });
 });
 

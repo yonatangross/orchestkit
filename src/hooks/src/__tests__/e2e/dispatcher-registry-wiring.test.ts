@@ -91,13 +91,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const allHooks = stopGroups.flatMap(g => g.hooks);
       const commandHooks = allHooks.filter(h => h.type === 'command');
 
-      // Should have three command hooks: stop/unified-dispatcher, stop-uncommitted-check, lifecycle/webhook-forwarder
-      expect(commandHooks.length, 'Stop should have three command hooks').toBe(3);
-
-      const stopDispatcher = commandHooks.find(h => h.command?.includes('stop/unified-dispatcher'));
-      expect(stopDispatcher, 'Stop should have stop/unified-dispatcher via run-hook.mjs').toBeDefined();
-      expect(stopDispatcher!.async, 'Stop dispatcher should have async: true').toBe(true);
-      expect(stopDispatcher!.command, 'Stop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
+      // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      // Should have 11 command hooks: 9 flattened stop hooks + stop-uncommitted-check + lifecycle/webhook-forwarder
+      expect(commandHooks.length, 'Stop should have 11 command hooks').toBe(11);
 
       const uncommittedCheckHook = commandHooks.find(h => h.command?.includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -245,7 +241,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — webhook-forwarder decoupled from dispatchers to standalone async entries on all matcher groups
-      expect(asyncHooks.length, 'Should have exactly 44 async hooks').toBe(44);
+      // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      expect(asyncHooks.length, 'Should have exactly 52 async hooks').toBe(52);
     });
 
     it('should have notification dispatcher using native async', () => {
@@ -324,7 +321,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — decoupled forwarder to standalone on all matcher groups
-      expect(asyncCount).toBe(44);
+      // 44 -> 52: v7.30.0 — Stop dispatcher flattened: 9 individual async hooks replace 1 dispatcher (#1264)
+      expect(asyncCount).toBe(52);
     });
 
     it('should have hooks for all critical security operations', () => {
