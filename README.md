@@ -183,7 +183,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v7.29.0** — HookContext DI + CC 2.1.92 + Telemetry Architecture
 
-- **HookContext DI migration** — all 208 hooks migrated to `(input, ctx)` dependency injection signature
+- **HookContext DI migration** — all 214 hooks migrated to `(input, ctx)` dependency injection signature
 - **CC 2.1.92 integration** — `forceRemoteSettingsRefresh`, JSON-string streaming fix, Write tool perf
 - **Telemetry sink architecture** — pluggable JSONL + HTTP sinks, HMAC signing, circuit breaker
 - **103 skills**, **36 agents**, **146 hooks**, **23 invocable commands**

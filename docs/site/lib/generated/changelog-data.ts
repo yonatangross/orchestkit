@@ -24,6 +24,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "added",
         "items": [
+          "**72 new tests for P0 coverage gaps**:\n  - 54 tests for `normalizeInput()` edge cases: JSON-string unwrapping (12), STRING_FIELDS allowlist (12), tool_name/session_id/hook_event normalization (8), project_dir isValidPath resolution (6), agent_type/agent_id promotion (5), tool_input fallback (6), isValidPath validation (5)\n  - 11 tests for crypto sanitization: 3 missing patterns (gho_, github_pat_, xoxp-), 4 boundary/minimum-length tests, 3 false-positive prevention tests, 1 extra short-PAT rejection test\n  - 7 tests for `HookContext` shape: compile-time type assertion, runtime property audit across all 11 HookContext properties, NOOP_CTX callability, `buildContext()` shape parity",
           "**CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)\n  - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings\n  - Stop hook `preventContinuation:true` semantics restored\n  - Tool input JSON-string streaming fix\n  - Plugin MCP stuck \"connecting\" fix\n  - Write tool 60% faster diff computation\n  - Remote Control hostname-based session naming\n  - Per-model `/cost` breakdown\n  - Subagent tmux pane count fix\n  - `/tag` and `/vim` commands removed (no OrchestKit impact)",
           "**`forceRemoteSettingsRefresh` in configure/doctor skills** — enterprise policy docs, health check outputs for managed settings and MCP connector conflicts",
           "**Defensive JSON-string unwrap in `run-hook.mjs`** — `normalizeInput()` auto-parses string-encoded array/object `tool_input` fields while preserving known string fields via allowlist (defense against CC streaming regression)"
@@ -32,7 +33,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "changed",
         "items": [
-          "**HookContext DI migration completed** — all 208 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback\n  - `buildContext()` factory + `createTestContext()` test helper for dependency injection\n  - Shared mock factory replaces inline mocks across 137 test files\n  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`\n  - Telemetry decoupled — inline webhookForwarder removed from common module\n  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)\n  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files"
+          "**HookContext DI migration completed** — all 214 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback\n  - `buildContext()` factory + `createTestContext()` test helper for dependency injection\n  - Shared mock factory replaces inline mocks across 137 test files\n  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`\n  - Telemetry decoupled — inline webhookForwarder removed from common module\n  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)\n  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files"
         ]
       }
     ]
@@ -124,7 +125,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "changed",
         "items": [
-          "**Option E**: Replaced 32 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)",
+          "**Option E**: Replaced 37 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)",
           "`scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes",
           "`vendor/vercel-skills/mapping.json` — 37 refs across 4 Vercel repos → 6 skill dirs (committed for offline builds)",
           "`docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files",
