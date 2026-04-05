@@ -181,16 +181,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
+**v7.29.0** — HookContext DI + CC 2.1.92 + Telemetry Architecture
+
+- **HookContext DI migration** — all 208 hooks migrated to `(input, ctx)` dependency injection signature
+- **CC 2.1.92 integration** — `forceRemoteSettingsRefresh`, JSON-string streaming fix, Write tool perf
+- **Telemetry sink architecture** — pluggable JSONL + HTTP sinks, HMAC signing, circuit breaker
+- **103 skills**, **36 agents**, **146 hooks**, **23 invocable commands**
+
 **v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 
-- **shadcn/ui v4 styles** — 6 styles (Vega, Nova, Maia, Lyra, Mira, Luma) across 7 design skills. Preset codes, style detection, style-aware adaptation
+- **shadcn/ui v4 styles** — 6 styles across 7 design skills
 - **CC 2.1.90 integration** — format-on-save, offline resilience, `/powerup` onboarding
-- **622 rules**, **103 skills**, **36 agents**, **115 hooks**, **23 invocable commands**
-
-**v7.24.2** — fal.ai MCP + Model Pricing
-
-- **fal.ai MCP integration** — 1000+ generative models (FLUX.2, Kling 3.0, Veo 3.1)
-- **Video model pricing refresh** — updated stale pricing across multimodal-llm skill
 
 [Full Changelog →](https://orchestkit.vercel.app/docs/changelog)
 

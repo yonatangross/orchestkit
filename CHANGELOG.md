@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.29.0] - 2026-04-05
+
 ### Added
 
 - **CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)

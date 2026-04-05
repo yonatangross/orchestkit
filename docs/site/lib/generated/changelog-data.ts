@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.29.0",
+    "date": "2026-04-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)\n  - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings\n  - Stop hook `preventContinuation:true` semantics restored\n  - Tool input JSON-string streaming fix\n  - Plugin MCP stuck \"connecting\" fix\n  - Write tool 60% faster diff computation\n  - Remote Control hostname-based session naming\n  - Per-model `/cost` breakdown\n  - Subagent tmux pane count fix\n  - `/tag` and `/vim` commands removed (no OrchestKit impact)",
+          "**`forceRemoteSettingsRefresh` in configure/doctor skills** — enterprise policy docs, health check outputs for managed settings and MCP connector conflicts",
+          "**Defensive JSON-string unwrap in `run-hook.mjs`** — `normalizeInput()` auto-parses string-encoded array/object `tool_input` fields while preserving known string fields via allowlist (defense against CC streaming regression)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**HookContext DI migration completed** — all 208 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback\n  - `buildContext()` factory + `createTestContext()` test helper for dependency injection\n  - Shared mock factory replaces inline mocks across 137 test files\n  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`\n  - Telemetry decoupled — inline webhookForwarder removed from common module\n  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)\n  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.28.0",
     "date": "2026-04-03",
     "compareUrl": "",
