@@ -38,15 +38,18 @@ const HOOK_NAME = 'sync-session-dispatcher';
 interface SyncHookConfig {
   name: string;
   fn: (input: HookInput, ctx: HookContext) => HookResult;
+  /** If true, skip on compact/resume (already ran on initial startup) */
+  skipOnResume?: boolean;
 }
 
 /**
  * Registry of sync SessionStart hooks, executed sequentially.
+ * skipOnResume hooks are skipped on source=compact|resume to save ~500ms.
  */
 const SYNC_HOOKS: SyncHookConfig[] = [
-  { name: 'analytics-consent-check', fn: analyticsConsentCheck },
-  { name: 'prefill-guard', fn: prefillGuard },
-  { name: 'mcp-health-check', fn: mcpHealthCheck },
+  { name: 'analytics-consent-check', fn: analyticsConsentCheck, skipOnResume: true },
+  { name: 'prefill-guard', fn: prefillGuard },  // Always run — checks session safety
+  { name: 'mcp-health-check', fn: mcpHealthCheck, skipOnResume: true },
 ];
 
 /**
@@ -56,23 +59,41 @@ const SYNC_HOOKS: SyncHookConfig[] = [
 export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const startMs = Date.now();
 
+  // v7.30.0 (#1269): Source-aware gating.
+  // CC sends input.source: "startup" | "resume" | "clear" | "compact"
+  // On compact/resume: skip heavy operations (rules materialization already done).
+  const source = (input as unknown as Record<string, unknown>).source as string | undefined;
+  const isLightResume = source === 'compact' || source === 'resume';
+
+  if (source) {
+    ctx.log(HOOK_NAME, `SessionStart source: ${source}${isLightResume ? ' (light mode — skipping materialization)' : ''}`);
+  }
+
   // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
   // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
+  // Skip on compact/resume — rules were materialized on initial startup.
   const projectDir = input.project_dir || (ctx.projectDir);
-  try {
-    materializeAntipatternRules(projectDir);
-  } catch (err) {
-    ctx.log(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
-  }
-  try {
-    materializeProfileRules();
-  } catch (err) {
-    ctx.log(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+  if (!isLightResume) {
+    try {
+      materializeAntipatternRules(projectDir);
+    } catch (err) {
+      ctx.log(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
+    }
+    try {
+      materializeProfileRules();
+    } catch (err) {
+      ctx.log(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+    }
   }
 
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
+    if (isLightResume && hook.skipOnResume) {
+      ctx.log(HOOK_NAME, `${hook.name}: skipped (source=${source})`);
+      continue;
+    }
+
     try {
       const result = hook.fn(input, ctx);
 
