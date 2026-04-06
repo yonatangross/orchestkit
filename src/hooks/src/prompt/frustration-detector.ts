@@ -16,7 +16,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
-import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+// v7.30.0 (#1266): Removed appendAnalytics — frustration signal goes via emit path to yonatan-hq
 import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
@@ -79,16 +79,7 @@ export function frustrationDetector(input: HookInput, ctx: HookContext = NOOP_CT
     // Log only the boolean signal — never the matched text
     if (frustrated) {
       ctx.log(HOOK_NAME, 'Frustration signal detected');
-
-      // Cross-project analytics (Issue #459 pattern)
-      // Privacy: only boolean + hashed project + timestamp
-      appendAnalytics('dx-signals.jsonl', {
-        ts: new Date().toISOString(),
-        pid: hashProject(ctx.projectDir),
-        signal: 'frustration',
-        value: true,
-        ...getTeamContext(),
-      });
+      // Data flows to yonatan-hq via webhook-forwarder → emit() on UserPromptSubmit event
     }
   } catch (error) {
     // Never crash the hook chain

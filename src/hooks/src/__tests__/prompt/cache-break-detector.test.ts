@@ -4,6 +4,8 @@
 /**
  * Unit tests for cache-break-detector prompt hook
  * Issue #1234: Audit volatile vs cached context injection for cache optimization
+ *
+ * v7.30.0: appendAnalytics removed — data flows via emit() to yonatan-hq (#1266)
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
@@ -37,7 +39,6 @@ import {
   cacheBreakDetector,
 } from '../../prompt/cache-break-detector.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -202,10 +203,9 @@ describe('prompt/cache-break-detector', () => {
       ), testCtx);
       expect(result.continue).toBe(true);
       expect(writeFileSync).toHaveBeenCalled();
-      expect(appendAnalytics).not.toHaveBeenCalled();
     });
 
-    test('no analytics when shape is unchanged', () => {
+    test('silent when shape is unchanged', () => {
       // First call: establish baseline
       vi.mocked(existsSync).mockReturnValue(false);
       cacheBreakDetector(createInput(
@@ -226,10 +226,10 @@ describe('prompt/cache-break-detector', () => {
         '<system-reminder>content</system-reminder> '.repeat(5),
       ), testCtx);
       expect(result.continue).toBe(true);
-      expect(appendAnalytics).not.toHaveBeenCalled();
+      expect(result.suppressOutput).toBe(true);
     });
 
-    test('logs analytics when shape changes', () => {
+    test('logs shape change via ctx.log when shape changes', () => {
       // Simulate previous state with different shape
       vi.mocked(existsSync).mockReturnValue(true);
       vi.mocked(readFileSync).mockReturnValue(JSON.stringify({
@@ -239,11 +239,13 @@ describe('prompt/cache-break-detector', () => {
       }));
 
       const prompt = `<system-reminder>x</system-reminder> [TLDR] new markers # currentDate ${'a'.repeat(50)}`;
-      cacheBreakDetector(createInput(prompt), testCtx);
-      expect(appendAnalytics).toHaveBeenCalledWith('cache-breaks.jsonl', expect.objectContaining({
-        added_count: expect.any(Number),
-        removed_count: expect.any(Number),
-      }));
+      const result = cacheBreakDetector(createInput(prompt), testCtx);
+      expect(result.continue).toBe(true);
+      // v7.30.0: appendAnalytics removed — shape change is logged via ctx.log, data flows via emit()
+      expect(testCtx.log).toHaveBeenCalledWith(
+        'cache-break-detector',
+        expect.stringContaining('Shape change detected'),
+      );
     });
 
     test('always continues regardless of state', () => {

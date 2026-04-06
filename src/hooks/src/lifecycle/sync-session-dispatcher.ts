@@ -21,7 +21,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, extractContext } from '../lib/common.js';
-import { appendAnalytics, hashProject } from '../lib/analytics.js';
+// v7.30.0 (#1266): Removed appendAnalytics for session-start-perf — data already in emit path
 
 // Import consolidated hook implementations
 import { analyticsConsentCheck } from './analytics-consent-check.js';
@@ -123,35 +123,12 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
   }
 
   if (messages.length === 0) {
-    ctx.log(HOOK_NAME, 'All sync hooks silent');
-    try {
-      appendAnalytics('session-start-perf.jsonl', {
-        ts: new Date().toISOString(),
-        pid: hashProject(input.project_dir || (ctx.projectDir)),
-        duration_ms: Date.now() - startMs,
-        hooks_fired: SYNC_HOOKS.length,
-        messages_merged: 0,
-      });
-    } catch { /* non-critical */ }
+    ctx.log(HOOK_NAME, `All sync hooks silent (${Date.now() - startMs}ms)`);
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
-  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
-
-  // SessionStart perf measurement — track sync dispatcher latency
-  try {
-    const durationMs = Date.now() - startMs;
-    appendAnalytics('session-start-perf.jsonl', {
-      ts: new Date().toISOString(),
-      pid: hashProject(input.project_dir || (ctx.projectDir)),
-      duration_ms: durationMs,
-      hooks_fired: SYNC_HOOKS.length,
-      messages_merged: messages.length,
-    });
-  } catch {
-    // Never block SessionStart on analytics failure
-  }
+  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks (${Date.now() - startMs}ms)`);
 
   return {
     continue: true,

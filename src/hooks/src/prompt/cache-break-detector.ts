@@ -22,7 +22,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, fnv1aHash } from '../lib/common.js';
-import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+// v7.30.0 (#1266): Removed appendAnalytics — cache break data goes via emit path
 import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -224,21 +224,8 @@ export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX
     // Rough heuristic: each marker indicates ~200-500 tokens of injected context
     const estimatedTokenCost = (delta.added.length + delta.removed.length) * 350;
 
-    // Log to cross-project analytics
-    appendAnalytics('cache-breaks.jsonl', {
-      ts: new Date().toISOString(),
-      pid: hashProject(ctx.projectDir),
-      turn: turnCount,
-      prev_hash: prevState.lastShapeHash,
-      curr_hash: currentHash,
-      added_count: delta.added.length,
-      removed_count: delta.removed.length,
-      added: delta.added,
-      removed: delta.removed,
-      est_token_cost: estimatedTokenCost,
-      marker_count: currentMarkers.length,
-      ...getTeamContext(),
-    });
+    // Cache break data flows to yonatan-hq via emit() on UserPromptSubmit event
+    ctx.log(HOOK_NAME, `Cache break: +${delta.added.length}/-${delta.removed.length} markers, ~${estimatedTokenCost}t cost`);
   } catch (error) {
     // Never crash the hook chain
     ctx.log(HOOK_NAME, `Error: ${error}`, 'warn');

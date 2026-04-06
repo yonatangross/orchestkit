@@ -4,6 +4,8 @@
 /**
  * Unit tests for frustration-detector prompt hook
  * Issue #1243: DX observability — frustration signal detection
+ *
+ * v7.30.0: appendAnalytics removed — data flows via emit() to yonatan-hq (#1266)
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
@@ -18,7 +20,6 @@ vi.mock('../../lib/analytics.js', () => ({
 }));
 
 import { detectFrustration, frustrationDetector } from '../../prompt/frustration-detector.js';
-import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -114,50 +115,21 @@ describe('prompt/frustration-detector', () => {
         const result = frustrationDetector(createInput(''), testCtx);
         expect(result.continue).toBe(true);
         expect(result.suppressOutput).toBe(true);
-        expect(appendAnalytics).not.toHaveBeenCalled();
       });
 
       test('skips very short prompts', () => {
         const result = frustrationDetector(createInput('hi'), testCtx);
         expect(result.continue).toBe(true);
-        expect(appendAnalytics).not.toHaveBeenCalled();
       });
 
       test('skips slash commands', () => {
         const result = frustrationDetector(createInput('/ork:implement wtf'), testCtx);
         expect(result.continue).toBe(true);
-        expect(appendAnalytics).not.toHaveBeenCalled();
       });
     });
 
-    describe('analytics logging', () => {
-      test('logs frustration signal to analytics', () => {
-        frustrationDetector(createInput('wtf is wrong with this'), testCtx);
-        expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
-          signal: 'frustration',
-          value: true,
-        }));
-      });
-
-      test('does NOT log when no frustration detected', () => {
-        frustrationDetector(createInput('please help me fix the login'), testCtx);
-        expect(appendAnalytics).not.toHaveBeenCalled();
-      });
-
-      test('includes hashed project ID (privacy)', () => {
-        frustrationDetector(createInput('this is horrible code'), testCtx);
-        expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
-          pid: 'proj_hash',
-        }));
-      });
-
-      test('includes timestamp', () => {
-        frustrationDetector(createInput('damn it this is broken'), testCtx);
-        expect(appendAnalytics).toHaveBeenCalledWith('dx-signals.jsonl', expect.objectContaining({
-          ts: expect.any(String),
-        }));
-      });
-    });
+    // v7.30.0: appendAnalytics removed — data flows via emit() to yonatan-hq (#1266)
+    // Analytics logging tests removed; frustration signal is now emitted, not written to JSONL.
 
     describe('output behavior', () => {
       test('always returns silent success (analytics-only)', () => {
@@ -175,21 +147,12 @@ describe('prompt/frustration-detector', () => {
       });
     });
 
-    describe('privacy', () => {
-      test('analytics entry does NOT contain the matched text', () => {
-        frustrationDetector(createInput('what the fuck is this garbage'), testCtx);
-        const call = vi.mocked(appendAnalytics).mock.calls[0];
-        const entry = call[1] as Record<string, unknown>;
-        const entryStr = JSON.stringify(entry);
-        expect(entryStr).not.toContain('fuck');
-        expect(entryStr).not.toContain('garbage');
-        expect(entryStr).not.toContain('what the');
-      });
-    });
+    // v7.30.0: privacy tests for appendAnalytics payload removed (#1266)
+    // Privacy is now enforced at the emit() layer in webhook-forwarder.
 
     describe('error resilience', () => {
-      test('survives analytics write failure', () => {
-        vi.mocked(appendAnalytics).mockImplementation(() => { throw new Error('disk full'); });
+      test('survives internal error gracefully', () => {
+        // Hook should never crash the hook chain
         const result = frustrationDetector(createInput('wtf broke'), testCtx);
         expect(result.continue).toBe(true);
       });
