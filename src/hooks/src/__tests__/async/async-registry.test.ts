@@ -43,12 +43,14 @@ describe('Async Hooks Registry', () => {
       // to native CC async: true. Eliminates per-event process spawning entirely.
       // Fixes Windows console flashing (#644) and reduces overhead from ~50ms to ~0ms per event.
       // After #897 slimming: capture-user-intent, settings-reload, release-notebook-trigger removed
+      // v7.30.0: SessionStart dispatcher flattened — 5 individual async hooks (#1264)
+      // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
+      // v7.30.0: TeammateIdle dispatcher flattened — 3 individual async hooks (#1264)
       const expectedAsyncDispatchers = [
-        { path: 'lifecycle/unified-dispatcher', event: 'SessionStart' },
+        { path: 'lifecycle/pattern-sync-pull', event: 'SessionStart' },
         { path: 'posttool/unified-dispatcher', event: 'PostToolUse' },
-        { path: 'stop/unified-dispatcher', event: 'Stop' },
-        { path: 'subagent-stop/unified-dispatcher', event: 'SubagentStop' },
-        { path: 'notification/unified-dispatcher', event: 'Notification' },
+        { path: 'stop/handoff-writer', event: 'Stop' },
       ];
 
       const allHooks: Hook[] = [];
@@ -85,7 +87,8 @@ describe('Async Hooks Registry', () => {
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — decoupled forwarder to standalone async on all matcher groups
       // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
-      expect(asyncHooks.length, 'Should have exactly 52 async hooks').toBe(52);
+      // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
+      expect(asyncHooks.length, 'Should have exactly 60 async hooks').toBe(60);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -186,12 +189,18 @@ describe('Async Hooks Registry', () => {
         }
       }
 
+      // v7.30.0: SessionStart, Notification, TeammateIdle, SubagentStop dispatchers flattened (#1264)
+      // Only posttool and stop remain as unified dispatchers
       const asyncDispatchers = [
-        'lifecycle/unified-dispatcher',
         'posttool/unified-dispatcher',
-        'stop/unified-dispatcher',
-        'subagent-stop/unified-dispatcher',
-        'notification/unified-dispatcher',
+      ];
+
+      // Spot-check representative flattened entries
+      const flattenedAsyncEntries = [
+        'lifecycle/pattern-sync-pull',
+        'notification/desktop',
+        'subagent-stop/handoff-preparer',
+        'teammate-idle/progress-reporter',
       ];
 
       for (const hookPath of asyncDispatchers) {
@@ -199,6 +208,12 @@ describe('Async Hooks Registry', () => {
         expect(hook, `Dispatcher ${hookPath} should exist`).toBeDefined();
         expect(hook!.command, `${hookPath} should use run-hook.mjs`).toContain('run-hook.mjs');
         expect(hook!.command, `${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
+      }
+
+      for (const hookPath of flattenedAsyncEntries) {
+        const hook = allHooks.find(h => h.command?.includes(hookPath));
+        expect(hook, `Flattened entry ${hookPath} should exist`).toBeDefined();
         expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
       }
     });

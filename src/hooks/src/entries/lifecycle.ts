@@ -63,6 +63,10 @@ import { instructionsLoadedDispatcher } from '../instructions-loaded/instruction
 import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
 import { staleCacheCleanup } from '../lifecycle/stale-cache-cleanup.js';
 
+// SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
+import { staleTeamCleanup } from '../lifecycle/stale-team-cleanup.js';
+import { typeErrorIndexer } from '../lifecycle/type-error-indexer.js';
+
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
 import { elicitationResultLogger } from '../elicitation/elicitation-result-logger.js';
@@ -123,6 +127,10 @@ export const hooks: Record<string, HookFn> = {
 
   // Cache management
   'lifecycle/stale-cache-cleanup': staleCacheCleanup,
+
+  // SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
+  'lifecycle/stale-team-cleanup': staleTeamCleanup,
+  'lifecycle/type-error-indexer': typeErrorIndexer,
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,

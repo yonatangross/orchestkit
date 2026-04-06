@@ -64,12 +64,11 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // CC 2.1.40+ handles async hooks without terminal spam.
       // Eliminates per-event process spawning — fixes Windows console flashing (#644).
       // Setup uses sync-setup-dispatcher (not async) — excluded from this test
-      const asyncEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification'];
+      // v7.30.0: SessionStart, Notification, SubagentStop, TeammateIdle dispatchers flattened — individual async hooks (#1264)
+      // PostToolUse still uses unified dispatcher
+      const asyncEvents = ['PostToolUse'];
       const expectedDispatcherPaths: Record<string, string> = {
-        SessionStart: 'lifecycle/unified-dispatcher',
         PostToolUse: 'posttool/unified-dispatcher',
-        SubagentStop: 'subagent-stop/unified-dispatcher',
-        Notification: 'notification/unified-dispatcher',
       };
 
       for (const event of asyncEvents) {
@@ -81,6 +80,42 @@ describe('Dispatcher Registry Wiring E2E', () => {
         expect(dispatcher?.command, `${event} dispatcher should use run-hook.mjs`).toContain('run-hook.mjs');
         expect(dispatcher?.command, `${event} dispatcher should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
         expect(dispatcher?.async, `${event} dispatcher should have async: true`).toBe(true);
+      }
+
+      // v7.30.0: SessionStart dispatcher flattened — 5 individual async hooks (#1264)
+      const sessionStartGroups = hooksConfig.hooks.SessionStart || [];
+      const sessionStartHooks = sessionStartGroups.flatMap(g => g.hooks);
+      const flattenedSessionStartEntries = [
+        'lifecycle/pattern-sync-pull',
+        'lifecycle/session-env-setup',
+        'lifecycle/stale-team-cleanup',
+        'lifecycle/stale-cache-cleanup',
+        'lifecycle/type-error-indexer',
+      ];
+      for (const entry of flattenedSessionStartEntries) {
+        const hook = sessionStartHooks.find(h => h.command?.includes(entry));
+        expect(hook, `SessionStart should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
+      }
+
+      // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+      const notificationGroups = hooksConfig.hooks.Notification || [];
+      const notificationHooks = notificationGroups.flatMap(g => g.hooks);
+      const flattenedNotificationEntries = ['notification/desktop', 'notification/sound'];
+      for (const entry of flattenedNotificationEntries) {
+        const hook = notificationHooks.find(h => h.command?.includes(entry));
+        expect(hook, `Notification should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
+      }
+
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
+      const subagentStopGroups = hooksConfig.hooks.SubagentStop || [];
+      const subagentStopHooks = subagentStopGroups.flatMap(g => g.hooks);
+      const flattenedSubagentStopEntries = ['subagent-stop/handoff-preparer', 'subagent-stop/feedback-loop'];
+      for (const entry of flattenedSubagentStopEntries) {
+        const hook = subagentStopHooks.find(h => h.command?.includes(entry));
+        expect(hook, `SubagentStop should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
     });
 
@@ -242,17 +277,23 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — webhook-forwarder decoupled from dispatchers to standalone async entries on all matcher groups
       // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
-      expect(asyncHooks.length, 'Should have exactly 52 async hooks').toBe(52);
+      // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
+      expect(asyncHooks.length, 'Should have exactly 60 async hooks').toBe(60);
     });
 
-    it('should have notification dispatcher using native async', () => {
+    // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+    it('should have flattened notification hooks using native async', () => {
       const notificationGroups = hooksConfig.hooks.Notification || [];
       const allHooks = notificationGroups.flatMap(g => g.hooks);
-      const dispatcher = allHooks.find(h => h.command?.includes('notification/unified-dispatcher'));
 
-      expect(dispatcher, 'Notification dispatcher should exist').toBeDefined();
-      expect(dispatcher?.command, 'Notification should use run-hook.mjs').toContain('run-hook.mjs');
-      expect(dispatcher?.async, 'Notification should have async: true').toBe(true);
+      const desktopHook = allHooks.find(h => h.command?.includes('notification/desktop'));
+      expect(desktopHook, 'Notification desktop hook should exist').toBeDefined();
+      expect(desktopHook?.command, 'Notification desktop should use run-hook.mjs').toContain('run-hook.mjs');
+      expect(desktopHook?.async, 'Notification desktop should have async: true').toBe(true);
+
+      const soundHook = allHooks.find(h => h.command?.includes('notification/sound'));
+      expect(soundHook, 'Notification sound hook should exist').toBeDefined();
+      expect(soundHook?.async, 'Notification sound should have async: true').toBe(true);
     });
   });
 
@@ -283,11 +324,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(startGroups.length, 'SubagentStart should have hooks').toBeGreaterThan(0);
       expect(stopGroups.length, 'SubagentStop should have hooks').toBeGreaterThan(0);
 
-      // Issue #653: Stop dispatcher should use native async: true (not silent runner)
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
-      const stopDispatcher = stopHooks.find(h => h.command?.includes('unified-dispatcher'));
-      expect(stopDispatcher?.async, 'SubagentStop dispatcher should have async: true').toBe(true);
-      expect(stopDispatcher?.command, 'SubagentStop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
+      const handoffHook = stopHooks.find(h => h.command?.includes('subagent-stop/handoff-preparer'));
+      expect(handoffHook, 'SubagentStop should have handoff-preparer').toBeDefined();
+      expect(handoffHook?.async, 'SubagentStop handoff-preparer should have async: true').toBe(true);
+      expect(handoffHook?.command, 'SubagentStop handoff-preparer should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
     it('should have unified dispatcher in SubagentStart', () => {
@@ -322,7 +364,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
       // 30 -> 44: v7.29.0 — decoupled forwarder to standalone on all matcher groups
       // 44 -> 52: v7.30.0 — Stop dispatcher flattened: 9 individual async hooks replace 1 dispatcher (#1264)
-      expect(asyncCount).toBe(52);
+      // 52 -> 60: v7.30.0 — SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened: +8 individual async hooks (#1264)
+      expect(asyncCount).toBe(60);
     });
 
     it('should have hooks for all critical security operations', () => {

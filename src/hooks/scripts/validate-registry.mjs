@@ -92,12 +92,11 @@ function parseEntryFiles() {
 //    These dispatcher hooks themselves ARE expected in both places.
 // ---------------------------------------------------------------------------
 
+// v7.30.0: lifecycle, subagent-stop, notification, teammate-idle dispatchers flattened (#1264)
+// Only posttool, stop, and setup remain as unified dispatchers
 const KNOWN_DISPATCHERS = new Set([
   'posttool/unified-dispatcher',
   'stop/unified-dispatcher',
-  'subagent-stop/unified-dispatcher',
-  'lifecycle/unified-dispatcher',
-  'notification/unified-dispatcher',
   'setup/unified-dispatcher',
 ]);
 

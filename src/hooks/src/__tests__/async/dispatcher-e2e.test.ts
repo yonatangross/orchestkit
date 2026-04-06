@@ -112,12 +112,11 @@ describe('E2E: run-hook.mjs Pipeline', () => {
   // =========================================================================
 
   describe('bundle routing and stdout contract', () => {
+    // v7.30.0: lifecycle, subagent-stop, notification dispatchers flattened — individual hooks (#1264)
+    // Only posttool, stop, and setup remain as unified dispatchers
     const dispatchers: Array<{ name: string; hook: string; input: Record<string, unknown> }> = [
       { name: 'posttool', hook: 'posttool/unified-dispatcher', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
-      { name: 'lifecycle', hook: 'lifecycle/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
       { name: 'stop', hook: 'stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
-      { name: 'subagent-stop', hook: 'subagent-stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {}, subagent_type: 'Explore' } },
-      { name: 'notification', hook: 'notification/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {}, message: 'test', notification_type: 'idle_prompt' } },
       { name: 'setup', hook: 'setup/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
     ];
 
@@ -246,9 +245,10 @@ describe('E2E: run-hook.mjs Pipeline', () => {
       expect(result.parsed!.continue).toBe(true);
     });
 
+    // v7.30.0: SubagentStop dispatcher flattened — handoff-preparer is now individual async hook (#1264)
     it('normalizes SubagentStop cwd and agent_type', async () => {
       // CC SubagentStop also sends cwd and agent_type at top level
-      const result = await runHook('subagent-stop/unified-dispatcher', {
+      const result = await runHook('subagent-stop/handoff-preparer', {
         session_id: 'test',
         cwd: '/Users/test/project',
         hook_event_name: 'SubagentStop',
