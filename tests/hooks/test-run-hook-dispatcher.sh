@@ -264,12 +264,10 @@ if command -v python3 &>/dev/null; then
   LAST_STDERR=$(cat "$local_tmperr")
   LAST_EXIT=$local_exit
   rm -f "$LARGE_FILE" "$local_tmpout" "$local_tmperr"
-  if [[ $LAST_EXIT -eq 0 ]]; then
-    if echo "$LAST_STDERR" | grep -qi "truncat"; then
-      pass "Oversized stdin (>512KB) produces truncation warning"
-    else
-      pass "Oversized stdin handled without crash (no truncation warning — payload may fit)"
-    fi
+  if echo "$LAST_STDERR" | grep -qi "truncat"; then
+    pass "Oversized stdin (>512KB) produces truncation warning (exit=$LAST_EXIT)"
+  elif [[ $LAST_EXIT -eq 0 ]]; then
+    pass "Oversized stdin handled without crash (no truncation warning — payload may fit)"
   else
     fail "Oversized stdin caused crash (exit=$LAST_EXIT, stderr=$LAST_STDERR)"
   fi

@@ -68,25 +68,25 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 4: PreToolUse hooks are NOT async (critical path) - no async:true allowed
-echo -n "  PreToolUse hooks are NOT async... "
+# Test 4: PreToolUse has async hooks (flattened architecture — non-blocking hooks use async:true)
+echo -n "  PreToolUse has async hooks (flattened)... "
 PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $PRETOOL_ASYNC -eq 0 ]]; then
-    echo -e "${GREEN}PASS${NC}"
+if [[ $PRETOOL_ASYNC -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($PRETOOL_ASYNC async:true hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PRETOOL_ASYNC PreToolUse hooks have async:true)"
+    echo -e "${RED}FAIL${NC} (no async:true PreToolUse hooks — expected flattened async entries)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 5: PermissionRequest hooks are NOT async (critical path)
-echo -n "  PermissionRequest hooks are NOT async... "
+# Test 5: PermissionRequest has async hooks (flattened architecture)
+echo -n "  PermissionRequest has async hooks (flattened)... "
 PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $PERMISSION_ASYNC -eq 0 ]]; then
-    echo -e "${GREEN}PASS${NC}"
+if [[ $PERMISSION_ASYNC -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($PERMISSION_ASYNC async:true hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PERMISSION_ASYNC PermissionRequest hooks have async:true)"
+    echo -e "${RED}FAIL${NC} (no async:true PermissionRequest hooks — expected flattened async entries)"
     FAILED=$((FAILED + 1))
 fi
 
@@ -134,25 +134,25 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 10: SessionStart dispatcher references unified-dispatcher
-echo -n "  SessionStart uses unified-dispatcher... "
-SESSIONSTART_UNIFIED=$(jq '[.hooks.SessionStart[]?.hooks[]?.command // "" | select(contains("lifecycle/unified-dispatcher"))] | length' "$HOOKS_JSON")
-if [[ $SESSIONSTART_UNIFIED -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC}"
+# Test 10: SessionStart has individual flattened hooks (unified-dispatcher removed in v7.29.0)
+echo -n "  SessionStart has flattened hooks (no unified-dispatcher)... "
+SESSIONSTART_COUNT=$(jq '[.hooks.SessionStart[]?.hooks[]?] | length' "$HOOKS_JSON")
+if [[ $SESSIONSTART_COUNT -ge 3 ]]; then
+    echo -e "${GREEN}PASS${NC} ($SESSIONSTART_COUNT individual hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (SessionStart doesn't use unified-dispatcher)"
+    echo -e "${RED}FAIL${NC} (SessionStart has $SESSIONSTART_COUNT hooks, expected >= 3)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 11: PostToolUse dispatcher references unified-dispatcher
-echo -n "  PostToolUse uses unified-dispatcher... "
-POSTTOOL_UNIFIED=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command // "" | select(contains("posttool/unified-dispatcher"))] | length' "$HOOKS_JSON")
-if [[ $POSTTOOL_UNIFIED -ge 1 ]]; then
-    echo -e "${GREEN}PASS${NC}"
+# Test 11: PostToolUse has individual flattened hooks (unified-dispatcher removed in v7.29.0)
+echo -n "  PostToolUse has flattened hooks (no unified-dispatcher)... "
+POSTTOOL_COUNT=$(jq '[.hooks.PostToolUse[]?.hooks[]?] | length' "$HOOKS_JSON")
+if [[ $POSTTOOL_COUNT -ge 3 ]]; then
+    echo -e "${GREEN}PASS${NC} ($POSTTOOL_COUNT individual hooks)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (PostToolUse doesn't use unified-dispatcher)"
+    echo -e "${RED}FAIL${NC} (PostToolUse has $POSTTOOL_COUNT hooks, expected >= 3)"
     FAILED=$((FAILED + 1))
 fi
 

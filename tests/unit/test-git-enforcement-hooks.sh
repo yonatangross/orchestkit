@@ -189,48 +189,7 @@ test_git_validator_ignores_git_status() {
     fi
 }
 
-# ============================================================================
-# GITHUB ISSUE CREATION GUIDE TESTS
-# ============================================================================
-
-describe "GitHub Issue Creation Guide Hook (TypeScript)"
-
-test_gh_issue_guide_exists() {
-    local hook="$HOOKS_SRC_DIR/pretool/bash/gh-issue-creation-guide.ts"
-    assert_file_exists "$hook"
-}
-
-test_gh_issue_guide_validates_json_output() {
-    local hook_path="pretool/bash/gh-issue-creation-guide"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"gh issue create --title \"test\""}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
-
-test_gh_issue_guide_ignores_non_create() {
-    local hook_path="pretool/bash/gh-issue-creation-guide"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"gh issue list"}}'
-    local output
-    output=$(run_ts_hook "$hook_path" "$input")
-
-    if [[ "$output" == *"SKIP"* ]]; then
-        skip "Hooks not built"
-    fi
-
-    if [[ -n "$output" ]]; then
-        assert_valid_json "$output"
-    fi
-}
+# gh-issue-creation-guide was removed as a dead hook in v7.29.0
 
 # ============================================================================
 # PRE-COMMIT SIMULATION TESTS
