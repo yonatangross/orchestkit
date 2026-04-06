@@ -34,8 +34,9 @@ import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js'
 // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
 import { fingerprintSaver } from '../posttool/expect/fingerprint-saver.js';
 
-// PostTool/Task hooks (1) — Agent Teams
+// PostTool/Task hooks (2) — Agent Teams + auto-register
 import { teamMemberStart } from '../posttool/task/team-member-start.js';
+import { agentTaskAutoRegister } from '../posttool/task/agent-task-auto-register.js';
 
 // PostTool/Failure hooks (1)
 import { failureHandler } from '../posttool/failure-handler.js';
@@ -84,8 +85,9 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
   'posttool/expect/fingerprint-saver': fingerprintSaver,
 
-  // PostTool/Task hooks (1) — Agent Teams
+  // PostTool/Task hooks (2) — Agent Teams + auto-register
   'posttool/task/team-member-start': teamMemberStart,
+  'posttool/task/agent-task-auto-register': agentTaskAutoRegister,
 
   // PostTool/Failure hooks (1)
   'posttool/failure-handler': failureHandler,

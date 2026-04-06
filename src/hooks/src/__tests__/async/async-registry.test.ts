@@ -93,7 +93,8 @@ describe('Async Hooks Registry', () => {
       // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
       // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
       // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
-      expect(asyncHooks.length, 'Should have exactly 66 async hooks').toBe(66);
+      // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
+      expect(asyncHooks.length, 'Should have exactly 68 async hooks').toBe(68);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

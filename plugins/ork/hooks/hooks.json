@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 100 global + 47 agent-scoped + 22 skill-scoped = 169 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 102 global + 47 agent-scoped + 22 skill-scoped = 171 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -122,6 +122,23 @@
       }
     ],
     "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/task/agent-task-auto-register",
+            "async": true,
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
+          }
+        ]
+      },
       {
         "matcher": "mcp__*",
         "hooks": [
