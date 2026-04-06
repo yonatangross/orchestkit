@@ -9,7 +9,7 @@ context: fork
 version: 4.7.0
 author: OrchestKit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 complexity: medium
 model: sonnet

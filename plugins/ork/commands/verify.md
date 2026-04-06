@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
 ---
 
 # Auto-generated from skills/verify/SKILL.md

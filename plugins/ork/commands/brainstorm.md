@@ -1,6 +1,6 @@
 ---
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md
