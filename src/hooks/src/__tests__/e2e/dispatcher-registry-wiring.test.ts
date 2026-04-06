@@ -65,22 +65,28 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // Eliminates per-event process spawning — fixes Windows console flashing (#644).
       // Setup uses sync-setup-dispatcher (not async) — excluded from this test
       // v7.30.0: SessionStart, Notification, SubagentStop, TeammateIdle dispatchers flattened — individual async hooks (#1264)
-      // PostToolUse still uses unified dispatcher
-      const asyncEvents = ['PostToolUse'];
-      const expectedDispatcherPaths: Record<string, string> = {
-        PostToolUse: 'posttool/unified-dispatcher',
-      };
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      // No unified dispatchers remain for async events — all are flattened
 
-      for (const event of asyncEvents) {
-        const groups = hooksConfig.hooks[event] || [];
-        const allHooks = groups.flatMap(g => g.hooks);
-        const dispatcher = allHooks.find(h => h.command?.includes(expectedDispatcherPaths[event]));
-
-        expect(dispatcher, `${event} should have unified dispatcher at ${expectedDispatcherPaths[event]}`).toBeDefined();
-        expect(dispatcher?.command, `${event} dispatcher should use run-hook.mjs`).toContain('run-hook.mjs');
-        expect(dispatcher?.command, `${event} dispatcher should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
-        expect(dispatcher?.async, `${event} dispatcher should have async: true`).toBe(true);
+      // Verify PostToolUse has flattened async entries instead of unified dispatcher
+      const postToolGroups = hooksConfig.hooks.PostToolUse || [];
+      const postToolHooks = postToolGroups.flatMap(g => g.hooks);
+      const flattenedPostToolEntries = [
+        'posttool/commit-nudge',
+        'skill/redact-secrets',
+        'posttool/task/team-member-start',
+        'posttool/expect/fingerprint-saver',
+      ];
+      for (const entry of flattenedPostToolEntries) {
+        const hook = postToolHooks.find(h => h.command?.includes(entry));
+        expect(hook, `PostToolUse should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
+
+      // auto-lint should be sync (blocking for formatting)
+      const autoLintHook = postToolHooks.find(h => h.command?.includes('posttool/auto-lint'));
+      expect(autoLintHook, 'PostToolUse should have auto-lint').toBeDefined();
+      expect(autoLintHook?.async, 'auto-lint should NOT be async').not.toBe(true);
 
       // v7.30.0: SessionStart dispatcher flattened — 5 individual async hooks (#1264)
       const sessionStartGroups = hooksConfig.hooks.SessionStart || [];
@@ -203,22 +209,26 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
     });
 
-    it('should have explicit matcher for unified-dispatcher', () => {
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    it('should have explicit matchers for flattened PostToolUse groups', () => {
       const postToolGroups = hooksConfig.hooks.PostToolUse || [];
-      const dispatcherGroup = postToolGroups.find(g =>
-        g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
+
+      // All PostToolUse groups must have explicit matchers (no wildcard)
+      for (const group of postToolGroups) {
+        expect(group.matcher, 'PostToolUse group should have explicit matcher').toBeDefined();
+        expect(group.matcher).not.toBe('*');
+      }
+
+      // Catch-all webhook-forwarder group should cover all expected tools
+      const catchAllGroup = postToolGroups.find(g =>
+        g.matcher === 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit'
       );
+      expect(catchAllGroup, 'catch-all webhook-forwarder group should exist').toBeDefined();
 
-      expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
-      expect(dispatcherGroup?.matcher, 'unified-dispatcher should have explicit matcher').toBeDefined();
-      expect(dispatcherGroup?.matcher).not.toBe('*');
-
-      // Verify expected tools
       const expectedTools = ['Bash', 'Write', 'Edit', 'Agent', 'TaskUpdate', 'TaskCreate', 'Skill', 'NotebookEdit'];
-      const actualTools = dispatcherGroup!.matcher!.split('|');
-
+      const actualTools = catchAllGroup!.matcher!.split('|');
       for (const tool of expectedTools) {
-        expect(actualTools, `Matcher should include ${tool}`).toContain(tool);
+        expect(actualTools, `Catch-all matcher should include ${tool}`).toContain(tool);
       }
     });
   });
@@ -278,7 +288,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 30 -> 44: v7.29.0 — webhook-forwarder decoupled from dispatchers to standalone async entries on all matcher groups
       // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
       // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
-      expect(asyncHooks.length, 'Should have exactly 60 async hooks').toBe(60);
+      // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      expect(asyncHooks.length, 'Should have exactly 66 async hooks').toBe(66);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -365,7 +376,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 30 -> 44: v7.29.0 — decoupled forwarder to standalone on all matcher groups
       // 44 -> 52: v7.30.0 — Stop dispatcher flattened: 9 individual async hooks replace 1 dispatcher (#1264)
       // 52 -> 60: v7.30.0 — SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened: +8 individual async hooks (#1264)
-      expect(asyncCount).toBe(60);
+      // 60 -> 66: v7.30.0 — PostToolUse dispatcher flattened: per-matcher async entries + auto-lint sync (#1284)
+      expect(asyncCount).toBe(66);
     });
 
     it('should have hooks for all critical security operations', () => {

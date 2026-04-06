@@ -49,6 +49,10 @@ import { mcpOutputTransform } from '../posttool/mcp-output-transform.js';
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
+// v7.30.0: flattened from posttool/unified-dispatcher (#1284)
+import { commitNudge } from '../posttool/commit-nudge.js';
+import { autoLint } from '../posttool/auto-lint.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -94,6 +98,10 @@ export const hooks: Record<string, HookFn> = {
 
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,
+
+  // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
+  'posttool/commit-nudge': commitNudge,
+  'posttool/auto-lint': autoLint,
 };
 
 export function getHook(name: string): HookFn | undefined {

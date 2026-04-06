@@ -145,12 +145,29 @@ describe('Webhook Forwarder Coverage Validator', () => {
   test('every event type and matcher group has webhook forwarder coverage', () => {
     const gaps: string[] = [];
 
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    // Some groups (e.g. Write|Edit, Bash) rely on a catch-all group with broader matcher
+    // that covers the same tools. Check cross-group coverage within the same event.
+    function isCoveredByCatchAll(event: string, matcher: string): boolean {
+      const tools = matcher.split('|');
+      const eventEntries = coverageMap.filter(e => e.event === event && e.standalone);
+      for (const entry of eventEntries) {
+        if (entry.matcher === matcher) continue; // skip self
+        const entryTools = entry.matcher.split('|');
+        if (tools.every(t => entryTools.includes(t))) return true;
+      }
+      return false;
+    }
+
     for (const entry of coverageMap) {
       const key = entry.matcher === '*' ? entry.event : `${entry.event}:${entry.matcher}`;
 
       if (INTENTIONAL_EXCLUSIONS.has(key)) continue;
 
       if (!entry.standalone && !entry.inlined) {
+        // Check if covered by a broader catch-all group in the same event
+        if (entry.matcher !== '*' && isCoveredByCatchAll(entry.event, entry.matcher)) continue;
+
         const dispatcherInfo = entry.dispatcherPath ? ` (dispatcher: ${entry.dispatcherPath})` : '';
         gaps.push(`  ${key}${dispatcherInfo}`);
       }

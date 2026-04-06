@@ -113,9 +113,11 @@ describe('E2E: run-hook.mjs Pipeline', () => {
 
   describe('bundle routing and stdout contract', () => {
     // v7.30.0: lifecycle, subagent-stop, notification dispatchers flattened — individual hooks (#1264)
-    // Only posttool, stop, and setup remain as unified dispatchers
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    // Only stop and setup remain as unified dispatchers in hooks.json
+    // posttool/unified-dispatcher still exists as a TS function (bundle export) for backward compat
     const dispatchers: Array<{ name: string; hook: string; input: Record<string, unknown> }> = [
-      { name: 'posttool', hook: 'posttool/unified-dispatcher', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
+      { name: 'posttool', hook: 'posttool/commit-nudge', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
       { name: 'stop', hook: 'stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
       { name: 'setup', hook: 'setup/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
     ];
@@ -158,7 +160,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles malformed JSON stdin gracefully (exit 0)', async () => {
-      const child = spawn('node', [RUN_HOOK, 'posttool/unified-dispatcher'], {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const child = spawn('node', [RUN_HOOK, 'posttool/commit-nudge'], {
         env: { ...process.env, CLAUDE_PROJECT_DIR: join(tmpdir(), 'ork-e2e-test') },
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 10000,
@@ -179,7 +182,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles empty stdin gracefully (exit 0)', async () => {
-      const result = await runHook('posttool/unified-dispatcher');
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge');
       expect(result.exitCode).toBe(0);
       expect(result.parsed).not.toBeNull();
       expect(result.parsed!.continue).toBe(true);
@@ -192,7 +196,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
 
   describe('input normalization', () => {
     it('normalizes toolInput to tool_input (legacy CC format)', async () => {
-      const result = await runHook('posttool/unified-dispatcher', {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge', {
         toolName: 'Bash',
         sessionId: 'test',
         toolInput: { command: 'echo legacy' },
@@ -204,7 +209,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles mixed old/new field names', async () => {
-      const result = await runHook('posttool/unified-dispatcher', {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge', {
         tool_name: 'Write',
         sessionId: 'test-mixed',
         tool_input: { file_path: '/tmp/test.ts', content: 'const x = 1;' },

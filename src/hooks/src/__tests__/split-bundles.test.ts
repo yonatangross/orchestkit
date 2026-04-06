@@ -342,7 +342,8 @@ describe('Cross-Bundle Consistency', () => {
     // 196 -> 197: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
     // 197 -> 194: v7.30.0: Deleted 3 dead hooks — gh-issue-creation-guide, license-compliance, pr-merge-gate (#1274)
     // 194 -> 196: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +2 new lifecycle entries (stale-team-cleanup, type-error-indexer) (#1264)
-    expect(totalHooks).toBe(196);
+    // 196 -> 198: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    expect(totalHooks).toBe(198);
   });
 });
 
