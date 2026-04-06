@@ -67,6 +67,15 @@ Extract what's visually present. Don't invent token tiers or semantic aliases th
 A screenshot of a landing page doesn't need a full enterprise token architecture.
 </avoid_overengineering>
 
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
+
 ## Agent Teams (CC 2.1.33+)
 When running as a teammate:
 - Send extracted tokens to `design-system-architect` for integration into the project's token hierarchy.

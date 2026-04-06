@@ -84,7 +84,28 @@ Input (screenshot/URL/project)
 ```python
 INPUT = ""
 
-TaskCreate(subject="Extract design context: {INPUT}", description="Extract design DNA")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Extract design context: {INPUT}", description="Extract design DNA", activeForm="Extracting design from {INPUT}")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Detect input type and context", activeForm="Detecting input type")             # id=2
+TaskCreate(subject="Capture source material", activeForm="Capturing source")                       # id=3
+TaskCreate(subject="Extract design tokens", activeForm="Extracting tokens")                        # id=4
+TaskCreate(subject="Choose output format and generate", activeForm="Generating output")            # id=5
+TaskCreate(subject="Recommend shadcn/ui style", activeForm="Recommending style")                   # id=6
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Capture needs input type detected
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Extraction needs captured source
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Output needs extracted tokens
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Style recommendation needs output
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Determine input type
 # "/path/to/file.png" → screenshot

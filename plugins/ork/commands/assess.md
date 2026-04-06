@@ -104,11 +104,36 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode.md")` for
 ## Task Management (CC 2.1.16)
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(
   subject="Assess: {target}",
   description="Comprehensive evaluation with quality scores and recommendations",
   activeForm="Assessing {target}"
 )
+
+# 2. Create subtasks for each assessment phase
+TaskCreate(subject="Understand target and gather context", activeForm="Understanding target")   # id=2
+TaskCreate(subject="Discover scope and build file list", activeForm="Discovering scope")        # id=3
+TaskCreate(subject="Rate quality across 7 dimensions", activeForm="Rating quality")             # id=4
+TaskCreate(subject="Analyze pros and cons", activeForm="Analyzing pros/cons")                   # id=5
+TaskCreate(subject="Compare alternatives", activeForm="Comparing alternatives")                 # id=6
+TaskCreate(subject="Generate improvement suggestions", activeForm="Generating suggestions")     # id=7
+TaskCreate(subject="Compile assessment report", activeForm="Compiling report")                  # id=8
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Scope needs target understanding
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Rating needs scoped file list
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Pros/cons needs quality scores
+TaskUpdate(taskId="6", addBlockedBy=["4"])  # Alternatives need quality scores
+TaskUpdate(taskId="7", addBlockedBy=["5", "6"])  # Suggestions need analysis
+TaskUpdate(taskId="8", addBlockedBy=["7"])  # Report needs suggestions
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 

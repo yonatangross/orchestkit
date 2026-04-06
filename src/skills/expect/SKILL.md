@@ -96,11 +96,34 @@ Bash("command -v agent-browser || npx agent-browser --version")
 ## CRITICAL: Task Management
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(
   subject="Expect: test changed code",
   description="Diff-aware browser testing pipeline",
   activeForm="Running diff-aware browser tests"
 )
+
+# 2. Create subtasks for each pipeline phase
+TaskCreate(subject="Check fingerprint (skip if unchanged)", activeForm="Checking fingerprint")  # id=2
+TaskCreate(subject="Scan git diff and classify changes", activeForm="Scanning diff")            # id=3
+TaskCreate(subject="Map changes to routes/URLs", activeForm="Mapping routes")                   # id=4
+TaskCreate(subject="Generate AI test plan", activeForm="Generating test plan")                   # id=5
+TaskCreate(subject="Execute tests via agent-browser", activeForm="Executing browser tests")     # id=6
+TaskCreate(subject="Compile test report", activeForm="Compiling report")                        # id=7
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Diff scan needs fingerprint check
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Route map needs diff results
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Test plan needs route map
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Execution needs test plan
+TaskUpdate(taskId="7", addBlockedBy=["6"])  # Report needs execution results
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 

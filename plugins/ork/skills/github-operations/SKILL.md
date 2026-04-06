@@ -37,6 +37,35 @@ Comprehensive GitHub CLI (`gh`) operations for project management, from basic is
 
 ---
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="GitHub Operations: {target}",
+  description="Managing GitHub issues, PRs, milestones, or Projects",
+  activeForm="Managing GitHub resources"
+)
+
+# 2. Create subtasks matching the operation scope
+TaskCreate(subject="Issue management", activeForm="Creating/updating issues")
+TaskCreate(subject="PR management", activeForm="Managing pull requests")
+TaskCreate(subject="Milestone tracking", activeForm="Updating milestones")
+
+# 3. Set dependencies if operations are sequential
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## Quick Reference
 
 ### Issue Operations

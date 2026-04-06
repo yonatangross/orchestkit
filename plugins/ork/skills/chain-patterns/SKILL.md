@@ -217,6 +217,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `checkpoint-resume.md` | state.json schema + resume protocol |
 | `worktree-agent-pattern.md` | `isolation: "worktree"` usage guide |
 | `cron-monitoring.md` | CronCreate patterns for post-task health |
+| `experiment-journal.md` | Append-only TSV log for try/measure/keep-or-discard cycles |
 | `progressive-output.md` | Progressive output with run_in_background |
 | `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |

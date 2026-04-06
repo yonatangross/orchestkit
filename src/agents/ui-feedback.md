@@ -123,12 +123,13 @@ Map annotated UI elements back to source files using these strategies:
 - Search for nearby ARIA labels or data-testid attributes
 
 ## Task Management
-For multi-step work (3+ distinct steps), use task tracking:
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools
 - `mcp__agentation__*` — Required. All annotation operations depend on the agentation MCP server.

@@ -113,7 +113,28 @@ INPUT = ""  # Full argument string
 ## Step 0: Detect Input Type and Project Context
 
 ```python
-TaskCreate(subject="Design to code: {INPUT}", description="Four-stage pipeline: extract, match, adapt, render")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Design to code: {INPUT}", description="Four-stage pipeline: extract, match, adapt, render", activeForm="Converting design to code")
+
+# 2. Create subtasks for each stage
+TaskCreate(subject="Extract design context", activeForm="Extracting design context")               # id=2
+TaskCreate(subject="Match components (Storybook-first)", activeForm="Matching components")         # id=3
+TaskCreate(subject="Adapt to project tokens and conventions", activeForm="Adapting to project")    # id=4
+TaskCreate(subject="Register in json-render catalog", activeForm="Registering in catalog")         # id=5
+TaskCreate(subject="Verify with Storybook self-healing", activeForm="Verifying component")         # id=6
+
+# 3. Set dependencies for sequential stages
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Match needs extracted design context
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Adapt needs matched components
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Render needs adapted component
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Verify needs rendered component
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Detect project's design system
 Glob("**/tailwind.config.*")

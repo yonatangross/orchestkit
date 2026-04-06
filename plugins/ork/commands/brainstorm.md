@@ -121,7 +121,8 @@ AskUserQuestion(
         {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
         {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
         {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
-        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode($TOPIC)\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"}
+        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode($TOPIC)\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"},
+        {"label": "Iterative optimization", "description": "Try, measure, keep/discard, repeat (autoresearch-style)", "markdown": "```\nIterative Optimization (autoresearch-style)\n───────────────────────────────────────────\n  ┌──────────┐\n  │ Baseline │──measure──┐\n  └──────────┘           │\n       ┌─────────────────┘\n       ▼\n  ┌─────────┐  ┌─────────┐  ┌──────────┐\n  │ Try     │─▶│ Measure │─▶│ Keep or  │─┐\n  │ variant │  │ metric  │  │ Discard  │ │\n  └─────────┘  └─────────┘  └──────────┘ │\n       ▲                                 │\n       └─────────────────────────────────┘\n  Requires: one command + one metric\n  Runs until: user interrupts or plateau\n```"}
       ],
       "multiSelect": false
     },
@@ -168,6 +169,53 @@ ExitPlanMode()
 - **Constrained design**: Skip divergent phase, focus on feasibility
 - **Comparison**: Skip ideation, jump to evaluation phase
 - **Quick ideation**: Generate ideas, skip deep evaluation
+- **Iterative optimization**: Skip phases 2-6, enter autoresearch-style loop (see below)
+
+**If 'Iterative optimization' selected:**
+
+```python
+# 1. Ask for metric definition
+AskUserQuestion(questions=[
+  {"question": "What command produces the metric?",
+   "header": "Metric command",
+   "options": [
+     {"label": "npm run benchmark", "description": "Node.js benchmark suite"},
+     {"label": "pytest --tb=short", "description": "Python test suite"},
+     {"label": "lighthouse --output=json", "description": "Web performance score"},
+     {"label": "I'll type my own", "description": "Custom command"}
+   ]},
+  {"question": "How to extract the metric number?",
+   "header": "Metric extraction",
+   "options": [
+     {"label": "grep from stdout", "description": "e.g. grep 'score:' output.log"},
+     {"label": "JSON field", "description": "e.g. jq '.score' result.json"},
+     {"label": "Exit code", "description": "0 = pass, non-zero = fail"},
+     {"label": "I'll specify", "description": "Custom extraction"}
+   ]},
+  {"question": "Direction?",
+   "header": "Optimization direction",
+   "options": [
+     {"label": "Lower is better", "description": "Latency, bundle size, error rate"},
+     {"label": "Higher is better", "description": "Score, throughput, coverage"}
+   ]}
+])
+
+# 2. Establish baseline
+Bash(command="{metric_command} > .claude/experiments/baseline.log 2>&1")
+baseline = extract_metric(".claude/experiments/baseline.log")
+append_to_journal(baseline, "keep", "-", current_commit, "baseline")
+
+# 3. Enter the optimization loop — see chain-patterns/references/experiment-journal.md
+# LOOP (until user interrupts or trajectory == "stuck" for 5+ iterations):
+#   a. Generate ONE idea (quick ideation, single agent)
+#   b. Implement in worktree: Agent(isolation="worktree", ...)
+#   c. Run metric command in worktree
+#   d. Compare to previous best
+#   e. If improved: merge worktree back, log "keep"
+#   f. If not: discard worktree, log "discard"
+#   g. Check trajectory — if "stuck" for 5+, try radical changes
+#   h. NEVER STOP — continue until user interrupts
+```
 
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
@@ -210,21 +258,31 @@ Read the `/effort` setting to scale brainstorm depth. The effort-aware context b
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 ```python
-# Create main task IMMEDIATELY
+# 1. Create main task IMMEDIATELY
 TaskCreate(
   subject="Brainstorm: {topic}",
   description="Design exploration with parallel agent research",
   activeForm="Brainstorming {topic}"
 )
 
-# Create subtasks for each phase
-TaskCreate(subject="Analyze topic and select agents", activeForm="Analyzing topic")
-TaskCreate(subject="Search memory for past decisions", activeForm="Searching knowledge graph")
-TaskCreate(subject="Generate divergent ideas (10+)", activeForm="Generating ideas")
-TaskCreate(subject="Feasibility fast-check", activeForm="Checking feasibility")
-TaskCreate(subject="Evaluate with devil's advocate", activeForm="Evaluating ideas")
-TaskCreate(subject="Synthesize top approaches", activeForm="Synthesizing approaches")
-TaskCreate(subject="Present design options", activeForm="Presenting options")
+# 2. Create subtasks for each phase
+TaskCreate(subject="Analyze topic and select agents", activeForm="Analyzing topic")          # id=2
+TaskCreate(subject="Search memory for past decisions", activeForm="Searching knowledge graph") # id=3
+TaskCreate(subject="Generate divergent ideas (10+)", activeForm="Generating ideas")          # id=4
+TaskCreate(subject="Feasibility fast-check", activeForm="Checking feasibility")              # id=5
+TaskCreate(subject="Evaluate with devil's advocate", activeForm="Evaluating ideas")          # id=6
+TaskCreate(subject="Synthesize top approaches", activeForm="Synthesizing approaches")        # id=7
+TaskCreate(subject="Present design options", activeForm="Presenting options")                # id=8
+
+# 3. Set dependencies (sequential chain: 2→3→4→5→6→7→8)
+for i in range(3, 9):
+    TaskUpdate(taskId=str(i), addBlockedBy=[str(i-1)])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 
@@ -233,12 +291,12 @@ TaskCreate(subject="Present design options", activeForm="Presenting options")
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **0. Topic Analysis** | Classify keywords, select 3-5 agents | Agent list |
-| **1. Memory + Context** | Search graph, check codebase | Prior patterns |
+| **1. Memory + Context** | Search graph, check codebase, read experiment journal | Prior patterns |
 | **2. Divergent Exploration** | Generate 10+ ideas WITHOUT filtering | Idea pool |
-| **3. Feasibility Fast-Check** | 30-second viability per idea, **including testability** | Filtered ideas |
-| **4. Evaluation & Rating** | Rate 0-10 (6 dimensions incl. **testability**), devil's advocate | Ranked ideas |
+| **3. Keep/Discard Gate** | Binary viability: keep, discard, or crash (10s per idea) | Survivors only |
+| **4. Evaluation & Rating** | Rate 0-10 (7 dimensions incl. **simplicity**), devil's advocate | Ranked ideas |
 | **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
-| **6. Design Presentation** | Present in 200-300 word sections, **include test plan** | Validated design |
+| **6. Design Presentation** | Present in 200-300 word sections, log to experiment journal | Validated design |
 
 ### Progressive Output (CC 2.1.76)
 
@@ -247,10 +305,10 @@ Output results **incrementally** after each phase — don't batch everything unt
 | After Phase | Show User |
 |-------------|-----------|
 | 0. Topic Analysis | Selected agents, tier classification |
-| 1. Memory + Context | Prior decisions, relevant patterns |
+| 1. Memory + Context | Prior decisions, relevant patterns, experiment journal summary |
 | 2. Divergent Exploration | Each agent's ideas as they return (don't wait for all) |
-| 3. Feasibility | Filtered viable ideas with pass/fail |
-| 4. Evaluation | Top-rated ideas with scores |
+| 3. Keep/Discard Gate | Survivors and discard reasons (keep/discard/crash per idea) |
+| 4. Evaluation | Top-rated ideas with 7-dimension scores |
 
 For Phase 2 parallel agents, output each agent's ideas **as soon as it returns** — don't wait for all agents. This lets users see early ideas and redirect the exploration if needed. Showing ideas incrementally also helps users build a mental model of the solution space faster than a final dump.
 

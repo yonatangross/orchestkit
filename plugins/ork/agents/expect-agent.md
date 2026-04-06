@@ -179,6 +179,15 @@ Error occurs
         ACTION: Screenshot --annotate, log confusion, continue
 ```
 
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
+
 ## Anti-Rabbit-Hole Rules
 
 1. **One retry max.** If an action fails, retry ONCE with new evidence (re-snapshot). If it fails again, categorize and move on.

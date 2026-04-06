@@ -40,11 +40,28 @@ AskUserQuestion(
 ## Task Management
 
 ```python
-TaskCreate(
-  subject="Write PRD: {PRODUCT}",
-  description="8-section PRD with user stories and acceptance criteria",
-  activeForm="Writing PRD for {PRODUCT}"
-)
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Write PRD: {PRODUCT}", description="8-section PRD with user stories and acceptance criteria", activeForm="Writing PRD for {PRODUCT}")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Scope clarification", activeForm="Clarifying PRD scope")                       # id=2
+TaskCreate(subject="Research and memory check", activeForm="Researching prior PRDs")               # id=3
+TaskCreate(subject="Draft 8-section PRD", activeForm="Drafting PRD sections")                      # id=4
+TaskCreate(subject="Write user stories and acceptance criteria", activeForm="Writing user stories") # id=5
+TaskCreate(subject="Write output file", activeForm="Writing PRD file")                             # id=6
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Research needs scope first
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Drafting needs research context
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Stories need draft structure
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Output needs all sections done
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ## Memory Integration

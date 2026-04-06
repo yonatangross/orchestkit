@@ -43,7 +43,24 @@ Query: "animated pricing table with monthly/annual toggle"
 ```python
 QUERY = ""  # Component description
 
-TaskCreate(subject="Component search: {QUERY}", description="Search 21st.dev registry")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Component search: {QUERY}", description="Search 21st.dev registry", activeForm="Searching for {QUERY}")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Parse query and detect project context", activeForm="Detecting project context")  # id=2
+TaskCreate(subject="Search component registry", activeForm="Searching registry")                      # id=3
+TaskCreate(subject="Present and deliver results", activeForm="Presenting results")                    # id=4
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Search needs project context first
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Results need search done
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Detect project context for framework filtering
 Glob("**/package.json")

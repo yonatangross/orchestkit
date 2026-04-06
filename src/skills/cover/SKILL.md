@@ -145,19 +145,30 @@ Override TIERS based on selection. Skip this step if `--tier=` flag was provided
 ## Task Management (MANDATORY)
 
 ```python
-TaskCreate(
-  subject=f"Cover: {SCOPE}",
-  description="Generate comprehensive test suite with real-service testing",
-  activeForm=f"Generating tests for {SCOPE}"
-)
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject=f"Cover: {SCOPE}", description="Generate comprehensive test suite with real-service testing", activeForm=f"Generating tests for {SCOPE}")
 
-# Subtasks per phase
-TaskCreate(subject="Discover scope and detect frameworks", activeForm="Discovering test scope")
-TaskCreate(subject="Analyze coverage gaps", activeForm="Analyzing coverage gaps")
-TaskCreate(subject="Generate tests (parallel per tier)", activeForm="Generating tests")
-TaskCreate(subject="Execute generated tests", activeForm="Running tests")
-TaskCreate(subject="Heal failing tests", activeForm="Healing test failures")
-TaskCreate(subject="Generate coverage report", activeForm="Generating report")
+# 2. Create subtasks for each phase
+TaskCreate(subject="Discover scope and detect frameworks", activeForm="Discovering test scope")    # id=2
+TaskCreate(subject="Analyze coverage gaps", activeForm="Analyzing coverage gaps")                  # id=3
+TaskCreate(subject="Generate tests (parallel per tier)", activeForm="Generating tests")            # id=4
+TaskCreate(subject="Execute generated tests", activeForm="Running tests")                          # id=5
+TaskCreate(subject="Heal failing tests", activeForm="Healing test failures")                       # id=6
+TaskCreate(subject="Generate coverage report", activeForm="Generating report")                     # id=7
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Analysis needs discovery first
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Generation needs gap map
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Execution needs generated tests
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Healing needs test results
+TaskUpdate(taskId="7", addBlockedBy=["6"])  # Report needs healed suite
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---

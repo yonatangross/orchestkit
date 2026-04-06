@@ -37,6 +37,37 @@ FLAG = "$ARGUMENTS[0]"  # First token: --rescan, --score-only, --plan-only, --ch
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Setup: onboarding wizard",
+  description="Personalized setup scanning codebase and configuring OrchestKit",
+  activeForm="Running setup wizard"
+)
+
+# 2. Create subtasks for key phase groups
+TaskCreate(subject="Scan & detect stack", activeForm="Scanning codebase and detecting stack")
+TaskCreate(subject="Safety & configure", activeForm="Checking config and running configuration wizard")
+TaskCreate(subject="Recommend skills & MCPs", activeForm="Matching stack to skills and MCPs")
+TaskCreate(subject="Score & plan", activeForm="Computing readiness score and improvement plan")
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## The Nine Phases
 
 | Phase | What | Tools Used | Output |

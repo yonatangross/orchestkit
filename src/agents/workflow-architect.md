@@ -74,6 +74,15 @@ Consult project memory for past decisions and patterns before starting. Persist 
 - Simple linear workflows are fine for simple use cases
 - Add streaming modes for user-facing workflows
 
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
+
 ## MCP Tools (Optional — skip if not configured)
 - **Opus 4.6 adaptive thinking** — Complex workflow reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - Persist workflow designs across sessions

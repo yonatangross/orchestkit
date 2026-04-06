@@ -30,6 +30,37 @@ Universal demo video creation for any content type.
 /ork:demo-producer tutorial "Building a REST API"  # Custom tutorial
 ```
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Demo Producer: {topic}",
+  description="Creating polished demo video for content showcase",
+  activeForm="Producing demo for {topic}"
+)
+
+# 2. Create subtasks for each production phase
+TaskCreate(subject="Content analysis", activeForm="Analyzing content for demo")
+TaskCreate(subject="Script & storyboard", activeForm="Generating script and storyboard")
+TaskCreate(subject="Record & compose", activeForm="Recording terminal and composing video")
+TaskCreate(subject="Final output", activeForm="Rendering final video outputs")
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## Supported Content Types
 
 | Type | Source | Example |
