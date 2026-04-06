@@ -44,22 +44,46 @@ function isSecurityBlocked(command: string): boolean {
 }
 
 /**
- * Load learned patterns from feedback file
+ * Module-scoped pattern cache.
+ *
+ * v7.30.0 (#1265): Patterns are loaded ONCE on first access, not on every
+ * PermissionRequest. Each CC hook = separate Node process, so "module scope"
+ * = "once per process" which = "once per hook invocation". The cache prevents
+ * repeated readFileSync if shouldAutoApprove is called multiple times within
+ * the same invocation (e.g., compound command checking).
+ *
+ * For cross-invocation caching, CC would need a persistent daemon (#1255).
+ * This still eliminates the redundant reads within a single hook execution.
+ */
+let _cachedPatterns: string[] | null = null;
+
+/** Reset cache — exported for testing only */
+export function _resetPatternCacheForTesting(): void {
+  _cachedPatterns = null;
+}
+
+/**
+ * Load learned patterns from feedback file (cached per process)
  */
 function loadLearnedPatterns(): string[] {
+  if (_cachedPatterns !== null) return _cachedPatterns;
+
   const pluginRoot = getPluginRoot();
   const feedbackFile = join(pluginRoot, '.claude', 'feedback', 'learned-patterns.json');
 
   try {
     if (existsSync(feedbackFile)) {
       const data = JSON.parse(readFileSync(feedbackFile, 'utf8'));
-      return data.autoApprovePatterns || [];
+      const patterns: string[] = data.autoApprovePatterns || [];
+      _cachedPatterns = patterns;
+      return patterns;
     }
   } catch {
     // Ignore errors
   }
 
-  return [];
+  _cachedPatterns = [];
+  return _cachedPatterns;
 }
 
 /**
