@@ -126,19 +126,14 @@ export function contentSecretScanner(input: HookInput, ctx: HookContext = NOOP_C
     ctx.log('content-secret-scanner', `BLOCKED: ${finding.name} in ${filePath} (${finding.snippet})`);
 
     return outputDeny(
-      `BLOCKED: Potential secret detected in file content.
+      `Secret detected in file content.
 
 Type: ${finding.name}
 File: ${filePath}
 Match: ${finding.snippet}
 
-Secrets must NEVER be committed to source code. Use:
-- Environment variables (.env files — which are gitignored)
-- Secret managers (AWS Secrets Manager, Vault, etc.)
-- CI/CD secret injection
-
-If this is a false positive (e.g., test fixture or documentation),
-move the file to a test-data/ or fixtures/ directory.`
+Use environment variables, a secret manager, or CI/CD injection instead.
+False positive? Move to a test-data/ or fixtures/ directory.`
     );
   }
 

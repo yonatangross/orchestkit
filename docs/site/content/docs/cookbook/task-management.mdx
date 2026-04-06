@@ -1,0 +1,201 @@
+---
+title: Task Management Patterns
+description: Track complex work with TaskCreate, TaskUpdate, and dependency chains — from single-phase tasks to multi-agent coordination.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Task management is how OrchestKit skills track progress, coordinate agents, and give users real-time feedback via spinner text. This guide covers the patterns from simple to advanced.
+
+## When to Use Tasks
+
+| Scenario | Use Tasks? | Why |
+|---|---|---|
+| 3+ sequential phases | **Yes** | Track progress, show spinner, manage dependencies |
+| Parallel agent work | **Yes** | Coordinate completion, prevent premature starts |
+| Single-step operation | **No** | Overhead without benefit |
+| Knowledge lookup | **No** | No phases to track |
+
+## The 5-Step Pattern
+
+Every task-enabled skill follows this lifecycle:
+
+```python
+# 1. Create main task with spinner text
+TaskCreate(
+  subject="Implement: JWT authentication",
+  description="Feature implementation with parallel agents",
+  activeForm="Implementing JWT authentication"
+)
+
+# 2. Create subtasks matching workflow phases
+TaskCreate(subject="Research best practices", activeForm="Researching auth patterns")  # id=2
+TaskCreate(subject="Design API schema", activeForm="Designing API schema")              # id=3
+TaskCreate(subject="Implement endpoints", activeForm="Implementing endpoints")          # id=4
+TaskCreate(subject="Write tests", activeForm="Writing tests")                           # id=5
+TaskCreate(subject="Security audit", activeForm="Auditing security")                    # id=6
+
+# 3. Set dependencies
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Design needs research
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Implementation needs design
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Tests need implementation
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Audit needs tests
+
+# 4. Validate before starting
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Lifecycle transitions
+TaskUpdate(taskId="2", status="in_progress")  # Starting work
+TaskUpdate(taskId="2", status="completed")    # Work verified done
+```
+
+<Callout type="warn">
+Never skip `in_progress`. The transition must be `pending` → `in_progress` → `completed`. Skipping states breaks spinner UX and dependency tracking.
+</Callout>
+
+## Dependency Patterns
+
+### Sequential Chain
+
+Each phase depends on the previous one:
+
+```
+#1 Research → #2 Design → #3 Implement → #4 Test → #5 Audit
+```
+
+```python
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+TaskUpdate(taskId="6", addBlockedBy=["5"])
+```
+
+### Fan-Out (Parallel After Gate)
+
+Multiple phases start after a single gate:
+
+```
+           ┌→ #3 Backend
+#1 Plan →  ├→ #4 Frontend
+           └→ #5 Tests
+```
+
+```python
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Backend waits for plan
+TaskUpdate(taskId="4", addBlockedBy=["2"])  # Frontend waits for plan
+TaskUpdate(taskId="5", addBlockedBy=["2"])  # Tests wait for plan
+```
+
+### Fan-In (Wait for All)
+
+A phase that needs multiple parallel phases to complete:
+
+```
+#3 Backend  →┐
+#4 Frontend →├→ #6 Integration
+#5 Tests    →┘
+```
+
+```python
+TaskUpdate(taskId="6", addBlockedBy=["3", "4", "5"])
+```
+
+### Diamond (Fan-Out + Fan-In)
+
+Combine both for complex workflows:
+
+```
+         ┌→ #3 Backend  →┐
+#2 Plan →                 ├→ #6 Integration → #7 Deploy
+         └→ #4 Frontend →┘
+```
+
+## activeForm Guidelines
+
+The `activeForm` string appears as spinner text in the Claude Code UI. Make it useful:
+
+| Subject (imperative) | activeForm (continuous) |
+|---|---|
+| Research best practices | Researching auth patterns |
+| Design API schema | Designing API schema |
+| Run security audit | Auditing for vulnerabilities |
+| Generate test suite | Generating tests |
+
+**Rules:**
+- Present continuous tense ("Running", not "Run")
+- 5-10 words max
+- Include the specific target when possible ("Reviewing PR #42", not "Reviewing")
+
+## Agent Coordination
+
+When skills spawn agents, tasks coordinate the work:
+
+```python
+# Create tasks for agent work
+TaskCreate(subject="Design backend API", activeForm="Designing backend API")      # id=2
+TaskCreate(subject="Build frontend UI", activeForm="Building frontend UI")        # id=3
+TaskCreate(subject="Write test suite", activeForm="Writing test suite")           # id=4
+TaskCreate(subject="Integration check", activeForm="Checking integration")        # id=5
+
+# Fan-in: integration needs all agents done
+TaskUpdate(taskId="5", addBlockedBy=["2", "3", "4"])
+
+# Spawn agents — they claim tasks via TaskUpdate(owner=...)
+Agent(subagent_type="backend-system-architect", prompt="...", name="backend")
+Agent(subagent_type="frontend-ui-developer", prompt="...", name="frontend")
+Agent(subagent_type="test-generator", prompt="...", name="tester")
+```
+
+Each agent should:
+1. Call `TaskList` to find unblocked, unowned tasks
+2. Claim with `TaskUpdate(taskId, owner="my-name", status="in_progress")`
+3. Do the work
+4. Mark `TaskUpdate(taskId, status="completed")`
+5. Call `TaskList` for next available task
+
+## Real Example: `/ork:fix-issue`
+
+```python
+# Main task
+TaskCreate(
+  subject="Fix Issue: #234",
+  description="Systematic issue resolution with RCA and prevention",
+  activeForm="Fixing issue #234"
+)
+
+# Phase subtasks
+TaskCreate(subject="Understand issue", activeForm="Reading issue details")        # id=2
+TaskCreate(subject="Hypothesis & RCA", activeForm="Analyzing root cause")         # id=3
+TaskCreate(subject="Implement fix", activeForm="Applying fix with tests")         # id=4
+TaskCreate(subject="Validate & prevent", activeForm="Validating fix")             # id=5
+TaskCreate(subject="Commit and PR", activeForm="Creating PR for fix")             # id=6
+
+# Sequential chain
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+TaskUpdate(taskId="6", addBlockedBy=["5"])
+
+# Validate and start
+task = TaskGet(taskId="2")
+TaskUpdate(taskId="2", status="in_progress")
+# ... investigate ...
+TaskUpdate(taskId="2", status="completed")
+```
+
+## Anti-Patterns
+
+| Anti-Pattern | Problem | Fix |
+|---|---|---|
+| Creating tasks but never completing them | No progress visibility | Always `TaskUpdate(status="completed")` |
+| Missing `activeForm` | No spinner feedback for users | Add present-continuous text to every `TaskCreate` |
+| Skipping `in_progress` | Breaks status tracking | Always transition through all states |
+| No `addBlockedBy` on sequential phases | Agents start work before dependencies complete | Add dependency chain |
+| Circular dependencies | Deadlock — nothing can start | Restructure with shared prerequisite |
+| Tasks for trivial work | Overhead without value | Only use for 3+ step workflows |
+
+## Related
+
+- **`task-dependency-patterns` skill** — authoritative reference for all task patterns
+- **[Implement a Feature](/docs/cookbook/implement-feature)** — see tasks in action in a full workflow
+- **`chain-patterns` skill** — pipeline resilience with checkpoint-resume

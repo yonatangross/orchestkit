@@ -141,6 +141,33 @@ describe('stop-uncommitted-check.mjs output', () => {
     expect(output.systemMessage).not.toContain('chose to stop');
   });
 
+  it('reports renamed files as staged (R status)', () => {
+    writeFileSync(join(tmpDir, 'old.txt'), 'content');
+    git('add old.txt');
+    git('commit -m "add old"');
+    git('mv old.txt new.txt');
+
+    const output = runHook(tmpDir);
+    expect(output.systemMessage).toContain('1 staged');
+    expect(output.systemMessage).toContain('uncommitted');
+  });
+
+  it('reports double-status files (staged then modified again)', () => {
+    // MM = staged change + further unstaged modification
+    writeFileSync(join(tmpDir, 'file.txt'), 'v1');
+    git('add file.txt');
+    git('commit -m "add file"');
+    writeFileSync(join(tmpDir, 'file.txt'), 'v2');
+    git('add file.txt');
+    writeFileSync(join(tmpDir, 'file.txt'), 'v3');
+
+    const output = runHook(tmpDir);
+    // MM counts as both staged AND modified — correct UX
+    expect(output.systemMessage).toContain('1 staged');
+    expect(output.systemMessage).toContain('1 modified');
+    expect(output.systemMessage).toContain('uncommitted');
+  });
+
   it('systemMessage is concise (under 100 chars)', () => {
     // Even with all three categories, message should be short
     writeFileSync(join(tmpDir, 'staged.txt'), 'staged');

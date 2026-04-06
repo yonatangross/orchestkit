@@ -664,7 +664,7 @@ describe('subagent-quality-gate', () => {
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(
-        expect.stringContaining('Security gate BLOCKED')
+        expect.stringContaining('below minimum')
       );
     });
 
@@ -679,7 +679,7 @@ describe('subagent-quality-gate', () => {
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(
-        expect.stringContaining('Security gate BLOCKED')
+        expect.stringContaining('below minimum')
       );
     });
 

@@ -204,16 +204,10 @@ export function contextGate(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
   if (responseCount >= limits.maxPerResponse) {
     ctx.log('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
 
-    return outputDeny(`Context Overflow Protection
-
-Too many agents spawned in a single response (${responseCount} agents).
-
-Maximum allowed: ${limits.maxPerResponse} per response
-
-SOLUTION: Split into multiple responses or use sequential execution.
-Consider using the /context-optimization skill first.
-
-Attempted: ${subagentType} - ${description}`);
+    return outputDeny(
+      `Too many agents in one response (${responseCount}/${limits.maxPerResponse}). ` +
+        `Split into multiple responses or run sequentially. Attempted: ${subagentType} — ${description}`,
+    );
   }
 
   // Check 2: Too many concurrent background agents
@@ -222,18 +216,10 @@ Attempted: ${subagentType} - ${description}`);
 
     incrementBlockedCount();
 
-    return outputDeny(`Background Agent Limit
-
-Too many background agents running concurrently (${activeCount} active).
-
-Maximum allowed: ${limits.maxBackground} concurrent background agents
-
-SOLUTION:
-1. Wait for existing agents to complete
-2. Run this agent in foreground (remove run_in_background)
-3. Use /context-optimization to free up context
-
-Attempted: ${subagentType} - ${description}`);
+    return outputDeny(
+      `Too many background agents (${activeCount}/${limits.maxBackground}). ` +
+        `Wait for existing agents or run in foreground. Attempted: ${subagentType} — ${description}`,
+    );
   }
 
   // Warning: Approaching limits

@@ -110,11 +110,7 @@ function checkFileSizeAndBloat(input: HookInput): HookResult | null {
       : '';
 
     return outputDeny(
-      `File too long: ${lineCount} lines (limit: ${limit} for ${fileType} files)${bloatDetails}
-
-Split this file into smaller modules. Override with:
-  ORCHESTKIT_MAX_FILE_LINES=500 (source)
-  ORCHESTKIT_MAX_TEST_FILE_LINES=800 (tests)`
+      `File too long: ${lineCount}/${limit} lines (${fileType}).${bloatDetails} Split into smaller modules.`
     );
   }
 

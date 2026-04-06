@@ -219,9 +219,8 @@ export function subagentQualityGate(input: HookInput, ctx: HookContext = NOOP_CT
         // Security dimensions BLOCK — non-security dimensions WARN
         if (isSecurityDimension && normalized < securityThreshold) {
           return outputBlock(
-            `Security gate BLOCKED: ${label} score ${score.value}/${score.max} ` +
-              `(${normalized.toFixed(1)}/10) is below security minimum ${securityThreshold}/10. ` +
-              `Address security findings before proceeding.`,
+            `Security: ${label} ${score.value}/${score.max} (${normalized.toFixed(1)}/10) ` +
+              `below minimum ${securityThreshold}/10 — resolve before proceeding.`,
           );
         }
 
