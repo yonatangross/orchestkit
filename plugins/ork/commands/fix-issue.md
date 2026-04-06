@@ -298,6 +298,24 @@ if capabilities.memory:
 | rca-fishbone (load `${CLAUDE_SKILL_DIR}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
 | rca-fault-tree (load `${CLAUDE_SKILL_DIR}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
+## Agent Coordination
+
+### SendMessage (Evidence Sharing)
+
+When an RCA agent discovers the root cause, share with the fix agent:
+
+```python
+SendMessage(to="debug-investigator", message="Root cause: race condition in cache invalidation — see git blame for commit abc123")
+```
+
+### Context Passing
+
+All 5 RCA agents receive: issue description, ranked hypotheses, reproduction steps, and affected file paths — not just "investigate issue #N".
+
+### Skill Chain
+
+After fix is applied: `TaskCreate(subject="Verify fix", addBlockedBy=[fix_task_id])` → `/ork:verify`.
+
 ## Related Skills
 
 - `ork:commit` - Commit issue fixes

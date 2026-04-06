@@ -304,6 +304,30 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 /loop 30m /ork:verify {FEATURE}    # Periodic quality gate
 ```
 
+## Agent Coordination
+
+### Context Passing
+
+All spawned agents receive: changed files list, project tier, architectural constraints, and decisions from prior phases (discovery, plan). Pass via the agent prompt, not just "implement X".
+
+### SendMessage (Active Coordination)
+
+When backend and frontend agents need to align on API contracts:
+
+```python
+SendMessage(to="frontend-ui-developer", message="API endpoint is POST /api/auth with {token, refreshToken} response shape")
+SendMessage(to="test-generator", message="Backend uses JWT — mock auth middleware in test fixtures")
+```
+
+### Skill Chain
+
+After implementation completes, chain to verification:
+
+```python
+TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addBlockedBy=[impl_task_id])
+# Then: /ork:verify {feature}
+```
+
 ## Related Skills
 
 - `ork:explore`: Explore codebase before implementing

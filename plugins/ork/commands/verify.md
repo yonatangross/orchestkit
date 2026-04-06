@@ -290,6 +290,26 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 | `evidence-collection.md` | Evidence gathering and test patterns |
 
 
+## Agent Coordination
+
+### SendMessage (Cross-Agent Findings)
+
+When a security agent finds a critical issue, share it with other verification agents:
+
+```python
+SendMessage(to="test-generator", message="Security: SQL injection in user_service.py:88 — add parameterized query test")
+SendMessage(to="code-quality-reviewer", message="Security finding at user_service.py:88 — flag in review")
+```
+
+### Skill Chain
+
+After verification, chain to commit if all gates pass:
+
+```python
+TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlockedBy=[verify_task_id])
+# Then: /ork:commit
+```
+
 ## Related Skills
 
 - `ork:implement` - Full implementation with verification
