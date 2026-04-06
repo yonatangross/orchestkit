@@ -9,9 +9,6 @@
  * - default-timeout-setter (input modifier — runs first)
  * - agent-browser-safety (can block — runs second)
  * - error-pattern-warner (context)
- * - issue-docs-requirement (context)
- * - multi-instance-quality-gate (context)
- * - gh-issue-creation-guide (context)
  * - affected-tests-finder (context)
  *
  * NOT consolidated (remain separate in hooks.json):
@@ -37,7 +34,6 @@ import { agentBrowserSafety } from './agent-browser-safety.js';
 import { errorPatternWarner } from './error-pattern-warner.js';
 // issue-docs-requirement: moved to pr-merge-gate (#915)
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
-import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -67,9 +63,6 @@ interface AdvisoryHookConfig {
 
 const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
   { name: 'error-pattern-warner', fn: errorPatternWarner },
-  // issue-docs-requirement: moved to pr-merge-gate (#915)
-  // multi-instance-quality-gate: moved to pr-merge-gate (#915)
-  { name: 'gh-issue-creation-guide', fn: ghIssueCreationGuide },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
 

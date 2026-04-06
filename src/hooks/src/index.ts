@@ -43,11 +43,8 @@ import { conflictPredictor } from './pretool/bash/conflict-predictor.js';
 import { affectedTestsFinder } from './pretool/bash/affected-tests-finder.js';
 import { ciSimulation } from './pretool/bash/ci-simulation.js';
 import { preCommitSimulation } from './pretool/bash/pre-commit-simulation.js';
-import { prMergeGate } from './pretool/bash/pr-merge-gate.js';
 import { changelogGenerator } from './pretool/bash/changelog-generator.js';
 import { versionSync } from './pretool/bash/version-sync.js';
-import { licenseCompliance } from './pretool/bash/license-compliance.js';
-import { ghIssueCreationGuide } from './pretool/bash/gh-issue-creation-guide.js';
 import { issueDocsRequirement } from './pretool/bash/issue-docs-requirement.js';
 import { multiInstanceQualityGate } from './pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from './pretool/bash/agent-browser-safety.js';
@@ -242,11 +239,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/ci-simulation': ciSimulation,
   'pretool/bash/pre-commit-simulation': preCommitSimulation,
-  'pretool/bash/pr-merge-gate': prMergeGate,
   'pretool/bash/changelog-generator': changelogGenerator,
   'pretool/bash/version-sync': versionSync,
-  'pretool/bash/license-compliance': licenseCompliance,
-  'pretool/bash/gh-issue-creation-guide': ghIssueCreationGuide,
   'pretool/bash/issue-docs-requirement': issueDocsRequirement,
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
