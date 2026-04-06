@@ -1,15 +1,19 @@
 ---
 title: "SessionStart"
-description: "Hooks triggered on SessionStart events (4 hooks)."
+description: "Hooks triggered on SessionStart events (8 hooks)."
 ---
 
 # SessionStart Hooks
 
-**4 hooks** registered for the `SessionStart` lifecycle event.
+**8 hooks** registered for the `SessionStart` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `*` | 🔇 Silent | Consolidates session-specific async hooks into a single dispatcher. |
+| `pattern-sync-pull` | `*` | 🔇 Silent | Pulls global patterns into project on session start |
+| `session-env-setup` | `*` | 🔇 Silent | Initializes session environment |
+| `stale-team-cleanup` | `*` | 🔇 Silent | — |
+| `stale-cache-cleanup` | `*` | 🔇 Silent | Prunes old plugin cache versions, keeping only current + previous. |
+| `type-error-indexer` | `*` | 🔇 Silent | Runs `tsc --noEmit` on SessionStart and caches results so agents |
 | `sync-session-dispatcher` | `*` | 💡 Injects | Consolidates 4 synchronous SessionStart hooks into a single dispatcher. |
 | `session-handoff-injector` | `*` | 💡 Injects | Session Handoff Injector — Injects previous session context at SessionStart |
 | `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

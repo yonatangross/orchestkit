@@ -44,10 +44,10 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # <!--ork:agents-->36<!--/ork--> specialized AI personas
-└── hooks/                # <!--ork:hooks-->146<!--/ork--> TypeScript hooks in 12 split bundles
+└── hooks/                # <!--ork:hooks-->169<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->146<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->169<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)
@@ -208,11 +208,26 @@ What constitutes successful completion.
 haiku | sonnet | opus
 ```
 
-### 2. Add to Plugin Manifest
+### 2. Task Management Section (Required for agents with task tools)
+
+Agents that include `TaskCreate`, `TaskUpdate`, or `TaskList` in their `tools:` array must have a Task Management section:
+
+```markdown
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
+```
+
+### 3. Add to Plugin Manifest
 
 Both plugins use `"agents": "all"`, so new agents are automatically included. No manifest edit needed.
 
-### 3. Build and Test
+### 4. Build and Test
 
 ```bash
 # Build plugins to include your new agent

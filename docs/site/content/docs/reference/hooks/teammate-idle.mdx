@@ -1,13 +1,15 @@
 ---
 title: "TeammateIdle"
-description: "Hooks triggered on TeammateIdle events (2 hooks)."
+description: "Hooks triggered on TeammateIdle events (4 hooks)."
 ---
 
 # TeammateIdle Hooks
 
-**2 hooks** registered for the `TeammateIdle` lifecycle event.
+**4 hooks** registered for the `TeammateIdle` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `*` | 💡 Injects | Reduces hooks.json entries from 3 to 1 for TeammateIdle event. |
+| `progress-reporter` | `*` | 💡 Injects | TeammateIdle Hook: Progress Reporter |
+| `team-synthesis-trigger` | `*` | 🔇 Silent | Detects when all teammates in a team are idle and suggests synthesis. |
+| `team-quality-gate` | `*` | 🔇 Silent | Aggregates quality signals from idle teammates. |
 | `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

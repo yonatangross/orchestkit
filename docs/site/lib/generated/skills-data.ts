@@ -712,7 +712,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.7.0",
+    "version": "4.8.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -731,7 +731,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
-      "TaskOutput",
       "TaskStop",
       "ToolSearch",
       "mcp__memory__search_nodes"
@@ -893,6 +892,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "checkpoint-resume.md",
         "cron-monitoring.md",
+        "experiment-journal.md",
         "fork-pattern.md",
         "handoff-schema.md",
         "mcp-detection.md",
@@ -1985,7 +1985,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
-      "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
       "Bash",
@@ -4839,7 +4838,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
-      "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
       "mcp__agentation__agentation_get_all_pending",

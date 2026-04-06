@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Task lifecycle enforcement across 21 skills + 33 agents** — all multi-phase skills and agents now follow complete TaskCreate → TaskGet → TaskUpdate lifecycle with `addBlockedBy` dependency chains, `activeForm` spinner text, and explicit completion markers
+  - 8 MANDATORY skills enhanced: brainstorm, explore, verify, assess, implement, create-pr, audit-full, expect
+  - 7 skills got new task sections: fix-issue, github-operations, notebooklm, demo-producer, audit-skills, release-management, setup
+  - 6 partial skills completed: cover, visualize-plan, write-prd, component-search, design-context-extract, design-to-code
+  - 33 agents upgraded to 6-item task management standard (added TaskGet validation)
+  - CONTRIBUTING-SKILLS.md updated with task management authoring requirements
+- **34 new tests for 4 untested PreToolUse bash hooks** (#1271) — coverage for secret-env-guard, terraform-plan-guard, dangerous-command-guard, docker-safety-guard
+- **10 new tests for stop-uncommitted-check.mjs** — output text assertions, staged/modified/untracked classification, conciseness check
+
+### Changed
+
+- **Hook dispatcher flattening** — all 6 async dispatchers replaced with CC 2.1.92 native async hook entries
+  - Stop dispatcher → 9 individual entries (ff75bedd)
+  - 4 more async dispatchers flattened (1de40ec3)
+  - PostToolUse dispatcher — last of 6 (6a082e32)
+  - Hook count: 146 → 169 (100 global + 47 agent-scoped + 22 skill-scoped)
+- **3 dead/low-value hooks removed** — gh-issue-creation-guide, license-compliance, pr-merge-gate (−494 LOC) (#1274)
+- **Deprecated TaskOutput references removed** (#1268)
+
+### Fixed
+
+- **stop-uncommitted-check `.trim()` bug** — `.trim()` on `git status --porcelain` output stripped leading spaces, misclassifying unstaged modifications as staged changes (#1293)
+- **Stop hook message shortened** — verbose AI-instruction text replaced with concise human-readable summary
+
+### Performance
+
+- **learning-tracker pattern caching** — patterns compiled once per process instead of per-invocation (#1265)
+- **SessionStart sync hooks gated on `input.source`** — skip sync hooks when source is not relevant (#1269)
+- **3 redundant `appendAnalytics` JSONL writes removed** (#1266)
+
 ## [7.29.0] - 2026-04-05
 
 ### Added

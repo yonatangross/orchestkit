@@ -66,6 +66,39 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 > Load pattern details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else (after MCP probe), create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Fix Issue: #{ISSUE_NUMBER}",
+  description="Systematic issue resolution with RCA and prevention",
+  activeForm="Fixing issue #{ISSUE_NUMBER}"
+)
+
+# 2. Create subtasks for each key phase
+TaskCreate(subject="Understand issue", activeForm="Reading issue details")
+TaskCreate(subject="Hypothesis & RCA", activeForm="Analyzing root cause")
+TaskCreate(subject="Implement fix", activeForm="Applying fix with tests")
+TaskCreate(subject="Validate & prevent", activeForm="Validating fix and prevention")
+TaskCreate(subject="Commit and PR", activeForm="Creating PR for fix")
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+TaskUpdate(taskId="5", addBlockedBy=["4"])
+TaskUpdate(taskId="6", addBlockedBy=["5"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## STEP 0: Effort-Aware Fix Scaling (CC 2.1.76)
 
 Scale investigation depth based on `/effort` level:

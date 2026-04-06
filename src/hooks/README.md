@@ -81,7 +81,7 @@ hooks/
 │   │   ├── content-dedup.ts                   # Duplicate content scanner
 │   │   ├── rule-conflicts.ts                  # Contradictory rule detector
 │   │   └── smart-suggestions.ts               # Missing rule suggestions
-│   ├── stop/               # Session stop hooks (29 via unified dispatcher)
+│   ├── stop/               # Session stop hooks (12 handlers, CC-native async entries)
 │   ├── lifecycle/          # Lifecycle hooks (17)
 │   ├── setup/              # Setup and maintenance hooks (9)
 │   ├── agent/              # Agent-specific hooks (5)

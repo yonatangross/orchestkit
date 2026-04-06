@@ -76,14 +76,29 @@ For feature PRs with 3 parallel agents, show each agent's result **as it returns
 
 ## STEP 1: Create Tasks (MANDATORY)
 
-Create tasks immediately to show progress:
+**BEFORE doing ANYTHING else, create tasks to track progress:**
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(subject="Create PR for {branch}", description="PR creation with validation", activeForm="Creating pull request")
-TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks")
-TaskCreate(subject="Run validation agents", activeForm="Validating with agents")
-TaskCreate(subject="Run local tests", activeForm="Running local tests")
-TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks")        # id=2
+TaskCreate(subject="Run validation agents", activeForm="Validating with agents")       # id=3
+TaskCreate(subject="Run local tests", activeForm="Running local tests")                # id=4
+TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")             # id=5
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Agents need pre-flight to pass
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Tests run after agent validation
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # PR creation needs tests to pass
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---

@@ -572,6 +572,61 @@ npm run eval:trigger -- --reps 3         # override repetitions (default: 5)
 npm run eval:trigger -- --dry-run        # validate YAML only, no Claude calls
 ```
 
+## Task Management in Multi-Phase Skills (CC 2.1.16)
+
+Skills with 3+ sequential phases must include a **Task Management** section with the full lifecycle pattern. This gives users spinner feedback, enables dependency tracking, and coordinates multi-agent work.
+
+### When to Add Task Management
+
+| Skill Type | Task Management Required? |
+|------------|--------------------------|
+| Workflow skills (implement, verify, review-pr) | **Yes** — multi-phase with agent coordination |
+| Knowledge/reference skills (api-design, testing-unit) | **No** — single-pass, no phases |
+| Utility skills (commit, help) | **No** — trivial, <3 steps |
+
+### Required Pattern
+
+Every task-enabled skill needs these 5 elements in a code block:
+
+```python
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+# 1. Create main task with activeForm for spinner UX
+TaskCreate(
+  subject="{SkillName}: {target}",
+  description="What this skill does for {target}",
+  activeForm="{Doing the thing} {target}"
+)
+
+# 2. Create subtasks matching actual workflow phases
+TaskCreate(subject="Phase 1 name", activeForm="Doing phase 1")  # id=2
+TaskCreate(subject="Phase 2 name", activeForm="Doing phase 2")  # id=3
+TaskCreate(subject="Phase 3 name", activeForm="Doing phase 3")  # id=4
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+### Key Rules
+
+- **`activeForm` is required** on every `TaskCreate` — it powers the spinner text users see
+- **`addBlockedBy`** for sequential phases — prevents starting work before dependencies complete
+- **`TaskGet` before starting** — validate blockedBy is empty (catches stale state)
+- **Never skip `in_progress`** — the transition must be `pending` → `in_progress` → `completed`
+- **Fan-in for parallel phases** — if phases 3, 4, 5 run in parallel and phase 6 needs all of them: `TaskUpdate(taskId="7", addBlockedBy=["4", "5", "6"])`
+
+### Reference
+
+See `task-dependency-patterns` skill for the complete pattern library: dependency chains, fan-out/fan-in, agent team coordination, context exhaustion handling.
+
 ## Checklist
 
 Before submitting a skill change:
@@ -587,6 +642,7 @@ Before submitting a skill change:
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
+- [ ] **Multi-phase skills (3+ phases) include Task Management section with full lifecycle**
 - [ ] User-invocable skills have eval YAML in `tests/evals/skills/`
 - [ ] Eval YAML has 5+ trigger entries (3+ true, 2+ false) and 1+ quality entry
 - [ ] Eval includes near-miss negatives and cross-skill confusion tests
