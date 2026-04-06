@@ -627,6 +627,64 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 See `task-dependency-patterns` skill for the complete pattern library: dependency chains, fan-out/fan-in, agent team coordination, context exhaustion handling.
 
+## Agent Coordination Patterns (CC 2.1.33+)
+
+Skills that spawn Agent subagents should include these coordination patterns. This ensures agents don't work in silos and users see progress.
+
+### Context Passing (Required for agent-spawning skills)
+
+Every Agent prompt must include project context, not just "do X":
+
+```python
+Agent(
+  subagent_type="backend-system-architect",
+  prompt=f"""Design backend for: {feature}
+Changed files: {changed_files}
+Project conventions: {conventions_from_memory}
+Constraints: {constraints}
+Prior decisions: {decisions_from_earlier_phases}""",
+  run_in_background=True
+)
+```
+
+### SendMessage for Active Coordination
+
+When agents need to share findings mid-flight, use `SendMessage`:
+
+```python
+# Agent A finds something Agent B needs
+SendMessage(to="security-auditor", message="Found SQL injection in auth.ts:42 — prioritize this")
+
+# Agent B requests clarification
+SendMessage(to="backend-architect", message="What ORM pattern are you using? Affects my schema review.")
+```
+
+Use for: evidence sharing, dynamic work distribution, conflict resolution between agents.
+
+### Agent Teams Alternative (complexity > 3.0)
+
+For complex skills where agents benefit from debate/cross-pollination, offer a mesh topology:
+
+```python
+# In SKILL.md — offer as alternative to star topology
+# Load Agent Teams config: Read("${CLAUDE_SKILL_DIR}/references/agent-teams-mode.md")
+```
+
+Decision guidance:
+- **Star (Task tool)**: Independent tasks, cost-sensitive, < 3 agents
+- **Mesh (Agent Teams)**: Cross-cutting concerns, agents need to talk, 3+ agents
+
+### Skill Chain Dependencies
+
+When a skill references another `/ork:` skill, create a task dependency:
+
+```python
+# After /ork:implement completes, chain to verify
+TaskCreate(subject="Verify implementation", activeForm="Verifying changes")
+TaskUpdate(taskId="verify-task", addBlockedBy=["implement-task"])
+# Then invoke /ork:verify
+```
+
 ## Checklist
 
 Before submitting a skill change:

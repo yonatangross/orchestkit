@@ -442,6 +442,24 @@ CronCreate(
 
 ---
 
+## Agent Coordination
+
+### Context Passing
+
+Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
+
+### SendMessage (Test Healing)
+
+When a generated test fails, the healer agent can request context from the generator:
+
+```python
+SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fails — TypeError on mock return. What's the expected shape?")
+```
+
+### Skill Chain
+
+Standard chain: `implement → cover → verify → commit`. Use `addBlockedBy` between each.
+
 ## Related Skills
 
 - `ork:implement` — generates tests during implementation (Phase 5); use `/ork:cover` after for deeper coverage
