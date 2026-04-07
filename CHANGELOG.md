@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **34 new tests for 4 untested PreToolUse bash hooks** (#1271) — coverage for secret-env-guard, terraform-plan-guard, dangerous-command-guard, docker-safety-guard
 - **10 new tests for stop-uncommitted-check.mjs** — output text assertions, staged/modified/untracked classification, conciseness check
 
+- **`eval-report.sh`** — eval duration aggregator (`npm run eval:report`)
+  - Reads `*.trigger.json` + `*.quality.json` results, aggregates per-skill durations
+  - Flags outliers (>3× median quality duration) with ⚠
+  - `--json` for machine-readable output, `--top N` to control display
+  - Tested against 84 real skill results (413min total, 2 outliers flagged)
+- **`known-hook-conflicts.json`** — hook-skill conflict registry for quality eval
+  - Quality eval diffs actual hook rejections vs registry
+  - HOOK COMPATIBILITY section: COMPATIBLE ✓ / KNOWN CONFLICTS / NEW CONFLICTS ✗
+  - Seeded with i18n-date-patterns finding (2 incidental rejections)
+
 ### Changed
 
 - **Hook dispatcher flattening** — all 6 async dispatchers replaced with CC 2.1.92 native async hook entries
@@ -30,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **19 stale skill name references** across docs, demos, and source
+  - `brainstorming` → `brainstorm` (6 files), `plan-viz` → `visualize-plan` (2), `prd` → `write-prd` (1), `assess-complexity` → `quality-gates` (4), `agent-browser` prefix fix (2), `git-workflow` rows removed (2)
+- **2 phantom demo configs deleted** — `add-golden-demo.ts`, `worktree-coordination-demo.ts` (skills never existed)
+- **2 demo configs remapped** — `assess-complexity` → `quality-gates`, `run-tests` → `cover`
+- **hooks.json description count drift** — `171` → `169`, `47 agent-scoped` → `45`
+- **api-design trigger eval removed** — `user-invocable: false` skill can't be tested by trigger classifier (0% precision/recall was expected, not a bug)
+- **41 stale "balance is too low" quality result files purged** — API credit exhaustion during grading produced fake 0% pass rates
 - **stop-uncommitted-check `.trim()` bug** — `.trim()` on `git status --porcelain` output stripped leading spaces, misclassifying unstaged modifications as staged changes (#1293)
 - **Stop hook message shortened** — verbose AI-instruction text replaced with concise human-readable summary
 
