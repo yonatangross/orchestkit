@@ -6,8 +6,8 @@
       "skill": "i18n-date-patterns",
       "rejections": 2,
       "first_seen": "2026-03-21",
-      "status": "investigate",
-      "note": "Correlates with 47min runtime (15× median) and 0/9 assertion pass rate. Likely a hook blocking the skill's eval prompts."
+      "status": "incidental",
+      "note": "Hook rejections are incidental, not causal. The 47min runtime and 0/9 pass rate are caused by API balance exhaustion during grading — not by hook conflicts. The 2 rejections occurred during generation and did not affect output."
     }
   ]
 }
