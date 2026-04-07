@@ -108,26 +108,30 @@ describe('perfSnapshot', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('returns systemMessage with token summary', () => {
-      const result = perfSnapshot(createInput(), testCtx);
-      expect(result.systemMessage).toContain('1500 tokens');
-      expect(result.systemMessage).toContain('[perf-snapshot]');
+    // CC 2.1.78 safety: Stop hook dispatcher discards systemMessage to
+    // prevent error-loops. perfSnapshot writes data to disk instead.
+    test('writes total token count to disk snapshot', () => {
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { totalTokensInjected: number };
+      expect(snap.totalTokensInjected).toBe(1500);
     });
 
-    test('systemMessage contains hook count', () => {
-      const result = perfSnapshot(createInput(), testCtx);
-      // 4 hooks in byHook map
-      expect(result.systemMessage).toContain('4 hooks');
+    test('writes hook count to disk snapshot', () => {
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { hookCount: number };
+      expect(snap.hookCount).toBe(4);
     });
 
-    test('systemMessage contains top categories', () => {
-      const result = perfSnapshot(createInput(), testCtx);
-      expect(result.systemMessage).toContain('prompt');
+    test('writes top categories to disk snapshot', () => {
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { topCategories: Array<{ category: string }> };
+      expect(snap.topCategories.map(c => c.category)).toContain('prompt');
     });
 
-    test('systemMessage contains snapshot path', () => {
-      const result = perfSnapshot(createInput(), testCtx);
-      expect(result.systemMessage).toContain('snap-');
+    test('snapshot file uses snap-{bucket}.json naming', () => {
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { bucket: string };
+      expect(snap.bucket).toMatch(/^\d{4}-\d{2}-\d{2}-\d{2}$/);
     });
   });
 
@@ -215,7 +219,8 @@ describe('perfSnapshot', () => {
       });
       const result = perfSnapshot(createInput(), testCtx);
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('0 tokens');
+      const snap = readLatestSnapshot() as { totalTokensInjected: number };
+      expect(snap.totalTokensInjected).toBe(0);
     });
 
     test('topCategories is empty array when no category data', () => {
@@ -231,7 +236,7 @@ describe('perfSnapshot', () => {
       expect(snap.topCategories).toEqual([]);
     });
 
-    test('systemMessage shows "none" when no categories', () => {
+    test('topCategories empty when no category data', () => {
       vi.mocked(getTokenState).mockReturnValue({
         sessionId: 'empty-session',
         totalTokensInjected: 0,
@@ -239,11 +244,12 @@ describe('perfSnapshot', () => {
         byHook: {},
         records: [],
       });
-      const result = perfSnapshot(createInput(), testCtx);
-      expect(result.systemMessage).toContain('none');
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { topCategories: unknown[] };
+      expect(snap.topCategories).toHaveLength(0);
     });
 
-    test('"hook" (singular) when hookCount is 1', () => {
+    test('hookCount tracks single hook correctly', () => {
       vi.mocked(getTokenState).mockReturnValue({
         sessionId: 'single-session',
         totalTokensInjected: 100,
@@ -251,9 +257,9 @@ describe('perfSnapshot', () => {
         byHook: { 'only-hook': 100 },
         records: [],
       });
-      const result = perfSnapshot(createInput(), testCtx);
-      expect(result.systemMessage).toContain('1 hook');
-      expect(result.systemMessage).not.toContain('1 hooks');
+      perfSnapshot(createInput(), testCtx);
+      const snap = readLatestSnapshot() as { hookCount: number };
+      expect(snap.hookCount).toBe(1);
     });
   });
 

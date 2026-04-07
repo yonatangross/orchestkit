@@ -32,6 +32,8 @@ import { evidenceCollector } from '../skill/evidence-collector.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
 import { cleanupStaleLedgers } from '../lib/agent-attribution.js';
+// Performance snapshot — writes hourly token-overhead snapshot to disk
+import { perfSnapshot } from '../lifecycle/perf-snapshot.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -77,6 +79,12 @@ const HOOKS: HookConfig[] = [
   { name: 'evidence-collector', fn: evidenceCollector },
   { name: 'coverage-threshold-gate', fn: coverageThresholdGate },
   { name: 'cross-instance-test-validator', fn: crossInstanceTestValidator },
+
+  // --- Performance instrumentation ---
+  // Writes hourly token-overhead snapshot to ~/.claude/perf/snap-{bucket}.json
+  // Returns outputSilentSuccess() (CC 2.1.78 safety) — disk write IS the output.
+  // Toggle via ORCHESTKIT_PERF_SNAPSHOT_ENABLED env var.
+  { name: 'perf-snapshot', fn: perfSnapshot },
 ];
 
 /** Exposed for registry wiring tests */

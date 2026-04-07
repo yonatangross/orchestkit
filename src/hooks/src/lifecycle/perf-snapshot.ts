@@ -129,16 +129,16 @@ export function perfSnapshot(_input: HookInput, ctx: HookContext = NOOP_CTX): Ho
     const snapPath = join(perfDir, `snap-${bucket}.json`);
     atomicWriteSync(snapPath, JSON.stringify(snapshot, null, 2));
 
+    // Build summary for log only (CC 2.1.78 safety: dispatcher discards
+    // systemMessage from Stop hooks to prevent error-loop bug)
+    const summary = buildSummaryLines(snapshot);
     ctx.log(
       HOOK_NAME,
       `Snapshot written: snap-${bucket}.json (${tokenState.totalTokensInjected}t, ${hookCount} hooks)`
     );
+    ctx.log(HOOK_NAME, summary, 'debug');
 
-    const summary = buildSummaryLines(snapshot);
-    return {
-      continue: true,
-      systemMessage: summary,
-    };
+    return outputSilentSuccess();
   } catch (err) {
     ctx.log(
       HOOK_NAME,

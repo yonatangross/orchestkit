@@ -23,6 +23,7 @@ import { outputSilentSuccess, extractContext } from '../../lib/common.js';
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
 import { teamSizeGate } from './team-size-gate.js';
 import { taskExistenceGate } from './task-existence-gate.js';
+import { taskAgentAdvisor } from './task-agent-advisor.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-task-dispatcher';
@@ -41,6 +42,9 @@ const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
   { name: 'task-existence-gate', fn: taskExistenceGate },
+  // task-agent-advisor runs LAST: pure advisory, never blocks. Suggests
+  // curated ork agents when ad-hoc subagent_type names are used (#706).
+  { name: 'task-agent-advisor', fn: taskAgentAdvisor },
 ];
 
 /**

@@ -61,7 +61,7 @@ describe('Dispatcher Registry Wiring', () => {
 
   describe('stop/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
-      // After #897 slimming + session-summary + ledger-cleanup: 9 hooks
+      // After #897 slimming + session-summary + ledger-cleanup + perf-snapshot: 10 hooks
       expect(stopHooks()).toEqual([
         'handoff-writer',
         'session-summary',
@@ -72,6 +72,7 @@ describe('Dispatcher Registry Wiring', () => {
         'evidence-collector',
         'coverage-threshold-gate',
         'cross-instance-test-validator',
+        'perf-snapshot',
       ]);
     });
   });
@@ -147,8 +148,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 6 (+fingerprint-saver, +auto-lint), lifecycle: 5, stop: 9 (+ledger-cleanup), subagent-stop: 2, notification: 2, setup: 1
-      expect(total).toBe(25);
+      // posttool: 6 (+fingerprint-saver, +auto-lint), lifecycle: 5, stop: 10 (+perf-snapshot), subagent-stop: 2, notification: 2, setup: 1
+      expect(total).toBe(26);
     });
   });
 });
