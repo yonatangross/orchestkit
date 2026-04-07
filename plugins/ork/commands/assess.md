@@ -232,10 +232,9 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ## Related Skills
 
-- `assess-complexity` - Task complexity assessment
 - `ork:verify` - Post-implementation verification
 - `ork:code-review-playbook` - Code review patterns
-- `ork:quality-gates` - Quality gate patterns
+- `ork:quality-gates` - Task complexity assessment, gate patterns
 
 
 **Version:** 1.4.0 (March 2026) — Added progressive output for incremental evaluation results
