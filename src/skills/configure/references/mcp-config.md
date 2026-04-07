@@ -239,4 +239,4 @@ Commands still work - MCPs just enhance them:
 ## Browser Automation
 
 For browser automation and testing, use the `agent-browser` skill instead of an MCP.
-See `/ork:agent-browser` for Vercel's headless browser CLI.
+See the `agent-browser` skill for Vercel's headless browser CLI.

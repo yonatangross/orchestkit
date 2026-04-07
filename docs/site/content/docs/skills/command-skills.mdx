@@ -25,9 +25,9 @@ These commands handle the core development cycle: building features, fixing bugs
 | `/ork:fix-issue` | Systematic GitHub issue resolution with hypothesis-based root cause analysis, similar issue detection, and prevention recommendations. | medium | `/ork:fix-issue 123` |
 | `/ork:verify` | Comprehensive verification with parallel test agents. Validates implementations across unit tests, integration tests, security, and type safety. | low | `/ork:verify` |
 | `/ork:explore` | Deep codebase exploration with parallel agents. Maps architecture, discovers patterns, generates ASCII diagrams, and produces health assessments. | low | `/ork:explore` |
-| `/ork:brainstorming` | Design exploration with parallel agents. Generates ideas, compares alternatives, and produces structured recommendations. | medium | `/ork:brainstorming real-time notifications` |
+| `/ork:brainstorm` | Design exploration with parallel agents. Generates ideas, compares alternatives, and produces structured recommendations. | medium | `/ork:brainstorm real-time notifications` |
 | `/ork:assess` | Rates quality 0-10 with structured pros/cons analysis. Works on code, designs, approaches, or any artifact. | low | `/ork:assess this API design` |
-| `/ork:prd` | Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. | medium | `/ork:prd payments feature` |
+| `/ork:write-prd` | Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. | medium | `/ork:write-prd payments feature` |
 
 ---
 
@@ -40,7 +40,6 @@ Commands for version control and pull request workflows.
 | `/ork:commit` | Creates commits with conventional format and validation. Analyzes staged changes, generates a message, and runs pre-commit checks. | low | `/ork:commit` |
 | `/ork:create-pr` | Creates GitHub pull requests with validation. Runs security scanning, code review, and type checking before opening the PR. | low | `/ork:create-pr` |
 | `/ork:review-pr` | PR review with parallel specialized agents. Checks security, test coverage, type safety, and code quality simultaneously. | medium | `/ork:review-pr 456` |
-| `/ork:git-workflow` | Complete git workflow patterns including GitHub Flow branching, atomic commits, merge and rebase strategies, and recovery operations using reflog. | low | `/ork:git-workflow` |
 
 ---
 
@@ -74,7 +73,7 @@ Commands for visualizing plans and architecture before implementation.
 
 | Command | Description | Complexity | Example |
 |---------|-------------|------------|---------|
-| `/ork:plan-viz` | Visualize planned changes before implementation. Compares before/after architecture, assesses risk, and analyzes execution order and impact. | low | `/ork:plan-viz` |
+| `/ork:visualize-plan` | Visualize planned changes before implementation. Compares before/after architecture, assesses risk, and analyzes execution order and impact. | low | `/ork:visualize-plan` |
 
 ---
 

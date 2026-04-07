@@ -315,5 +315,5 @@ After all teammates complete (or when all tasks are done):
 
 - **Use Agent Teams** for cross-cutting full-stack features where API contract coordination matters
 - **Use Task Tool** for simpler features where agents work independently
-- **Complexity threshold:** Average score >= 3.0 across 7 dimensions (use `/ork:assess-complexity`)
+- **Complexity threshold:** Average score >= 3.0 across 7 dimensions (use `/ork:quality-gates`)
 - **Override:** Set `ORCHESTKIT_PREFER_TEAMS=1` to always use Agent Teams

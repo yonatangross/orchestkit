@@ -83,13 +83,11 @@ import { doctorDemoConfig } from "./components/configs/doctor-demo";
 import { createPRDemoConfig } from "./components/configs/create-pr-demo";
 import { fixIssueDemoConfig } from "./components/configs/fix-issue-demo";
 import { configureDemoConfig } from "./components/configs/configure-demo";
-import { addGoldenDemoConfig } from "./components/configs/add-golden-demo";
 import { demoProducerDemoConfig } from "./components/configs/demo-producer-demo";
 import { runTestsDemoConfig } from "./components/configs/run-tests-demo";
 import { assessComplexityDemoConfig } from "./components/configs/assess-complexity-demo";
 import { skillEvolutionDemoConfig } from "./components/configs/skill-evolution-demo";
 import { feedbackDemoConfig } from "./components/configs/feedback-demo";
-import { worktreeCoordinationDemoConfig } from "./components/configs/worktree-coordination-demo";
 import {
   PhaseComparison,
   phaseComparisonSchema,
@@ -175,7 +173,7 @@ export const RemotionRoot: React.FC = () => {
             <Composition id="FixIssue" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={fixIssueDemoConfig} />
           </Folder>
 
-          {/* ─────────── DevOps Skills: doctor, configure, run-tests, feedback ─────────── */}
+          {/* ─────────── DevOps Skills: doctor, configure, cover, feedback ─────────── */}
           <Folder name="DevOps-Skills">
             <Composition id="Doctor" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={doctorDemoConfig} />
             <Composition id="Configure" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={configureDemoConfig} />
@@ -183,19 +181,17 @@ export const RemotionRoot: React.FC = () => {
             <Composition id="Feedback" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={feedbackDemoConfig} />
           </Folder>
 
-          {/* ─────────── AI Skills: brainstorming, assess, assess-complexity ─────────── */}
+          {/* ─────────── AI Skills: brainstorm, assess, quality-gates ─────────── */}
           <Folder name="AI-Skills">
             <Composition id="Brainstorming" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={brainstormDemoConfig} />
             <Composition id="Assess" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={assessDemoConfig} />
             <Composition id="AssessComplexity" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={assessComplexityDemoConfig} />
           </Folder>
 
-          {/* ─────────── Advanced Skills: worktree, skill-evolution, demo-producer, add-golden ─────────── */}
+          {/* ─────────── Advanced Skills: skill-evolution, demo-producer ─────────── */}
           <Folder name="Advanced-Skills">
-            <Composition id="WorktreeCoordination" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={worktreeCoordinationDemoConfig} />
             <Composition id="SkillEvolution" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={skillEvolutionDemoConfig} />
             <Composition id="DemoProducer" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={demoProducerDemoConfig} />
-            <Composition id="AddGolden" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={addGoldenDemoConfig} />
           </Folder>
 
           {/* ─────────── Alternative Styles (Same skills, different presentation) ─────────── */}

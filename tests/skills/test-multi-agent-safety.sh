@@ -8,7 +8,7 @@
 # Validates that skills spawning parallel agents follow safety patterns
 # to prevent context exhaustion, shell injection, and misconfiguration.
 #
-# Regression tests for 9 bugs found in /ork:assess and /ork:assess-complexity:
+# Regression tests for 9 bugs found in /ork:assess and the quality-gates assess-complexity script:
 #   1. Shell quoting in !` backtick commands in SKILL.md
 #   2. complexity frontmatter matches agent-spawning patterns
 #   3. Agent count claims match actual Task() calls

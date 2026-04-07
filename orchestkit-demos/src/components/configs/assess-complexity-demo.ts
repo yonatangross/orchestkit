@@ -1,14 +1,14 @@
 /**
  * Configuration for TriTerminalRace demo
- * Showcasing the /ork:assess-complexity skill at 3 difficulty levels
+ * Showcasing /ork:quality-gates (assess-complexity script) at 3 difficulty levels
  */
 
 import type { z } from "zod";
 import type { triTerminalRaceSchema } from "../TriTerminalRace";
 
 export const assessComplexityDemoConfig: z.infer<typeof triTerminalRaceSchema> = {
-  skillName: "assess-complexity",
-  skillCommand: "/ork:assess-complexity",
+  skillName: "quality-gates",
+  skillCommand: "/ork:quality-gates",
   hook: "Know before you code: 7 metrics, 1 decision",
   primaryColor: "#f97316",
   secondaryColor: "#8b5cf6",

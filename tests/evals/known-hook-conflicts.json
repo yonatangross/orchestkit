@@ -1,0 +1,13 @@
+{
+  "$schema": "Hook conflicts detected during quality evals. Entries here are EXPECTED — eval runner diffs actual rejections against this registry to distinguish known vs new conflicts.",
+  "last_verified": "2026-04-07",
+  "expected_conflicts": [
+    {
+      "skill": "i18n-date-patterns",
+      "rejections": 2,
+      "first_seen": "2026-03-21",
+      "status": "investigate",
+      "note": "Correlates with 47min runtime (15× median) and 0/9 assertion pass rate. Likely a hook blocking the skill's eval prompts."
+    }
+  ]
+}
