@@ -26,6 +26,17 @@ const HOOKS_DIR = path.join(PROJECT_ROOT, 'src', 'hooks');
 const TS_OUTPUT_FILE = path.join(PROJECT_ROOT, 'docs', 'site', 'lib', 'playground-data.ts');
 const TS_OUTPUT_DIR = path.join(PROJECT_ROOT, 'docs', 'site', 'lib', 'generated');
 
+/**
+ * Read MIN_CC_VERSION from the hooks source of truth.
+ */
+function getMinCcVersion() {
+  const matrixFile = path.join(HOOKS_DIR, 'src', 'lib', 'cc-version-matrix.ts');
+  const content = fs.readFileSync(matrixFile, 'utf-8');
+  const match = content.match(/MIN_CC_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  if (!match) throw new Error('Could not extract MIN_CC_VERSION from cc-version-matrix.ts');
+  return match[1];
+}
+
 // Colors for console output
 const CYAN = '\x1b[36m';
 const GREEN = '\x1b[32m';
@@ -487,6 +498,9 @@ function generateSplitModules(data) {
     'import type { Totals, AgentSummary, CategoryMeta } from "./types";',
     '',
     `export const TOTALS: Totals = ${JSON.stringify(totals, null, 2)};`,
+    '',
+    `// Extracted from src/hooks/src/lib/cc-version-matrix.ts`,
+    `export const MIN_CC_VERSION = ${JSON.stringify(getMinCcVersion())};`,
     '',
     `export const AGENTS: AgentSummary[] = ${JSON.stringify(agents, null, 2)};`,
     '',

@@ -12,6 +12,9 @@ export const TOTALS: Totals = {
   "compositions": 14
 };
 
+// Extracted from src/hooks/src/lib/cc-version-matrix.ts
+export const MIN_CC_VERSION = "2.1.94";
+
 export const AGENTS: AgentSummary[] = [
   {
     "name": "accessibility-specialist",
