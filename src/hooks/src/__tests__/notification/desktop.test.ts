@@ -54,6 +54,7 @@ vi.mock('node:path', async () => {
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { outputSilentSuccess, getProjectDir, getCachedBranch } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -91,8 +92,10 @@ function osascriptScript(): string {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/test/projects/orchestkit', branch: 'feature/235-add-notifications' });
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
     // execFileSync is only used for `which` checks in hasCommand.
@@ -117,7 +120,7 @@ describe('notification/desktop', () => {
   describe('notification type filtering', () => {
     test('triggers notification for permission_prompt', async () => {
       const input = createNotificationInput('permission_prompt');
-      const result = await desktopNotification(input);
+      const result = await desktopNotification(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(mockSpawn).toHaveBeenCalled();
@@ -125,7 +128,7 @@ describe('notification/desktop', () => {
 
     test('triggers notification for idle_prompt', async () => {
       const input = createNotificationInput('idle_prompt');
-      const result = await desktopNotification(input);
+      const result = await desktopNotification(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(mockSpawn).toHaveBeenCalled();
@@ -135,7 +138,7 @@ describe('notification/desktop', () => {
       'auth_success', 'task_complete', 'error', 'info', 'warning', '',
     ])('silently passes through for notification_type=%s', async (notificationType) => {
       const input = createNotificationInput(notificationType);
-      const result = await desktopNotification(input);
+      const result = await desktopNotification(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -143,7 +146,7 @@ describe('notification/desktop', () => {
 
     test('silently passes through when notification_type is missing', async () => {
       const input = createToolInput({ tool_input: { message: 'some message' } });
-      const result = await desktopNotification(input);
+      const result = await desktopNotification(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -156,7 +159,7 @@ describe('notification/desktop', () => {
   describe('AppleScript escaping', () => {
     test('escapes double quotes in notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Allow "rm -rf" command?');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).toContain('\\"');
       expect(script).not.toContain('""');
@@ -164,13 +167,13 @@ describe('notification/desktop', () => {
 
     test('escapes backslashes in notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Path: C:\\Users\\test');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       expect(osascriptScript()).toContain('\\\\');
     });
 
     test('handles message with both quotes and backslashes', async () => {
       const input = createNotificationInput('permission_prompt', 'Allow "write" to C:\\dir\\file?');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).toContain('\\"');
       expect(script).toContain('\\\\');
@@ -178,7 +181,7 @@ describe('notification/desktop', () => {
 
     test('escapes newlines in notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Line1\nLine2');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).toContain('\\n');
       expect(script).not.toMatch(/Line1\nLine2/);
@@ -186,7 +189,7 @@ describe('notification/desktop', () => {
 
     test('escapes carriage returns in notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Line1\rLine2');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).toContain('\\r');
       expect(script).not.toMatch(/Line1\rLine2/);
@@ -194,7 +197,7 @@ describe('notification/desktop', () => {
 
     test('escapes tab characters in notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Col1\tCol2');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).toContain('\\t');
       expect(script).not.toMatch(/Col1\tCol2/);
@@ -202,7 +205,7 @@ describe('notification/desktop', () => {
 
     test('strips control characters from notification message', async () => {
       const input = createNotificationInput('permission_prompt', 'Clean\x00Middle\x07End');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const script = osascriptScript();
       expect(script).not.toContain('\x00');
       expect(script).not.toContain('\x07');
@@ -226,7 +229,8 @@ describe('notification/desktop', () => {
       ['ISSUE/102-uppercase-issue', '#102'],
     ])('extracts issue number from branch %s as %s', async (branch, expectedIssue) => {
       vi.mocked(getCachedBranch).mockReturnValue(branch);
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).branch = branch;
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).toContain(expectedIssue);
     });
 
@@ -234,7 +238,8 @@ describe('notification/desktop', () => {
       'main', 'develop', 'release/v2.0', 'hotfix-urgent', 'feature-no-number', 'refactor/cleanup',
     ])('returns null for branch without issue number: %s', async (branch) => {
       vi.mocked(getCachedBranch).mockReturnValue(branch);
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).branch = branch;
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).not.toMatch(/#\d+/);
     });
   });
@@ -246,19 +251,22 @@ describe('notification/desktop', () => {
   describe('subtitle building', () => {
     test('includes approval title for permission_prompt', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).branch = 'main';
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).toContain('needs approval');
     });
 
     test('includes waiting title for idle_prompt', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      await desktopNotification(createNotificationInput('idle_prompt'));
+      (testCtx as any).branch = 'main';
+      await desktopNotification(createNotificationInput('idle_prompt'), testCtx);
       expect(osascriptScript()).toContain('waiting for you');
     });
 
     test('includes issue number and branch in subtitle when available', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('feature/235-foo');
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).branch = 'feature/235-foo';
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const script = osascriptScript();
       expect(script).toContain('#235');
       expect(script).toContain('feature/235-foo');
@@ -266,7 +274,8 @@ describe('notification/desktop', () => {
 
     test('omits issue number when branch has none', async () => {
       vi.mocked(getCachedBranch).mockReturnValue('main');
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).branch = 'main';
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const script = osascriptScript();
       expect(script).toContain('main');
       expect(script).not.toMatch(/#\d+/);
@@ -280,7 +289,7 @@ describe('notification/desktop', () => {
   describe('message truncation', () => {
     test('does not truncate messages under 120 characters', async () => {
       const shortMessage = 'Allow read access to /test/file.ts?';
-      await desktopNotification(createNotificationInput('permission_prompt', shortMessage));
+      await desktopNotification(createNotificationInput('permission_prompt', shortMessage), testCtx);
       const script = osascriptScript();
       expect(script).toContain(shortMessage);
       expect(script).not.toContain('...');
@@ -288,7 +297,7 @@ describe('notification/desktop', () => {
 
     test('truncates messages over 120 characters with ellipsis', async () => {
       const longMessage = 'A'.repeat(200);
-      await desktopNotification(createNotificationInput('permission_prompt', longMessage));
+      await desktopNotification(createNotificationInput('permission_prompt', longMessage), testCtx);
       const script = osascriptScript();
       expect(script).toContain('...');
       expect(script).not.toContain('A'.repeat(200));
@@ -296,7 +305,7 @@ describe('notification/desktop', () => {
 
     test('message of exactly 120 characters is not truncated', async () => {
       const exactMessage = 'B'.repeat(120);
-      await desktopNotification(createNotificationInput('permission_prompt', exactMessage));
+      await desktopNotification(createNotificationInput('permission_prompt', exactMessage), testCtx);
       const script = osascriptScript();
       expect(script).toContain(exactMessage);
       expect(script).not.toContain('...');
@@ -314,7 +323,7 @@ describe('notification/desktop', () => {
         if (cmd === 'which' && argStr.includes('osascript')) return Buffer.from('/usr/bin/osascript');
         throw new Error('not found');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
     });
 
@@ -325,7 +334,7 @@ describe('notification/desktop', () => {
         if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send')).toHaveLength(1);
     });
 
@@ -336,14 +345,14 @@ describe('notification/desktop', () => {
         if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
       expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send')).toHaveLength(0);
     });
 
     test('no notification sent when neither osascript nor notify-send available', async () => {
       vi.mocked(execFileSync).mockImplementation(() => { throw new Error('not found'); });
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(mockSpawn).not.toHaveBeenCalled();
@@ -362,7 +371,7 @@ describe('notification/desktop', () => {
         throw new Error('not found');
       });
       mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -375,13 +384,13 @@ describe('notification/desktop', () => {
         return Buffer.from('');
       });
       mockSpawn.mockImplementationOnce(() => { throw new Error('spawn failed'); });
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('handles empty message gracefully', async () => {
-      const result = await desktopNotification(createNotificationInput('permission_prompt', ''));
+      const result = await desktopNotification(createNotificationInput('permission_prompt', ''), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -402,19 +411,19 @@ describe('notification/desktop', () => {
     test.each([
       'permission_prompt', 'idle_prompt', 'auth_success', 'task_complete', 'error', '',
     ])('always returns { continue: true, suppressOutput: true } for type=%s', async (notificationType) => {
-      const result = await desktopNotification(createNotificationInput(notificationType));
+      const result = await desktopNotification(createNotificationInput(notificationType), testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
     test('never blocks execution even on internal errors', async () => {
       vi.mocked(execFileSync).mockImplementation(() => { throw new Error('catastrophic failure'); });
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('result has no stopReason or systemMessage', async () => {
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.stopReason).toBeUndefined();
       expect(result.systemMessage).toBeUndefined();
     });
@@ -426,7 +435,7 @@ describe('notification/desktop', () => {
 
   describe('no sound in osascript', () => {
     test('osascript script does not include sound name parameter', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).not.toContain('sound name');
     });
   });
@@ -442,7 +451,7 @@ describe('notification/desktop', () => {
         message: 'Fallback message from input',
         notification_type: 'permission_prompt',
       });
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       expect(osascriptScript()).toContain('Fallback message from input');
     });
 
@@ -452,7 +461,7 @@ describe('notification/desktop', () => {
         notification_type: 'permission_prompt',
         message: 'some message',
       });
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       expect((mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript')).toHaveLength(1);
     });
 
@@ -461,7 +470,7 @@ describe('notification/desktop', () => {
         notification_type: 'permission_prompt',
         tool_input: { notification_type: 'idle_prompt' },
       });
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       expect(osascriptScript()).toContain('needs approval');
     });
   });
@@ -473,8 +482,8 @@ describe('notification/desktop', () => {
   describe('command cache behavior', () => {
     test('caches hasCommand result across multiple calls', async () => {
       const input = createNotificationInput('permission_prompt');
-      await desktopNotification(input);
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
+      await desktopNotification(input, testCtx);
       const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
         ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'osascript',
       );
@@ -483,9 +492,9 @@ describe('notification/desktop', () => {
 
     test('cache is reset by _resetCommandCacheForTesting', async () => {
       const input = createNotificationInput('permission_prompt');
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       _resetCommandCacheForTesting();
-      await desktopNotification(input);
+      await desktopNotification(input, testCtx);
       const checkCalls = vi.mocked(execFileSync).mock.calls.filter(
         ([cmd, args]) => cmd === 'which' && (args as string[])?.[0] === 'osascript',
       );
@@ -500,13 +509,14 @@ describe('notification/desktop', () => {
   describe('repo name extraction', () => {
     test('uses basename of project directory as title', async () => {
       vi.mocked(getProjectDir).mockReturnValue('/Users/dev/projects/my-app');
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      (testCtx as any).projectDir = '/Users/dev/projects/my-app';
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).toContain('my-app');
     });
 
     test('falls back to "Claude Code" when getProjectDir throws', async () => {
       vi.mocked(getProjectDir).mockImplementation(() => { throw new Error('not available'); });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(osascriptScript()).toContain('Claude Code');
     });
   });

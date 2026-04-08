@@ -11,6 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -18,15 +19,8 @@ import { tmpdir } from 'node:os';
 
 const FAKE_PLUGIN_ROOT = mkdtempSync(path.join(tmpdir(), 'setup-check-'));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getPluginRoot: vi.fn(() => FAKE_PLUGIN_ROOT),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((msg: string) => ({
-    continue: true,
-    suppressOutput: false,
-    hookSpecificOutput: { additionalContext: msg },
-  })),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({
@@ -46,6 +40,7 @@ import { setupCheck } from '../../setup/setup-check.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { spawn } from 'node:child_process';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -104,7 +99,9 @@ function seedConfig() {
 const originalArgv = [...process.argv];
 const originalEnv = { ...process.env };
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext({ pluginRoot: FAKE_PLUGIN_ROOT });
   vi.clearAllMocks();
   process.argv = [...originalArgv];
   delete process.env.ORCHESTKIT_SKIP_SETUP;
@@ -134,7 +131,7 @@ describe('setup-check', () => {
       process.env.ORCHESTKIT_SKIP_SETUP = '1';
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputSilentSuccess)).toHaveBeenCalled();
@@ -146,7 +143,7 @@ describe('setup-check', () => {
       process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = '1';
 
       // Act
-      const _result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputSilentSuccess)).toHaveBeenCalled();
@@ -163,7 +160,7 @@ describe('setup-check', () => {
       process.argv = [...originalArgv, '--init'];
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -175,7 +172,7 @@ describe('setup-check', () => {
       process.argv = [...originalArgv, 'init'];
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -187,7 +184,7 @@ describe('setup-check', () => {
       process.argv = [...originalArgv, '--init-only'];
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -199,7 +196,7 @@ describe('setup-check', () => {
       process.argv = [...originalArgv, '--maintenance'];
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -216,7 +213,7 @@ describe('setup-check', () => {
       // Arrange — no marker file exists
 
       // Act
-      const result = setupCheck(createHookInput({ hook_event: 'Setup' }));
+      const result = setupCheck(createHookInput({ hook_event: 'Setup' }), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -227,7 +224,7 @@ describe('setup-check', () => {
       // Arrange — no marker, SessionStart event
 
       // Act
-      const _result = setupCheck(createHookInput({ hook_event: 'SessionStart' }));
+      const _result = setupCheck(createHookInput({ hook_event: 'SessionStart' }), testCtx);
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -240,7 +237,7 @@ describe('setup-check', () => {
       process.env.HOOK_EVENT = 'Setup';
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('First run');
@@ -262,7 +259,7 @@ describe('setup-check', () => {
       seedConfig();
 
       // Act
-      const result = setupCheck(createHookInput());
+      const result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputSilentSuccess)).toHaveBeenCalled();
@@ -282,7 +279,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-maintenance.sh'), '#!/bin/bash\n');
 
       // Act
-      setupCheck(createHookInput());
+      setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
@@ -299,7 +296,7 @@ describe('setup-check', () => {
       seedConfig();
 
       // Act
-      setupCheck(createHookInput());
+      setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(spawn)).not.toHaveBeenCalled();
@@ -325,7 +322,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-repair.sh'), '#!/bin/bash\n');
 
       // Act
-      const _result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -350,7 +347,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-maintenance.sh'), '#!/bin/bash\n');
 
       // Act
-      const _result = setupCheck(createHookInput());
+      const _result = setupCheck(createHookInput(), testCtx);
 
       // Assert — should notify about upgrade
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -375,7 +372,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-maintenance.sh'), '#!/bin/bash\n');
 
       // Act
-      setupCheck(createHookInput());
+      setupCheck(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
@@ -402,7 +399,7 @@ describe('setup-check', () => {
       writeFileSync(path.join(setupDir, 'setup-maintenance.sh'), '#!/bin/bash\n');
 
       // Act
-      setupCheck(createHookInput());
+      setupCheck(createHookInput(), testCtx);
 
       // Assert — should spawn maintenance
       expect(vi.mocked(spawn)).toHaveBeenCalled();

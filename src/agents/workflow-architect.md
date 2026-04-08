@@ -39,6 +39,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "langgraph"
+  - "workflow"
+  - "supervisor"
+  - "state"
+  - "checkpoint"
+  - "rag"
+  - "multi-agent"
+examplePrompts:
+  - "Design a LangGraph supervisor workflow for document processing"
+  - "Build a multi-agent RAG pipeline with checkpointing"
 ---
 ## Directive
 Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.
@@ -59,6 +73,15 @@ Consult project memory for past decisions and patterns before starting. Persist 
 - Use `add_edge(START, node)` not `set_entry_point()` (deprecated)
 - Simple linear workflows are fine for simple use cases
 - Add streaming modes for user-facing workflows
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - **Opus 4.6 adaptive thinking** — Complex workflow reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis

@@ -49,7 +49,7 @@ else
 fi
 
 # 3. All hook event types are valid Claude Code events
-VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest UserPromptSubmit SessionStart SessionEnd PreCompact PostCompact Stop StopFailure SubagentStop SubagentStart TeammateIdle TaskCompleted TaskCreated Setup WorktreeCreate WorktreeRemove ConfigChange InstructionsLoaded Elicitation ElicitationResult"
+VALID_EVENTS="PreToolUse PostToolUse PostToolUseFailure Notification PermissionRequest PermissionDenied UserPromptSubmit SessionStart SessionEnd PreCompact PostCompact Stop StopFailure SubagentStop SubagentStart TeammateIdle TaskCompleted TaskCreated Setup WorktreeCreate WorktreeRemove ConfigChange CwdChanged FileChanged InstructionsLoaded Elicitation ElicitationResult"
 INVALID_EVENTS=$(python3 -c "
 import json
 valid = set('$VALID_EVENTS'.split())
@@ -67,7 +67,7 @@ fi
 # 4. All command hooks reference a known dispatcher script
 BAD_COMMANDS=$(python3 -c "
 import json
-KNOWN_DISPATCHERS = ['run-hook.mjs', 'run-hook-silent.mjs', 'stop-fire-and-forget.mjs', 'stop-uncommitted-check.mjs']
+KNOWN_DISPATCHERS = ['run-hook.mjs', 'run-hook-silent.mjs', 'stop-fire-and-forget.mjs', 'stop-uncommitted-check.mjs', 'telemetry-sync.mjs']
 data = json.load(open('$HOOKS_JSON'))
 bad = []
 for event, entries in data.get('hooks', {}).items():

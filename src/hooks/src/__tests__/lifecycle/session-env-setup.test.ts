@@ -8,6 +8,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -18,21 +19,13 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => 'main'),
 }));
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
-    getSessionId: vi.fn(() => 'test-session-123'),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Import after mocks
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
 import { execFileSync } from 'node:child_process';
-import { logHook, getProjectDir, } from '../../lib/common.js';
+
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -72,7 +65,9 @@ let originalEnv: {
   CLAUDE_METRICS_FILE?: string;
 };
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Generate unique path per test to avoid parallel worker collisions
   const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   TEST_PROJECT_DIR = join(tmpdir(), `session-env-setup-test-${unique}`);
@@ -133,7 +128,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -145,7 +140,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const logsDir = `${TEST_PROJECT_DIR}/.claude/logs`;
@@ -157,7 +152,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ project_dir: '/non/existent/path' });
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -169,11 +164,10 @@ describe('session-env-setup', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -183,7 +177,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(existsSync(METRICS_FILE)).toBe(true);
@@ -200,7 +194,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -212,7 +206,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -225,7 +219,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ session_id: 'custom-session-id' });
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -237,7 +231,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -252,7 +246,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -264,7 +258,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ agent_type: 'input-agent' });
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -277,7 +271,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ agent_type: 'input-agent' });
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -289,7 +283,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -306,7 +300,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;
@@ -322,7 +316,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ session_id: 'new-session-id' });
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;
@@ -337,7 +331,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;
@@ -351,7 +345,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;
@@ -365,7 +359,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -380,7 +374,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -393,7 +387,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -415,7 +409,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -427,10 +421,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         'Git branch: feature-branch'
       );
@@ -442,10 +436,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-env-setup',
         expect.stringContaining('Git branch:')
       );
@@ -458,10 +452,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         'Setting up session environment'
       );
@@ -472,10 +466,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         'Initialized session metrics'
       );
@@ -487,10 +481,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         'Agent type: test-agent'
       );
@@ -503,10 +497,10 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         'Updated session state with agent_type: test-agent'
       );
@@ -522,7 +516,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert - should continue despite error
       expect(result.continue).toBe(true);
@@ -533,7 +527,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ project_dir: '/non/existent/path' });
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -547,11 +541,11 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-env-setup',
         expect.stringContaining('Failed to initialize metrics')
       );
@@ -567,7 +561,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue', true);
@@ -585,7 +579,7 @@ describe('session-env-setup', () => {
       // Act & Assert
       for (const overrides of testCases) {
         const input = createHookInput(overrides);
-        const result = sessionEnvSetup(input);
+        const result = sessionEnvSetup(input, testCtx);
         expect(result.continue).toBe(true);
       }
     });
@@ -597,7 +591,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -618,7 +612,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -636,7 +630,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;
@@ -653,7 +647,7 @@ describe('session-env-setup', () => {
       const input = createHookInput({ session_id: '' });
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -665,7 +659,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionEnvSetup(input);
+      const result = sessionEnvSetup(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -677,7 +671,7 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
 
       // Assert
       const metrics = JSON.parse(readFileSync(METRICS_FILE, 'utf-8'));
@@ -691,8 +685,8 @@ describe('session-env-setup', () => {
       const input = createHookInput();
 
       // Act - multiple calls
-      sessionEnvSetup(input);
-      sessionEnvSetup(input);
+      sessionEnvSetup(input, testCtx);
+      sessionEnvSetup(input, testCtx);
 
       // Assert - should not corrupt state
       const stateFile = `${TEST_PROJECT_DIR}/.claude/context/session/state.json`;

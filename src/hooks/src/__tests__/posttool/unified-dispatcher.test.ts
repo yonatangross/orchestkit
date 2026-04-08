@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/analytics.js', () => ({
   appendAnalytics: vi.fn(),
@@ -20,6 +18,7 @@ vi.mock('../../posttool/commit-nudge.js', () => ({ commitNudge: vi.fn(() => ({ c
 
 import { unifiedDispatcher, matchesTool, registeredHookNames, } from '../../posttool/unified-dispatcher.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -30,19 +29,21 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('unifiedDispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
   it('returns silent success for all dispatches', async () => {
-    const result = await unifiedDispatcher(makeInput());
+    const result = await unifiedDispatcher(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
 
   it('returns silent success when no hooks match', async () => {
-    const result = await unifiedDispatcher(makeInput({ tool_name: 'UnknownTool' }));
+    const result = await unifiedDispatcher(makeInput({ tool_name: 'UnknownTool' }), testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -51,7 +52,7 @@ describe('unifiedDispatcher', () => {
     const { redactSecrets } = await import('../../skill/redact-secrets.js');
     vi.mocked(redactSecrets).mockImplementation(() => { throw new Error('boom'); });
 
-    const result = await unifiedDispatcher(makeInput());
+    const result = await unifiedDispatcher(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -79,13 +80,14 @@ describe('matchesTool', () => {
 describe('registeredHookNames', () => {
   it('returns all registered hook names', () => {
     const names = registeredHookNames();
-    // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver: 5
+    // After #897 slimming + CC 2.1.71: 4 hooks + #1191 fingerprint-saver + CC 2.1.90 auto-lint: 6
     expect(names).toContain('redact-secrets');
     expect(names).toContain('config-change-auditor');
     expect(names).toContain('team-member-start');
     expect(names).toContain('commit-nudge');
     expect(names).toContain('fingerprint-saver');
-    expect(names.length).toBe(5);
+    expect(names).toContain('auto-lint');
+    expect(names.length).toBe(6);
   });
 });
 

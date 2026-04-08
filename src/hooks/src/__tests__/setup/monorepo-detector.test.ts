@@ -7,6 +7,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -15,20 +16,18 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   outputWithContext: vi.fn((msg: string) => ({
     continue: true,
     suppressOutput: false,
     hookSpecificOutput: { additionalContext: msg },
   })),
-  getProjectDir: vi.fn(() => '/test/project'),
 }));
 
 import { monorepoDetector } from '../../setup/monorepo-detector.js';
 import { existsSync, readdirSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReaddirSync = vi.mocked(readdirSync);
@@ -43,7 +42,9 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: no monorepo indicators, no nested packages
   mockExistsSync.mockReturnValue(false);
@@ -64,7 +65,7 @@ describe('monorepo-detector', () => {
     test('returns silent success immediately when added_dirs has entries', () => {
       const input = createHookInput({ added_dirs: ['/some/other/dir'] });
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       // Should not have called readdirSync — skipped detection entirely
@@ -74,7 +75,7 @@ describe('monorepo-detector', () => {
     test('returns silent success when added_dirs has multiple entries', () => {
       const input = createHookInput({ added_dirs: ['/dir/a', '/dir/b', '/dir/c'] });
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockReaddirSync).not.toHaveBeenCalled();
@@ -83,7 +84,7 @@ describe('monorepo-detector', () => {
     test('still runs detection when added_dirs is empty array', () => {
       const input = createHookInput({ added_dirs: [] });
 
-      monorepoDetector(input);
+      monorepoDetector(input, testCtx);
 
       // Detection proceeds — readdirSync is called to check for nested packages
       expect(mockReaddirSync).toHaveBeenCalled();
@@ -92,7 +93,7 @@ describe('monorepo-detector', () => {
     test('still runs detection when added_dirs is undefined', () => {
       const input = createHookInput(); // no added_dirs field
 
-      monorepoDetector(input);
+      monorepoDetector(input, testCtx);
 
       expect(mockReaddirSync).toHaveBeenCalled();
     });
@@ -107,7 +108,7 @@ describe('monorepo-detector', () => {
       mockExistsSync.mockImplementation((p) => String(p).endsWith('pnpm-workspace.yaml'));
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result.continue).toBe(true);
       // With a monorepo indicator, outputWithContext is called — not silent
@@ -118,7 +119,7 @@ describe('monorepo-detector', () => {
       mockExistsSync.mockImplementation((p) => String(p).endsWith('turbo.json'));
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBeFalsy();
@@ -128,7 +129,7 @@ describe('monorepo-detector', () => {
       mockExistsSync.mockImplementation((p) => String(p).endsWith('nx.json'));
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBeFalsy();
@@ -153,7 +154,7 @@ describe('monorepo-detector', () => {
       });
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBeFalsy();
@@ -179,7 +180,7 @@ describe('monorepo-detector', () => {
       });
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
@@ -189,7 +190,7 @@ describe('monorepo-detector', () => {
       mockExistsSync.mockReturnValue(false);
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
@@ -204,7 +205,7 @@ describe('monorepo-detector', () => {
       process.env.CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD = '1';
       const input = createHookInput();
 
-      const result = monorepoDetector(input);
+      const result = monorepoDetector(input, testCtx);
 
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });

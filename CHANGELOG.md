@@ -5,6 +5,234 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [7.30.0] - 2026-04-08
+
+### Added
+
+- **CC 2.1.94 + 2.1.96 integration** (minimum CC version: 2.1.92 → 2.1.94)
+  - **Skill frontmatter hooks unlock (CC 2.1.94 bug fix)** — before 2.1.94, skill `hooks:` blocks in SKILL.md frontmatter were silently ignored by CC. 20 OrchestKit context loaders across 15 skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) were dead code until now. CC 2.1.94 activates them — users now get primed context (PR context, project conventions, assessment baselines, verify scoring rubric, etc.) before every workflow skill runs.
+  - **`hookSpecificOutput.sessionTitle` on UserPromptSubmit (CC 2.1.94)** — unified prompt dispatcher now sets the CC session title dynamically. Format: `{branch}` or `{branch} · {effort}` when effort differs from the default. Visible in the prompt bar, `--resume` picker, and `/remote-control` session list. Emitted on every turn (no delta skip) so the title stays current across branch changes.
+  - **New output builder `outputPromptContextWithTitle(ctx, title)`** in `src/hooks/src/lib/output.ts` — handles all four combinations: ctx+title, ctx only, title only, neither.
+  - **`sessionTitle` field in `HookSpecificOutput`** type (CC 2.1.94).
+  - **`DEFAULT_EFFORT_LEVEL` constant** in `src/hooks/src/lib/effort-detector.ts` — set to `'high'` to match CC 2.1.94's new default (was `'medium'` pre-2.1.94). Used by unified-dispatcher to decide when to log effort and when to suffix the session title.
+  - **`keep-coding-instructions` frontmatter field documentation** (CC 2.1.94) for future plugin output-style skills.
+  - **`src/__tests__/skill-frontmatter-hooks-invariant.test.ts`** — guards against dangling `skill/<name>` references in SKILL.md frontmatter. Every reference must be registered in `src/hooks/src/entries/skill.ts`, otherwise CC 2.1.94+ will try to spawn a missing handler on every invocation.
+  - **`src/__tests__/prompt/session-title.test.ts`** — 13 new tests covering `outputPromptContextWithTitle` semantics, `buildSessionTitle` format, branch cleanup, effort suffix, branch prefix stripping, truncation, and edge cases (empty branch, oversized prompt, newlines in branch).
+  - **13 new entries in `cc-version-matrix.ts`** — 12 for 2.1.94, 1 for 2.1.96 (Bedrock bearer-token 403 hotfix).
+- **Task lifecycle enforcement across 21 skills + 33 agents** — all multi-phase skills and agents now follow complete TaskCreate → TaskGet → TaskUpdate lifecycle with `addBlockedBy` dependency chains, `activeForm` spinner text, and explicit completion markers
+  - 8 MANDATORY skills enhanced: brainstorm, explore, verify, assess, implement, create-pr, audit-full, expect
+  - 7 skills got new task sections: fix-issue, github-operations, notebooklm, demo-producer, audit-skills, release-management, setup
+  - 6 partial skills completed: cover, visualize-plan, write-prd, component-search, design-context-extract, design-to-code
+  - 33 agents upgraded to 6-item task management standard (added TaskGet validation)
+  - CONTRIBUTING-SKILLS.md updated with task management authoring requirements
+- **34 new tests for 4 untested PreToolUse bash hooks** (#1271) — coverage for secret-env-guard, terraform-plan-guard, dangerous-command-guard, docker-safety-guard
+- **10 new tests for stop-uncommitted-check.mjs** — output text assertions, staged/modified/untracked classification, conciseness check
+
+- **`eval-report.sh`** — eval duration aggregator (`npm run eval:report`)
+  - Reads `*.trigger.json` + `*.quality.json` results, aggregates per-skill durations
+  - Flags outliers (>3× median quality duration) with ⚠
+  - `--json` for machine-readable output, `--top N` to control display
+  - Tested against 84 real skill results (413min total, 2 outliers flagged)
+- **`known-hook-conflicts.json`** — hook-skill conflict registry for quality eval
+  - Quality eval diffs actual hook rejections vs registry
+  - HOOK COMPATIBILITY section: COMPATIBLE ✓ / KNOWN CONFLICTS / NEW CONFLICTS ✗
+  - Seeded with i18n-date-patterns finding (2 incidental rejections)
+
+### Changed
+
+- **Hook dispatcher flattening** — all 6 async dispatchers replaced with CC 2.1.92 native async hook entries
+  - Stop dispatcher → 9 individual entries (ff75bedd)
+  - 4 more async dispatchers flattened (1de40ec3)
+  - PostToolUse dispatcher — last of 6 (6a082e32)
+  - Hook count: 146 → 169 (100 global + 47 agent-scoped + 22 skill-scoped)
+- **3 dead/low-value hooks removed** — gh-issue-creation-guide, license-compliance, pr-merge-gate (−494 LOC) (#1274)
+- **Deprecated TaskOutput references removed** (#1268)
+
+### Fixed
+
+- **19 stale skill name references** across docs, demos, and source
+  - `brainstorming` → `brainstorm` (6 files), `plan-viz` → `visualize-plan` (2), `prd` → `write-prd` (1), `assess-complexity` → `quality-gates` (4), `agent-browser` prefix fix (2), `git-workflow` rows removed (2)
+- **2 phantom demo configs deleted** — `add-golden-demo.ts`, `worktree-coordination-demo.ts` (skills never existed)
+- **2 demo configs remapped** — `assess-complexity` → `quality-gates`, `run-tests` → `cover`
+- **hooks.json description count drift** — `171` → `169`, `47 agent-scoped` → `45`
+- **api-design trigger eval removed** — `user-invocable: false` skill can't be tested by trigger classifier (0% precision/recall was expected, not a bug)
+- **41 stale "balance is too low" quality result files purged** — API credit exhaustion during grading produced fake 0% pass rates
+- **stop-uncommitted-check `.trim()` bug** — `.trim()` on `git status --porcelain` output stripped leading spaces, misclassifying unstaged modifications as staged changes (#1293)
+- **Stop hook message shortened** — verbose AI-instruction text replaced with concise human-readable summary
+
+### Performance
+
+- **learning-tracker pattern caching** — patterns compiled once per process instead of per-invocation (#1265)
+- **SessionStart sync hooks gated on `input.source`** — skip sync hooks when source is not relevant (#1269)
+- **3 redundant `appendAnalytics` JSONL writes removed** (#1266)
+
+## [7.29.0] - 2026-04-05
+
+### Added
+
+- **72 new tests for P0 coverage gaps**:
+  - 54 tests for `normalizeInput()` edge cases: JSON-string unwrapping (12), STRING_FIELDS allowlist (12), tool_name/session_id/hook_event normalization (8), project_dir isValidPath resolution (6), agent_type/agent_id promotion (5), tool_input fallback (6), isValidPath validation (5)
+  - 11 tests for crypto sanitization: 3 missing patterns (gho_, github_pat_, xoxp-), 4 boundary/minimum-length tests, 3 false-positive prevention tests, 1 extra short-PAT rejection test
+  - 7 tests for `HookContext` shape: compile-time type assertion, runtime property audit across all 11 HookContext properties, NOOP_CTX callability, `buildContext()` shape parity
+- **CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)
+  - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings
+  - Stop hook `preventContinuation:true` semantics restored
+  - Tool input JSON-string streaming fix
+  - Plugin MCP stuck "connecting" fix
+  - Write tool 60% faster diff computation
+  - Remote Control hostname-based session naming
+  - Per-model `/cost` breakdown
+  - Subagent tmux pane count fix
+  - `/tag` and `/vim` commands removed (no OrchestKit impact)
+- **`forceRemoteSettingsRefresh` in configure/doctor skills** — enterprise policy docs, health check outputs for managed settings and MCP connector conflicts
+- **Defensive JSON-string unwrap in `run-hook.mjs`** — `normalizeInput()` auto-parses string-encoded array/object `tool_input` fields while preserving known string fields via allowlist (defense against CC streaming regression)
+
+### Changed
+
+- **HookContext DI migration completed** — all 214 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback
+  - `buildContext()` factory + `createTestContext()` test helper for dependency injection
+  - Shared mock factory replaces inline mocks across 137 test files
+  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`
+  - Telemetry decoupled — inline webhookForwarder removed from common module
+  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)
+  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files
+
+## [7.28.0] - 2026-04-03
+
+### Added
+
+- **Telemetry Provider Architecture (M105)** — pluggable sink system with Grafana Echo-style interface
+  - `TelemetrySink` interface: `{ name, supportedEvents, addEvent, flush }` for pluggable sinks
+  - `emit()` API: central fan-out to registered sinks with per-sink failure isolation
+  - `JsonlSink`: local JSONL backup via `appendFile` (async, non-blocking). Always-on safety net — events never lost even when HTTP sink is down
+  - `HttpSink`: HMAC-signed POST with 3x retry (full-jitter exponential backoff) and circuit breaker (5 fails → OPEN, 30s cooldown → HALF_OPEN)
+  - `telemetry-sync.mjs`: batch replay CLI — reads JSONL, POSTs to `/batch-ingest` as NDJSON, deletes synced rotated files
+  - Config-based sink registry: plugin.json and settings.local.json can register custom HTTP sinks
+  - Webhook forwarder coverage validator: CI gate ensuring all 27 CC events have forwarder coverage
+  - Rotation: files >10MB renamed on SessionEnd, rotated files >7 days cleaned up
+- **Payload sanitization** — 15 secret patterns redacted before transmission
+  - API keys: `sk-ant-` (Anthropic), `sk-` (OpenAI), `AKIA` (AWS), `AIza` (Google/Firebase)
+  - Tokens: GitHub PATs (`ghp_`, `gho_`, `github_pat_`), Slack (`xoxb-`, `xoxp-`), Bearer
+  - Database URLs: MongoDB, PostgreSQL, MySQL connection strings
+  - Environment variable assignments with secret names
+  - Recursive sanitization with 500-char truncation
+- **27/27 CC event coverage** — all documented (20) and undocumented (7) CC hook events forwarded
+
+### Fixed
+
+- Webhook forwarder coverage: 9 gaps fixed (FileChanged standalone, 8 dispatcher inlines)
+- `JsonlSink` always registers (was gated behind HTTP config — silent data loss when webhooks disabled)
+- Telemetry directory permissions: 0o755 → 0o700 (world-readable on shared systems)
+- `hook_event_name` → `hook_event` normalization in `run-hook.mjs` (all events logged as "unknown")
+- Plugin/user `HttpSink` instances now receive config URL/token (were all hitting env-configured default)
+- Stale test assertions: async hook counts, split-bundle counts, description totals, cross-reference prefixes
+- GitHub push protection: replaced realistic-looking test fixtures with obviously-fake tokens
+
+- **CC 2.1.91 integration**: MCP result size override, disableSkillShellExecution, plugin bin/ executables, Edit shorter anchors
+  - `mcp-output-transform` "Trust CC's decision" heuristic: results > 50K chars were explicitly kept by CC (likely `_meta["anthropic/maxResultSizeChars"]`), so skip truncation. Results 2K–50K get token-saving truncation. PII redaction always runs regardless of size. Best-effort `_meta` extraction kept as fallback.
+  - `ORCHESTKIT_MCP_TRUNCATION_THRESHOLD` env var to override default 2K truncation threshold
+  - 7 new unit tests for CC trust heuristic (large result skip, PII on large results, _meta extraction, invalid _meta, env override)
+  - Fixed pre-existing test mock: `getProjectDir` + `webhookForwarder` missing from mcp-output-transform test mocks
+  - `disableSkillShellExecution` fallback notes added to 4 skills with invocation_hooks (cover, expect, commit, devops-deployment)
+  - cc-version-matrix.ts: +8 entries for CC 2.1.91 features
+  - mcp-patterns skill: added `_meta` annotation documentation, code example in server-setup rule
+  - cc-version-settings.md: new section covering disableSkillShellExecution, plugin bin/, Edit anchors, auto permission validation
+  - version-compatibility.md: +8 feature matrix entries, v7.29.x history row, 2.1.91 compatibility level
+
+### Changed
+
+- `webhookForwarder()` simplified to thin wrapper around `emit()` (public API unchanged — dispatchers need zero changes)
+- `signPayload()` extracted from `usage-summary-reporter.ts` to shared `lib/crypto.ts`
+- `sanitizePayload()` extracted from `session-tracker.ts` to shared `lib/crypto.ts` with expanded patterns
+- Hook count: 131 → 132 (added `telemetry-sync` on SessionEnd)
+- Minimum Claude Code version: 2.1.90 → 2.1.91
+- README badge updated from 2.1.90 to 2.1.91
+- mcp-patterns skill compatibility bumped from 2.1.76+ to 2.1.91+
+- mcp-output-transform uses "Trust CC's decision" heuristic for results > 50K instead of blindly truncating everything to 2K
+
+## [7.27.0] - 2026-04-02
+
+### Added
+
+- **shadcn/ui v4 style system** across 7 design skills: `ui-components`, `design-to-code`, `component-search`, `design-context-extract`, `json-render-catalog`, `design-system-tokens`, `ai-ui-generation`
+  - 6 styles documented: Vega, Nova, Maia, Lyra, Mira, Luma
+  - Preset code system (`npx shadcn@latest init --preset <code>`)
+  - Style detection from `components.json` → `"style"` field
+  - Style-aware component adaptation in design-to-code pipeline
+  - Best-fit style recommender in design-context-extract
+  - Style-aware catalog overrides in json-render-catalog
+  - Luma elevation tokens (shadow-md + ring) in design-system-tokens
+- `ui-components/rules/shadcn-v4-styles.md` — new rule file for v4 style detection, class mapping, and preset codes (622 total rules)
+
+### Fixed
+
+- **P0 BUG** denial-notification.ts: in-memory `denialTimestamps` array reset on every hook invocation (fresh Node.js process per call). Now reads persisted timestamps from `permission-denials.jsonl` written by denial-logger, with cooldown state in separate JSON file
+- **P1 SEC** project-write-retry.ts: added `resolveRealPath()` before `isInsideDir()` to prevent symlink bypass attacks (replicates ME-001 fix from file-guard.ts)
+- **P1 SEC** auto-approve-project-writes.ts: added matching `resolveRealPath()` call to close asymmetry between approval and retry hooks
+- denial-logger.ts: JSDoc incorrectly said "Async" but uses `appendFileSync` — corrected to "Sync"
+- `hasExcludedDir()` now catches terminal path segments (e.g., `/project/.git` without trailing slash)
+- Stale hook count "110 hooks" updated to "112 hooks" across 11 doc pages
+- Stale skill count "100/101 skills" updated to "102 skills" across 11 doc pages
+
+### Added
+
+- **CC 2.1.88 integration**: 5 PermissionDenied hooks via unified-dispatcher (denial-logger, denial-notification, safe-command-retry, project-write-retry)
+- **CC 2.1.89 integration**: `headless-defer` PreToolUse hook returns `{decision:"defer"}` in headless `-p` mode for destructive ops (force push, npm publish, terraform apply, kubectl, docker push, gh merge). Configurable via `ORCHESTKIT_DEFER_TOOLS` env var
+- **`/ork:release-sync` skill**: post-release content sync to NotebookLM + HQ Knowledge Base. Reads CHANGELOG, CLAUDE.md, hook README, updates notebook sources
+- `lib/path-containment.ts` — shared EXCLUDED_DIRS, isInsideDir(), hasExcludedDir(), resolveRealPath() (extracted from 2 duplicating hooks)
+- `lib/bash-patterns.ts` — unified REJECT_PATTERNS (was duplicated with inconsistencies between auto-approve-safe-bash and safe-command-retry)
+- `outputDefer()` helper in lib/common.ts for PreToolUse permission deferral
+- types.ts: `permissionDecision` union extended with `'defer'` (CC 2.1.89)
+- cc-version-matrix.ts: +9 entries for CC 2.1.89 features (defer permission, TaskCreated hook, autocompact thrash detection, cleanup validation, MCP nonblocking, named subagent typeahead, hook output disk spill, edit after bash view, symlink permission check)
+- `MCP_CONNECTION_NONBLOCKING=true` in ork.settings.json for faster headless `-p` mode startup
+- yarn read-only patterns added to RETRY_SAFE_PATTERNS
+- PermissionDenied section added to `src/hooks/README.md`
+- 167 new unit tests (152 PermissionDenied + 15 headless-defer)
+- `tests/skills/test-upstream-refs.sh` — CI freshness check for vendor references
+- **Candlekeep batch** (CC 2.1.89 architecture insights — #1227-#1236):
+  - **CwdChanged hook** (#1229): Detects tech stack on directory change, returns watchPaths, suggests relevant skills via path_patterns
+  - **FileChanged hook** (#1230): Reacts to watched file changes (CLAUDE.md, package.json, .env, rules/), injects context
+  - **mcp-output-transform hook**: PostToolUse PII redaction (emails, phones) and token-saving truncation for MCP results
+  - **cache-break-detector hook** (#1234): Analytics-only — tracks prompt injection shape changes across turns for cache hit monitoring
+  - **frustration-detector hook**: Analytics-only — privacy-first DX signal (boolean only, no matched text logged)
+  - **fork() pattern** (#1227): Reference doc, explore + brainstorm skills annotated fork-friendly, context-stager skips forks, cache_hit_pct analytics
+  - **path_patterns** (#1228): Added to 15 skills, CwdChanged consumer with 2-level directory scan (94% pattern match rate)
+  - **critical_system_reminder** (#1231): Added to 8 agents, injected at spawn via subagent-context-stager
+  - **required_mcp_servers** (#1232): Added to 4 agents, pre-flight availability check via CLAUDE_MCP_SERVERS env var
+  - **invocation_hooks** (#1235): Shell precondition commands on 4 skills (cover, expect, commit, devops-deployment)
+  - **MCP channels** (#1233): evalApiKey + notebookLmToken sensitive userConfig slots (CC keychain storage)
+  - **Token budget carry-forward** (#1236): Pre/post compact preserves effort level and budget across compaction
+  - **Transcript quality analysis**: SubagentStop bounded JSONL reads for tool counts, errors, token usage
+  - **SessionStart perf measurement**: sync-session-dispatcher logs duration_ms to analytics
+  - **CC field name diagnostic**: Debug-level log of input field names on first SubagentStop for runtime verification
+  - 167 new Candlekeep tests (cwd-changed 21, file-changed 14, mcp-output-transform 35, cache-break 21, frustration 28, post-compact 20, analyze-transcript 17, fork detection 4, sync-session perf 3, materialize-rules 4)
+  - Cache audit documented in hooks README: only 2 genuinely volatile per-turn hooks, rest migrated or gated
+
+### Changed
+
+- **Option E**: Replaced 37 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)
+- `scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes
+- `vendor/vercel-skills/mapping.json` — 37 refs across 4 Vercel repos → 6 skill dirs (committed for offline builds)
+- `docs/site/lib/generated/agents-data.ts` — now auto-generated from `src/agents/*.md` frontmatter on every build (was hand-maintained, 8 agents missing, 9 phantom agents). Added `taskTypes`, `keywords`, `examplePrompts` to all 36 agent frontmatter files
+- Removed 32 `vercel-*.mdx` pages from fumadocs, updated meta.json and category pages
+- Agent descriptions improved for @mention typeahead discoverability: `genui-architect`, `ui-feedback`
+- Dead code removed: memory-bridge entity extraction (132→33 lines), antipattern-warning function deleted (was no-op since #1145), speculative `mcp_connections` HookInput field removed
+- Updated specs: CONTRIBUTING-SKILLS.md (path_patterns, invocation_hooks), agent-authoring.md (critical_system_reminder, required_mcp_servers), frontmatter validator (critical_system_reminder length check)
+- Stale counts fixed across 22 fumadocs pages (102→103 skills, 112→115 hooks)
+- Bounded JSONL read (last 4KB) + `atomicWriteSync` for crash-safe state persistence
+- Minimum Claude Code version: 2.1.86 → 2.1.90
+- **CC 2.1.90 integration**: version matrix +11 entries (powerup, plugin-keep-marketplace, husky-protected, exit code 2 fix, format-on-save fix, resume prompt cache fix, 3x perf, resume hides -p sessions, DNS auto-allow removal)
+- `.husky/` added to file-guard PROTECTED_PATTERNS (CC 2.1.90 parity — prevent git hook tampering)
+- Path resolution comments updated from "backward compat" to "defense in depth" — fallbacks retained as defensive programming rather than removed
+- README badge updated from 2.1.86 to 2.1.90
+- version-compatibility.md: +25 entries for CC 2.1.88–2.1.90, compatibility levels updated, v7.27.x version history row
+- cc-version-settings.md: added CC 2.1.90 section (PLUGIN_KEEP_MARKETPLACE env var, format-on-save hook pattern, /powerup reference)
+
+---
+
+
 ## [7.26.4] - 2026-03-29
 
 ### Fixed

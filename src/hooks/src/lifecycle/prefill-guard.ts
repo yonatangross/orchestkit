@@ -11,8 +11,9 @@
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getPluginRoot, outputSilentSuccess, outputWarning, lineContainsAllCI } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWarning, lineContainsAllCI } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const CACHE_VERSION = '1.0';
 
@@ -153,13 +154,13 @@ function isOpus46OrLater(): boolean {
 /**
  * Prefill guard hook — runs at SessionStart
  */
-export function prefillGuard(_input: HookInput): HookResult {
+export function prefillGuard(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Only warn when running on Opus 4.6+
   if (!isOpus46OrLater()) {
     return outputSilentSuccess();
   }
 
-  const pluginRoot = getPluginRoot();
+  const pluginRoot = ctx.pluginRoot;
   const skillsDir = join(pluginRoot, 'skills');
   const cacheFile = getCacheFile(pluginRoot);
 
@@ -171,7 +172,7 @@ export function prefillGuard(_input: HookInput): HookResult {
     if (isCacheFresh(cacheFile, skillsDir, skillDirs)) {
       const cache = readCache(cacheFile);
       if (cache) {
-        logHook('prefill-guard', 'Using cached scan results');
+        ctx.log('prefill-guard', 'Using cached scan results');
         affectedSkills = cache.results.warnings;
       } else {
         affectedSkills = scanSkillsForPrefill(skillsDir, skillDirs);
@@ -187,11 +188,11 @@ export function prefillGuard(_input: HookInput): HookResult {
   }
 
   if (affectedSkills.length === 0) {
-    logHook('prefill-guard', 'No prefilling patterns detected in skills');
+    ctx.log('prefill-guard', 'No prefilling patterns detected in skills');
     return outputSilentSuccess();
   }
 
-  logHook('prefill-guard', `Found prefilling patterns in ${affectedSkills.length} skills: ${affectedSkills.join(', ')}`, 'warn');
+  ctx.log('prefill-guard', `Found prefilling patterns in ${affectedSkills.length} skills: ${affectedSkills.join(', ')}`, 'warn');
 
   return outputWarning(
     `Opus 4.6 deprecation: ${affectedSkills.length} skill(s) reference deprecated patterns (prefilled assistant messages or output_format parameter). ` +

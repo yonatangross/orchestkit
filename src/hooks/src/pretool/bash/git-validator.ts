@@ -8,17 +8,16 @@
  * @version 2.0.0 - Consolidated from 4 separate hooks
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
   outputWithContext,
   outputAllowWithContext,
-  logHook,
   logPermissionFeedback,
-  getCachedBranch,
 } from '../../lib/common.js';
 import { isProtectedBranch, validateBranchName, analyzeStagedChanges } from '../../lib/git.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -233,16 +232,16 @@ function validateAtomicCommit(command: string, projectDir?: string): HookResult 
 // MAIN HOOK
 // =============================================================================
 
-export function gitValidator(input: HookInput): HookResult {
+export function gitValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = stripProxyPrefix(input.tool_input.command || '');
 
   if (!command.startsWith('git')) {
     return outputSilentSuccess();
   }
 
-  const currentBranch = getCachedBranch(input.project_dir);
+  const currentBranch = ctx.branch;
 
-  logHook('git-validator', `Validating: ${command.slice(0, 50)}...`);
+  ctx.log('git-validator', `Validating: ${command.slice(0, 50)}...`);
 
   // 1. Branch protection (can block)
   const protectionResult = validateBranchProtection(command, currentBranch);

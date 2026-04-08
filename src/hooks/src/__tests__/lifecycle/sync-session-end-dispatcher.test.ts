@@ -40,7 +40,8 @@ vi.mock('../../lifecycle/pattern-sync-push.js', () => ({
 import { syncSessionEndDispatcher } from '../../lifecycle/sync-session-end-dispatcher.js';
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
-import { logHook } from '../../lib/common.js';
+
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,8 +65,10 @@ function makeSystemMessageResult(msg: string) {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/sync-session-end-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     // Re-establish default silent passing implementations after reset
     // sync-session-end-dispatcher has 2 hooks: session-cleanup (runOnFail) + pattern-sync-push
@@ -80,7 +83,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
   describe('all hooks pass silently', () => {
     it('returns silent success when no hooks emit messages', () => {
       const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
+      const result = syncSessionEndDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -89,11 +92,13 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
 
     it('calls all two hooks', () => {
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       // sync-session-end-dispatcher has 2 hooks (session-metrics-summary removed)
-      expect(sessionCleanup).toHaveBeenCalledWith(input);
-      expect(patternSyncPush).toHaveBeenCalledWith(input);
+      expect(sessionCleanup).toHaveBeenCalled();
+      expect(vi.mocked(sessionCleanup).mock.calls[0][0]).toEqual(input);
+      expect(patternSyncPush).toHaveBeenCalled();
+      expect(vi.mocked(patternSyncPush).mock.calls[0][0]).toEqual(input);
     });
   });
 
@@ -107,7 +112,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       vi.mocked(sessionCleanup).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       // pattern-sync-push must still run (runOnFail: false, but shouldContinue tracks non-runOnFail only)
       expect(patternSyncPush).toHaveBeenCalled();
@@ -119,7 +124,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       });
 
       const input = createSessionEndInput();
-      expect(() => syncSessionEndDispatcher(input)).not.toThrow();
+      expect(() => syncSessionEndDispatcher(input, testCtx)).not.toThrow();
     });
 
     it('logs run_on_fail hook failures as warn', () => {
@@ -128,9 +133,9 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       });
 
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sync-session-end-dispatcher',
         expect.stringContaining('session-cleanup failed'),
         'warn',
@@ -145,7 +150,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
   describe('pattern-sync-push skip semantics', () => {
     it('runs pattern-sync-push when all prior hooks return continue: true', () => {
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       expect(patternSyncPush).toHaveBeenCalled();
     });
@@ -155,7 +160,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       vi.mocked(sessionCleanup).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       // pattern-sync-push STILL runs because shouldContinue only tracks non-runOnFail hooks
       expect(patternSyncPush).toHaveBeenCalled();
@@ -165,7 +170,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       vi.mocked(sessionCleanup).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       expect(patternSyncPush).toHaveBeenCalled();
     });
@@ -176,7 +181,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       vi.mocked(patternSyncPush).mockReturnValue({ continue: false });
 
       const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
+      const result = syncSessionEndDispatcher(input, testCtx);
 
       // Both hooks still ran
       expect(sessionCleanup).toHaveBeenCalled();
@@ -197,7 +202,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       );
 
       const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
+      const result = syncSessionEndDispatcher(input, testCtx);
 
       expect(result.systemMessage).toBe('Cleanup: temp files removed.');
     });
@@ -211,7 +216,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       );
 
       const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
+      const result = syncSessionEndDispatcher(input, testCtx);
 
       expect(result.systemMessage).toContain('Cleanup: temp files removed.');
       expect(result.systemMessage).toContain('Patterns: synced to remote.');
@@ -223,7 +228,7 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       );
 
       const input = createSessionEndInput();
-      const result = syncSessionEndDispatcher(input);
+      const result = syncSessionEndDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -236,10 +241,10 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
   describe('logging', () => {
     it('logs "All SessionEnd hooks silent" when no messages collected', () => {
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
       // Check that at least one logHook call contains 'silent'
-      const calls = vi.mocked(logHook).mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSilentLog = calls.some(
         ([name, msg]) => name === 'sync-session-end-dispatcher' && String(msg).includes('silent'),
       );
@@ -251,9 +256,9 @@ describe('lifecycle/sync-session-end-dispatcher', () => {
       vi.mocked(patternSyncPush).mockReturnValue(makeSystemMessageResult('B'));
 
       const input = createSessionEndInput();
-      syncSessionEndDispatcher(input);
+      syncSessionEndDispatcher(input, testCtx);
 
-      const calls = vi.mocked(logHook).mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasMergedLog = calls.some(
         ([name, msg]) => name === 'sync-session-end-dispatcher' && String(msg).includes('Merged'),
       );

@@ -40,6 +40,7 @@ vi.mock('node:child_process', () => ({
 
 import { outputValidator } from '../../subagent-stop/output-validator.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -66,9 +67,11 @@ function createSubagentStopInput(
 // Output Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('output-validator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    testCtx = createTestContext({ logDir: '/test/project/.claude/logs/agent-validation' });
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
@@ -411,7 +414,7 @@ describe('output-validator', () => {
       const input = createSubagentStopInput('Valid output'.repeat(10));
 
       // Act
-      outputValidator(input);
+      outputValidator(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalled();
@@ -427,7 +430,7 @@ describe('output-validator', () => {
       const input = createSubagentStopInput('Test output here'.repeat(5));
 
       // Act
-      outputValidator(input);
+      outputValidator(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -444,7 +447,7 @@ describe('output-validator', () => {
       const input = createSubagentStopInput(testOutput.repeat(5));
 
       // Act
-      outputValidator(input);
+      outputValidator(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -476,7 +479,7 @@ describe('output-validator', () => {
       const input = createSubagentStopInput('A'.repeat(100));
 
       // Act
-      outputValidator(input);
+      outputValidator(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -498,7 +501,7 @@ describe('output-validator', () => {
       const input = createSubagentStopInput('A'.repeat(100));
 
       // Act
-      outputValidator(input);
+      outputValidator(input, testCtx);
 
       // Assert
       const calls = vi.mocked(mkdirSync).mock.calls;

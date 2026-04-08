@@ -9,6 +9,7 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
 vi.mock('node:fs', () => ({
@@ -17,9 +18,7 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { appendEventLog } from '../../lib/event-logger.js';
 import { getProjectDir } from '../../lib/common.js';

@@ -199,8 +199,8 @@ echo "Test 11: Referenced skills exist"
 for agent in "${AI_ML_AGENTS[@]}"; do
     agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
-        # Extract skills from frontmatter (between skills: and ---)
-        skills=$(awk '/^skills:/,/^---/' "$agent_file" | grep "^  - " | awk '{print $2}')
+        # Extract skills from frontmatter (between skills: and next top-level key)
+        skills=$(awk '/^skills:/{found=1; next} found && /^  - /{print $2} found && /^[a-zA-Z]/{exit}' "$agent_file")
 
         all_exist=1
         for skill in $skills; do

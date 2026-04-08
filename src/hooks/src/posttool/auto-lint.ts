@@ -1,19 +1,22 @@
 /**
- * Auto-Lint Hook - PostToolUse hook for Write/Edit
- * CC 2.1.7 Compliant
+ * Auto-Lint Hook - PostToolUse format-on-save for Write/Edit
+ * CC 2.1.90: Safe to modify files in PostToolUse — "File content has changed" race fixed
  *
- * Automatically runs linters after file writes:
+ * Automatically formats files after writes:
  * - Python: ruff check + format (Astral toolchain)
- * - JS/TS: biome check (Rust-based)
- * - JSON/CSS: biome format
+ * - JS/TS: biome check --write, falls back to prettier --write
+ * - JSON/CSS: biome format --write, falls back to prettier --write
+ *
+ * Toggle off: SKIP_AUTO_LINT=1
  */
 
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, getField } from '../lib/common.js';
 import { basename } from 'node:path';
-import { assertSafeCommandName, assertSafeShellArg } from '../lib/sanitize-shell.js';
+import { assertSafeCommandName } from '../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Get language from file extension
@@ -55,7 +58,7 @@ function commandExists(cmd: string): boolean {
 /**
  * Run auto-lint on written files
  */
-export function autoLint(input: HookInput): HookResult {
+export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Self-guard: Only run for Write/Edit
@@ -75,6 +78,7 @@ export function autoLint(input: HookInput): HookResult {
   }
 
   // Check if file exists
+  // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
   const projectDir = process.env.CLAUDE_PROJECT_DIR || '.';
   const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
@@ -94,7 +98,9 @@ export function autoLint(input: HookInput): HookResult {
 
   let lintIssues = 0;
   let fixesApplied = false;
-  const safePath = assertSafeShellArg(fullPath, 'file path');
+  // execFileSync passes args as array — no shell injection risk, no need for assertSafeShellArg
+  // (assertSafeShellArg rejects paths with spaces, breaking user projects)
+  const safePath = fullPath;
 
   try {
     switch (language) {
@@ -143,6 +149,16 @@ export function autoLint(input: HookInput): HookResult {
           } catch {
             // Ignore biome errors
           }
+        } else if (commandExists('prettier')) {
+          try {
+            execFileSync('prettier', ['--write', safePath], {
+              stdio: 'ignore',
+              timeout: 5000,
+            });
+            fixesApplied = true;
+          } catch {
+            // Ignore prettier errors
+          }
         }
         break;
 
@@ -158,11 +174,21 @@ export function autoLint(input: HookInput): HookResult {
           } catch {
             // Ignore format errors
           }
+        } else if (commandExists('prettier')) {
+          try {
+            execFileSync('prettier', ['--write', safePath], {
+              stdio: 'ignore',
+              timeout: 5000,
+            });
+            fixesApplied = true;
+          } catch {
+            // Ignore prettier errors
+          }
         }
         break;
     }
   } catch (error) {
-    logHook('auto-lint', `Error: ${error}`);
+    ctx.log('auto-lint', `Error: ${error}`);
   }
 
   // Build output message

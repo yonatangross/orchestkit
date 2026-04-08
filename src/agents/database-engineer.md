@@ -31,10 +31,26 @@ skills:
   - remember
   - memory
 mcpServers: [context7]
+critical_system_reminder: "Always check for N+1 queries, missing indexes, and migration reversibility."
 hooks:
   PreToolUse:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/migration-safety-check"
+taskTypes:
+  - build
+  - optimize
+keywords:
+  - "database"
+  - "schema"
+  - "migration"
+  - "postgresql"
+  - "pgvector"
+  - "sql"
+  - "alembic"
+  - "index"
+examplePrompts:
+  - "Design a normalized schema for multi-tenant SaaS"
+  - "Optimize slow queries with proper indexing strategy"
 ---
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using PostgreSQL best practices.
@@ -64,10 +80,11 @@ Simple schemas with proper indexes beat complex over-designed schemas.
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## Opus 4.6: 128K Output Tokens
 Generate complete migration suites (schema design + Alembic migrations + index optimization + rollback) in a single pass.

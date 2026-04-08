@@ -18,8 +18,8 @@
  * CC 2.1.9 Compliant: Short-circuits on continue: false; merges additionalContext + systemMessage
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, extractContext } from '../lib/common.js';
 
 // Import consolidated hook implementations
 import { outputValidator } from './output-validator.js';
@@ -27,12 +27,13 @@ import { autoSpawnQuality } from './auto-spawn-quality.js';
 import { multiClaudeVerifier } from './multi-claude-verifier.js';
 import { subagentQualityGate } from './subagent-quality-gate.js';
 import { retryHandler } from './retry-handler.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-subagent-stop-dispatcher';
 
 interface SyncHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
 }
 
 /**
@@ -53,44 +54,44 @@ const SYNC_HOOKS: SyncHookConfig[] = [
  * short-circuits immediately and returns that block result.
  * Merges systemMessage and additionalContext from all passing hooks.
  */
-export function syncSubagentStopDispatcher(input: HookInput): HookResult {
+export function syncSubagentStopDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Short-circuit immediately if any hook blocks
       if (result.continue === false) {
-        logHook(HOOK_NAME, `${hook.name}: blocked (continue: false) — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name}: blocked (continue: false) — short-circuiting`);
         return result;
       }
 
       // Collect systemMessage
       if (result.systemMessage) {
         messages.push(result.systemMessage);
-        logHook(HOOK_NAME, `${hook.name}: systemMessage collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
 
       // Collect additionalContext (retry-handler uses outputWithContext)
       const context = extractContext(result);
       if (context && !result.systemMessage) {
         messages.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
   if (messages.length === 0) {
-    logHook(HOOK_NAME, 'All sync hooks silent');
+    ctx.log(HOOK_NAME, 'All sync hooks silent');
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
-  logHook(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
+  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
 
   return {
     continue: true,

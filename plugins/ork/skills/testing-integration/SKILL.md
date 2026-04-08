@@ -22,6 +22,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/integration/**", "**/testcontainers/**", "docker-compose.test.*"]
 ---
 
 # Integration & Contract Testing

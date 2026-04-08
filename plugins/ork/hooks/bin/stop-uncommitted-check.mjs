@@ -12,7 +12,7 @@
 import { execSync } from 'node:child_process';
 
 // Injected by build-plugins.sh at build time from manifests/ork.json
-const PLUGIN_VERSION = '7.26.4';
+const PLUGIN_VERSION = '7.30.0';
 
 /** Silent success — tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
@@ -34,14 +34,16 @@ async function main() {
     });
 
     // Check for uncommitted changes (staged + unstaged + untracked)
-    const status = execSync('git status --porcelain', {
+    const raw = execSync('git status --porcelain', {
       cwd: projectDir,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    });
 
-    if (status) {
-      const lines = status.split('\n');
+    // Split into lines preserving leading spaces (significant in porcelain format)
+    const lines = raw.split('\n').filter((l) => l.length > 0);
+
+    if (lines.length > 0) {
       const staged = lines.filter((l) => /^[MADRC]/.test(l)).length;
       const unstaged = lines.filter((l) => /^.[MADRC]/.test(l)).length;
       const untracked = lines.filter((l) => l.startsWith('??')).length;
@@ -54,7 +56,7 @@ async function main() {
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `[ork@${PLUGIN_VERSION}] Uncommitted changes (${parts.join(', ')}). DO NOT investigate or act on these — the user chose to stop. Just acknowledge and stop.`,
+          systemMessage: `[ork@${PLUGIN_VERSION}] ${parts.join(', ')} uncommitted — do not act on these.`,
         })
       );
     } else {

@@ -37,6 +37,21 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "event sourcing"
+  - "kafka"
+  - "rabbitmq"
+  - "cqrs"
+  - "saga"
+  - "outbox"
+  - "pub/sub"
+  - "message queue"
+examplePrompts:
+  - "Design an event-driven order processing pipeline with Kafka"
+  - "Implement the outbox pattern for reliable event publishing"
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.
@@ -45,10 +60,11 @@ Consult project memory for past decisions and patterns before starting. Persist 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Kafka, RabbitMQ

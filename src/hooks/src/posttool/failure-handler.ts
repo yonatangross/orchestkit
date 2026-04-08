@@ -7,11 +7,12 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
 import { getLogDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { extractStructuredError } from '../lib/retry-manager.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Common failure patterns and their solutions
 const FAILURE_PATTERNS: Array<{ pattern: RegExp; suggestion: string }> = [
@@ -95,7 +96,7 @@ function trackFailureAndMaybeEnableDebug(): void {
   }
 }
 
-export function failureHandler(input: HookInput): HookResult {
+export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Get error information from the input
   const errorMessage = input.tool_error || '';
   const toolName = input.tool_name || 'unknown';
@@ -105,7 +106,7 @@ export function failureHandler(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('failure-handler', `Tool ${toolName} failed: ${errorMessage.slice(0, 200)}`);
+  ctx.log('failure-handler', `Tool ${toolName} failed: ${errorMessage.slice(0, 200)}`);
 
   // Track failures — auto-enable debug after threshold
   trackFailureAndMaybeEnableDebug();
@@ -113,7 +114,7 @@ export function failureHandler(input: HookInput): HookResult {
   // Try RFC 9457 structured error first — deterministic, richer context
   const structured = extractStructuredError(errorMessage);
   if (structured) {
-    logHook('failure-handler', `Structured error: ${structured.error_category} (retryable=${structured.retryable})`);
+    ctx.log('failure-handler', `Structured error: ${structured.error_category} (retryable=${structured.retryable})`);
     const parts = [
       `[OrchestKit] Structured error from ${toolName} (${structured.error_category}):`,
       `- ${structured.title}`,

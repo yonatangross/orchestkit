@@ -1,35 +1,38 @@
 ---
 title: Hooks Reference
-description: "Complete reference for all 41 OrchestKit hooks across 24 event categories."
+description: "Complete reference for all 102 OrchestKit hooks across 27 event categories."
 ---
 
 # Hooks Reference
 
-OrchestKit includes **41 hook entries** across **24 lifecycle event categories**.
+OrchestKit includes **102 hook entries** across **27 lifecycle event categories**.
 
 | Category | Hooks | Description |
 |----------|-------|-------------|
-| [PreToolUse](/docs/reference/hooks/pre-tool-use) | 7 | Hooks for `PreToolUse` events |
-| [PostToolUse](/docs/reference/hooks/post-tool-use) | 1 | Hooks for `PostToolUse` events |
-| [PostToolUseFailure](/docs/reference/hooks/post-tool-use-failure) | 1 | Hooks for `PostToolUseFailure` events |
-| [PermissionRequest](/docs/reference/hooks/permission-request) | 2 | Hooks for `PermissionRequest` events |
-| [UserPromptSubmit](/docs/reference/hooks/user-prompt-submit) | 1 | Hooks for `UserPromptSubmit` events |
-| [SessionStart](/docs/reference/hooks/session-start) | 3 | Hooks for `SessionStart` events |
-| [SessionEnd](/docs/reference/hooks/session-end) | 3 | Hooks for `SessionEnd` events |
-| [Stop](/docs/reference/hooks/stop) | 2 | Hooks for `Stop` events |
-| [StopFailure](/docs/reference/hooks/stop-failure) | 1 | Hooks for `StopFailure` events |
-| [SubagentStart](/docs/reference/hooks/subagent-start) | 1 | Hooks for `SubagentStart` events |
-| [SubagentStop](/docs/reference/hooks/subagent-stop) | 2 | Hooks for `SubagentStop` events |
-| [Notification](/docs/reference/hooks/notification) | 1 | Hooks for `Notification` events |
-| [PreCompact](/docs/reference/hooks/pre-compact) | 1 | Hooks for `PreCompact` events |
-| [PostCompact](/docs/reference/hooks/post-compact) | 1 | Hooks for `PostCompact` events |
-| [Elicitation](/docs/reference/hooks/elicitation) | 1 | Hooks for `Elicitation` events |
-| [ElicitationResult](/docs/reference/hooks/elicitation-result) | 1 | Hooks for `ElicitationResult` events |
-| [TeammateIdle](/docs/reference/hooks/teammate-idle) | 1 | Hooks for `TeammateIdle` events |
-| [TaskCreated](/docs/reference/hooks/task-created) | 3 | Hooks for `TaskCreated` events |
-| [TaskCompleted](/docs/reference/hooks/task-completed) | 3 | Hooks for `TaskCompleted` events |
-| [WorktreeCreate](/docs/reference/hooks/worktree-create) | 1 | Hooks for `WorktreeCreate` events |
-| [WorktreeRemove](/docs/reference/hooks/worktree-remove) | 1 | Hooks for `WorktreeRemove` events |
-| [InstructionsLoaded](/docs/reference/hooks/instructions-loaded) | 1 | Hooks for `InstructionsLoaded` events |
-| [ConfigChange](/docs/reference/hooks/config-change) | 1 | Hooks for `ConfigChange` events |
-| [Setup](/docs/reference/hooks/setup) | 1 | Hooks for `Setup` events |
+| [PreToolUse](/docs/reference/hooks/pre-tool-use) | 14 | Hooks for `PreToolUse` events |
+| [PostToolUse](/docs/reference/hooks/post-tool-use) | 13 | Hooks for `PostToolUse` events |
+| [PostToolUseFailure](/docs/reference/hooks/post-tool-use-failure) | 2 | Hooks for `PostToolUseFailure` events |
+| [PermissionRequest](/docs/reference/hooks/permission-request) | 4 | Hooks for `PermissionRequest` events |
+| [UserPromptSubmit](/docs/reference/hooks/user-prompt-submit) | 2 | Hooks for `UserPromptSubmit` events |
+| [SessionStart](/docs/reference/hooks/session-start) | 8 | Hooks for `SessionStart` events |
+| [CwdChanged](/docs/reference/hooks/cwd-changed) | 2 | Hooks for `CwdChanged` events |
+| [FileChanged](/docs/reference/hooks/file-changed) | 2 | Hooks for `FileChanged` events |
+| [SessionEnd](/docs/reference/hooks/session-end) | 5 | Hooks for `SessionEnd` events |
+| [Stop](/docs/reference/hooks/stop) | 11 | Hooks for `Stop` events |
+| [StopFailure](/docs/reference/hooks/stop-failure) | 2 | Hooks for `StopFailure` events |
+| [SubagentStart](/docs/reference/hooks/subagent-start) | 2 | Hooks for `SubagentStart` events |
+| [SubagentStop](/docs/reference/hooks/subagent-stop) | 4 | Hooks for `SubagentStop` events |
+| [Notification](/docs/reference/hooks/notification) | 3 | Hooks for `Notification` events |
+| [PreCompact](/docs/reference/hooks/pre-compact) | 2 | Hooks for `PreCompact` events |
+| [PostCompact](/docs/reference/hooks/post-compact) | 2 | Hooks for `PostCompact` events |
+| [Elicitation](/docs/reference/hooks/elicitation) | 2 | Hooks for `Elicitation` events |
+| [ElicitationResult](/docs/reference/hooks/elicitation-result) | 2 | Hooks for `ElicitationResult` events |
+| [TeammateIdle](/docs/reference/hooks/teammate-idle) | 4 | Hooks for `TeammateIdle` events |
+| [TaskCreated](/docs/reference/hooks/task-created) | 2 | Hooks for `TaskCreated` events |
+| [TaskCompleted](/docs/reference/hooks/task-completed) | 2 | Hooks for `TaskCompleted` events |
+| [WorktreeCreate](/docs/reference/hooks/worktree-create) | 2 | Hooks for `WorktreeCreate` events |
+| [WorktreeRemove](/docs/reference/hooks/worktree-remove) | 2 | Hooks for `WorktreeRemove` events |
+| [InstructionsLoaded](/docs/reference/hooks/instructions-loaded) | 2 | Hooks for `InstructionsLoaded` events |
+| [ConfigChange](/docs/reference/hooks/config-change) | 2 | Hooks for `ConfigChange` events |
+| [PermissionDenied](/docs/reference/hooks/permission-denied) | 2 | Hooks for `PermissionDenied` events |
+| [Setup](/docs/reference/hooks/setup) | 2 | Hooks for `Setup` events |

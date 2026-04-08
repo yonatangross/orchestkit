@@ -712,7 +712,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.7.0",
+    "version": "4.8.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -731,7 +731,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
-      "TaskOutput",
       "TaskStop",
       "ToolSearch",
       "mcp__memory__search_nodes"
@@ -813,7 +812,15 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": "web-research-analyst",
     "complexity": "medium",
-    "structure": {},
+    "structure": {
+      "references": [
+        "upstream-dogfood.md",
+        "upstream-electron.md",
+        "upstream-sandbox.md",
+        "upstream-slack.md",
+        "upstream.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],
@@ -885,6 +892,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "checkpoint-resume.md",
         "cron-monitoring.md",
+        "experiment-journal.md",
+        "fork-pattern.md",
         "handoff-schema.md",
         "mcp-detection.md",
         "tier-fallbacks.md",
@@ -1784,9 +1793,38 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect"
     ]
   },
+  "dream": {
+    "name": "dream",
+    "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "memory",
+      "maintenance",
+      "consolidation"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1810,7 +1848,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "api-coverage.md",
         "cli-reference.md",
-        "sdk-patterns.md"
+        "sdk-patterns.md",
+        "upstream-github.md",
+        "upstream-google.md",
+        "upstream-vercel.md",
+        "upstream.md"
       ]
     },
     "plugins": [
@@ -1943,7 +1985,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
-      "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
       "Bash",
@@ -2498,7 +2539,28 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "migration-from-genui.md",
         "package-ecosystem.md",
-        "spec-format.md"
+        "spec-format.md",
+        "upstream-core.md",
+        "upstream-email.md",
+        "upstream-image.md",
+        "upstream-ink.md",
+        "upstream-jotai.md",
+        "upstream-mcp.md",
+        "upstream-next.md",
+        "upstream-pdf.md",
+        "upstream-r3f.md",
+        "upstream-react-native.md",
+        "upstream-react.md",
+        "upstream-redux.md",
+        "upstream-remotion.md",
+        "upstream-shadcn-svelte.md",
+        "upstream-shadcn.md",
+        "upstream-solid.md",
+        "upstream-svelte.md",
+        "upstream-vue.md",
+        "upstream-xstate.md",
+        "upstream-yaml.md",
+        "upstream-zustand.md"
       ]
     },
     "plugins": [
@@ -2708,7 +2770,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "component-recipes.md",
-        "mcp-integration.md"
+        "mcp-integration.md",
+        "upstream-mcp.md"
       ]
     },
     "plugins": [
@@ -2948,7 +3011,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "renderer-api.md",
-        "target-comparison.md"
+        "target-comparison.md",
+        "upstream-email.md",
+        "upstream-image.md",
+        "upstream-pdf.md",
+        "upstream-remotion.md"
       ]
     },
     "plugins": [
@@ -3173,6 +3240,39 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer",
       "system-design-reviewer"
     ]
+  },
+  "portless": {
+    "name": "portless",
+    "description": "Named .localhost URLs for local development with portless. Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases and git worktrees for branch-named subdomains. Use when setting up local dev environments, configuring agent-accessible URLs, or running multi-service dev setups. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
+    "version": "1.1.0",
+    "author": "OrchestKit",
+    "tags": [
+      "dev-server",
+      "localhost",
+      "https",
+      "portless",
+      "devops"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "references": [
+        "framework-integration.md",
+        "upstream-oauth.md",
+        "upstream.md"
+      ],
+      "checklists": [
+        "new-project-setup.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "presentation-builder": {
     "name": "presentation-builder",
@@ -3679,6 +3779,30 @@ export const SKILLS: Record<string, SkillMeta> = {
       "git-operations-engineer",
       "release-engineer"
     ]
+  },
+  "release-sync": {
+    "name": "release-sync",
+    "description": "Sync release content to NotebookLM and HQ Knowledge Base after tagging a new version. Reads CHANGELOG, CLAUDE.md, and hook README, then updates notebook sources and ingests to knowledge base.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "release",
+      "notebooklm",
+      "knowledge-base",
+      "content-sync",
+      "automation"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "remember": {
     "name": "remember",
@@ -4714,7 +4838,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
-      "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
       "mcp__agentation__agentation_get_all_pending",

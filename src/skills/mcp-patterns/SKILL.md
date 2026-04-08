@@ -1,7 +1,7 @@
 ---
 name: mcp-patterns
 license: MIT
-compatibility: "Claude Code 2.1.76+."
+compatibility: "Claude Code 2.1.91+."
 author: OrchestKit
 description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.
 version: 3.0.0
@@ -109,6 +109,7 @@ What are you building?
 | User input | Elicitation for runtime input; never request PII via elicitation |
 | Interactive UI | MCP Apps with @mcp-ui/* SDK; sandbox all iframes |
 | Token handling | Never pass through client tokens to downstream services |
+| Large results | Use `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) for results that lose meaning when truncated (CC 2.1.91) |
 
 ## Spec & Governance
 
@@ -150,7 +151,7 @@ async def search(query: str) -> str:
 1. No lifecycle management (connection/resource leaks on shutdown)
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
-4. Unbounded response sizes (Claude has context limits)
+4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)
 7. Storing auth tokens in session IDs (credential leak)

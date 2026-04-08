@@ -17,10 +17,11 @@
  * CC 2.1.49 Compliant: includes continue field and permissionDecision in all outputs
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { autoApproveSafeBash } from './auto-approve-safe-bash.js';
 import { learningTracker } from './learning-tracker.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'permission-bash-dispatcher';
 
@@ -34,33 +35,33 @@ export const registeredHookNames = () => [
  * Unified PermissionRequest dispatcher for Bash commands.
  * Runs safe-bash check first, falls back to learned patterns.
  */
-export function unifiedPermissionBashDispatcher(input: HookInput): HookResult {
+export function unifiedPermissionBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // --- Step 1: Check known-safe patterns ---
   try {
-    const safeResult = autoApproveSafeBash(input);
+    const safeResult = autoApproveSafeBash(input, ctx);
 
     // If auto-approve returned an 'allow' decision, use it immediately
     if (safeResult.hookSpecificOutput?.permissionDecision === 'allow') {
-      logHook(HOOK_NAME, 'auto-approve-safe-bash: allowed');
+      ctx.log(HOOK_NAME, 'auto-approve-safe-bash: allowed');
       return safeResult;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `auto-approve-safe-bash failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `auto-approve-safe-bash failed: ${message}`, 'warn');
   }
 
   // --- Step 2: Check learned patterns ---
   try {
-    const learnedResult = learningTracker(input);
+    const learnedResult = learningTracker(input, ctx);
 
     // If learning-tracker returned an 'allow' decision, use it
     if (learnedResult.hookSpecificOutput?.permissionDecision === 'allow') {
-      logHook(HOOK_NAME, 'learning-tracker: allowed via learned pattern');
+      ctx.log(HOOK_NAME, 'learning-tracker: allowed via learned pattern');
       return learnedResult;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `learning-tracker failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `learning-tracker failed: ${message}`, 'warn');
   }
 
   // --- Neither approved — pass through to user ---

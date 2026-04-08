@@ -734,4 +734,75 @@ describe('subagentContextStager', () => {
       expect(decisionLines.length).toBeLessThanOrEqual(8);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Fork detection (CC 2.1.89 — #1227)
+  // ---------------------------------------------------------------------------
+
+  describe('fork detection (#1227)', () => {
+    test('returns silentSuccess when is_fork is true', () => {
+      const input = createToolInput({ is_fork: true });
+      const result = subagentContextStager(input);
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.systemMessage).toBeUndefined();
+    });
+
+    test('skips ALL context injection for forks even when context is available', () => {
+      setupFileMocks({
+        sessionState: mockSessionState(['Task 1', 'Task 2']),
+        decisions: mockDecisions([
+          { category: 'backend', title: 'Use Postgres', status: 'decided' },
+        ]),
+      });
+
+      const input = createToolInput({
+        is_fork: true,
+        tool_input: {
+          subagent_type: 'backend-system-architect',
+          description: 'Implement backend API endpoint',
+        },
+      });
+
+      const result = subagentContextStager(input);
+      // Fork should NOT inject tasks, decisions, or rules
+      expect(result.systemMessage).toBeUndefined();
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('injects context normally when is_fork is false', () => {
+      setupFileMocks({
+        sessionState: mockSessionState(['Task 1']),
+      });
+
+      const input = createToolInput({
+        is_fork: false,
+        tool_input: {
+          subagent_type: 'backend-system-architect',
+          description: 'Implement backend API endpoint',
+        },
+      });
+
+      const result = subagentContextStager(input);
+      // Non-fork should still inject context
+      expect(result.systemMessage).toBeDefined();
+    });
+
+    test('injects context when is_fork is undefined (backwards compat)', () => {
+      setupFileMocks({
+        sessionState: mockSessionState(['Task 1']),
+      });
+
+      const input = createToolInput({
+        tool_input: {
+          subagent_type: 'general-purpose',
+          description: 'Do something with backend API',
+        },
+      });
+
+      const result = subagentContextStager(input);
+      // Undefined is_fork = not a fork = full context injection
+      expect(result.systemMessage).toBeDefined();
+    });
+  });
 });

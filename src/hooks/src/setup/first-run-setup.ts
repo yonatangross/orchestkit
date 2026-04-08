@@ -14,8 +14,9 @@
 import { existsSync, mkdirSync, readdirSync, chmodSync, } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getPluginRoot, outputWithContext, } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputWithContext } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -373,11 +374,11 @@ function createMarker(preset: string, envInfo: EnvironmentInfo, pluginRoot: stri
 /**
  * First run setup hook
  */
-export function firstRunSetup(_input: HookInput): HookResult {
-  const pluginRoot = getPluginRoot();
+export function firstRunSetup(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const pluginRoot = hookCtx.pluginRoot;
   const mode = process.argv.includes('--silent') ? 'silent' : 'interactive';
 
-  logHook('first-run-setup', `First-run setup starting (mode: ${mode})`);
+  hookCtx.log('first-run-setup', `First-run setup starting (mode: ${mode})`);
 
   // Phase 1: Environment detection
   const envInfo = detectEnvironment();
@@ -385,7 +386,7 @@ export function firstRunSetup(_input: HookInput): HookResult {
   // Phase 2: Dependency validation
   const { valid, missing } = validateDependencies();
   if (!valid) {
-    logHook('first-run-setup', 'ERROR: Dependency validation failed');
+    hookCtx.log('first-run-setup', 'ERROR: Dependency validation failed');
     const ctx = `OrchestKit setup failed: Missing required dependencies. Install ${missing.join(', ')}.`;
     return outputWithContext(ctx);
   }
@@ -393,9 +394,9 @@ export function firstRunSetup(_input: HookInput): HookResult {
   // Phase 3: Select preset (default to complete)
   const preset = 'complete';
   if (mode === 'interactive') {
-    logHook('first-run-setup', 'Interactive mode - using complete preset (wizard via Claude conversation)');
+    hookCtx.log('first-run-setup', 'Interactive mode - using complete preset (wizard via Claude conversation)');
   } else {
-    logHook('first-run-setup', 'Silent mode - using complete preset');
+    hookCtx.log('first-run-setup', 'Silent mode - using complete preset');
   }
 
   // Phase 4: Apply configuration
@@ -437,7 +438,7 @@ export function firstRunSetup(_input: HookInput): HookResult {
     // Ignore count errors
   }
 
-  logHook('first-run-setup', `Setup complete: ${skillCount} skills, ${agentCount} agents, ${hookCount} hooks`);
+  hookCtx.log('first-run-setup', `Setup complete: ${skillCount} skills, ${agentCount} agents, ${hookCount} hooks`);
 
   const ctx =
     mode === 'interactive'

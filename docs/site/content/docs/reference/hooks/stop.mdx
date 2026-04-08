@@ -1,13 +1,22 @@
 ---
 title: "Stop"
-description: "Hooks triggered on Stop events (2 hooks)."
+description: "Hooks triggered on Stop events (11 hooks)."
 ---
 
 # Stop Hooks
 
-**2 hooks** registered for the `Stop` lifecycle event.
+**11 hooks** registered for the `Stop` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `*` | 🔇 Silent | Consolidates async Stop hooks into a single dispatcher. |
+| `handoff-writer` | `*` | 🔇 Silent | Writes .claude/HANDOFF.md with structured session context on stop. |
+| `session-summary` | `*` | 💡 Injects | Runs at session end. Only fires when session had meaningful work (>=20 tool calls). |
+| `task-completion-check` | `*` | 🔇 Silent | Verifies tasks are properly completed before stop |
+| `security-scan-aggregator` | `*` | 🔇 Silent | Runs multiple security tools in parallel and aggregates results. |
+| `ledger-cleanup` | `*` | 🔇 Silent | Ledger Cleanup — removes stale agent attribution ledgers on session stop. |
+| `coverage-check` | `*` | 🔇 Silent | Runs on Stop for testing skills - checks if coverage threshold is met |
+| `evidence-collector` | `*` | 🔇 Silent | Runs on Stop for evidence-verification skill |
+| `coverage-threshold-gate` | `*` | 🔇 Silent | BLOCKING: Coverage must meet threshold after implementation |
+| `cross-instance-test-validator` | `*` | 🔇 Silent | BLOCKING: Ensure test coverage when code is split across instances |
 | `stop-uncommitted-check.mjs` | `*` | 🔇 Silent | — |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

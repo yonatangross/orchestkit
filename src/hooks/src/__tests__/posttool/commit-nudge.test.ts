@@ -9,18 +9,10 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { additionalContext: ctx },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/git.js', () => ({
   getDirtyFileCount: vi.fn(() => 0),
@@ -40,17 +32,18 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { commitNudge } from '../../posttool/commit-nudge.js';
-import { outputWithContext, getProjectDir, logHook } from '../../lib/common.js';
+import { outputWithContext, getProjectDir } from '../../lib/common.js';
 import { getDirtyFileCount } from '../../lib/git.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -74,13 +67,16 @@ function mockStateFile(state: Record<string, unknown>): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('commit-nudge', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
     delete process.env.ORCHESTKIT_AUTO_COMMIT_NUDGE;
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
     vi.mocked(getDirtyFileCount).mockReturnValue(0);
     vi.mocked(existsSync).mockReturnValue(false);
     vi.mocked(readFileSync).mockReturnValue('{}');
@@ -100,7 +96,7 @@ describe('commit-nudge', () => {
       process.env.ORCHESTKIT_AUTO_COMMIT_NUDGE = 'false';
       const input = createPostToolInput('Write');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -112,7 +108,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(5);
       const input = createPostToolInput('Write');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       expect(getDirtyFileCount).toHaveBeenCalled();
     });
@@ -125,9 +121,10 @@ describe('commit-nudge', () => {
   describe('no projectDir', () => {
     test('returns silent when getProjectDir returns empty', () => {
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createPostToolInput('Write');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -142,7 +139,7 @@ describe('commit-nudge', () => {
     test('resets state and returns silent when tool is Bash with git commit', () => {
       const input = createPostToolInput('Bash', 'git commit -m "feat: done"');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(atomicWriteSync).toHaveBeenCalledOnce();
@@ -154,7 +151,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(0);
       const input = createPostToolInput('Bash', 'git push origin main');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       // atomicWriteSync should NOT be called for state reset (no dirty files → silent)
       expect(atomicWriteSync).not.toHaveBeenCalled();
@@ -169,7 +166,7 @@ describe('commit-nudge', () => {
     test('returns silent for Read tool', () => {
       const input = createPostToolInput('Read');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -179,7 +176,7 @@ describe('commit-nudge', () => {
     test('returns silent for Grep tool', () => {
       const input = createPostToolInput('Grep');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(getDirtyFileCount).not.toHaveBeenCalled();
@@ -195,7 +192,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(0);
       const input = createPostToolInput('Write');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -212,7 +209,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(5);
       const input = createPostToolInput('Edit');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       // Info level: stderr only, returns silent success
       expect(stderrSpy).toHaveBeenCalledOnce();
@@ -226,7 +223,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(10);
       const input = createPostToolInput('Write');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledOnce();
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -238,7 +235,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(15);
       const input = createPostToolInput('MultiEdit');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledOnce();
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -250,7 +247,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(4);
       const input = createPostToolInput('Write');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -274,7 +271,7 @@ describe('commit-nudge', () => {
       });
       const input = createPostToolInput('Write');
 
-      const result = commitNudge(input);
+      const result = commitNudge(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -296,7 +293,7 @@ describe('commit-nudge', () => {
       });
       const input = createPostToolInput('Edit');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledOnce();
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -313,7 +310,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(5);
       const input = createPostToolInput('Write');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalledOnce();
       const state = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -326,7 +323,7 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(5);
       const input = createPostToolInput('Write');
 
-      expect(() => commitNudge(input)).not.toThrow();
+      expect(() => commitNudge(input, testCtx)).not.toThrow();
     });
   });
 
@@ -343,7 +340,7 @@ describe('commit-nudge', () => {
       const input = createPostToolInput('Write');
 
       // The hook must not propagate the write error
-      expect(() => commitNudge(input)).not.toThrow();
+      expect(() => commitNudge(input, testCtx)).not.toThrow();
     });
 
     test('calls logHook with "warn" when state persistence fails', () => {
@@ -353,9 +350,9 @@ describe('commit-nudge', () => {
       });
       const input = createPostToolInput('Write');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'commit-nudge',
         expect.stringContaining('Failed to persist state'),
         'warn',
@@ -372,9 +369,9 @@ describe('commit-nudge', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(10);
       const input = createPostToolInput('Write');
 
-      commitNudge(input);
+      commitNudge(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'commit-nudge',
         expect.stringContaining('10'),
       );

@@ -4,34 +4,24 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { ciSimulation } from '../../pretool/bash/ci-simulation.js';
 import type { HookInput } from '../../types.js';
 import { existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -42,15 +32,17 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('ci-simulation', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });
 
   it('returns silent success for non-git-push commands', () => {
     const input = createBashInput('npm run build');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -60,7 +52,7 @@ describe('ci-simulation', () => {
     vi.mocked(existsSync).mockReturnValue(false);
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -72,7 +64,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('npm run lint');
@@ -85,7 +77,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin feature');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('pytest');
@@ -98,7 +90,7 @@ describe('ci-simulation', () => {
     });
 
     const input = createBashInput('git push origin main');
-    const result = ciSimulation(input);
+    const result = ciSimulation(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('go vet');

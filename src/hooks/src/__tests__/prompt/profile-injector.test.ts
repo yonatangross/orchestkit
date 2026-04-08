@@ -2,30 +2,19 @@
  * Unit tests for profile-injector hook
  * Tests materializeProfileRules() which writes user profile to .claude/rules/
  *
- * Updated: profileInjector() deprecated — tests now cover materializeProfileRules()
+ * Updated: profileInjector(testCtx) deprecated — tests now cover materializeProfileRules()
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
 import type { UserProfile, UsageStats, RecordedDecision } from '../../lib/user-profile.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: ctx,
-    },
-  })),
-  estimateTokenCount: vi.fn((content: string) => Math.ceil(content.length / 3.5)),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   writeRulesFile: vi.fn(),
 }));
 
@@ -43,6 +32,7 @@ vi.mock('../../lib/user-profile.js', () => ({
 import { materializeProfileRules, profileInjector } from '../../prompt/profile-injector.js';
 import { loadUserProfile, getTopSkills, getTopAgents, getRecentDecisions } from '../../lib/user-profile.js';
 import { outputSilentSuccess, writeRulesFile } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -136,6 +126,7 @@ function createPartialProfile(): UserProfile {
 // Tests for materializeProfileRules (the active function)
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/materializeProfileRules', () => {
   const mockLoadUserProfile = vi.mocked(loadUserProfile);
   const mockGetTopSkills = vi.mocked(getTopSkills);
@@ -144,6 +135,7 @@ describe('prompt/materializeProfileRules', () => {
   const mockWriteRulesFile = vi.mocked(writeRulesFile);
 
   beforeEach(() => {
+    testCtx = createTestContext({ writeRules: vi.fn() });
     vi.clearAllMocks();
   });
 
@@ -432,10 +424,10 @@ describe('prompt/materializeProfileRules', () => {
 });
 
 // =============================================================================
-// Tests for deprecated profileInjector (backward compat stub)
+// Tests for deprecated profileInjector (backward compat stub, testCtx)
 // =============================================================================
 
-describe('prompt/profileInjector (deprecated)', () => {
+describe('prompt/profileInjector (deprecated, testCtx)', () => {
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
 
   beforeEach(() => {
@@ -453,7 +445,7 @@ describe('prompt/profileInjector (deprecated)', () => {
       prompt: 'Hello',
     };
 
-    const result = profileInjector(input);
+    const result = profileInjector(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

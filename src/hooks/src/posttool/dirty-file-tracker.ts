@@ -17,10 +17,11 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess, getSessionId } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getLogDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const WARN_THRESHOLD = 15;
 const HANDOFF_THRESHOLD = 25;
@@ -97,7 +98,7 @@ function extractFilePaths(toolName: string, toolInput: Record<string, unknown>):
 /**
  * Track unique files edited and warn at thresholds
  */
-export function dirtyFileTracker(input: HookInput): HookResult {
+export function dirtyFileTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only track Write, Edit, and MultiEdit tools
@@ -125,18 +126,18 @@ export function dirtyFileTracker(input: HookInput): HookResult {
       mkdirSync(dir, { recursive: true });
     }
     atomicWriteSync(dirtyPath, JSON.stringify({
-      session_id: input.session_id || getSessionId(),
+      session_id: input.session_id || (ctx.sessionId),
       count,
       files: Array.from(trackedFiles),
     }, null, 2));
   } catch (err) {
-    logHook('dirty-file-tracker', `Failed to persist: ${err}`, 'warn');
+    ctx.log('dirty-file-tracker', `Failed to persist: ${err}`, 'warn');
   }
 
   // Check thresholds — only warn on escalation (not every call)
   if (count >= HANDOFF_THRESHOLD && lastWarnLevel !== 'handoff') {
     lastWarnLevel = 'handoff';
-    logHook('dirty-file-tracker', `${count} unique files edited — handoff threshold reached`);
+    ctx.log('dirty-file-tracker', `${count} unique files edited — handoff threshold reached`);
     return {
       continue: true,
       hookSpecificOutput: {
@@ -147,7 +148,7 @@ export function dirtyFileTracker(input: HookInput): HookResult {
 
   if (count >= WARN_THRESHOLD && lastWarnLevel === 'none') {
     lastWarnLevel = 'warn';
-    logHook('dirty-file-tracker', `${count} unique files edited — warn threshold reached`);
+    ctx.log('dirty-file-tracker', `${count} unique files edited — warn threshold reached`);
     return {
       continue: true,
       hookSpecificOutput: {

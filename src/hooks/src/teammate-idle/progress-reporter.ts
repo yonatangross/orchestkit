@@ -8,13 +8,13 @@
  * @since CC 2.1.33
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { appendEventLog } from '../lib/event-logger.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
+import { NOOP_CTX } from '../lib/context.js';
 
-export async function progressReporter(input: HookInput): Promise<HookResult> {
-  if (!getProjectDir()) {
+export async function progressReporter(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  if (!(ctx.projectDir)) {
     return { continue: true };
   }
 

@@ -43,12 +43,18 @@ describe('Async Hooks Registry', () => {
       // to native CC async: true. Eliminates per-event process spawning entirely.
       // Fixes Windows console flashing (#644) and reduces overhead from ~50ms to ~0ms per event.
       // After #897 slimming: capture-user-intent, settings-reload, release-notebook-trigger removed
+      // v7.30.0: SessionStart dispatcher flattened — 5 individual async hooks (#1264)
+      // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
+      // v7.30.0: TeammateIdle dispatcher flattened — 3 individual async hooks (#1264)
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
       const expectedAsyncDispatchers = [
-        { path: 'lifecycle/unified-dispatcher', event: 'SessionStart' },
-        { path: 'posttool/unified-dispatcher', event: 'PostToolUse' },
-        { path: 'stop/unified-dispatcher', event: 'Stop' },
-        { path: 'subagent-stop/unified-dispatcher', event: 'SubagentStop' },
-        { path: 'notification/unified-dispatcher', event: 'Notification' },
+        { path: 'lifecycle/pattern-sync-pull', event: 'SessionStart' },
+        { path: 'stop/handoff-writer', event: 'Stop' },
+        { path: 'posttool/commit-nudge', event: 'PostToolUse' },
+        { path: 'skill/redact-secrets', event: 'PostToolUse' },
+        { path: 'posttool/task/team-member-start', event: 'PostToolUse' },
+        { path: 'posttool/expect/fingerprint-saver', event: 'PostToolUse' },
       ];
 
       const allHooks: Hook[] = [];
@@ -80,7 +86,15 @@ describe('Async Hooks Registry', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
+      // 30 -> 44: v7.29.0 — decoupled forwarder to standalone async on all matcher groups
+      // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
+      // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
+      expect(asyncHooks.length, 'Should have exactly 68 async hooks').toBe(68);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -159,14 +173,37 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should match the expected tool set for unified-dispatcher', () => {
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    it('should have flattened PostToolUse matcher groups with correct structure', () => {
       const postToolGroups = hooksConfig.hooks.PostToolUse || [];
-      const dispatcherGroup = postToolGroups.find(g =>
-        g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
+
+      // Write|Edit group: auto-lint (sync) + redact-secrets, config-auditor, commit-nudge (async)
+      const writeEditGroup = postToolGroups.find(g => g.matcher === 'Write|Edit');
+      expect(writeEditGroup, 'Write|Edit group should exist').toBeDefined();
+      const writeEditAutoLint = writeEditGroup!.hooks.find(h => h.command?.includes('posttool/auto-lint'));
+      expect(writeEditAutoLint, 'Write|Edit should have auto-lint').toBeDefined();
+      expect(writeEditAutoLint!.async, 'auto-lint should be sync (not async)').not.toBe(true);
+
+      // Bash group: redact-secrets, commit-nudge (async)
+      const bashGroup = postToolGroups.find(g => g.matcher === 'Bash');
+      expect(bashGroup, 'Bash group should exist').toBeDefined();
+
+      // Agent|TaskUpdate|TaskCreate group: team-member-start (async)
+      const agentGroup = postToolGroups.find(g => g.matcher === 'Agent|TaskUpdate|TaskCreate');
+      expect(agentGroup, 'Agent|TaskUpdate|TaskCreate group should exist').toBeDefined();
+
+      // Skill group: fingerprint-saver (async)
+      const skillGroup = postToolGroups.find(g => g.matcher === 'Skill');
+      expect(skillGroup, 'Skill group should exist').toBeDefined();
+
+      // Catch-all webhook-forwarder group
+      const catchAllGroup = postToolGroups.find(g =>
+        g.matcher === 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit'
       );
-      expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
-      // #902: expanded to include TaskUpdate|TaskCreate|Agent
-      expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit');
+      expect(catchAllGroup, 'catch-all webhook-forwarder group should exist').toBeDefined();
+      const forwarder = catchAllGroup!.hooks.find(h => h.command?.includes('lifecycle/webhook-forwarder'));
+      expect(forwarder, 'catch-all should have webhook-forwarder').toBeDefined();
+      expect(forwarder!.async, 'webhook-forwarder should be async').toBe(true);
     });
   });
 
@@ -181,12 +218,21 @@ describe('Async Hooks Registry', () => {
         }
       }
 
-      const asyncDispatchers = [
-        'lifecycle/unified-dispatcher',
-        'posttool/unified-dispatcher',
-        'stop/unified-dispatcher',
-        'subagent-stop/unified-dispatcher',
-        'notification/unified-dispatcher',
+      // v7.30.0: SessionStart, Notification, TeammateIdle, SubagentStop dispatchers flattened (#1264)
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      // Only stop remains as a unified dispatcher
+      const asyncDispatchers: string[] = [];
+
+      // Spot-check representative flattened entries
+      const flattenedAsyncEntries = [
+        'lifecycle/pattern-sync-pull',
+        'notification/desktop',
+        'subagent-stop/handoff-preparer',
+        'teammate-idle/progress-reporter',
+        'posttool/commit-nudge',
+        'skill/redact-secrets',
+        'posttool/task/team-member-start',
+        'posttool/expect/fingerprint-saver',
       ];
 
       for (const hookPath of asyncDispatchers) {
@@ -194,6 +240,12 @@ describe('Async Hooks Registry', () => {
         expect(hook, `Dispatcher ${hookPath} should exist`).toBeDefined();
         expect(hook!.command, `${hookPath} should use run-hook.mjs`).toContain('run-hook.mjs');
         expect(hook!.command, `${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
+      }
+
+      for (const hookPath of flattenedAsyncEntries) {
+        const hook = allHooks.find(h => h.command?.includes(hookPath));
+        expect(hook, `Flattened entry ${hookPath} should exist`).toBeDefined();
         expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
       }
     });

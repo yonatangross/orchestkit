@@ -8,31 +8,22 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/guards.js', () => ({
   guardCodeFiles: vi.fn(() => null), // Default: allow through
 }));
 
 import { testLocationValidator } from '../../skill/test-location-validator.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -60,8 +51,10 @@ function createWriteInput(
 // Test Location Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('test-location-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardCodeFiles).mockReturnValue(null);
   });
@@ -80,7 +73,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/unit/user.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -91,7 +84,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/src/utils/helper.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -102,7 +95,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -114,7 +107,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/README.md');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -132,7 +125,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/test.ts');
 
       // Act
-      testLocationValidator(input);
+      testLocationValidator(input, testCtx);
 
       // Assert
       expect(guardCodeFiles).toHaveBeenCalledWith(input);
@@ -145,7 +138,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/image.png');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result).toEqual(guardResult);
@@ -162,7 +155,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -178,7 +171,7 @@ describe('test-location-validator', () => {
       };
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -202,7 +195,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -218,7 +211,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -232,7 +225,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/src/utils/helper.test.ts');
 
       // Act
-      testLocationValidator(input);
+      testLocationValidator(input, testCtx);
 
       // Assert
       expect(outputBlock).toHaveBeenCalledWith(
@@ -258,7 +251,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -279,7 +272,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -293,7 +286,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // setup.py and utils.py are in TS/JS allowed list, not Python allowed list
@@ -310,7 +303,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -322,7 +315,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/__tests__/fixtures.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // fixtures is only allowed for Python, not TS/JS
@@ -343,7 +336,7 @@ describe('test-location-validator', () => {
         const input = createWriteInput(filePath);
 
         // Act
-        const result = testLocationValidator(input);
+        const result = testLocationValidator(input, testCtx);
 
         // Assert
         // Rule 3 blocks these because filename doesn't match allowed prefixes
@@ -360,7 +353,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/factories/user.py');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // Rule 4 blocks because user.py doesn't match test_*.py or *_test.py
@@ -374,7 +367,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/factories.py');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -396,7 +389,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -411,7 +404,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // Rule 2 (source files in test directories) fires before Rule 3 (naming)
@@ -433,7 +426,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -451,7 +444,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // These are blocked by Rule 2 (source files in test directories)
@@ -478,7 +471,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -494,7 +487,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // These files don't match test file patterns (test_*.py or *_test.py)
@@ -517,7 +510,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -540,7 +533,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert - test files outside test dirs should be blocked
       expect(result.continue).toBe(false);
@@ -556,7 +549,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert - non-test files should pass
       expect(result.continue).toBe(true);
@@ -573,10 +566,10 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/src/helper.test.ts');
 
       // Act
-      testLocationValidator(input);
+      testLocationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'test-location-validator',
         expect.stringContaining('BLOCKED'),
       );
@@ -587,10 +580,10 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/service.ts');
 
       // Act
-      testLocationValidator(input);
+      testLocationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'test-location-validator',
         expect.stringContaining('BLOCKED'),
       );
@@ -601,10 +594,10 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      testLocationValidator(input);
+      testLocationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalled();
+      expect(testCtx.log).not.toHaveBeenCalled();
     });
   });
 
@@ -618,7 +611,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/contest/helper.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -629,7 +622,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/nested/tests/user.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -640,7 +633,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // Path ending with / has empty filename, but still matches test directory patterns
@@ -653,7 +646,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/src/.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // Hidden files starting with dot
@@ -665,7 +658,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/unit/deeply/nested/user.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -682,7 +675,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/src/components/__tests__/Button.test.tsx');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -693,7 +686,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/unit/test_service.py');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -704,7 +697,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/unit/service_test.py');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -716,7 +709,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('/project/tests/myTests.py');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -743,7 +736,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput(`${testDir}valid.test.ts`);
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -754,7 +747,7 @@ describe('test-location-validator', () => {
       const input = createWriteInput('C:\\project\\tests\\user.test.ts');
 
       // Act
-      const result = testLocationValidator(input);
+      const result = testLocationValidator(input, testCtx);
 
       // Assert
       // The regex uses forward slashes, so this might not match

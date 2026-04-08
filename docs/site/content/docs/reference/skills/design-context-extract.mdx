@@ -57,7 +57,28 @@ Input (screenshot/URL/project)
 ```python
 INPUT = ""
 
-TaskCreate(subject="Extract design context: {INPUT}", description="Extract design DNA")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Extract design context: {INPUT}", description="Extract design DNA", activeForm="Extracting design from {INPUT}")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Detect input type and context", activeForm="Detecting input type")             # id=2
+TaskCreate(subject="Capture source material", activeForm="Capturing source")                       # id=3
+TaskCreate(subject="Extract design tokens", activeForm="Extracting tokens")                        # id=4
+TaskCreate(subject="Choose output format and generate", activeForm="Generating output")            # id=5
+TaskCreate(subject="Recommend shadcn/ui style", activeForm="Recommending style")                   # id=6
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Capture needs input type detected
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Extraction needs captured source
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Output needs extracted tokens
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Style recommendation needs output
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Determine input type
 # "/path/to/file.png" → screenshot
@@ -145,6 +166,32 @@ AskUserQuestion(questions=[{
 ## Step 4: Generate Output
 
 Write the extracted tokens in the chosen format. If the project already has tokens, show a diff of what's new vs existing.
+
+## Step 5: Recommend Best-Fit shadcn/ui Style
+
+After extracting design DNA, map the extracted characteristics to the best-fit shadcn/ui v4 style:
+
+```python
+# Map extracted design DNA → shadcn style recommendation
+radius = extracted["radius"]      # e.g., "large", "pill", "none", "small"
+density = extracted["spacing"]    # e.g., "generous", "balanced", "compact", "dense"
+elevation = extracted["shadows"]  # e.g., "layered", "subtle", "none"
+
+STYLE_MAP = {
+    # (radius, density, elevation) → style
+    ("pill/large", "generous", "layered"):  "Luma — polished, macOS-like",
+    ("medium",     "balanced", "subtle"):   "Vega — general purpose",
+    ("medium",     "compact",  "subtle"):   "Nova — dense dashboards",
+    ("large",      "generous", "subtle"):   "Maia — soft, consumer-facing",
+    ("none/sharp", "balanced", "none"):     "Lyra — editorial, dev tools",
+    ("small",      "dense",    "none"):     "Mira — ultra-dense data",
+}
+# Present recommendation with preset code link:
+# "Based on extracted design DNA, recommended style: Luma"
+# "Configure: https://ui.shadcn.com/create?preset=b2D0xPaDb"
+```
+
+**Skip condition:** If the user only needs raw tokens (not a shadcn project), skip this step.
 
 ## Anti-Patterns
 

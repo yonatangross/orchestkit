@@ -13,6 +13,7 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
 vi.mock('node:fs', () => ({
@@ -20,19 +21,7 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/agent-teams.js', () => ({
   getTeamName: vi.fn(() => null),
@@ -44,6 +33,7 @@ import { getProjectDir } from '../../lib/common.js';
 import { getTeamName, getTeamMembers } from '../../lib/agent-teams.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -69,10 +59,13 @@ function makeActivityLog(entries: Array<{ event: string; teammate_id: string; ti
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-synthesis-trigger', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
     vi.mocked(getTeamName).mockReturnValue(null);
     vi.mocked(getTeamMembers).mockReturnValue([]);
     vi.mocked(existsSync).mockReturnValue(false);
@@ -85,7 +78,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -99,7 +92,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -111,10 +104,11 @@ describe('team-synthesis-trigger', () => {
       vi.mocked(getTeamName).mockReturnValue('my-team');
       vi.mocked(getTeamMembers).mockReturnValue([{ name: 'a', agentType: 'sonnet' }]);
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createIdleInput();
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -143,7 +137,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'member-2' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       // 2 idle out of 3 → not all idle → silent
@@ -162,7 +156,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'agent-1' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -191,7 +185,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'auditor-2' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -219,7 +213,7 @@ describe('team-synthesis-trigger', () => {
       const input = createIdleInput({ teammate_id: 'b' });
 
       // Act
-      const result = teamSynthesisTrigger(input);
+      const result = teamSynthesisTrigger(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('All 2 teammates');

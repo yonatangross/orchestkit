@@ -11,6 +11,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const _METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
@@ -37,18 +38,12 @@ vi.mock('node:fs', () => ({
   }),
 }));
 
-vi.mock('../../lib/common.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../lib/common.js')>();
-  return {
-    ...actual,
-    logHook: vi.fn(),
-    outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  };
-});
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Import after mocks
 import { sessionMetricsSummary } from '../../lifecycle/session-metrics-summary.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Setup
@@ -106,7 +101,9 @@ function createToolMetrics(tools: Record<string, number>, errors: number = 0): v
   });
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   // Reset mocks
   vi.clearAllMocks();
 
@@ -129,7 +126,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -141,10 +138,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         'No metrics file found'
       );
@@ -156,7 +153,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -171,10 +168,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('18 tool calls')
       );
@@ -186,10 +183,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('0 tool calls')
       );
@@ -201,10 +198,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('3 errors')
       );
@@ -216,11 +213,11 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('0 tool calls')
       );
@@ -232,10 +229,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('0 errors')
       );
@@ -255,18 +252,18 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Bash: 20')
       );
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Read: 15')
       );
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Write: 10')
       );
@@ -278,14 +275,14 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Bash: 5')
       );
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Read: 3')
       );
@@ -297,10 +294,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Bash: 5')
       );
@@ -312,10 +309,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Top tools:')
       );
@@ -331,11 +328,11 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
       // The log should show Bash first (highest), then Read, then Edit
-      const topToolsCall = vi.mocked(logHook).mock.calls.find(
+      const topToolsCall = vi.mocked(testCtx.log).mock.calls.find(
         call => call[1].includes('Top tools:')
       );
       expect(topToolsCall).toBeDefined();
@@ -355,7 +352,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -368,10 +365,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Failed to read metrics')
       );
@@ -383,7 +380,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -395,7 +392,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -410,10 +407,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         'Session ending - generating summary'
       );
@@ -425,10 +422,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         'Session stats: 15 tool calls, 2 errors'
       );
@@ -440,10 +437,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('Top tools:')
       );
@@ -457,7 +454,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue', true);
@@ -480,7 +477,7 @@ describe('session-metrics-summary', () => {
         mockFileContent = null;
         setup();
         const input = createHookInput();
-        const result = sessionMetricsSummary(input);
+        const result = sessionMetricsSummary(input, testCtx);
         expect(result.continue).toBe(true);
       }
     });
@@ -491,7 +488,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -510,10 +507,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining(`${expectedTotal} tool calls`)
       );
@@ -530,10 +527,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining(expectedString)
       );
@@ -549,10 +546,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      const topToolsCall = vi.mocked(logHook).mock.calls.find(
+      const topToolsCall = vi.mocked(testCtx.log).mock.calls.find(
         call => call[1].includes('Top tools:')
       );
       if (Object.keys(tools).length > 0) {
@@ -574,11 +571,11 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-metrics-summary',
         expect.stringContaining('999999 tool calls')
       );
@@ -594,7 +591,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -606,7 +603,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -618,7 +615,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -630,7 +627,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -642,7 +639,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -654,7 +651,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      const result = sessionMetricsSummary(input);
+      const result = sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -668,7 +665,7 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -680,10 +677,10 @@ describe('session-metrics-summary', () => {
       const input = createHookInput();
 
       // Act
-      sessionMetricsSummary(input);
+      sessionMetricsSummary(input, testCtx);
 
       // Assert
-      const allLogCalls = vi.mocked(logHook).mock.calls;
+      const allLogCalls = vi.mocked(testCtx.log).mock.calls;
       for (const call of allLogCalls) {
         expect(call[0]).toBe('session-metrics-summary');
       }

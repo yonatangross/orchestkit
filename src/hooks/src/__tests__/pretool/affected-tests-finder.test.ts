@@ -4,22 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
@@ -29,16 +17,16 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { affectedTestsFinder } from '../../pretool/bash/affected-tests-finder.js';
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -49,8 +37,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('affected-tests-finder', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });
@@ -60,7 +50,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('npm run build');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -72,7 +62,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('npm run test');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -85,7 +75,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -102,7 +92,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -116,7 +106,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -131,7 +121,7 @@ describe('affected-tests-finder', () => {
     const input = createBashInput('git push origin main');
 
     // Act
-    const result = affectedTestsFinder(input);
+    const result = affectedTestsFinder(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);

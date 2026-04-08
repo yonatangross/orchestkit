@@ -42,6 +42,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+  - optimize
+keywords:
+  - "embeddings"
+  - "chunking"
+  - "vector"
+  - "data pipeline"
+  - "batch"
+  - "etl"
+examplePrompts:
+  - "Build an embedding pipeline with semantic chunking for the knowledge base"
+  - "Optimize the vector index for hybrid search with pgvector"
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
@@ -71,10 +84,11 @@ Simple chunking with good boundaries beats complex over-engineered strategies.
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__postgres-mcp__*` - Vector index operations and data queries

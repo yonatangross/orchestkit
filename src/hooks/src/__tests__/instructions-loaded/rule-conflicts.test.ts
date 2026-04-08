@@ -9,10 +9,9 @@
 
 import { describe, test, expect, vi } from 'vitest';
 import type { LoadedFile } from '../../instructions-loaded/types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { ruleConflictDetector } from '../../instructions-loaded/rule-conflicts.js';
 

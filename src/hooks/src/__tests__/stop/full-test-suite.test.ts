@@ -8,6 +8,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { PathLike } from 'node:fs';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -23,26 +24,21 @@ vi.mock('node:child_process', () => ({
 }));
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { fullTestSuite } from '../../stop/full-test-suite.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { logHook, } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Full Test Suite Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockWriteFileSync = vi.mocked(writeFileSync);
   const _mockMkdirSync = vi.mocked(mkdirSync);
   const mockExecFileSync = vi.mocked(execFileSync);
-  const mockLogHook = vi.mocked(logHook);
-
   const defaultInput: HookInput = {
     hook_event: 'Stop',
     tool_name: '',
@@ -51,6 +47,7 @@ describe('Full Test Suite Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
@@ -68,11 +65,11 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from('README.md\npackage-lock.json\n'));
 
       // Act
-      const result = fullTestSuite(defaultInput);
+      const result = fullTestSuite(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         'No code changes detected, skipping tests'
       );
@@ -83,10 +80,10 @@ describe('Full Test Suite Hook', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         '=== Full Test Suite Started ==='
       );
@@ -103,10 +100,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue('src/main.ts'); // No trailing newline
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert - should proceed (not skip)
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'full-test-suite',
         'No code changes detected, skipping tests'
       );
@@ -123,7 +120,7 @@ describe('Full Test Suite Hook', () => {
       });
 
       // Act
-      const result = fullTestSuite(defaultInput);
+      const result = fullTestSuite(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -143,10 +140,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         'Detected Python project, running pytest...'
       );
@@ -161,10 +158,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         'Detected Python project, running pytest...'
       );
@@ -180,10 +177,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         'Detected Python project, running pytest...'
       );
@@ -206,10 +203,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         'Detected Node.js project...'
       );
@@ -226,10 +223,10 @@ describe('Full Test Suite Hook', () => {
       );
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).not.toHaveBeenCalledWith(
+      expect(testCtx.log).not.toHaveBeenCalledWith(
         'full-test-suite',
         'Running npm test...'
       );
@@ -254,11 +251,11 @@ describe('Full Test Suite Hook', () => {
       });
 
       // Act
-      const result = fullTestSuite(defaultInput);
+      const result = fullTestSuite(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         '=== Some tests failed ==='
       );
@@ -278,7 +275,7 @@ describe('Full Test Suite Hook', () => {
       });
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
       const lastRunWrite = mockWriteFileSync.mock.calls.find(
@@ -298,10 +295,10 @@ describe('Full Test Suite Hook', () => {
       mockExecFileSync.mockReturnValue(Buffer.from(''));
 
       // Act
-      fullTestSuite(defaultInput);
+      fullTestSuite(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'full-test-suite',
         '=== All tests passed ==='
       );
@@ -312,7 +309,7 @@ describe('Full Test Suite Hook', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = fullTestSuite(defaultInput);
+      const result = fullTestSuite(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });

@@ -37,6 +37,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
+taskTypes:
+  - test
+  - build
+keywords:
+  - "test"
+  - "coverage"
+  - "unit test"
+  - "integration test"
+  - "msw"
+  - "fixture"
+examplePrompts:
+  - "Generate unit tests for the auth service with 90% coverage"
+  - "Create integration tests for the payment API with MSW mocking"
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
@@ -61,6 +75,7 @@ Only use sequential execution when test generation depends on coverage analysis 
 Generate tests that cover the actual behavior, not hypothetical scenarios.
 Don't over-mock - test real interactions where possible.
 Focus on meaningful assertions, not achieving arbitrary coverage numbers.
+When assessing testability, do not rubber-stamp untestable code — flag missing seams, hidden dependencies, and insufficient coverage with specific file paths and examples.
 </avoid_overengineering>
 
 ## Agent Teams (CC 2.1.33+)
@@ -73,10 +88,11 @@ When running as a teammate in an Agent Teams session:
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
@@ -412,7 +428,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-integration:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
-|browser-tools:{SKILL.md}|browser,automation,security,rate-limiting,scraping-ethics
+|browser-tools:{SKILL.md,references/{upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,rate-limiting,scraping-ethics
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

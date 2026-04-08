@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come before imports
@@ -39,15 +40,13 @@ vi.mock('node:child_process', () => ({
   execFileSync: (...args: unknown[]) => mockExecFileSync(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getLogDir: vi.fn(() => '/test/.claude/logs'),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
 }));
 
 import { coverageCheck } from '../../skill/coverage-check.js';
-import { outputSilentSuccess, getLogDir, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -71,8 +70,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Coverage Check Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('coverage-check', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/test/.claude/logs' });
     vi.clearAllMocks();
     // Reset environment
     delete process.env.COVERAGE_THRESHOLD;
@@ -93,7 +94,7 @@ describe('coverage-check', () => {
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -105,7 +106,7 @@ describe('coverage-check', () => {
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -118,7 +119,7 @@ describe('coverage-check', () => {
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -139,7 +140,7 @@ describe('coverage-check', () => {
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalledWith(
@@ -158,7 +159,7 @@ describe('coverage-check', () => {
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalled();
@@ -181,7 +182,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -201,7 +202,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -223,7 +224,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -242,7 +243,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -266,7 +267,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -285,7 +286,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -303,7 +304,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -321,7 +322,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -342,7 +343,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockMkdirSync).toHaveBeenCalledWith('/test/.claude/logs', { recursive: true });
@@ -354,7 +355,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -369,7 +370,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -387,7 +388,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -402,7 +403,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -420,7 +421,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -436,7 +437,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -451,7 +452,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -466,7 +467,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -482,7 +483,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -502,7 +503,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      const result = coverageCheck(input);
+      const result = coverageCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -529,7 +530,7 @@ TOTAL                        90     15    83%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -556,7 +557,7 @@ TOTAL                                     120     23     45     10    78%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -583,7 +584,7 @@ TOTAL                                     120     23     45     10    78%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledWith(
@@ -608,10 +609,9 @@ TOTAL                                     120     23     45     10    78%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
 
     test('uses getLogDir for log file paths', () => {
@@ -620,10 +620,9 @@ TOTAL                                     120     23     45     10    78%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
-      expect(getLogDir).toHaveBeenCalled();
     });
   });
 
@@ -641,7 +640,7 @@ TOTAL                                     120     23     45     10    78%
       const input = createStopInput();
 
       // Act
-      coverageCheck(input);
+      coverageCheck(input, testCtx);
 
       // Assert
       expect(mockExecFileSync).toHaveBeenCalledWith(

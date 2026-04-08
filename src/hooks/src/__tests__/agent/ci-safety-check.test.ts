@@ -8,44 +8,17 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputDeny: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-  lineContainsAll: (content: string, ...terms: string[]) =>
-    content.split('\n').some((line) => terms.every((t) => line.includes(t))),
-  lineContainsAllCI: (content: string, ...terms: string[]) =>
-    content.split('\n').some((line) => {
-      const lower = line.toLowerCase();
-      return terms.every((t) => lower.includes(t.toLowerCase()));
-    }),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { ciSafetyCheck } from '../../agent/ci-safety-check.js';
 import { outputSilentSuccess, outputDeny, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -72,8 +45,10 @@ function createToolInput(
 // CI Safety Check Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('ci-safety-check', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -100,7 +75,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -115,7 +90,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -129,7 +104,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -153,7 +128,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -166,7 +141,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm run deploy' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -178,7 +153,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm publish' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -208,7 +183,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -229,7 +204,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'git push --force' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('BLOCKED');
@@ -240,7 +215,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'gh secret delete TOKEN' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
@@ -252,7 +227,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'rm -rf .github' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('explicit user approval');
@@ -265,7 +240,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -290,7 +265,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'gh release create v2.0' });
 
       // Act
-      ciSafetyCheck(input);
+      ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -303,7 +278,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: 'npm run deploy' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -327,7 +302,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -340,7 +315,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', {});
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -352,7 +327,7 @@ describe('ci-safety-check', () => {
       const input = createToolInput('Bash', { command: undefined });
 
       // Act & Assert
-      expect(() => ciSafetyCheck(input)).not.toThrow();
+      expect(() => ciSafetyCheck(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
     });
 
@@ -363,7 +338,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -376,7 +351,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -389,7 +364,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert - dangerous pattern should take precedence (deny, not warn)
       expect(result.continue).toBe(false);
@@ -404,7 +379,7 @@ describe('ci-safety-check', () => {
       });
 
       // Act
-      const result = ciSafetyCheck(input);
+      const result = ciSafetyCheck(input, testCtx);
 
       // Assert - first match (gh secret delete) triggers deny
       expect(result.continue).toBe(false);
@@ -433,7 +408,7 @@ describe('ci-safety-check', () => {
       // Act & Assert
       for (const cmd of dangerousCommands) {
         const input = createToolInput('Bash', { command: cmd });
-        const result = ciSafetyCheck(input);
+        const result = ciSafetyCheck(input, testCtx);
         expect(result.continue).toBe(false);
       }
     });

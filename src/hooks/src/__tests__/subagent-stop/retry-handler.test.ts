@@ -8,25 +8,13 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput, } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be defined BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/retry-manager.js', () => ({
   makeRetryDecision: vi.fn(() => ({
@@ -72,7 +60,7 @@ vi.mock('../../lib/task-integration.js', () => ({
 }));
 
 import { retryHandler } from '../../subagent-stop/retry-handler.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import {
   makeRetryDecision,
   formatRetryDecision,
@@ -81,6 +69,7 @@ import {
 } from '../../lib/retry-manager.js';
 import { loadConfig, loadState, updateAgentStatus } from '../../lib/orchestration-state.js';
 import { updateTaskStatus, getTaskByAgent } from '../../lib/task-integration.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -107,8 +96,10 @@ function createSubagentStopInput(
 // Retry Handler Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('retry-handler', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
@@ -128,7 +119,7 @@ describe('retry-handler', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = retryHandler(input);
+      const result = retryHandler(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -141,7 +132,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      const result = retryHandler(input);
+      const result = retryHandler(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -156,7 +147,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      const result = retryHandler(input);
+      const result = retryHandler(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -177,7 +168,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      const result = retryHandler(input);
+      const result = retryHandler(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -194,7 +185,7 @@ describe('retry-handler', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const _result = retryHandler(input);
+      const _result = retryHandler(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -205,7 +196,7 @@ describe('retry-handler', () => {
       const input = createSubagentStopInput();
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).not.toHaveBeenCalled();
@@ -216,7 +207,7 @@ describe('retry-handler', () => {
       const input = createSubagentStopInput();
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(updateAgentStatus).not.toHaveBeenCalled();
@@ -246,7 +237,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalled();
@@ -259,7 +250,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalled();
@@ -272,7 +263,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalled();
@@ -285,7 +276,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(completeAttempt).toHaveBeenCalledWith(
@@ -302,7 +293,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert — partial now early-returns before retry logic
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -319,7 +310,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -333,7 +324,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -369,7 +360,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(completeAttempt).toHaveBeenCalledWith(
@@ -397,7 +388,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert — partial skips retry logic entirely
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -437,7 +428,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalledWith(
@@ -460,7 +451,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalledWith(
@@ -488,7 +479,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(updateAgentStatus).toHaveBeenCalledWith('retry-agent', 'retrying');
@@ -509,7 +500,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(updateAgentStatus).toHaveBeenCalledWith('exhausted-agent', 'failed');
@@ -538,7 +529,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(updateTaskStatus).toHaveBeenCalledWith('task-123', 'failed');
@@ -562,7 +553,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(updateTaskStatus).not.toHaveBeenCalled();
@@ -582,7 +573,7 @@ describe('retry-handler', () => {
       });
 
       // Act & Assert
-      expect(() => retryHandler(input)).not.toThrow();
+      expect(() => retryHandler(input, testCtx)).not.toThrow();
     });
   });
 
@@ -615,7 +606,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(createAttempt).toHaveBeenCalledWith(
@@ -632,7 +623,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(completeAttempt).toHaveBeenCalledWith(
@@ -656,7 +647,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(formatRetryDecision).toHaveBeenCalled();
@@ -670,7 +661,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -696,7 +687,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(makeRetryDecision).toHaveBeenCalled();
@@ -727,7 +718,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      const result = retryHandler(input);
+      const result = retryHandler(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -746,7 +737,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       // Should use default retry count of 0
@@ -766,7 +757,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -780,7 +771,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       // Pattern at char 400 should be detected (within 500 limit)
@@ -798,7 +789,7 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
       // Pattern after 500 chars should be ignored - returns success
@@ -830,10 +821,10 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'retry-handler',
         expect.stringContaining('logged-agent')
       );
@@ -854,10 +845,10 @@ describe('retry-handler', () => {
       });
 
       // Act
-      retryHandler(input);
+      retryHandler(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'retry-handler',
         expect.stringContaining('shouldRetry=true')
       );

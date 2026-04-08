@@ -42,6 +42,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
 mcpServers: [context7]
+taskTypes:
+  - deploy
+  - build
+keywords:
+  - "ci/cd"
+  - "pipeline"
+  - "github actions"
+  - "workflow"
+  - "build"
+  - "artifact"
+  - "cache"
+examplePrompts:
+  - "Set up a GitHub Actions CI pipeline with test matrix and caching"
+  - "Add security scanning and artifact publishing to the pipeline"
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.
@@ -71,10 +85,11 @@ Simple, fast pipelines are better than comprehensive slow ones.
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for GitHub Actions, GitLab CI

@@ -604,6 +604,31 @@ describe('file-guard', () => {
     });
   });
 
+  describe('.husky directory protection', () => {
+    it('blocks writes to .husky/pre-commit', () => {
+      // Arrange
+      const input = createWriteInput('/project/.husky/pre-commit', '#!/bin/sh\nexit 0');
+
+      // Act
+      const result = fileGuard(input);
+
+      // Assert
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('protected file');
+    });
+
+    it('allows writes to .huskyrc (not inside .husky directory)', () => {
+      // Arrange
+      const input = createWriteInput('/project/.huskyrc', '{}');
+
+      // Act
+      const result = fileGuard(input);
+
+      // Assert
+      expect(result.continue).toBe(true);
+    });
+  });
+
   describe('comprehensive protected patterns coverage', () => {
     it('blocks all known protected patterns', () => {
       // Arrange - test each protected pattern

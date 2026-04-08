@@ -19,8 +19,9 @@
  * but the single-dispatcher pattern remains optimal for fewer hook invocations.
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, extractContext, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, extractContext } from '../lib/common.js';
+// v7.30.0 (#1266): Removed appendAnalytics for session-start-perf — data already in emit path
 
 // Import consolidated hook implementations
 import { analyticsConsentCheck } from './analytics-consent-check.js';
@@ -30,63 +31,87 @@ import { mcpHealthCheck } from './mcp-health-check.js';
 // Rules materialization — write to .claude/rules/ BEFORE CC loads instructions
 import { materializeAntipatternRules } from '../prompt/antipattern-warning.js';
 import { materializeProfileRules } from '../prompt/profile-injector.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
 interface SyncHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
+  /** If true, skip on compact/resume (already ran on initial startup) */
+  skipOnResume?: boolean;
 }
 
 /**
  * Registry of sync SessionStart hooks, executed sequentially.
+ * skipOnResume hooks are skipped on source=compact|resume to save ~500ms.
  */
 const SYNC_HOOKS: SyncHookConfig[] = [
-  { name: 'analytics-consent-check', fn: analyticsConsentCheck },
-  { name: 'prefill-guard', fn: prefillGuard },
-  { name: 'mcp-health-check', fn: mcpHealthCheck },
+  { name: 'analytics-consent-check', fn: analyticsConsentCheck, skipOnResume: true },
+  { name: 'prefill-guard', fn: prefillGuard },  // Always run — checks session safety
+  { name: 'mcp-health-check', fn: mcpHealthCheck, skipOnResume: true },
 ];
 
 /**
  * Consolidated sync SessionStart dispatcher.
  * Runs all sync hooks sequentially and merges their systemMessage outputs.
  */
-export function syncSessionDispatcher(input: HookInput): HookResult {
+export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const startMs = Date.now();
+
+  // v7.30.0 (#1269): Source-aware gating.
+  // CC sends input.source: "startup" | "resume" | "clear" | "compact"
+  // On compact/resume: skip heavy operations (rules materialization already done).
+  const source = (input as unknown as Record<string, unknown>).source as string | undefined;
+  const isLightResume = source === 'compact' || source === 'resume';
+
+  if (source) {
+    ctx.log(HOOK_NAME, `SessionStart source: ${source}${isLightResume ? ' (light mode — skipping materialization)' : ''}`);
+  }
+
   // Materialize all rules files at SessionStart — BEFORE CC loads .claude/rules/
   // Moved from UserPromptSubmit (profile-injector) to fix timing bug.
-  const projectDir = input.project_dir || getProjectDir();
-  try {
-    materializeAntipatternRules(projectDir);
-  } catch (err) {
-    logHook(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
-  }
-  try {
-    materializeProfileRules();
-  } catch (err) {
-    logHook(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+  // Skip on compact/resume — rules were materialized on initial startup.
+  const projectDir = input.project_dir || (ctx.projectDir);
+  if (!isLightResume) {
+    try {
+      materializeAntipatternRules(projectDir);
+    } catch (err) {
+      ctx.log(HOOK_NAME, `Antipattern rules materialization failed: ${err}`, 'warn');
+    }
+    try {
+      materializeProfileRules();
+    } catch (err) {
+      ctx.log(HOOK_NAME, `Profile rules materialization failed: ${err}`, 'warn');
+    }
   }
 
   const messages: string[] = [];
 
   for (const hook of SYNC_HOOKS) {
+    if (isLightResume && hook.skipOnResume) {
+      ctx.log(HOOK_NAME, `${hook.name}: skipped (source=${source})`);
+      continue;
+    }
+
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Collect systemMessage (primary output channel for SessionStart)
       if (result.systemMessage) {
         messages.push(result.systemMessage);
-        logHook(HOOK_NAME, `${hook.name}: systemMessage collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
 
       // Fallback: extract additionalContext (mcp-health-check uses outputWithContext)
       const context = extractContext(result);
       if (context && !result.systemMessage) {
         messages.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext converted to systemMessage`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
@@ -94,16 +119,16 @@ export function syncSessionDispatcher(input: HookInput): HookResult {
   // run-hook.mjs computes this from its own __dirname (two levels up from hooks/bin/).
   if (input.plugin_root) {
     messages.push(`CLAUDE_PLUGIN_ROOT=${input.plugin_root}`);
-    logHook(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
+    ctx.log(HOOK_NAME, `Injected plugin_root: ${input.plugin_root}`);
   }
 
   if (messages.length === 0) {
-    logHook(HOOK_NAME, 'All sync hooks silent');
+    ctx.log(HOOK_NAME, `All sync hooks silent (${Date.now() - startMs}ms)`);
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
-  logHook(HOOK_NAME, `Merged ${messages.length} messages from sync hooks`);
+  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks (${Date.now() - startMs}ms)`);
 
   return {
     continue: true,

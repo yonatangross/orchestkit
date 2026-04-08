@@ -7,7 +7,7 @@ tags: [json-render, yaml, tokens, optimization, streaming, cost]
 
 ## Token Optimization — YAML Mode
 
-json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For one-shot generation, YAML is the default choice.
+json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For standalone mode (formerly "generate"), YAML is the default choice. Note: "generate"/"chat" mode names were deprecated in v0.12.1 — use "standalone"/"inline" instead.
 
 **Incorrect:**
 ```typescript
@@ -45,7 +45,7 @@ const systemPrompt = `Generate a json-render spec in JSON format:
 
 **Correct:**
 ```typescript
-// YAML for one-shot generation — 30% fewer tokens
+// YAML for standalone mode — 30% fewer tokens
 import { parseYamlSpec } from '@json-render/yaml'
 
 const systemPrompt = `Generate a json-render spec in YAML format:
@@ -77,8 +77,8 @@ const spec = parseYamlSpec(yamlString)
 
 | Criterion | JSON | YAML |
 |-----------|------|------|
-| Streaming (progressive render) | Required | Not supported |
-| One-shot generation | Works but wasteful | 30% fewer tokens |
+| Inline mode / streaming (progressive render) | Required | Not supported |
+| Standalone mode | Works but wasteful | 30% fewer tokens |
 | Token cost sensitivity | Higher | Lower |
 | Parsing reliability | Native JSON.parse | Requires yaml parser |
 | AI familiarity | Higher (more training data) | High (common in configs) |
@@ -87,10 +87,10 @@ const spec = parseYamlSpec(yamlString)
 ### Decision Rule
 
 ```
-If streaming (progressive render needed) → JSON
-If one-shot AND token cost matters → YAML
-If one-shot AND debugging matters → either (both readable)
-Default for one-shot → YAML
+If inline mode / streaming (progressive render needed) → JSON
+If standalone AND token cost matters → YAML
+If standalone AND debugging matters → either (both readable)
+Default for standalone → YAML
 ```
 
 ### Token Comparison Example
@@ -103,8 +103,8 @@ A spec with 5 components:
 At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The real value is in output token reduction — LLMs generate fewer tokens in YAML format, which reduces latency.
 
 **Key rules:**
-- Use YAML for one-shot generation — it reduces both input and output tokens by ~30%
-- Use JSON when streaming is required — JSON Patch (RFC 6902) operates on JSON, not YAML
+- Use YAML for standalone mode — it reduces both input and output tokens by ~30%
+- Use JSON for inline mode / streaming — JSON Patch (RFC 6902) operates on JSON, not YAML
 - Import `parseYamlSpec` from `@json-render/yaml` to convert YAML strings to spec objects
 - Do not mix formats in a single spec — pick one and stay consistent
 - Measure token usage with your provider's tokenizer to validate savings for your specific catalogs

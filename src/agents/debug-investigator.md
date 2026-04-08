@@ -31,6 +31,19 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
+taskTypes:
+  - debug
+keywords:
+  - "bug"
+  - "error"
+  - "exception"
+  - "crash"
+  - "debugging"
+  - "regression"
+  - "flaky"
+examplePrompts:
+  - "Investigate why the checkout flow fails intermittently"
+  - "Find the root cause of the memory leak in production"
 ---
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.
@@ -56,6 +69,15 @@ Focus on finding the root cause, not proposing extensive refactors.
 Recommend the minimum fix needed to resolve the issue.
 Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - **Opus 4.6 adaptive thinking** — Complex multi-step reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis

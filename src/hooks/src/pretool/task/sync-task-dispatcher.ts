@@ -16,19 +16,21 @@
  * CC 2.1.9 Compliant: Single PreToolUse dispatcher with merged additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, logHook, extractContext } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
 import { teamSizeGate } from './team-size-gate.js';
 import { taskExistenceGate } from './task-existence-gate.js';
+import { taskAgentAdvisor } from './task-agent-advisor.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-task-dispatcher';
 
 interface TaskHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
 }
 
 /**
@@ -40,6 +42,9 @@ const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
   { name: 'task-existence-gate', fn: taskExistenceGate },
+  // task-agent-advisor runs LAST: pure advisory, never blocks. Suggests
+  // curated ork agents when ad-hoc subagent_type names are used (#706).
+  { name: 'task-agent-advisor', fn: taskAgentAdvisor },
 ];
 
 /**
@@ -53,36 +58,36 @@ const TASK_HOOKS: TaskHookConfig[] = [
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext from all hooks.
  */
-export function syncTaskDispatcher(input: HookInput): HookResult {
+export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
 
   for (const hook of TASK_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       if (!result.continue) {
-        logHook(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
         return result;
       }
 
       const context = extractContext(result);
       if (context) {
         contextParts.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 
   if (contextParts.length === 0) {
-    logHook(HOOK_NAME, 'All hooks silent');
+    ctx.log(HOOK_NAME, 'All hooks silent');
     return outputSilentSuccess();
   }
 
   const mergedContext = contextParts.join('\n\n---\n\n');
-  logHook(HOOK_NAME, `Merged ${contextParts.length} context(s)`);
+  ctx.log(HOOK_NAME, `Merged ${contextParts.length} context(s)`);
   return {
     continue: true,
     suppressOutput: true,

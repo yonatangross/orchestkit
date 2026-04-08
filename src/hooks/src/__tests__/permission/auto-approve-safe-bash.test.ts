@@ -6,6 +6,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -29,8 +30,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auto-approve-safe-bash', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -48,7 +51,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safeGitCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -76,7 +79,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safePackageCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -97,7 +100,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safeDockerCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -125,7 +128,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safeShellCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -147,7 +150,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safeGhCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -171,7 +174,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(safeTestCommands)('auto-approves: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -199,7 +202,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       // Should NOT have permissionDecision (let user decide)
@@ -210,7 +213,7 @@ describe('auto-approve-safe-bash', () => {
   describe('Edge cases', () => {
     test('handles empty command', () => {
       const input = createBashInput('');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -223,14 +226,14 @@ describe('auto-approve-safe-bash', () => {
         tool_input: {},
         project_dir: '/test/project',
       };
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     test('handles command with leading whitespace', () => {
       const input = createBashInput('  git status');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       // Normalization trims whitespace, so pattern now matches (SEC improvement)
       expect(result.continue).toBe(true);
@@ -239,7 +242,7 @@ describe('auto-approve-safe-bash', () => {
 
     test('rejects compound commands (git status && rm -rf /)', () => {
       const input = createBashInput('git status && rm -rf /');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       // SEC: Compound commands are never auto-approved — require manual review
       expect(result.continue).toBe(true);
@@ -249,7 +252,7 @@ describe('auto-approve-safe-bash', () => {
     test('handles very long command', () => {
       const longCommand = `ls ${'a'.repeat(10000)}`;
       const input = createBashInput(longCommand);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -257,7 +260,7 @@ describe('auto-approve-safe-bash', () => {
 
     test('handles command with special characters', () => {
       const input = createBashInput('echo "$(whoami)"');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -265,7 +268,7 @@ describe('auto-approve-safe-bash', () => {
 
     test('rejects multiline commands (compound via newline)', () => {
       const input = createBashInput('git status\ngit diff');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       // SEC: Multiline = compound command, requires manual review
       expect(result.continue).toBe(true);
@@ -276,28 +279,28 @@ describe('auto-approve-safe-bash', () => {
   describe('Pattern boundary cases', () => {
     test('does not approve git-like commands', () => {
       const input = createBashInput('gitignore-generator');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('does not approve partial matches', () => {
       const input = createBashInput('cat-video-player');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('approves ls with flags and paths', () => {
       const input = createBashInput('ls -la /usr/bin');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
     test('approves echo with complex arguments', () => {
       const input = createBashInput(`echo "test $VAR \${ANOTHER:-default}"`);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
@@ -306,7 +309,7 @@ describe('auto-approve-safe-bash', () => {
   describe('REJECT_PATTERNS and explicit non-safe commands', () => {
     test('git push -f origin main → explicitly rejected by REJECT_PATTERNS', () => {
       const input = createBashInput('git push -f origin main');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       // REJECT_PATTERNS catches "git push -f" before SAFE_PATTERNS can match "git push"
       expect(result.continue).toBe(true);
@@ -317,7 +320,7 @@ describe('auto-approve-safe-bash', () => {
       // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
       // "npm run <anything>" — build is an allowed npm run target
       const input = createBashInput('npm run build');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -326,7 +329,7 @@ describe('auto-approve-safe-bash', () => {
     test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
       // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
       const input = createBashInput('pnpm run build');
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -340,8 +343,8 @@ describe('auto-approve-safe-bash', () => {
         project_dir: '/test/project',
       };
 
-      expect(() => autoApproveSafeBash(input)).not.toThrow();
-      const result = autoApproveSafeBash(input);
+      expect(() => autoApproveSafeBash(input, testCtx)).not.toThrow();
+      const result = autoApproveSafeBash(input, testCtx);
       expect(result.continue).toBe(true);
       // No permissionDecision — Write tool falls through as unrecognized command
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -366,7 +369,7 @@ describe('auto-approve-safe-bash', () => {
 
     test.each(posixCommands)('auto-approves: %s', (command: string) => {
       const input = createBashInput(command);
-      const result = autoApproveSafeBash(input);
+      const result = autoApproveSafeBash(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
     });

@@ -17,8 +17,8 @@
  * 6. Smart Suggest   — suggest missing rules based on project signals (own I/O for project checks)
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
 import { readFileSync } from 'node:fs';
 import type { LoadedFile } from './types.js';
 import { tokenBudgetTracker } from './token-budget-tracker.js';
@@ -27,6 +27,7 @@ import { driftDetection } from './drift-detection.js';
 import { contentDedupScanner } from './content-dedup.js';
 import { ruleConflictDetector } from './rule-conflicts.js';
 import { smartRuleSuggestions } from './smart-suggestions.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'instructions-loaded-dispatcher';
 const MAX_FILES = 100;
@@ -46,10 +47,10 @@ function isValidLoadedFile(item: unknown): item is LoadedFile {
   return typeof item === 'object' && item !== null && typeof (item as LoadedFile).path === 'string';
 }
 
-export function instructionsLoadedDispatcher(input: HookInput): HookResult {
+export function instructionsLoadedDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const raw = (input as unknown as Record<string, unknown>).files_loaded;
   if (!Array.isArray(raw)) {
-    logHook(HOOK_NAME, 'No files_loaded in input, skipping');
+    ctx.log(HOOK_NAME, 'No files_loaded in input, skipping');
     return outputSilentSuccess();
   }
 
@@ -57,11 +58,11 @@ export function instructionsLoadedDispatcher(input: HookInput): HookResult {
   const filesLoaded: LoadedFile[] = raw.filter(isValidLoadedFile).slice(0, MAX_FILES);
 
   if (filesLoaded.length === 0) {
-    logHook(HOOK_NAME, 'No valid files in files_loaded, skipping');
+    ctx.log(HOOK_NAME, 'No valid files in files_loaded, skipping');
     return outputSilentSuccess();
   }
 
-  logHook(HOOK_NAME, `Processing ${filesLoaded.length} loaded instruction files`);
+  ctx.log(HOOK_NAME, `Processing ${filesLoaded.length} loaded instruction files`);
 
   // Pre-read all file contents once — handlers share this cache
   const contentCache = new Map<string, string>();
@@ -80,17 +81,17 @@ export function instructionsLoadedDispatcher(input: HookInput): HookResult {
       const result = handler.fn(filesLoaded, contentCache);
       if (result) contextParts.push(result);
     } catch (err) {
-      logHook(HOOK_NAME, `${handler.name} failed: ${err}`, 'warn');
+      ctx.log(HOOK_NAME, `${handler.name} failed: ${err}`, 'warn');
     }
   }
 
   if (contextParts.length === 0) {
-    logHook(HOOK_NAME, 'All handlers silent');
+    ctx.log(HOOK_NAME, 'All handlers silent');
     return outputSilentSuccess();
   }
 
   const consolidated = contextParts.join('\n\n');
-  logHook(HOOK_NAME, `Consolidated ${contextParts.length} handler outputs`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} handler outputs`);
 
   return outputPromptContext(consolidated);
 }

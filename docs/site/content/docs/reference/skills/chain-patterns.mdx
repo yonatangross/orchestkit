@@ -215,6 +215,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `checkpoint-resume.md` | state.json schema + resume protocol |
 | `worktree-agent-pattern.md` | `isolation: "worktree"` usage guide |
 | `cron-monitoring.md` | CronCreate patterns for post-task health |
+| `experiment-journal.md` | Append-only TSV log for try/measure/keep-or-discard cycles |
 | `progressive-output.md` | Progressive output with run_in_background |
 | `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
@@ -358,7 +359,7 @@ else:
 
 ---
 
-## References (6)
+## References (8)
 
 ### Checkpoint Resume
 
@@ -493,6 +494,270 @@ CronCreate(
 - Use descriptive prompts so the cron agent knows what to check
 - Prefer `gh` CLI over `curl` for GitHub checks (auth handled)
 - Schedule frequency: CI checks every 5min, health checks every 6h, regression daily
+
+
+### Experiment Journal
+
+# Experiment Journal Pattern
+
+Append-only TSV log for tracking try/measure/keep-or-discard cycles across sessions. Inspired by [autoresearch](https://github.com/karpathy/autoresearch)'s `results.tsv`.
+
+## When to Use
+
+Any skill that produces scored/rated output and may run multiple times on similar topics:
+- `brainstorm` — log evaluated ideas with composite scores and keep/discard status
+- `verify` / `cover` — log optimization attempts with metric deltas
+- `implement` — log iterative optimization attempts (performance, bundle size, prompts)
+- `fix-issue` — log attempted fixes with pass/fail
+
+## File Location
+
+```
+.claude/experiments/{skill}-{topic-slug}.tsv
+```
+
+Examples:
+- `.claude/experiments/brainstorm-caching-strategy.tsv`
+- `.claude/experiments/optimize-bundle-size.tsv`
+- `.claude/experiments/fix-issue-1234.tsv`
+
+## TSV Format
+
+Tab-separated, 6 columns. Header row required.
+
+```
+timestamp	score	status	reason	commit	description
+2026-04-06T08:00	7.55	keep	-	a1b2c3d	Session-only with signed cookies
+2026-04-06T08:01	3.15	discard	complexity	-	Custom token protocol
+2026-04-06T08:05	0.00	crash	untestable	-	Blockchain auth (can't assess)
+2026-04-06T09:00	0.982	keep	-	c3d4e5f	Increase LR to 0.04
+2026-04-06T09:05	1.005	discard	regression	c3d4e5f	Switch to GeLU activation
+```
+
+### Column Reference
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `timestamp` | ISO-8601 | When the experiment was logged |
+| `score` | float | Composite score (brainstorm) or metric value (optimization). `0.00` for crashes |
+| `status` | enum | `keep`, `discard`, or `crash` |
+| `reason` | string | Why discarded: `overkill`, `infeasible`, `duplicate`, `regression`, `complexity`, `untestable`. `-` for keeps |
+| `commit` | string | Git short SHA if code was committed, `-` otherwise |
+| `description` | string | Short text describing what was tried. No tabs (breaks TSV) |
+
+## Reading the Journal
+
+### Before Phase 1 (Memory + Context)
+
+```python
+journal_path = f".claude/experiments/{skill}-{topic_slug}.tsv"
+try:
+    journal = Read(journal_path)
+    # Parse and surface to user
+    keeps = [row for row in journal if row.status == "keep"]
+    discards = [row for row in journal if row.status == "discard"]
+    print(f"Prior session: {len(keeps)} kept, {len(discards)} discarded")
+    # Pre-filter: skip ideas similar to discard entries
+    # Highlight: surface keep entries as starting points
+except:
+    pass  # No prior journal — first run
+```
+
+### Trajectory Detection
+
+Count experiments in rolling windows to detect progress state:
+
+```python
+recent = last_10_experiments()
+keep_rate = count(status == "keep") / len(recent)
+
+if keep_rate > 0.3:
+    trajectory = "improving"     # Still finding wins
+elif keep_rate > 0.1:
+    trajectory = "plateauing"    # Diminishing returns
+else:
+    trajectory = "stuck"         # Consider switching strategy
+```
+
+When `trajectory == "stuck"`:
+- Brainstorm: try more radical ideas, revisit discarded approaches with modifications
+- Optimize: increase change magnitude, try orthogonal dimensions
+- Fix-issue: escalate to user, try different root cause hypothesis
+
+## Writing to the Journal
+
+### After Each Experiment
+
+```python
+# Append one line (never overwrite)
+line = f"{timestamp}\t{score}\t{status}\t{reason}\t{commit}\t{description}\n"
+# Use Bash to append:
+Bash(command=f'echo "{line}" >> {journal_path}')
+```
+
+### After Brainstorm Phase 4
+
+```python
+# Log all evaluated ideas
+for idea in evaluated_ideas:
+    status = "keep" if idea in top_approaches else "discard"
+    reason = "-" if status == "keep" else idea.discard_reason
+    append_to_journal(idea.score, status, reason, "-", idea.description)
+```
+
+### After Iterative Optimization Loop
+
+```python
+# Log each iteration
+if metric_improved:
+    append_to_journal(new_metric, "keep", "-", commit_sha, change_description)
+else:
+    append_to_journal(new_metric, "discard", "regression", "-", change_description)
+```
+
+## Git Policy
+
+**Do NOT commit experiment journals.** Add to `.gitignore`:
+```
+.claude/experiments/
+```
+
+Journals are local working memory, not source code. They survive across sessions via the filesystem but don't pollute git history. If a journal contains important decisions, persist them to the memory graph instead.
+
+
+### Fork Pattern
+
+# Fork Pattern — Cache-Sharing Parallel Subagents
+
+CC 2.1.89 automatically forks subagents that meet certain criteria, sharing the parent's cached API prefix. This eliminates cold-start re-tokenization and reduces API cost by 30-50% for multi-agent skills.
+
+## When CC Forks Automatically
+
+CC routes `Agent()` calls to fork (cache-sharing) mode when ALL conditions are met:
+
+| Condition | Requirement |
+|-----------|-------------|
+| **No custom model** | Agent inherits parent model (no `model=` parameter) |
+| **No worktree isolation** | No `isolation: "worktree"` parameter |
+| **Short prompt** | Prompt body &lt; 500 words (only the divergent part) |
+| **Same tool schema** | Agent uses same tools as parent (no `exact-tools` override) |
+
+If ANY condition fails, CC falls back to standard cold-start `Agent()`.
+
+## Fork-Friendly Prompt Template
+
+```python
+Agent(
+  subagent_type="backend-system-architect",
+  name="backend-explorer",            # Named for @mention routing
+  prompt="""Scope: {specific_task}
+
+  Context: {brief_shared_context}
+
+  Deliverable: {expected_output_format}
+
+  RESULT: End with a one-line summary.""",
+  run_in_background=True,
+  max_turns=25
+)
+```
+
+**Rules:**
+- Start with `Scope:` header (signals fork-friendly intent)
+- Keep prompt under 500 words — parent context is inherited
+- Do NOT repeat system instructions (fork inherits them)
+- Do NOT set `model=` (breaks cache prefix sharing)
+- Do NOT set `isolation: "worktree"` (breaks fork mode)
+- End with `RESULT:` summary line for structured collection
+
+## What Forks Inherit
+
+Forked subagents automatically receive:
+- Parent's full system prompt and CLAUDE.md rules
+- All prior conversation context (cached)
+- Tool definitions (same schema, same cache prefix)
+- MCP server connections
+- Session environment variables
+
+They do NOT inherit:
+- Parent's in-progress edits (no shared filesystem writes)
+- Other forks' outputs (forks are isolated from each other)
+
+## Cache Mechanics
+
+```
+Parent conversation:
+  System prompt + CLAUDE.md + tool schemas + N turns of context
+  ───────────────────────────────────────────────────────────
+  │                CACHED PREFIX (~90%)                     │
+  ───────────────────────────────────────────────────────────
+                                                    ▼
+Fork A: [cached prefix] + "Scope: analyze backend..."     (~10% new)
+Fork B: [cached prefix] + "Scope: analyze frontend..."    (~10% new)
+Fork C: [cached prefix] + "Scope: check test coverage..." (~10% new)
+                           ▲
+                           Only this part is re-tokenized
+```
+
+**Cost: ~1.1× instead of ~3× for 3 parallel agents.**
+
+## When NOT to Fork
+
+| Scenario | Why | Use Instead |
+|----------|-----|-------------|
+| Agent needs worktree isolation | File edits conflict between forks | `Agent(isolation="worktree")` |
+| Agent needs custom model | e.g., Haiku for cheap analysis | `Agent(model="haiku")` |
+| Agent reads prior phase handoff | Handoff file not in cache prefix | Standard `Agent()` with file content in prompt |
+| Coordinator mode active | Coordinator disables forks | Standard `Agent()` |
+| Agent needs `permission_mode: "bubble"` | Prompts appear in parent terminal | Only if acceptable UX |
+
+## Fork-Eligible Skills
+
+| Skill | Agents | Fork-Ready | Notes |
+|-------|--------|------------|-------|
+| explore | 4 parallel | ✓ | All read-only, no worktree |
+| brainstorm | 3-5 parallel | ✓ | Divergent ideation, no state |
+| verify | 6-7 parallel | ⚠ partial | Domain filter runs in parent; fork after filtering |
+| review-pr | 6-7 parallel | ⚠ partial | Context injection in parent; fork the review agents |
+| implement | 3 parallel | ✗ | Worktree isolation required |
+| fix-issue | 1-5 parallel | ✗ | Worktree isolation for RCA agents |
+
+## Context Stager Behavior
+
+The `subagent-context-stager` SubagentStart hook detects forks via `input.is_fork`:
+- **Fork = true**: Skip heavy context injection (CLAUDE.md rules, decisions, task list) — fork inherits parent context
+- **Fork = false**: Full context staging (standard Agent cold-start path)
+
+This prevents double-injection that wastes tokens and can confuse the model.
+
+## Analytics
+
+Fork metrics are logged to `subagent-quality.jsonl`:
+```json
+{
+  "agent": "backend-system-architect",
+  "is_fork": true,
+  "cache_creation_tokens": 150000,
+  "cache_read_tokens": 148500,
+  "cache_hit_pct": 99.0,
+  "duration_ms": 12500
+}
+```
+
+Compare `cache_hit_pct` between fork and non-fork agents to measure savings.
+
+## Fallback Strategy
+
+If fork fails (CC version &lt; 2.1.89, coordinator mode, etc.), the skill should gracefully degrade:
+
+```python
+# Fork-friendly prompt (CC auto-detects):
+Agent(subagent_type="Explore", prompt="Scope: ...", run_in_background=True)
+# ↑ If CC can fork: forked (cheap)
+# ↑ If CC can't fork: standard cold-start (works, just more expensive)
+```
+
+No code change needed for fallback — CC handles routing automatically. The prompt pattern works in both modes.
 
 
 ### Handoff Schema

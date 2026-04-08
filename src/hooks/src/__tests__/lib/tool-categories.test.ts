@@ -53,7 +53,7 @@ describe('tool-categories', () => {
       expect(getToolCategory('TaskUpdate')).toBe('task_mgmt');
       expect(getToolCategory('TaskList')).toBe('task_mgmt');
       expect(getToolCategory('TaskGet')).toBe('task_mgmt');
-      expect(getToolCategory('TaskOutput')).toBe('task_mgmt');
+      // TaskOutput removed — deprecated since CC 2.1.83 (#1268)
       expect(getToolCategory('TaskStop')).toBe('task_mgmt');
     });
 
@@ -147,7 +147,6 @@ describe('tool-categories', () => {
         'TaskUpdate',
         'TaskList',
         'TaskGet',
-        'TaskOutput',
         'TaskStop',
         'EnterPlanMode',
         'ExitPlanMode',

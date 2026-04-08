@@ -1,23 +1,22 @@
 /**
- * Canonical mock factories for common.js
+ * Canonical mock factories for OrchestKit hook test modules
  *
- * TWO MODES:
+ * v7.29.0: common.ts split into output.ts (pure) + env.ts + log.ts.
+ * The barrel re-export means `vi.mock('common.js')` still works for legacy tests.
  *
- * 1. mockCommonReal() — PREFERRED. Spreads the real common.js module, only
- *    stubs side-effectful functions (I/O, logging, env). All output helpers
- *    (outputPromptContext, outputBlock, etc.) use their REAL implementations,
- *    so return shapes can never drift.
+ * THREE LEVELS (prefer the simplest that works):
  *
+ * 1. NO MOCK — import from output.ts directly (23 pure exports, never mock)
+ *    import { outputBlock } from '../../lib/output.js';
+ *
+ * 2. mockEnv() / mockLog() — mock only the effectful module you need
+ *    vi.mock('../../lib/env.js', () => mockEnv());
+ *    vi.mock('../../lib/log.js', () => mockLog());
+ *
+ * 3. mockCommonReal() / mockCommonBasic() — legacy barrel mock (all of common.js)
  *    vi.mock('../../lib/common.js', async () => mockCommonReal());
  *
- * 2. mockCommonBasic() — Full replacement. Every function is a vi.fn() stub.
- *    Use when your test also mocks node:fs AND needs to control return values.
- *
- *    vi.mock('../../lib/common.js', () => mockCommonBasic());
- *
- * Both factories are type-safe against the real common.js exports. If common.ts
- * adds or removes a function, TypeScript will catch the mismatch (requires
- * tsconfig.test.json which includes test files).
+ * Type-safe: if the real module adds/removes a function, TypeScript catches it.
  */
 
 import { vi } from 'vitest';
@@ -123,12 +122,48 @@ export function mockCommonBasic(
       suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx },
     })),
+    outputPromptContextWithTitle: vi.fn((ctx: string, title: string): HookResult => {
+      const trimmedTitle = title?.trim();
+      if (!trimmedTitle) {
+        if (!ctx || !ctx.trim()) return { continue: true, suppressOutput: true };
+        return {
+          continue: true,
+          suppressOutput: true,
+          hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx },
+        };
+      }
+      if (!ctx || !ctx.trim()) {
+        return {
+          continue: true,
+          suppressOutput: true,
+          hookSpecificOutput: { hookEventName: 'UserPromptSubmit', sessionTitle: trimmedTitle },
+        };
+      }
+      return {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: 'UserPromptSubmit',
+          additionalContext: ctx,
+          sessionTitle: trimmedTitle,
+        },
+      };
+    }),
     outputWithNotification: vi.fn((userMessage: string | undefined, claudeContext: string | undefined): HookResult => {
       const result: HookResult = { continue: true, suppressOutput: true };
       if (userMessage) result.systemMessage = userMessage;
       if (claudeContext) result.hookSpecificOutput = { hookEventName: 'UserPromptSubmit', additionalContext: claudeContext };
       return result;
     }),
+    outputDefer: vi.fn((reason: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'defer',
+        permissionDecisionReason: reason,
+      },
+    })),
     outputAllowWithContext: vi.fn((ctx: string, systemMessage?: string): HookResult => {
       const result: HookResult = {
         continue: true,
@@ -185,6 +220,48 @@ export function mockCommonBasic(
     fnv1aHash: vi.fn(() => '00000000'),
 
     // --- Overrides ---
+    ...overrides,
+  };
+}
+
+// =============================================================================
+// SPLIT MODULE FACTORIES (v7.29.0 — prefer these for new tests)
+// =============================================================================
+
+/**
+ * Mock factory for lib/env.ts (environment readers)
+ * Use: vi.mock('../../lib/env.js', () => mockEnv());
+ */
+export function mockEnv(
+  overrides: Partial<Record<string, unknown>> = {},
+) {
+  return {
+    getProjectDir: vi.fn(() => '/test/project'),
+    getLogDir: vi.fn(() => '/test/logs'),
+    getPluginRoot: vi.fn(() => '/test/plugin-root'),
+    getPluginDataDir: vi.fn(() => null),
+    getEnvFile: vi.fn(() => '/test/plugin-root/.claude/.instance_env'),
+    getSessionId: vi.fn(() => 'test-session-123'),
+    getCachedBranch: vi.fn(() => 'main'),
+    getLogLevel: vi.fn(() => 'warn'),
+    shouldLog: vi.fn(() => false),
+    ...overrides,
+  };
+}
+
+/**
+ * Mock factory for lib/log.ts (side effects — I/O)
+ * Use: vi.mock('../../lib/log.js', () => mockLog());
+ */
+export function mockLog(
+  overrides: Partial<Record<string, unknown>> = {},
+) {
+  return {
+    logHook: vi.fn(),
+    logPermissionFeedback: vi.fn(),
+    outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
+    writeRulesFile: vi.fn(() => true),
+    readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),
     ...overrides,
   };
 }

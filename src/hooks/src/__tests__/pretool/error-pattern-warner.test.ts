@@ -4,31 +4,25 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: ctx },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => '{"rules":[]}'),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { errorPatternWarner } from '../../pretool/bash/error-pattern-warner.js';
 import type { HookInput } from '../../types.js';
 import { existsSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -39,15 +33,17 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('error-pattern-warner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });
 
   it('returns silent success for empty command', () => {
     const input = createBashInput('');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -57,7 +53,7 @@ describe('error-pattern-warner', () => {
     vi.mocked(existsSync).mockReturnValue(false);
 
     const input = createBashInput('npm run build');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -79,7 +75,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('psql -U postgres -d mydb');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('DB role error');
@@ -105,7 +101,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('docker exec -it my-container psql -U user -d database');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Learned error patterns');
@@ -128,7 +124,7 @@ describe('error-pattern-warner', () => {
     );
 
     const input = createBashInput('git status');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -139,7 +135,7 @@ describe('error-pattern-warner', () => {
     vi.mocked(readFileSync).mockReturnValue('invalid json{');
 
     const input = createBashInput('npm run build');
-    const result = errorPatternWarner(input);
+    const result = errorPatternWarner(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

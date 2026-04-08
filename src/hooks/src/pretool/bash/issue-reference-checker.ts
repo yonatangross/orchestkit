@@ -7,12 +7,12 @@
  * PreToolUse hook for Bash(git commit*) — soft advisory, never blocks.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputStderrWarning,
-  getCachedBranch,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Extract the commit message from a git commit command string.
@@ -50,7 +50,7 @@ function messageReferencesIssue(message: string, issueNum: string): boolean {
 /**
  * Issue reference checker — reminds to include issue number in commit messages.
  */
-export function issueReferenceChecker(input: HookInput): HookResult {
+export function issueReferenceChecker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const command = input.tool_input.command || '';
     if (!command) return outputSilentSuccess();
@@ -60,7 +60,7 @@ export function issueReferenceChecker(input: HookInput): HookResult {
     if (!commitMessage) return outputSilentSuccess();
 
     // Get current branch
-    const branch = getCachedBranch();
+    const branch = ctx.branch;
     if (!branch || branch === 'unknown') return outputSilentSuccess();
 
     // Extract issue number from branch name

@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
@@ -23,11 +24,8 @@ vi.mock('child_process', () => ({
   execFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getPluginRoot: vi.fn(() => '/test/plugin'),
-  lineContainsAll: (content: string, ...terms: string[]) => content.split('\n').some(line => terms.every(t => line.includes(t))),
-  lineContainsAllCI: (content: string, ...terms: string[]) => content.split('\n').some(line => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); }),
 }));
 
 import {
@@ -36,6 +34,7 @@ import {
 } from '../../skill/decision-processor.js';
 import { outputSilentSuccess, } from '../../lib/common.js';
 import { execSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -77,8 +76,10 @@ function createDecisionText(
 // Decision Processor Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('decision-processor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ pluginRoot: '/test/plugin' });
     vi.clearAllMocks();
   });
 
@@ -98,7 +99,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -109,7 +110,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('This is just regular output without decisions.');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -120,7 +121,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -131,7 +132,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('short');
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -148,7 +149,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput('x'.repeat(99));
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -161,7 +162,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(longOutput);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -178,7 +179,7 @@ describe('decision-processor', () => {
       };
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -196,7 +197,7 @@ describe('decision-processor', () => {
       };
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -226,7 +227,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -239,7 +240,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -258,7 +259,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('postgresql');
@@ -274,7 +275,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('database-engineer');
@@ -288,7 +289,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('repository-pattern');
@@ -463,7 +464,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('category:');
@@ -484,7 +485,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('importance:');
@@ -507,7 +508,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       // Should have systemMessage when decision indicators are present
@@ -527,7 +528,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('[Decisions]');
@@ -539,7 +540,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('[Entities]');
@@ -552,7 +553,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: uses MCP graph memory instead of add-memory.py
       expect(result.systemMessage).toContain('mcp__memory__create_entities');
@@ -565,7 +566,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('category');
@@ -578,7 +579,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Confidence:');
@@ -599,7 +600,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: cc_version is in internal metadata, output contains decision summary
       expect(result.systemMessage).toBeDefined();
@@ -618,7 +619,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -635,7 +636,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       // Should not throw and should have output
@@ -655,7 +656,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert — v7: plugin_version is in internal metadata, not in systemMessage
       expect(result.systemMessage).toBeDefined();
@@ -671,7 +672,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -695,7 +696,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();
@@ -716,7 +717,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(longOutput);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -731,7 +732,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(manyDecisions);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -743,7 +744,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -755,7 +756,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -767,7 +768,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -785,7 +786,7 @@ describe('decision-processor', () => {
       const input = createSkillCompleteInput(output);
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       if (result.systemMessage) {
@@ -806,7 +807,7 @@ describe('decision-processor', () => {
       );
 
       // Act
-      const result = decisionProcessor(input);
+      const result = decisionProcessor(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeDefined();

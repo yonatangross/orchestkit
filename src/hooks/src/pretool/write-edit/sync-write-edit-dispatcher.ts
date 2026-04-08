@@ -17,7 +17,7 @@
  * CC 2.1.9 Compliant: Single PreToolUse dispatcher with merged additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
@@ -25,12 +25,13 @@ import { contentSecretScanner } from './content-secret-scanner.js';
 import { fileGuard } from './file-guard.js';
 import { writeHeaders } from '../input-mod/write-headers.js';
 import { unifiedWriteEditQualityDispatcher } from './unified-quality-dispatcher.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-write-edit-dispatcher';
 
 interface WriteEditHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
 }
 
 /**
@@ -92,32 +93,32 @@ function buildMergedResult(
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext and updatedInput from all hooks.
  */
-export function syncWriteEditDispatcher(input: HookInput): HookResult {
+export function syncWriteEditDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
 
   for (const hook of WRITE_EDIT_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       if (!result.continue) {
-        logHook(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
         return result;
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
         updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
-        logHook(HOOK_NAME, `${hook.name}: updatedInput collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);
       }
 
       const context = extractContext(result);
       if (context) {
         contextParts.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 

@@ -11,6 +11,7 @@
 
 import { describe, test, expect, beforeEach, vi, type Mock } from 'vitest';
 import type { HookInput, HookResult } from '../types.js';
+import { createTestContext } from './fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Mock node:fs at module level before any hook imports
@@ -205,10 +206,10 @@ describe('handoffWriter', () => {
     });
 
     test('falls back to getProjectDir when project_dir not in input', () => {
-      process.env.CLAUDE_PROJECT_DIR = '/env/project';
       mockExistsSync.mockReturnValue(false);
+      const testCtx = createTestContext({ projectDir: '/env/project' });
 
-      handoffWriter(createHookInput({ project_dir: undefined }));
+      handoffWriter(createHookInput({ project_dir: undefined }), testCtx);
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         expect.stringContaining('/env/project/.claude/HANDOFF.md'),

@@ -13,6 +13,7 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -46,16 +47,8 @@ vi.mock('../../lib/analytics-buffer.js', async () => {
   };
 });
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
-  lineContainsAll: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.includes(t))
-  ),
-  lineContainsAllCI: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.toLowerCase().includes(t.toLowerCase()))
-  ),
 }));
 
 // =============================================================================
@@ -64,6 +57,7 @@ vi.mock('../../lib/common.js', () => ({
 
 import { autoSpawnQuality } from '../../subagent-stop/auto-spawn-quality.js';
 import { writeFileSync, mkdirSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -93,8 +87,10 @@ function createSubagentStopInput(
 // Auto Spawn Quality Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auto-spawn-quality', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
@@ -110,7 +106,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests completed successfully');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -121,7 +117,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'All tests pass');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -133,7 +129,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('debug-investigator', 'Bug investigation complete');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -147,7 +143,7 @@ describe('auto-spawn-quality', () => {
       });
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -168,7 +164,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -183,7 +179,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalled();
@@ -204,7 +200,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -221,7 +217,7 @@ describe('auto-spawn-quality', () => {
       });
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -256,7 +252,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('frontend-ui-developer', output);
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -272,7 +268,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -289,7 +285,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -310,7 +306,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -337,7 +333,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('backend-system-architect', output);
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -353,7 +349,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('backend-system-architect', output);
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert - Rule 2 takes precedence
       expect(result.continue).toBe(true);
@@ -370,7 +366,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert - Rule 4 triggers (no sensitive pattern match)
       expect(result.continue).toBe(true);
@@ -386,7 +382,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -404,7 +400,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('unknown', 'Some output');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -422,7 +418,7 @@ describe('auto-spawn-quality', () => {
       };
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -434,7 +430,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', '');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -452,8 +448,8 @@ describe('auto-spawn-quality', () => {
       };
 
       // Act & Assert
-      expect(() => autoSpawnQuality(input)).not.toThrow();
-      const result = autoSpawnQuality(input);
+      expect(() => autoSpawnQuality(input, testCtx)).not.toThrow();
+      const result = autoSpawnQuality(input, testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -465,7 +461,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -483,7 +479,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -501,7 +497,7 @@ describe('auto-spawn-quality', () => {
       });
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       // error='null' is string, but hook checks error && error !== 'null'
@@ -521,7 +517,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests passed');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -546,7 +542,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Done');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -574,7 +570,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Output');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalled();
@@ -585,7 +581,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Output');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       const calls = vi.mocked(mkdirSync).mock.calls;
@@ -606,7 +602,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -622,7 +618,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('debug-investigator', 'Done');
 
       // Act
-      autoSpawnQuality(input);
+      autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -647,7 +643,7 @@ describe('auto-spawn-quality', () => {
       );
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('critical priority');
@@ -658,7 +654,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('test-generator', 'Done');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('high priority');
@@ -669,7 +665,7 @@ describe('auto-spawn-quality', () => {
       const input = createSubagentStopInput('code-quality-reviewer', 'Review done');
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('high priority');
@@ -693,7 +689,7 @@ describe('auto-spawn-quality', () => {
       };
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -711,7 +707,7 @@ describe('auto-spawn-quality', () => {
       };
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -728,7 +724,7 @@ describe('auto-spawn-quality', () => {
       };
 
       // Act
-      const result = autoSpawnQuality(input);
+      const result = autoSpawnQuality(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

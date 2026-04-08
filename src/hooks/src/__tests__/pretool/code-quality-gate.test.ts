@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { codeQualityGate } from '../../pretool/Write/code-quality-gate.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // Mock dependencies
 vi.mock('../../lib/common.js', async () => {
@@ -89,8 +90,10 @@ function generateDeepNesting(depth: number, lang: 'ts' | 'py'): string {
   }
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('code-quality-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -99,7 +102,7 @@ describe('code-quality-gate', () => {
       it('warns for function over 50 lines', () => {
         const content = generateLongFunction(60, 'py');
         const input = createWriteInput('src/module.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
@@ -108,7 +111,7 @@ describe('code-quality-gate', () => {
       it('passes function under 50 lines', () => {
         const content = generateLongFunction(30, 'py');
         const input = createWriteInput('src/module.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         // Should not have warnings about length
@@ -122,7 +125,7 @@ async def long_async_function():
 ${Array(55).fill('    await asyncio.sleep(0)').join('\n')}
 `;
         const input = createWriteInput('src/async_module.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
       });
@@ -134,7 +137,7 @@ class MyClass:
 ${Array(55).fill('        pass').join('\n')}
 `;
         const input = createWriteInput('src/class_module.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
       });
@@ -144,7 +147,7 @@ ${Array(55).fill('        pass').join('\n')}
       it('warns for function over 50 lines', () => {
         const content = generateLongFunction(60, 'ts');
         const input = createWriteInput('src/module.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
@@ -153,7 +156,7 @@ ${Array(55).fill('        pass').join('\n')}
       it('passes function under 50 lines', () => {
         const content = generateLongFunction(30, 'ts');
         const input = createWriteInput('src/module.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
       });
@@ -165,7 +168,7 @@ ${Array(55).fill('  console.log("line");').join('\n')}
 };
 `;
         const input = createWriteInput('src/arrow.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         // Arrow functions may be detected differently
         expect(result.continue).toBe(true);
@@ -178,7 +181,7 @@ ${Array(55).fill('  await Promise.resolve();').join('\n')}
 };
 `;
         const input = createWriteInput('src/func.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
       });
@@ -196,7 +199,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
 }
 `;
         const input = createWriteInput('src/multi.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         const context = result.hookSpecificOutput?.additionalContext || '';
@@ -210,7 +213,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
       it('warns for nesting deeper than 4 levels', () => {
         const content = generateDeepNesting(6, 'py');
         const input = createWriteInput('src/nested.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.additionalContext).toContain('nesting');
@@ -219,7 +222,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
       it('passes nesting within limits', () => {
         const content = generateDeepNesting(3, 'py');
         const input = createWriteInput('src/shallow.py', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         const context = result.hookSpecificOutput?.additionalContext || '';
@@ -231,7 +234,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
       it('warns for deep nesting', () => {
         const content = generateDeepNesting(6, 'ts');
         const input = createWriteInput('src/nested.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.additionalContext).toContain('nesting');
@@ -254,7 +257,7 @@ function matrix() {
 }
 `;
         const input = createWriteInput('src/loops.ts', content);
-        const result = codeQualityGate(input);
+        const result = codeQualityGate(input, testCtx);
 
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.additionalContext).toContain('nesting');
@@ -281,7 +284,7 @@ function complex(a, b, c, d, e) {
 }
 `;
       const input = createWriteInput('src/complex.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('complexity');
@@ -297,7 +300,7 @@ function simple(x: number): number {
 }
 `;
       const input = createWriteInput('src/simple.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
       const context = result.hookSpecificOutput?.additionalContext || '';
@@ -322,7 +325,7 @@ function ternaryHeavy(a, b, c, d, e, f, g, h, i, j, k) {
 }
 `;
       const input = createWriteInput('src/ternary.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -341,7 +344,7 @@ function switchy(x: string): number {
 }
 `;
       const input = createWriteInput('src/switch.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -373,7 +376,7 @@ ${Array(55).fill('  console.log("padding");').join('\n')}
 }
 `;
       const input = createWriteInput('src/bad.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
@@ -383,14 +386,14 @@ ${Array(55).fill('  console.log("padding");').join('\n')}
   describe('Edge cases', () => {
     it('handles empty content', () => {
       const input = createWriteInput('src/empty.ts', '');
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     it('handles empty file path', () => {
       const input = createWriteInput('', 'const x = 1;');
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -402,7 +405,7 @@ const y = 2;
 export { x, y };
 `;
       const input = createWriteInput('src/constants.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -410,7 +413,7 @@ export { x, y };
     it('handles very large file', () => {
       const content = Array(1000).fill('const x = 1;').join('\n');
       const input = createWriteInput('src/large.ts', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -422,7 +425,7 @@ ${Array(55).fill('	fmt.Println("line")').join('\n')}
 }
 `;
       const input = createWriteInput('src/main.go', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -436,7 +439,7 @@ ${Array(55).fill('        System.out.println("line");').join('\n')}
 }
 `;
       const input = createWriteInput('src/Main.java', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -448,7 +451,7 @@ ${Array(55).fill('    println!("line");').join('\n')}
 }
 `;
       const input = createWriteInput('src/main.rs', content);
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -458,14 +461,14 @@ ${Array(55).fill('    println!("line");').join('\n')}
     it('skips markdown files when guards active', () => {
       // With guards mocked to return null, it won't skip
       const input = createWriteInput('README.md', '# Title\n\nContent');
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     it('skips JSON files', () => {
       const input = createWriteInput('package.json', '{"name": "test"}');
-      const result = codeQualityGate(input);
+      const result = codeQualityGate(input, testCtx);
 
       expect(result.continue).toBe(true);
     });

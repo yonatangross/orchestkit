@@ -10,24 +10,13 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // MOCK SETUP
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', async () => {
   const actual = await vi.importActual('node:fs');
@@ -41,11 +30,11 @@ vi.mock('node:fs', async () => {
 import {
   outputSilentSuccess,
   outputPromptContext,
-  logHook,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 import { agentationContext } from '../../prompt/agentation-context.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -80,14 +69,14 @@ function makeMcpConfig(agentationConfig: Record<string, unknown> | null = {}): s
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/agentation-context', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockOutputPromptContext = vi.mocked(outputPromptContext);
-  const mockLogHook = vi.mocked(logHook);
-
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
     mockOutputPromptContext.mockImplementation((ctx: string) => ({
@@ -107,12 +96,12 @@ describe('prompt/agentation-context', () => {
     it('should return silent success when neither .mcp.json path exists', () => {
       mockExistsSync.mockReturnValue(false);
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(mockOutputPromptContext).not.toHaveBeenCalled();
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'agentation-context',
         'Agentation MCP not configured, skipping'
       );
@@ -127,7 +116,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(mockOutputPromptContext).toHaveBeenCalledWith(
         expect.stringContaining('agentation_get_all_pending')
@@ -140,7 +129,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
-      agentationContext(createInput());
+      agentationContext(createInput(), testCtx);
 
       expect(mockOutputPromptContext).toHaveBeenCalledWith(
         expect.stringContaining('Agentation')
@@ -156,7 +145,7 @@ describe('prompt/agentation-context', () => {
       });
       mockReadFileSync.mockReturnValue(config);
 
-      agentationContext(createInput());
+      agentationContext(createInput(), testCtx);
 
       expect(mockOutputPromptContext).toHaveBeenCalled();
     });
@@ -165,9 +154,9 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
-      agentationContext(createInput());
+      agentationContext(createInput(), testCtx);
 
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'agentation-context',
         'Agentation MCP detected — injecting annotation reminder'
       );
@@ -182,7 +171,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig({ disabled: true }));
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(mockOutputPromptContext).not.toHaveBeenCalled();
@@ -199,7 +188,7 @@ describe('prompt/agentation-context', () => {
         mcpServers: { context7: { command: 'npx', disabled: false } },
       }));
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(mockOutputPromptContext).not.toHaveBeenCalled();
@@ -209,7 +198,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(JSON.stringify({ version: '1.0' }));
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(mockOutputPromptContext).not.toHaveBeenCalled();
@@ -224,7 +213,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('{ this is not valid json }}}');
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(mockOutputPromptContext).not.toHaveBeenCalled();
@@ -242,7 +231,7 @@ describe('prompt/agentation-context', () => {
         .mockReturnValueOnce(true);   // .claude/mcp.json
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
-      agentationContext(createInput());
+      agentationContext(createInput(), testCtx);
 
       expect(mockExistsSync).toHaveBeenCalledTimes(2);
       expect(mockOutputPromptContext).toHaveBeenCalled();
@@ -252,7 +241,7 @@ describe('prompt/agentation-context', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(makeMcpConfig());
 
-      agentationContext(createInput());
+      agentationContext(createInput(), testCtx);
 
       // readFileSync should be called once (found in first file)
       expect(mockReadFileSync).toHaveBeenCalledTimes(1);
@@ -266,7 +255,7 @@ describe('prompt/agentation-context', () => {
     it('should use project_dir from input when provided', () => {
       mockExistsSync.mockReturnValue(false);
 
-      agentationContext(createInput({ project_dir: '/custom/project' }));
+      agentationContext(createInput({ project_dir: '/custom/project' }), testCtx);
 
       expect(mockExistsSync).toHaveBeenCalledWith(
         expect.stringMatching(/[/\\]custom[/\\]project[/\\]\.mcp\.json/)
@@ -278,7 +267,7 @@ describe('prompt/agentation-context', () => {
 
       const input = createInput();
       delete (input as unknown as Record<string, unknown>).project_dir;
-      agentationContext(input);
+      agentationContext(input, testCtx);
 
       expect(mockExistsSync).toHaveBeenCalledWith(
         expect.stringMatching(/[/\\]test[/\\]project[/\\]\.mcp\.json/)
@@ -296,7 +285,7 @@ describe('prompt/agentation-context', () => {
         throw new Error('Permission denied');
       });
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -310,11 +299,11 @@ describe('prompt/agentation-context', () => {
         throw new Error('FS error');
       });
 
-      const result = agentationContext(createInput());
+      const result = agentationContext(createInput(), testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'agentation-context',
         expect.stringContaining('Error checking agentation config'),
         'warn'

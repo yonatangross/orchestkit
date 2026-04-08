@@ -5,10 +5,11 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../lib/task-integration.js';
 import { getActiveTodosFile } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface TodoItem {
   status: string;
@@ -18,14 +19,14 @@ interface TodoItem {
 /**
  * Task completion check hook
  */
-export function taskCompletionCheck(input: HookInput): HookResult {
-  logHook('task-completion-check', 'Stop hook - checking task completion');
+export function taskCompletionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('task-completion-check', 'Stop hook - checking task completion');
 
   const warnings: string[] = [];
 
   // CC 2.1.20: Check orchestration registry for in_progress tasks
-  const projectDir = input.project_dir || getProjectDir();
-  const sessionId = input.session_id || getSessionId();
+  const projectDir = input.project_dir || (ctx.projectDir);
+  const sessionId = input.session_id || (ctx.sessionId);
   const registryFile = `${projectDir}/.claude/orchestration/task-registry-${sessionId}.json`;
 
   if (existsSync(registryFile)) {
@@ -35,11 +36,11 @@ export function taskCompletionCheck(input: HookInput): HookResult {
         (t: { status: string }) => t.status === 'in_progress'
       );
       if (inProgress.length > 0) {
-        logHook('task-completion-check', `WARNING: ${inProgress.length} orchestration tasks still in progress`);
+        ctx.log('task-completion-check', `WARNING: ${inProgress.length} orchestration tasks still in progress`);
         warnings.push(`${inProgress.length} orchestration task(s) still in progress at session stop`);
       }
     } catch (error) {
-      logHook('task-completion-check', `Error reading registry: ${error}`);
+      ctx.log('task-completion-check', `Error reading registry: ${error}`);
     }
   }
 
@@ -47,7 +48,7 @@ export function taskCompletionCheck(input: HookInput): HookResult {
   const orphans = getOrphanedTasks();
   let orphanInstructions = '';
   if (orphans.length > 0) {
-    logHook('task-completion-check', `Found ${orphans.length} orphaned tasks`);
+    ctx.log('task-completion-check', `Found ${orphans.length} orphaned tasks`);
     orphanInstructions = '\n\n## Orphaned Tasks\n\nThe following tasks are orphaned (all blockers failed) and should be deleted:\n';
     for (const orphan of orphans) {
       orphanInstructions += `\n${formatTaskDeleteForClaude(orphan.taskId, 'All blocking tasks have failed')}`;
@@ -61,11 +62,11 @@ export function taskCompletionCheck(input: HookInput): HookResult {
       const todos: TodoItem[] = JSON.parse(readFileSync(todosFile, 'utf-8'));
       const inProgress = todos.filter((t) => t.status === 'in_progress');
       if (inProgress.length > 0) {
-        logHook('task-completion-check', `WARNING: ${inProgress.length} legacy tasks in progress at stop`);
+        ctx.log('task-completion-check', `WARNING: ${inProgress.length} legacy tasks in progress at stop`);
         warnings.push(`${inProgress.length} legacy task(s) still in progress`);
       }
     } catch (error) {
-      logHook('task-completion-check', `Error reading legacy todos: ${error}`);
+      ctx.log('task-completion-check', `Error reading legacy todos: ${error}`);
     }
   }
 

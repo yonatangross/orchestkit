@@ -1,12 +1,24 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (1 hooks)."
+description: "Hooks triggered on PostToolUse events (13 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**1 hooks** registered for the `PostToolUse` lifecycle event.
+**13 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `unified-dispatcher` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 💡 Injects | Consolidates essential PostToolUse hooks into a single dispatcher. |
+| `agent-task-auto-register` | `Agent` | 🔇 Silent | After an Agent tool call succeeds, checks if a task was registered |
+| `webhook-forwarder` | `Agent` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
+| `mcp-output-transform` | `mcp__*` | 🔇 Silent | MCP Output Transform — PostToolUse hook for MCP tool results |
+| `webhook-forwarder` | `mcp__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
+| `auto-lint` | `Write\|Edit` | 🔇 Silent | PostToolUse format-on-save for Write/Edit |
+| `redact-secrets` | `Write\|Edit` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
+| `security-auditor` | `Write\|Edit` | 🔇 Silent | Audits Write\|Edit ops targeting .claude/ config files |
+| `commit-nudge` | `Write\|Edit` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
+| `redact-secrets` | `Bash` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
+| `commit-nudge` | `Bash` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
+| `team-member-start` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | Links spawned teammates to the team activity log after successful spawn. |
+| `fingerprint-saver` | `Skill` | 🔇 Silent | Expect Fingerprint Auto-Saver (#1191) |
+| `webhook-forwarder` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

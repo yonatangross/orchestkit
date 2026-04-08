@@ -92,6 +92,7 @@ import {
   unifiedPromptDispatcher,
   registeredHookNames as promptHookNames,
 } from '../../prompt/unified-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -110,44 +111,46 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests: PostToolUse Unified Dispatcher
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('PostToolUse Unified Dispatcher — execution', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/tmp/orchestkit-e2e-test' });
     vi.clearAllMocks();
   });
 
   it('returns continue=true for Bash tool_name', async () => {
     const input = makeInput({ tool_name: 'Bash' });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for Read tool_name (wildcard matcher)', async () => {
     const input = makeInput({ tool_name: 'Read' });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for Write tool_name', async () => {
     const input = makeInput({ tool_name: 'Write', tool_input: { file_path: '/tmp/test.ts', content: 'export {}' } });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for Edit tool_name', async () => {
     const input = makeInput({ tool_name: 'Edit', tool_input: { file_path: '/tmp/test.ts', old_string: 'a', new_string: 'b' } });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for Skill tool_name', async () => {
     const input = makeInput({ tool_name: 'Skill', tool_input: { skill: 'implement' } });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for empty tool_name (no matching hooks)', async () => {
     const input = makeInput({ tool_name: '' });
-    const result = await unifiedDispatcher(input);
+    const result = await unifiedDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -224,7 +227,7 @@ describe('SubagentStop Unified Dispatcher — execution', () => {
       subagent_type: 'test-agent',
       agent_id: 'agent-e2e-748',
     });
-    const result = await unifiedSubagentStopDispatcher(input);
+    const result = await unifiedSubagentStopDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -238,7 +241,7 @@ describe('SubagentStop Unified Dispatcher — execution', () => {
       duration_ms: 5000,
       last_assistant_message: 'Task complete.',
     });
-    const result = await unifiedSubagentStopDispatcher(input);
+    const result = await unifiedSubagentStopDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -277,13 +280,13 @@ describe('UserPromptSubmit Unified Dispatcher — execution', () => {
       prompt: 'Please help me write a function to sort a list.',
       project_dir: '/tmp/orchestkit-e2e-test',
     });
-    const result = unifiedPromptDispatcher(input);
+    const result = unifiedPromptDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns continue=true for an empty prompt', () => {
     const input = makeInput({ tool_name: '', tool_input: {}, prompt: '' });
-    const result = unifiedPromptDispatcher(input);
+    const result = unifiedPromptDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -294,13 +297,13 @@ describe('UserPromptSubmit Unified Dispatcher — execution', () => {
       tool_input: {},
       prompt: 'x'.repeat(200_001),
     });
-    const result = unifiedPromptDispatcher(input);
+    const result = unifiedPromptDispatcher(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('is a synchronous function (not async)', () => {
     const input = makeInput({ tool_name: '', tool_input: {}, prompt: 'hello' });
-    const result = unifiedPromptDispatcher(input);
+    const result = unifiedPromptDispatcher(input, testCtx);
     // If it were a Promise, .continue would not be accessible synchronously
     expect(result).not.toBeInstanceOf(Promise);
     expect(result.continue).toBe(true);

@@ -4,30 +4,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getLogDir: vi.fn(() => '/tmp/test-orchestkit'),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputDeny: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
 }));
 
 // Mock node:fs to prevent actual file operations
@@ -45,6 +26,7 @@ vi.mock('node:child_process', () => ({
 
 import { agentBrowserSafety } from '../../pretool/bash/agent-browser-safety.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -55,8 +37,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('agent-browser-safety', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-orchestkit' });
     vi.clearAllMocks();
   });
 
@@ -65,7 +49,7 @@ describe('agent-browser-safety', () => {
     const input = createBashInput('npm run build');
 
     // Act
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -74,7 +58,7 @@ describe('agent-browser-safety', () => {
 
   it('allows agent-browser navigating to localhost dev servers', () => {
     const input = createBashInput('agent-browser navigate "http://localhost:8080/admin"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
@@ -99,7 +83,7 @@ describe('agent-browser-safety', () => {
     const input = createBashInput('agent-browser goto "file:///etc/passwd"');
 
     // Act
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(false);
@@ -111,7 +95,7 @@ describe('agent-browser-safety', () => {
     const input = createBashInput('agent-browser navigate "https://accounts.google.com/signin"');
 
     // Act
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(false);
@@ -123,7 +107,7 @@ describe('agent-browser-safety', () => {
     const input = createBashInput('agent-browser click delete-account-button');
 
     // Act
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -132,20 +116,20 @@ describe('agent-browser-safety', () => {
 
   it('allows 127.0.0.1 for local dev servers', () => {
     const input = createBashInput('agent-browser navigate "http://127.0.0.1:3000/api/users"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('blocks AWS metadata endpoint (SSRF)', () => {
     const input = createBashInput('agent-browser navigate "http://169.254.169.254/latest/meta-data/"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(false);
     expect(result.stopReason).toContain('blocked');
   });
 
   it('blocks GCP metadata endpoint (SSRF)', () => {
     const input = createBashInput('agent-browser navigate "http://metadata.google.internal/computeMetadata/v1/"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(false);
     expect(result.stopReason).toContain('blocked');
   });
@@ -166,7 +150,7 @@ describe('agent-browser-safety', () => {
     const input = createBashInput('agent-browser navigate "https://example.com/docs"');
 
     // Act
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -175,7 +159,7 @@ describe('agent-browser-safety', () => {
 
   it('warns about --allow-file-access flag (v0.16)', () => {
     const input = createBashInput('agent-browser --allow-file-access open "file:///tmp/test.html"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('--allow-file-access');
     expect(result.hookSpecificOutput?.additionalContext).toContain('file:// URL');
@@ -183,21 +167,21 @@ describe('agent-browser-safety', () => {
 
   it('blocks echoing AGENT_BROWSER_ENCRYPTION_KEY (v0.16)', () => {
     const input = createBashInput('echo $AGENT_BROWSER_ENCRYPTION_KEY');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(false);
     expect(result.stopReason).toContain('AGENT_BROWSER_ENCRYPTION_KEY');
   });
 
   it('blocks printf of AGENT_BROWSER_ENCRYPTION_KEY (v0.16)', () => {
     const input = createBashInput('printf "%s" "$AGENT_BROWSER_ENCRYPTION_KEY" > /tmp/key.txt');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(false);
     expect(result.stopReason).toContain('AGENT_BROWSER_ENCRYPTION_KEY');
   });
 
   it('warns about --user-agent spoofing (v0.16)', () => {
     const input = createBashInput('agent-browser --user-agent "Mozilla/5.0 Chrome/120" open "https://example.com"');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('--user-agent');
     expect(result.hookSpecificOutput?.additionalContext).toContain('spoof');
@@ -205,35 +189,35 @@ describe('agent-browser-safety', () => {
 
   it('warns about DevTools inspect command (v0.18+)', () => {
     const input = createBashInput('agent-browser inspect');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('DevTools');
   });
 
   it('warns about get cdp-url command (v0.18+)', () => {
     const input = createBashInput('agent-browser get cdp-url');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('CDP');
   });
 
   it('warns about clipboard read (v0.19+)', () => {
     const input = createBashInput('agent-browser clipboard read');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('clipboard');
   });
 
   it('warns about HAR capture stop (v0.21+)', () => {
     const input = createBashInput('agent-browser network har stop /tmp/trace.har');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('HAR');
   });
 
   it('allows HAR capture start without warning (v0.21+)', () => {
     const input = createBashInput('agent-browser network har start');
-    const result = agentBrowserSafety(input);
+    const result = agentBrowserSafety(input, testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
   });

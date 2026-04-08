@@ -20,11 +20,10 @@
  * CC 2.1.16 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   getProjectDir,
-  getSessionId,
   logHook,
 } from '../lib/common.js';
 import {
@@ -36,6 +35,7 @@ import {
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join, dirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -228,20 +228,20 @@ function updateWorkflowPreferences(
 /**
  * Learn workflow preferences from completed session
  */
-export function workflowPreferenceLearner(input: HookInput): HookResult {
-  const sessionId = input.session_id || getSessionId();
+export function workflowPreferenceLearner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const sessionId = input.session_id || (ctx.sessionId);
 
   // Analyze the decision flow
   const flow = analyzeDecisionFlow(sessionId);
 
   if (!flow) {
-    logHook(HOOK_NAME, `No decision flow found for session ${sessionId}`, 'debug');
+    ctx.log(HOOK_NAME, `No decision flow found for session ${sessionId}`, 'debug');
     return outputSilentSuccess();
   }
 
   // Need minimum actions to detect meaningful pattern
   if (flow.actions.length < MIN_ACTIONS_FOR_PATTERN) {
-    logHook(HOOK_NAME, `Too few actions (${flow.actions.length}) for pattern detection`, 'debug');
+    ctx.log(HOOK_NAME, `Too few actions (${flow.actions.length}) for pattern detection`, 'debug');
     return outputSilentSuccess();
   }
 
@@ -259,7 +259,7 @@ export function workflowPreferenceLearner(input: HookInput): HookResult {
   saveWorkflowPreferences(data);
 
   // Log the detected pattern
-  logHook(
+  ctx.log(
     HOOK_NAME,
     `Session pattern: ${flow.inferred_pattern} (${flow.actions.length} actions, ${(flow.stats.success_rate * 100).toFixed(0)}% success)`,
     'info'
@@ -268,7 +268,7 @@ export function workflowPreferenceLearner(input: HookInput): HookResult {
   // Check for strong preference emergence
   const topPref = data.preferences[0];
   if (topPref && topPref.frequency > 0.6 && topPref.count >= 5) {
-    logHook(
+    ctx.log(
       HOOK_NAME,
       `Strong workflow preference: ${topPref.pattern} (${(topPref.frequency * 100).toFixed(0)}% of sessions)`,
       'info'

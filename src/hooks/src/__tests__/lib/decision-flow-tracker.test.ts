@@ -9,10 +9,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'node:fs';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/tmp/fake-project'),
-  logHook: vi.fn(),
 }));
 vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn((filePath: string, content: string) => {

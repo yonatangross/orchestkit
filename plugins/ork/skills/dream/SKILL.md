@@ -1,0 +1,304 @@
+---
+name: dream
+license: MIT
+compatibility: "Claude Code 2.1.76+"
+description: "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory)."
+argument-hint: "[--dry-run]"
+tags: [memory, maintenance, consolidation]
+version: 1.0.0
+author: OrchestKit
+user-invocable: true
+allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
+complexity: medium
+effort: low
+model: sonnet
+triggers:
+  keywords: [dream, consolidate, "clean memory", "prune memory", "memory cleanup", "stale memories", "merge memories", "memory maintenance", "tidy memory", "stale memory entries", "memory files", "prune memories"]
+  examples:
+    - "consolidate my memory files"
+    - "clean up stale memory entries"
+    - "run dream to prune old memories"
+  anti-triggers: [remember, save, store, search, recall, "load context", implement, explore]
+---
+
+# Dream - Memory Consolidation
+
+Deterministic memory maintenance: detect stale entries, merge duplicates, resolve contradictions, rebuild the MEMORY.md index. All pruning decisions are based on verifiable checks (file exists? function exists? duplicate content?), not LLM judgment.
+
+## Argument Resolution
+
+```python
+DRY_RUN = "--dry-run" in "$ARGUMENTS"  # Preview changes without writing
+```
+
+## Overview
+
+Memory files accumulate across sessions. Over time they develop problems:
+- **Stale references** — memories pointing to files, functions, or classes that no longer exist
+- **Duplicates** — multiple memories covering the same topic with overlapping content
+- **Contradictions** — newer memories superseding older ones without cleanup
+- **Index drift** — MEMORY.md index out of sync with actual memory files
+
+This skill fixes all four problems using deterministic checks only.
+
+---
+
+## STEP 1: Discover Memory Files
+
+```python
+# Find the memory directory (agent-specific or project-level)
+# Agent memory lives in: .claude/agent-memory/<agent-id>/
+# Project memory lives in: .claude/projects/<hash>/memory/
+# Also check: .claude/memory/
+
+memory_dirs = []
+Glob(pattern=".claude/agent-memory/*/MEMORY.md")
+Glob(pattern=".claude/projects/*/memory/MEMORY.md")
+Glob(pattern=".claude/memory/MEMORY.md")
+
+# For each discovered MEMORY.md, glob all *.md files in that directory
+for dir in memory_dirs:
+    Glob(pattern=f"{dir}/../*.md")  # All memory files alongside MEMORY.md
+```
+
+Read every discovered memory file. Parse frontmatter (`name`, `description`, `type`) and body content. Build an in-memory inventory:
+
+```
+inventory = [{
+    "path": "/abs/path/to/file.md",
+    "name": frontmatter.name,
+    "type": frontmatter.type,  # user, feedback, project, reference
+    "description": frontmatter.description,
+    "body": body_text,
+    "file_refs": [],      # extracted file paths
+    "symbol_refs": [],    # extracted function/class names
+    "topics": [],         # key phrases for duplicate detection
+}]
+```
+
+---
+
+## STEP 2: Detect Staleness
+
+For each memory file, extract references and verify they still exist.
+
+### 2a: File Path References
+
+Extract paths that look like file references (patterns: paths with `/` and file extensions, backtick-wrapped paths):
+
+```python
+# Regex-like extraction from body text:
+# - Paths containing / with common extensions: .py, .ts, .tsx, .js, .json, .md, .yaml, .yml, .sh
+# - Backtick-wrapped paths: `src/something/file.ts`
+# - Quoted paths in frontmatter descriptions
+
+for ref in file_refs:
+    Glob(pattern=ref)  # Check if file exists
+    # If no match → mark as STALE_FILE_REF
+```
+
+### 2b: Symbol References
+
+Extract function/class names (patterns: `function_name()`, `ClassName`, `def function_name`):
+
+```python
+for symbol in symbol_refs:
+    Grep(pattern=symbol, path=".", output_mode="files_with_matches", head_limit=1)
+    # If no match → mark as STALE_SYMBOL_REF
+```
+
+### 2c: Staleness Classification
+
+| Finding | Classification | Action |
+|---------|---------------|--------|
+| All file refs valid, all symbols found | FRESH | Keep |
+| Some file refs missing | PARTIALLY_STALE | Flag for review |
+| All file refs missing AND all symbols missing | FULLY_STALE | Prune candidate |
+| No external refs (pure decision/preference) | EVERGREEN | Keep |
+
+Only memories classified as FULLY_STALE are auto-pruned. PARTIALLY_STALE memories are reported but kept — the user decides.
+
+---
+
+## STEP 3: Detect Duplicates
+
+Compare memories pairwise within the same directory. Two memories are duplicates when:
+
+1. **Same type** (both `feedback`, both `project`, etc.)
+2. **Overlapping topic** — 60%+ of significant words (excluding stopwords) appear in both bodies
+3. **Same subject** — `name` or `description` fields reference the same concept
+
+```python
+stopwords = {"the", "a", "an", "is", "are", "was", "were", "be", "been",
+             "have", "has", "had", "do", "does", "did", "will", "would",
+             "could", "should", "may", "might", "can", "shall", "to", "of",
+             "in", "for", "on", "with", "at", "by", "from", "as", "into",
+             "through", "during", "before", "after", "this", "that", "it",
+             "not", "no", "but", "or", "and", "if", "then", "than", "so"}
+
+def significant_words(text):
+    words = set(text.lower().split()) - stopwords
+    return {w for w in words if len(w) > 2}
+
+def overlap_ratio(words_a, words_b):
+    if not words_a or not words_b:
+        return 0.0
+    intersection = words_a & words_b
+    smaller = min(len(words_a), len(words_b))
+    return len(intersection) / smaller if smaller > 0 else 0.0
+
+# For each pair with same type:
+#   if overlap_ratio >= 0.6 → DUPLICATE pair
+#   Keep the NEWER file (by filesystem mtime), prune the older
+```
+
+---
+
+## STEP 4: Resolve Contradictions
+
+Contradictions occur when two memories of the same type make opposing claims about the same subject. Detection:
+
+1. **Same type + same topic** (overlap >= 0.4 but < 0.6 — related but not duplicate)
+2. **Negation signals** — one body contains negation of the other's assertion:
+   - "do X" vs "do not X" / "don't X" / "never X"
+   - "use X" vs "avoid X" / "stop using X"
+   - "prefer X" vs "prefer Y" (for same decision domain)
+
+```python
+negation_pairs = [
+    ("do ", "do not "), ("do ", "don't "),
+    ("use ", "avoid "), ("use ", "stop using "),
+    ("prefer ", "don't prefer "), ("always ", "never "),
+]
+
+# For each pair flagged as contradictory:
+#   Keep the NEWER file (more recent decision supersedes)
+#   Prune the older file
+```
+
+---
+
+## STEP 5: Execute Changes (or Dry Run)
+
+### Dry Run Mode (`--dry-run`)
+
+If `--dry-run` flag is present, skip all writes. Output the full report (Step 6) with `[DRY RUN]` prefix and list what WOULD be changed:
+
+```
+[DRY RUN] Would delete: .claude/agent-memory/foo/stale_old_path.md (FULLY_STALE)
+[DRY RUN] Would delete: .claude/agent-memory/foo/duplicate_auth.md (DUPLICATE of auth_patterns.md)
+[DRY RUN] Would delete: .claude/agent-memory/foo/old_preference.md (CONTRADICTED by new_preference.md)
+[DRY RUN] Would rebuild: .claude/agent-memory/foo/MEMORY.md (3 entries removed, 12 remaining)
+```
+
+### Live Mode
+
+```python
+# 1. Delete FULLY_STALE files
+for stale in fully_stale_files:
+    Bash(command=f"rm '{stale['path']}'")
+
+# 2. Delete DUPLICATE files (keep newer)
+for dup in duplicate_pairs:
+    older = dup["older"]
+    Bash(command=f"rm '{older['path']}'")
+
+# 3. Delete CONTRADICTED files (keep newer)
+for contradiction in contradiction_pairs:
+    older = contradiction["older"]
+    Bash(command=f"rm '{older['path']}'")
+
+# 4. Rebuild MEMORY.md index from surviving files
+```
+
+### Rebuild MEMORY.md
+
+Read all surviving `.md` files (excluding MEMORY.md itself). Generate the index:
+
+```markdown
+# <Directory Name> Memory
+
+- [Name](filename.md) -- one-line description from frontmatter
+```
+
+Rules for the rebuilt index:
+- One line per memory file, under 150 characters
+- Sorted alphabetically by filename
+- Total index must stay under 200 lines
+- If over 200 lines after rebuild, warn the user (do not auto-truncate content memories)
+
+```python
+# Write the rebuilt MEMORY.md
+Write(path="<memory_dir>/MEMORY.md", content=rebuilt_index)
+```
+
+---
+
+## STEP 6: Report
+
+Output a summary table after consolidation:
+
+```
+## Dream Consolidation Report
+
+| Metric | Count |
+|--------|-------|
+| Memory directories scanned | N |
+| Total memory files scanned | N |
+| Stale entries pruned | N |
+| Duplicates merged | N |
+| Contradictions resolved | N |
+| Partially stale (kept, flagged) | N |
+| Evergreen (no external refs) | N |
+| Surviving memories | N |
+| MEMORY.md indexes rebuilt | N |
+
+### Changes Made
+
+| File | Action | Reason |
+|------|--------|--------|
+| `path/to/file.md` | DELETED | Fully stale: all referenced files removed |
+| `path/to/old.md` | DELETED | Duplicate of `path/to/new.md` |
+| `path/to/outdated.md` | DELETED | Contradicted by `path/to/current.md` |
+
+### Flagged for Review (PARTIALLY_STALE)
+
+| File | Missing References |
+|------|-------------------|
+| `path/to/file.md` | `src/old/path.ts` no longer exists |
+```
+
+If `--dry-run`, prefix the entire report with:
+
+```
+[DRY RUN] No files were modified. Run without --dry-run to apply changes.
+```
+
+---
+
+## Error Handling
+
+| Condition | Response |
+|-----------|----------|
+| No memory directories found | Report "No memory directories found" and exit |
+| No memory files in directory | Report "Directory empty, nothing to consolidate" |
+| All memories are FRESH | Report "All N memories are current, nothing to prune" |
+| MEMORY.md exceeds 200 lines after rebuild | Warn user, do not auto-truncate |
+| File deletion fails | Report error, continue with remaining files |
+| Memory file has no frontmatter | Treat as EVERGREEN (cannot verify refs without metadata) |
+
+---
+
+## When NOT to Use
+
+- To **store** new decisions -- use `/ork:remember`
+- To **search** past decisions -- use `/ork:memory search`
+- To **load** context at session start -- use `/ork:memory load`
+- After fewer than 5 sessions -- memory files are unlikely to have accumulated enough staleness
+
+---
+
+## Related Skills
+
+- `ork:remember` -- Store decisions and patterns (write-side)
+- `ork:memory` -- Search, load, sync, visualize (read-side)

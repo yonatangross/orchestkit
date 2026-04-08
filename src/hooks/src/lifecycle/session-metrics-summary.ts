@@ -4,9 +4,10 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -16,13 +17,13 @@ interface SessionMetrics {
 /**
  * Session metrics summary hook
  */
-export function sessionMetricsSummary(_input: HookInput): HookResult {
-  logHook('session-metrics-summary', 'Session ending - generating summary');
+export function sessionMetricsSummary(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('session-metrics-summary', 'Session ending - generating summary');
 
   const metricsFile = getMetricsFile();
 
   if (!existsSync(metricsFile)) {
-    logHook('session-metrics-summary', 'No metrics file found');
+    ctx.log('session-metrics-summary', 'No metrics file found');
     return outputSilentSuccess();
   }
 
@@ -41,15 +42,15 @@ export function sessionMetricsSummary(_input: HookInput): HookResult {
       .map(([tool, count]) => `${tool}: ${count}`)
       .join(', ');
 
-    logHook('session-metrics-summary', `Session stats: ${totalTools} tool calls, ${errors} errors`);
+    ctx.log('session-metrics-summary', `Session stats: ${totalTools} tool calls, ${errors} errors`);
 
     if (totalTools > 0) {
       // Note: We return silently since SessionEnd hooks typically don't need system messages
       // The logging is sufficient for audit purposes
-      logHook('session-metrics-summary', `Top tools: ${topTools}`);
+      ctx.log('session-metrics-summary', `Top tools: ${topTools}`);
     }
   } catch (err) {
-    logHook('session-metrics-summary', `Failed to read metrics: ${err}`);
+    ctx.log('session-metrics-summary', `Failed to read metrics: ${err}`);
   }
 
   return outputSilentSuccess();

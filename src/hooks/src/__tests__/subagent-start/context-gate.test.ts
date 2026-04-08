@@ -192,8 +192,8 @@ describe('contextGate', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Too many agents spawned');
-      expect(result.stopReason).toContain('single response');
+      expect(result.stopReason).toContain('Too many agents in one response');
+      expect(result.stopReason).toContain('Split into multiple responses');
       expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
     });
 
@@ -275,8 +275,8 @@ describe('contextGate', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Background Agent Limit');
-      expect(result.stopReason).toContain('concurrent');
+      expect(result.stopReason).toContain('Too many background agents');
+      expect(result.stopReason).toContain('Wait for existing agents');
     });
 
     test('allows foreground spawn even with 6+ active background agents', () => {
@@ -326,7 +326,7 @@ describe('contextGate', () => {
 
       // Assert
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('SOLUTION');
+      expect(result.stopReason).toContain('Too many background agents');
       expect(result.stopReason).toContain('Wait for existing agents');
     });
 
@@ -352,7 +352,7 @@ describe('contextGate', () => {
 
       // Assert - string "true" should be treated as background
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Background Agent Limit');
+      expect(result.stopReason).toContain('Too many background agents');
     });
   });
 
@@ -633,8 +633,8 @@ describe('contextGate', () => {
       const result = contextGate(input);
 
       // Assert
-      expect(result.stopReason).toContain('Maximum allowed');
-      expect(result.stopReason).toContain('SOLUTION');
+      expect(result.stopReason).toContain('Too many background agents');
+      expect(result.stopReason).toContain('Wait for existing agents');
     });
 
     test('warning result has continue: true and systemMessage', () => {

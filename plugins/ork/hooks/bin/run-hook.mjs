@@ -60,6 +60,7 @@ function getBundleName(hookName) {
     'task-completed': 'lifecycle',
     worktree: 'lifecycle',
     notification: 'notification',
+    'permission-denied': 'permission',
     setup: 'setup',
     skill: 'skill',
     agent: 'agent',
@@ -84,6 +85,16 @@ async function loadBundle(hookName) {
  * Normalize hook input to handle CC version differences
  * CC 2.1.19+ uses tool_input, older versions may use toolInput
  */
+/**
+ * Validate that a string looks like a filesystem path, not JSON or garbage.
+ * Rejects strings starting with '{', '[', or containing null bytes.
+ */
+function isValidPath(s) {
+  if (typeof s !== 'string' || s.length === 0) return false;
+  if (s.startsWith('{') || s.startsWith('[') || s.includes('\0')) return false;
+  return true;
+}
+
 function normalizeInput(input) {
   if (!input.tool_input && input.toolInput) {
     input.tool_input = input.toolInput;
@@ -91,10 +102,47 @@ function normalizeInput(input) {
   if (!input.tool_input) {
     input.tool_input = {};
   }
+
+  // CC 2.1.92 fix: streaming could emit array/object tool_input fields as
+  // JSON-encoded strings (e.g. "[1,2]" instead of [1,2]). CC fixed this in
+  // 2.1.92, but we defensively unwrap any string-encoded arrays/objects to
+  // protect hooks on older CC versions or if the bug regresses.
+  // Skip known string fields (command, file_path, content, etc.) to avoid
+  // mangling legitimate string values that happen to look like JSON.
+  const STRING_FIELDS = new Set([
+    'command', 'file_path', 'content', 'old_string', 'new_string',
+    'pattern', 'description', 'prompt', 'skill', 'args', 'path',
+  ]);
+  for (const [key, val] of Object.entries(input.tool_input)) {
+    if (STRING_FIELDS.has(key)) continue;
+    if (typeof val === 'string' && (val.startsWith('[') || val.startsWith('{'))) {
+      try {
+        const parsed = JSON.parse(val);
+        if (typeof parsed === 'object' && parsed !== null) {
+          input.tool_input[key] = parsed;
+        }
+      } catch {
+        // Not valid JSON ��� leave as-is
+      }
+    }
+  }
+
   input.tool_name = input.tool_name || input.toolName || '';
   input.session_id = input.session_id || input.sessionId || process.env.CLAUDE_SESSION_ID || '';
-  input.project_dir = input.project_dir || input.projectDir || process.env.CLAUDE_PROJECT_DIR || '.';
+  // CC sends hook_event_name; OrchestKit types use hook_event
+  input.hook_event = input.hook_event || input.hook_event_name || '';
+  // SubagentStart/SubagentStop send `cwd` instead of `project_dir`
+  // Validate each candidate — reject JSON strings that leak from hook stdout (#1250)
+  const candidates = [input.project_dir, input.projectDir, input.cwd, process.env.CLAUDE_PROJECT_DIR];
+  input.project_dir = candidates.find(isValidPath) || '.';
   input.plugin_root = pluginRoot;
+  // SubagentStart/SubagentStop send `agent_type` at top level (not in tool_input)
+  if (input.agent_type && !input.tool_input.subagent_type) {
+    input.tool_input.subagent_type = input.agent_type;
+  }
+  if (input.agent_id && !input.tool_input.agent_id) {
+    input.tool_input.agent_id = input.agent_id;
+  }
   return input;
 }
 
@@ -451,7 +499,11 @@ async function runHook(parsedInput) {
   let t3 = t2;
 
   try {
-    const result = await hookFn(parsedInput);
+    // Phase 4: Build HookContext from real environment (v7.29.0)
+    // The context object provides env/log dependencies via DI instead of imports.
+    // hooks.buildContext is exported from the lifecycle bundle.
+    const ctx = hooks.buildContext?.() ?? undefined;
+    const result = await hookFn(parsedInput, ctx);
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     console.log(JSON.stringify(result));

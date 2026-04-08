@@ -46,6 +46,22 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+  - design
+keywords:
+  - "api"
+  - "rest"
+  - "graphql"
+  - "microservice"
+  - "endpoint"
+  - "authentication"
+  - "authorization"
+  - "middleware"
+  - "service layer"
+examplePrompts:
+  - "Design a REST API for user management with JWT auth"
+  - "Architect a microservice boundary for the payments domain"
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.

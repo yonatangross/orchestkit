@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -8,34 +9,18 @@ vi.mock('node:fs', () => ({
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), join: vi.fn((...a: string[]) => a.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
-  lineContainsAllCI: (content: string, ...terms: string[]) =>
-    content.split('\n').some(line => {
-      const lower = line.toLowerCase();
-      return terms.every(t => lower.includes(t.toLowerCase()));
-    }),
 }));
 
 import { skillEditTracker } from '../../posttool/skill-edit-tracker.js';
-import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -46,8 +31,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('skillEditTracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     process.env.CLAUDE_HOOK_DEBUG = '1';
     // Default: session state with recent skill
@@ -64,7 +51,7 @@ describe('skillEditTracker', () => {
   });
 
   it('returns silent success for non-Write/Edit tools', () => {
-    const result = skillEditTracker(makeInput({ tool_name: 'Read' }));
+    const result = skillEditTracker(makeInput({ tool_name: 'Read' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -72,21 +59,21 @@ describe('skillEditTracker', () => {
   it('returns silent success when no file path provided', () => {
     const result = skillEditTracker(makeInput({
       tool_input: { content: 'some code' },
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('returns silent success when no recent skill usage', () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ recentSkills: [] }));
-    const result = skillEditTracker(makeInput());
+    const result = skillEditTracker(makeInput(), testCtx);
     expect(result.continue).toBe(true);
   });
 
   it('detects logging patterns in written content', () => {
     skillEditTracker(makeInput({
       tool_input: { file_path: '/test/project/src/app.py', content: 'import logging\nlogger.info("test")' },
-    }));
-    expect(logHook).toHaveBeenCalledWith(
+    }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-edit-tracker',
       expect.stringContaining('add_logging'),
     );
@@ -100,8 +87,8 @@ describe('skillEditTracker', () => {
         old_string: 'doSomething()',
         new_string: 'try { doSomething() } catch (error) { handleError(error) }',
       },
-    }));
-    expect(logHook).toHaveBeenCalledWith(
+    }), testCtx);
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-edit-tracker',
       expect.stringContaining('add_error_handling'),
     );
@@ -113,7 +100,7 @@ describe('skillEditTracker', () => {
         { skillId: 'old-skill', timestamp: Math.floor(Date.now() / 1000) - 600 },
       ],
     }));
-    const result = skillEditTracker(makeInput());
+    const result = skillEditTracker(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

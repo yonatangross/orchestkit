@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come before imports
@@ -30,27 +31,7 @@ vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/git.js', () => ({
   getRepoRoot: vi.fn(() => '/test/project'),
@@ -58,6 +39,7 @@ vi.mock('../../lib/git.js', () => ({
 
 import { crossInstanceTestValidator } from '../../skill/cross-instance-test-validator.js';
 import { outputSilentSuccess, outputBlock, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -84,8 +66,10 @@ function createFileInput(
 // Cross-Instance Test Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('cross-instance-test-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -106,7 +90,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -122,7 +106,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -137,7 +121,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -150,7 +134,7 @@ describe('cross-instance-test-validator', () => {
       const input = createFileInput('/test/project/src/utils.ts', 'export const x = 1;');
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -178,7 +162,7 @@ describe('cross-instance-test-validator', () => {
       const input = createFileInput(`/test/project/src/${filename}`, 'test code');
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -203,7 +187,7 @@ describe('cross-instance-test-validator', () => {
       const input = createFileInput(`/test/project/${filename}`, 'content');
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -227,7 +211,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -245,7 +229,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -263,7 +247,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -281,7 +265,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -299,7 +283,7 @@ describe('cross-instance-test-validator', () => {
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -322,7 +306,7 @@ describe('cross-instance-test-validator', () => {
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - the hook blocks when no test file found
       expect(result.continue).toBe(false);
@@ -340,7 +324,7 @@ export const constThree = 1;
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - blocks when testable units found without test file
       expect(result.continue).toBe(false);
@@ -357,7 +341,7 @@ export function myFunc() {} // duplicate
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - blocks and reports missing test
       expect(result.continue).toBe(false);
@@ -379,7 +363,7 @@ export function myFunc() {} // duplicate
       const input = createFileInput('/test/project/app/utils.py', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - blocks when no test file found
       expect(result.continue).toBe(false);
@@ -395,7 +379,7 @@ export function myFunc() {} // duplicate
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - __init__ is not considered a public testable unit
       // The hook may or may not extract it based on implementation
@@ -418,7 +402,7 @@ def func_three():
       const input = createFileInput('/test/project/app/utils.py', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert - blocks when testable units found without test file
       expect(result.continue).toBe(false);
@@ -443,7 +427,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -464,7 +448,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -484,7 +468,7 @@ def func_three():
       );
 
       // Act
-      const _result = crossInstanceTestValidator(input);
+      const _result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -503,7 +487,7 @@ def func_three():
       const input = createFileInput('', 'export function test() {}');
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -514,7 +498,7 @@ def func_three():
       const input = createFileInput('/test/project/src/utils.ts', '');
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -528,7 +512,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -545,7 +529,7 @@ def func_three():
       } as any;
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -565,7 +549,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -583,7 +567,7 @@ def func_three():
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       // Should not throw due to regex special chars
@@ -605,7 +589,7 @@ export function func7() {}
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.stopReason).not.toContain('func6');
@@ -627,7 +611,7 @@ export function func7() {}
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Missing test coverage');
@@ -642,7 +626,7 @@ export function func7() {}
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -662,7 +646,7 @@ export function func3() {}
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -690,7 +674,7 @@ export function newFunc2() {}
       );
 
       // Act
-      crossInstanceTestValidator(input);
+      crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -708,7 +692,7 @@ export function newFunc2() {}
       );
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -726,7 +710,7 @@ export function newFunc2() {}
       );
 
       // Act
-      crossInstanceTestValidator(input);
+      crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -749,7 +733,7 @@ export function newFunc2() {}
       };
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -764,7 +748,7 @@ export function newFunc2() {}
       };
 
       // Act
-      const result = crossInstanceTestValidator(input);
+      const result = crossInstanceTestValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

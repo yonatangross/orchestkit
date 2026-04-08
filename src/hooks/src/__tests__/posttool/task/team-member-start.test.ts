@@ -14,20 +14,10 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../../lib/event-logger.js', () => ({
   appendEventLog: vi.fn(),
@@ -36,6 +26,7 @@ vi.mock('../../../lib/event-logger.js', () => ({
 import { teamMemberStart } from '../../../posttool/task/team-member-start.js';
 import { appendEventLog } from '../../../lib/event-logger.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -58,8 +49,10 @@ function createTaskInput(toolInputOverrides: Record<string, unknown> = {}, overr
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('team-member-start', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -69,7 +62,7 @@ describe('team-member-start', () => {
       const input = createTaskInput();
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -86,7 +79,7 @@ describe('team-member-start', () => {
       };
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -106,7 +99,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -127,7 +120,7 @@ describe('team-member-start', () => {
       const input = createTaskInput({ team_name: 'my-team', name: 'worker' });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -146,7 +139,7 @@ describe('team-member-start', () => {
       );
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -165,7 +158,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      const result = teamMemberStart(input);
+      const result = teamMemberStart(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -180,7 +173,7 @@ describe('team-member-start', () => {
       const input = createTaskInput({ team_name: 'my-team' });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -198,7 +191,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -215,7 +208,7 @@ describe('team-member-start', () => {
       });
 
       // Act
-      teamMemberStart(input);
+      teamMemberStart(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(

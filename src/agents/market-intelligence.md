@@ -35,11 +35,32 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
+taskTypes:
+  - research
+keywords:
+  - "competitor"
+  - "market research"
+  - "tam"
+  - "sam"
+  - "som"
+  - "competitive landscape"
+examplePrompts:
+  - "Analyze the competitive landscape for AI code assistants"
+  - "Size the TAM/SAM/SOM for the developer tools market"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
 
 When `TAVILY_API_KEY` is available, use Tavily search with `"topic": "finance"` for market and financial research, Tavily crawl for full competitor site extraction, and Tavily research (beta) for deep multi-source market analysis with citations. Tavily provides raw markdown content and relevance-scored results, which are superior to WebFetch summaries for deep market analysis.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Persist market intelligence across sessions

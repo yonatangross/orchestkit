@@ -7,14 +7,15 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { basename } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Validate alembic migration files
  */
-export function migrationValidator(input: HookInput): HookResult {
+export function migrationValidator(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input?.file_path || process.env.CC_TOOL_FILE_PATH || '';
 
   if (!filePath) return outputSilentSuccess();
@@ -73,7 +74,7 @@ export function migrationValidator(input: HookInput): HookResult {
     }
     process.stderr.write('::endgroup::\n');
 
-    logHook('migration-validator', `BLOCKED: ${errors[0]}`);
+    hookCtx.log('migration-validator', `BLOCKED: ${errors[0]}`);
     const ctx = `Migration validation failed for ${filePath}. See stderr for details.`;
     return outputWithContext(ctx);
   }

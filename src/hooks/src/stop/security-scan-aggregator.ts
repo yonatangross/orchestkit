@@ -7,8 +7,9 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { execFileSync, execSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface SecurityResults {
   npmAudit: { critical: number; high: number } | null;
@@ -304,10 +305,10 @@ const SCAN_TIMEOUT_MS = 45_000;
  * dispatcher timeout. Fixed by running all 4 in parallel via Promise.all, each
  * guarded by a 45s per-scan timeout. Partial results are reported gracefully.
  */
-export async function securityScanAggregator(input: HookInput): Promise<HookResult> {
-  logHook('security-scan', '=== Security Scan Started (parallel mode) ===');
+export async function securityScanAggregator(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
+  ctx.log('security-scan', '=== Security Scan Started (parallel mode) ===');
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx.projectDir);
   const resultsDir = `${projectDir}/.claude/hooks/logs/security`;
 
   mkdirSync(resultsDir, { recursive: true });

@@ -12,6 +12,7 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../types.js';
+import { createTestContext } from './fixtures/test-context.js';
 
 // Security registry
 import { SECURITY_HOOKS, isSecurityCritical, getSecurityHooks, assertCanToggle } from '../lib/security-hooks-registry.js';
@@ -788,8 +789,10 @@ describe('redactSecrets', () => {
 describe('gitValidator', () => {
   const originalEnv = process.env;
 
+  // Helper: create ctx with branch for DI-based gitValidator
+  const ctxWithBranch = (branch: string) => createTestContext({ branch });
+
   beforeEach(() => {
-    // Set branch via env for getCachedBranch()
     process.env = { ...originalEnv };
   });
 
@@ -799,33 +802,26 @@ describe('gitValidator', () => {
 
   describe('non-git commands passthrough', () => {
     test('returns silent success for non-git commands', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('npm test'));
+      const result = gitValidator(createBashInput('npm test'), ctxWithBranch('feature/test'));
       expectSilentSuccess(result);
     });
 
     test('returns silent success for empty command', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput(''));
+      const result = gitValidator(createBashInput(''), ctxWithBranch('feature/test'));
       expectSilentSuccess(result);
     });
 
     test('returns silent success for commands that start with git-like prefix but are not git', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      // 'github-pages' does not startsWith 'git' -> wait, it does start with 'git'
-      // Actually 'github-pages' starts with 'git' substring, let's test ls
-      const result = gitValidator(createBashInput('ls -la'));
+      const result = gitValidator(createBashInput('ls -la'), ctxWithBranch('feature/test'));
       expectSilentSuccess(result);
     });
   });
 
   describe('branch protection - blocks on protected branches', () => {
-    // Default protected: main, master. 'dev' requires ORCHESTKIT_PROTECTED_BRANCHES=main,master,dev
     test.each(['main', 'master'])(
       'blocks git commit on protected branch: %s',
       (branch) => {
-        process.env.ORCHESTKIT_BRANCH = branch;
-        const result = gitValidator(createBashInput('git commit -m "test"'));
+        const result = gitValidator(createBashInput('git commit -m "test"'), ctxWithBranch(branch));
         expectDeny(result);
         expect(result.stopReason).toContain(branch);
         expect(result.stopReason).toContain('Cannot commit or push');
@@ -834,8 +830,7 @@ describe('gitValidator', () => {
 
     test('blocks git commit on dev when ORCHESTKIT_PROTECTED_BRANCHES includes dev', () => {
       process.env.ORCHESTKIT_PROTECTED_BRANCHES = 'main,master,dev';
-      process.env.ORCHESTKIT_BRANCH = 'dev';
-      const result = gitValidator(createBashInput('git commit -m "test"'));
+      const result = gitValidator(createBashInput('git commit -m "test"'), ctxWithBranch('dev'));
       expectDeny(result);
       expect(result.stopReason).toContain('dev');
       delete process.env.ORCHESTKIT_PROTECTED_BRANCHES;
@@ -844,47 +839,41 @@ describe('gitValidator', () => {
     test.each(['main', 'master'])(
       'blocks git push on protected branch: %s',
       (branch) => {
-        process.env.ORCHESTKIT_BRANCH = branch;
-        const result = gitValidator(createBashInput('git push origin main'));
+        const result = gitValidator(createBashInput('git push origin main'), ctxWithBranch(branch));
         expectDeny(result);
         expect(result.stopReason).toContain('Cannot commit or push');
       }
     );
 
     test('allows git commit on feature branch', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/my-feature';
-      const result = gitValidator(createBashInput('git commit -m "feat: add feature"'));
-      // Should not be blocked by branch protection
+      const result = gitValidator(createBashInput('git commit -m "feat: add feature"'), ctxWithBranch('feature/my-feature'));
       expect(result.continue).toBe(true);
     });
 
     test('allows git push on feature branch', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/my-feature';
-      const result = gitValidator(createBashInput('git push origin feature/my-feature'));
+      const result = gitValidator(createBashInput('git push origin feature/my-feature'), ctxWithBranch('feature/my-feature'));
       expect(result.continue).toBe(true);
     });
   });
 
   describe('branch protection - advisory context on protected branches', () => {
     test('provides context for non-commit git commands on protected branches', () => {
-      process.env.ORCHESTKIT_BRANCH = 'main';
-      const result = gitValidator(createBashInput('git status'));
-      // git status on main is allowed but with context
+      const result = gitValidator(createBashInput('git status'), ctxWithBranch('main'));
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('protected branch');
     });
   });
 
   describe('commit message validation', () => {
+    const featureCtx = ctxWithBranch('feature/test');
+
     test('allows valid conventional commit format', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit -m "feat(#123): Add new feature"'));
+      const result = gitValidator(createBashInput('git commit -m "feat(#123): Add new feature"'), featureCtx);
       expect(result.continue).toBe(true);
     });
 
     test('allows simple conventional format without scope', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit -m "fix: resolve crash on startup"'));
+      const result = gitValidator(createBashInput('git commit -m "fix: resolve crash on startup"'), featureCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -892,58 +881,49 @@ describe('gitValidator', () => {
       'feat', 'fix', 'refactor', 'docs', 'test', 'chore',
       'style', 'perf', 'ci', 'build',
     ])('accepts commit type: %s', (type) => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput(`git commit -m "${type}: some description"`));
+      const result = gitValidator(createBashInput(`git commit -m "${type}: some description"`), featureCtx);
       expect(result.continue).toBe(true);
     });
 
     test('blocks commit with invalid format', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit -m "just a random message"'));
+      const result = gitValidator(createBashInput('git commit -m "just a random message"'), featureCtx);
       expectDeny(result);
       expect(result.stopReason).toContain('INVALID COMMIT FORMAT');
     });
 
     test('blocks commit without type prefix', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit -m "updated the readme"'));
+      const result = gitValidator(createBashInput('git commit -m "updated the readme"'), featureCtx);
       expectDeny(result);
     });
 
     test('provides advisory for heredoc commits', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit -m "$(cat <<\'EOF\'\nfeat: something\nEOF\n)"'));
+      const result = gitValidator(createBashInput('git commit -m "$(cat <<\'EOF\'\nfeat: something\nEOF\n)"'), featureCtx);
       expect(result.continue).toBe(true);
-      // Should provide advisory context about heredoc format
     });
 
     test('provides advisory for commit without -m flag (interactive)', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git commit'));
+      const result = gitValidator(createBashInput('git commit'), featureCtx);
       expect(result.continue).toBe(true);
     });
 
     test('warns on long commit title', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const longTitle = `feat: ${'a'.repeat(70)}`; // 76 chars total, over 72
-      const result = gitValidator(createBashInput(`git commit -m "${longTitle}"`));
+      const longTitle = `feat: ${'a'.repeat(70)}`;
+      const result = gitValidator(createBashInput(`git commit -m "${longTitle}"`), featureCtx);
       expect(result.continue).toBe(true);
-      // Should contain advisory about length
     });
   });
 
   describe('branch naming validation', () => {
+    const mainCtx = ctxWithBranch('main');
+
     test('allows checkout -b with valid prefix', () => {
-      process.env.ORCHESTKIT_BRANCH = 'main';
-      const result = gitValidator(createBashInput('git checkout -b feature/new-feature'));
+      const result = gitValidator(createBashInput('git checkout -b feature/new-feature'), mainCtx);
       expect(result.continue).toBe(true);
     });
 
     test('provides advisory for invalid branch name prefix', () => {
-      process.env.ORCHESTKIT_BRANCH = 'main';
-      const result = gitValidator(createBashInput('git checkout -b random-branch-name'));
+      const result = gitValidator(createBashInput('git checkout -b random-branch-name'), mainCtx);
       expect(result.continue).toBe(true);
-      // Should include advisory context about naming
     });
 
     test.each([
@@ -957,28 +937,26 @@ describe('gitValidator', () => {
       'ci/update-workflow',
       'perf/optimize-queries',
     ])('accepts branch name: %s', (branchName) => {
-      process.env.ORCHESTKIT_BRANCH = 'main';
-      const result = gitValidator(createBashInput(`git checkout -b ${branchName}`));
+      const result = gitValidator(createBashInput(`git checkout -b ${branchName}`), mainCtx);
       expect(result.continue).toBe(true);
     });
   });
 
   describe('non-blocking git read commands on feature branches', () => {
+    const featureCtx = ctxWithBranch('feature/test');
+
     test('allows git status on feature branch silently', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git status'));
+      const result = gitValidator(createBashInput('git status'), featureCtx);
       expectSilentSuccess(result);
     });
 
     test('allows git log on feature branch silently', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git log --oneline'));
+      const result = gitValidator(createBashInput('git log --oneline'), featureCtx);
       expectSilentSuccess(result);
     });
 
     test('allows git diff on feature branch silently', () => {
-      process.env.ORCHESTKIT_BRANCH = 'feature/test';
-      const result = gitValidator(createBashInput('git diff'));
+      const result = gitValidator(createBashInput('git diff'), featureCtx);
       expectSilentSuccess(result);
     });
   });

@@ -43,6 +43,21 @@ hooks:
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending performance tasks. Profile current application hotspots and identify optimization targets."
+taskTypes:
+  - optimize
+  - debug
+keywords:
+  - "performance"
+  - "profiling"
+  - "memory leak"
+  - "slow query"
+  - "bottleneck"
+  - "benchmark"
+  - "cprofile"
+  - "n+1"
+examplePrompts:
+  - "Profile and fix the N+1 query problem in the user dashboard"
+  - "Optimize memory usage in the batch processing pipeline"
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.
@@ -51,10 +66,11 @@ Consult project memory for past decisions and patterns before starting. Persist 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for profiling tools, async patterns

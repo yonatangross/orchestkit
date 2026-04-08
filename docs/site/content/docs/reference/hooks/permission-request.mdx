@@ -1,13 +1,15 @@
 ---
 title: "PermissionRequest"
-description: "Hooks triggered on PermissionRequest events (2 hooks)."
+description: "Hooks triggered on PermissionRequest events (4 hooks)."
 ---
 
 # PermissionRequest Hooks
 
-**2 hooks** registered for the `PermissionRequest` lifecycle event.
+**4 hooks** registered for the `PermissionRequest` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `Bash` | 🔇 Silent | Consolidates 2 PermissionRequest hooks for Bash into a single process spawn. |
+| `webhook-forwarder` | `Bash` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `auto-approve-project-writes` | `Write\|Edit` | 🔇 Silent | Auto-approves writes within project directory |
+| `webhook-forwarder` | `Write\|Edit` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

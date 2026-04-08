@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock all 6 handlers so dispatcher logic is tested in isolation
 const mockTokenBudget = vi.fn();
@@ -40,16 +41,10 @@ vi.mock('../../instructions-loaded/smart-suggestions.js', () => ({
   smartRuleSuggestions: (...args: unknown[]) => mockSmartSuggestions(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
-  outputPromptContext: (ctx: string) =>
-    ctx?.trim()
-      ? { continue: true, suppressOutput: true, hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } }
-      : { continue: true, suppressOutput: true },
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { instructionsLoadedDispatcher } from '../../instructions-loaded/instructions-loaded-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(filesLoaded?: unknown): HookInput {
   return {
@@ -61,7 +56,9 @@ function makeInput(filesLoaded?: unknown): HookInput {
   } as unknown as HookInput;
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: all handlers return null (silent)
   mockTokenBudget.mockReturnValue(null);
@@ -75,25 +72,25 @@ beforeEach(() => {
 describe('instructionsLoadedDispatcher', () => {
   describe('early exit — no files', () => {
     test('returns silent success when files_loaded is absent', () => {
-      const result = instructionsLoadedDispatcher(makeInput(undefined));
+      const result = instructionsLoadedDispatcher(makeInput(undefined), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent success when files_loaded is an empty array', () => {
-      const result = instructionsLoadedDispatcher(makeInput([]));
+      const result = instructionsLoadedDispatcher(makeInput([]), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('returns silent success when files_loaded is not an array', () => {
-      const result = instructionsLoadedDispatcher(makeInput('not-an-array'));
+      const result = instructionsLoadedDispatcher(makeInput('not-an-array'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('filters out invalid elements from files_loaded', () => {
-      const result = instructionsLoadedDispatcher(makeInput([null, undefined, 123, 'string']));
+      const result = instructionsLoadedDispatcher(makeInput([null, undefined, 123, 'string']), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       // No valid LoadedFile elements -> no handlers called
@@ -101,7 +98,7 @@ describe('instructionsLoadedDispatcher', () => {
     });
 
     test('does not invoke any handler when files_loaded is empty', () => {
-      instructionsLoadedDispatcher(makeInput([]));
+      instructionsLoadedDispatcher(makeInput([]), testCtx);
       expect(mockTokenBudget).not.toHaveBeenCalled();
       expect(mockPriorityMap).not.toHaveBeenCalled();
     });
@@ -110,14 +107,14 @@ describe('instructionsLoadedDispatcher', () => {
   describe('all handlers silent', () => {
     test('returns silent success when all 6 handlers return null', () => {
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
-      const result = instructionsLoadedDispatcher(input);
+      const result = instructionsLoadedDispatcher(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     test('calls all 6 handlers exactly once', () => {
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 500 }]);
-      instructionsLoadedDispatcher(input);
+      instructionsLoadedDispatcher(input, testCtx);
       expect(mockTokenBudget).toHaveBeenCalledOnce();
       expect(mockPriorityMap).toHaveBeenCalledOnce();
       expect(mockDriftDetection).toHaveBeenCalledOnce();
@@ -131,7 +128,7 @@ describe('instructionsLoadedDispatcher', () => {
         { path: '/project/CLAUDE.md', byte_size: 1000 },
         { path: '/project/.claude/rules/a.md', byte_size: 500 },
       ];
-      instructionsLoadedDispatcher(makeInput(files));
+      instructionsLoadedDispatcher(makeInput(files), testCtx);
       // First arg is files, second is Map<string, string>
       expect(mockTokenBudget).toHaveBeenCalledWith(files, expect.any(Map));
       expect(mockDriftDetection).toHaveBeenCalledWith(files, expect.any(Map));
@@ -146,7 +143,7 @@ describe('instructionsLoadedDispatcher', () => {
     test('returns prompt context with additionalContext when one handler produces output', () => {
       mockTokenBudget.mockReturnValue('[Instruction Budget] 5000 tokens');
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 20_000 }]);
-      const result = instructionsLoadedDispatcher(input);
+      const result = instructionsLoadedDispatcher(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toBe('[Instruction Budget] 5000 tokens');
     });
@@ -155,7 +152,7 @@ describe('instructionsLoadedDispatcher', () => {
       mockTokenBudget.mockReturnValue('Budget output');
       mockPriorityMap.mockReturnValue('Priority output');
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 20_000 }]);
-      const result = instructionsLoadedDispatcher(input);
+      const result = instructionsLoadedDispatcher(input, testCtx);
       const context = result.hookSpecificOutput?.additionalContext;
       expect(context).toContain('Budget output');
       expect(context).toContain('Priority output');
@@ -166,7 +163,7 @@ describe('instructionsLoadedDispatcher', () => {
       mockTokenBudget.mockReturnValue('Budget output');
       // All others null
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 20_000 }]);
-      const result = instructionsLoadedDispatcher(input);
+      const result = instructionsLoadedDispatcher(input, testCtx);
       const context = result.hookSpecificOutput?.additionalContext;
       expect(context).toBe('Budget output');
     });
@@ -178,7 +175,7 @@ describe('instructionsLoadedDispatcher', () => {
       mockSmartSuggestions.mockReturnValue('Smart suggestion output');
 
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
-      const result = instructionsLoadedDispatcher(input);
+      const result = instructionsLoadedDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       const context = result.hookSpecificOutput?.additionalContext;
@@ -195,8 +192,8 @@ describe('instructionsLoadedDispatcher', () => {
       mockSmartSuggestions.mockImplementation(boom);
 
       const input = makeInput([{ path: '/project/CLAUDE.md', byte_size: 1000 }]);
-      expect(() => instructionsLoadedDispatcher(input)).not.toThrow();
-      const result = instructionsLoadedDispatcher(input);
+      expect(() => instructionsLoadedDispatcher(input, testCtx)).not.toThrow();
+      const result = instructionsLoadedDispatcher(input, testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });

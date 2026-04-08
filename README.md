@@ -5,18 +5,20 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->100<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->110<!--/ork--> hooks**
+**<!--ork:skills-->103<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->169<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.86-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.94-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
+[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
 
 </div>
 
 ---
 
 <p align="center">
-  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a><br>
+  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a> ·
+  <a href="https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2"><strong>OrchestKit Users Group →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
@@ -60,9 +62,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->100<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->103<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->110<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:hooks-->169<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -179,25 +181,38 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v7.25.0** — /ork:expect + CC 2.1.85
+**v7.30.0** — CC 2.1.94 Integration + Skill Hook Unlock
 
-- **`/ork:expect`** — Diff-aware AI browser testing (M99, 18 issues): 6-phase pipeline, fingerprint gating, ARIA snapshot diffing, saved flows, CI integration
-- **`expect-agent`** — Specialized browser test execution subagent (36th agent)
-- **CC 2.1.85 integration** — Hook `if` conditionals (~40% fewer process spawns), headless AskUserQuestion for CI
-- **100 skills**, **36 agents**, **110 hooks**, **21 invocable commands**
+- **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
+- **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
+- **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
+- **103 skills**, **36 agents**, **169 hooks**, **23 invocable commands**
 
-**v7.24.2** — fal.ai MCP + Model Pricing
+**v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 
-- **fal.ai MCP integration** — 1000+ generative models (FLUX.2, Kling 3.0, Veo 3.1)
-- **Video model pricing refresh** — updated stale pricing across multimodal-llm skill
+- **shadcn/ui v4 styles** — 6 styles across 7 design skills
+- **CC 2.1.90 integration** — format-on-save, offline resilience, `/powerup` onboarding
 
 [Full Changelog →](https://orchestkit.vercel.app/docs/changelog)
 
 ---
 
+## Community
+
+Join the **Code with Yonatan** community for AI dev tips, OrchestKit support, and connecting with other builders:
+
+| Group | Link |
+|-------|------|
+| **Community** (all channels) | [Join on WhatsApp](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk) |
+| **AI Dev (EN)** | [English Group](https://chat.whatsapp.com/CFAQoyGl2rp4P3JHcwC9Uu) |
+| **יש לך AI?** | [Hebrew Group](https://chat.whatsapp.com/BC4QoLEUNR76ygZwyrgZZT) |
+| **OrchestKit Users** | [Support & Showcase](https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2) |
+
+---
+
 <div align="center">
 
-**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
+**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

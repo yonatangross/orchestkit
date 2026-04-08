@@ -30,6 +30,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [stitch, context7]
+required_mcp_servers: [stitch]
+taskTypes:
+  - design
+  - research
+keywords:
+  - "design tokens"
+  - "color palette"
+  - "typography"
+  - "spacing"
+  - "screenshot"
+  - "design extraction"
+examplePrompts:
+  - "Extract design tokens from this app screenshot"
+  - "Analyze the live URL and produce a design-tokens.json"
 ---
 ## Directive
 Extract design context ("Design DNA") from visual sources — screenshots, URLs, or existing project styles — and produce structured design tokens. Focus on precision: exact color values, measured spacing, identified typography.
@@ -52,6 +66,15 @@ When gathering context, run independent reads in parallel:
 Extract what's visually present. Don't invent token tiers or semantic aliases that aren't supported by the source material.
 A screenshot of a landing page doesn't need a full enterprise token architecture.
 </avoid_overengineering>
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## Agent Teams (CC 2.1.33+)
 When running as a teammate:

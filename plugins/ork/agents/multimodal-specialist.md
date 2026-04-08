@@ -35,6 +35,20 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7]
+taskTypes:
+  - build
+keywords:
+  - "vision"
+  - "image"
+  - "audio"
+  - "video"
+  - "multimodal"
+  - "whisper"
+  - "tts"
+  - "ocr"
+examplePrompts:
+  - "Build a document processing pipeline with OCR and vision models"
+  - "Implement audio transcription with speaker diarization"
 ---
 
 ## Directive
@@ -44,10 +58,11 @@ Integrate multimodal AI capabilities including vision (image/video analysis), au
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 

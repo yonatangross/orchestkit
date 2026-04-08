@@ -8,26 +8,17 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { testPatternValidator } from '../../skill/test-pattern-validator.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -58,9 +49,12 @@ function createWriteInput(
 function createValidTestContent(): string {
   return `
 import { describe, test, expect } from 'vitest';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('MyComponent', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     // Reset state
   });
 
@@ -82,8 +76,10 @@ describe('MyComponent', () => {
 // Test Pattern Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('test-pattern-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -849,10 +845,10 @@ async def test_async_user():
       );
 
       // Act
-      testPatternValidator(input);
+      testPatternValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'test-pattern-validator',
         expect.stringContaining('BLOCKED'),
       );

@@ -21,6 +21,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/metrics/**", "**/tracing/**", "prometheus.*", "grafana/**"]
 ---
 
 # Monitoring & Observability

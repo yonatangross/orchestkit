@@ -4,18 +4,16 @@
  * CC 2.1.9 Enhanced: Injects architectural guidelines as additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
   outputWarning,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { guardPathPattern, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Architectural layer definitions
@@ -72,9 +70,9 @@ function loadPatternHints(layer: ArchLayer, projectDir: string): string {
 /**
  * Detect architectural changes and inject context
  */
-export function architectureChangeDetector(input: HookInput): HookResult {
+export function architectureChangeDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   if (!filePath) {
     return outputSilentSuccess();
@@ -114,8 +112,8 @@ export function architectureChangeDetector(input: HookInput): HookResult {
     archContext = `Modifying ${archLayer}. Ensure: no breaking API changes, maintain layer boundaries${patternHints}`;
   }
 
-  logPermissionFeedback('allow', `Architectural change: ${filePath} (${archLayer})`, input);
-  logHook('architecture-change-detector', `ARCH_DETECT: ${filePath} (layer=${archLayer})`);
+  ctx.logPermission('allow', `Architectural change: ${filePath} (${archLayer})`, input);
+  ctx.log('architecture-change-detector', `ARCH_DETECT: ${filePath} (layer=${archLayer})`);
 
   // CC 2.1.9: Inject context
   // In dontAsk mode, show visible warning instead of silent context

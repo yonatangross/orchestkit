@@ -66,7 +66,17 @@ targets:                 # Library version ranges — warns on mismatch (CC 2.1.
 paths:                   # YAML list of globs — auto-loaded when skill activates (CC 2.1.84+)
   - "src/**/*.{ts,tsx}"
   - "package.json"
+path_patterns:           # Globs for file-aware skill suggestions in CwdChanged (CC 2.1.89+)
+  - "*.py"               # Matches files at project root or 1 level deep
+  - "**/migrations/**"   # Matches nested directory names (2-level scan)
+keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
+                                 # preserves Claude's coding instructions when the
+                                 # skill changes output voice/format. Omit (false)
+                                 # when you want the output style to fully replace
+                                 # the default coding guidance.
 ```
+
+**`keep-coding-instructions` (CC 2.1.94+)** is only meaningful for skills that ship as **plugin output styles** — skills that change how Claude speaks (tone, verbosity, persona). It has no effect on workflow or reference skills. Use `true` when the output style is a layer on top of coding (e.g., "explain every change in plain English" — Claude should still know how to code). Use `false` (or omit) when the output style is a full replacement (e.g., a creative-writing skill where code generation doesn't apply).
 
 **Model invocation guide:**
 - `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
@@ -85,6 +95,22 @@ hooks:
 ```
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
+> **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating 20 context loaders across 15 OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
+>
+> **Handler requirement**: Every `skill/<name>` reference must be registered in `src/hooks/src/entries/skill.ts`. The test `src/__tests__/skill-frontmatter-hooks-invariant.test.ts` enforces this — any dangling reference will fail CI.
+
+### Invocation Hooks (CC 2.1.89+)
+
+Shell commands that run when a skill activates — before the skill body is loaded. Use for precondition checks and setup:
+
+```yaml
+invocation_hooks:
+  - "command -v vitest >/dev/null || npm install -D vitest"   # install if missing
+  - "test -f playwright.config.ts || echo 'Warning: no Playwright config'"
+```
+
+Keep commands fast (<2s) and idempotent. They run in the user's shell, not in a sandbox.
 
 ### Structure Pattern
 
@@ -557,6 +583,119 @@ npm run eval:trigger -- --reps 3         # override repetitions (default: 5)
 npm run eval:trigger -- --dry-run        # validate YAML only, no Claude calls
 ```
 
+## Task Management in Multi-Phase Skills (CC 2.1.16)
+
+Skills with 3+ sequential phases must include a **Task Management** section with the full lifecycle pattern. This gives users spinner feedback, enables dependency tracking, and coordinates multi-agent work.
+
+### When to Add Task Management
+
+| Skill Type | Task Management Required? |
+|------------|--------------------------|
+| Workflow skills (implement, verify, review-pr) | **Yes** — multi-phase with agent coordination |
+| Knowledge/reference skills (api-design, testing-unit) | **No** — single-pass, no phases |
+| Utility skills (commit, help) | **No** — trivial, <3 steps |
+
+### Required Pattern
+
+Every task-enabled skill needs these 5 elements in a code block:
+
+```python
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+# 1. Create main task with activeForm for spinner UX
+TaskCreate(
+  subject="{SkillName}: {target}",
+  description="What this skill does for {target}",
+  activeForm="{Doing the thing} {target}"
+)
+
+# 2. Create subtasks matching actual workflow phases
+TaskCreate(subject="Phase 1 name", activeForm="Doing phase 1")  # id=2
+TaskCreate(subject="Phase 2 name", activeForm="Doing phase 2")  # id=3
+TaskCreate(subject="Phase 3 name", activeForm="Doing phase 3")  # id=4
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+### Key Rules
+
+- **`activeForm` is required** on every `TaskCreate` — it powers the spinner text users see
+- **`addBlockedBy`** for sequential phases — prevents starting work before dependencies complete
+- **`TaskGet` before starting** — validate blockedBy is empty (catches stale state)
+- **Never skip `in_progress`** — the transition must be `pending` → `in_progress` → `completed`
+- **Fan-in for parallel phases** — if phases 3, 4, 5 run in parallel and phase 6 needs all of them: `TaskUpdate(taskId="7", addBlockedBy=["4", "5", "6"])`
+
+### Reference
+
+See `task-dependency-patterns` skill for the complete pattern library: dependency chains, fan-out/fan-in, agent team coordination, context exhaustion handling.
+
+## Agent Coordination Patterns (CC 2.1.33+)
+
+Skills that spawn Agent subagents should include these coordination patterns. This ensures agents don't work in silos and users see progress.
+
+### Context Passing (Required for agent-spawning skills)
+
+Every Agent prompt must include project context, not just "do X":
+
+```python
+Agent(
+  subagent_type="backend-system-architect",
+  prompt=f"""Design backend for: {feature}
+Changed files: {changed_files}
+Project conventions: {conventions_from_memory}
+Constraints: {constraints}
+Prior decisions: {decisions_from_earlier_phases}""",
+  run_in_background=True
+)
+```
+
+### SendMessage for Active Coordination
+
+When agents need to share findings mid-flight, use `SendMessage`:
+
+```python
+# Agent A finds something Agent B needs
+SendMessage(to="security-auditor", message="Found SQL injection in auth.ts:42 — prioritize this")
+
+# Agent B requests clarification
+SendMessage(to="backend-architect", message="What ORM pattern are you using? Affects my schema review.")
+```
+
+Use for: evidence sharing, dynamic work distribution, conflict resolution between agents.
+
+### Agent Teams Alternative (complexity > 3.0)
+
+For complex skills where agents benefit from debate/cross-pollination, offer a mesh topology:
+
+```python
+# In SKILL.md — offer as alternative to star topology
+# Load Agent Teams config: Read("${CLAUDE_SKILL_DIR}/references/agent-teams-mode.md")
+```
+
+Decision guidance:
+- **Star (Task tool)**: Independent tasks, cost-sensitive, < 3 agents
+- **Mesh (Agent Teams)**: Cross-cutting concerns, agents need to talk, 3+ agents
+
+### Skill Chain Dependencies
+
+When a skill references another `/ork:` skill, create a task dependency:
+
+```python
+# After /ork:implement completes, chain to verify
+TaskCreate(subject="Verify implementation", activeForm="Verifying changes")
+TaskUpdate(taskId="verify-task", addBlockedBy=["implement-task"])
+# Then invoke /ork:verify
+```
+
 ## Checklist
 
 Before submitting a skill change:
@@ -572,6 +711,7 @@ Before submitting a skill change:
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
+- [ ] **Multi-phase skills (3+ phases) include Task Management section with full lifecycle**
 - [ ] User-invocable skills have eval YAML in `tests/evals/skills/`
 - [ ] Eval YAML has 5+ trigger entries (3+ true, 2+ false) and 1+ quality entry
 - [ ] Eval includes near-miss negatives and cross-skill confusion tests

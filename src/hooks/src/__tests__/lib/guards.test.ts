@@ -8,14 +8,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/tmp/fake-project'),
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({
-    exit_code: 0,
-    suppressOutput: true,
-  })),
 }));
 vi.mock('../../lib/agent-teams.js', () => ({
   isAgentTeamsActive: vi.fn(() => false),
@@ -38,6 +34,7 @@ import {
   guardMultiInstance,
   runGuards,
   isDontAskMode,
+  isAutoMode,
 } from '../../lib/guards.js';
 import type { GuardResult } from '../../lib/guards.js';
 import type { HookInput } from '../../types.js';
@@ -434,11 +431,29 @@ describe('isDontAskMode', () => {
     expect(isDontAskMode(makeInput({ permissionMode: 'dontAsk' }))).toBe(true);
   });
 
+  it('returns true for auto mode (CC 2.1.88)', () => {
+    expect(isDontAskMode(makeInput({ permissionMode: 'auto' }))).toBe(true);
+  });
+
   it('returns false for default mode', () => {
     expect(isDontAskMode(makeInput({ permissionMode: 'default' }))).toBe(false);
   });
 
   it('returns false when permissionMode is undefined', () => {
     expect(isDontAskMode(makeInput())).toBe(false);
+  });
+});
+
+describe('isAutoMode', () => {
+  it('returns true for auto mode', () => {
+    expect(isAutoMode(makeInput({ permissionMode: 'auto' }))).toBe(true);
+  });
+
+  it('returns false for dontAsk mode', () => {
+    expect(isAutoMode(makeInput({ permissionMode: 'dontAsk' }))).toBe(false);
+  });
+
+  it('returns false for default mode', () => {
+    expect(isAutoMode(makeInput({ permissionMode: 'default' }))).toBe(false);
   });
 });

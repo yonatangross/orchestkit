@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { LoadedFile, DriftCache } from '../../instructions-loaded/types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // --- Mocks (must precede imports) ---
 
@@ -43,7 +44,7 @@ const { fnv1aHash: realFnv1aHash } = vi.hoisted(() => {
   return { fnv1aHash };
 });
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: (...args: unknown[]) => mockLogHook(...args),
   fnv1aHash: realFnv1aHash,
 }));

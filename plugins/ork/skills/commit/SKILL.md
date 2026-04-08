@@ -31,11 +31,15 @@ triggers:
     - "create a conventional commit for these files"
     - "stage and commit the new tests"
   anti-triggers: [push, pr, "pull request", review, rebase, merge]
+invocation_hooks:
+  - "git rev-parse --is-inside-work-tree >/dev/null 2>&1 || echo 'Warning: not inside a git repository'"
 ---
 
 # Smart Commit
 
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
+
+> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the git repository check won't run. This skill requires a git repository.
 
 ## Quick Start
 

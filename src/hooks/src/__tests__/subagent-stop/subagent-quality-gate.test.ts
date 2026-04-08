@@ -10,6 +10,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput, } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
 
@@ -40,28 +41,12 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWarning: vi.fn((message: string) => ({
-    continue: true,
-    systemMessage: `\u26a0 ${message}`,
-  })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { subagentQualityGate } from '../../subagent-stop/subagent-quality-gate.js';
-import { outputSilentSuccess, outputWarning, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWarning, outputBlock } from '../../lib/common.js';
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -89,8 +74,10 @@ function createSubagentStopInput(
 // Subagent Quality Gate Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('subagent-quality-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
@@ -110,7 +97,7 @@ describe('subagent-quality-gate', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -123,7 +110,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -140,7 +127,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -158,7 +145,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -169,7 +156,7 @@ describe('subagent-quality-gate', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -188,7 +175,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const _result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -201,7 +188,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const _result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -214,7 +201,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const _result = subagentQualityGate(input);
+      const _result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -225,7 +212,7 @@ describe('subagent-quality-gate', () => {
       const input = createSubagentStopInput();
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(writeFileSync).not.toHaveBeenCalled();
@@ -244,7 +231,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalled();
@@ -258,7 +245,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -273,7 +260,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -296,7 +283,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -314,7 +301,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
@@ -331,7 +318,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(readFileSync).not.toHaveBeenCalled();
@@ -351,7 +338,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       const writeCall = vi.mocked(writeFileSync).mock.calls[0];
@@ -375,10 +362,10 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-quality-gate',
         expect.stringContaining('logged-agent')
       );
@@ -391,10 +378,10 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-quality-gate',
         expect.stringContaining('specific-agent-id')
       );
@@ -407,10 +394,10 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-quality-gate',
         expect.stringContaining('ERROR')
       );
@@ -423,10 +410,10 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'subagent-quality-gate',
         expect.stringContaining('Detailed error information')
       );
@@ -445,7 +432,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -458,7 +445,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -472,7 +459,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -488,7 +475,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalled();
@@ -503,7 +490,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -517,7 +504,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -544,7 +531,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       if (isError) {
@@ -565,7 +552,7 @@ describe('subagent-quality-gate', () => {
       const input = createSubagentStopInput();
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -585,7 +572,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -609,7 +596,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(existsSync).toHaveBeenCalledWith(METRICS_FILE);
@@ -629,7 +616,7 @@ describe('subagent-quality-gate', () => {
       });
 
       // Act
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       // Assert
       expect(outputWarning).toHaveBeenCalledWith(
@@ -648,7 +635,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Code quality: 8/10\nSecurity: 9/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputWarning).not.toHaveBeenCalled();
@@ -660,7 +647,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Code quality: 2/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputWarning).toHaveBeenCalledWith(
         expect.stringContaining('code quality')
@@ -673,11 +660,11 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 3/10',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(
-        expect.stringContaining('Security gate BLOCKED')
+        expect.stringContaining('below minimum')
       );
     });
 
@@ -688,11 +675,11 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Vulnerability: 2/10',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalledWith(
-        expect.stringContaining('Security gate BLOCKED')
+        expect.stringContaining('below minimum')
       );
     });
 
@@ -701,7 +688,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'OWASP compliance: 1/10',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       expect(result.continue).toBe(false);
     });
@@ -711,7 +698,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Performance: 1/10\nMaintainability: 2/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputBlock).not.toHaveBeenCalled();
       expect(outputWarning).toHaveBeenCalled();
@@ -722,7 +709,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 5/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputBlock).not.toHaveBeenCalled();
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -733,7 +720,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 4.9/10',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalled();
@@ -744,7 +731,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 3/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputBlock).toHaveBeenCalledWith(
         expect.stringContaining('3/10')
@@ -756,7 +743,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 2/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputBlock).toHaveBeenCalledWith(
         expect.stringContaining('5/10')
@@ -768,7 +755,7 @@ describe('subagent-quality-gate', () => {
         agent_output: '{"security_score": 2, "quality_score": 8}',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalled();
@@ -779,7 +766,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'The implementation looks good. No major issues found.',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
@@ -803,7 +790,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 6/10',
       });
 
-      const result = subagentQualityGate(input);
+      const result = subagentQualityGate(input, testCtx);
 
       // 6/10 is below custom threshold of 7.0
       expect(result.continue).toBe(false);
@@ -822,7 +809,7 @@ describe('subagent-quality-gate', () => {
         agent_output: 'Security: 2/10',
       });
 
-      subagentQualityGate(input);
+      subagentQualityGate(input, testCtx);
 
       expect(writeFileSync).toHaveBeenCalledWith(
         METRICS_FILE,

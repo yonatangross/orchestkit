@@ -12,8 +12,9 @@
 
 import { readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, logPermissionFeedback } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, getEnvFile } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Dangerous patterns that should BLOCK the change */
 const BLOCK_PATTERNS = [
@@ -24,6 +25,7 @@ const BLOCK_PATTERNS = [
 /** Risky patterns that should WARN */
 const WARN_PATTERNS = [
   { pattern: /"permissionMode"\s*:\s*"dontAsk"/, label: 'permission-mode: dontAsk bypasses all permission prompts' },
+  { pattern: /"permissionMode"\s*:\s*"auto"/, label: 'permission-mode: auto uses classifier-based approval — PermissionDenied hooks still fire' },
   { pattern: /"allow"\s*:.*"Bash"/, label: 'permission-escalation: Bash added to allow list' },
   { pattern: /"deny"\s*:\s*\[\s*\]/, label: 'permission-gap: empty deny list' },
   { pattern: /"hooks"\s*:\s*\{\s*\}/, label: 'hooks-removed: all hooks cleared' },
@@ -111,10 +113,13 @@ function writeAuditEntry(projectDir: string, entry: { session: string; action: s
  * Sync OrchestKit debug mode with CC's /debug toggle (CC 2.1.71).
  *
  * When /debug is toggled on, CC sets CLAUDE_DEBUG=1 in the process env.
- * We detect this and write a flag file so all subsequent hook processes
- * (which are separate Node processes) also run in debug mode.
+ * Primary: write `export ORK_DEBUG=1` to CLAUDE_ENV_FILE so all subsequent
+ * hooks see it via process.env.ORK_DEBUG without file I/O.
+ * Fallback: also write a flag file for hooks on events that don't receive
+ * CLAUDE_ENV_FILE (PostToolUse, PreToolUse, etc.).
  *
- * When /debug is toggled off, CLAUDE_DEBUG is unset and we remove the flag.
+ * When /debug is toggled off, CLAUDE_DEBUG is unset — we clear ORK_DEBUG
+ * via the env file and remove the flag file.
  */
 function syncDebugMode(): void {
   const home = process.env.HOME || process.env.USERPROFILE || '';
@@ -122,26 +127,40 @@ function syncDebugMode(): void {
   const flagPath = join(flagDir, 'debug-mode.flag');
 
   if (process.env.CLAUDE_DEBUG) {
-    // /debug is ON — write flag file for all hooks
+    // /debug is ON — propagate via CLAUDE_ENV_FILE (primary) + flag file (fallback)
+    try {
+      const envFile = getEnvFile();
+      appendFileSync(envFile, `export ORK_DEBUG=1\n`);
+    } catch {
+      // Non-fatal — older CC versions may not provide CLAUDE_ENV_FILE
+    }
+
     if (!existsSync(flagPath)) {
       mkdirSync(flagDir, { recursive: true });
       writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nsession=${process.env.CLAUDE_SESSION_ID || 'unknown'}\n`);
-      logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
     }
+    logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
   } else {
-    // /debug is OFF — remove flag file
+    // /debug is OFF — clear ORK_DEBUG via env file and remove flag file
+    try {
+      const envFile = getEnvFile();
+      appendFileSync(envFile, `export ORK_DEBUG=\n`);
+    } catch {
+      // Non-fatal
+    }
+
     if (existsSync(flagPath)) {
       try { unlinkSync(flagPath); } catch { /* ok */ }
-      logHook('config-change', 'Debug mode disabled — OrchestKit hooks returning to warn level', 'info');
     }
+    logHook('config-change', 'Debug mode disabled — OrchestKit hooks returning to warn level', 'info');
   }
 }
 
-export function settingsReload(input: HookInput): HookResult {
+export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const sessionId = input.session_id || 'unknown';
   const projectDir = input.project_dir || process.cwd();
 
-  logHook('config-change', `Settings changed mid-session (session: ${sessionId})`);
+  ctx.log('config-change', `Settings changed mid-session (session: ${sessionId})`);
 
   // Sync debug mode with CC's /debug toggle (CC 2.1.71)
   syncDebugMode();
@@ -161,8 +180,8 @@ export function settingsReload(input: HookInput): HookResult {
     // BLOCK: dangerous patterns found
     if (allBlocks.length > 0) {
       const reason = `[ConfigChange] BLOCKED — dangerous config state detected:\n${allBlocks.map(b => `  - ${b}`).join('\n')}\n\nRevert the change or remove the dangerous pattern.`;
-      logHook('config-change', `BLOCKED: ${allBlocks.join('; ')}`, 'warn');
-      logPermissionFeedback('deny', `ConfigChange blocked: ${allBlocks.join('; ')}`);
+      ctx.log('config-change', `BLOCKED: ${allBlocks.join('; ')}`, 'warn');
+      ctx.logPermission('deny', `ConfigChange blocked: ${allBlocks.join('; ')}`);
       writeAuditEntry(projectDir, { session: sessionId, action: 'block', details: allBlocks });
       return outputBlock(reason);
     }
@@ -170,8 +189,8 @@ export function settingsReload(input: HookInput): HookResult {
     // WARN: risky patterns found
     if (allWarnings.length > 0) {
       const warningMsg = `Config change detected with risks:\n${allWarnings.map(w => `  - ${w}`).join('\n')}`;
-      logHook('config-change', `WARNING: ${allWarnings.join('; ')}`, 'warn');
-      logPermissionFeedback('warn', `ConfigChange warning: ${allWarnings.join('; ')}`);
+      ctx.log('config-change', `WARNING: ${allWarnings.join('; ')}`, 'warn');
+      ctx.logPermission('warn', `ConfigChange warning: ${allWarnings.join('; ')}`);
       writeAuditEntry(projectDir, { session: sessionId, action: 'warn', details: allWarnings });
       return outputWarning(warningMsg);
     }
@@ -185,7 +204,7 @@ export function settingsReload(input: HookInput): HookResult {
     );
   } catch (err) {
     // Never crash on config read errors — fall back to advisory
-    logHook('config-change', `Error scanning config: ${(err as Error).message}`, 'error');
+    ctx.log('config-change', `Error scanning config: ${(err as Error).message}`, 'error');
     return outputSilentSuccess();
   }
 }

@@ -41,7 +41,7 @@ vi.mock('node:child_process', () => ({
 // ---------------------------------------------------------------------------
 // Import under test (after mocks)
 // ---------------------------------------------------------------------------
-import { learningTracker } from '../../permission/learning-tracker.js';
+import { learningTracker, _resetPatternCacheForTesting } from '../../permission/learning-tracker.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 // ---------------------------------------------------------------------------
@@ -70,6 +70,7 @@ function createBashInput(command: string): HookInput {
 describe('learningTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetPatternCacheForTesting(); // v7.30.0: reset module-scoped cache between tests
     // Default: no learned patterns file
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
   });

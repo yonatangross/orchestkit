@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -12,28 +13,18 @@ vi.mock('node:fs', () => ({
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), join: vi.fn((...a: string[]) => a.join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/home/user/myproject'),
 }));
 
 import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -45,8 +36,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('patternExtractor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/home/user/myproject' });
     vi.clearAllMocks();
     // Default: queue file exists with empty patterns array
     mockExistsSync.mockReturnValue(true);
@@ -54,20 +47,20 @@ describe('patternExtractor', () => {
   });
 
   it('returns silent success for non-Bash tools', () => {
-    const result = patternExtractor(makeInput({ tool_name: 'Write' }));
+    const result = patternExtractor(makeInput({ tool_name: 'Write' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('returns silent success when command is empty', () => {
-    const result = patternExtractor(makeInput({ tool_input: { command: '' } }));
+    const result = patternExtractor(makeInput({ tool_input: { command: '' } }), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('extracts pattern from git commit with tech detection', () => {
-    patternExtractor(makeInput());
+    patternExtractor(makeInput(), testCtx);
     expect(mockWriteFileSync).toHaveBeenCalled();
     // Get the last write call (the one with the actual pattern)
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
@@ -82,7 +75,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'pytest tests/ -v' },
       exit_code: 0,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const testPattern = written.patterns.find((p: { source: string }) => p.source === 'test-run');
@@ -95,7 +88,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'npm run build' },
       exit_code: 1,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const buildPattern = written.patterns.find((p: { source: string }) => p.source === 'build');
@@ -107,7 +100,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'gh pr merge 42' },
       exit_code: 0,
-    }));
+    }), testCtx);
     const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
     const written = JSON.parse(lastCall[1] as string);
     const prPattern = written.patterns.find((p: { source: string }) => p.source === 'pr-merge');
@@ -119,7 +112,7 @@ describe('patternExtractor', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'gh pr merge 42' },
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 });

@@ -260,3 +260,107 @@ Ref-tracked plugins now re-clone on every load to pick up upstream changes. For 
 ```
 
 Use `@main` for bleeding edge, `@v7.x.x` for stability.
+
+## CC 2.1.90 Settings
+
+### Offline Plugin Resilience
+
+Keep marketplace cache when `git pull` fails (useful for offline or restricted network environments):
+
+```bash
+export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
+```
+
+### Format-on-Save Hooks (now viable)
+
+CC 2.1.90 fixed the "File content has changed" race condition when a PostToolUse hook reformats files between consecutive edits. This enables format-on-save patterns:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Write|Edit",
+      "command": "prettier --write \"$CLAUDE_FILE_PATH\"",
+      "timeout": 5
+    }]
+  }
+}
+```
+
+### /powerup Lessons
+
+CC 2.1.90 adds `/powerup` — interactive lessons teaching features with animated demos. Reference this in onboarding or setup flows for new users.
+
+## CC 2.1.91 Settings
+
+### MCP Tool Result Persistence Override
+
+MCP servers can now declare large results (up to 500K chars) that should not be truncated, using the `_meta` annotation:
+
+```json
+{
+  "_meta": {
+    "anthropic/maxResultSizeChars": 500000
+  },
+  "content": [{ "type": "text", "text": "..." }]
+}
+```
+
+Use this for results like database schemas, API specs, or code analysis that lose meaning when truncated. OrchestKit's `mcp-output-transform` hook respects this annotation and skips truncation when present.
+
+### Disable Skill Shell Execution
+
+New `disableSkillShellExecution` setting prevents inline shell commands in skills, custom slash commands, and plugin commands from executing:
+
+```json
+{
+  "disableSkillShellExecution": true
+}
+```
+
+Useful for enterprise environments where skills should only provide guidance, not execute commands. OrchestKit skills with `invocation_hooks` (cover, expect, commit, devops-deployment) will have their shell preconditions skipped when this is enabled.
+
+### Plugin Executables (bin/)
+
+Plugins can now ship executables under a `bin/` directory. These are invokable as bare commands from the Bash tool without full path qualification. OrchestKit uses this for `run-hook.mjs` and `file-suggestion.sh`.
+
+### Edit Tool Shorter Anchors
+
+CC 2.1.91 uses shorter `old_string` anchors in the Edit tool, reducing output tokens. No configuration needed — this is an automatic optimization that benefits all users.
+
+### permissions.defaultMode: "auto" Validation
+
+`permissions.defaultMode: "auto"` is now validated by JSON schema in settings.json. Previously this value was silently accepted but could cause issues. OrchestKit's settings already use valid permission modes.
+
+## CC 2.1.92 Settings
+
+### forceRemoteSettingsRefresh Policy
+
+New managed policy setting for enterprise deployments. When set, CC blocks startup until remote managed settings are freshly fetched and exits if the fetch fails (fail-closed):
+
+```json
+{
+  "policy": {
+    "forceRemoteSettingsRefresh": true
+  }
+}
+```
+
+**Use case**: Enterprise environments where stale managed settings (permission policies, plugin allowlists, sandbox rules) are a compliance risk. Without this, CC falls back to cached `remote-settings.json` from a prior session.
+
+**Trade-off**: Startup requires network access — offline/air-gapped environments will fail to launch. Combine with `managed-settings.d/` (CC 2.1.83) for local policy fragments as fallback.
+
+**Doctor check**: `ork:doctor` warns if `forceRemoteSettingsRefresh` is set without a configured remote settings endpoint.
+
+### Remote Control Session Naming
+
+Remote Control session names now default to your hostname as prefix (e.g. `myhost-graceful-unicorn`). Override with:
+
+```bash
+claude --remote-control-session-name-prefix "my-prefix"
+```
+
+### Removed Commands
+
+- `/tag` — removed. No replacement needed.
+- `/vim` — removed. Toggle vim mode via `/config` → Editor mode instead.

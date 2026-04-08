@@ -4,16 +4,14 @@
  * CC 2.1.9: Injects warnings via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import { assertSafeGitRef } from '../../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Get files that might conflict on merge/rebase
@@ -63,9 +61,9 @@ function getPotentialConflicts(projectDir: string, targetBranch: string): string
 /**
  * Predict conflicts before merge/rebase operations
  */
-export function conflictPredictor(input: HookInput): HookResult {
+export function conflictPredictor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process git merge or rebase commands
   if (!/git\s+(merge|rebase|pull)/.test(command)) {
@@ -102,11 +100,11 @@ Consider:
 2. Run: git diff ${targetBranch}...HEAD -- <file>
 3. Prepare conflict resolution strategy`;
 
-    logPermissionFeedback('allow', `Conflict prediction: ${conflicts.length} files`, input);
-    logHook('conflict-predictor', `Potential conflicts: ${conflicts.join(', ')}`);
+    ctx.logPermission('allow', `Conflict prediction: ${conflicts.length} files`, input);
+    ctx.log('conflict-predictor', `Potential conflicts: ${conflicts.join(', ')}`);
     return outputAllowWithContext(context);
   }
 
-  logPermissionFeedback('allow', 'No conflicts predicted', input);
+  ctx.logPermission('allow', 'No conflicts predicted', input);
   return outputSilentSuccess();
 }

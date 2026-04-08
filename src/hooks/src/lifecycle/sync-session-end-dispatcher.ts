@@ -17,18 +17,19 @@
  * pattern-sync-push is skipped if a prior hook signals continue: false.
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 
 // Import consolidated hook implementations
 import { sessionCleanup } from './session-cleanup.js';
 import { patternSyncPush } from './pattern-sync-push.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-session-end-dispatcher';
 
 interface SessionEndHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
   runOnFail: boolean;
 }
 
@@ -48,49 +49,49 @@ const SYNC_HOOKS: SessionEndHookConfig[] = [
  * - runOnFail hooks: always run, wrapped in try/catch, never block subsequent hooks.
  * - Normal hooks: skipped if a previous hook returned continue: false.
  */
-export function syncSessionEndDispatcher(input: HookInput): HookResult {
+export function syncSessionEndDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const messages: string[] = [];
   let shouldContinue = true;
 
   for (const hook of SYNC_HOOKS) {
     // Skip normal hooks if a prior hook signaled stop
     if (!hook.runOnFail && !shouldContinue) {
-      logHook(HOOK_NAME, `${hook.name}: skipped (prior hook returned continue: false)`);
+      ctx.log(HOOK_NAME, `${hook.name}: skipped (prior hook returned continue: false)`);
       continue;
     }
 
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Track continue signal (only from normal hooks — run_on_fail hooks can't block)
       if (!hook.runOnFail && result.continue === false) {
         shouldContinue = false;
-        logHook(HOOK_NAME, `${hook.name}: returned continue: false`);
+        ctx.log(HOOK_NAME, `${hook.name}: returned continue: false`);
       }
 
       // Collect systemMessage if any
       if (result.systemMessage) {
         messages.push(result.systemMessage);
-        logHook(HOOK_NAME, `${hook.name}: systemMessage collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: systemMessage collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       if (hook.runOnFail) {
         // run_on_fail: log and continue regardless
-        logHook(HOOK_NAME, `${hook.name} failed (run_on_fail, continuing): ${msg}`, 'warn');
+        ctx.log(HOOK_NAME, `${hook.name} failed (run_on_fail, continuing): ${msg}`, 'warn');
       } else {
-        logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+        ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
       }
     }
   }
 
   if (messages.length === 0) {
-    logHook(HOOK_NAME, 'All SessionEnd hooks silent');
+    ctx.log(HOOK_NAME, 'All SessionEnd hooks silent');
     return outputSilentSuccess();
   }
 
   const merged = messages.join('\n');
-  logHook(HOOK_NAME, `Merged ${messages.length} messages from SessionEnd hooks`);
+  ctx.log(HOOK_NAME, `Merged ${messages.length} messages from SessionEnd hooks`);
 
   return {
     continue: true,

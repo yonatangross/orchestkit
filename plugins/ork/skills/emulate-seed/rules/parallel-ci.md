@@ -13,8 +13,8 @@ When running tests in parallel (Vitest, Jest workers, CI matrix), each worker ne
 
 ```typescript
 // vitest.setup.ts — each worker gets a unique port
-import { createEmulator } from 'emulate'
-import type { Emulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
+import type { Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
@@ -22,7 +22,7 @@ const BASE_PORT = 4001
 const workerPort = BASE_PORT + parseInt(process.env.VITEST_WORKER_ID || '0')
 
 beforeAll(async () => {
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: './emulate.config.yaml'
@@ -50,7 +50,7 @@ const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
 
 ```typescript
 // BAD: shared port causes race conditions
-const github = await createEmulator({ service: 'github', port: 4001 })
+const github = await createEmulate({ service: 'github', port: 4001 })
 
 // Worker 1 creates a PR, Worker 2 sees it — non-deterministic
 ```
@@ -60,7 +60,7 @@ const github = await createEmulator({ service: 'github', port: 4001 })
 ```typescript
 // GOOD: each worker has isolated state
 const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-const github = await createEmulator({ service: 'github', port: workerPort })
+const github = await createEmulate({ service: 'github', port: workerPort })
 
 // Worker 1 on :4002, Worker 2 on :4003 — fully isolated
 ```

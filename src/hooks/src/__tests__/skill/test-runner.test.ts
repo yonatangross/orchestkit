@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
@@ -23,15 +24,13 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { testRunner } from '../../skill/test-runner.js';
 import { outputSilentSuccess } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -59,10 +58,12 @@ function createWriteInput(
 // Test Runner Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('test-runner', () => {
   let stderrWriteSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     // Mock stderr.write to prevent actual output and avoid hangs
     stderrWriteSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
@@ -85,7 +86,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -97,7 +98,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -111,7 +112,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -122,7 +123,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -133,7 +134,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -150,7 +151,7 @@ describe('test-runner', () => {
       const input = createWriteInput('');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -162,7 +163,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/src/utils/helper.ts');
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -179,7 +180,7 @@ describe('test-runner', () => {
       };
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -206,7 +207,7 @@ describe('test-runner', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -223,7 +224,7 @@ describe('test-runner', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -236,7 +237,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/src/utils.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).not.toHaveBeenCalledWith(
@@ -255,7 +256,7 @@ describe('test-runner', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       // Fixed: regex /test[^/]*\.py$/ no longer matches utility files
@@ -281,7 +282,7 @@ describe('test-runner', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -298,7 +299,7 @@ describe('test-runner', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).not.toHaveBeenCalledWith(
@@ -321,7 +322,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -341,7 +342,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -358,7 +359,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -381,7 +382,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execSync).toHaveBeenCalledWith(
@@ -402,7 +403,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -426,7 +427,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -445,7 +446,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/unit/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -463,7 +464,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       // npm test should not be called if no project root
@@ -484,7 +485,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -511,7 +512,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act & Assert
-      expect(() => testRunner(input)).not.toThrow();
+      expect(() => testRunner(input, testCtx)).not.toThrow();
     });
 
     test('handles pytest execution failure gracefully', () => {
@@ -524,7 +525,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act — should not throw
-      expect(() => testRunner(input)).not.toThrow();
+      expect(() => testRunner(input, testCtx)).not.toThrow();
 
       // Assert — inner catch writes "pytest not found"
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -540,7 +541,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith('::endgroup::\n');
@@ -559,7 +560,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -578,7 +579,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -605,7 +606,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/unit/services/auth/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -620,7 +621,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/test_user.py');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       expect(stderrWriteSpy).toHaveBeenCalledWith(
@@ -637,7 +638,7 @@ describe('test-runner', () => {
       };
 
       // Act
-      const result = testRunner(input);
+      const result = testRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -660,7 +661,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/project/tests/unit/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       // Should have checked multiple paths
@@ -675,7 +676,7 @@ describe('test-runner', () => {
       const input = createWriteInput('/a/b/c/user.test.ts');
 
       // Act
-      testRunner(input);
+      testRunner(input, testCtx);
 
       // Assert
       // No npm test call when no project root found

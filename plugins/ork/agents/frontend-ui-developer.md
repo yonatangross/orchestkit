@@ -47,6 +47,22 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7, 21st-dev-magic, storybook-mcp]
+taskTypes:
+  - build
+keywords:
+  - "react"
+  - "typescript"
+  - "component"
+  - "ui"
+  - "frontend"
+  - "zod"
+  - "tanstack"
+  - "suspense"
+  - "form"
+  - "dashboard"
+examplePrompts:
+  - "Build a data table component with sorting, filtering, and pagination"
+  - "Create a multi-step form with Zod validation and optimistic updates"
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
@@ -82,10 +98,11 @@ When running as a teammate in an Agent Teams session:
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation

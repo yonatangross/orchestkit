@@ -34,8 +34,9 @@ import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js'
 // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
 import { fingerprintSaver } from '../posttool/expect/fingerprint-saver.js';
 
-// PostTool/Task hooks (1) — Agent Teams
+// PostTool/Task hooks (2) — Agent Teams + auto-register
 import { teamMemberStart } from '../posttool/task/team-member-start.js';
+import { agentTaskAutoRegister } from '../posttool/task/agent-task-auto-register.js';
 
 // PostTool/Failure hooks (1)
 import { failureHandler } from '../posttool/failure-handler.js';
@@ -43,8 +44,15 @@ import { failureHandler } from '../posttool/failure-handler.js';
 // Intelligent Decision Capture System
 import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 
+// MCP output transformation (CC 2.1.89)
+import { mcpOutputTransform } from '../posttool/mcp-output-transform.js';
+
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
+
+// v7.30.0: flattened from posttool/unified-dispatcher (#1284)
+import { commitNudge } from '../posttool/commit-nudge.js';
+import { autoLint } from '../posttool/auto-lint.js';
 
 import type { HookFn } from '../types.js';
 
@@ -77,8 +85,9 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Expect hooks (1) — fingerprint auto-save (#1191)
   'posttool/expect/fingerprint-saver': fingerprintSaver,
 
-  // PostTool/Task hooks (1) — Agent Teams
+  // PostTool/Task hooks (2) — Agent Teams + auto-register
   'posttool/task/team-member-start': teamMemberStart,
+  'posttool/task/agent-task-auto-register': agentTaskAutoRegister,
 
   // PostTool/Failure hooks (1)
   'posttool/failure-handler': failureHandler,
@@ -86,8 +95,15 @@ export const hooks: Record<string, HookFn> = {
   // Intelligent Decision Capture System
   'posttool/tool-preference-learner': toolPreferenceLearner,
 
+  // MCP output transformation (CC 2.1.89)
+  'posttool/mcp-output-transform': mcpOutputTransform,
+
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,
+
+  // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
+  'posttool/commit-nudge': commitNudge,
+  'posttool/auto-lint': autoLint,
 };
 
 export function getHook(name: string): HookFn | undefined {
@@ -97,3 +113,6 @@ export function getHook(name: string): HookFn | undefined {
 export function listHooks(): string[] {
   return Object.keys(hooks);
 }
+
+// Phase 4: HookContext DI
+export { buildContext } from '../lib/context.js';

@@ -48,6 +48,35 @@ NotebookLM = external RAG engine that offloads reading from your context window.
 4. **Verify**: `nlm login --check` to confirm active session
 5. **Upgrade**: `uv tool upgrade notebooklm-mcp-cli` — restart MCP server after upgrade
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="NotebookLM: {operation}",
+  description="Managing notebooks, sources, and content generation",
+  activeForm="Managing NotebookLM resources"
+)
+
+# 2. Create subtasks for the notebook workflow
+TaskCreate(subject="Notebook setup", activeForm="Creating/configuring notebook")
+TaskCreate(subject="Source management", activeForm="Adding sources to notebook")
+TaskCreate(subject="Content generation", activeForm="Generating studio content")
+
+# 3. Set dependencies for sequential steps
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## Decision Tree — Which Rule to Read
 
 ```

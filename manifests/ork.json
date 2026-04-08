@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "7.26.4",
-  "description": "The Complete AI Development Toolkit — 100 skills, 36 agents, 110 hooks for full-stack development.",
+  "version": "7.30.0",
+  "description": "The Complete AI Development Toolkit — 103 skills, 36 agents, 169 hooks for full-stack development.",
   "author": {
     "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross"
@@ -31,6 +31,16 @@
       "type": "string",
       "sensitive": true,
       "description": "Authentication token for webhook endpoint (stored in keychain)"
+    },
+    "evalApiKey": {
+      "type": "string",
+      "sensitive": true,
+      "description": "Anthropic API key for skill evaluation pipeline (stored in keychain)"
+    },
+    "notebookLmToken": {
+      "type": "string",
+      "sensitive": true,
+      "description": "NotebookLM auth token for /ork:release-sync (stored in keychain)"
     }
   }
 }

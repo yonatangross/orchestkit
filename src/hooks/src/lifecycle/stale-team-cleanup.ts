@@ -5,13 +5,14 @@
  * Stale Team Cleanup — SessionStart Hook
  * Issue #447: Remove orphaned team directories from crashed/interrupted sessions
  */
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { listAllTeams, isStaleTeam, cleanupTeam } from '../lib/agent-teams.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const MAX_AGE_HOURS = 4;
 
-export function staleTeamCleanup(_input: HookInput): HookResult {
+export function staleTeamCleanup(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const teams = listAllTeams();
   if (teams.length === 0) return outputSilentSuccess();
 
@@ -19,12 +20,12 @@ export function staleTeamCleanup(_input: HookInput): HookResult {
   for (const name of teams) {
     if (isStaleTeam(name, MAX_AGE_HOURS)) {
       if (cleanupTeam(name)) cleaned++;
-      else logHook('stale-team-cleanup', `Failed to clean team "${name}"`);
+      else ctx.log('stale-team-cleanup', `Failed to clean team "${name}"`);
     }
   }
 
   if (cleaned > 0) {
-    logHook('stale-team-cleanup', `Cleaned ${cleaned} stale team(s)`);
+    ctx.log('stale-team-cleanup', `Cleaned ${cleaned} stale team(s)`);
   }
   return outputSilentSuccess();
 }

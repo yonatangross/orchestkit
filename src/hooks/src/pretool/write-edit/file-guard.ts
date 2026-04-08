@@ -7,16 +7,15 @@
  * to prevent symlink-based bypasses of file protection.
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
   logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
-import { realpathSync, existsSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import { resolve, isAbsolute, extname, basename } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // ---------------------------------------------------------------------------
 // File size gate — configurable via env vars
@@ -111,11 +110,7 @@ function checkFileSizeAndBloat(input: HookInput): HookResult | null {
       : '';
 
     return outputDeny(
-      `File too long: ${lineCount} lines (limit: ${limit} for ${fileType} files)${bloatDetails}
-
-Split this file into smaller modules. Override with:
-  ORCHESTKIT_MAX_FILE_LINES=500 (source)
-  ORCHESTKIT_MAX_TEST_FILE_LINES=800 (tests)`
+      `File too long: ${lineCount}/${limit} lines (${fileType}).${bloatDetails} Split into smaller modules.`
     );
   }
 
@@ -140,6 +135,7 @@ const PROTECTED_PATTERNS: RegExp[] = [
   /\.pem$/,
   /id_rsa$/,
   /id_ed25519$/,
+  /\/\.husky\//, // CC 2.1.90: git hooks directory — prevent tampering with commit hooks
 ];
 
 /**
@@ -156,19 +152,16 @@ const CONFIG_PATTERNS: RegExp[] = [
  */
 function resolveRealPath(filePath: string, projectDir: string): string {
   try {
-    // Make absolute if relative
+    // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
     const absolutePath = isAbsolute(filePath)
       ? filePath
       : resolve(projectDir, filePath);
 
-    // Follow symlinks if file exists
-    if (existsSync(absolutePath)) {
-      return realpathSync(absolutePath);
-    }
-
-    return absolutePath;
+    // Call realpathSync directly — avoids TOCTOU race between existsSync and realpathSync
+    return realpathSync(absolutePath);
   } catch {
-    return filePath;
+    // ENOENT (file doesn't exist) or other errors — return best-effort absolute path
+    return isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
   }
 }
 
@@ -194,26 +187,26 @@ function isConfigFile(realPath: string): boolean {
 /**
  * Guard against modifying sensitive files
  */
-export function fileGuard(input: HookInput): HookResult {
+export function fileGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
 
   if (!filePath) {
     return outputSilentSuccess();
   }
 
-  logHook('file-guard', `File write/edit: ${filePath}`);
+  ctx.log('file-guard', `File write/edit: ${filePath}`);
 
   // Resolve symlinks to prevent bypass attacks (ME-001 fix)
   const realPath = resolveRealPath(filePath, projectDir);
-  logHook('file-guard', `Resolved path: ${realPath}`);
+  ctx.log('file-guard', `Resolved path: ${realPath}`);
 
   // Check if file matches protected patterns
   const matchedPattern = isProtected(realPath);
 
   if (matchedPattern) {
-    logPermissionFeedback('deny', `Protected file blocked: ${filePath} (pattern: ${matchedPattern})`, input);
-    logHook('file-guard', `BLOCKED: ${filePath} matches ${matchedPattern}`);
+    ctx.logPermission('deny', `Protected file blocked: ${filePath} (pattern: ${matchedPattern})`, input);
+    ctx.log('file-guard', `BLOCKED: ${filePath} matches ${matchedPattern}`);
 
     return outputDeny(
       `Cannot modify protected file: ${filePath}
@@ -236,11 +229,11 @@ If you need to modify this file, do it manually outside Claude Code.`
 
   // Warn on config files (but allow)
   if (isConfigFile(realPath)) {
-    logHook('file-guard', `WARNING: Config file modification: ${realPath}`);
-    logPermissionFeedback('warn', `Config file modification: ${filePath}`, input);
+    ctx.log('file-guard', `WARNING: Config file modification: ${realPath}`);
+    ctx.logPermission('warn', `Config file modification: ${filePath}`, input);
   }
 
   // Allow the write
-  logPermissionFeedback('allow', `File write allowed: ${filePath}`, input);
+  ctx.logPermission('allow', `File write allowed: ${filePath}`, input);
   return outputSilentSuccess();
 }

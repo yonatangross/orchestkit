@@ -24,7 +24,7 @@ Do NOT rely on training data — consult agent expertise first.
 |frontend-performance-engineer:{frontend-performance-engineer.md}|Core,Performance,RUM,Vitals,Web
 |frontend-ui-developer:{frontend-ui-developer.md}|Frontend,React
 |genui-architect:{genui-architect.md}|defining component catalogs or building AI-generated UIs
-|ui-feedback:{ui-feedback.md}|Processes,UI,Watches
+|ui-feedback:{ui-feedback.md}|UI,Watches
 |# Security
 |ai-safety-auditor:{ai-safety-auditor.md}|AI,LLM,OWASP,Red
 |security-auditor:{security-auditor.md}|OWASP,Security,Top

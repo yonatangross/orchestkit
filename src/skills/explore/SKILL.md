@@ -9,7 +9,7 @@ version: 2.3.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
 skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns, chain-patterns]
 complexity: high
 effort: high
@@ -129,14 +129,32 @@ Choose **Agent Teams** (mesh) or **Task tool** (star):
 **BEFORE doing ANYTHING else, create tasks to show progress:**
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(subject="Explore: {topic}", description="Deep codebase exploration for {topic}", activeForm="Exploring {topic}")
-TaskCreate(subject="Initial file search", activeForm="Searching files")
-TaskCreate(subject="Check knowledge graph", activeForm="Checking memory")
-TaskCreate(subject="Launch exploration agents", activeForm="Dispatching explorers")
-TaskCreate(subject="Assess code health (0-10)", activeForm="Assessing code health")
-TaskCreate(subject="Map dependency hotspots", activeForm="Mapping dependencies")
-TaskCreate(subject="Add product perspective", activeForm="Adding product context")
-TaskCreate(subject="Generate exploration report", activeForm="Generating report")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Initial file search", activeForm="Searching files")                # id=2
+TaskCreate(subject="Check knowledge graph", activeForm="Checking memory")              # id=3
+TaskCreate(subject="Launch exploration agents", activeForm="Dispatching explorers")     # id=4
+TaskCreate(subject="Assess code health (0-10)", activeForm="Assessing code health")    # id=5
+TaskCreate(subject="Map dependency hotspots", activeForm="Mapping dependencies")       # id=6
+TaskCreate(subject="Add product perspective", activeForm="Adding product context")     # id=7
+TaskCreate(subject="Generate exploration report", activeForm="Generating report")      # id=8
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Memory check needs file search first
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Agents need memory context
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Health needs exploration done
+TaskUpdate(taskId="6", addBlockedBy=["4"])  # Hotspots need exploration done
+TaskUpdate(taskId="7", addBlockedBy=["4"])  # Product needs exploration done
+TaskUpdate(taskId="8", addBlockedBy=["5", "6", "7"])  # Report needs all analysis done
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---
@@ -221,4 +239,4 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
 - `ork:implement`: Implement after exploration
 ---
 
-**Version:** 2.3.0 (March 2026) — Added progressive output for incremental exploration results
+**Version:** 2.4.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)

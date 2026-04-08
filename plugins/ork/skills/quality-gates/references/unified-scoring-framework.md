@@ -25,6 +25,26 @@ Skills may add dimensions beyond the base 7. When adding:
 3. Define scope rules for when the dimension is skipped
 4. When skipped, redistribute weight proportionally: `adjusted_weight = base_weight / (1.0 - skipped_weight)`
 
+### Simplicity Dimension (used by `brainstorm`, `assess`)
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Simplicity | 0.10 | Net complexity change — does this simplify or add to the system? |
+
+**Scoring guide:**
+
+| Score | Criteria |
+|-------|----------|
+| 9-10 | Removes code/concepts while improving or maintaining the result |
+| 7-8 | Neutral complexity — replaces existing with equivalent simplicity |
+| 5-6 | Adds moderate complexity proportional to value delivered |
+| 3-4 | Adds significant complexity for marginal gain |
+| 0-2 | Adds ugly complexity, new abstractions, new concepts for little benefit |
+
+**Scope rule:** Active when evaluating design alternatives, architecture decisions, or refactoring approaches. Skip when reviewing existing code that isn't being compared against alternatives.
+
+> Inspired by [autoresearch](https://github.com/karpathy/autoresearch): "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome."
+
 ### Visual Dimension (used by `verify`)
 
 | Dimension | Weight | What It Measures |

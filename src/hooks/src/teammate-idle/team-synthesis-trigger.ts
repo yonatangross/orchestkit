@@ -13,14 +13,15 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getTeamMembers, getTeamName } from '../lib/agent-teams.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /** Window within which idle events are considered "recent" */
 const IDLE_WINDOW_MS = 60_000;
 
-export function teamSynthesisTrigger(input: HookInput): HookResult {
+export function teamSynthesisTrigger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const teamName = getTeamName();
   if (!teamName) {
     return outputSilentSuccess();
@@ -31,7 +32,7 @@ export function teamSynthesisTrigger(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
   if (!projectDir) {
     return outputSilentSuccess();
   }
@@ -76,7 +77,7 @@ export function teamSynthesisTrigger(input: HookInput): HookResult {
     idleMembers.add(currentTeammateId);
   }
 
-  logHook(
+  ctx.log(
     'team-synthesis-trigger',
     `Team "${teamName}": ${idleMembers.size}/${members.length} idle within ${IDLE_WINDOW_MS / 1000}s`,
   );

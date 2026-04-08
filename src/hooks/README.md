@@ -20,6 +20,10 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 - CC 2.1.78 compliant: StopFailure event, CLAUDE_PLUGIN_DATA persistent storage, effort frontmatter
 - CC 2.1.81 re-clone safe: All mutable state uses CLAUDE_PLUGIN_DATA or project-local `.claude/` — never CLAUDE_PLUGIN_ROOT
+- CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching, `auto` permission mode
+- CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
+- CC 2.1.91 compliant: MCP `_meta["anthropic/maxResultSizeChars"]` respected by mcp-output-transform, `disableSkillShellExecution` awareness
+- Event coverage: 24/26 CC events hooked; CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---
 
@@ -45,8 +49,10 @@ hooks/
 │   ├── lib/                # Shared utilities
 │   │   ├── common.ts       # Logging, output builders, environment
 │   │   ├── git.ts          # Git operations and validation
-│   │   └── guards.ts       # Conditional execution predicates
-│   ├── permission/         # Permission hooks (3)
+│   │   ├── guards.ts       # Conditional execution predicates
+│   │   ├── path-containment.ts  # SEC: EXCLUDED_DIRS, isInsideDir, resolveRealPath (v7.27.1)
+│   │   └── bash-patterns.ts     # SEC: Unified REJECT_PATTERNS for dangerous commands (v7.27.1)
+│   ├── permission/         # Permission hooks (4) — includes headless-defer (CC 2.1.89)
 │   ├── pretool/            # Pre-execution hooks (30)
 │   │   ├── bash/           # Bash command hooks
 │   │   ├── write-edit/     # File operation hooks
@@ -64,6 +70,7 @@ hooks/
 │   ├── subagent-start/     # Subagent spawn hooks (5)
 │   ├── subagent-stop/      # Subagent completion hooks (11)
 │   ├── notification/       # Notification hooks (3)
+│   ├── permission-denied/  # PermissionDenied hooks (5) — CC 2.1.88+
 │   ├── instructions-loaded/ # InstructionsLoaded hooks (6 handlers via dispatcher)
 │   │   ├── instructions-loaded-dispatcher.ts  # Main dispatcher
 │   │   ├── types.ts                           # Shared interfaces
@@ -74,7 +81,7 @@ hooks/
 │   │   ├── content-dedup.ts                   # Duplicate content scanner
 │   │   ├── rule-conflicts.ts                  # Contradictory rule detector
 │   │   └── smart-suggestions.ts               # Missing rule suggestions
-│   ├── stop/               # Session stop hooks (29 via unified dispatcher)
+│   ├── stop/               # Session stop hooks (12 handlers, CC-native async entries)
 │   ├── lifecycle/          # Lifecycle hooks (17)
 │   ├── setup/              # Setup and maintenance hooks (9)
 │   ├── agent/              # Agent-specific hooks (5)
@@ -101,7 +108,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->110<!--/ork--> hooks (<!--ork:hooks-global-->41<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->102<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -152,7 +159,18 @@ Session and instance lifecycle management.
 - `StopFailure` - API error termination (CC 2.1.78). Flushes state, writes emergency handoff. **Must be async.** See `stop/stop-failure-handler.ts`
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation
-- `SubagentStop` - Subagent completion tracking
+- `SubagentStop` - Subagent completion tracking (includes `agent_transcript_path` for post-mortem, CC 2.1.69)
+- `PreCompact` - Save critical context before compaction
+- `PostCompact` - Recover context after compaction (CC 2.1.76)
+- `Elicitation` - MCP server requests structured user input (CC 2.1.76)
+- `ElicitationResult` - User responds to elicitation (CC 2.1.76)
+- `InstructionsLoaded` - Fires per CLAUDE.md/rules file load (CC 2.1.83)
+- `ConfigChange` - Settings changed mid-session (CC 2.1.49)
+- `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
+- `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
+- `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
+- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
+- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -160,6 +178,16 @@ Handle notifications and alerts.
 **Examples:**
 - `notification/desktop` - Desktop notifications for completion
 - `notification/sound` - Sound alerts for errors
+
+### PermissionDenied Hooks (CC 2.1.88+)
+Fire when the user denies a tool call or auto mode skips it. Can return `{retry: true}` to re-attempt safe operations.
+
+**Hooks (via unified-dispatcher):**
+- `permission-denied/denial-logger` - Audit trail to `.claude/feedback/permission-denials.jsonl`
+- `permission-denied/denial-notification` - Desktop notification on 3+ denials in 60s
+- `permission-denied/safe-command-retry` - Retry safe read-only Bash commands
+- `permission-denied/project-write-retry` - Retry writes inside project directory
+- `permission-denied/denial-notification` - Desktop alert for repeated denials
 
 ---
 
@@ -199,6 +227,84 @@ CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
 - `stop/stop-failure-handler.ts` — emergency handoff file (uses `project_dir` directly, not PLUGIN_DATA)
 
 **Rule:** Never hardcode `.claude/memory/sessions/` — always use `getSessionStorageDir()` or `getPromptSessionDir()` to respect PLUGIN_DATA.
+
+---
+
+## CLAUDE_ENV_FILE Pattern
+
+CC provides a `CLAUDE_ENV_FILE` env var to hooks running on `SessionStart`, `CwdChanged`, `FileChanged`, and `ConfigChange` events. Hook scripts write `export KEY=value` lines to this file, and CC reads them back after execution, setting those env vars for **all future hook invocations** in the session. This is cleaner than file-based state for lightweight key-value data.
+
+### How It Works
+
+```
+Hook receives CLAUDE_ENV_FILE=/tmp/claude-env-abc123
+    ↓
+Hook appends: export ORK_DEBUG=1
+    ↓
+CC reads the file after hook exits
+    ↓
+All subsequent hooks see process.env.ORK_DEBUG === '1'
+```
+
+### When to Use
+
+| Use Case | CLAUDE_ENV_FILE | File-Based State |
+|----------|-----------------|------------------|
+| Session-level flags (debug mode, feature toggles) | **Preferred** | Overkill |
+| Detected project tier (interview/mvp/production) | **Preferred** | Overkill |
+| Simple counters (< 5 values) | **Preferred** | Overkill |
+| Complex structured data (JSON objects, arrays) | Not suitable | **Use this** |
+| Data needed across sessions | Not suitable | **Use this** |
+| Data > 10 key-value pairs | Not suitable | **Use this** |
+
+### TypeScript Example
+
+```typescript
+import { appendFileSync } from 'node:fs';
+import { getEnvFile } from '../lib/common.js';
+
+/**
+ * Write a session-scoped env var via CLAUDE_ENV_FILE.
+ * All subsequent hooks in this session will see the value
+ * via process.env[key].
+ */
+function setSessionEnv(key: string, value: string): void {
+  const envFile = getEnvFile();
+  try {
+    appendFileSync(envFile, `export ${key}=${value}\n`);
+  } catch {
+    // Non-fatal — env file may not exist on older CC versions
+  }
+}
+
+// Usage in a SessionStart or ConfigChange hook:
+setSessionEnv('ORK_DEBUG', '1');
+setSessionEnv('ORK_PROJECT_TIER', 'production');
+```
+
+### Helper: `getEnvFile()`
+
+Located in `lib/common.ts`. Returns `CLAUDE_ENV_FILE` if set, falls back to legacy `.instance_env` path:
+
+```typescript
+export function getEnvFile(): string {
+  if (process.env.CLAUDE_ENV_FILE) {
+    return process.env.CLAUDE_ENV_FILE;
+  }
+  return `${getPluginRoot()}/.claude/.instance_env`;
+}
+```
+
+### Adoption
+
+The `syncDebugMode()` function in `config-change/settings-reload.ts` uses `CLAUDE_ENV_FILE` to propagate the `ORK_DEBUG` flag when `/debug` is toggled. Instead of writing a flag file to disk that every hook must stat, it writes `export ORK_DEBUG=1` to the env file, making the flag instantly available via `process.env.ORK_DEBUG` in all subsequent hooks.
+
+### Constraints
+
+- **Session-scoped only** — values do not persist across sessions. For cross-session state, use `CLAUDE_PLUGIN_DATA` or project-local files.
+- **Event support** — only available on events where CC provides the env var (`SessionStart`, `CwdChanged`, `FileChanged`, `ConfigChange`). Other events can *read* values set earlier, but cannot write new ones.
+- **String values only** — no JSON, no arrays. For structured data, use file-based state.
+- **No deletion** — you cannot unset a previously exported variable via this file. To "disable" a flag, overwrite it with an empty value (`export ORK_DEBUG=`).
 
 ---
 
@@ -986,6 +1092,34 @@ return { continue: true, systemMessage: 'Updated context: project uses React 19'
 
 **Why this matters:** The Claude Code team monitors cache hit rate like uptime. A few percentage points of cache miss can dramatically affect cost and latency for users.
 
+### Cache Audit: Context Injection Classification (#1234)
+
+All hooks that inject `additionalContext` are classified by volatility. Volatile injections (per-turn) break the API prompt cache prefix. Cacheable injections run once and don't affect per-turn cache.
+
+| Hook | Event | Frequency | Volatile? | Status |
+|------|-------|-----------|-----------|--------|
+| **SessionStart hooks** | | | | |
+| sync-session-dispatcher | SessionStart | once | No | Materializes rules files |
+| session-handoff-injector | SessionStart | once | No | Injects prior handoff |
+| unified-dispatcher (async) | SessionStart | once | No | Fire-and-forget setup |
+| **UserPromptSubmit hooks** | | | | |
+| handoff-injector | UserPromptSubmit | once (flag) | No | File-flag gated |
+| agentation-context | UserPromptSubmit | once (flag) | No | File-flag gated |
+| context-exhaustion-warner | UserPromptSubmit | per-turn | **Yes** | Must check every turn |
+| pipeline-detector | UserPromptSubmit | per-turn | **Yes** | Must detect piped input |
+| frustration-detector | UserPromptSubmit | per-turn | No output | Analytics only |
+| cache-break-detector | UserPromptSubmit | per-turn | No output | Analytics only |
+| **Skill context loaders** | | | | |
+| 10 once:true loaders | PreToolUse | once/skill | No | File-flag gated |
+| **Already migrated to SessionStart** | | | | |
+| profile-injector | ~~UserPromptSubmit~~ | once | Moved | #960 |
+| memory-context-loader | ~~UserPromptSubmit~~ | once | Moved | #448 |
+| antipattern-warning | ~~UserPromptSubmit~~ | ~~per-turn~~ | Deleted | #972, #1145 |
+
+**Result:** Only 2 hooks inject volatile per-turn context: `context-exhaustion-warner` and `pipeline-detector`. Both are genuinely volatile (depend on current turn state). No further migration candidates identified.
+
+**Measured by:** `cache-break-detector` tracks shape changes and logs to `~/.claude/analytics/cache-breaks.jsonl`. `sync-session-dispatcher` logs `session-start-perf.jsonl` with duration.
+
 ---
 
 ## Troubleshooting
@@ -1049,16 +1183,31 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | Event | Entry Point | Bundle |
 |-------|-------------|--------|
 | PermissionRequest | src/entries/permission.ts | permission.mjs |
+| PermissionDenied | src/entries/permission.ts | permission.mjs |
 | PreToolUse | src/entries/pretool.ts | pretool.mjs |
 | PostToolUse | src/entries/posttool.ts | posttool.mjs |
+| PostToolUseFailure | src/entries/posttool.ts | posttool.mjs |
 | UserPromptSubmit | src/entries/prompt.ts | prompt.mjs |
 | SessionStart/End | src/entries/lifecycle.ts | lifecycle.mjs |
-| Stop | src/entries/stop.ts | stop.mjs |
+| Stop/StopFailure | src/entries/stop.ts | stop.mjs |
 | SubagentStart/Stop | src/entries/subagent.ts | subagent.mjs |
 | Notification | src/entries/notification.ts | notification.mjs |
 | Setup | src/entries/setup.ts | setup.mjs |
+| PreCompact/PostCompact | src/entries/lifecycle.ts | lifecycle.mjs |
+| Elicitation/ElicitationResult | (root hooks.json) | lifecycle.mjs |
+| InstructionsLoaded | (root hooks.json) | lifecycle.mjs |
+| ConfigChange | (root hooks.json) | lifecycle.mjs |
+| TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
+| TeammateIdle | (root hooks.json) | lifecycle.mjs |
+| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
+| CwdChanged | *not hooked* | — |
+| FileChanged | *not hooked* | — |
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
+
+**Deliberately unhoooked events (CC 2.1.83+):**
+- `CwdChanged` — fires on working directory change. OrchestKit does not currently need to react to cwd changes; session context is project-scoped via `project_dir`. Could be useful for multi-worktree context switching if needed in the future.
+- `FileChanged` — fires on file modifications (matched by basename). OrchestKit's PostToolUse hooks already track file writes. FileChanged is more useful for watching external file changes (e.g., `.env` modifications) but the overhead of per-file-change hooks is not justified yet.
 
 ### Step 2: Register in Entry Point
 
@@ -1118,7 +1267,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->110<!--/ork--> hooks (<!--ork:hooks-global-->41<!--/ork--> global + <!--ork:hooks-agent-->47<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->169<!--/ork--> hooks (<!--ork:hooks-global-->102<!--/ork--> global + <!--ork:hooks-agent-->45<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 

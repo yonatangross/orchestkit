@@ -25,6 +25,35 @@ Scans all `src/skills/*/SKILL.md` files and reports compliance with OrchestKit a
 
 **Total: 2 rules across 2 categories**
 
+## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Audit Skills: full scan",
+  description="Auditing all OrchestKit skills for quality and compliance",
+  activeForm="Auditing skill quality"
+)
+
+# 2. Create subtasks for each audit phase
+TaskCreate(subject="Discover skills", activeForm="Globbing SKILL.md files")
+TaskCreate(subject="Run audit checks", activeForm="Checking each skill")
+TaskCreate(subject="Classify & render", activeForm="Classifying results and rendering report")
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])
+TaskUpdate(taskId="4", addBlockedBy=["3"])
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
 ## Workflow
 
 1. **Discover** — Glob `src/skills/*/SKILL.md` to get full skill list

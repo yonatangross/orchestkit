@@ -12,11 +12,10 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/event-logger.js', () => ({
   appendEventLog: vi.fn(),
@@ -26,6 +25,7 @@ import { progressReporter } from '../../teammate-idle/progress-reporter.js';
 import { getProjectDir } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -48,10 +48,13 @@ function createIdleInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('progress-reporter', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
   });
 
   describe('basic behavior', () => {
@@ -60,7 +63,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput();
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -69,10 +72,11 @@ describe('progress-reporter', () => {
     test('returns early when project dir is not available', async () => {
       // Arrange
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createIdleInput();
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -91,7 +95,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -111,7 +115,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput();
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -130,7 +134,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -149,7 +153,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -168,7 +172,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -187,7 +191,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -203,7 +207,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: undefined });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledWith(
@@ -221,7 +225,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 29999 });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -232,7 +236,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 30000 });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeUndefined();
@@ -247,7 +251,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toBeDefined();
@@ -264,7 +268,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('test-runner');
@@ -278,7 +282,7 @@ describe('progress-reporter', () => {
       });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('agent-special-123');
@@ -289,7 +293,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 90000 });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('90s');
@@ -300,7 +304,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 600000 }); // 10 minutes
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -314,7 +318,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 0 });
 
       // Act
-      const result = await progressReporter(input);
+      const result = await progressReporter(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -326,7 +330,7 @@ describe('progress-reporter', () => {
       const input = createIdleInput({ idle_duration_ms: 100 });
 
       // Act
-      await progressReporter(input);
+      await progressReporter(input, testCtx);
 
       // Assert
       expect(appendEventLog).toHaveBeenCalledTimes(1);

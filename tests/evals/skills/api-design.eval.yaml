@@ -6,38 +6,10 @@ name: "API design skill evaluation"
 skill_path: src/skills/api-design/SKILL.md
 plugin_dir: plugins/ork
 
-trigger_evals:
-  # Should trigger — API design tasks
-  - prompt: "design a REST API for user profiles with CRUD endpoints"
-    should_trigger: true
-  - prompt: "add versioning to my /api/v2 endpoints"
-    should_trigger: true
-  - prompt: "help me add swagger docs to this express app"
-    should_trigger: true
-  - prompt: "graphql schema for an orders service with mutations and queries"
-    should_trigger: true
-  - prompt: "what error format should my API return? i keep doing ad-hoc json"
-    should_trigger: true
-  - prompt: "i need to design the endpoints for a billing microservice"
-    should_trigger: true
-  # Should NOT trigger — related but different domains
-  - prompt: "fix this TypeError in my route handler"
-    should_trigger: false
-  - prompt: "optimize this database query, it's slow"
-    should_trigger: false
-  - prompt: "create a React form component for user registration"
-    should_trigger: false
-  - prompt: "set up authentication middleware with JWT"
-    should_trigger: false
-  # Should NOT trigger — architecture-patterns confusion pair
-  - prompt: "review the overall system architecture and component boundaries"
-    should_trigger: false
-  # Should trigger — terse phrasing
-  - prompt: "design api"
-    should_trigger: true
-  # Should NOT trigger — multi-intent, primary is implement
-  - prompt: "implement the user API endpoints based on this OpenAPI spec"
-    should_trigger: false
+# NOTE: trigger_evals removed — api-design is user-invocable: false (reference skill).
+# Trigger eval only works for user-invocable skills (the --json-schema classifier
+# builds its catalog from invocable skills). Reference skills auto-activate by
+# context, not by trigger routing. Quality evals still work via --force-skill.
 
 quality_evals:
   - prompt: |

@@ -58,6 +58,13 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     echo -e "  ${RED}✗${NC} Agent '$agent_name': description $desc_len bytes > 250 limit"
     ERRORS=$((ERRORS + 1))
   fi
+
+  # Validate optional critical_system_reminder is a non-empty string when present
+  csr=$(get_field "$agent_file" "critical_system_reminder" 2>/dev/null || echo "")
+  if [[ -n "$csr" ]] && [[ ${#csr} -lt 10 ]]; then
+    echo -e "  ${RED}✗${NC} Agent '$agent_name': critical_system_reminder too short (${#csr} chars, min 10)"
+    ERRORS=$((ERRORS + 1))
+  fi
 done
 
 # ===== Skill Validation =====

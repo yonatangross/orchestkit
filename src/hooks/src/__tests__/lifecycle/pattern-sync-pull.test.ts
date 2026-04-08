@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir, } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -108,7 +109,9 @@ function readProjectPatterns(): Array<{ text: string; [key: string]: unknown }> 
   return content.patterns || [];
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
   // Generate unique paths per test to avoid parallel worker collisions
   const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   TEST_PROJECT_DIR = join(tmpdir(), `pattern-sync-pull-test-${unique}`);
@@ -167,7 +170,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -182,7 +185,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -194,7 +197,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -207,7 +210,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -221,7 +224,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -235,7 +238,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const _result = patternSyncPull(input);
+      const _result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(readProjectPatterns()).toHaveLength(1);
@@ -252,7 +255,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -271,7 +274,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -289,7 +292,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -311,7 +314,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -333,7 +336,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -351,7 +354,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -368,7 +371,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -390,7 +393,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert - just verify it doesn't crash
       expect(true).toBe(true);
@@ -406,7 +409,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -421,7 +424,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -436,7 +439,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -449,7 +452,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput({ project_dir: '/non/existent/path' });
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -460,7 +463,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -474,7 +477,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       expect(existsSync(feedbackDir)).toBe(true);
@@ -487,7 +490,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue');
@@ -501,7 +504,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -526,7 +529,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -548,7 +551,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -565,7 +568,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -582,7 +585,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      const result = patternSyncPull(input);
+      const result = patternSyncPull(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -594,7 +597,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();
@@ -609,9 +612,9 @@ describe('pattern-sync-pull', () => {
 
       // Act
       const results = [
-        patternSyncPull(input),
-        patternSyncPull(input),
-        patternSyncPull(input),
+        patternSyncPull(input, testCtx),
+        patternSyncPull(input, testCtx),
+        patternSyncPull(input, testCtx),
       ];
 
       // Assert
@@ -632,7 +635,7 @@ describe('pattern-sync-pull', () => {
       const input = createHookInput();
 
       // Act
-      patternSyncPull(input);
+      patternSyncPull(input, testCtx);
 
       // Assert
       const projectPatterns = readProjectPatterns();

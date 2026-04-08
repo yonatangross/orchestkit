@@ -8,12 +8,13 @@
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
 
-import type { HookInput, HookResult, HookFn } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import type { HookInput, HookResult, HookFn , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 
 // Import individual hook implementations
 import { desktopNotification } from './desktop.js';
 import { soundNotification } from './sound.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -46,19 +47,19 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
 /**
  * Unified dispatcher that runs all Notification hooks in parallel
  */
-export async function unifiedNotificationDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedNotificationDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, ctx);
         if (result instanceof Promise) {
           await result;
         }
         return { hook: hook.name, status: 'success' };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logHook('notification-dispatcher', `${hook.name} failed: ${message}`);
+        ctx.log('notification-dispatcher', `${hook.name} failed: ${message}`);
         return { hook: hook.name, status: 'error', message };
       }
     })
@@ -76,7 +77,7 @@ export async function unifiedNotificationDispatcher(input: HookInput): Promise<H
     return `${HOOKS[i].name}=REJECTED`;
   }).join(', ');
 
-  logHook('notification-dispatcher', `Results: ${summary}`);
+  ctx.log('notification-dispatcher', `Results: ${summary}`);
 
   return outputSilentSuccess();
 }

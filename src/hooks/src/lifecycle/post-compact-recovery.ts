@@ -16,8 +16,9 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { outputWithContext, logHook, getLogDir, getSessionId } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputWithContext, getLogDir, getSessionId } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface PreservedContext {
   branch?: string;
@@ -28,6 +29,11 @@ interface PreservedContext {
   memoryTierSnapshot?: {
     graphEntries?: number;
     localEntries?: number;
+  };
+  tokenBudget?: {
+    estimatedUsed?: number;
+    estimatedRemaining?: number;
+    effortLevel?: string;
   };
 }
 
@@ -63,12 +69,12 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 60_000)}m`;
 }
 
-export function postCompactRecovery(input: HookInput): HookResult {
+export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const stateFile = getSessionStateFile();
   const state = loadSessionState(stateFile);
 
   if (!state?.preservedContext) {
-    logHook('post-compact-recovery', 'No preserved context found — skipping recovery');
+    hookCtx.log('post-compact-recovery', 'No preserved context found — skipping recovery');
     return { continue: true, suppressOutput: true };
   }
 
@@ -123,9 +129,14 @@ export function postCompactRecovery(input: HookInput): HookResult {
     parts.push(`Memory entries at compaction: ${ctx.memoryTierSnapshot.localEntries}`);
   }
 
+  // Token budget carry-forward (CC 2.1.89 Candlekeep insight)
+  if (ctx.tokenBudget?.estimatedRemaining) {
+    parts.push(`Token budget before compaction: ~${Math.round(ctx.tokenBudget.estimatedUsed || 0)}k used, ~${Math.round(ctx.tokenBudget.estimatedRemaining)}k remaining (effort: ${ctx.tokenBudget.effortLevel || 'default'})`);
+  }
+
   const context = parts.join('\n');
 
-  logHook('post-compact-recovery',
+  hookCtx.log('post-compact-recovery',
     `Recovered context after compaction #${state.compactionCount} ` +
     `(${ctx.activeFiles?.length || 0} files, ${ctx.activeTasks?.length || 0} tasks, ` +
     `${ctx.decisionLog?.length || 0} decisions)`

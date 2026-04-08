@@ -40,17 +40,30 @@ Load: `Read("$\{CLAUDE_SKILL_DIR\}/references/audit-scope-dialog.md")` for the f
 ## CRITICAL: Task Management is MANDATORY
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(
   subject="Full-codebase audit",
   description="Single-pass audit using extended context",
   activeForm="Running full-codebase audit"
 )
 
-# Phase subtasks
-TaskCreate(subject="Estimate token budget and plan loading", activeForm="Estimating token budget")
-TaskCreate(subject="Load codebase into context", activeForm="Loading codebase")
-TaskCreate(subject="Run audit analysis", activeForm="Analyzing codebase")
-TaskCreate(subject="Generate audit report", activeForm="Generating report")
+# 2. Create subtasks for each phase
+TaskCreate(subject="Estimate token budget and plan loading", activeForm="Estimating token budget")  # id=2
+TaskCreate(subject="Load codebase into context", activeForm="Loading codebase")                    # id=3
+TaskCreate(subject="Run audit analysis", activeForm="Analyzing codebase")                          # id=4
+TaskCreate(subject="Generate audit report", activeForm="Generating report")                        # id=5
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Loading needs budget estimate
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Analysis needs codebase loaded
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Report needs analysis done
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---

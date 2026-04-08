@@ -9,8 +9,9 @@
 
 import { mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -166,7 +167,7 @@ Next Steps: ${suggestions}
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function handoffPreparer(input: HookInput): HookResult {
+export function handoffPreparer(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const timestamp = new Date().toISOString();
 
   const toolInput = input.tool_input || {};

@@ -9,6 +9,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { basename } from 'node:path';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come before imports
@@ -31,19 +32,7 @@ vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/git.js', () => ({
   getRepoRoot: vi.fn(() => '/test/project'),
@@ -51,6 +40,7 @@ vi.mock('../../lib/git.js', () => ({
 
 import { duplicateCodeDetector } from '../../skill/duplicate-code-detector.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -93,8 +83,10 @@ function _mockCodeFiles(files: string[]): void {
 // Duplicate Code Detector Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('duplicate-code-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(true);
     mockReaddirSync.mockReturnValue([]);
@@ -118,7 +110,7 @@ describe('duplicate-code-detector', () => {
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -141,7 +133,7 @@ describe('duplicate-code-detector', () => {
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -152,7 +144,7 @@ describe('duplicate-code-detector', () => {
       const input = createFileInput('/test/project/src/utils.ts', 'const x = 1');
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -180,7 +172,7 @@ describe('duplicate-code-detector', () => {
       const input = createFileInput(`/test/project/src/${filename}`, 'content');
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       if (shouldValidate) {
@@ -216,7 +208,7 @@ describe('duplicate-code-detector', () => {
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -232,7 +224,7 @@ function myFunc() {} // duplicate declaration
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       // Should not error and should deduplicate
@@ -263,7 +255,7 @@ function myFunc() {} // duplicate declaration
       const input = createFileInput('/test/project/app/utils.py', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -292,7 +284,7 @@ function myFunc() {} // duplicate declaration
       );
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -315,7 +307,7 @@ function myFunc() {} // duplicate declaration
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       // Should not flag itself as duplicate
@@ -339,7 +331,7 @@ function myFunc() {} // duplicate declaration
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -363,7 +355,7 @@ const a = 1;
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -380,7 +372,7 @@ const c = 3;
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -393,13 +385,12 @@ const c = 3;
       const code = `
 const a = 1;
 
-
 const b = 2;
 `;
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -422,7 +413,7 @@ function formatDate(date) {
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context with duplication message
       expect(outputWithContext).toHaveBeenCalled();
@@ -445,7 +436,7 @@ async function getOrders() {
       const input = createFileInput('/test/project/src/api.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context when potential issues detected
       expect(outputWithContext).toHaveBeenCalled();
@@ -466,7 +457,7 @@ function validate(data) {
       const input = createFileInput('/test/project/src/validate.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context with duplication/validation warning
       expect(outputWithContext).toHaveBeenCalled();
@@ -492,7 +483,7 @@ def parse_config():
       const input = createFileInput('/test/project/app/parser.py', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -517,7 +508,7 @@ def get_config():
       const input = createFileInput('/test/project/app/config.py', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context about potential duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -534,7 +525,7 @@ def get_config():
       const input = createFileInput('', 'function test() {}');
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -545,7 +536,7 @@ def get_config():
       const input = createFileInput('/test/project/src/utils.ts', '');
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -562,7 +553,7 @@ def get_config():
       } as any;
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -587,7 +578,7 @@ def get_config():
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -604,7 +595,7 @@ def get_config():
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -627,7 +618,7 @@ def get_config():
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       // Should not throw
@@ -667,7 +658,7 @@ def get_config():
       );
 
       // Act
-      const result = duplicateCodeDetector(input);
+      const result = duplicateCodeDetector(input, testCtx);
 
       // Assert
       // Should complete without errors
@@ -697,7 +688,7 @@ def get_config():
       );
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - outputs context message about duplication
       expect(outputWithContext).toHaveBeenCalled();
@@ -720,7 +711,7 @@ def get_config():
       );
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert - the context contains indication of file being checked
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -745,7 +736,7 @@ function formatDate(date) {
       const input = createFileInput('/test/project/src/utils.ts', code);
 
       // Act
-      duplicateCodeDetector(input);
+      duplicateCodeDetector(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();

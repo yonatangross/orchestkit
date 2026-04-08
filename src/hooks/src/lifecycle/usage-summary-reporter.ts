@@ -15,14 +15,19 @@
  * Replaces the deprecated session-end-reporter.ts (#1007).
  */
 
-import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { getSessionId, getCachedBranch, getProjectDir, logHook, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
 import { getWebhookUrl } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
+import { signPayload as signPayloadFn } from '../lib/crypto.js';
+import { flushAll } from '../lib/telemetry.js';
+import { NOOP_CTX } from '../lib/context.js';
+
+// Re-export for backwards compatibility — canonical source is lib/crypto.ts
+export { signPayload } from '../lib/crypto.js';
 
 const HOOK_NAME = 'usage-summary-reporter';
 
@@ -41,21 +46,17 @@ const HOOK_VERSION = (() => {
   }
 })();
 
-export function signPayload(body: string, secret: string): string {
-  return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
-}
-
 export function getProjectSlug(input?: HookInput): string {
   const dir = input?.project_dir || getProjectDir();
   return dir.split('/').pop() || 'unknown';
 }
 
-export async function usageSummaryReporter(input: HookInput): Promise<HookResult> {
+export async function usageSummaryReporter(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   const hookUrl = getWebhookUrl();
   const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
 
   if (!hookUrl || !hookToken) {
-    logHook(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
+    ctx.log(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');
     return outputSilentSuccess();
   }
 
@@ -65,7 +66,7 @@ export async function usageSummaryReporter(input: HookInput): Promise<HookResult
 
     const payload = {
       event: input.hook_event ?? 'SessionEnd',
-      session_id: input.session_id || getSessionId(),
+      session_id: input.session_id || (ctx.sessionId),
       project: getProjectSlug(input),
       timestamp: new Date().toISOString(),
       data: {
@@ -83,16 +84,16 @@ export async function usageSummaryReporter(input: HookInput): Promise<HookResult
         },
       },
       metadata: {
-        branch: getCachedBranch(),
+        branch: ctx.branch,
         hook_version: HOOK_VERSION,
       },
     };
 
     const body = JSON.stringify(payload);
-    const signature = signPayload(body, hookToken);
+    const signature = signPayloadFn(body, hookToken);
     const url = `${hookUrl.replace(/\/$/, '')}/ingest`;
 
-    logHook(HOOK_NAME, `POSTing usage summary to ${url} (skills: ${summary.skills_used.length}, hooks: ${summary.hooks_triggered.length})`);
+    ctx.log(HOOK_NAME, `POSTing usage summary to ${url} (skills: ${summary.skills_used.length}, hooks: ${summary.hooks_triggered.length})`);
 
     const response = await fetch(url, {
       method: 'POST',
@@ -101,11 +102,14 @@ export async function usageSummaryReporter(input: HookInput): Promise<HookResult
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
-    logHook(HOOK_NAME, `POST complete: ${response.status}`);
+    ctx.log(HOOK_NAME, `POST complete: ${response.status}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logHook(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
+    ctx.log(HOOK_NAME, `POST failed (non-blocking): ${msg}`, 'warn');
   }
+
+  // Flush all telemetry sinks (JSONL rotation + cleanup)
+  await flushAll().catch(() => {});
 
   return outputSilentSuccess();
 }

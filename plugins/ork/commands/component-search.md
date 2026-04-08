@@ -43,11 +43,33 @@ Query: "animated pricing table with monthly/annual toggle"
 ```python
 QUERY = ""  # Component description
 
-TaskCreate(subject="Component search: {QUERY}", description="Search 21st.dev registry")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Component search: {QUERY}", description="Search 21st.dev registry", activeForm="Searching for {QUERY}")
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Parse query and detect project context", activeForm="Detecting project context")  # id=2
+TaskCreate(subject="Search component registry", activeForm="Searching registry")                      # id=3
+TaskCreate(subject="Present and deliver results", activeForm="Presenting results")                    # id=4
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Search needs project context first
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Results need search done
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Detect project context for framework filtering
 Glob("**/package.json")
 # Read to determine: React version, Tailwind, shadcn/ui, styling approach
+
+# Detect shadcn/ui style for result ranking
+Glob("**/components.json")
+# Read → "style" field (e.g., "radix-luma", "base-nova")
+# Used to prefer components matching the project's visual language
 ```
 
 ## Step 1: Search Registry
@@ -107,6 +129,9 @@ For the selected component:
 | React + CSS Modules | Filter non-Tailwind | Fewer results |
 | Next.js App Router | Prefer RSC-compatible | Check "use client" directives |
 | Vue / Svelte | Not supported | 21st.dev is React-only |
+| shadcn/ui style | Match visual language | Luma→rounded/pill, Nova→compact, Lyra→sharp |
+
+**shadcn v4 style awareness:** When `components.json` has a style (e.g., `"radix-luma"`), prefer components whose visual language matches — rounded pill shapes for Luma, dense layouts for Nova/Mira, sharp edges for Lyra. Components can be adapted post-install, but a closer match reduces customization work.
 
 ## Related Skills
 

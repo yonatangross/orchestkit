@@ -13,6 +13,7 @@
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock fs and path before imports
 vi.mock('node:fs', () => ({
@@ -21,10 +22,7 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: vi.fn(),
@@ -39,6 +37,7 @@ import { outputSilentSuccess } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -65,8 +64,10 @@ function mockExistingState(state: Record<string, unknown>): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-progress-initializer', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
     vi.mocked(existsSync).mockReturnValue(false);
   });
@@ -74,20 +75,20 @@ describe('task-progress-initializer', () => {
   describe('basic behavior', () => {
     test('returns silent success for numbered tasks', () => {
       const input = createTaskInput();
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       // Should call outputSilentSuccess (it always returns silent)
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
     test('returns silent success for non-numbered tasks', () => {
       const input = createTaskInput({ task_subject: 'Fix authentication bug' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
     test('returns silent success when task_subject is empty', () => {
       const input = createTaskInput({ task_subject: '' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
   });
@@ -95,7 +96,7 @@ describe('task-progress-initializer', () => {
   describe('numbered task detection', () => {
     test('detects [1/5] pattern and saves state', () => {
       const input = createTaskInput({ task_subject: '[1/5] Build auth module' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalled();
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -104,7 +105,7 @@ describe('task-progress-initializer', () => {
 
     test('detects [3/10] pattern', () => {
       const input = createTaskInput({ task_subject: '[3/10] Run integration tests' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalled();
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -113,19 +114,19 @@ describe('task-progress-initializer', () => {
 
     test('ignores tasks without numbered prefix', () => {
       const input = createTaskInput({ task_subject: 'Fix authentication bug' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       expect(atomicWriteSync).not.toHaveBeenCalled();
     });
 
     test('ignores numbered patterns not at start', () => {
       const input = createTaskInput({ task_subject: 'Task [1/5] in middle' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       expect(atomicWriteSync).not.toHaveBeenCalled();
     });
 
     test('ignores [1/1] (total < 2)', () => {
       const input = createTaskInput({ task_subject: '[1/1] Single task' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
       expect(atomicWriteSync).not.toHaveBeenCalled();
     });
   });
@@ -133,7 +134,7 @@ describe('task-progress-initializer', () => {
   describe('state management', () => {
     test('initializes state with correct total', () => {
       const input = createTaskInput({ task_subject: '[1/7] Phase one' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
       expect(savedState).toEqual(expect.objectContaining({
@@ -153,7 +154,7 @@ describe('task-progress-initializer', () => {
       });
 
       const input = createTaskInput({ task_subject: '[1/10] Bigger batch' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalled();
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -169,7 +170,7 @@ describe('task-progress-initializer', () => {
       });
 
       const input = createTaskInput({ task_subject: '[1/3] Smaller batch' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       // Should NOT write — total 3 < existing total 10
       expect(atomicWriteSync).not.toHaveBeenCalled();
@@ -187,7 +188,7 @@ describe('task-progress-initializer', () => {
         task_subject: '[1/4] New session task',
         session_id: 'new-session',
       });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalled();
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -203,7 +204,7 @@ describe('task-progress-initializer', () => {
       const input = createTaskInput({ task_subject: '[1/5] After corruption' });
 
       // Should not throw
-      expect(() => taskProgressInitializer(input)).not.toThrow();
+      expect(() => taskProgressInitializer(input, testCtx)).not.toThrow();
       expect(atomicWriteSync).toHaveBeenCalled();
     });
 
@@ -213,7 +214,7 @@ describe('task-progress-initializer', () => {
 
       const input = createTaskInput({ task_subject: '[1/5] Missing array' });
 
-      expect(() => taskProgressInitializer(input)).not.toThrow();
+      expect(() => taskProgressInitializer(input, testCtx)).not.toThrow();
       expect(atomicWriteSync).toHaveBeenCalled();
     });
   });
@@ -221,7 +222,7 @@ describe('task-progress-initializer', () => {
   describe('edge cases', () => {
     test('handles [0/5] (zero index) pattern', () => {
       const input = createTaskInput({ task_subject: '[0/5] Zero-indexed task' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalled();
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
@@ -230,7 +231,7 @@ describe('task-progress-initializer', () => {
 
     test('handles large batch numbers', () => {
       const input = createTaskInput({ task_subject: '[1/100] Large batch' });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
       expect(savedState.total).toBe(100);
@@ -241,7 +242,7 @@ describe('task-progress-initializer', () => {
         task_subject: '[1/3] No session',
         session_id: '',
       });
-      taskProgressInitializer(input);
+      taskProgressInitializer(input, testCtx);
 
       const savedState = JSON.parse(vi.mocked(atomicWriteSync).mock.calls[0][1] as string);
       expect(savedState.session_id).toBe('');

@@ -7,15 +7,15 @@
  * CC 2.1.9 Enhanced: Uses additionalContext for warnings (does not block)
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
   outputWarning,
-  logHook,
 } from '../../lib/common.js';
 import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { extname } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Get file extension in lowercase
@@ -120,7 +120,7 @@ function findMissingJSDoc(content: string): string[] {
 /**
  * Docstring enforcer - warns about missing documentation
  */
-export function docstringEnforcer(input: HookInput): HookResult {
+export function docstringEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input.file_path || '';
   const content = input.tool_input.content || '';
 
@@ -167,7 +167,7 @@ export function docstringEnforcer(input: HookInput): HookResult {
       }
     }
 
-    logHook('docstring-enforcer', `DOCSTRING_WARN: ${missingDocstrings.length} functions missing docs in ${filePath}`);
+    ctx.log('docstring-enforcer', `DOCSTRING_WARN: ${missingDocstrings.length} functions missing docs in ${filePath}`);
 
     // In dontAsk mode, show visible warning instead of silent context
     if (isDontAskMode(input)) {
@@ -177,6 +177,6 @@ export function docstringEnforcer(input: HookInput): HookResult {
   }
 
   // All public functions documented - allow silently
-  logHook('docstring-enforcer', `DOCSTRING_OK: All public functions documented in ${filePath}`);
+  ctx.log('docstring-enforcer', `DOCSTRING_OK: All public functions documented in ${filePath}`);
   return outputSilentSuccess();
 }

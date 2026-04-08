@@ -11,8 +11,8 @@
  * - Agent spawns (when tool_name === 'Task')
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getSessionId } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import {
   trackToolUsed,
   trackSkillInvoked,
@@ -20,6 +20,7 @@ import {
 } from '../lib/session-tracker.js';
 import { getToolCategory } from '../lib/tool-categories.js';
 import { trackToolAction } from '../lib/decision-flow-tracker.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Extract skill name from Skill tool input
@@ -109,12 +110,12 @@ function wasSuccessful(input: HookInput): boolean {
  * User tracking hook - runs for all tools
  * Issue #245: Tracks tool usage, skill invocations, agent spawns, and tool sequences
  */
-export function userTracking(input: HookInput): HookResult {
+export function userTracking(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const toolName = input.tool_name || 'unknown';
     const success = wasSuccessful(input);
     const category = getToolCategory(toolName);
-    const sessionId = input.session_id || getSessionId();
+    const sessionId = input.session_id || (ctx.sessionId);
 
     // Track all tool usage with category for preference learning
     trackToolUsed(toolName, success, undefined, category);
@@ -131,7 +132,7 @@ export function userTracking(input: HookInput): HookResult {
       const skillName = extractSkillName(input);
       if (skillName) {
         trackSkillInvoked(skillName, undefined, success);
-        logHook('user-tracking', `Tracked skill: ${skillName}`, 'debug');
+        ctx.log('user-tracking', `Tracked skill: ${skillName}`, 'debug');
       }
     }
 
@@ -141,14 +142,14 @@ export function userTracking(input: HookInput): HookResult {
       if (agentType) {
         const promptSummary = extractPromptSummary(input);
         trackAgentSpawned(agentType, promptSummary, success);
-        logHook('user-tracking', `Tracked agent: ${agentType}`, 'debug');
+        ctx.log('user-tracking', `Tracked agent: ${agentType}`, 'debug');
       }
     }
 
     return outputSilentSuccess();
   } catch (error) {
     // Non-blocking - errors shouldn't affect user experience
-    logHook('user-tracking', `Error: ${error}`, 'warn');
+    ctx.log('user-tracking', `Error: ${error}`, 'warn');
     return outputSilentSuccess();
   }
 }

@@ -12,12 +12,10 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: vi.fn(),
@@ -34,10 +32,11 @@ vi.mock('node:fs', () => ({
 }));
 
 import { taskProgressTracker } from '../../task-completed/task-progress-tracker.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { existsSync, readFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -60,10 +59,12 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-progress-tracker', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
     // Default: no state file exists
     vi.mocked(existsSync).mockReturnValue(false);
@@ -84,7 +85,7 @@ describe('task-progress-tracker', () => {
     test('returns silent and skips tracking when task_id is missing', () => {
       const input = createTaskInput({ task_id: undefined });
 
-      const result = taskProgressTracker(input);
+      const result = taskProgressTracker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(atomicWriteSync).not.toHaveBeenCalled();
@@ -94,7 +95,7 @@ describe('task-progress-tracker', () => {
     test('returns silent without persisting state when task_status is not "completed"', () => {
       const input = createTaskInput({ task_status: 'in_progress' });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       // State should NOT be persisted for non-completed tasks
       expect(atomicWriteSync).not.toHaveBeenCalled();
@@ -114,7 +115,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalledOnce();
       const writtenJson = vi.mocked(atomicWriteSync).mock.calls[0][1] as string;
@@ -132,7 +133,7 @@ describe('task-progress-tracker', () => {
 
       const input = createTaskInput({ task_id: 'task-dup', task_status: 'completed' });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       expect(atomicWriteSync).toHaveBeenCalledOnce();
       const writtenJson = vi.mocked(atomicWriteSync).mock.calls[0][1] as string;
@@ -148,7 +149,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       const writtenJson = vi.mocked(atomicWriteSync).mock.calls[0][1] as string;
       const state = JSON.parse(writtenJson);
@@ -162,7 +163,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       const writtenJson = vi.mocked(atomicWriteSync).mock.calls[0][1] as string;
       const state = JSON.parse(writtenJson);
@@ -183,7 +184,7 @@ describe('task-progress-tracker', () => {
         // No [N/M] format → total stays 0
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       expect(stderrSpy).not.toHaveBeenCalled();
     });
@@ -201,7 +202,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       expect(stderrSpy).toHaveBeenCalledOnce();
       const output = stderrSpy.mock.calls[0][0] as string;
@@ -223,7 +224,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       expect(stderrSpy).toHaveBeenCalledOnce();
       const output = stderrSpy.mock.calls[0][0] as string;
@@ -242,7 +243,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
       // After this call: completed=1, total=5 → 20%
       const output = stderrSpy.mock.calls[0][0] as string;
@@ -267,7 +268,7 @@ describe('task-progress-tracker', () => {
       });
 
       // Should not throw
-      expect(() => taskProgressTracker(input)).not.toThrow();
+      expect(() => taskProgressTracker(input, testCtx)).not.toThrow();
 
       // Should still persist a valid fresh state
       expect(atomicWriteSync).toHaveBeenCalledOnce();
@@ -289,7 +290,7 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      const result = taskProgressTracker(input);
+      const result = taskProgressTracker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(result.continue).toBe(true);
@@ -312,7 +313,7 @@ describe('task-progress-tracker', () => {
       });
 
       // Hook must not propagate the write error to the caller
-      expect(() => taskProgressTracker(input)).not.toThrow();
+      expect(() => taskProgressTracker(input, testCtx)).not.toThrow();
     });
 
     test('calls logHook with "warn" when state persistence fails', () => {
@@ -324,9 +325,9 @@ describe('task-progress-tracker', () => {
         task_status: 'completed',
       });
 
-      taskProgressTracker(input);
+      taskProgressTracker(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-progress-tracker',
         expect.stringContaining('Failed to persist state'),
         'warn',

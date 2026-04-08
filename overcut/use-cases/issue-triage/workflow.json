@@ -1,0 +1,38 @@
+{
+  "_formatVersion": "1.0.0",
+  "workflow": {
+    "name": "OrchestKit Issue Auto-Triage",
+    "description": "Auto-triage new issues: assess complexity, suggest labels/milestone, draft implementation approach.",
+    "definition": {
+      "flow": [
+        { "from": "triage-issue", "to": null, "condition": null }
+      ],
+      "steps": [
+        {
+          "id": "triage-issue",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-triage-pm",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Triage the new issue: {{trigger.issue.title}}\n\nIssue body:\n{{trigger.issue.body}}\n\n1. **Complexity Assessment** (1-5 scale):\n   - Level 1 (Trivial): < 50 LOC, 1 file, < 30 min\n   - Level 2 (Simple): 50-200 LOC, 1-3 files, 30 min - 2 hr\n   - Level 3 (Moderate): 200-500 LOC, 3-10 files, 2-8 hr\n   - Level 4 (Complex): 500-1500 LOC, 10-25 files, 8-24 hr\n   - Level 5 (Very Complex): 1500+ LOC, 25+ files, 24+ hr\n\n2. **Suggest Labels** from: bug, enhancement, hooks, skills, agents, security, performance, dx, testing, eval, quality, memory\n\n3. **Suggest Milestone** from active milestones:\n   - M105: Telemetry Provider Architecture\n   - M104: CC Internals Integration\n   - M102: CC 2.1.89 Integration\n   - M97: Memory System Hardening\n   - M95: Docs Site Overhaul\n   - M88: Eval Platform\n   - M74: Analytics & Observability\n\n4. **Identify Affected Areas** — which directories/files would change\n\n5. **Draft Implementation** — 3-5 bullet approach\n\n6. **Find Related Issues** — search for similar open issues\n\nPost as issue comment with the structured triage format."
+        }
+      ],
+      "triggers": [
+        {
+          "event": "issue_opened",
+          "conditions": {
+            "repositories": ["yonatangross/orchestkit"]
+          }
+        }
+      ],
+      "version": "1.0.0",
+      "timeoutMs": 300000
+    }
+  },
+  "refs": {
+    "agents": [
+      { "name": "orchestkit-triage-pm", "baseType": "Product Manager" }
+    ]
+  }
+}

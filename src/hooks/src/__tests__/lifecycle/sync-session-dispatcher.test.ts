@@ -11,6 +11,8 @@
  *
  * Covers: systemMessage merging, additionalContext fallback,
  * rules materialization, error isolation, and silent result.
+ *
+ * v7.30.0: appendAnalytics removed — data flows via emit() to yonatan-hq (#1266)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -50,12 +52,18 @@ vi.mock('../../prompt/antipattern-warning.js', () => ({
   materializeAntipatternRules: vi.fn(),
 }));
 
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn(() => 'test_hash'),
+}));
+
 import { syncSessionDispatcher } from '../../lifecycle/sync-session-dispatcher.js';
 import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.js';
 import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../../lifecycle/mcp-health-check.js';
 import { materializeAntipatternRules } from '../../prompt/antipattern-warning.js';
-import { logHook } from '../../lib/common.js';
+
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -88,8 +96,10 @@ function makeContextResult(ctx: string) {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/sync-session-dispatcher', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.resetAllMocks();
     // Re-establish default silent passing implementations after reset
     vi.mocked(analyticsConsentCheck).mockReturnValue({ continue: true, suppressOutput: true });
@@ -105,7 +115,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
   describe('all hooks silent', () => {
     it('returns silent success when no hooks produce messages', () => {
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -114,11 +124,14 @@ describe('lifecycle/sync-session-dispatcher', () => {
 
     it('calls all three consolidated hooks', () => {
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
-      expect(analyticsConsentCheck).toHaveBeenCalledWith(input);
-      expect(prefillGuard).toHaveBeenCalledWith(input);
-      expect(mcpHealthCheck).toHaveBeenCalledWith(input);
+      expect(analyticsConsentCheck).toHaveBeenCalled();
+      expect(vi.mocked(analyticsConsentCheck).mock.calls[0][0]).toEqual(input);
+      expect(prefillGuard).toHaveBeenCalled();
+      expect(vi.mocked(prefillGuard).mock.calls[0][0]).toEqual(input);
+      expect(mcpHealthCheck).toHaveBeenCalled();
+      expect(vi.mocked(mcpHealthCheck).mock.calls[0][0]).toEqual(input);
     });
   });
 
@@ -133,7 +146,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage).toBe('Analytics consent needed.');
     });
@@ -147,7 +160,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage).toContain('Consent message.');
       expect(result.systemMessage).toContain('Prefill guard warning.');
@@ -159,7 +172,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -170,7 +183,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       // systemMessage path returns { continue, systemMessage } — suppressOutput should not be set
       expect(result.suppressOutput).toBeUndefined();
@@ -188,7 +201,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage).toContain('MCP misconfiguration');
     });
@@ -203,7 +216,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       // systemMessage should appear once, not duplicated
       const count = (result.systemMessage ?? '').split('Prefill warning.').length - 1;
@@ -218,14 +231,14 @@ describe('lifecycle/sync-session-dispatcher', () => {
   describe('rules materialization', () => {
     it('calls materializeAntipatternRules at session start', () => {
       const input = createSessionStartInput({ project_dir: '/my/project' });
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
       expect(materializeAntipatternRules).toHaveBeenCalledWith('/my/project');
     });
 
     it('uses getProjectDir when project_dir not in input', () => {
       const input = createSessionStartInput({ project_dir: undefined });
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
       expect(materializeAntipatternRules).toHaveBeenCalledWith('/test/project');
     });
@@ -236,7 +249,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      expect(() => syncSessionDispatcher(input)).not.toThrow();
+      expect(() => syncSessionDispatcher(input, testCtx)).not.toThrow();
     });
 
     it('logs warning when rules materialization fails', () => {
@@ -245,9 +258,9 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sync-session-dispatcher',
         expect.stringContaining('materialization failed'),
         'warn',
@@ -266,7 +279,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      expect(() => syncSessionDispatcher(input)).not.toThrow();
+      expect(() => syncSessionDispatcher(input, testCtx)).not.toThrow();
     });
 
     it('still calls subsequent hooks after one throws', () => {
@@ -275,7 +288,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
       expect(prefillGuard).toHaveBeenCalled();
       expect(mcpHealthCheck).toHaveBeenCalled();
@@ -290,7 +303,7 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage).toContain('Prefill warning survived.');
     });
@@ -301,9 +314,9 @@ describe('lifecycle/sync-session-dispatcher', () => {
       });
 
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'sync-session-dispatcher',
         expect.stringContaining('mcp-health-check failed'),
         'warn',
@@ -318,14 +331,14 @@ describe('lifecycle/sync-session-dispatcher', () => {
   describe('plugin root injection', () => {
     it('injects CLAUDE_PLUGIN_ROOT into systemMessage when plugin_root is set', () => {
       const input = createSessionStartInput({ plugin_root: '/path/to/plugin' } as Partial<HookInput>);
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage).toContain('CLAUDE_PLUGIN_ROOT=/path/to/plugin');
     });
 
     it('does not inject when plugin_root is absent', () => {
       const input = createSessionStartInput();
-      const result = syncSessionDispatcher(input);
+      const result = syncSessionDispatcher(input, testCtx);
 
       expect(result.systemMessage ?? '').not.toContain('CLAUDE_PLUGIN_ROOT');
     });
@@ -338,9 +351,9 @@ describe('lifecycle/sync-session-dispatcher', () => {
   describe('logging', () => {
     it('logs "All sync hooks silent" when no messages collected', () => {
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
-      const calls = vi.mocked(logHook).mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSilentLog = calls.some(
         ([name, msg]) => name === 'sync-session-dispatcher' && String(msg).includes('silent'),
       );
@@ -356,13 +369,16 @@ describe('lifecycle/sync-session-dispatcher', () => {
       );
 
       const input = createSessionStartInput();
-      syncSessionDispatcher(input);
+      syncSessionDispatcher(input, testCtx);
 
-      const calls = vi.mocked(logHook).mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasMergedLog = calls.some(
         ([name, msg]) => name === 'sync-session-dispatcher' && String(msg).includes('Merged'),
       );
       expect(hasMergedLog).toBe(true);
     });
   });
+
+  // v7.30.0: perf measurement tests removed — appendAnalytics for session-start-perf.jsonl
+  // was removed (#1266). Session perf data now flows via emit() to yonatan-hq.
 });

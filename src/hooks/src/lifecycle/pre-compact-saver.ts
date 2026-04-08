@@ -14,9 +14,10 @@
 import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface PreservedContext {
   branch?: string;
@@ -27,6 +28,12 @@ interface PreservedContext {
   memoryTierSnapshot?: {
     graphEntries?: number;
     localEntries?: number;
+  };
+  /** Token budget state carried across compaction (CC 2.1.89 Candlekeep insight) */
+  tokenBudget?: {
+    estimatedUsed?: number;
+    estimatedRemaining?: number;
+    effortLevel?: string;
   };
 }
 
@@ -165,7 +172,7 @@ function getInProgressTasks(): string[] {
   }
 }
 
-export function preCompactSaver(_input: HookInput): HookResult {
+export function preCompactSaver(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const stateFile = getSessionStateFile();
     const state = loadSessionState(stateFile);
@@ -189,6 +196,22 @@ export function preCompactSaver(_input: HookInput): HookResult {
     const localEntries = countLocalMemoryEntries();
     const decisions = getRecentDecisions();
 
+    // Read token budget state (from token-budget-tracker InstructionsLoaded hook)
+    let tokenBudget: PreservedContext['tokenBudget'];
+    try {
+      const budgetFile = join(ctx.projectDir, '.claude', 'feedback', 'token-budget-state.json');
+      if (existsSync(budgetFile)) {
+        const budget = JSON.parse(readFileSync(budgetFile, 'utf8'));
+        tokenBudget = {
+          estimatedUsed: budget.estimatedUsed,
+          estimatedRemaining: budget.estimatedRemaining,
+          effortLevel: budget.effortLevel || process.env.CLAUDE_EFFORT,
+        };
+      }
+    } catch {
+      // Budget state unavailable — not critical
+    }
+
     // Preserve rich context for post-compaction recovery
     state.preservedContext = {
       branch: process.env.ORCHESTKIT_BRANCH || process.env.GIT_BRANCH || undefined,
@@ -199,17 +222,18 @@ export function preCompactSaver(_input: HookInput): HookResult {
       memoryTierSnapshot: {
         localEntries,
       },
+      tokenBudget,
     };
 
     atomicWriteSync(stateFile, JSON.stringify(state, null, 2));
 
-    logHook('pre-compact-saver',
+    ctx.log('pre-compact-saver',
       `Saved state before compaction #${state.compactionCount} ` +
       `(${localEntries} memory entries, ${decisions.length} decisions preserved)`
     );
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    logHook('pre-compact-saver', `Failed to save state: ${msg}`, 'warn');
+    ctx.log('pre-compact-saver', `Failed to save state: ${msg}`, 'warn');
   }
 
   return outputSilentSuccess();

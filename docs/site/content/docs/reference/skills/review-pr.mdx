@@ -287,6 +287,28 @@ Use these prefixes for comments:
 - `issue:` -- Must fix
 - `question:` -- Needs clarification
 
+## Agent Coordination
+
+### Context Passing
+
+All review agents receive: changed files list, PR metadata (author, base branch), domain flags (has_frontend, has_backend, has_ai), and project review conventions from memory.
+
+### SendMessage (Cross-Review Findings)
+
+When the security agent finds an issue the code-quality agent should also flag:
+
+```python
+SendMessage(to="code-quality-reviewer", message="Security: auth middleware bypassed in route handler — flag as issue in review")
+```
+
+### Agent Teams Alternative
+
+For complex PRs (> 500 lines, 3+ domains), use mesh topology so reviewers can challenge each other:
+
+```python
+# Load: Read("${CLAUDE_SKILL_DIR}/rules/agent-prompts-agent-teams.md")
+```
+
 ## Related Skills
 - `ork:commit`: Create commits after review
 - `ork:create-pr`: Create PRs for review

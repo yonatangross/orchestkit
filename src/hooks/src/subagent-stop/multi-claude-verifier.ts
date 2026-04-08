@@ -12,8 +12,9 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -102,9 +103,9 @@ interface VerificationQueue {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function multiClaudeVerifier(input: HookInput): HookResult {
+export function multiClaudeVerifier(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const timestamp = new Date().toISOString();
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
 
   const toolInput = input.tool_input || {};
   const agentName =

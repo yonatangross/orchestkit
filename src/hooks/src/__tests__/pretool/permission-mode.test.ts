@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { isDontAskMode } from '../../lib/guards.js';
+import { isDontAskMode, isAutoMode } from '../../lib/guards.js';
 import type { HookInput } from '../../types.js';
 
-function makeInput(permissionMode?: 'default' | 'acceptEdits' | 'dontAsk'): HookInput {
+function makeInput(permissionMode?: 'default' | 'acceptEdits' | 'dontAsk' | 'auto'): HookInput {
   return {
     tool_name: 'Write',
     session_id: 'test-session',
@@ -16,6 +16,10 @@ describe('isDontAskMode', () => {
     expect(isDontAskMode(makeInput('dontAsk'))).toBe(true);
   });
 
+  it('returns true for auto mode (CC 2.1.88)', () => {
+    expect(isDontAskMode(makeInput('auto'))).toBe(true);
+  });
+
   it('returns false for default mode', () => {
     expect(isDontAskMode(makeInput('default'))).toBe(false);
   });
@@ -26,5 +30,23 @@ describe('isDontAskMode', () => {
 
   it('returns false when undefined', () => {
     expect(isDontAskMode(makeInput())).toBe(false);
+  });
+});
+
+describe('isAutoMode', () => {
+  it('returns true for auto mode', () => {
+    expect(isAutoMode(makeInput('auto'))).toBe(true);
+  });
+
+  it('returns false for dontAsk mode', () => {
+    expect(isAutoMode(makeInput('dontAsk'))).toBe(false);
+  });
+
+  it('returns false for default mode', () => {
+    expect(isAutoMode(makeInput('default'))).toBe(false);
+  });
+
+  it('returns false when undefined', () => {
+    expect(isAutoMode(makeInput())).toBe(false);
   });
 });

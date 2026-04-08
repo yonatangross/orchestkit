@@ -4,12 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before importing the module
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 // Mock node:os for cross-platform path handling in tests
 vi.mock('node:os', async (importOriginal) => {
@@ -104,7 +102,6 @@ import {
 } from '../../lib/user-profile.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { analyzeDecisionFlow } from '../../lib/decision-flow-tracker.js';
-
 describe('User Profile Management', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);

@@ -5,8 +5,9 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputBlock, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputBlock } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const COVERAGE_PATHS = [
   // JavaScript/TypeScript (Jest, Vitest, c8)
@@ -50,8 +51,8 @@ function parseCoverage(filePath: string, content: string): number | null {
 /**
  * Check coverage threshold gate
  */
-export function coverageThresholdGate(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function coverageThresholdGate(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = ctx.projectDir;
   const threshold = parseInt(process.env.COVERAGE_THRESHOLD || '80', 10);
 
   // Find coverage file

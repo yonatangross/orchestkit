@@ -4,15 +4,14 @@
  * CC 2.1.9 Enhanced: injects additionalContext with learned error patterns
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
-  logHook,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface ErrorRule {
   tool: string;
@@ -67,8 +66,8 @@ function countCommonWords(str1: string, str2: string): number {
 /**
  * Warn about commands matching known error patterns
  */
-export function errorPatternWarner(input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function errorPatternWarner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = ctx.projectDir;
   const command = input.tool_input.command || '';
 
   if (!command) {
@@ -107,7 +106,7 @@ export function errorPatternWarner(input: HookInput): HookResult {
 
     const sampleCommand = rule.sample_input?.command;
     if (sampleCommand && countCommonWords(command, sampleCommand) > 3) {
-      logHook('error-pattern-warner', `Pattern match: ${rule.signature}`);
+      ctx.log('error-pattern-warner', `Pattern match: ${rule.signature}`);
       if (rule.suggested_fix) {
         hints.push(`${rule.signature} (${rule.occurrence_count}x): ${rule.suggested_fix}`);
       } else {

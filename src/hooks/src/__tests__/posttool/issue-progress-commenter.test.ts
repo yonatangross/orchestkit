@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -28,23 +29,13 @@ vi.mock('node:path', async (importOriginal) => {
   return { ...actual, default: actual, dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')) };
 });
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
 import { issueProgressCommenter } from '../../posttool/bash/issue-progress-commenter.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -56,8 +47,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('issueProgressCommenter', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     // Default: gh exists, github remote, on issue branch
@@ -75,7 +68,7 @@ describe('issueProgressCommenter', () => {
   });
 
   it('returns silent success for non-Bash tools', () => {
-    const result = issueProgressCommenter(makeInput({ tool_name: 'Write' }));
+    const result = issueProgressCommenter(makeInput({ tool_name: 'Write' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -83,13 +76,13 @@ describe('issueProgressCommenter', () => {
   it('returns silent success for non-git-commit commands', () => {
     const result = issueProgressCommenter(makeInput({
       tool_input: { command: 'npm test' },
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
 
   it('returns silent success for failed git commits', () => {
-    const result = issueProgressCommenter(makeInput({ exit_code: 1 }));
+    const result = issueProgressCommenter(makeInput({ exit_code: 1 }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -101,7 +94,7 @@ describe('issueProgressCommenter', () => {
       issues: {},
     }));
 
-    issueProgressCommenter(makeInput());
+    issueProgressCommenter(makeInput(), testCtx);
 
     // The second write should include the issue number
     const writeCall = mockWriteFileSync.mock.calls.find(
@@ -117,7 +110,7 @@ describe('issueProgressCommenter', () => {
       if (cmd === 'which' && argStr.includes('gh')) throw new Error('not found');
       return '';
     });
-    const result = issueProgressCommenter(makeInput());
+    const result = issueProgressCommenter(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
@@ -129,7 +122,7 @@ describe('issueProgressCommenter', () => {
       if (cmd === 'git' && argStr.includes('remote')) return 'git@gitlab.com:user/repo.git';
       return '';
     });
-    const result = issueProgressCommenter(makeInput());
+    const result = issueProgressCommenter(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });

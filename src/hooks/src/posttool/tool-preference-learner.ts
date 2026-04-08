@@ -19,7 +19,7 @@
  * CC 2.1.16 Compliant
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   getField,
@@ -28,6 +28,7 @@ import {
 } from '../lib/common.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -360,7 +361,7 @@ let pendingUpdates: { category: ToolCategory; toolId: string }[] = [];
  * Fix #917: Accumulates updates in memory and only flushes to disk every
  * FLUSH_INTERVAL calls (~10), reducing file I/O by ~90%.
  */
-export function toolPreferenceLearner(input: HookInput): HookResult {
+export function toolPreferenceLearner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Skip if no tool name
@@ -410,7 +411,7 @@ export function toolPreferenceLearner(input: HookInput): HookResult {
   for (const { category } of pendingUpdates) {
     const pref = data.preferences[category];
     if (pref && pref.confidence > 0.7 && pref.sample_count === 10) {
-      logHook(
+      ctx.log(
         HOOK_NAME,
         `Strong preference detected: ${category} → ${pref.preferred_tool} (${(pref.confidence * 100).toFixed(0)}%)`,
         'info'
@@ -419,7 +420,7 @@ export function toolPreferenceLearner(input: HookInput): HookResult {
   }
 
   // Reset accumulator
-  logHook(HOOK_NAME, `Flushed ${pendingUpdates.length} updates (${callsSinceFlush} calls)`);
+  ctx.log(HOOK_NAME, `Flushed ${pendingUpdates.length} updates (${callsSinceFlush} calls)`);
   pendingUpdates = [];
   callsSinceFlush = 0;
 

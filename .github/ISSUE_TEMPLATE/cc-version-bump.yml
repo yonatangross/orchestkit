@@ -1,0 +1,84 @@
+name: CC Version Bump Audit
+description: Audit OrchestKit for deletable code when bumping the minimum Claude Code version
+title: "chore: CC version bump audit — X.Y.Z → A.B.C"
+labels: ["maintenance", "cc-version-bump"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## CC Version Bump Audit
+
+        **Philosophy**: "Every time there's a new model release, we delete a bunch of code."
+
+        OrchestKit accumulates workarounds that may become unnecessary as CC improves.
+        This template guides the audit process for each CC minimum version bump.
+
+  - type: input
+    id: current-version
+    attributes:
+      label: Current minimum CC version
+      description: The current `>= X.Y.Z` value in CLAUDE.md
+      placeholder: "2.1.89"
+    validations:
+      required: true
+
+  - type: input
+    id: target-version
+    attributes:
+      label: Target minimum CC version
+      description: The new minimum version to set
+      placeholder: "2.2.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: new-capabilities
+    attributes:
+      label: "Step 1: New CC capabilities that replace our workarounds"
+      description: |
+        Review the CC CHANGELOG between current and target versions.
+        List capabilities that may make OrchestKit workarounds unnecessary.
+      placeholder: |
+        - CC now supports X natively (replaces our hook Y)
+        - Model improvement Z means skill prompt simplification
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: audit-checklist
+    attributes:
+      label: "Steps 2-5: Audit checklist"
+      description: Complete each audit step before merging the version bump PR.
+      options:
+        - label: "Grepped for version-gated code (`minCCVersion`, `CC 2.1.`, `compatibility`, `workaround`, `shim`, `fallback`)"
+          required: true
+        - label: "Reviewed prompt engineering — removed defensive repetition, overly explicit instructions, redundant examples for fixed weaknesses"
+          required: true
+        - label: "Checked multi-phase skills — collapsed phases where model reliability improved"
+          required: true
+        - label: "Audited hook necessity — identified hooks working around fixed CC bugs"
+          required: true
+
+  - type: textarea
+    id: deletions
+    attributes:
+      label: "Step 6-7: Deletion inventory"
+      description: |
+        Track what was removed or simplified. A version bump PR that only
+        bumps the number without auditing for deletable code is incomplete.
+      placeholder: |
+        ### Removed
+        - Hook `xyz` — CC now handles this natively (CC changelog ref)
+        - Skill `abc` phase 3 — collapsed into phase 2
+
+        ### Simplified
+        - Skill `def` — removed 40 lines of defensive prompting
+
+        ### Metrics
+        - Lines deleted: X
+        - Lines added: Y
+        - Net: -Z lines
+        - Hooks removed: N
+        - Skills simplified: N
+    validations:
+      required: true

@@ -15,8 +15,8 @@
  * but never surfaced. The same constraint applies to StopFailure handlers.
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 
 // Import individual stop hook implementations
 import { handoffWriter } from './handoff-writer.js';
@@ -32,12 +32,15 @@ import { evidenceCollector } from '../skill/evidence-collector.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
 import { cleanupStaleLedgers } from '../lib/agent-attribution.js';
+// Performance snapshot — writes hourly token-overhead snapshot to disk
+import { perfSnapshot } from '../lifecycle/perf-snapshot.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult | Promise<HookResult>;
 
 interface HookConfig {
   name: string;
@@ -69,13 +72,19 @@ const HOOKS: HookConfig[] = [
   { name: 'security-scan-aggregator', fn: securityScanAggregator },
 
   // --- Cleanup hooks ---
-  { name: 'ledger-cleanup', fn: () => { try { cleanupStaleLedgers(); } catch { /* silent */ } return outputSilentSuccess(); } },
+  { name: 'ledger-cleanup', fn: (_input, _ctx) => { try { cleanupStaleLedgers(); } catch { /* silent */ } return outputSilentSuccess(); } },
 
   // --- Skill validation hooks (run at stop time) ---
   { name: 'coverage-check', fn: coverageCheck },
   { name: 'evidence-collector', fn: evidenceCollector },
   { name: 'coverage-threshold-gate', fn: coverageThresholdGate },
   { name: 'cross-instance-test-validator', fn: crossInstanceTestValidator },
+
+  // --- Performance instrumentation ---
+  // Writes hourly token-overhead snapshot to ~/.claude/perf/snap-{bucket}.json
+  // Returns outputSilentSuccess() (CC 2.1.78 safety) — disk write IS the output.
+  // Toggle via ORCHESTKIT_PERF_SNAPSHOT_ENABLED env var.
+  { name: 'perf-snapshot', fn: perfSnapshot },
 ];
 
 /** Exposed for registry wiring tests */
@@ -88,31 +97,31 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
 /**
  * Unified dispatcher that runs all Stop hooks in parallel
  */
-export async function unifiedStopDispatcher(input: HookInput): Promise<HookResult> {
+export async function unifiedStopDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Prevent infinite re-entry (CC 2.1.25: stop_hook_active)
   if (input.stop_hook_active) {
-    logHook('stop-dispatcher', 'Skipping: stop_hook_active=true (re-entry prevention)');
+    ctx.log('stop-dispatcher', 'Skipping: stop_hook_active=true (re-entry prevention)');
     return outputSilentSuccess();
   }
 
   // CC 2.1.49: Log last assistant message snippet for audit trail
   if (input.last_assistant_message) {
     const snippet = input.last_assistant_message.substring(0, 200);
-    logHook('stop-dispatcher', `last_assistant_message (first 200): ${snippet}`);
+    ctx.log('stop-dispatcher', `last_assistant_message (first 200): ${snippet}`);
   }
 
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {
       try {
-        const result = hook.fn(input);
+        const result = hook.fn(input, ctx);
         if (result instanceof Promise) {
           await result;
         }
         return { hook: hook.name, status: 'success' };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        logHook('stop-dispatcher', `${hook.name} failed: ${message}`);
+        ctx.log('stop-dispatcher', `${hook.name} failed: ${message}`);
         return { hook: hook.name, status: 'error', message };
       }
     })
@@ -124,7 +133,7 @@ export async function unifiedStopDispatcher(input: HookInput): Promise<HookResul
   );
 
   if (errors.length > 0) {
-    logHook('stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
+    ctx.log('stop-dispatcher', `${errors.length}/${HOOKS.length} hooks had errors`);
   }
 
   // CRITICAL: Always return silent success — never produce output that could

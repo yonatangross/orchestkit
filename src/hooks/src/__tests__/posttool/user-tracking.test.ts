@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
@@ -27,6 +26,7 @@ vi.mock('../../lib/decision-flow-tracker.js', () => ({
 
 import { userTracking } from '../../posttool/user-tracking.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -37,14 +37,16 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('userTracking', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
   });
 
   it('tracks all tool usage with category', () => {
     mockGetToolCategory.mockReturnValue('build');
-    userTracking(makeInput({ tool_name: 'Bash' }));
+    userTracking(makeInput({ tool_name: 'Bash' }), testCtx);
     expect(mockTrackToolUsed).toHaveBeenCalledWith('Bash', true, undefined, 'build');
   });
 
@@ -52,7 +54,7 @@ describe('userTracking', () => {
     userTracking(makeInput({
       tool_name: 'Skill',
       tool_input: { skill: 'error-handling' },
-    }));
+    }), testCtx);
     expect(mockTrackSkillInvoked).toHaveBeenCalledWith('error-handling', undefined, true);
   });
 
@@ -60,7 +62,7 @@ describe('userTracking', () => {
     userTracking(makeInput({
       tool_name: 'Task',
       tool_input: { subagent_type: 'code-reviewer', prompt: 'Review the authentication module' },
-    }));
+    }), testCtx);
     expect(mockTrackAgentSpawned).toHaveBeenCalledWith(
       'code-reviewer',
       'Review the authentication module',
@@ -69,7 +71,7 @@ describe('userTracking', () => {
   });
 
   it('marks tool as failed when tool_error is present', () => {
-    userTracking(makeInput({ tool_error: 'command failed' }));
+    userTracking(makeInput({ tool_error: 'command failed' }), testCtx);
     expect(mockTrackToolUsed).toHaveBeenCalledWith('Bash', false, undefined, expect.any(String));
   });
 
@@ -77,7 +79,7 @@ describe('userTracking', () => {
     userTracking(makeInput({
       tool_name: 'Write',
       tool_input: { file_path: '/src/index.ts', content: 'code' },
-    }));
+    }), testCtx);
     expect(mockTrackToolAction).toHaveBeenCalledWith(
       'test-session',
       'Write',
@@ -89,7 +91,7 @@ describe('userTracking', () => {
 
   it('handles errors gracefully without crashing', () => {
     mockTrackToolUsed.mockImplementation(() => { throw new Error('tracker error'); });
-    const result = userTracking(makeInput());
+    const result = userTracking(makeInput(), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

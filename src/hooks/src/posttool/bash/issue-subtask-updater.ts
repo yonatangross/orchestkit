@@ -11,9 +11,10 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, getField, logHook } from '../../lib/common.js';
 import { getSessionTempDir } from '../../lib/paths.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface ProgressFile {
   session_id: string;
@@ -217,7 +218,7 @@ function recordTaskCompletion(issueNum: string, taskText: string, progressFile: 
 /**
  * Update issue subtasks based on commit
  */
-export function issueSubtaskUpdater(input: HookInput): HookResult {
+export function issueSubtaskUpdater(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process Bash tool
@@ -233,13 +234,13 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('issue-subtask-updater', 'Processing git commit for subtask updates...');
+  ctx.log('issue-subtask-updater', 'Processing git commit for subtask updates...');
 
   // Check if gh CLI is available
   try {
     execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
   } catch {
-    logHook('issue-subtask-updater', 'gh CLI not available, skipping subtask updates');
+    ctx.log('issue-subtask-updater', 'gh CLI not available, skipping subtask updates');
     return outputSilentSuccess();
   }
 
@@ -251,7 +252,7 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     if (!remote.includes('github')) {
-      logHook('issue-subtask-updater', 'Not a GitHub repository, skipping');
+      ctx.log('issue-subtask-updater', 'Not a GitHub repository, skipping');
       return outputSilentSuccess();
     }
   } catch {
@@ -285,36 +286,36 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
   }
 
   if (!issueNum) {
-    logHook('issue-subtask-updater', 'No issue number found');
+    ctx.log('issue-subtask-updater', 'No issue number found');
     return outputSilentSuccess();
   }
 
-  logHook('issue-subtask-updater', `Found issue #${issueNum}, checking for matching subtasks...`);
+  ctx.log('issue-subtask-updater', `Found issue #${issueNum}, checking for matching subtasks...`);
 
   // Extract task from commit message
   const commitTask = extractTaskFromCommit(commitMsg);
   if (!commitTask) {
-    logHook('issue-subtask-updater', 'Could not extract task from commit message');
+    ctx.log('issue-subtask-updater', 'Could not extract task from commit message');
     return outputSilentSuccess();
   }
 
-  logHook('issue-subtask-updater', `Commit task: '${commitTask}'`);
+  ctx.log('issue-subtask-updater', `Commit task: '${commitTask}'`);
 
   // Get unchecked tasks from issue
   const uncheckedTasks = getUncheckedTasks(issueNum);
   if (uncheckedTasks.length === 0) {
-    logHook('issue-subtask-updater', `No unchecked tasks in issue #${issueNum}`);
+    ctx.log('issue-subtask-updater', `No unchecked tasks in issue #${issueNum}`);
     return outputSilentSuccess();
   }
 
   // Check each unchecked task for a match
   let matched = false;
-  const sessionId = (input.session_id || getSessionId()).replace(/[^a-zA-Z0-9_-]/g, '');
+  const sessionId = (input.session_id || (ctx.sessionId)).replace(/[^a-zA-Z0-9_-]/g, '');
   const progressFile = `${getSessionTempDir(sessionId)}/issue-progress.json`;
 
   for (const checkboxText of uncheckedTasks) {
     if (matchesCheckbox(commitTask, checkboxText)) {
-      logHook('issue-subtask-updater', `Found matching checkbox: '${checkboxText}'`);
+      ctx.log('issue-subtask-updater', `Found matching checkbox: '${checkboxText}'`);
 
       if (updateCheckbox(issueNum, checkboxText)) {
         recordTaskCompletion(issueNum, checkboxText, progressFile);
@@ -324,7 +325,7 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
   }
 
   if (!matched) {
-    logHook('issue-subtask-updater', `No matching checkboxes found for task: '${commitTask}'`);
+    ctx.log('issue-subtask-updater', `No matching checkboxes found for task: '${commitTask}'`);
     return outputSilentSuccess();
   }
 

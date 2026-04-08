@@ -5,11 +5,15 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 4 hooks managed by this dispatcher:
+ * 6 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
  * - agentation-context (producesContext: true)
+ *
+ * Every-turn silent analytics:
+ * - frustration-detector (producesContext: false, Issue #1243)
+ * - cache-break-detector (producesContext: false, Issue #1238)
  *
  * Every-turn context producers:
  * - context-exhaustion-warner (producesContext: true)
@@ -22,21 +26,21 @@
  * - memory-context-loader → materializeDecisionRules()
  *
  * CC 2.1.9 Compliant: Single additionalContext output
+ * CC 2.1.94: sessionTitle set from branch + effort for prompt-bar identification
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
-  logHook,
+  outputPromptContextWithTitle,
   estimateTokenCount,
-  getProjectDir,
-  getSessionId,
   extractContext,
   fnv1aHash,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
-import { detectEffortLevel, effortTokenBudget } from '../lib/effort-detector.js';
+import { detectEffortLevel, effortTokenBudget, DEFAULT_EFFORT_LEVEL } from '../lib/effort-detector.js';
+import { trackTokenUsage } from '../lib/token-tracker.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -44,10 +48,13 @@ import { join } from 'node:path';
 // Import hook implementations — every-turn
 import { contextExhaustionWarner } from './context-exhaustion-warner.js';
 import { pipelineDetector } from './pipeline-detector.js';
+import { frustrationDetector } from './frustration-detector.js';
+import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
 import { agentationContext } from './agentation-context.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -62,7 +69,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface PromptHookConfig {
   name: string;
@@ -78,7 +85,7 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 6 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
@@ -90,6 +97,10 @@ const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
   { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
+
+  // --- Silent analytics (no context output, fire-and-forget) ---
+  { name: 'frustration-detector', fn: frustrationDetector, producesContext: false },
+  { name: 'cache-break-detector', fn: cacheBreakDetector, producesContext: false },
 
   // --- Context producers (output merged into single additionalContext) ---
   { name: 'context-exhaustion-warner', fn: contextExhaustionWarner, producesContext: true },
@@ -142,6 +153,32 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
 // -----------------------------------------------------------------------------
 
 /**
+ * Build a session title for the CC prompt bar (CC 2.1.94 sessionTitle).
+ *
+ * Format: `{branch}` or `{branch} · {effort}` (when effort is non-default).
+ * Bounded to 60 chars to fit narrow prompt bars. Returns empty string when
+ * there's nothing meaningful to surface (no branch, no effort override).
+ *
+ * Why branch: branch is the single most useful session identifier — it
+ * answers "which feature am I on" at a glance in the prompt bar and the
+ * --resume picker. Effort is only appended when it differs from the
+ * CC 2.1.94 default ('high') so the default case stays uncluttered.
+ */
+function buildSessionTitle(branch: string, effort: string): string {
+  const cleanBranch = (branch || '').trim().replace(/[\r\n]+/g, ' ');
+  if (!cleanBranch) return '';
+  // Strip common branch prefixes to save characters in the title bar
+  const shortBranch = cleanBranch
+    .replace(/^(refs\/heads\/|origin\/)/, '')
+    .slice(0, 40);
+  const parts = [shortBranch];
+  if (effort && effort !== DEFAULT_EFFORT_LEVEL) {
+    parts.push(effort);
+  }
+  return parts.join(' · ').slice(0, 60);
+}
+
+/**
  * Detect noisy/low-value context that shouldn't consume token budget.
  * Returns true if the context is only bracket-enclosed markers or
  * cross-project context lines with no actionable content.
@@ -168,15 +205,15 @@ function isNoisyOutput(context: string): boolean {
  * Unified dispatcher that runs all every-turn UserPromptSubmit hooks
  * and consolidates their output into a single additionalContext response.
  */
-export function unifiedPromptDispatcher(input: HookInput): HookResult {
+export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Guard: skip all processing for oversized or binary prompts (image paste, base64 data)
   const prompt = input.prompt || '';
   if (prompt.length > MAX_PROMPT_LENGTH) {
-    logHook(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
+    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
     return outputSilentSuccess();
   }
   if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
-    logHook(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
+    ctx.log(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
     return outputSilentSuccess();
   }
 
@@ -184,21 +221,22 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   let totalTokens = 0;
 
   // Effort-aware budget (CC 2.1.76): /effort low → 200t, medium → 800t, high → 1200t
+  // CC 2.1.94 changed default effort from 'medium' → 'high' for most user tiers.
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
-  if (effort !== 'medium') {
-    logHook(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
+  if (effort !== DEFAULT_EFFORT_LEVEL) {
+    ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
   }
 
   // Resolve session/project for once-flag tracking
-  const sessionId = input.session_id || getSessionId();
-  const projectDir = input.project_dir || getProjectDir();
+  const sessionId = input.session_id || (ctx.sessionId);
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   for (const hook of HOOKS) {
     try {
       // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
       if (effort === 'low' && hook.runOnce && hook.producesContext) {
-        logHook(HOOK_NAME, `${hook.name}: skipped at low effort`);
+        ctx.log(HOOK_NAME, `${hook.name}: skipped at low effort`);
         continue;
       }
 
@@ -206,21 +244,21 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
       if (hook.runOnce) {
         if (!sessionId) {
           // No session_id available — allow re-run (same as legacy behavior)
-          logHook(HOOK_NAME, `${hook.name}: no session_id, running without once-gate`);
+          ctx.log(HOOK_NAME, `${hook.name}: no session_id, running without once-gate`);
         } else if (hasOnceFlagRun(hook.name, sessionId, projectDir)) {
-          logHook(HOOK_NAME, `${hook.name}: already ran this session, skipping`);
+          ctx.log(HOOK_NAME, `${hook.name}: already ran this session, skipping`);
           continue;
         }
       }
 
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       // Mark once-per-session hook as done after successful execution
       if (hook.runOnce && sessionId) {
         try {
           setOnceFlagDone(hook.name, sessionId, projectDir);
         } catch (flagErr) {
-          logHook(HOOK_NAME, `${hook.name}: failed to write once-flag: ${flagErr}`, 'warn');
+          ctx.log(HOOK_NAME, `${hook.name}: failed to write once-flag: ${flagErr}`, 'warn');
         }
       }
 
@@ -237,29 +275,37 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
 
       // Filter noisy/low-value context before consuming budget
       if (isNoisyOutput(context)) {
-        logHook(HOOK_NAME, `${hook.name}: noisy output filtered`);
+        ctx.log(HOOK_NAME, `${hook.name}: noisy output filtered`);
         continue;
       }
 
       // Budget check: don't exceed effort-adjusted token budget
       const contextTokens = estimateTokenCount(context);
       if (totalTokens + contextTokens > tokenBudget) {
-        logHook(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
+        ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
         continue;
       }
 
       contextParts.push(context);
       totalTokens += contextTokens;
 
-      logHook(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
+      ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
   }
 
-  // No context produced — return silent
+  // Build the session title (CC 2.1.94) — emitted alongside context so the
+  // prompt bar shows the current branch + effort. Safe to emit repeatedly:
+  // CC treats a sessionTitle identical to the previous turn's as a no-op.
+  const sessionTitle = buildSessionTitle(ctx.branch, effort);
+
+  // No context produced — still try to set the title if we have one
   if (contextParts.length === 0) {
+    if (sessionTitle) {
+      return outputPromptContextWithTitle('', sessionTitle);
+    }
     return outputSilentSuccess();
   }
 
@@ -267,6 +313,8 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
   const consolidated = contextParts.join('\n\n---\n\n');
 
   // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
+  // Note: the title is still emitted on delta-skip turns because it's cheap
+  // and ensures the prompt bar stays current even when context is cached.
   const consolidatedHash = fnv1aHash(consolidated);
   const hashDir = getPromptSessionDir(sessionId, projectDir);
   const hashFile = join(hashDir, 'prompt-hash.txt');
@@ -275,7 +323,10 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
     if (existsSync(hashFile)) {
       const lastHash = readFileSync(hashFile, 'utf8').trim();
       if (lastHash === consolidatedHash) {
-        logHook(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        if (sessionTitle) {
+          return outputPromptContextWithTitle('', sessionTitle);
+        }
         return outputSilentSuccess();
       }
     }
@@ -285,11 +336,19 @@ export function unifiedPromptDispatcher(input: HookInput): HookResult {
     }
     writeFileSync(hashFile, consolidatedHash, 'utf8');
   } catch (err) {
-    logHook(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
+    ctx.log(HOOK_NAME, `Delta detection error: ${err}`, 'warn');
     // Proceed with injection on error
   }
 
-  logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t${sessionTitle ? ` · title="${sessionTitle}"` : ''}`);
 
+  // Track token usage for budget enforcement
+  if (totalTokens > 0) {
+    trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
+  }
+
+  if (sessionTitle) {
+    return outputPromptContextWithTitle(consolidated, sessionTitle);
+  }
   return outputPromptContext(consolidated);
 }

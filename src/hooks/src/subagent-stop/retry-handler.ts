@@ -10,8 +10,8 @@
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import {
   makeRetryDecision,
   formatRetryDecision,
@@ -21,6 +21,7 @@ import {
 import { loadConfig, loadState, updateAgentStatus } from '../lib/orchestration-state.js';
 import { updateTaskStatus, getTaskByAgent } from '../lib/task-integration.js';
 import type { AgentOutcome, ExecutionAttempt } from '../lib/orchestration-types.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Execution History Storage
@@ -120,7 +121,7 @@ function detectOutcome(input: HookInput): { outcome: AgentOutcome; error?: strin
  * 2. Evaluates whether to retry
  * 3. Suggests alternatives if retry not recommended
  */
-export function retryHandler(input: HookInput): HookResult {
+export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Get agent type
   const toolInput = input.tool_input || {};
   const agentType =
@@ -141,7 +142,7 @@ export function retryHandler(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  logHook('retry-handler', `Agent ${agentType} completed with outcome: ${outcome}`);
+  ctx.log('retry-handler', `Agent ${agentType} completed with outcome: ${outcome}`);
 
   // Partial results (CC 2.1.76): tag context but don't retry — agent was killed
   // mid-work and its partial output is already in the conversation context.
@@ -181,7 +182,7 @@ export function retryHandler(input: HookInput): HookResult {
     config.maxRetries
   );
 
-  logHook(
+  ctx.log(
     'retry-handler',
     `Retry decision for ${agentType}: shouldRetry=${decision.shouldRetry}, ` +
     `alternative=${decision.alternativeAgent || 'none'}`

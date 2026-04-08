@@ -1,13 +1,13 @@
 # SDK Patterns
 
-Programmatic usage of emulate via the `createEmulator()` API.
+Programmatic usage of emulate via the `createEmulate()` API (v0.3.0+, `@emulators/*` scope).
 
 ## Basic Usage
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
-const github = await createEmulator({
+const github = await createEmulate({
   service: 'github',
   port: 4001,
   seed: './emulate.config.yaml'  // Optional seed file
@@ -27,11 +27,11 @@ await github.close() // Async — shuts down server and frees port
 ## Multi-Service Setup
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
 const [github, vercel] = await Promise.all([
-  createEmulator({ service: 'github', port: 4001, seed: './config.yaml' }),
-  createEmulator({ service: 'vercel', port: 4000, seed: './config.yaml' }),
+  createEmulate({ service: 'github', port: 4001, seed: './config.yaml' }),
+  createEmulate({ service: 'vercel', port: 4000, seed: './config.yaml' }),
 ])
 
 // Both share the same seed config — tokens, users, projects
@@ -48,13 +48,13 @@ await Promise.all([github.close(), vercel.close()])
 
 ```typescript
 // vitest.setup.ts
-import { createEmulator, type Emulator } from 'emulate'
+import { createEmulate, type Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
 beforeAll(async () => {
   const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: '.emulate/test.yaml'
@@ -75,13 +75,13 @@ beforeEach(() => {
 
 ```typescript
 // jest.setup.ts
-import { createEmulator, type Emulator } from 'emulate'
+import { createEmulate, type Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
 beforeAll(async () => {
   const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: '.emulate/test.yaml'
@@ -100,7 +100,7 @@ beforeEach(() => {
 
 ## Emulator API
 
-### `createEmulator(options)`
+### `createEmulate(options)`
 
 Creates and starts an emulator instance.
 
@@ -111,7 +111,7 @@ interface EmulatorOptions {
   seed?: string      // Path to YAML seed config
 }
 
-const emulator: Emulator = await createEmulator(options)
+const emulator: Emulator = await createEmulate(options)
 ```
 
 ### `emulator.url`
@@ -179,13 +179,13 @@ const res = await fetch(`${base}/repos/org/repo/pulls`, {
 ## State Lifecycle
 
 ```
-createEmulator() -> seed applied -> tests run -> reset() -> tests run -> close()
+createEmulate() -> seed applied -> tests run -> reset() -> tests run -> close()
                      ^                            ^
                      |                            |
                      Initial state                State wiped, seed re-applied
 ```
 
-- `createEmulator()` — Starts server, applies seed config
+- `createEmulate()` — Starts server, applies seed config
 - Tests run — State accumulates (created PRs, issues, etc.)
 - `reset()` — Wipes state, re-applies seed — server stays up
 - `close()` — Shuts down server, frees port

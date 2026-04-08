@@ -216,10 +216,10 @@ describe('unified-dispatcher', () => {
       await unifiedSessionStartDispatcher(input);
 
       // Assert
-      expect(patternSyncPull).toHaveBeenCalledWith(input);
-      expect(sessionEnvSetup).toHaveBeenCalledWith(input);
-      expect(staleTeamCleanup).toHaveBeenCalledWith(input);
-      expect(typeErrorIndexer).toHaveBeenCalledWith(input);
+      expect(patternSyncPull).toHaveBeenCalledWith(input, expect.anything());
+      expect(sessionEnvSetup).toHaveBeenCalledWith(input, expect.anything());
+      expect(staleTeamCleanup).toHaveBeenCalledWith(input, expect.anything());
+      expect(typeErrorIndexer).toHaveBeenCalledWith(input, expect.anything());
     });
   });
 

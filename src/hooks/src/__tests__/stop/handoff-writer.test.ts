@@ -64,8 +64,8 @@ vi.mock('../../lib/learning-extractor.js', () => ({
 }));
 
 import { handoffWriter } from '../../stop/handoff-writer.js';
-import { logHook } from '../../lib/common.js';
 import { extractLearnings, formatLearnings } from '../../lib/learning-extractor.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -86,8 +86,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('stop/handoff-writer', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'session-stop-001', branch: 'feat/test-feature' });
     vi.resetAllMocks();
     // Default: .claude/ exists, no decisions/tasks files
     mockExistsSync.mockImplementation((p: string) => {
@@ -107,7 +109,7 @@ describe('stop/handoff-writer', () => {
   describe('always returns silent success', () => {
     it('returns { continue: true, suppressOutput: true }', () => {
       const input = createStopInput();
-      const result = handoffWriter(input);
+      const result = handoffWriter(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -117,7 +119,7 @@ describe('stop/handoff-writer', () => {
       mockWriteFileSync.mockImplementation(() => { throw new Error('disk full'); });
 
       const input = createStopInput();
-      const result = handoffWriter(input);
+      const result = handoffWriter(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -126,7 +128,7 @@ describe('stop/handoff-writer', () => {
       mockExecFileSync.mockImplementation(() => { throw new Error('git not available'); });
 
       const input = createStopInput();
-      const result = handoffWriter(input);
+      const result = handoffWriter(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -135,9 +137,9 @@ describe('stop/handoff-writer', () => {
       mockWriteFileSync.mockImplementation(() => { throw new Error('write error'); });
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'handoff-writer',
         expect.stringContaining('Failed to write handoff'),
         'warn',
@@ -152,7 +154,7 @@ describe('stop/handoff-writer', () => {
   describe('HANDOFF.md content', () => {
     it('writes to .claude/HANDOFF.md', () => {
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         '/test/project/.claude/HANDOFF.md',
@@ -163,7 +165,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes # Session Handoff heading', () => {
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('# Session Handoff');
@@ -171,7 +173,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes branch name from getCachedBranch', () => {
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('feat/test-feature');
@@ -179,7 +181,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes session ID', () => {
       const input = createStopInput({ session_id: 'my-explicit-session' });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('my-explicit-session');
@@ -187,7 +189,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes ## Summary section', () => {
       const input = createStopInput({ last_assistant_message: 'I fixed the auth bug by updating the JWT validation.' });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('## Summary');
@@ -195,7 +197,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes fallback summary when last_assistant_message is absent', () => {
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('No summary available.');
@@ -203,7 +205,7 @@ describe('stop/handoff-writer', () => {
 
     it('includes timestamp in UTC format', () => {
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('UTC');
@@ -219,7 +221,7 @@ describe('stop/handoff-writer', () => {
       mockExecFileSync.mockReturnValue('src/hooks/src/stop/handoff-writer.ts\npackage.json\n');
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('## Modified Files');
@@ -231,7 +233,7 @@ describe('stop/handoff-writer', () => {
       mockExecFileSync.mockReturnValue('');
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).not.toContain('## Modified Files');
@@ -241,7 +243,7 @@ describe('stop/handoff-writer', () => {
       mockExecFileSync.mockImplementation(() => { throw new Error('git: command not found'); });
 
       const input = createStopInput();
-      expect(() => handoffWriter(input)).not.toThrow();
+      expect(() => handoffWriter(input, testCtx)).not.toThrow();
     });
   });
 
@@ -261,7 +263,7 @@ describe('stop/handoff-writer', () => {
       vi.mocked(formatLearnings).mockReturnValue(''); // no learnings
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('## Decisions Made');
@@ -272,7 +274,7 @@ describe('stop/handoff-writer', () => {
       mockExistsSync.mockReturnValue(false);
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).not.toContain('## Decisions Made');
@@ -287,7 +289,7 @@ describe('stop/handoff-writer', () => {
     it('calls extractLearnings with last_assistant_message', () => {
       const msg = 'I decided to use Vitest. Fixed by removing stale cache.';
       const input = createStopInput({ last_assistant_message: msg });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       expect(extractLearnings).toHaveBeenCalledWith(msg);
     });
@@ -297,7 +299,7 @@ describe('stop/handoff-writer', () => {
       vi.mocked(formatLearnings).mockReturnValue('## Decisions Made\n- Used Vitest.');
 
       const input = createStopInput({ last_assistant_message: 'I decided to use Vitest.' });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('## Decisions Made');
@@ -314,7 +316,7 @@ describe('stop/handoff-writer', () => {
       mockExistsSync.mockReturnValue(false);
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       expect(mockMkdirSync).toHaveBeenCalledWith(
         '/test/project/.claude',
@@ -326,7 +328,7 @@ describe('stop/handoff-writer', () => {
       mockExistsSync.mockReturnValue(true);
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       expect(mockMkdirSync).not.toHaveBeenCalled();
     });
@@ -340,7 +342,7 @@ describe('stop/handoff-writer', () => {
     it('truncates very long last_assistant_message', () => {
       const longMessage = 'A '.repeat(1000); // 2000 chars
       const input = createStopInput({ last_assistant_message: longMessage });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       // The content written should not contain the full 2000-char message verbatim
@@ -350,7 +352,7 @@ describe('stop/handoff-writer', () => {
     it('appends ellipsis when message is truncated', () => {
       const longMessage = 'word '.repeat(300); // >600 chars, no sentence boundary
       const input = createStopInput({ last_assistant_message: longMessage });
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       const content: string = mockWriteFileSync.mock.calls[0][1];
       expect(content).toContain('...');
@@ -367,10 +369,10 @@ describe('stop/handoff-writer', () => {
       mockWriteFileSync.mockReturnValue(undefined);
 
       const input = createStopInput();
-      handoffWriter(input);
+      handoffWriter(input, testCtx);
 
       // logHook should have been called with handoff-writer and a message containing HANDOFF.md
-      const calls = vi.mocked(logHook).mock.calls;
+      const calls = vi.mocked(testCtx.log).mock.calls;
       const hasSuccessLog = calls.some(
         ([name, msg]) => name === 'handoff-writer' && String(msg).includes('HANDOFF.md'),
       );

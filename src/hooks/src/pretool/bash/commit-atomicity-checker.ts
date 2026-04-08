@@ -15,13 +15,13 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
   logHook,
-  getProjectDir,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'commit-atomicity-checker';
 
@@ -136,12 +136,12 @@ function collectWarnings(stagedFiles: string[], command: string): string[] {
 /**
  * Heuristic atomicity checker for git commit commands.
  */
-export function commitAtomicityChecker(input: HookInput): HookResult {
+export function commitAtomicityChecker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const command = input.tool_input.command || '';
     if (!command) return outputSilentSuccess();
 
-    const cwd = input.project_dir || getProjectDir();
+    const cwd = input.project_dir || (ctx.projectDir);
     const stagedFiles = getStagedFiles(cwd);
     if (!stagedFiles || stagedFiles.length === 0) return outputSilentSuccess();
 
@@ -149,10 +149,10 @@ export function commitAtomicityChecker(input: HookInput): HookResult {
     if (warnings.length === 0) return outputSilentSuccess();
 
     const context = `Atomicity check:\n${warnings.map(w => `- ${w}`).join('\n')}\n\nConsider splitting into atomic commits if these are unrelated changes.`;
-    logHook(HOOK_NAME, `${warnings.length} warning(s) for commit`);
+    ctx.log(HOOK_NAME, `${warnings.length} warning(s) for commit`);
     return outputAllowWithContext(context);
   } catch {
-    logHook(HOOK_NAME, 'Unexpected error, falling back to silent success', 'warn');
+    ctx.log(HOOK_NAME, 'Unexpected error, falling back to silent success', 'warn');
     return outputSilentSuccess();
   }
 }

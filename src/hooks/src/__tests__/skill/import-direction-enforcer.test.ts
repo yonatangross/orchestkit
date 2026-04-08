@@ -8,31 +8,22 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/guards.js', () => ({
   guardCodeFiles: vi.fn(() => null), // null = continue, not null = skip
 }));
 
 import { importDirectionEnforcer } from '../../skill/import-direction-enforcer.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -62,8 +53,10 @@ function createWriteInput(
 // Import Direction Enforcer Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('import-direction-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardCodeFiles).mockReturnValue(null); // Default: pass guard
   });
@@ -85,7 +78,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -99,7 +92,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -113,7 +106,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput).toMatchObject({
@@ -135,7 +128,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput('/test/project/README.md', 'Some content');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result).toEqual(skipResult);
@@ -151,7 +144,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -168,7 +161,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput('', 'some content');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -180,7 +173,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput('/test/project/src/lib/utils.ts', '');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -196,7 +189,7 @@ describe('import-direction-enforcer', () => {
       };
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -222,7 +215,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput(path, 'export const x = 1;');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -237,7 +230,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput(path, 'from app.models import User');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -248,7 +241,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput('/random/path/file.ts', 'import something');
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -273,7 +266,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput(path, content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -290,7 +283,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput(path, content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -304,7 +297,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -319,7 +312,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -346,7 +339,7 @@ describe('import-direction-enforcer', () => {
       const input = createWriteInput(path, content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -367,7 +360,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -381,7 +374,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -395,7 +388,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -409,7 +402,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -429,7 +422,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -444,7 +437,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -459,7 +452,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -480,7 +473,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -494,7 +487,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -508,7 +501,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -522,7 +515,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -542,7 +535,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true); // features can import from components
@@ -556,7 +549,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true); // features can import from hooks
@@ -578,7 +571,7 @@ describe('import-direction-enforcer', () => {
         );
 
         // Act
-        const result = importDirectionEnforcer(input);
+        const result = importDirectionEnforcer(input, testCtx);
 
         // Assert
         expect(result.continue).toBe(false);
@@ -593,7 +586,7 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -613,10 +606,10 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      importDirectionEnforcer(input);
+      importDirectionEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'import-direction-enforcer',
         expect.stringContaining('BLOCKED')
       );
@@ -630,10 +623,10 @@ describe('import-direction-enforcer', () => {
       );
 
       // Act
-      importDirectionEnforcer(input);
+      importDirectionEnforcer(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalled();
+      expect(testCtx.log).not.toHaveBeenCalled();
     });
   });
 
@@ -653,7 +646,7 @@ import {
       const input = createWriteInput('/src/shared/utils.ts', content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -668,7 +661,7 @@ import { Feature } from "@/features/auth"
       const input = createWriteInput('/src/shared/api.ts', content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -683,7 +676,7 @@ import { Layout } from "@/app/layout"
       const input = createWriteInput('/src/shared/api.ts', content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -703,7 +696,7 @@ import { Layout } from "@/app/layout"
       };
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -717,7 +710,7 @@ import { Layout } from "@/app/layout"
       );
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('api.ts');
@@ -737,7 +730,7 @@ import { Layout } from "@/app/layout"
       const input = createWriteInput('/src/shared/utils.ts', content);
 
       // Act
-      const result = importDirectionEnforcer(input);
+      const result = importDirectionEnforcer(input, testCtx);
 
       // Assert - Current implementation blocks even commented imports
       expect(result.continue).toBe(false);

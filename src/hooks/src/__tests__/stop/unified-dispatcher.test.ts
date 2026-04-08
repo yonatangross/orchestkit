@@ -7,14 +7,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
-  outputWithContext: vi.fn((ctx: string) => ({ continue: true, additionalContext: ctx })),
 }));
 
 // Mock all individual stop hooks — after #897 slimming: 7 hooks
@@ -41,13 +38,14 @@ vi.mock('../../skill/cross-instance-test-validator.js', () => ({
 }));
 
 import { unifiedStopDispatcher, registeredHookNames } from '../../stop/unified-dispatcher.js';
-import { logHook, outputSilentSuccess } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { handoffWriter } from '../../stop/handoff-writer.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Unified Stop Dispatcher Hook', () => {
-  const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockHandoffWriter = vi.mocked(handoffWriter);
   const mockTaskCompletionCheck = vi.mocked(taskCompletionCheck);
@@ -60,6 +58,7 @@ describe('Unified Stop Dispatcher Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
   });
 
@@ -69,7 +68,7 @@ describe('Unified Stop Dispatcher Hook', () => {
   describe('Runs All Hooks', () => {
     it('should run all registered hooks and return silent success', async () => {
       // Act
-      const result = await unifiedStopDispatcher(defaultInput);
+      const result = await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -77,19 +76,19 @@ describe('Unified Stop Dispatcher Hook', () => {
 
     it('should call individual stop hooks', async () => {
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
-      expect(mockTaskCompletionCheck).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput, testCtx);
+      expect(mockTaskCompletionCheck).toHaveBeenCalledWith(defaultInput, testCtx);
     });
 
     it('should pass input to all hooks', async () => {
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput);
+      expect(mockHandoffWriter).toHaveBeenCalledWith(defaultInput, testCtx);
     });
   });
 
@@ -105,11 +104,11 @@ describe('Unified Stop Dispatcher Hook', () => {
       };
 
       // Act
-      const result = await unifiedStopDispatcher(inputWithActive);
+      const result = await unifiedStopDispatcher(inputWithActive, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'stop-dispatcher',
         'Skipping: stop_hook_active=true (re-entry prevention)'
       );
@@ -123,7 +122,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       };
 
       // Act
-      await unifiedStopDispatcher(inputWithActive);
+      await unifiedStopDispatcher(inputWithActive, testCtx);
 
       // Assert
       expect(mockHandoffWriter).not.toHaveBeenCalled();
@@ -138,7 +137,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       };
 
       // Act
-      await unifiedStopDispatcher(inputWithInactive);
+      await unifiedStopDispatcher(inputWithInactive, testCtx);
 
       // Assert
       expect(mockHandoffWriter).toHaveBeenCalled();
@@ -146,7 +145,7 @@ describe('Unified Stop Dispatcher Hook', () => {
 
     it('should run hooks when stop_hook_active is undefined', async () => {
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
       expect(mockHandoffWriter).toHaveBeenCalled();
@@ -164,7 +163,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       });
 
       // Act
-      const result = await unifiedStopDispatcher(defaultInput);
+      const result = await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -177,10 +176,10 @@ describe('Unified Stop Dispatcher Hook', () => {
       });
 
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'stop-dispatcher',
         expect.stringContaining('handoff-writer failed')
       );
@@ -193,7 +192,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       });
 
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert - calibration should still run
       expect(mockTaskCompletionCheck).toHaveBeenCalled();
@@ -209,10 +208,10 @@ describe('Unified Stop Dispatcher Hook', () => {
       });
 
       // Act
-      await unifiedStopDispatcher(defaultInput);
+      await unifiedStopDispatcher(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'stop-dispatcher',
         expect.stringMatching(/\d+\/\d+ hooks had errors/)
       );

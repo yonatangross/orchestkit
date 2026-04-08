@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const { mockAppendFileSync } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
@@ -25,24 +26,14 @@ vi.mock('node:fs', () => ({
   writeFileSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getLogDir: vi.fn(() => '/test/project/.claude/logs'),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
 }));
 
 import { auditLogger } from '../../posttool/audit-logger.js';
 import type { HookInput } from '../../types.js';
 import { appendFileSync, statSync, renameSync, existsSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -53,15 +44,17 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('auditLogger', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/test/project/.claude/logs' });
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
 
   it('returns silent success for all tool calls', () => {
     // Act
-    const result = auditLogger(makeInput());
+    const result = auditLogger(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -73,7 +66,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'npm run build && npm test' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -87,7 +80,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Write',
       tool_input: { file_path: '/src/index.ts', content: 'code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -101,7 +94,7 @@ describe('auditLogger', () => {
     auditLogger(makeInput({
       tool_name: 'Task',
       tool_input: { subagent_type: 'code-reviewer' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(appendFileSync).toHaveBeenCalledWith(
@@ -116,7 +109,7 @@ describe('auditLogger', () => {
     // which is not divisible by 10, so it should return silent success early
 
     // Act
-    const result = auditLogger(makeInput({ tool_name: 'Read', tool_input: { file_path: '/foo.ts' } }));
+    const result = auditLogger(makeInput({ tool_name: 'Read', tool_input: { file_path: '/foo.ts' } }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -129,7 +122,7 @@ describe('auditLogger', () => {
     vi.mocked(existsSync).mockReturnValue(true);
 
     // Act
-    auditLogger(makeInput());
+    auditLogger(makeInput(), testCtx);
 
     // Assert
     expect(renameSync).toHaveBeenCalled();

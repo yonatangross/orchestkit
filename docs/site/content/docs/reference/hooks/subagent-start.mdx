@@ -1,12 +1,13 @@
 ---
 title: "SubagentStart"
-description: "Hooks triggered on SubagentStart events (1 hooks)."
+description: "Hooks triggered on SubagentStart events (2 hooks)."
 ---
 
 # SubagentStart Hooks
 
-**1 hooks** registered for the `SubagentStart` lifecycle event.
+**2 hooks** registered for the `SubagentStart` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `unified-dispatcher` | `*` | 💡 Injects | Consolidates 3 SubagentStart hooks into a single process spawn. |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

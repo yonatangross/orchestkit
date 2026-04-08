@@ -7,15 +7,16 @@
 
 import { existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getLogDir, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Collect verification evidence on session stop
  */
-export function evidenceCollector(_input: HookInput): HookResult {
-  const logDir = getLogDir();
-  const projectDir = getProjectDir();
+export function evidenceCollector(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const logDir = ctx.logDir;
+  const projectDir = ctx.projectDir;
   const logFile = `${logDir}/evidence-collector.log`;
 
   // Ensure log directory exists

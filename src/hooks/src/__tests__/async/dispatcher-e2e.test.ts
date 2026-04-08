@@ -112,12 +112,13 @@ describe('E2E: run-hook.mjs Pipeline', () => {
   // =========================================================================
 
   describe('bundle routing and stdout contract', () => {
+    // v7.30.0: lifecycle, subagent-stop, notification dispatchers flattened — individual hooks (#1264)
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    // Only stop and setup remain as unified dispatchers in hooks.json
+    // posttool/unified-dispatcher still exists as a TS function (bundle export) for backward compat
     const dispatchers: Array<{ name: string; hook: string; input: Record<string, unknown> }> = [
-      { name: 'posttool', hook: 'posttool/unified-dispatcher', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
-      { name: 'lifecycle', hook: 'lifecycle/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
+      { name: 'posttool', hook: 'posttool/commit-nudge', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
       { name: 'stop', hook: 'stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
-      { name: 'subagent-stop', hook: 'subagent-stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {}, subagent_type: 'Explore' } },
-      { name: 'notification', hook: 'notification/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {}, message: 'test', notification_type: 'idle_prompt' } },
       { name: 'setup', hook: 'setup/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
     ];
 
@@ -159,7 +160,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles malformed JSON stdin gracefully (exit 0)', async () => {
-      const child = spawn('node', [RUN_HOOK, 'posttool/unified-dispatcher'], {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const child = spawn('node', [RUN_HOOK, 'posttool/commit-nudge'], {
         env: { ...process.env, CLAUDE_PROJECT_DIR: join(tmpdir(), 'ork-e2e-test') },
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 10000,
@@ -180,7 +182,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles empty stdin gracefully (exit 0)', async () => {
-      const result = await runHook('posttool/unified-dispatcher');
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge');
       expect(result.exitCode).toBe(0);
       expect(result.parsed).not.toBeNull();
       expect(result.parsed!.continue).toBe(true);
@@ -193,7 +196,8 @@ describe('E2E: run-hook.mjs Pipeline', () => {
 
   describe('input normalization', () => {
     it('normalizes toolInput to tool_input (legacy CC format)', async () => {
-      const result = await runHook('posttool/unified-dispatcher', {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge', {
         toolName: 'Bash',
         sessionId: 'test',
         toolInput: { command: 'echo legacy' },
@@ -205,10 +209,58 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     });
 
     it('handles mixed old/new field names', async () => {
-      const result = await runHook('posttool/unified-dispatcher', {
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      const result = await runHook('posttool/commit-nudge', {
         tool_name: 'Write',
         sessionId: 'test-mixed',
         tool_input: { file_path: '/tmp/test.ts', content: 'const x = 1;' },
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    it('normalizes SubagentStart cwd to project_dir', async () => {
+      // CC SubagentStart sends cwd (not project_dir) at top level
+      const result = await runHook('subagent-start/unified-dispatcher', {
+        session_id: 'test',
+        cwd: '/Users/test/my-project',
+        hook_event_name: 'SubagentStart',
+        agent_id: 'agent-abc123',
+        agent_type: 'ork:test-generator',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    it('normalizes SubagentStart agent_type to tool_input.subagent_type', async () => {
+      // CC sends agent_type at top level, not in tool_input
+      const result = await runHook('subagent-start/unified-dispatcher', {
+        session_id: 'test',
+        cwd: '/Users/test/project',
+        hook_event_name: 'SubagentStart',
+        agent_id: 'agent-xyz',
+        agent_type: 'Explore',
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    // v7.30.0: SubagentStop dispatcher flattened — handoff-preparer is now individual async hook (#1264)
+    it('normalizes SubagentStop cwd and agent_type', async () => {
+      // CC SubagentStop also sends cwd and agent_type at top level
+      const result = await runHook('subagent-stop/handoff-preparer', {
+        session_id: 'test',
+        cwd: '/Users/test/project',
+        hook_event_name: 'SubagentStop',
+        agent_id: 'agent-xyz',
+        agent_type: 'ork:test-generator',
+        last_assistant_message: 'Done.',
       });
 
       expect(result.exitCode).toBe(0);

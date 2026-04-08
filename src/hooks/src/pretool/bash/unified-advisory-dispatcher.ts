@@ -9,9 +9,6 @@
  * - default-timeout-setter (input modifier — runs first)
  * - agent-browser-safety (can block — runs second)
  * - error-pattern-warner (context)
- * - issue-docs-requirement (context)
- * - multi-instance-quality-gate (context)
- * - gh-issue-creation-guide (context)
  * - affected-tests-finder (context)
  *
  * NOT consolidated (remain separate in hooks.json):
@@ -21,7 +18,7 @@
  * CC 2.1.9 Compliant: Single additionalContext output with 800-token budget
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
@@ -37,8 +34,8 @@ import { agentBrowserSafety } from './agent-browser-safety.js';
 import { errorPatternWarner } from './error-pattern-warner.js';
 // issue-docs-requirement: moved to pr-merge-gate (#915)
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
-import { ghIssueCreationGuide } from './gh-issue-creation-guide.js';
 import { affectedTestsFinder } from './affected-tests-finder.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -53,7 +50,7 @@ const MAX_OUTPUT_TOKENS = 800;
 // Types
 // -----------------------------------------------------------------------------
 
-type HookFn = (input: HookInput) => HookResult;
+type HookFn = (input: HookInput, ctx: HookContext) => HookResult;
 
 interface AdvisoryHookConfig {
   name: string;
@@ -66,9 +63,6 @@ interface AdvisoryHookConfig {
 
 const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
   { name: 'error-pattern-warner', fn: errorPatternWarner },
-  // issue-docs-requirement: moved to pr-merge-gate (#915)
-  // multi-instance-quality-gate: moved to pr-merge-gate (#915)
-  { name: 'gh-issue-creation-guide', fn: ghIssueCreationGuide },
   { name: 'affected-tests-finder', fn: affectedTestsFinder },
 ];
 
@@ -97,25 +91,25 @@ export const registeredHookNames = () => [
  * 2. agent-browser-safety (can block)
  * 3. Advisory hooks (context producers, budget-capped)
  */
-export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
+export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // --- Phase 1: Input modifier (default-timeout-setter) ---
   let updatedInput: Record<string, unknown> | undefined;
 
   try {
-    const timeoutResult = defaultTimeoutSetter(input);
+    const timeoutResult = defaultTimeoutSetter(input, ctx);
     if (timeoutResult.hookSpecificOutput?.updatedInput) {
       updatedInput = timeoutResult.hookSpecificOutput.updatedInput as Record<string, unknown>;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
   }
 
   // --- Phase 2: Blocking check (agent-browser-safety) ---
   // Fix #907: collect browser context without short-circuiting advisory hooks
   let browserContext: string | null = null;
   try {
-    const browserResult = agentBrowserSafety(input);
+    const browserResult = agentBrowserSafety(input, ctx);
     if (!browserResult.continue) {
       // Blocked — return the deny immediately
       return browserResult;
@@ -124,12 +118,12 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
     browserContext = extractContext(browserResult);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logHook(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
+    ctx.log(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
   }
 
   // --- Phase 3: Advisory hooks (context producers) ---
   // Always run all advisory hooks, prepend browser safety context if present
-  return mergeAdvisoryContext(input, updatedInput, browserContext);
+  return mergeAdvisoryContext(input, ctx, updatedInput, browserContext);
 }
 
 /**
@@ -137,6 +131,7 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput): HookResult {
  */
 function mergeAdvisoryContext(
   input: HookInput,
+  ctx: HookContext,
   updatedInput: Record<string, unknown> | undefined,
   prependContext: string | null,
 ): HookResult {
@@ -153,7 +148,7 @@ function mergeAdvisoryContext(
   // Run advisory hooks
   for (const hook of ADVISORY_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       const context = extractContext(result);
       if (!context) continue;

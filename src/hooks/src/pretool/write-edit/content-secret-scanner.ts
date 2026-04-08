@@ -11,14 +11,13 @@
  * CC 2.1.7 Compliant
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputDeny,
-  logHook,
-  logPermissionFeedback,
 } from '../../lib/common.js';
 import { basename, extname } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // ---------------------------------------------------------------------------
 // High-confidence secret patterns (15 patterns)
@@ -98,7 +97,7 @@ function scanForSecrets(content: string): { name: string; snippet: string } | nu
 /**
  * Scan Write/Edit content for secret patterns
  */
-export function contentSecretScanner(input: HookInput): HookResult {
+export function contentSecretScanner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name;
   const filePath = input.tool_input.file_path || '';
 
@@ -123,26 +122,21 @@ export function contentSecretScanner(input: HookInput): HookResult {
 
   if (finding) {
     const fileName = basename(filePath);
-    logPermissionFeedback('deny', `Secret detected in ${fileName}: ${finding.name}`, input);
-    logHook('content-secret-scanner', `BLOCKED: ${finding.name} in ${filePath} (${finding.snippet})`);
+    ctx.logPermission('deny', `Secret detected in ${fileName}: ${finding.name}`, input);
+    ctx.log('content-secret-scanner', `BLOCKED: ${finding.name} in ${filePath} (${finding.snippet})`);
 
     return outputDeny(
-      `BLOCKED: Potential secret detected in file content.
+      `Secret detected in file content.
 
 Type: ${finding.name}
 File: ${filePath}
 Match: ${finding.snippet}
 
-Secrets must NEVER be committed to source code. Use:
-- Environment variables (.env files — which are gitignored)
-- Secret managers (AWS Secrets Manager, Vault, etc.)
-- CI/CD secret injection
-
-If this is a false positive (e.g., test fixture or documentation),
-move the file to a test-data/ or fixtures/ directory.`
+Use environment variables, a secret manager, or CI/CD injection instead.
+False positive? Move to a test-data/ or fixtures/ directory.`
     );
   }
 
-  logPermissionFeedback('allow', `Content scan clean: ${basename(filePath)}`, input);
+  ctx.logPermission('allow', `Content scan clean: ${basename(filePath)}`, input);
   return outputSilentSuccess();
 }

@@ -1,0 +1,74 @@
+{
+  "_formatVersion": "1.0.0",
+  "workflow": {
+    "name": "OrchestKit Smart Code Review",
+    "description": "Quality-gated code review with 7-dimension scoring (0-10) and security audit. Blocks merge if composite < 6.0 or security < 7.0.",
+    "definition": {
+      "flow": [
+        { "from": "clone-repo", "to": "quality-review", "condition": null },
+        { "from": "clone-repo", "to": "security-audit", "condition": null },
+        { "from": "quality-review", "to": "post-verdict", "condition": null },
+        { "from": "security-audit", "to": "post-verdict", "condition": null }
+      ],
+      "steps": [
+        {
+          "id": "clone-repo",
+          "action": "git.clone",
+          "params": {
+            "branch": "{{trigger.pullRequest.headBranch}}"
+          }
+        },
+        {
+          "id": "quality-review",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-quality-reviewer",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Review the PR diff for {{trigger.repository.fullName}}#{{trigger.pullRequest.number}}.\n\nScore 0-10 on 7 dimensions:\n- Correctness (15%): functional accuracy, edge cases, error handling\n- Maintainability (15%): readability, complexity, naming, SRP\n- Performance (12%): algorithm efficiency, caching, async, latency\n- Security (20%): OWASP Top 10, input validation, secrets, CVEs\n- Scalability (10%): horizontal scaling, statelessness\n- Testability (13%): coverage, assertion quality, isolation\n- Compliance (15%): API contracts, schema validation, type safety\n\nBe evidence-based: cite specific file paths and line numbers.\n\nBLOCK if: composite < 6.0, security < 7.0, or any dimension < 3.0."
+        },
+        {
+          "id": "security-audit",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-security-auditor",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Audit the PR diff for security vulnerabilities:\n\n1. OWASP Top 10 checklist (injection, broken auth, XSS, etc.)\n2. Secrets exposure (API keys, tokens, connection strings in code)\n3. Input validation (Zod schemas, parameterized queries)\n4. LLM safety (IDs in prompts, output validation)\n5. Hook-specific: webhook payload sanitization, permission checks\n\nPost findings as inline PR review comments with severity levels.\nBLOCK if any CRITICAL finding."
+        },
+        {
+          "id": "post-verdict",
+          "action": "agent.run",
+          "params": {
+            "agentId": "orchestkit-quality-reviewer",
+            "agentEngine": "overcut"
+          },
+          "instruction": "Combine results from quality review and security audit.\n\nPost a single summary PR comment:\n\n## OrchestKit Review — Quality + Security\n\n### Quality Score\n| Dimension | Score | Findings |\n(table from quality review)\n\n**Composite: X.X/10 — Grade: [A+/A/B/C/D/F]**\n\n### Security Audit\n**Findings:** X critical, X high, X medium, X low\n(list from security audit)\n\n**Final Verdict: [APPROVE / REQUEST CHANGES / BLOCK]**\n\nApprove the PR if composite >= 7.0 AND no critical security findings.\nRequest changes if composite 6.0-6.9 OR high security findings.\nBlock if composite < 6.0 OR critical security findings."
+        }
+      ],
+      "triggers": [
+        {
+          "event": "pull_request_opened",
+          "conditions": {
+            "repositories": ["yonatangross/orchestkit"]
+          }
+        },
+        {
+          "event": "manual",
+          "slashCommand": {
+            "command": "review",
+            "requireMention": false
+          }
+        }
+      ],
+      "version": "1.0.0",
+      "timeoutMs": 900000
+    }
+  },
+  "refs": {
+    "agents": [
+      { "name": "orchestkit-quality-reviewer", "baseType": "Code Reviewer" },
+      { "name": "orchestkit-security-auditor", "baseType": "Code Reviewer" }
+    ]
+  }
+}

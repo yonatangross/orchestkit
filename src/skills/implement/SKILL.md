@@ -180,7 +180,42 @@ Load worktree details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-isolation-
 
 ## Task Management (MANDATORY)
 
-Create tasks with `TaskCreate` BEFORE doing any work. Each phase gets a subtask. Update status with `TaskUpdate` as you progress.
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main task IMMEDIATELY
+TaskCreate(
+  subject="Implement: {feature}",
+  description="Feature implementation with parallel subagents",
+  activeForm="Implementing {feature}"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Research best practices and docs", activeForm="Researching best practices")  # id=2
+TaskCreate(subject="Micro-plan: scope, files, criteria", activeForm="Micro-planning")            # id=3
+TaskCreate(subject="Architecture design (parallel agents)", activeForm="Designing architecture") # id=4
+TaskCreate(subject="Implement and write tests", activeForm="Implementing code")                  # id=5
+TaskCreate(subject="Integration verification", activeForm="Verifying integration")               # id=6
+TaskCreate(subject="Scope creep check", activeForm="Checking scope creep")                       # id=7
+TaskCreate(subject="E2E verification", activeForm="Running E2E verification")                    # id=8
+TaskCreate(subject="Document and reflect", activeForm="Documenting decisions")                   # id=9
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Plan needs research
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Architecture needs plan
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Implementation needs architecture
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Integration needs implementation
+TaskUpdate(taskId="7", addBlockedBy=["6"])  # Scope creep needs integration
+TaskUpdate(taskId="8", addBlockedBy=["7"])  # E2E needs scope check
+TaskUpdate(taskId="9", addBlockedBy=["8"])  # Docs need E2E
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
+```
 
 ---
 
@@ -309,6 +344,30 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 /ork:commit                        # Commit changes
 /loop 10m npm test                 # Watch tests while iterating
 /loop 30m /ork:verify {FEATURE}    # Periodic quality gate
+```
+
+## Agent Coordination
+
+### Context Passing
+
+All spawned agents receive: changed files list, project tier, architectural constraints, and decisions from prior phases (discovery, plan). Pass via the agent prompt, not just "implement X".
+
+### SendMessage (Active Coordination)
+
+When backend and frontend agents need to align on API contracts:
+
+```python
+SendMessage(to="frontend-ui-developer", message="API endpoint is POST /api/auth with {token, refreshToken} response shape")
+SendMessage(to="test-generator", message="Backend uses JWT — mock auth middleware in test fixtures")
+```
+
+### Skill Chain
+
+After implementation completes, chain to verification:
+
+```python
+TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addBlockedBy=[impl_task_id])
+# Then: /ork:verify {feature}
 ```
 
 ## Related Skills

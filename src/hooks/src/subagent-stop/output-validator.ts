@@ -8,28 +8,14 @@
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
-import { getProjectDir } from '../lib/common.js';
-
-// -----------------------------------------------------------------------------
-// Path Helpers
-// -----------------------------------------------------------------------------
-
-function getLogDir(): string {
-  const logDir = `${getProjectDir()}/.claude/logs/agent-validation`;
-  try {
-    mkdirSync(logDir, { recursive: true });
-  } catch {
-    // Ignore
-  }
-  return logDir;
-}
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function outputValidator(input: HookInput): HookResult {
+export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
@@ -89,7 +75,12 @@ export function outputValidator(input: HookInput): HookResult {
   }
 
   // Log to file
-  const logDir = getLogDir();
+  const logDir = ctx.logDir;
+  try {
+    mkdirSync(logDir, { recursive: true });
+  } catch {
+    // Ignore
+  }
   const dateStr = new Date().toISOString().replace(/[-:]/g, '').substring(0, 15);
   const logFile = `${logDir}/${agentName}_${dateStr}.log`;
 

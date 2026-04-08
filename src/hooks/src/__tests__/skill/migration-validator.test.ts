@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
@@ -23,23 +24,13 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { migrationValidator } from '../../skill/migration-validator.js';
-import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { execSync, execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -111,10 +102,12 @@ function createValidMigration(options: {
 // Migration Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('migration-validator', () => {
   let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.mocked(existsSync).mockReturnValue(true);
@@ -138,7 +131,7 @@ describe('migration-validator', () => {
       const input = createWriteInput('/test/project/alembic/versions/001_initial.py');
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -150,7 +143,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue('# Empty migration');
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -161,7 +154,7 @@ describe('migration-validator', () => {
       const input = createWriteInput('/test/project/app/models.py');
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -187,7 +180,7 @@ describe('migration-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       if (shouldTrigger && filePath) {
@@ -202,7 +195,7 @@ describe('migration-validator', () => {
       const input = createWriteInput('');
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -221,7 +214,7 @@ describe('migration-validator', () => {
       };
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(stderrSpy).toHaveBeenCalled();
@@ -242,7 +235,7 @@ describe('migration-validator', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -261,7 +254,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue(createValidMigration());
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -275,7 +268,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue(createValidMigration({ hasUpgrade: false }));
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -297,7 +290,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue(createValidMigration());
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -311,7 +304,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue(createValidMigration({ hasDowngrade: false }));
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -331,7 +324,7 @@ describe('migration-validator', () => {
       vi.mocked(readFileSync).mockReturnValue(createValidMigration());
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -352,7 +345,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue(contentWithoutRevision);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalled();
@@ -377,7 +370,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue(content);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -398,7 +391,7 @@ def downgrade():
       vi.mocked(execFileSync).mockReturnValue(''); // No error
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -417,7 +410,7 @@ def downgrade():
       });
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -430,7 +423,7 @@ def downgrade():
       const input = createWriteInput(filePath);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -455,7 +448,7 @@ def downgrade():
       });
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -471,10 +464,10 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue('# Empty file');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'migration-validator',
         expect.stringContaining('BLOCKED')
       );
@@ -491,7 +484,7 @@ def downgrade():
       const input = createWriteInput('/test/project/alembic/versions/001_init.py');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -504,7 +497,7 @@ def downgrade():
       const input = createWriteInput('/test/project/alembic/versions/001_add_users.py');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -517,7 +510,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue('# Empty');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -529,7 +522,7 @@ def downgrade():
       const input = createWriteInput('/test/project/alembic/versions/001.py');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -550,7 +543,7 @@ def downgrade():
       });
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -565,7 +558,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue('');
 
       // Act
-      const result = migrationValidator(input);
+      const result = migrationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -592,7 +585,7 @@ async def downgrade():
       vi.mocked(readFileSync).mockReturnValue(asyncContent);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -615,7 +608,7 @@ revision = "abc123"
       vi.mocked(readFileSync).mockReturnValue(indentedContent);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       // Should still find the functions even with weird indentation
@@ -636,7 +629,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue(content);
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       const stderrOutput = stderrSpy.mock.calls.map((c: unknown[]) => c[0]).join('');
@@ -648,7 +641,7 @@ def downgrade():
       const input = createWriteInput('/test/project/alembic/versions/001.py');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -671,7 +664,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue('# Invalid');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
@@ -685,7 +678,7 @@ def downgrade():
       vi.mocked(readFileSync).mockReturnValue('# Invalid');
 
       // Act
-      migrationValidator(input);
+      migrationValidator(input, testCtx);
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(

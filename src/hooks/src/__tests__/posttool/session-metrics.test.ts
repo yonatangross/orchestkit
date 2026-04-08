@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -15,13 +16,11 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (path: string, content: string) => mockWriteFileSync(path, content),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { sessionMetrics } from '../../posttool/session-metrics.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -32,15 +31,17 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('sessionMetrics', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
 
   it('returns silent success for empty tool name', () => {
     // Act
-    const result = sessionMetrics(makeInput({ tool_name: '' }));
+    const result = sessionMetrics(makeInput({ tool_name: '' }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -53,7 +54,7 @@ describe('sessionMetrics', () => {
     mockExistsSync.mockReturnValue(false);
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Bash' }));
+    sessionMetrics(makeInput({ tool_name: 'Bash' }), testCtx);
 
     // Assert
     expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -74,7 +75,7 @@ describe('sessionMetrics', () => {
     }));
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Bash' }));
+    sessionMetrics(makeInput({ tool_name: 'Bash' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -88,7 +89,7 @@ describe('sessionMetrics', () => {
     mockReadFileSync.mockReturnValue('not valid json');
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Write' }));
+    sessionMetrics(makeInput({ tool_name: 'Write' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -101,7 +102,7 @@ describe('sessionMetrics', () => {
     mockExistsSync.mockReturnValue(false);
 
     // Act
-    sessionMetrics(makeInput({ tool_name: 'Glob' }));
+    sessionMetrics(makeInput({ tool_name: 'Glob' }), testCtx);
 
     // Assert
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);

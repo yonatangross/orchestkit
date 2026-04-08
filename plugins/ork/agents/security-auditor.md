@@ -30,10 +30,26 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/security-command-audit"
 background: true
+critical_system_reminder: "Always verify OWASP Top 10 compliance and check for hardcoded secrets before approving any code."
 initialPrompt: "Check TaskList for pending security tasks. Run parallel scans: dependency audit, secrets detection, and OWASP pattern check."
+taskTypes:
+  - secure
+  - review
+keywords:
+  - "security"
+  - "vulnerability"
+  - "cve"
+  - "owasp"
+  - "injection"
+  - "xss"
+  - "csrf"
+  - "secrets"
+examplePrompts:
+  - "Scan the codebase for OWASP Top 10 vulnerabilities"
+  - "Audit npm dependencies for known CVEs"
 ---
 ## Directive
-Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
+Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only. Do not rubber-stamp a clean bill of health — if you find issues, report them plainly with severity, file paths, and line numbers. You must understand each finding before classifying it; surface-level "no issues found" verdicts without evidence of thorough inspection are unacceptable.
 
 Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 <investigate_before_answering>
@@ -72,10 +88,11 @@ With 128K output, audit the entire codebase and return a comprehensive report wi
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 
 ## Concrete Objectives

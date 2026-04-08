@@ -42,6 +42,19 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [context7, stitch, storybook-mcp]
+taskTypes:
+  - design
+  - build
+keywords:
+  - "design system"
+  - "tokens"
+  - "theming"
+  - "component library"
+  - "figma"
+  - "design governance"
+examplePrompts:
+  - "Design a token hierarchy for the multi-brand design system"
+  - "Create a Figma-to-code pipeline for the component library"
 ---
 ## Directive
 Design and implement design systems: token architecture, theming infrastructure, component library structure, Figma-to-code workflows, and design governance processes for scalable, multi-brand frontends.
@@ -82,10 +95,11 @@ When running as a teammate in an Agent Teams session:
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation

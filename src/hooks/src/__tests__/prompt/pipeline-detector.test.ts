@@ -12,25 +12,13 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputPromptContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/orchestration-state.js', () => ({
   loadConfig: vi.fn(() => ({
@@ -79,6 +67,7 @@ import { loadConfig } from '../../lib/orchestration-state.js';
 import { detectPipeline, createPipelineExecution, registerPipelineExecution, formatPipelinePlan } from '../../lib/multi-agent-coordinator.js';
 import { getActivePipeline } from '../../lib/task-integration.js';
 import type { PipelineType } from '../../lib/orchestration-types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -132,8 +121,10 @@ function createPipelineDefinition(type: string, triggers: string[]) {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/pipeline-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
@@ -153,7 +144,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('build it'); // 8 chars
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -166,7 +157,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -178,7 +169,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('build a feature'); // 15 chars
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -204,7 +195,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -217,7 +208,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a new feature?'); // < 100 chars with ?
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -230,7 +221,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(longPrompt);
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       // Should proceed to check for pipeline (not filtered by question mark)
@@ -257,7 +248,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a full-stack feature for user management');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -285,7 +276,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build another feature for the application');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -308,7 +299,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a new feature for user management');
 
       // Act
-      const _result = pipelineDetector(input);
+      const _result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(detectPipeline).toHaveBeenCalled();
@@ -327,7 +318,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a new user dashboard feature');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -343,7 +334,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('build a full-stack feature for user authentication');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -358,7 +349,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('implement rag for document search in the application');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -372,7 +363,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('run a security audit on the application codebase');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -391,7 +382,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('refactor the user service class for better maintainability');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -413,7 +404,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a new analytics dashboard');
 
       // Act
-      pipelineDetector(input);
+      pipelineDetector(input, testCtx);
 
       // Assert
       expect(formatPipelinePlan).toHaveBeenCalled();
@@ -428,7 +419,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('build a full-stack feature for notifications');
 
       // Act
-      pipelineDetector(input);
+      pipelineDetector(input, testCtx);
 
       // Assert
       const outputArg = vi.mocked(outputPromptContext).mock.calls[0][0];
@@ -466,7 +457,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('run a security audit on the application');
 
       // Act
-      pipelineDetector(input);
+      pipelineDetector(input, testCtx);
 
       // Assert
       expect(registerPipelineExecution).toHaveBeenCalledWith(execution, tasks);
@@ -489,7 +480,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -502,7 +493,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a user dashboard');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
@@ -515,7 +506,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build a user dashboard');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -532,7 +523,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build $pecial ch@rs feature <test>');
 
       // Act & Assert
-      expect(() => pipelineDetector(input)).not.toThrow();
+      expect(() => pipelineDetector(input, testCtx)).not.toThrow();
     });
 
     test('handles prompt with newlines', () => {
@@ -540,7 +531,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('should we build\na new\nfeature');
 
       // Act & Assert
-      expect(() => pipelineDetector(input)).not.toThrow();
+      expect(() => pipelineDetector(input, testCtx)).not.toThrow();
     });
 
     test('handles very long prompts', () => {
@@ -549,7 +540,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(longPrompt);
 
       // Act & Assert
-      expect(() => pipelineDetector(input)).not.toThrow();
+      expect(() => pipelineDetector(input, testCtx)).not.toThrow();
     });
 
     test('handles undefined prompt gracefully', () => {
@@ -558,7 +549,7 @@ describe('prompt/pipeline-detector', () => {
       input.prompt = undefined;
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -572,7 +563,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput('SHOULD WE BUILD a new feature for the app');
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -599,7 +590,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(`${word} the full-stack feature pipeline`);
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -626,7 +617,7 @@ describe('prompt/pipeline-detector', () => {
       const input = createPromptInput(`${triggers[0]} for the application system`);
 
       // Act
-      const result = pipelineDetector(input);
+      const result = pipelineDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

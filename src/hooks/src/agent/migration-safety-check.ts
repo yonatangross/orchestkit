@@ -8,9 +8,10 @@
  * CC 2.1.7 compliant output format
  */
 
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputDeny } from '../lib/common.js';
 import { normalizeSingle } from '../lib/normalize-command.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // Dangerous database patterns
 const DANGEROUS_PATTERNS: Array<{ test: (s: string) => boolean; source: string }> = [
@@ -26,7 +27,7 @@ const DANGEROUS_PATTERNS: Array<{ test: (s: string) => boolean; source: string }
 /**
  * Migration safety check hook
  */
-export function migrationSafetyCheck(input: HookInput): HookResult {
+export function migrationSafetyCheck(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name;
 
   // Only check Bash commands

@@ -71,6 +71,7 @@ vi.mock('../../lib/paths.js', () => ({
 }));
 
 import { sessionHandoffGenerator } from '../../lifecycle/session-handoff-generator.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -98,8 +99,10 @@ function getLatestYaml(): string {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('lifecycle/session-handoff-generator', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'session-test-001', branch: 'feat/test-branch' });
     vi.resetAllMocks();
     mockExistsSync.mockReturnValue(false);
     mockReadFileSync.mockReturnValue('{}');
@@ -109,14 +112,14 @@ describe('lifecycle/session-handoff-generator', () => {
 
   describe('always returns silent success', () => {
     it('returns { continue: true, suppressOutput: true }', () => {
-      const result = sessionHandoffGenerator(createInput());
+      const result = sessionHandoffGenerator(createInput(), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
 
     it('returns silent success even when write throws', () => {
       mockWriteFileSync.mockImplementation(() => { throw new Error('disk full'); });
-      const result = sessionHandoffGenerator(createInput());
+      const result = sessionHandoffGenerator(createInput(), testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -130,7 +133,7 @@ describe('lifecycle/session-handoff-generator', () => {
       const input = createInput({
         last_assistant_message: 'I refactored the auth module to use JWT tokens. All 15 tests pass.',
       });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('refactored the auth module');
@@ -139,7 +142,7 @@ describe('lifecycle/session-handoff-generator', () => {
     it('truncates long messages at sentence boundary', () => {
       const longMsg = `First sentence here. ${'A '.repeat(200)}`;
       const input = createInput({ last_assistant_message: longMsg });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       // Should have truncated, not the full message
@@ -154,7 +157,7 @@ describe('lifecycle/session-handoff-generator', () => {
       mockReadFileSync.mockReturnValue(`${taskEntry}\n`);
 
       const input = createInput();
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('Fix login bug');
@@ -162,7 +165,7 @@ describe('lifecycle/session-handoff-generator', () => {
 
     it('falls back to generic stats when no message and no tasks', () => {
       const input = createInput();
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('tool calls');
@@ -184,7 +187,7 @@ describe('lifecycle/session-handoff-generator', () => {
       );
       mockReadFileSync.mockReturnValue(JSON.stringify({ tools: { Bash: 5 } }));
 
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
       const yaml = getLatestYaml();
       expect(yaml).toContain('status: completed');
     });
@@ -198,14 +201,14 @@ describe('lifecycle/session-handoff-generator', () => {
       const input = createInput({
         last_assistant_message: 'I finished implementing the feature.',
       });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
       const yaml = getLatestYaml();
       expect(yaml).toContain('status: completed');
     });
 
     it('returns "interrupted" when no tools used', () => {
       const input = createInput();
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
       const yaml = getLatestYaml();
       expect(yaml).toContain('status: interrupted');
     });
@@ -223,7 +226,7 @@ describe('lifecycle/session-handoff-generator', () => {
       });
 
       const input = createInput({ last_assistant_message: 'All done.' });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
       const yaml = getLatestYaml();
       // pending tasks override message-based completion
       expect(yaml).toContain('status: partial');
@@ -238,7 +241,7 @@ describe('lifecycle/session-handoff-generator', () => {
     it('extracts next steps from markdown bullet list', () => {
       const msg = `Done with the refactor.\n\nNext steps:\n- Run integration tests\n- Deploy to staging\n- Update docs\n`;
       const input = createInput({ last_assistant_message: msg });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('Run integration tests');
@@ -249,7 +252,7 @@ describe('lifecycle/session-handoff-generator', () => {
     it('limits to 3 next steps', () => {
       const msg = `Next steps:\n- A\n- B\n- C\n- D\n- E\n`;
       const input = createInput({ last_assistant_message: msg });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('A');
@@ -266,7 +269,7 @@ describe('lifecycle/session-handoff-generator', () => {
 
       const msg = `Next steps:\n- Something from message\n`;
       const input = createInput({ last_assistant_message: msg });
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('Fix tests');
@@ -274,7 +277,7 @@ describe('lifecycle/session-handoff-generator', () => {
 
     it('falls back to branch hint when no message and no pending tasks', () => {
       const input = createInput();
-      sessionHandoffGenerator(input);
+      sessionHandoffGenerator(input, testCtx);
 
       const yaml = getLatestYaml();
       expect(yaml).toContain('Continue work on branch feat/test-branch');

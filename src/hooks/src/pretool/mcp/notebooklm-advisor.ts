@@ -4,12 +4,12 @@
  * Non-blocking — never uses outputBlock() or outputDeny()
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWarning,
-  logHook,
 } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'notebooklm-advisor';
 
@@ -25,7 +25,7 @@ const WARN_OPS: Record<string, string> = {
 /**
  * NotebookLM advisor - warns about destructive and slow operations
  */
-export function notebooklmAdvisor(input: HookInput): HookResult {
+export function notebooklmAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   if (!toolName.startsWith('mcp__notebooklm-mcp__')) {
@@ -36,7 +36,7 @@ export function notebooklmAdvisor(input: HookInput): HookResult {
 
   // Destructive / sensitive operations — warnings
   if (WARN_OPS[op]) {
-    logHook(HOOK_NAME, `WARN: ${op}`);
+    ctx.log(HOOK_NAME, `WARN: ${op}`);
     return outputWarning(WARN_OPS[op]);
   }
 
@@ -44,7 +44,7 @@ export function notebooklmAdvisor(input: HookInput): HookResult {
   if (op === 'source_add') {
     const text = input.tool_input?.text;
     if (typeof text === 'string' && text.length > 50000) {
-      logHook(HOOK_NAME, `WARN: source_add large text (${text.length} chars)`);
+      ctx.log(HOOK_NAME, `WARN: source_add large text (${text.length} chars)`);
       return outputWarning(
         `Source is large (${text.length} chars). Consider splitting into multiple sources for better retrieval.`
       );
@@ -53,7 +53,7 @@ export function notebooklmAdvisor(input: HookInput): HookResult {
 
   // Note delete warning
   if (op === 'note' && input.tool_input?.action === 'delete') {
-    logHook(HOOK_NAME, `WARN: note delete (irreversible)`);
+    ctx.log(HOOK_NAME, `WARN: note delete (irreversible)`);
     return outputWarning('Irreversible: note will be permanently deleted');
   }
 

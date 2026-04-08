@@ -23,7 +23,7 @@ import { mockCommonReal } from '../fixtures/mock-common.js';
 vi.mock('../../lib/common.js', async () => mockCommonReal());
 
 import { antipatternDetector } from '../../prompt/antipattern-detector.js';
-import { getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -53,8 +53,10 @@ function getContext(result: HookResult): string | undefined {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/antipattern-detector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
   });
@@ -74,7 +76,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement api'); // 13 chars
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -87,7 +89,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -100,7 +102,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('a'.repeat(29));
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -113,7 +115,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement the user api system!'); // 31 chars
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -144,7 +146,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -157,7 +159,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('What is the best practice for handling errors in production?');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -170,7 +172,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('IMPLEMENT the user management API system');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('implement');
@@ -200,7 +202,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -213,7 +215,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement a new feature for the application workflow');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -233,7 +235,7 @@ describe('prompt/antipattern-detector', () => {
       });
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('mcp__memory__search_nodes');
@@ -245,10 +247,9 @@ describe('prompt/antipattern-detector', () => {
       delete (input as unknown as Record<string, unknown>).project_dir;
 
       // Act
-      const _result = antipatternDetector(input);
+      const _result = antipatternDetector(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -268,7 +269,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput(prompt);
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -279,7 +280,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement authentication for users');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -299,7 +300,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement                              ');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -310,7 +311,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement API with $pecial ch@rs <>&"\'');
 
       // Act & Assert
-      expect(() => antipatternDetector(input)).not.toThrow();
+      expect(() => antipatternDetector(input, testCtx)).not.toThrow();
     });
 
     test('handles prompt with newlines', () => {
@@ -318,7 +319,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement\nan\nAPI\nwith\nmultiple\nlines');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -330,7 +331,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement API for users in Japanese');
 
       // Act & Assert
-      expect(() => antipatternDetector(input)).not.toThrow();
+      expect(() => antipatternDetector(input, testCtx)).not.toThrow();
     });
 
     test('handles undefined prompt gracefully', () => {
@@ -339,7 +340,7 @@ describe('prompt/antipattern-detector', () => {
       input.prompt = undefined;
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -351,7 +352,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement and create a new api endpoint');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       // "implement" comes before "create" in IMPLEMENTATION_KEYWORDS array
@@ -363,7 +364,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement cursor pagination with postgresql database');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -381,7 +382,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('implement the user authentication flow');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('implement');
@@ -392,7 +393,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('the user flow needs to implement');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('implement');
@@ -403,7 +404,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('we need to implement a new user flow');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('implement');
@@ -414,7 +415,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput('the implementation of the api needs work');
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('implement');
@@ -446,7 +447,7 @@ describe('prompt/antipattern-detector', () => {
       const input = createPromptInput(`${keyword} something in the application system`);
 
       // Act
-      const result = antipatternDetector(input);
+      const result = antipatternDetector(input, testCtx);
 
       // Assert
       expect(getContext(result)).toContain('Antipattern Check');

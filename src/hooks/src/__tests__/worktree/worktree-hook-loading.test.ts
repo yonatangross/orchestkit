@@ -37,16 +37,19 @@ import { worktreeLifecycleLogger } from '../../worktree/worktree-lifecycle-logge
 
 // Also validate hooks.json registration — use actual fs (not mocked) to read hooks.json
 import { resolve } from 'node:path';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let hooksJson: any;
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
   beforeAll(async () => {
     const actualFs = await vi.importActual<typeof import('node:fs')>('node:fs');
     hooksJson = JSON.parse(actualFs.readFileSync(resolve(__dirname, '..', '..', '..', 'hooks.json'), 'utf-8'));
   });
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -97,7 +100,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         project_dir: '/test/project',
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -111,7 +114,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         project_dir: '/test/project',
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       // Should produce context (not silent success) for WorktreeCreate
       const context = result.hookSpecificOutput?.additionalContext as string | undefined;
       expect(context).toBeDefined();
@@ -129,7 +132,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         // name is intentionally omitted
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       expect(result.continue).toBe(true);
       const context = result.hookSpecificOutput?.additionalContext as string | undefined;
       expect(context).toContain('unknown');
@@ -150,7 +153,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         project_dir: '/test/project',
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -164,7 +167,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         project_dir: '/test/project',
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       const context = result.hookSpecificOutput?.additionalContext as string | undefined;
       expect(context).toBeDefined();
       expect(context).toContain('WorktreeRemove');
@@ -180,7 +183,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         // worktree_path intentionally omitted
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -197,7 +200,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
         tool_input: {},
       };
 
-      const result = worktreeLifecycleLogger(input);
+      const result = worktreeLifecycleLogger(input, testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });

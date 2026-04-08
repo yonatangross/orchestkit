@@ -4,17 +4,15 @@
  * CC 2.1.9: Injects test suggestions via additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputAllowWithContext,
-  logHook,
-  logPermissionFeedback,
-  getProjectDir,
 } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, basename, dirname } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Find test files related to a source file
@@ -72,9 +70,9 @@ function getChangedFiles(projectDir: string): string[] {
 /**
  * Suggest running affected tests before push/commit
  */
-export function affectedTestsFinder(input: HookInput): HookResult {
+export function affectedTestsFinder(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
 
   // Only process git push or npm test commands
   if (!/git\s+push|npm\s+run\s+test|pytest/.test(command)) {
@@ -109,8 +107,8 @@ ${uniqueTests.slice(0, 5).join('\n')}${uniqueTests.length > 5 ? '\n...' : ''}
 
 Consider running: npm run test -- ${uniqueTests[0]}`;
 
-    logPermissionFeedback('allow', `Found ${uniqueTests.length} related tests`, input);
-    logHook('affected-tests-finder', `Tests: ${uniqueTests.join(', ')}`);
+    ctx.logPermission('allow', `Found ${uniqueTests.length} related tests`, input);
+    ctx.log('affected-tests-finder', `Tests: ${uniqueTests.join(', ')}`);
     return outputAllowWithContext(context);
   }
 

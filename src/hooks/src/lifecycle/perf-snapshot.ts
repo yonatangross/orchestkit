@@ -19,11 +19,12 @@
 
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
 import { getHomeDir } from '../lib/paths.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'perf-snapshot';
 
@@ -99,7 +100,7 @@ function isPerfSnapshotEnabled(): boolean {
   return true;
 }
 
-export function perfSnapshot(_input: HookInput): HookResult {
+export function perfSnapshot(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   if (!isPerfSnapshotEnabled()) {
     return outputSilentSuccess();
   }
@@ -128,18 +129,18 @@ export function perfSnapshot(_input: HookInput): HookResult {
     const snapPath = join(perfDir, `snap-${bucket}.json`);
     atomicWriteSync(snapPath, JSON.stringify(snapshot, null, 2));
 
-    logHook(
+    // Build summary for log only (CC 2.1.78 safety: dispatcher discards
+    // systemMessage from Stop hooks to prevent error-loop bug)
+    const summary = buildSummaryLines(snapshot);
+    ctx.log(
       HOOK_NAME,
       `Snapshot written: snap-${bucket}.json (${tokenState.totalTokensInjected}t, ${hookCount} hooks)`
     );
+    ctx.log(HOOK_NAME, summary, 'debug');
 
-    const summary = buildSummaryLines(snapshot);
-    return {
-      continue: true,
-      systemMessage: summary,
-    };
+    return outputSilentSuccess();
   } catch (err) {
-    logHook(
+    ctx.log(
       HOOK_NAME,
       `Failed to write snapshot: ${err instanceof Error ? err.message : String(err)}`,
       'warn'

@@ -18,8 +18,9 @@ import { basename } from 'node:path';
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, getField } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 type NamingCase = 'camelCase' | 'snake_case' | 'PascalCase' | 'SCREAMING_SNAKE_CASE' | 'private_snake_case' | 'dunder' | 'mixed' | 'unknown';
 
@@ -255,7 +256,7 @@ function initLanguageProfile(): LanguageNamingProfile {
 /**
  * Learn naming conventions from written files
  */
-export function namingConventionLearner(input: HookInput): HookResult {
+export function namingConventionLearner(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Guard: Only run for Write/Edit
@@ -289,7 +290,8 @@ export function namingConventionLearner(input: HookInput): HookResult {
   let content = getField<string>(input, 'tool_input.content') || '';
 
   if (!content) {
-    const projectDir = getProjectDir();
+    // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
+    const projectDir = ctx.projectDir;
     const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
     if (existsSync(fullPath)) {
@@ -337,7 +339,7 @@ export function namingConventionLearner(input: HookInput): HookResult {
   }
 
   // Load and update profile
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
   const profilePath = `${projectDir}/.claude/feedback/naming-conventions.json`;
 
   try {
@@ -370,10 +372,10 @@ export function namingConventionLearner(input: HookInput): HookResult {
 
     atomicWriteSync(profilePath, JSON.stringify(profile, null, 2));
   } catch (error) {
-    logHook('naming-convention-learner', `Error updating profile: ${error}`);
+    ctx.log('naming-convention-learner', `Error updating profile: ${error}`);
   }
 
-  logHook('naming-convention-learner', `Analyzed ${language} file (${filePath}): file=${fileNaming}`);
+  ctx.log('naming-convention-learner', `Analyzed ${language} file (${filePath}): file=${fileNaming}`);
 
   return outputSilentSuccess();
 }

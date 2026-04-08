@@ -25,11 +25,12 @@ import {
   chmodSync,
 } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getPluginRoot, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getHomeDir, getTempDir } from '../lib/paths.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -372,9 +373,9 @@ function taskVersionMigration(markerFile: string): void {
 /**
  * Setup maintenance hook
  */
-export function setupMaintenance(input: HookInput): HookResult {
-  const pluginRoot = getPluginRoot();
-  const projectDir = input.project_dir || getProjectDir();
+export function setupMaintenance(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const pluginRoot = ctx.pluginRoot;
+  const projectDir = input.project_dir || (ctx.projectDir);
   const markerFile = `${pluginRoot}/.setup-complete`;
 
   // Determine mode from argv
@@ -388,7 +389,7 @@ export function setupMaintenance(input: HookInput): HookResult {
     mode = 'background';
   }
 
-  logHook('setup-maintenance', `Maintenance starting (mode: ${mode})`);
+  ctx.log('setup-maintenance', `Maintenance starting (mode: ${mode})`);
 
   const now = new Date().toISOString();
   const lastMaintenance = getMarkerField(markerFile, 'last_maintenance') as string | null;
@@ -419,7 +420,7 @@ export function setupMaintenance(input: HookInput): HookResult {
 
   // Run daily tasks
   if (runDaily) {
-    logHook('setup-maintenance', 'Running daily maintenance tasks');
+    ctx.log('setup-maintenance', 'Running daily maintenance tasks');
     taskLogRotation(pluginRoot);
     taskStaleLockCleanup(pluginRoot);
     taskSessionCleanup(pluginRoot);
@@ -428,7 +429,7 @@ export function setupMaintenance(input: HookInput): HookResult {
 
   // Run weekly tasks
   if (runWeekly) {
-    logHook('setup-maintenance', 'Running weekly maintenance tasks');
+    ctx.log('setup-maintenance', 'Running weekly maintenance tasks');
     taskHealthValidation(pluginRoot, markerFile);
   }
 
@@ -437,7 +438,7 @@ export function setupMaintenance(input: HookInput): HookResult {
 
   // Build summary
   if (tasksCompleted.length > 0) {
-    logHook('setup-maintenance', `Maintenance complete: ${tasksCompleted.length} tasks`);
+    ctx.log('setup-maintenance', `Maintenance complete: ${tasksCompleted.length} tasks`);
     const summary = `Completed: ${tasksCompleted.join(', ')}`;
 
     if (mode === 'background') {

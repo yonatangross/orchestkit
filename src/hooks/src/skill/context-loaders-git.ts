@@ -7,9 +7,10 @@
  * Handlers that fetch context from git or GitHub CLI on first invocation.
  */
 
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { safeExec, readPackageJson } from './context-loader-utils.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * PR Context Loader — fetches PR for current branch via gh CLI.
@@ -18,8 +19,8 @@ import { safeExec, readPackageJson } from './context-loader-utils.js';
  * Note: Skill arguments aren't available in hook input. Uses current branch
  * to find the associated PR, which covers the common `/ork:review-pr` case.
  */
-export function prContextLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function prContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   // Try current branch's PR first
   const prData = safeExec(
@@ -50,8 +51,8 @@ export function prContextLoader(_input: HookInput): HookResult {
  *
  * Common branch patterns: fix/123, issue-123, feat/issue-456
  */
-export function issueContextLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function issueContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   // Extract issue number from current branch name
   const branch = safeExec('git branch --show-current', projectDir);
@@ -85,8 +86,8 @@ export function issueContextLoader(_input: HookInput): HookResult {
  * Commit Convention Loader — detects commit message conventions.
  * Used by: commit skill (PreToolUse/Bash, once:true)
  */
-export function commitConventionLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function commitConventionLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   const recentCommits = safeExec('git log --oneline -10 --format="%s"', projectDir);
   const scopes = new Set<string>();
@@ -118,8 +119,8 @@ export function commitConventionLoader(_input: HookInput): HookResult {
  * Provides branch name, base branch, commit count, and changed file summary
  * so the skill has immediate context without running detection scripts.
  */
-export function planContextLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function planContextLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   const branch = safeExec('git branch --show-current', projectDir);
   if (!branch) return outputSilentSuccess();
@@ -151,8 +152,8 @@ export function planContextLoader(_input: HookInput): HookResult {
  * Release State Loader — captures version and changelog state.
  * Used by: release-checklist skill (PreToolUse/Read, once:true)
  */
-export function releaseStateLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function releaseStateLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   const lastTag = safeExec('git describe --tags --abbrev=0 2>/dev/null', projectDir);
   const pkg = readPackageJson(projectDir);

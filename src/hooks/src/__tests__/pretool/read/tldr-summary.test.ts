@@ -3,6 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../../types.js';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -12,16 +13,7 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock common.ts
-vi.mock('../../../lib/common.js', () => ({
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: ctx, permissionDecision: 'allow' },
-  })),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
-  estimateTokenCount: vi.fn((content: string) => Math.ceil(content.length / 3)),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 // Mock code-summarizer.ts
 vi.mock('../../../lib/code-summarizer.js', () => ({
@@ -33,6 +25,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { outputAllowWithContext, outputSilentSuccess } from '../../../lib/common.js';
 import { summarizeCode } from '../../../lib/code-summarizer.js';
 import { tldrSummary } from '../../../pretool/read/tldr-summary.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput['tool_input']> = {}): HookInput {
   return {
@@ -47,7 +40,9 @@ function makeContent(lines: number): string {
   return Array.from({ length: lines }, (_, i) => `// line ${i + 1}`).join('\n');
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
   // Default: file exists, reasonable size, large content
   (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
@@ -61,44 +56,44 @@ beforeEach(() => {
 
 describe('tldrSummary — guard conditions', () => {
   it('passes through when no file_path', () => {
-    const result = tldrSummary(makeInput({ file_path: undefined }));
+    const result = tldrSummary(makeInput({ file_path: undefined }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
 
   it('passes through when offset is set', () => {
-    const result = tldrSummary(makeInput({ offset: 100 }));
+    const result = tldrSummary(makeInput({ offset: 100 }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
 
   it('passes through when limit is set', () => {
-    const result = tldrSummary(makeInput({ limit: 50 }));
+    const result = tldrSummary(makeInput({ limit: 50 }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
 
   it('passes through for unsupported extension', () => {
-    const result = tldrSummary(makeInput({ file_path: '/project/styles.css' }));
+    const result = tldrSummary(makeInput({ file_path: '/project/styles.css' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
 
   it('passes through for files without extension', () => {
-    const result = tldrSummary(makeInput({ file_path: '/project/Makefile' }));
+    const result = tldrSummary(makeInput({ file_path: '/project/Makefile' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());
   });
 
   it('passes through when file does not exist', () => {
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
 
   it('passes through when file > 2MB', () => {
     (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 3_000_000 });
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(readFileSync).not.toHaveBeenCalled();
   });
@@ -106,7 +101,7 @@ describe('tldrSummary — guard conditions', () => {
   it('passes through for small files (below both thresholds)', () => {
     const smallContent = makeContent(100); // 100 lines
     (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(smallContent);
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
     expect(outputAllowWithContext).not.toHaveBeenCalled();
   });
@@ -118,40 +113,40 @@ describe('tldrSummary — guard conditions', () => {
 
 describe('tldrSummary — summary injection', () => {
   it('injects summary for large .ts files', () => {
-    tldrSummary(makeInput({ file_path: '/project/src/service.ts' }));
+    tldrSummary(makeInput({ file_path: '/project/src/service.ts' }), testCtx);
     expect(summarizeCode).toHaveBeenCalled();
     expect(outputAllowWithContext).toHaveBeenCalledWith(expect.stringContaining('[TLDR]'));
   });
 
   it('injects summary for .py files', () => {
-    tldrSummary(makeInput({ file_path: '/project/app/main.py' }));
+    tldrSummary(makeInput({ file_path: '/project/app/main.py' }), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 
   it('injects summary for .go files', () => {
-    tldrSummary(makeInput({ file_path: '/project/main.go' }));
+    tldrSummary(makeInput({ file_path: '/project/main.go' }), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 
   it('injects summary for .rs files', () => {
-    tldrSummary(makeInput({ file_path: '/project/src/lib.rs' }));
+    tldrSummary(makeInput({ file_path: '/project/src/lib.rs' }), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 
   it('injects summary for .md files', () => {
-    tldrSummary(makeInput({ file_path: '/project/docs/guide.md' }));
+    tldrSummary(makeInput({ file_path: '/project/docs/guide.md' }), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 
   it('passes through when summarizeCode returns null', () => {
     (summarizeCode as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
   });
 
   it('triggers on file at exactly 1000 lines', () => {
     (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(makeContent(1000));
-    tldrSummary(makeInput());
+    tldrSummary(makeInput(), testCtx);
     expect(outputAllowWithContext).toHaveBeenCalled();
   });
 });
@@ -165,7 +160,7 @@ describe('tldrSummary — error handling', () => {
     (readFileSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error('EACCES: permission denied');
     });
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
   });
 
@@ -173,7 +168,7 @@ describe('tldrSummary — error handling', () => {
     (statSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error('ENOENT');
     });
-    const result = tldrSummary(makeInput());
+    const result = tldrSummary(makeInput(), testCtx);
     expect(result).toEqual(outputSilentSuccess());
   });
 });

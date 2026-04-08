@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks — available to vi.mock factories
@@ -43,8 +44,7 @@ const mocks = vi.hoisted(() => {
 // Module mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: () => ({ continue: true, suppressOutput: true }),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: (...args: unknown[]) => mocks.logHook(...args),
 }));
 
@@ -96,6 +96,7 @@ import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 import { unifiedSubagentStopDispatcher } from '../../subagent-stop/unified-dispatcher.js';
 import { unifiedNotificationDispatcher } from '../../notification/unified-dispatcher.js';
 import { unifiedSetupDispatcher } from '../../setup/unified-dispatcher.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -160,7 +161,9 @@ const setupMap: Record<string, ReturnType<typeof vi.fn>> = {
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext();
   vi.clearAllMocks();
 });
 
@@ -173,46 +176,46 @@ describe('Dispatcher Functional Tests', () => {
   describe('posttool/unified-dispatcher', () => {
     describe('tool routing via matchesTool', () => {
       it('routes Bash to redact-secrets only', async () => {
-        await unifiedDispatcher(input('Bash'));
+        await unifiedDispatcher(input('Bash'), testCtx);
         expect(mocks.redactSecrets).toHaveBeenCalled();
         expect(mocks.configChangeAuditor).not.toHaveBeenCalled();
         expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
       it('routes Write to redact-secrets + config-change-auditor', async () => {
-        await unifiedDispatcher(input('Write'));
+        await unifiedDispatcher(input('Write'), testCtx);
         expect(mocks.redactSecrets).toHaveBeenCalled();
         expect(mocks.configChangeAuditor).toHaveBeenCalled();
         expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
       it('routes Edit to redact-secrets + config-change-auditor', async () => {
-        await unifiedDispatcher(input('Edit'));
+        await unifiedDispatcher(input('Edit'), testCtx);
         expect(mocks.redactSecrets).toHaveBeenCalled();
         expect(mocks.configChangeAuditor).toHaveBeenCalled();
         expect(mocks.teamMemberStart).not.toHaveBeenCalled();
       });
 
       it('routes Task to team-member-start only', async () => {
-        await unifiedDispatcher(input('Task'));
+        await unifiedDispatcher(input('Task'), testCtx);
         expect(mocks.teamMemberStart).toHaveBeenCalled();
         expect(mocks.redactSecrets).not.toHaveBeenCalled();
         expect(mocks.configChangeAuditor).not.toHaveBeenCalled();
       });
 
       it('routes Agent to team-member-start only', async () => {
-        await unifiedDispatcher(input('Agent'));
+        await unifiedDispatcher(input('Agent'), testCtx);
         expect(mocks.teamMemberStart).toHaveBeenCalled();
         expect(mocks.redactSecrets).not.toHaveBeenCalled();
       });
 
       it('routes Skill to no hooks (no matcher)', async () => {
-        await unifiedDispatcher(input('Skill'));
+        await unifiedDispatcher(input('Skill'), testCtx);
         expect(called(posttoolMap)).toEqual([]);
       });
 
       it('routes Read to no hooks (no matcher)', async () => {
-        await unifiedDispatcher(input('Read'));
+        await unifiedDispatcher(input('Read'), testCtx);
         expect(called(posttoolMap)).toEqual([]);
       });
     });
@@ -221,7 +224,7 @@ describe('Dispatcher Functional Tests', () => {
       it('continues executing remaining hooks when one throws', async () => {
         mocks.redactSecrets.mockImplementationOnce(() => { throw new Error('sync boom'); });
 
-        await unifiedDispatcher(input('Write'));
+        await unifiedDispatcher(input('Write'), testCtx);
 
         // config-change-auditor still runs
         expect(mocks.configChangeAuditor).toHaveBeenCalled();
@@ -230,7 +233,7 @@ describe('Dispatcher Functional Tests', () => {
       it('always returns silent success even when hooks fail', async () => {
         mocks.redactSecrets.mockImplementationOnce(() => { throw new Error('crash'); });
 
-        const result = await unifiedDispatcher(input('Bash'));
+        const result = await unifiedDispatcher(input('Bash'), testCtx);
         expect(result).toEqual(SILENT_SUCCESS);
       });
     });
@@ -242,14 +245,14 @@ describe('Dispatcher Functional Tests', () => {
 
   describe('lifecycle/unified-dispatcher', () => {
     it('calls all 5 registered hooks', async () => {
-      await unifiedSessionStartDispatcher(input());
+      await unifiedSessionStartDispatcher(input(), testCtx);
       expect(called(lifecycleMap)).toEqual(Object.keys(lifecycleMap).sort());
     });
 
     it('isolates errors — other hooks run when one throws', async () => {
       mocks.patternSyncPull.mockImplementationOnce(() => { throw new Error('fail'); });
 
-      await unifiedSessionStartDispatcher(input());
+      await unifiedSessionStartDispatcher(input(), testCtx);
 
       expect(mocks.sessionEnvSetup).toHaveBeenCalled();
       expect(mocks.staleTeamCleanup).toHaveBeenCalled();
@@ -258,9 +261,9 @@ describe('Dispatcher Functional Tests', () => {
     it('logs failure summary on error', async () => {
       mocks.patternSyncPull.mockImplementationOnce(() => { throw new Error('timeout'); });
 
-      await unifiedSessionStartDispatcher(input());
+      await unifiedSessionStartDispatcher(input(), testCtx);
 
-      expect(mocks.logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'session-start-dispatcher',
         expect.stringContaining('1/5 hooks failed'),
       );
@@ -268,7 +271,7 @@ describe('Dispatcher Functional Tests', () => {
 
     it('returns silent success even on errors', async () => {
       mocks.patternSyncPull.mockImplementationOnce(() => { throw new Error('nope'); });
-      const result = await unifiedSessionStartDispatcher(input());
+      const result = await unifiedSessionStartDispatcher(input(), testCtx);
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });
@@ -279,14 +282,14 @@ describe('Dispatcher Functional Tests', () => {
 
   describe('stop/unified-dispatcher', () => {
     it('calls all 7 registered hooks', async () => {
-      await unifiedStopDispatcher(input());
+      await unifiedStopDispatcher(input(), testCtx);
       expect(called(stopMap)).toEqual(Object.keys(stopMap).sort());
     });
 
     it('isolates errors — other hooks run when one throws', async () => {
       mocks.handoffWriter.mockImplementationOnce(() => { throw new Error('disk full'); });
 
-      await unifiedStopDispatcher(input());
+      await unifiedStopDispatcher(input(), testCtx);
 
       expect(mocks.taskCompletionCheck).toHaveBeenCalled();
       expect(mocks.securityScanAggregator).toHaveBeenCalled();
@@ -294,7 +297,7 @@ describe('Dispatcher Functional Tests', () => {
 
     it('returns silent success even on errors', async () => {
       mocks.handoffWriter.mockImplementationOnce(() => Promise.reject(new Error('fail')) as unknown as { continue: boolean; suppressOutput: boolean });
-      const result = await unifiedStopDispatcher(input());
+      const result = await unifiedStopDispatcher(input(), testCtx);
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });
@@ -305,21 +308,21 @@ describe('Dispatcher Functional Tests', () => {
 
   describe('subagent-stop/unified-dispatcher', () => {
     it('calls all 2 registered hooks', async () => {
-      await unifiedSubagentStopDispatcher(input());
+      await unifiedSubagentStopDispatcher(input(), testCtx);
       expect(called(subagentStopMap)).toEqual(Object.keys(subagentStopMap).sort());
     });
 
     it('isolates errors — other hook runs when one throws', async () => {
       mocks.handoffPreparer.mockImplementationOnce(() => { throw new Error('network'); });
 
-      await unifiedSubagentStopDispatcher(input());
+      await unifiedSubagentStopDispatcher(input(), testCtx);
 
       expect(mocks.feedbackLoop).toHaveBeenCalled();
     });
 
     it('returns silent success even on errors', async () => {
       mocks.feedbackLoop.mockImplementationOnce(() => { throw new Error('oops'); });
-      const result = await unifiedSubagentStopDispatcher(input());
+      const result = await unifiedSubagentStopDispatcher(input(), testCtx);
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });
@@ -330,21 +333,21 @@ describe('Dispatcher Functional Tests', () => {
 
   describe('notification/unified-dispatcher', () => {
     it('calls all 2 registered hooks', async () => {
-      await unifiedNotificationDispatcher(input());
+      await unifiedNotificationDispatcher(input(), testCtx);
       expect(called(notificationMap)).toEqual(Object.keys(notificationMap).sort());
     });
 
     it('isolates errors — other hook runs when one throws', async () => {
       mocks.desktopNotification.mockImplementationOnce(() => { throw new Error('no display'); });
 
-      await unifiedNotificationDispatcher(input());
+      await unifiedNotificationDispatcher(input(), testCtx);
 
       expect(mocks.soundNotification).toHaveBeenCalled();
     });
 
     it('returns silent success even on errors', async () => {
       mocks.soundNotification.mockImplementationOnce(() => { throw new Error('no audio'); });
-      const result = await unifiedNotificationDispatcher(input());
+      const result = await unifiedNotificationDispatcher(input(), testCtx);
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });
@@ -355,13 +358,13 @@ describe('Dispatcher Functional Tests', () => {
 
   describe('setup/unified-dispatcher', () => {
     it('calls all 1 registered hooks', async () => {
-      await unifiedSetupDispatcher(input());
+      await unifiedSetupDispatcher(input(), testCtx);
       expect(called(setupMap)).toEqual(Object.keys(setupMap).sort());
     });
 
     it('logs startup message', async () => {
-      await unifiedSetupDispatcher(input());
-      expect(mocks.logHook).toHaveBeenCalledWith(
+      await unifiedSetupDispatcher(input(), testCtx);
+      expect(testCtx.log).toHaveBeenCalledWith(
         'setup-dispatcher',
         expect.stringContaining('Running 1 Setup hooks'),
       );
@@ -369,7 +372,7 @@ describe('Dispatcher Functional Tests', () => {
 
     it('returns silent success even on errors', async () => {
       mocks.dependencyVersionCheck.mockImplementationOnce(() => { throw new Error('outdated'); });
-      const result = await unifiedSetupDispatcher(input());
+      const result = await unifiedSetupDispatcher(input(), testCtx);
       expect(result).toEqual(SILENT_SUCCESS);
     });
   });

@@ -154,3 +154,34 @@ Plugin Validate: FAILED
 Plugin Validate: SKIPPED (requires CC >= 2.1.77)
 - Falling back to OrchestKit custom validation only
 ```
+
+## Managed Settings Policy (CC >= 2.1.92)
+
+**OK — forceRemoteSettingsRefresh with endpoint:**
+```
+Managed Settings: OK
+- forceRemoteSettingsRefresh: enabled
+- Remote endpoint configured
+```
+
+**Warning — forceRemoteSettingsRefresh without endpoint:**
+```
+Managed Settings: WARNING
+- forceRemoteSettingsRefresh: enabled but no remote settings endpoint detected
+- This will block startup if network is unavailable
+- Configure a remote endpoint or remove forceRemoteSettingsRefresh
+```
+
+**Info — not set:**
+```
+Managed Settings: OK (default)
+- forceRemoteSettingsRefresh: not set (falls back to cached settings)
+```
+
+**MCP connector conflict (CC >= 2.1.92 fix):**
+```
+MCP Servers: WARNING
+- Plugin MCP server "{name}" duplicates a claude.ai connector
+- Prior to CC 2.1.92 this caused stuck "connecting" state
+- Consider setting ENABLE_CLAUDEAI_MCP_SERVERS=false or renaming the plugin server
+```

@@ -64,6 +64,7 @@ function extractHookPaths(): Set<string> {
  */
 const prefixToBundleMap: Record<string, { name: string; hooks: Record<string, unknown> }> = {
   'permission': { name: 'permission', hooks: permissionBundle.hooks },
+  'permission-denied': { name: 'permission', hooks: permissionBundle.hooks },
   'pretool': { name: 'pretool', hooks: pretoolBundle.hooks },
   'posttool': { name: 'posttool', hooks: posttoolBundle.hooks },
   'prompt': { name: 'prompt', hooks: promptBundle.hooks },
@@ -219,31 +220,37 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
 
   describe('event type to bundle mapping consistency', () => {
     // Map hooks.json event types to expected bundle prefixes
+    // 'lifecycle' prefix allowed on all events because lifecycle/webhook-forwarder
+    // is registered as a cross-cutting async hook on every event type (#1256).
     const eventTypeExpectedPrefixes: Record<string, string[]> = {
-      PreToolUse: ['pretool'],
-      PostToolUse: ['posttool', 'skill'],
-      PostToolUseFailure: ['posttool'],
-      PermissionRequest: ['permission'],
-      UserPromptSubmit: ['prompt'],
+      PreToolUse: ['pretool', 'permission', 'lifecycle'],
+      PostToolUse: ['posttool', 'skill', 'lifecycle'],
+      PostToolUseFailure: ['posttool', 'lifecycle'],
+      PermissionRequest: ['permission', 'lifecycle'],
+      PermissionDenied: ['permission-denied', 'lifecycle'],
+      UserPromptSubmit: ['prompt', 'lifecycle'],
       SessionStart: ['lifecycle'],
       SessionEnd: ['lifecycle'],
-      Stop: ['stop'],
-      StopFailure: ['stop'],
-      SubagentStart: ['subagent-start'],
-      SubagentStop: ['subagent-stop'],
-      Notification: ['notification'],
+      // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      Stop: ['stop', 'lifecycle', 'skill'],
+      StopFailure: ['stop', 'lifecycle'],
+      SubagentStart: ['subagent-start', 'lifecycle'],
+      SubagentStop: ['subagent-stop', 'lifecycle'],
+      Notification: ['notification', 'lifecycle'],
       PreCompact: ['lifecycle'],
-      TeammateIdle: ['teammate-idle'],
-      TaskCreated: ['task-created'],
-      TaskCompleted: ['task-completed'],
-      Setup: ['setup'],
-      WorktreeCreate: ['worktree'],
-      WorktreeRemove: ['worktree'],
-      ConfigChange: ['config-change'],
-      InstructionsLoaded: ['instructions-loaded'],
+      TeammateIdle: ['teammate-idle', 'lifecycle'],
+      TaskCreated: ['task-created', 'lifecycle'],
+      TaskCompleted: ['task-completed', 'lifecycle'],
+      Setup: ['setup', 'lifecycle'],
+      WorktreeCreate: ['worktree', 'lifecycle'],
+      WorktreeRemove: ['worktree', 'lifecycle'],
+      ConfigChange: ['config-change', 'lifecycle'],
+      InstructionsLoaded: ['instructions-loaded', 'lifecycle'],
       PostCompact: ['lifecycle'],
-      Elicitation: ['elicitation'],
-      ElicitationResult: ['elicitation'],
+      Elicitation: ['elicitation', 'lifecycle'],
+      ElicitationResult: ['elicitation', 'lifecycle'],
+      CwdChanged: ['lifecycle'],
+      FileChanged: ['lifecycle'],
     };
 
     for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {

@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Use vi.hoisted so _mockAppendFileSync is available in vi.mock factory closures
 const { _mockAppendFileSync } = vi.hoisted(() => ({
@@ -20,10 +21,8 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-456'),
-  logHook: vi.fn(),
 }));
 
 vi.mock('../../lib/user-identity.js', () => ({
@@ -70,7 +69,6 @@ import {
   // GAP-008/009: Removed listSessionIds and getRecentUserSessions (dead code)
 } from '../../lib/session-tracker.js';
 import { existsSync, readFileSync, appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
-
 describe('Session Event Tracker', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);

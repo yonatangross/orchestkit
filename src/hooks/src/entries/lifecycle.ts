@@ -15,6 +15,8 @@ import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from '../lifecycle/session-cleanup.js';
+import { cwdChanged } from '../lifecycle/cwd-changed.js';
+import { fileChanged } from '../lifecycle/file-changed.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 import { sessionTracking } from '../lifecycle/session-tracking.js';
 import { sessionMetricsSummary } from '../lifecycle/session-metrics-summary.js';
@@ -26,6 +28,7 @@ import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
 import { syncSessionEndDispatcher } from '../lifecycle/sync-session-end-dispatcher.js';
 import { usageSummaryReporter } from '../lifecycle/usage-summary-reporter.js';
+import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { sessionHandoffGenerator } from '../lifecycle/session-handoff-generator.js';
 import { sessionHandoffInjector } from '../lifecycle/session-handoff-injector.js';
 
@@ -37,13 +40,15 @@ import { unifiedTeammateIdleDispatcher } from '../teammate-idle/unified-dispatch
 
 // TaskCreated hooks (CC 2.1.84)
 import { creationTracker } from '../task-created/creation-tracker.js';
-import { taskContextInjector } from '../task-created/task-context-injector.js';
+// taskContextInjector removed — unregistered to reduce hook count (#optimization)
 import { taskProgressInitializer } from '../task-created/task-progress-initializer.js';
+import { syncTaskCreatedDispatcher } from '../task-created/sync-task-created-dispatcher.js';
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from '../task-completed/completion-tracker.js';
 import { taskCommitLinker } from '../task-completed/task-commit-linker.js';
 import { taskProgressTracker } from '../task-completed/task-progress-tracker.js';
+import { syncTaskCompletedDispatcher } from '../task-completed/sync-task-completed-dispatcher.js';
 
 // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
 import { worktreeLifecycleLogger } from '../worktree/worktree-lifecycle-logger.js';
@@ -57,6 +62,10 @@ import { instructionsLoadedDispatcher } from '../instructions-loaded/instruction
 // PostCompact hooks (CC 2.1.76)
 import { postCompactRecovery } from '../lifecycle/post-compact-recovery.js';
 import { staleCacheCleanup } from '../lifecycle/stale-cache-cleanup.js';
+
+// SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
+import { staleTeamCleanup } from '../lifecycle/stale-team-cleanup.js';
+import { typeErrorIndexer } from '../lifecycle/type-error-indexer.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -72,6 +81,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
+  'lifecycle/cwd-changed': cwdChanged,
+  'lifecycle/file-changed': fileChanged,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-tracking': sessionTracking,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
@@ -83,6 +94,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
   'lifecycle/sync-session-end-dispatcher': syncSessionEndDispatcher,
   'lifecycle/usage-summary-reporter': usageSummaryReporter,
+  'lifecycle/webhook-forwarder': webhookForwarder,
   'lifecycle/session-handoff-generator': sessionHandoffGenerator,
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
 
@@ -92,12 +104,14 @@ export const hooks: Record<string, HookFn> = {
   'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
   'teammate-idle/team-quality-gate': teamQualityGate,
 
-  // TaskCreated hooks (CC 2.1.84)
+  // TaskCreated hooks (CC 2.1.84) — dispatcher + individual handlers
+  'task-created/sync-task-created-dispatcher': syncTaskCreatedDispatcher,
   'task-created/creation-tracker': creationTracker,
-  'task-created/task-context-injector': taskContextInjector,
+  // task-context-injector removed — unregistered to reduce hook count
   'task-created/task-progress-initializer': taskProgressInitializer,
 
-  // TaskCompleted hooks (CC 2.1.33)
+  // TaskCompleted hooks (CC 2.1.33) — dispatcher + individual handlers
+  'task-completed/sync-task-completed-dispatcher': syncTaskCompletedDispatcher,
   'task-completed/completion-tracker': completionTracker,
   'task-completed/task-commit-linker': taskCommitLinker,
   'task-completed/task-progress-tracker': taskProgressTracker,
@@ -114,6 +128,10 @@ export const hooks: Record<string, HookFn> = {
   // Cache management
   'lifecycle/stale-cache-cleanup': staleCacheCleanup,
 
+  // SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
+  'lifecycle/stale-team-cleanup': staleTeamCleanup,
+  'lifecycle/type-error-indexer': typeErrorIndexer,
+
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,
 
@@ -129,3 +147,6 @@ export function getHook(name: string): HookFn | undefined {
 export function listHooks(): string[] {
   return Object.keys(hooks);
 }
+
+// Phase 4: HookContext DI
+export { buildContext } from '../lib/context.js';

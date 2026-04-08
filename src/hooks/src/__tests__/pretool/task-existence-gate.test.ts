@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks — MUST be defined BEFORE imports
@@ -21,29 +22,13 @@ vi.mock('../../lib/task-integration.js', () => ({
   getTaskByAgent: (...args: unknown[]) => mockGetTaskByAgent(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((text: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { additionalContext: text, hookEventName: 'PreToolUse' },
-  })),
-  outputDeny: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session'),
 }));
 
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
 import { outputSilentSuccess, outputWithContext, outputDeny } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -66,8 +51,10 @@ function createAgentInput(subagentType: string, overrides: Partial<HookInput> = 
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-existence-gate', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session' });
     vi.clearAllMocks();
     mockGetActivePipeline.mockReturnValue(undefined);
     mockGetTaskByAgent.mockReturnValue(undefined);
@@ -91,7 +78,7 @@ describe('task-existence-gate', () => {
     ])('exempt agent "%s" passes silently', (agentType) => {
       const input = createAgentInput(agentType);
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
@@ -108,7 +95,7 @@ describe('task-existence-gate', () => {
         },
       };
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
@@ -124,7 +111,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('No task registered')
@@ -137,7 +124,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('security-auditor');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('security-auditor')
@@ -153,7 +140,7 @@ describe('task-existence-gate', () => {
       });
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
@@ -178,7 +165,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('backend-system-architect');
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputDeny).toHaveBeenCalledWith(
@@ -191,7 +178,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('test-generator');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputDeny).toHaveBeenCalledWith(
         expect.stringContaining('test-generator')
@@ -203,7 +190,7 @@ describe('task-existence-gate', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
       const input = createAgentInput('security-auditor');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputDeny).toHaveBeenCalledWith(
         expect.stringContaining('TaskCreate')
@@ -219,7 +206,7 @@ describe('task-existence-gate', () => {
       });
       const input = createAgentInput('backend-system-architect');
 
-      taskExistenceGate(input);
+      taskExistenceGate(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
@@ -239,7 +226,7 @@ describe('task-existence-gate', () => {
         tool_input: {},
       };
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       // Empty subagent_type defaults to 'unknown', not exempt
       expect(result.continue).toBeDefined();
@@ -253,7 +240,7 @@ describe('task-existence-gate', () => {
         tool_input: { subagent_type: 42 },
       };
 
-      const result = taskExistenceGate(input);
+      const result = taskExistenceGate(input, testCtx);
 
       expect(result.continue).toBeDefined();
     });
@@ -282,7 +269,7 @@ describe('task-existence-gate', () => {
         mockGetTaskByAgent.mockReturnValue(undefined);
 
         const input = createAgentInput(agent);
-        const result = taskExistenceGate(input);
+        const result = taskExistenceGate(input, testCtx);
 
         expect(result.continue).toBe(false);
       }

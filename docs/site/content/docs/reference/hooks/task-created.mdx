@@ -1,14 +1,13 @@
 ---
 title: "TaskCreated"
-description: "Hooks triggered on TaskCreated events (3 hooks)."
+description: "Hooks triggered on TaskCreated events (2 hooks)."
 ---
 
 # TaskCreated Hooks
 
-**3 hooks** registered for the `TaskCreated` lifecycle event.
+**2 hooks** registered for the `TaskCreated` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `creation-tracker` | `*` | 🔇 Silent | TaskCreated Hook: Creation Tracker |
-| `task-context-injector` | `*` | 💡 Injects | TaskCreated Hook: Context Injector |
-| `task-progress-initializer` | `*` | 🔇 Silent | TaskCreated Hook: Progress Initializer |
+| `sync-task-created-dispatcher` | `*` | 💡 Injects | Consolidates 2 TaskCreated hooks + webhook forwarder into a single |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

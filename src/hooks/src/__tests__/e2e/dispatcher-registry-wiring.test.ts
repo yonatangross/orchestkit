@@ -64,23 +64,64 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // CC 2.1.40+ handles async hooks without terminal spam.
       // Eliminates per-event process spawning — fixes Windows console flashing (#644).
       // Setup uses sync-setup-dispatcher (not async) — excluded from this test
-      const asyncEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification'];
-      const expectedDispatcherPaths: Record<string, string> = {
-        SessionStart: 'lifecycle/unified-dispatcher',
-        PostToolUse: 'posttool/unified-dispatcher',
-        SubagentStop: 'subagent-stop/unified-dispatcher',
-        Notification: 'notification/unified-dispatcher',
-      };
+      // v7.30.0: SessionStart, Notification, SubagentStop, TeammateIdle dispatchers flattened — individual async hooks (#1264)
+      // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      // No unified dispatchers remain for async events — all are flattened
 
-      for (const event of asyncEvents) {
-        const groups = hooksConfig.hooks[event] || [];
-        const allHooks = groups.flatMap(g => g.hooks);
-        const dispatcher = allHooks.find(h => h.command?.includes(expectedDispatcherPaths[event]));
+      // Verify PostToolUse has flattened async entries instead of unified dispatcher
+      const postToolGroups = hooksConfig.hooks.PostToolUse || [];
+      const postToolHooks = postToolGroups.flatMap(g => g.hooks);
+      const flattenedPostToolEntries = [
+        'posttool/commit-nudge',
+        'skill/redact-secrets',
+        'posttool/task/team-member-start',
+        'posttool/expect/fingerprint-saver',
+      ];
+      for (const entry of flattenedPostToolEntries) {
+        const hook = postToolHooks.find(h => h.command?.includes(entry));
+        expect(hook, `PostToolUse should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
+      }
 
-        expect(dispatcher, `${event} should have unified dispatcher at ${expectedDispatcherPaths[event]}`).toBeDefined();
-        expect(dispatcher?.command, `${event} dispatcher should use run-hook.mjs`).toContain('run-hook.mjs');
-        expect(dispatcher?.command, `${event} dispatcher should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
-        expect(dispatcher?.async, `${event} dispatcher should have async: true`).toBe(true);
+      // auto-lint should be sync (blocking for formatting)
+      const autoLintHook = postToolHooks.find(h => h.command?.includes('posttool/auto-lint'));
+      expect(autoLintHook, 'PostToolUse should have auto-lint').toBeDefined();
+      expect(autoLintHook?.async, 'auto-lint should NOT be async').not.toBe(true);
+
+      // v7.30.0: SessionStart dispatcher flattened — 5 individual async hooks (#1264)
+      const sessionStartGroups = hooksConfig.hooks.SessionStart || [];
+      const sessionStartHooks = sessionStartGroups.flatMap(g => g.hooks);
+      const flattenedSessionStartEntries = [
+        'lifecycle/pattern-sync-pull',
+        'lifecycle/session-env-setup',
+        'lifecycle/stale-team-cleanup',
+        'lifecycle/stale-cache-cleanup',
+        'lifecycle/type-error-indexer',
+      ];
+      for (const entry of flattenedSessionStartEntries) {
+        const hook = sessionStartHooks.find(h => h.command?.includes(entry));
+        expect(hook, `SessionStart should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
+      }
+
+      // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+      const notificationGroups = hooksConfig.hooks.Notification || [];
+      const notificationHooks = notificationGroups.flatMap(g => g.hooks);
+      const flattenedNotificationEntries = ['notification/desktop', 'notification/sound'];
+      for (const entry of flattenedNotificationEntries) {
+        const hook = notificationHooks.find(h => h.command?.includes(entry));
+        expect(hook, `Notification should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
+      }
+
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
+      const subagentStopGroups = hooksConfig.hooks.SubagentStop || [];
+      const subagentStopHooks = subagentStopGroups.flatMap(g => g.hooks);
+      const flattenedSubagentStopEntries = ['subagent-stop/handoff-preparer', 'subagent-stop/feedback-loop'];
+      for (const entry of flattenedSubagentStopEntries) {
+        const hook = subagentStopHooks.find(h => h.command?.includes(entry));
+        expect(hook, `SubagentStop should have flattened entry ${entry}`).toBeDefined();
+        expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
     });
 
@@ -91,13 +132,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const allHooks = stopGroups.flatMap(g => g.hooks);
       const commandHooks = allHooks.filter(h => h.type === 'command');
 
-      // Should have exactly two command hooks
-      expect(commandHooks.length, 'Stop should have two command hooks').toBe(2);
-
-      const stopDispatcher = commandHooks.find(h => h.command?.includes('stop/unified-dispatcher'));
-      expect(stopDispatcher, 'Stop should have stop/unified-dispatcher via run-hook.mjs').toBeDefined();
-      expect(stopDispatcher!.async, 'Stop dispatcher should have async: true').toBe(true);
-      expect(stopDispatcher!.command, 'Stop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
+      // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      // Should have 11 command hooks: 9 flattened stop hooks + stop-uncommitted-check + lifecycle/webhook-forwarder
+      expect(commandHooks.length, 'Stop should have 11 command hooks').toBe(11);
 
       const uncommittedCheckHook = commandHooks.find(h => h.command?.includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -172,22 +209,26 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
     });
 
-    it('should have explicit matcher for unified-dispatcher', () => {
+    // v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    it('should have explicit matchers for flattened PostToolUse groups', () => {
       const postToolGroups = hooksConfig.hooks.PostToolUse || [];
-      const dispatcherGroup = postToolGroups.find(g =>
-        g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
+
+      // All PostToolUse groups must have explicit matchers (no wildcard)
+      for (const group of postToolGroups) {
+        expect(group.matcher, 'PostToolUse group should have explicit matcher').toBeDefined();
+        expect(group.matcher).not.toBe('*');
+      }
+
+      // Catch-all webhook-forwarder group should cover all expected tools
+      const catchAllGroup = postToolGroups.find(g =>
+        g.matcher === 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit'
       );
+      expect(catchAllGroup, 'catch-all webhook-forwarder group should exist').toBeDefined();
 
-      expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
-      expect(dispatcherGroup?.matcher, 'unified-dispatcher should have explicit matcher').toBeDefined();
-      expect(dispatcherGroup?.matcher).not.toBe('*');
-
-      // Verify expected tools
       const expectedTools = ['Bash', 'Write', 'Edit', 'Agent', 'TaskUpdate', 'TaskCreate', 'Skill', 'NotebookEdit'];
-      const actualTools = dispatcherGroup!.matcher!.split('|');
-
+      const actualTools = catchAllGroup!.matcher!.split('|');
       for (const tool of expectedTools) {
-        expect(actualTools, `Matcher should include ${tool}`).toContain(tool);
+        expect(actualTools, `Catch-all matcher should include ${tool}`).toContain(tool);
       }
     });
   });
@@ -197,11 +238,15 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const permissionGroups = hooksConfig.hooks.PermissionRequest || [];
       const allHooks = permissionGroups.flatMap(g => g.hooks);
 
+      // Permission decision hooks must be sync (blocking). Telemetry forwarders are allowed async.
       for (const hook of allHooks) {
-        expect(
-          hook.async,
-          `Permission hook ${hook.command} should not be async (blocking required)`
-        ).not.toBe(true);
+        const isForwarder = typeof hook.command === 'string' && hook.command.includes('webhook-forwarder');
+        if (!isForwarder) {
+          expect(
+            hook.async,
+            `Permission hook ${hook.command} should not be async (blocking required)`
+          ).not.toBe(true);
+        }
       }
     });
 
@@ -237,17 +282,30 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher (async: true)
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncHooks.length, 'Should have exactly 8 async hooks').toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
+      // 30 -> 44: v7.29.0 — webhook-forwarder decoupled from dispatchers to standalone async entries on all matcher groups
+      // 44 -> 52: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+      // 52 -> 60: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +8 individual async hooks (#1264)
+      // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+      // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
+      expect(asyncHooks.length, 'Should have exactly 68 async hooks').toBe(68);
     });
 
-    it('should have notification dispatcher using native async', () => {
+    // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
+    it('should have flattened notification hooks using native async', () => {
       const notificationGroups = hooksConfig.hooks.Notification || [];
       const allHooks = notificationGroups.flatMap(g => g.hooks);
-      const dispatcher = allHooks.find(h => h.command?.includes('notification/unified-dispatcher'));
 
-      expect(dispatcher, 'Notification dispatcher should exist').toBeDefined();
-      expect(dispatcher?.command, 'Notification should use run-hook.mjs').toContain('run-hook.mjs');
-      expect(dispatcher?.async, 'Notification should have async: true').toBe(true);
+      const desktopHook = allHooks.find(h => h.command?.includes('notification/desktop'));
+      expect(desktopHook, 'Notification desktop hook should exist').toBeDefined();
+      expect(desktopHook?.command, 'Notification desktop should use run-hook.mjs').toContain('run-hook.mjs');
+      expect(desktopHook?.async, 'Notification desktop should have async: true').toBe(true);
+
+      const soundHook = allHooks.find(h => h.command?.includes('notification/sound'));
+      expect(soundHook, 'Notification sound hook should exist').toBeDefined();
+      expect(soundHook?.async, 'Notification sound should have async: true').toBe(true);
     });
   });
 
@@ -278,11 +336,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
       expect(startGroups.length, 'SubagentStart should have hooks').toBeGreaterThan(0);
       expect(stopGroups.length, 'SubagentStop should have hooks').toBeGreaterThan(0);
 
-      // Issue #653: Stop dispatcher should use native async: true (not silent runner)
+      // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
-      const stopDispatcher = stopHooks.find(h => h.command?.includes('unified-dispatcher'));
-      expect(stopDispatcher?.async, 'SubagentStop dispatcher should have async: true').toBe(true);
-      expect(stopDispatcher?.command, 'SubagentStop dispatcher should use run-hook.mjs').toContain('run-hook.mjs');
+      const handoffHook = stopHooks.find(h => h.command?.includes('subagent-stop/handoff-preparer'));
+      expect(handoffHook, 'SubagentStop should have handoff-preparer').toBeDefined();
+      expect(handoffHook?.async, 'SubagentStop handoff-preparer should have async: true').toBe(true);
+      expect(handoffHook?.command, 'SubagentStop handoff-preparer should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
     it('should have unified dispatcher in SubagentStart', () => {
@@ -312,7 +371,15 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 5 -> 6: #978 — wired TeammateIdle dispatcher
       // 6 -> 7: #1007 — added usage-summary-reporter (SessionEnd, async)
       // 7 -> 8: #1106 — added StopFailure handler (CC 2.1.78)
-      expect(asyncCount).toBe(8);
+      // 8 -> 28: webhook-forwarder consolidated into all 20 standalone events (async: true)
+      // 28 -> 29: #1256 — added webhook-forwarder to FileChanged
+      // 29 -> 30: #1260 — added telemetry-sync on SessionEnd
+      // 30 -> 44: v7.29.0 — decoupled forwarder to standalone on all matcher groups
+      // 44 -> 52: v7.30.0 — Stop dispatcher flattened: 9 individual async hooks replace 1 dispatcher (#1264)
+      // 52 -> 60: v7.30.0 — SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened: +8 individual async hooks (#1264)
+      // 60 -> 66: v7.30.0 — PostToolUse dispatcher flattened: per-matcher async entries + auto-lint sync (#1284)
+      // 66 -> 68: v7.30.0 — PostToolUse Agent matcher: agent-task-auto-register + webhook-forwarder
+      expect(asyncCount).toBe(68);
     });
 
     it('should have hooks for all critical security operations', () => {

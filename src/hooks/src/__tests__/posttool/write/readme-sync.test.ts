@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -33,19 +34,8 @@ vi.mock('../../../lib/analytics-buffer.js', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-vi.mock('../../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/mock/proj'),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
 }));
 
 vi.mock('node:fs', () => ({
@@ -55,17 +45,17 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(() => ''),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), join: vi.fn((...a: string[]) => a.join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 import { readmeSync } from '../../../posttool/write/readme-sync.js';
-import { logHook } from '../../../lib/common.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -81,8 +71,10 @@ function makeInput(filePath: string, toolName = 'Write'): HookInput {
 // ===========================================================================
 // TESTS
 // ===========================================================================
+let testCtx: ReturnType<typeof createTestContext>;
 describe('readme-sync', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/mock/proj' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
@@ -93,7 +85,7 @@ describe('readme-sync', () => {
   describe('guard clauses', () => {
     it('returns silent success for non-Write tools', () => {
       // Act
-      const result = readmeSync(makeInput('/mock/proj/src/app.ts', 'Read'));
+      const result = readmeSync(makeInput('/mock/proj/src/app.ts', 'Read'), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -101,7 +93,7 @@ describe('readme-sync', () => {
 
     it('returns silent success when file_path is empty', () => {
       // Act
-      const result = readmeSync(makeInput(''));
+      const result = readmeSync(makeInput(''), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -116,7 +108,7 @@ describe('readme-sync', () => {
       '/mock/proj/app.log',
     ])('skips internal path: %s', (filePath) => {
       // Act
-      const result = readmeSync(makeInput(filePath));
+      const result = readmeSync(makeInput(filePath), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -128,7 +120,7 @@ describe('readme-sync', () => {
       '/mock/proj/test/unit/bar.ts',
     ])('skips test files: %s', (filePath) => {
       // Act
-      const result = readmeSync(makeInput(filePath));
+      const result = readmeSync(makeInput(filePath), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -144,7 +136,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false); // no README
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/pyproject.toml'));
+      const result = readmeSync(makeInput('/mock/proj/pyproject.toml'), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -156,7 +148,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('docker');
@@ -167,7 +159,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/.env.example'));
+      const result = readmeSync(makeInput('/mock/proj/.env.example'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('env');
@@ -178,7 +170,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/docker-compose.yml'));
+      const result = readmeSync(makeInput('/mock/proj/docker-compose.yml'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('docker');
@@ -194,7 +186,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/src/api/users.ts'));
+      const result = readmeSync(makeInput('/mock/proj/src/api/users.ts'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('api');
@@ -205,7 +197,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/src/config/database.ts'));
+      const result = readmeSync(makeInput('/mock/proj/src/config/database.ts'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('config');
@@ -216,7 +208,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('src/main.py'));
+      const result = readmeSync(makeInput('src/main.py'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('entry-point');
@@ -227,7 +219,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/src/a/b/c/d/index.ts'));
+      const result = readmeSync(makeInput('/mock/proj/src/a/b/c/d/index.ts'), testCtx);
 
       // Assert
       // depth = 8 > 4, so not detected as entry-point; but may match exports check
@@ -240,7 +232,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/bin/deploy.sh'));
+      const result = readmeSync(makeInput('/mock/proj/bin/deploy.sh'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('cli');
@@ -256,7 +248,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
       expect(result.hookSpecificOutput?.additionalContext).toContain('no README.md found');
@@ -271,7 +263,7 @@ describe('readme-sync', () => {
       });
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
       const ctx = result.hookSpecificOutput?.additionalContext as string;
@@ -289,7 +281,7 @@ describe('readme-sync', () => {
       mockStatSync.mockReturnValue({ mtime: oldDate } as { mtime: Date });
 
       // Act
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
       const ctx = result.hookSpecificOutput?.additionalContext as string;
@@ -306,7 +298,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      readmeSync(makeInput('/mock/proj/Dockerfile'));
+      readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
       expect(mockAppendFileSync).toHaveBeenCalledTimes(1);
@@ -318,10 +310,10 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      readmeSync(makeInput('/mock/proj/Dockerfile'));
+      readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'readme-sync',
         expect.stringContaining('docker'),
       );
@@ -333,7 +325,7 @@ describe('readme-sync', () => {
   // =========================================================================
   describe('unrecognized files', () => {
     it('returns silent success for unrecognized file types', () => {
-      const result = readmeSync(makeInput('/mock/proj/src/utils/helpers.ts'));
+      const result = readmeSync(makeInput('/mock/proj/src/utils/helpers.ts'), testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });
@@ -347,7 +339,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockReturnValue(true);
       // readFileSync mock returns empty string — require() will fail to parse
       // The hook should fall through to other analysis without crashing
-      const result = readmeSync(makeInput('/mock/proj/package.json'));
+      const result = readmeSync(makeInput('/mock/proj/package.json'), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -355,7 +347,7 @@ describe('readme-sync', () => {
       // All existsSync calls return false — no README anywhere
       mockExistsSync.mockReturnValue(false);
       // Use a file that triggers analysis (docker) but no README exists
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('no README.md found');
       expect(ctx).toContain('Consider creating one');
@@ -366,7 +358,7 @@ describe('readme-sync', () => {
       mockExistsSync.mockImplementation((p?: string) => (p || '').includes('README'));
       mockStatSync.mockImplementation(() => { throw new Error('EACCES'); });
       // Should not crash — try/catch in source handles stat errors
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
       expect(result.continue).toBe(true);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('docker');
@@ -378,17 +370,17 @@ describe('readme-sync', () => {
       mockStatSync.mockReturnValue({ mtime: new Date() } as { mtime: Date });
       mockMkdirSync.mockImplementation(() => { throw new Error('ENOSPC'); });
       // Should not crash — try/catch around log writing
-      const result = readmeSync(makeInput('/mock/proj/Dockerfile'));
+      const result = readmeSync(makeInput('/mock/proj/Dockerfile'), testCtx);
       expect(result.continue).toBe(true);
     });
 
     it('skips .log files', () => {
-      const result = readmeSync(makeInput('/mock/proj/output.log'));
+      const result = readmeSync(makeInput('/mock/proj/output.log'), testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
     it('skips test files', () => {
-      const result = readmeSync(makeInput('/mock/proj/src/__tests__/api.test.ts'));
+      const result = readmeSync(makeInput('/mock/proj/src/__tests__/api.test.ts'), testCtx);
       expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });
@@ -407,7 +399,7 @@ describe('readme-sync', () => {
       mockStatSync.mockReturnValue({ mtime: oldDate } as { mtime: Date });
 
       // Act — use a setup.py to trigger python-config with long suggestion
-      const result = readmeSync(makeInput('/mock/proj/setup.py'));
+      const result = readmeSync(makeInput('/mock/proj/setup.py'), testCtx);
 
       // Assert — either truncated or within limit
       const ctx = result.hookSpecificOutput?.additionalContext as string;

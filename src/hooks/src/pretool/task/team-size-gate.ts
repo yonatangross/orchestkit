@@ -13,14 +13,15 @@
  * @since CC 2.1.33
  */
 
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, outputDeny, logHook } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { getTeamMembers, isStaleTeam, cleanupTeam } from '../../lib/agent-teams.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const MAX_TEAM_SIZE = 6;
 const MAX_OPUS_MEMBERS = 3;
 
-export function teamSizeGate(input: HookInput): HookResult {
+export function teamSizeGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
 
   // Only gate team spawns — regular Task subagents pass through
@@ -32,7 +33,7 @@ export function teamSizeGate(input: HookInput): HookResult {
   // Auto-clean stale team if TeamCreate would conflict (#447)
   if (isStaleTeam(teamName)) {
     cleanupTeam(teamName);
-    logHook('team-size-gate', `Auto-cleaned stale team "${teamName}" before TeamCreate`);
+    ctx.log('team-size-gate', `Auto-cleaned stale team "${teamName}" before TeamCreate`);
   }
 
   const model = (toolInput.model as string) || '';
@@ -42,11 +43,11 @@ export function teamSizeGate(input: HookInput): HookResult {
   const members = getTeamMembers();
   const currentSize = members.length;
 
-  logHook('team-size-gate', `Team "${teamName}": ${currentSize} members, spawning model="${model}"`);
+  ctx.log('team-size-gate', `Team "${teamName}": ${currentSize} members, spawning model="${model}"`);
 
   // Check total team size
   if (currentSize >= MAX_TEAM_SIZE) {
-    logHook('team-size-gate', `BLOCKED: Team size limit (${currentSize} >= ${MAX_TEAM_SIZE})`);
+    ctx.log('team-size-gate', `BLOCKED: Team size limit (${currentSize} >= ${MAX_TEAM_SIZE})`);
     return outputDeny(
       `Team Size Limit\n\nTeam "${teamName}" has ${currentSize} members (max ${MAX_TEAM_SIZE}).\n\n` +
       `Wait for existing teammates to complete before spawning more.\n\n` +
@@ -61,7 +62,7 @@ export function teamSizeGate(input: HookInput): HookResult {
     ).length;
 
     if (opusCount >= MAX_OPUS_MEMBERS) {
-      logHook('team-size-gate', `BLOCKED: Opus limit (${opusCount} >= ${MAX_OPUS_MEMBERS})`);
+      ctx.log('team-size-gate', `BLOCKED: Opus limit (${opusCount} >= ${MAX_OPUS_MEMBERS})`);
       return outputDeny(
         `Opus Model Limit\n\nTeam "${teamName}" already has ${opusCount} Opus members (max ${MAX_OPUS_MEMBERS}).\n\n` +
         `Use a lighter model (sonnet/haiku) or wait for Opus teammates to finish.\n\n` +
@@ -70,6 +71,6 @@ export function teamSizeGate(input: HookInput): HookResult {
     }
   }
 
-  logHook('team-size-gate', `Team spawn allowed: ${currentSize + 1}/${MAX_TEAM_SIZE}`);
+  ctx.log('team-size-gate', `Team spawn allowed: ${currentSize + 1}/${MAX_TEAM_SIZE}`);
   return outputSilentSuccess();
 }

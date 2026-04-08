@@ -8,6 +8,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come before imports
@@ -23,14 +24,11 @@ vi.mock('node:fs', () => ({
   readdirSync: (...args: unknown[]) => mockReaddirSync(...args),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { evalMetricsCollector } from '../../skill/eval-metrics-collector.js';
-import { outputSilentSuccess, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -74,8 +72,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Eval Metrics Collector Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('eval-metrics-collector', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     captureStderr();
   });
@@ -96,7 +96,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -108,7 +108,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(typeof result.continue).toBe('boolean');
@@ -121,7 +121,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('Evaluation results found');
@@ -164,7 +164,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -186,7 +186,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -206,7 +206,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('accuracy: 0.96');
@@ -225,7 +225,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -249,7 +249,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('DeepEval results directory found');
@@ -272,7 +272,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -292,7 +292,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -312,7 +312,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('RAGAS evaluation results found');
@@ -337,7 +337,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -361,7 +361,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -378,7 +378,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -393,7 +393,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -408,7 +408,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -424,7 +424,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -443,7 +443,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -462,7 +462,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       const output = stderrOutput.join('');
@@ -476,7 +476,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('Evaluation complete');
@@ -488,7 +488,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain('review metrics above');
@@ -506,7 +506,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -522,7 +522,7 @@ describe('eval-metrics-collector', () => {
       };
 
       // Act
-      const result = evalMetricsCollector(input);
+      const result = evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -540,10 +540,9 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
-      expect(getProjectDir).toHaveBeenCalled();
     });
   });
 
@@ -567,7 +566,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       expect(stderrOutput.join('')).toContain(`score: ${expected}`);
@@ -591,7 +590,7 @@ describe('eval-metrics-collector', () => {
       const input = createStopInput();
 
       // Act
-      evalMetricsCollector(input);
+      evalMetricsCollector(input, testCtx);
 
       // Assert
       // Should have newlines for readability

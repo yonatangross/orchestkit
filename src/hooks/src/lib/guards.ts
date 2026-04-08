@@ -305,9 +305,20 @@ export function runGuards(input: HookInput, ...guards: ((input: HookInput) => Gu
 // -----------------------------------------------------------------------------
 
 /**
- * Check if Claude Code is running in dontAsk mode (CC 2.1.25)
- * In dontAsk mode, quality gates should warn instead of blocking
+ * Check if Claude Code is running in a non-interactive permission mode (CC 2.1.25, 2.1.88)
+ * In dontAsk or auto mode, quality gates should warn instead of blocking.
+ * - dontAsk: CC 2.1.25 — user pre-approved all tool calls
+ * - auto: CC 2.1.88 — classifier-based approval, no interactive prompts
  */
 export function isDontAskMode(input: HookInput): boolean {
-  return input.permissionMode === 'dontAsk';
+  return input.permissionMode === 'dontAsk' || input.permissionMode === 'auto';
+}
+
+/**
+ * Check if specifically in 'auto' classifier mode (CC 2.1.88).
+ * Use when you need to distinguish auto from dontAsk — e.g., auto mode
+ * still has PermissionDenied events, dontAsk does not.
+ */
+export function isAutoMode(input: HookInput): boolean {
+  return input.permissionMode === 'auto';
 }

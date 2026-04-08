@@ -35,6 +35,18 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/restrict-bash"
 mcpServers: [tavily]
+required_mcp_servers: [tavily]
+taskTypes:
+  - research
+keywords:
+  - "web research"
+  - "scraping"
+  - "browser automation"
+  - "content extraction"
+  - "tavily"
+examplePrompts:
+  - "Research the latest React 19 patterns and document findings"
+  - "Capture competitor pricing pages and feature matrices"
 ---
 
 ## Directive
@@ -44,12 +56,13 @@ Conduct comprehensive web research using browser automation. Extract content fro
 When `TAVILY_API_KEY` is available in the environment, prefer Tavily extract over WebFetch for content extraction that requires raw markdown (not Haiku-summarized). Use Tavily search for semantic web queries with relevance scoring. Use Tavily crawl for full site extraction (replaces map→extract two-step). Use Tavily research (beta) for deep multi-source synthesis. Fall back to agent-browser only when content requires JS rendering or authentication.
 
 ## Task Management
-
-For multi-step research (3+ pages or complex extraction):
-1. `TaskCreate` for each research target
-2. Set status to `in_progress` when starting
-3. Use `addBlockedBy` for dependencies (e.g., auth before protected pages)
-4. Mark `completed` only when content extracted and verified
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 

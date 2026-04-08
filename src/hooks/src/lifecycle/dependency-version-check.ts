@@ -18,8 +18,9 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface KnownVuln {
   package: string;
@@ -241,16 +242,16 @@ function parseRequirementsTxt(filePath: string): { criticalCount: number; highCo
 /**
  * Dependency version check hook
  */
-export function dependencyVersionCheck(input: HookInput): HookResult {
+export function dependencyVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Bypass if slow hooks are disabled
   if (shouldSkipSlowHooks()) {
-    logHook('dependency-version-check', 'Skipping dependency check (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
+    ctx.log('dependency-version-check', 'Skipping dependency check (ORCHESTKIT_SKIP_SLOW_HOOKS=1)');
     return outputSilentSuccess();
   }
 
-  logHook('dependency-version-check', 'Starting dependency version check');
+  ctx.log('dependency-version-check', 'Starting dependency version check');
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx.projectDir);
   const cacheFile = `${projectDir}/.claude/feedback/dependency-check-cache.json`;
 
   // Fast exit: Check if any package files exist
@@ -260,7 +261,7 @@ export function dependencyVersionCheck(input: HookInput): HookResult {
   const hasGoMod = existsSync(`${projectDir}/go.mod`);
 
   if (!hasPackageJson && !hasRequirementsTxt && !hasPyprojectToml && !hasGoMod) {
-    logHook('dependency-version-check', 'No package files found, skipping check');
+    ctx.log('dependency-version-check', 'No package files found, skipping check');
     saveCache(cacheFile, 'none');
     return outputSilentSuccess();
   }
@@ -268,7 +269,7 @@ export function dependencyVersionCheck(input: HookInput): HookResult {
   // Check cache first
   const cached = getCachedWarnings(cacheFile);
   if (cached !== null) {
-    logHook('dependency-version-check', 'Using cached dependency warnings');
+    ctx.log('dependency-version-check', 'Using cached dependency warnings');
     if (cached !== 'none') {
       return outputWithContext(`DEPENDENCY SECURITY CHECK (cached): ${cached}`);
     }
@@ -305,7 +306,7 @@ export function dependencyVersionCheck(input: HookInput): HookResult {
     const fullWarning = `DEPENDENCY SECURITY CHECK: ${summary}${allWarnings}\n\nRun 'npm audit' or 'pip-audit' for full details.`;
 
     saveCache(cacheFile, fullWarning);
-    logHook('dependency-version-check', summary);
+    ctx.log('dependency-version-check', summary);
 
     // Only show warning if there are critical or high severity issues
     if (totalCritical > 0 || totalHigh > 0) {
@@ -313,7 +314,7 @@ export function dependencyVersionCheck(input: HookInput): HookResult {
     }
   } else {
     saveCache(cacheFile, 'none');
-    logHook('dependency-version-check', 'No known vulnerabilities found');
+    ctx.log('dependency-version-check', 'No known vulnerabilities found');
   }
 
   return outputSilentSuccess();

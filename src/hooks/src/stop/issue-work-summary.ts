@@ -7,10 +7,11 @@
 
 import { existsSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { getSessionTempDir } from '../lib/paths.js';
 import { assertSafeIssueNumber } from '../lib/sanitize-shell.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface IssueProgress {
   issues: {
@@ -105,11 +106,11 @@ function postComment(issueNum: string, comment: string): boolean {
 /**
  * Issue work summary hook
  */
-export function issueWorkSummary(input: HookInput): HookResult {
-  logHook('issue-work-summary', 'Session ending, checking for issue progress to post...');
+export function issueWorkSummary(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('issue-work-summary', 'Session ending, checking for issue progress to post...');
 
-  const projectDir = input.project_dir || getProjectDir();
-  const sessionId = input.session_id || getSessionId();
+  const projectDir = input.project_dir || (ctx.projectDir);
+  const sessionId = input.session_id || (ctx.sessionId);
 
   // Sanitize session ID to prevent path traversal
   const safeSessionId = sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -118,19 +119,19 @@ export function issueWorkSummary(input: HookInput): HookResult {
 
   // Check if progress file exists
   if (!existsSync(progressFile)) {
-    logHook('issue-work-summary', `No progress file found at ${progressFile}`);
+    ctx.log('issue-work-summary', `No progress file found at ${progressFile}`);
     return outputSilentSuccess();
   }
 
   // Check if gh CLI is available
   if (!isGhAvailable()) {
-    logHook('issue-work-summary', 'gh CLI not available or not authenticated, skipping');
+    ctx.log('issue-work-summary', 'gh CLI not available or not authenticated, skipping');
     return outputSilentSuccess();
   }
 
   // Check if we're in a GitHub repo
   if (!isGitHubRepo(projectDir)) {
-    logHook('issue-work-summary', 'Not a GitHub repository, skipping');
+    ctx.log('issue-work-summary', 'Not a GitHub repository, skipping');
     return outputSilentSuccess();
   }
 
@@ -139,13 +140,13 @@ export function issueWorkSummary(input: HookInput): HookResult {
   try {
     progressJson = JSON.parse(readFileSync(progressFile, 'utf-8'));
   } catch {
-    logHook('issue-work-summary', 'Failed to read progress file');
+    ctx.log('issue-work-summary', 'Failed to read progress file');
     return outputSilentSuccess();
   }
 
   const issues = progressJson.issues ? Object.keys(progressJson.issues) : [];
   if (issues.length === 0) {
-    logHook('issue-work-summary', 'No issues to process');
+    ctx.log('issue-work-summary', 'No issues to process');
     return outputSilentSuccess();
   }
 
@@ -156,7 +157,7 @@ export function issueWorkSummary(input: HookInput): HookResult {
     const commits = issueData.commits || [];
 
     if (commits.length === 0) {
-      logHook('issue-work-summary', `No commits for issue #${issueNum}, skipping`);
+      ctx.log('issue-work-summary', `No commits for issue #${issueNum}, skipping`);
       continue;
     }
 
@@ -168,7 +169,7 @@ export function issueWorkSummary(input: HookInput): HookResult {
         stdio: ['pipe', 'pipe', 'pipe'],
       });
     } catch {
-      logHook('issue-work-summary', `Issue #${issueNum} not found or not accessible, skipping`);
+      ctx.log('issue-work-summary', `Issue #${issueNum} not found or not accessible, skipping`);
       continue;
     }
 
@@ -176,11 +177,11 @@ export function issueWorkSummary(input: HookInput): HookResult {
     const comment = generateComment(issueNum, issueData, sessionId);
     if (comment && postComment(issueNum, comment)) {
       postedCount++;
-      logHook('issue-work-summary', `Successfully posted comment to issue #${issueNum}`);
+      ctx.log('issue-work-summary', `Successfully posted comment to issue #${issueNum}`);
     }
   }
 
-  logHook('issue-work-summary', `Posted progress comments to ${postedCount} issue(s)`);
+  ctx.log('issue-work-summary', `Posted progress comments to ${postedCount} issue(s)`);
 
   // Clean up progress file
   try {

@@ -16,7 +16,7 @@
  * CC 2.1.9 Compliant: Single PreToolUse dispatcher with merged additionalContext
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
@@ -24,6 +24,8 @@ import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { compoundCommandValidator } from './compound-command-validator.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
+// Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
+import { headlessDefer } from '../../permission/headless-defer.js';
 // Phase 2: Git/GH enforcement hooks (merged from separate spawns — #912, #913, #914)
 import { gitValidator } from './git-validator.js';
 import { issueReferenceChecker } from './issue-reference-checker.js';
@@ -32,12 +34,13 @@ import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 // Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
 import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
 
 interface BlockingHookConfig {
   name: string;
-  fn: (input: HookInput) => HookResult;
+  fn: (input: HookInput, ctx: HookContext) => HookResult;
 }
 
 /**
@@ -50,6 +53,8 @@ interface BlockingHookConfig {
  * Short-circuit: any block in Phase 1 or 2 skips remaining phases.
  */
 const BASH_HOOKS: BlockingHookConfig[] = [
+  // Phase 0: Headless deferral (blocks destructive ops in -p mode)
+  { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'compound-command-validator', fn: compoundCommandValidator },
@@ -111,32 +116,38 @@ function buildMergedResult(
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext and updatedInput from all hooks.
  */
-export function syncBashDispatcher(input: HookInput): HookResult {
+export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
 
   for (const hook of BASH_HOOKS) {
     try {
-      const result = hook.fn(input);
+      const result = hook.fn(input, ctx);
 
       if (!result.continue) {
-        logHook(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        return result;
+      }
+
+      // Short-circuit on defer decision (headless-defer returns permissionDecision: 'defer')
+      if (result.hookSpecificOutput?.permissionDecision === 'defer') {
+        ctx.log(HOOK_NAME, `${hook.name} deferred — short-circuiting`);
         return result;
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
         updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
-        logHook(HOOK_NAME, `${hook.name}: updatedInput collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);
       }
 
       const context = extractContext(result);
       if (context) {
         contextParts.push(context);
-        logHook(HOOK_NAME, `${hook.name}: additionalContext collected`);
+        ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      logHook(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
+      ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
 

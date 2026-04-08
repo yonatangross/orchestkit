@@ -24,6 +24,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["*.py", "**/requirements*.txt", "**/pyproject.toml", "**/Pipfile"]
 ---
 
 # Python Backend

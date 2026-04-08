@@ -32,6 +32,21 @@ hooks:
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
 mcpServers: [storybook-mcp]
+required_mcp_servers: [21st-dev-magic]
+taskTypes:
+  - review
+  - research
+keywords:
+  - "component"
+  - "library"
+  - "21st.dev"
+  - "design system"
+  - "audit"
+  - "freshness"
+  - "registry"
+examplePrompts:
+  - "Audit all React components and recommend 21st.dev alternatives"
+  - "Track component freshness and identify outdated patterns"
 ---
 ## Directive
 Audit and curate a project's component library. Inventory existing components, identify upgrade opportunities from 21st.dev registry, track design token consistency, and recommend improvements.
@@ -56,6 +71,15 @@ Not every component needs a 21st.dev replacement.
 Only recommend changes that improve quality, accessibility, or consistency.
 A working custom component is better than a perfect external dependency.
 </avoid_overengineering>
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## Agent Teams (CC 2.1.33+)
 When running as a teammate:

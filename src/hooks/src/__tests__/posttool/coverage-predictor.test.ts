@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockAppendFileSync = vi.fn();
@@ -15,27 +16,18 @@ vi.mock('node:child_process', () => ({
   execSync: (...args: unknown[]) => mockExecSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), join: vi.fn((...a: string[]) => a.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/home/user/myproject'),
 }));
 
 import { coveragePredictor } from '../../posttool/write/coverage-predictor.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -46,8 +38,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('coveragePredictor', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/home/user/myproject' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(true);
     // Default: no test file found
@@ -56,7 +50,7 @@ describe('coveragePredictor', () => {
 
   it('returns silent success for non-Write tools', () => {
     // Act
-    const result = coveragePredictor(makeInput({ tool_name: 'Edit' }));
+    const result = coveragePredictor(makeInput({ tool_name: 'Edit' }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -67,7 +61,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { file_path: '/test/project/src/__tests__/auth.test.ts', content: 'test code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -78,7 +72,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { file_path: '/test/project/README.md', content: '# Readme' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -90,7 +84,7 @@ describe('coveragePredictor', () => {
     mockExecSync.mockReturnValue('');
 
     // Act
-    const result = coveragePredictor(makeInput());
+    const result = coveragePredictor(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -102,7 +96,7 @@ describe('coveragePredictor', () => {
     mockExecSync.mockReturnValue('/test/project/src/__tests__/auth.test.ts');
 
     // Act
-    const result = coveragePredictor(makeInput());
+    const result = coveragePredictor(makeInput(), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);
@@ -114,7 +108,7 @@ describe('coveragePredictor', () => {
     // Act
     const result = coveragePredictor(makeInput({
       tool_input: { content: 'code' },
-    }));
+    }), testCtx);
 
     // Assert
     expect(result.continue).toBe(true);

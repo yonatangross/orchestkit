@@ -23,6 +23,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["vite.config.*", "**/vite/**"]
 ---
 
 # Vite Advanced Patterns

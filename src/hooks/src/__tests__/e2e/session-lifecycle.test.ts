@@ -47,11 +47,14 @@ vi.mock('../../lib/guards.js', async () => {
 // Import hooks
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Session Lifecycle E2E Tests', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     process.env = { ...originalEnv, CLAUDE_SESSION_ID: 'e2e-session-123' };
   });
@@ -79,7 +82,7 @@ describe('Session Lifecycle E2E Tests', () => {
           tool_input: { command: cmd },
           project_dir: '/test/project',
         };
-        const result = autoApproveSafeBash(input);
+        const result = autoApproveSafeBash(input, testCtx);
         results.push(result);
         expect(result.continue).toBe(true);
       }
@@ -97,7 +100,7 @@ describe('Session Lifecycle E2E Tests', () => {
           tool_input: { file_path: path, content },
           project_dir: '/test/project',
         };
-        const result = autoApproveProjectWrites(input);
+        const result = autoApproveProjectWrites(input, testCtx);
         results.push(result);
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -117,7 +120,7 @@ describe('Session Lifecycle E2E Tests', () => {
           tool_input: { command: cmd },
           project_dir: '/test/project',
         };
-        const result = autoApproveSafeBash(input);
+        const result = autoApproveSafeBash(input, testCtx);
         results.push(result);
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -203,7 +206,7 @@ describe('Session Lifecycle E2E Tests', () => {
           project_dir: '/test/project',
         };
 
-        const result = autoApproveProjectWrites(input);
+        const result = autoApproveProjectWrites(input, testCtx);
         expect(result.continue).toBe(true);
         expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
       }
@@ -243,7 +246,7 @@ describe('Session Lifecycle E2E Tests', () => {
           project_dir: '/test/project',
         };
 
-        const result = autoApproveProjectWrites(input);
+        const result = autoApproveProjectWrites(input, testCtx);
         expect(result.continue).toBe(true);
         // Should NOT auto-approve writes outside project
         expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -269,7 +272,7 @@ describe('Session Lifecycle E2E Tests', () => {
           project_dir: '/test/project',
         };
 
-        const result = autoApproveSafeBash(input);
+        const result = autoApproveSafeBash(input, testCtx);
         expect(result.continue).toBe(true);
         // Should NOT auto-approve dangerous commands
         expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -296,7 +299,7 @@ describe('Session Lifecycle E2E Tests', () => {
           project_dir: '/test/project',
         };
 
-        const result = autoApproveProjectWrites(input);
+        const result = autoApproveProjectWrites(input, testCtx);
         expect(result.continue).toBe(true);
         // Requires manual approval
         expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
@@ -316,7 +319,7 @@ describe('Session Lifecycle E2E Tests', () => {
         project_dir: '/test/project',
       };
 
-      const badResult = autoApproveSafeBash(badInput);
+      const badResult = autoApproveSafeBash(badInput, testCtx);
       expect(badResult.continue).toBe(true); // Should not crash
 
       // Next valid operation should still work
@@ -327,7 +330,7 @@ describe('Session Lifecycle E2E Tests', () => {
         project_dir: '/test/project',
       };
 
-      const goodResult = autoApproveSafeBash(goodInput);
+      const goodResult = autoApproveSafeBash(goodInput, testCtx);
       expect(goodResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
@@ -345,7 +348,7 @@ describe('Session Lifecycle E2E Tests', () => {
         project_dir: '/test/project',
       }));
 
-      const results = operations.map(input => autoApproveProjectWrites(input));
+      const results = operations.map(input => autoApproveProjectWrites(input, testCtx));
 
       // All should succeed
       expect(results.every(r => r.continue)).toBe(true);
@@ -374,8 +377,8 @@ describe('Session Lifecycle E2E Tests', () => {
         project_dir: '/test/project',
       };
 
-      const result1 = autoApproveSafeBash(input1);
-      const result2 = autoApproveSafeBash(input2);
+      const result1 = autoApproveSafeBash(input1, testCtx);
+      const result2 = autoApproveSafeBash(input2, testCtx);
 
       // Both should work independently
       expect(result1.hookSpecificOutput?.permissionDecision).toBe('allow');
@@ -429,7 +432,7 @@ describe('Hook Performance E2E Tests', () => {
         tool_input: { command: 'git status' },
         project_dir: '/test/project',
       };
-      autoApproveSafeBash(bashInput);
+      autoApproveSafeBash(bashInput, testCtx);
 
       const writeInput: HookInput = {
         tool_name: 'Write',
@@ -440,7 +443,7 @@ describe('Hook Performance E2E Tests', () => {
         },
         project_dir: '/test/project',
       };
-      autoApproveProjectWrites(writeInput);
+      autoApproveProjectWrites(writeInput, testCtx);
     }
 
     const elapsed = Date.now() - start;

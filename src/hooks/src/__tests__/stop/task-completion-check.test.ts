@@ -8,6 +8,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { PathLike } from 'node:fs';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -16,11 +17,7 @@ vi.mock('node:fs', () => ({
 }));
 
 // Mock common utilities
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({ continue: true, additionalContext: ctx })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
@@ -32,14 +29,15 @@ vi.mock('../../lib/task-integration.js', () => ({
 
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { logHook, outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithContext, } from '../../lib/common.js';
 import { getOrphanedTasks, formatTaskDeleteForClaude } from '../../lib/task-integration.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('Task Completion Check Hook', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
-  const mockLogHook = vi.mocked(logHook);
   const _mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
   const mockOutputWithContext = vi.mocked(outputWithContext);
   const mockGetOrphanedTasks = vi.mocked(getOrphanedTasks);
@@ -53,6 +51,7 @@ describe('Task Completion Check Hook', () => {
   };
 
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-id' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
     mockGetOrphanedTasks.mockReturnValue([]);
@@ -68,7 +67,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -89,7 +88,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -105,7 +104,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -131,10 +130,10 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const _result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         'WARNING: 1 orchestration tasks still in progress'
       );
@@ -159,10 +158,10 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      taskCompletionCheck(defaultInput);
+      taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         'WARNING: 3 orchestration tasks still in progress'
       );
@@ -180,10 +179,10 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      taskCompletionCheck(defaultInput);
+      taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         'WARNING: 1 legacy tasks in progress at stop'
       );
@@ -203,10 +202,10 @@ describe('Task Completion Check Hook', () => {
       mockFormatTaskDeleteForClaude.mockReturnValue('TaskUpdate({ taskId: "task-1", status: "deleted" })');
 
       // Act
-      const _result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         'Found 1 orphaned tasks'
       );
@@ -225,7 +224,7 @@ describe('Task Completion Check Hook', () => {
       mockFormatTaskDeleteForClaude.mockReturnValue('delete instruction');
 
       // Act
-      taskCompletionCheck(defaultInput);
+      taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
       expect(mockFormatTaskDeleteForClaude).toHaveBeenCalledTimes(2);
@@ -248,10 +247,10 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const _result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         expect.stringContaining('Error reading registry:')
       );
@@ -267,10 +266,10 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const _result = taskCompletionCheck(defaultInput);
+      const _result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
-      expect(mockLogHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'task-completion-check',
         expect.stringContaining('Error reading legacy todos:')
       );
@@ -286,7 +285,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      const result = taskCompletionCheck(defaultInput);
+      const result = taskCompletionCheck(defaultInput, testCtx);
 
       // Assert
       // No warnings were added, so should return silent success
@@ -308,7 +307,7 @@ describe('Task Completion Check Hook', () => {
       mockGetOrphanedTasks.mockReturnValue([]);
 
       // Act
-      taskCompletionCheck(inputWithDir);
+      taskCompletionCheck(inputWithDir, testCtx);
 
       // Assert - should look for registry at custom path
       expect(mockExistsSync).toHaveBeenCalledWith(

@@ -8,18 +8,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    suppressOutput: false,
-    hookSpecificOutput: { hookEventName: 'PreToolUse', blockReason: reason },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(() => ''),
@@ -30,15 +22,17 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { preCommitQualityRunner } from '../../pretool/bash/pre-commit-quality-runner.js';
 import type { HookInput } from '../../types.js';
 import { execSync, execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { logHook, outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock, getProjectDir } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -49,14 +43,17 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('pre-commit-quality-runner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     delete process.env.ORCHESTKIT_SKIP_PRE_COMMIT_CHECKS;
     vi.mocked(existsSync).mockReturnValue(false);
     vi.mocked(execSync).mockReturnValue('');
     vi.mocked(execFileSync).mockReturnValue('');
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
   });
 
   // -----------------------------------------------------------------------
@@ -70,7 +67,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -84,7 +81,7 @@ describe('pre-commit-quality-runner', () => {
       vi.mocked(execSync).mockReturnValue(''); // no staged files → still silent success but via different path
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — env guard did NOT trigger (outputSilentSuccess called for another reason, not env)
       // We can't distinguish calls here, but we verify the env guard works only for 'true'
@@ -102,7 +99,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git push origin main');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -114,7 +111,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git status');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -126,7 +123,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('npm run build');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -138,7 +135,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -156,7 +153,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test" --no-verify');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -168,10 +165,10 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "emergency" --no-verify');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — bypass must be audited at warn level
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'pre-commit-quality-runner',
         expect.stringContaining('--no-verify'),
         'warn',
@@ -183,7 +180,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit --no-verify -m "skip"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — quality checks must not even start
       expect(execSync).not.toHaveBeenCalled();
@@ -198,10 +195,11 @@ describe('pre-commit-quality-runner', () => {
     it('returns silent success when getProjectDir returns null', () => {
       // Arrange
       vi.mocked(getProjectDir).mockReturnValue(null as unknown as string);
+      (testCtx as any).projectDir = null as unknown as string;
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -211,10 +209,11 @@ describe('pre-commit-quality-runner', () => {
     it('returns silent success when getProjectDir returns empty string', () => {
       // Arrange
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -233,7 +232,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -246,7 +245,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -264,7 +263,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -289,7 +288,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -322,7 +321,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: add auth"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — typecheck now uses execFileSync (SEC-001)
       expect(execFileSync).toHaveBeenCalledWith(
@@ -353,7 +352,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — tsc must NOT be called (via execFileSync)
       const execFileCalls = vi.mocked(execFileSync).mock.calls.map(c => c[1] as string[]);
@@ -380,7 +379,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "docs: update readme"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert — no TS files → no checks queued → silent
       expect(result.continue).toBe(true);
@@ -415,7 +414,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — lint must use execFileSync, NOT execSync
       expect(execFileSync).toHaveBeenCalled();
@@ -444,7 +443,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: add user"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — args array must have individual file entries, not concatenated string
       const calls = vi.mocked(execFileSync).mock.calls;
@@ -481,7 +480,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(execFileSync).toHaveBeenCalledWith(
@@ -517,7 +516,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: auth"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       const calls = vi.mocked(execFileSync).mock.calls;
@@ -552,7 +551,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       const calls = vi.mocked(execFileSync).mock.calls;
@@ -582,7 +581,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: auth"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — test file should NOT be in jest args
       const calls = vi.mocked(execFileSync).mock.calls;
@@ -622,7 +621,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: update index"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -651,7 +650,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "fix: bug"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(outputBlock).not.toHaveBeenCalled();
@@ -684,7 +683,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "wip"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -715,7 +714,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "fix"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -745,7 +744,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "wip"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — block reason must mention the escape hatch
       const blockReason = vi.mocked(outputBlock).mock.calls[0][0];
@@ -786,7 +785,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "wip"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -817,10 +816,10 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "test"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
-      const logCalls = vi.mocked(logHook).mock.calls;
+      const logCalls = vi.mocked(testCtx.log).mock.calls;
       const failureLog = logCalls.find(([, msg]) => String(msg).includes('failed'));
       expect(failureLog).toBeDefined();
     });
@@ -848,7 +847,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "docs: update readme"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -877,7 +876,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "chore: update changelog"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       expect(outputBlock).not.toHaveBeenCalled();
@@ -908,10 +907,10 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('  git commit -m "trimmed"');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert — hook engaged (not silently skipped at command-check)
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'pre-commit-quality-runner',
         expect.stringContaining('staged files'),
       );
@@ -924,7 +923,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit-graph write');
 
       // Act
-      const result = preCommitQualityRunner(input);
+      const result = preCommitQualityRunner(input, testCtx);
 
       // Assert — silent success via the "not a commit command" guard
       expect(result.continue).toBe(true);
@@ -959,7 +958,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "feat: app"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert — lint check was queued
       expect(execFileSync).toHaveBeenCalled();
@@ -985,7 +984,7 @@ describe('pre-commit-quality-runner', () => {
       const input = createBashInput('git commit -m "fix: lint"');
 
       // Act
-      preCommitQualityRunner(input);
+      preCommitQualityRunner(input, testCtx);
 
       // Assert
       const calls = vi.mocked(execFileSync).mock.calls;

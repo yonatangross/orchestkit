@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.86';
+export const MIN_CC_VERSION = '2.1.94';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -173,6 +173,69 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   // 2.1.86
   { feature: 'config_disk_write_fix',    minVersion: '2.1.86', description: 'Eliminates unnecessary config disk writes on every skill invocation' },
   { feature: 'write_edit_outside_root',  minVersion: '2.1.86', description: 'Write/Edit fix for files outside project root' },
+  // 2.1.88
+  { feature: 'permission_denied_hook',  minVersion: '2.1.88', description: 'PermissionDenied hook event fires after auto mode classifier denials' },
+  { feature: 'auto_permission_mode',  minVersion: '2.1.88', description: 'permissionMode:"auto" — classifier-based approval, replaces interactive prompts' },
+  { feature: 'absolute_file_path_hooks', minVersion: '2.1.88', description: 'PreToolUse/PostToolUse file_path always absolute for Write/Edit/Read' },
+  { feature: 'compound_if_matching',    minVersion: '2.1.88', description: 'Hook if conditions match compound commands (ls && git push) and env prefixes' },
+  { feature: 'structured_output_fix',   minVersion: '2.1.88', description: 'StructuredOutput schema cache fix (~50% failure rate with multiple schemas)' },
+  { feature: 'no_flicker_env',          minVersion: '2.1.88', description: 'CLAUDE_CODE_NO_FLICKER=1 env var for flicker-free alt-screen rendering' },
+  // 2.1.89
+  { feature: 'defer_permission',       minVersion: '2.1.89', description: 'PreToolUse hooks can return decision:"defer" to pause headless sessions for later --resume' },
+  { feature: 'task_created_hook',      minVersion: '2.1.89', description: 'TaskCreated hook event fires when tasks are created, with blocking behavior' },
+  { feature: 'autocompact_thrash_fix', minVersion: '2.1.89', description: 'Detects autocompact thrash loop (3 refills) and stops with actionable error' },
+  { feature: 'cleanup_period_validation', minVersion: '2.1.89', description: 'cleanupPeriodDays:0 in settings.json now rejected with validation error' },
+  { feature: 'mcp_nonblocking_p_mode', minVersion: '2.1.89', description: 'MCP_CONNECTION_NONBLOCKING=true skips MCP wait in -p mode, bounded at 5s' },
+  { feature: 'named_subagent_typeahead', minVersion: '2.1.89', description: 'Named subagents appear in @ mention typeahead suggestions' },
+  { feature: 'hook_output_disk_spill', minVersion: '2.1.89', description: 'Hook output over 50K chars saved to disk with file path + preview' },
+  { feature: 'edit_after_bash_view',   minVersion: '2.1.89', description: 'Edit works on files viewed via Bash sed/cat without separate Read call' },
+  { feature: 'symlink_permission_check', minVersion: '2.1.89', description: 'Edit/Read allow rules check resolved symlink target, not just requested path' },
+  // 2.1.90
+  { feature: 'powerup_lessons',          minVersion: '2.1.90', description: '/powerup interactive lessons teaching Claude Code features with animated demos' },
+  { feature: 'plugin_keep_marketplace',  minVersion: '2.1.90', description: 'CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE keeps marketplace cache when git pull fails' },
+  { feature: 'husky_protected_dir',      minVersion: '2.1.90', description: '.husky added to protected directories in acceptEdits mode' },
+  { feature: 'pretool_exit2_json_fix',   minVersion: '2.1.90', description: 'PreToolUse hooks emitting JSON to stdout with exit code 2 now correctly block tool calls' },
+  { feature: 'format_on_save_fix',       minVersion: '2.1.90', description: 'Edit/Write no longer fail with "File content has changed" when PostToolUse format-on-save rewrites' },
+  { feature: 'resume_prompt_cache_fix',  minVersion: '2.1.90', description: '--resume no longer causes full prompt-cache miss with deferred tools/MCP/agents' },
+  { feature: 'mcp_schema_cache_perf',    minVersion: '2.1.90', description: 'Eliminated per-turn JSON.stringify of MCP tool schemas on cache-key lookup' },
+  { feature: 'sse_linear_perf',          minVersion: '2.1.90', description: 'SSE transport handles large streamed frames in linear time (was quadratic)' },
+  { feature: 'transcript_write_perf',    minVersion: '2.1.90', description: 'SDK sessions with long conversations no longer slow down quadratically on transcript writes' },
+  { feature: 'resume_hides_p_sessions',  minVersion: '2.1.90', description: '--resume picker no longer shows sessions created by claude -p or SDK invocations' },
+  { feature: 'dns_cache_auto_allow_removed', minVersion: '2.1.90', description: 'Get-DnsClientCache and ipconfig /displaydns removed from auto-allow (DNS privacy)' },
+  // 2.1.91
+  { feature: 'mcp_result_size_override',    minVersion: '2.1.91', description: 'MCP tool result persistence via _meta["anthropic/maxResultSizeChars"] annotation (up to 500K)' },
+  { feature: 'disable_skill_shell_exec',    minVersion: '2.1.91', description: 'disableSkillShellExecution setting disables inline shell execution in skills/commands/plugins' },
+  { feature: 'deep_link_multiline',         minVersion: '2.1.91', description: 'Multi-line prompts supported in claude-cli://open?q= deep links (encoded newlines)' },
+  { feature: 'plugin_bin_executables',      minVersion: '2.1.91', description: 'Plugins can ship executables under bin/ invokable as bare Bash commands' },
+  { feature: 'transcript_chain_fix',        minVersion: '2.1.91', description: 'Transcript chain breaks on --resume fixed (async write failures no longer lose history)' },
+  { feature: 'edit_shorter_anchors',        minVersion: '2.1.91', description: 'Edit tool uses shorter old_string anchors, reducing output tokens' },
+  { feature: 'auto_permission_validation',  minVersion: '2.1.91', description: 'JSON schema validates permissions.defaultMode:"auto" in settings.json' },
+  { feature: 'plan_mode_remote_fix',        minVersion: '2.1.91', description: 'Plan mode in remote sessions retains plan file after container restart' },
+  // 2.1.92
+  { feature: 'force_remote_settings_refresh', minVersion: '2.1.92', description: 'forceRemoteSettingsRefresh policy blocks startup until remote managed settings fetched (fail-closed)' },
+  { feature: 'stop_hook_prevent_continuation_fix', minVersion: '2.1.92', description: 'prompt-type Stop hooks no longer fail when small fast model returns ok:false; preventContinuation:true restored' },
+  { feature: 'tool_input_json_string_fix', minVersion: '2.1.92', description: 'Array/object tool_input fields no longer emitted as JSON-encoded strings during streaming' },
+  { feature: 'plugin_mcp_connecting_fix',  minVersion: '2.1.92', description: 'Plugin MCP servers no longer stuck connecting when duplicating unauthenticated claude.ai connectors' },
+  { feature: 'write_diff_perf',            minVersion: '2.1.92', description: 'Write tool diff computation 60% faster for large files with tabs/&/$ characters' },
+  { feature: 'remote_control_hostname',    minVersion: '2.1.92', description: 'Remote Control session names default to hostname prefix, overridable with --remote-control-session-name-prefix' },
+  { feature: 'cost_per_model_breakdown',   minVersion: '2.1.92', description: '/cost shows per-model and cache-hit breakdown for subscription users' },
+  { feature: 'subagent_tmux_pane_fix',     minVersion: '2.1.92', description: 'Subagent spawning no longer permanently fails after tmux windows killed/renumbered' },
+  // 2.1.94 (2026-04-07) — skipped 2.1.93
+  { feature: 'skill_frontmatter_hooks_fix', minVersion: '2.1.94', description: 'Plugin skill hooks defined in YAML frontmatter now fire (previously silently ignored) — unlocks 20 OrchestKit context loaders' },
+  { feature: 'session_title_hook_output',   minVersion: '2.1.94', description: 'UserPromptSubmit hooks can set session title via hookSpecificOutput.sessionTitle' },
+  { feature: 'keep_coding_instructions',    minVersion: '2.1.94', description: 'keep-coding-instructions frontmatter field preserves coding instructions in plugin output styles' },
+  { feature: 'plugin_skill_name_stability', minVersion: '2.1.94', description: 'Plugin skills declared via "skills": ["./"] use frontmatter name for stable invocation across install methods' },
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: intentional literal ${CLAUDE_PLUGIN_ROOT} text
+  { feature: 'plugin_root_local_mkt_fix',   minVersion: '2.1.94', description: '${CLAUDE_PLUGIN_ROOT} resolves to installed cache (not marketplace source) for local-marketplace plugins' },
+  { feature: 'plugin_hooks_no_root_env_fix', minVersion: '2.1.94', description: 'Plugin hooks no longer fail with "No such file or directory" when CLAUDE_PLUGIN_ROOT env var unset' },
+  { feature: 'effort_default_high',         minVersion: '2.1.94', description: 'Default effort level changed medium → high for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users' },
+  { feature: 'rate_limit_429_surface',      minVersion: '2.1.94', description: 'Agents no longer stuck after 429 rate-limit with long Retry-After — error surfaces immediately' },
+  { feature: 'sdk_partial_response_fix',    minVersion: '2.1.94', description: 'SDK/print mode preserves partial assistant response on interrupt mid-stream' },
+  { feature: 'resume_across_worktrees',     minVersion: '2.1.94', description: '--resume can attach to sessions in other worktrees of the same repo directly' },
+  { feature: 'stream_json_cjk_fix',         minVersion: '2.1.94', description: 'CJK/multibyte text no longer corrupted with U+FFFD when chunk boundaries split UTF-8 sequences in stream-json I/O' },
+  { feature: 'mantle_bedrock',              minVersion: '2.1.94', description: 'Amazon Bedrock powered by Mantle via CLAUDE_CODE_USE_MANTLE=1' },
+  // 2.1.96 (2026-04-08) — skipped 2.1.95
+  { feature: 'bedrock_bearer_token_fix',    minVersion: '2.1.96', description: 'Fixed Bedrock 403 "Authorization header is missing" regression when using AWS_BEARER_TOKEN_BEDROCK or CLAUDE_CODE_SKIP_BEDROCK_AUTH (hotfix from 2.1.94)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

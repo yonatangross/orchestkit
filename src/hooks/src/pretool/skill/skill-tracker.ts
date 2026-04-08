@@ -8,15 +8,14 @@
  * - Enables context efficiency optimization
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  logHook,
-  getProjectDir,
 } from '../../lib/common.js';
 import { existsSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
+import { NOOP_CTX } from '../../lib/context.js';
 
 /**
  * Ensure directory exists
@@ -46,23 +45,23 @@ function appendSafe(file: string, content: string): void {
 /**
  * Skill tracker - logs skill invocations with analytics
  */
-export function skillTracker(input: HookInput): HookResult {
+export function skillTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const skillName = (input.tool_input.skill as string) || '';
   const skillArgs = (input.tool_input.args as string) || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx.projectDir);
 
   if (!skillName) {
     return outputSilentSuccess();
   }
 
-  logHook('skill-tracker', `Skill invocation: ${skillName}${skillArgs ? ` (args: ${skillArgs})` : ''}`);
+  ctx.log('skill-tracker', `Skill invocation: ${skillName}${skillArgs ? ` (args: ${skillArgs})` : ''}`);
 
   // Log to temporary usage log for quick access
   const usageLog = join(projectDir, '.claude', 'logs', 'skill-usage.log');
   const timestamp = new Date().toISOString();
   appendSafe(usageLog, `${timestamp} | ${skillName} | ${skillArgs || 'no args'}\n`);
 
-  logHook('skill-tracker', `Skill usage logged for ${skillName}`);
+  ctx.log('skill-tracker', `Skill usage logged for ${skillName}`);
 
   // CC 2.1.6 Compliant: JSON output without ANSI colors
   return outputSilentSuccess();

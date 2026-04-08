@@ -2,6 +2,7 @@
 // Created: 2026-03-29
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -18,23 +19,11 @@ vi.mock('../../../lib/atomic-write.js', () => ({
   atomicWriteSync: (...args: unknown[]) => mockAtomicWriteSync(...args),
 }));
 
-vi.mock('../../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 import { codeStyleLearner } from '../../../posttool/write/code-style-learner.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -48,8 +37,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('codeStyleLearner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
@@ -57,7 +48,7 @@ describe('codeStyleLearner', () => {
   // -- Guard conditions --
 
   it('returns silent success for non-Write/Edit tools', () => {
-    const result = codeStyleLearner(makeInput({ tool_name: 'Bash' }));
+    const result = codeStyleLearner(makeInput({ tool_name: 'Bash' }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockAtomicWriteSync).not.toHaveBeenCalled();
   });
@@ -65,42 +56,42 @@ describe('codeStyleLearner', () => {
   it('returns silent success when file_path is empty', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '', content: 'x' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips .claude/ internal paths', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/.claude/config.json', content: '{}' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips node_modules paths', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/node_modules/lib/index.js', content: 'x' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips .git/ paths', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/.git/hooks/pre-commit', content: 'x' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips non-code extensions like .md', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/README.md', content: '# Hi' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips when content is empty and file does not exist', () => {
     const result = codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/src/foo.ts', content: '' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -112,7 +103,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'function f() {\n  const x = 1;\n  const y = 2;\n  return x;\n}',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.indentation.spaces_2).toBeGreaterThan(0);
   });
@@ -123,7 +114,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'function f() {\n    const x = 1;\n    const y = 2;\n    return x;\n}',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.indentation.spaces_4).toBeGreaterThan(0);
   });
@@ -134,7 +125,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'function f() {\n\tconst x = 1;\n\tconst y = 2;\n\treturn x;\n}',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.indentation.tabs).toBeGreaterThan(0);
   });
@@ -147,7 +138,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: "const x = 'hello';\nconst y = 'world';",
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.quotes.single).toBeGreaterThan(0);
   });
@@ -158,7 +149,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = "hello";\nconst y = "world";',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.quotes.double).toBeGreaterThan(0);
   });
@@ -171,7 +162,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = 1;\nconst y = 2;\nreturn x;',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.semicolons.always).toBeGreaterThan(0);
   });
@@ -185,7 +176,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: `const arr = [\n${lines}\n];`,
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.trailing_comma.always).toBeGreaterThan(0);
   });
@@ -196,7 +187,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = [1, 2, 3];\nconst y = { a: 1 };',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.trailing_comma.minimal).toBeGreaterThan(0);
   });
@@ -209,7 +200,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.py',
         content: 'def get_user(id: int) -> User:\n    pass',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.type_hints.used).toBe(1);
   });
@@ -220,7 +211,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.py',
         content: '"""Module doc.\n\nArgs:\n    x: value\n\nReturns:\n    result\n"""',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.docstring_style.google).toBe(1);
   });
@@ -231,7 +222,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.py',
         content: '"""Module doc.\n\n:param x: value\n:returns: result\n"""',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.docstring_style.sphinx).toBe(1);
   });
@@ -242,7 +233,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.py',
         content: 'x = 1\ny = 2',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.semicolons.always).toBe(0);
     expect(written.languages.python.semicolons.omit).toBe(0);
@@ -278,7 +269,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
 
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.samples_count).toBe(4);
@@ -294,7 +285,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
 
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.samples_count).toBe(1);
@@ -312,7 +303,7 @@ describe('codeStyleLearner', () => {
 
     codeStyleLearner(makeInput({
       tool_input: { file_path: '/proj/src/app.ts' },
-    }));
+    }), testCtx);
 
     expect(mockAtomicWriteSync).toHaveBeenCalled();
   });
@@ -327,7 +318,7 @@ describe('codeStyleLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -348,7 +339,7 @@ describe('codeStyleLearner', () => {
         file_path: `/proj/src/${filename}`,
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
     if (mockAtomicWriteSync.mock.calls.length > 0) {
       const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
       expect(written.languages[expectedLang]).toBeDefined();

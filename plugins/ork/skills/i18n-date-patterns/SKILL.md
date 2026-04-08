@@ -26,6 +26,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/i18n/**", "**/locales/**", "**/translations/**", "*.locale.*"]
 ---
 
 # i18n and Localization Patterns

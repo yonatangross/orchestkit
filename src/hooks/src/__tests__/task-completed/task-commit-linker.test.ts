@@ -9,18 +9,10 @@
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { additionalContext: ctx },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/git.js', () => ({
   getDirtyFileCount: vi.fn(() => 0),
@@ -30,6 +22,7 @@ import { taskCommitLinker } from '../../task-completed/task-commit-linker.js';
 import { outputSilentSuccess, outputWithContext, getProjectDir } from '../../lib/common.js';
 import { getDirtyFileCount } from '../../lib/git.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Helpers
@@ -52,10 +45,13 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('task-commit-linker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(getProjectDir).mockReturnValue('/test/project');
+    (testCtx as any).projectDir = '/test/project';
     vi.mocked(getDirtyFileCount).mockReturnValue(0);
   });
 
@@ -63,7 +59,7 @@ describe('task-commit-linker', () => {
     test('returns silent when task_status is not "completed"', () => {
       const input = createTaskInput({ task_status: 'failed' });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(outputWithContext).not.toHaveBeenCalled();
@@ -73,7 +69,7 @@ describe('task-commit-linker', () => {
     test('returns silent when task_status is "in_progress"', () => {
       const input = createTaskInput({ task_status: 'in_progress' });
 
-      taskCommitLinker(input);
+      taskCommitLinker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(outputWithContext).not.toHaveBeenCalled();
@@ -81,9 +77,10 @@ describe('task-commit-linker', () => {
 
     test('returns silent when projectDir is not available', () => {
       vi.mocked(getProjectDir).mockReturnValue('');
+      (testCtx as any).projectDir = '';
       const input = createTaskInput({ task_status: 'completed' });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(getDirtyFileCount).not.toHaveBeenCalled();
@@ -94,7 +91,7 @@ describe('task-commit-linker', () => {
       vi.mocked(getDirtyFileCount).mockReturnValue(0);
       const input = createTaskInput({ task_status: 'completed' });
 
-      taskCommitLinker(input);
+      taskCommitLinker(input, testCtx);
 
       expect(outputSilentSuccess).toHaveBeenCalledOnce();
       expect(outputWithContext).not.toHaveBeenCalled();
@@ -110,7 +107,7 @@ describe('task-commit-linker', () => {
         task_subject: 'Implement user auth',
       });
 
-      taskCommitLinker(input);
+      taskCommitLinker(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledOnce();
     });
@@ -123,7 +120,7 @@ describe('task-commit-linker', () => {
         task_subject: 'Refactor payment service',
       });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('task-999');
     });
@@ -136,7 +133,7 @@ describe('task-commit-linker', () => {
         task_subject: 'Build notification system',
       });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('Build notification system');
     });
@@ -149,7 +146,7 @@ describe('task-commit-linker', () => {
         task_subject: 'Migrate database schema',
       });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(result.hookSpecificOutput?.additionalContext).toContain('7');
     });
@@ -162,7 +159,7 @@ describe('task-commit-linker', () => {
         task_subject: 'Fix the thing',
       });
 
-      const result = taskCommitLinker(input);
+      const result = taskCommitLinker(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledOnce();
       const ctx = vi.mocked(outputWithContext).mock.calls[0][0];

@@ -23,6 +23,7 @@ allowed-tools:
   - WebFetch
   - WebSearch
 paths: ["**/migrations/**", "**/models/**", "alembic.ini", "**/schema*"]
+path_patterns: ["*.sql", "**/migrations/**", "**/alembic/**", "**/prisma/**"]
 ---
 
 # Database Patterns

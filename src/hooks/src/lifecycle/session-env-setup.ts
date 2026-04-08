@@ -7,9 +7,10 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { getMetricsFile } from '../lib/paths.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 interface SessionState {
   agent_type?: string;
@@ -46,11 +47,11 @@ function getCurrentBranch(projectDir: string): string {
 /**
  * Session environment setup hook
  */
-export function sessionEnvSetup(input: HookInput): HookResult {
-  logHook('session-env-setup', 'Setting up session environment');
+export function sessionEnvSetup(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('session-env-setup', 'Setting up session environment');
 
-  const projectDir = input.project_dir || getProjectDir();
-  const sessionId = input.session_id || getSessionId();
+  const projectDir = input.project_dir || (ctx.projectDir);
+  const sessionId = input.session_id || (ctx.sessionId);
   const metricsFile = getMetricsFile();
 
   // Create logs directory if needed
@@ -78,9 +79,9 @@ export function sessionEnvSetup(input: HookInput): HookResult {
 
   try {
     atomicWriteSync(metricsFile, JSON.stringify(metrics, null, 2));
-    logHook('session-env-setup', 'Initialized session metrics');
+    ctx.log('session-env-setup', 'Initialized session metrics');
   } catch (err) {
-    logHook('session-env-setup', `Failed to initialize metrics: ${err}`);
+    ctx.log('session-env-setup', `Failed to initialize metrics: ${err}`);
   }
 
   // Update session state with agent_type (CC 2.1.6 feature)
@@ -92,21 +93,21 @@ export function sessionEnvSetup(input: HookInput): HookResult {
       state.session_id = sessionId;
       state.last_activity = new Date().toISOString();
       atomicWriteSync(sessionState, JSON.stringify(state, null, 2));
-      logHook('session-env-setup', `Updated session state with agent_type: ${agentType}`);
+      ctx.log('session-env-setup', `Updated session state with agent_type: ${agentType}`);
     } catch (err) {
-      logHook('session-env-setup', `Failed to update session state: ${err}`);
+      ctx.log('session-env-setup', `Failed to update session state: ${err}`);
     }
   }
 
   // Check git status with timeout
   const branch = getCurrentBranch(projectDir);
   if (branch) {
-    logHook('session-env-setup', `Git branch: ${branch}`);
+    ctx.log('session-env-setup', `Git branch: ${branch}`);
   }
 
   // Log agent type if present
   if (agentType) {
-    logHook('session-env-setup', `Agent type: ${agentType}`);
+    ctx.log('session-env-setup', `Agent type: ${agentType}`);
   }
 
   return outputSilentSuccess();

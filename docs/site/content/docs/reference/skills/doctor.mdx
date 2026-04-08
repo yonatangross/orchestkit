@@ -675,6 +675,37 @@ Plugin Validate: SKIPPED (requires CC >= 2.1.77)
 - Falling back to OrchestKit custom validation only
 ```
 
+## Managed Settings Policy (CC >= 2.1.92)
+
+**OK — forceRemoteSettingsRefresh with endpoint:**
+```
+Managed Settings: OK
+- forceRemoteSettingsRefresh: enabled
+- Remote endpoint configured
+```
+
+**Warning — forceRemoteSettingsRefresh without endpoint:**
+```
+Managed Settings: WARNING
+- forceRemoteSettingsRefresh: enabled but no remote settings endpoint detected
+- This will block startup if network is unavailable
+- Configure a remote endpoint or remove forceRemoteSettingsRefresh
+```
+
+**Info — not set:**
+```
+Managed Settings: OK (default)
+- forceRemoteSettingsRefresh: not set (falls back to cached settings)
+```
+
+**MCP connector conflict (CC >= 2.1.92 fix):**
+```
+MCP Servers: WARNING
+- Plugin MCP server "{name}" duplicates a claude.ai connector
+- Prior to CC 2.1.92 this caused stuck "connecting" state
+- Consider setting ENABLE_CLAUDEAI_MCP_SERVERS=false or renaming the plugin server
+```
+
 
 ### Hook Validation
 
@@ -1408,7 +1439,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -1598,6 +1629,61 @@ OrchestKit requires Claude Code >= 2.1.86. This matrix documents which CC featur
 | PreToolUse for AskUserQuestion | 2.1.85 | Headless AskUserQuestion responder hooks | No hook on AskUserQuestion |
 | Config disk write fix | 2.1.86 | Eliminates unnecessary config writes on every skill invocation | Unnecessary disk I/O per skill |
 | Write/Edit outside project root | 2.1.86 | Write/Edit fix for files outside project root | Write/Edit fails for external files |
+| `PermissionDenied` hook event | 2.1.88 | Fires after auto mode classifier denials, supports `\{retry: true\}` | No hook on permission denials |
+| `permissionMode: "auto"` | 2.1.88 | Classifier-based approval replaces interactive prompts | Interactive permission prompts |
+| `file_path` always absolute | 2.1.88 | PreToolUse/PostToolUse file_path always absolute for Write/Edit/Read | Relative paths possible |
+| Compound `if` matching | 2.1.88 | Hook `if` conditions match compound commands and env-var prefixes | Only simple command matching |
+| `CLAUDE_CODE_NO_FLICKER=1` | 2.1.88 | Flicker-free alt-screen rendering with virtualized scrollback | Default rendering |
+| `"defer"` permission decision | 2.1.89 | PreToolUse hooks return `decision:"defer"` to pause headless sessions | Only allow/deny/ask |
+| `TaskCreated` hook blocking | 2.1.89 | TaskCreated hook fires with documented blocking behavior | TaskCreated (2.1.84) without blocking docs |
+| `MCP_CONNECTION_NONBLOCKING=true` | 2.1.89 | Skip MCP connection wait in `-p` mode, bounded at 5s | Blocks on slowest MCP server |
+| Named subagent typeahead | 2.1.89 | Named subagents appear in `@` mention typeahead | Only file names in typeahead |
+| Hook output disk spill | 2.1.89 | Hook output >50K chars saved to disk with file path + preview | Full output injected into context |
+| Edit after Bash view | 2.1.89 | Edit works on files viewed via `sed -n`/`cat` without Read | Must Read before Edit |
+| Symlink permission check | 2.1.89 | Edit/Read allow rules check resolved symlink target | Only requested path checked |
+| `/powerup` interactive lessons | 2.1.90 | Interactive feature tutorials with animated demos | No built-in learning tools |
+| `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | 2.1.90 | Keep marketplace cache when `git pull` fails (offline support) | Marketplace cache lost on git failure |
+| `.husky` protected directory | 2.1.90 | `.husky` added to protected dirs in acceptEdits mode | .husky writable in acceptEdits |
+| PreToolUse exit code 2 JSON fix | 2.1.90 | Hooks emitting JSON to stdout with exit code 2 now correctly block | Exit code 2 JSON silently ignored |
+| Format-on-save hook fix | 2.1.90 | Edit/Write no longer fail when PostToolUse format-on-save rewrites file | "File content has changed" error |
+| `--resume` prompt cache fix | 2.1.90 | `--resume` no longer causes full prompt-cache miss with deferred tools/MCP | Full cache miss on resume |
+| MCP schema cache perf | 2.1.90 | Eliminated per-turn JSON.stringify of MCP tool schemas | Redundant serialization per turn |
+| SSE linear transport perf | 2.1.90 | SSE transport handles large frames in linear time (was quadratic) | Quadratic SSE processing |
+| Transcript write perf | 2.1.90 | Long conversations no longer slow down quadratically on transcript writes | Quadratic transcript slowdown |
+| `--resume` hides `-p` sessions | 2.1.90 | Resume picker no longer shows `claude -p` or SDK sessions | `-p` sessions in resume picker |
+| DNS cache auto-allow removed | 2.1.90 | `Get-DnsClientCache` and `ipconfig /displaydns` removed from auto-allow | DNS cache commands auto-allowed |
+| MCP `_meta` result size override | 2.1.91 | `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) — mcp-output-transform respects it | Large MCP results always truncated at 2000 chars |
+| `disableSkillShellExecution` | 2.1.91 | Setting disables inline shell in skills/commands/plugins | Shell execution always enabled |
+| Plugin `bin/` executables | 2.1.91 | Plugins ship executables under `bin/` invokable as bare Bash commands | Must use full paths to plugin scripts |
+| Deep link multiline prompts | 2.1.91 | `claude-cli://open?q=` supports `%0A` encoded newlines | Multi-line deep links rejected |
+| Edit tool shorter anchors | 2.1.91 | Edit uses shorter `old_string` anchors, reducing output tokens | Longer anchors, more output tokens |
+| `--resume` transcript chain fix | 2.1.91 | Async transcript write failures no longer lose conversation history | History loss on async write failure |
+| `permissions.defaultMode:"auto"` validation | 2.1.91 | JSON schema validates `auto` as permission mode | `auto` accepted but could cause issues |
+| Plan mode remote session fix | 2.1.91 | Plan file retained after container restart in remote sessions | Plan lost after container restart |
+| `forceRemoteSettingsRefresh` policy | 2.1.92 | Fail-closed startup: blocks until remote managed settings fetched, exits on failure | Stale managed settings on startup |
+| Stop hook `preventContinuation` fix | 2.1.92 | prompt-type Stop hooks no longer fail when small fast model returns `ok:false`; `preventContinuation:true` restored | Stop hooks could incorrectly fail |
+| Tool input JSON-string streaming fix | 2.1.92 | Array/object `tool_input` fields no longer emitted as JSON-encoded strings during streaming | PreToolUse hooks receive malformed tool_input |
+| Plugin MCP stuck "connecting" fix | 2.1.92 | Plugin MCP servers no longer stuck connecting when duplicating unauthenticated claude.ai connectors | MCP servers hang on session start |
+| Write tool diff perf | 2.1.92 | 60% faster diff computation for large files with tabs/&/$ characters | Slower Write tool on large files |
+| Remote Control hostname prefix | 2.1.92 | Session names default to hostname prefix, overridable with `--remote-control-session-name-prefix` | Generic session names |
+| Per-model `/cost` breakdown | 2.1.92 | `/cost` shows per-model and cache-hit breakdown for subscription users | Aggregate cost only |
+| `/tag` command removed | 2.1.92 | Removed — no OrchestKit references | N/A |
+| `/vim` command removed | 2.1.92 | Removed — toggle via `/config` → Editor mode | N/A |
+| Subagent tmux pane fix | 2.1.92 | Subagent spawning no longer fails after tmux windows killed/renumbered | "Could not determine pane count" error |
+| Prompt cache expiry hint | 2.1.92 | Pro users see uncached token count when returning after cache expires | No cache expiry visibility |
+| **Skill frontmatter hooks fix** | **2.1.94** | **20 OrchestKit skill context loaders (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) declared via `hooks:` in SKILL.md frontmatter now fire — previously silently ignored** | **All 20 skill context loaders dead — skills run without their primed context (much worse UX)** |
+| `hookSpecificOutput.sessionTitle` | 2.1.94 | unified-dispatcher sets session title from branch/effort/skill context — visible in prompt bar and remote sessions | Sessions use auto-generated names |
+| `keep-coding-instructions` frontmatter | 2.1.94 | Plugin output styles preserve coding instructions when set true | Output styles may strip coding guidance |
+| Plugin skill name stability | 2.1.94 | `"skills": ["./"]` uses frontmatter `name` for invocation, stable across install methods | Invocation name depends on directory basename |
+| `$\{CLAUDE_PLUGIN_ROOT\}` local-marketplace fix | 2.1.94 | Resolves to installed cache (not marketplace source) for local-marketplace plugins | File lookups point at wrong directory |
+| Plugin hooks CLAUDE_PLUGIN_ROOT fix | 2.1.94 | Plugin hooks no longer fail with "No such file or directory" when env var unset | Hooks fail cold-start on some platforms |
+| Default effort `high` | 2.1.94 | Default effort level is `high` for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users (use `/effort low` or `/effort medium` to reduce) | Default `medium` — token budgets scaled conservatively |
+| 429 rate-limit surface | 2.1.94 | Agents no longer stuck after 429 with long Retry-After — error surfaces immediately | Agents appear stuck, silent wait |
+| SDK/print mode partial response fix | 2.1.94 | Preserves partial assistant response on interrupt mid-stream | Partial responses lost, breaks bare-eval/eval-runner |
+| `--resume` across worktrees | 2.1.94 | Resume sessions from other worktrees of the same repo directly (was: print `cd` command) | Must cd manually to resume worktree session |
+| CJK/multibyte stream-json fix | 2.1.94 | No U+FFFD corruption when chunk boundaries split UTF-8 sequences | International content corrupted in stream-json |
+| Amazon Bedrock via Mantle | 2.1.94 | Opt in with `CLAUDE_CODE_USE_MANTLE=1` | Standard Bedrock only |
+| Bedrock bearer token 403 fix | 2.1.96 | Fixed 403 "Authorization header is missing" regression when using `AWS_BEARER_TOKEN_BEDROCK` or `CLAUDE_CODE_SKIP_BEDROCK_AUTH` (regression in 2.1.94) | Bedrock bearer-token auth broken on 2.1.94 |
 
 ## Version Detection
 
@@ -1627,7 +1713,7 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.83 | Full | CwdChanged/FileChanged events, managed-settings.d/, sandbox.failIfUnavailable |
 | >= 2.1.84 | Full | TaskCreated event, paths: glob, CLAUDE_STREAM_IDLE_TIMEOUT_MS, MCP non-blocking startup |
 | >= 2.1.85 | Full | PreToolUse for AskUserQuestion, headless responder hooks |
-| >= 2.1.86 | **Recommended** | Config disk write fix, Write/Edit outside project root — **current minimum** |
+| >= 2.1.86 | Full | Config disk write fix, Write/Edit outside project root |
 | >= 2.1.75 | Full++++++ | 1M context default, memory timestamps, hook source display, token estimation fix |
 | >= 2.1.76 | Full+++++++ | PostCompact hook, Elicitation hooks, worktree.sparsePaths, /effort, bg agent partial results |
 | >= 2.1.77 | Full++++++++ | 64k/128k output, allowRead sandbox, plugin validate, SendMessage auto-resume, PreToolUse deny fix |
@@ -1637,6 +1723,13 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.81 | Full++++++++++++ | --bare eval mode, --channels permission relay, plugin re-clone freshness, worktree resume, bg agent race fix |
 | >= 2.1.83 | Full+++++++++++++ | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig, env scrub |
 | >= 2.1.84 | Full++++++++++++++ | TaskCreated hook, WorktreeCreate HTTP, paths: globs, ANTHROPIC_DEFAULT_*, stream timeout, MCP 2KB cap, json-schema fix |
+| >= 2.1.88 | Full+++++++++++++++ | PermissionDenied hook, auto permission mode, absolute file_path, compound if matching, NO_FLICKER |
+| >= 2.1.89 | Full++++++++++++++++ | defer permission, TaskCreated blocking, MCP_CONNECTION_NONBLOCKING, named subagent typeahead, hook disk spill |
+| >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
+| >= 2.1.91 | Full | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix |
+| >= 2.1.92 | Full | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix |
+| >= 2.1.94 | **Recommended** | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
+| >= 2.1.96 | Latest | Bedrock bearer token 403 hotfix (2.1.94 regression) |
 
 ## Doctor Check Implementation
 
@@ -1715,6 +1808,9 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.30.x | 2.1.94 | **Skill frontmatter hooks unlock (20 context loaders activated), sessionTitle on UserPromptSubmit, keep-coding-instructions, default effort high adaptation, --resume across worktrees, CJK stream-json fix, Bedrock bearer token 2.1.96 hotfix** |
+| v7.29.x | 2.1.92 | forceRemoteSettingsRefresh policy, Stop hook preventContinuation fix, tool input JSON-string fix, plugin MCP dedup fix, Write perf 60%, /tag + /vim removed, MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors |
+| v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |
 | v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |
 | v7.23.x | 2.1.83 | managed-settings.d/, CwdChanged/FileChanged hooks, sandbox.failIfUnavailable, initialPrompt, userConfig sensitive, env scrub |
 | v7.15.x | 2.1.80 | effort frontmatter, rate_limits statusline, --channels, source:settings, simplified plugin tips |

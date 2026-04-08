@@ -4,6 +4,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { createTestContext } from './fixtures/test-context.js';
 
 // Import all entry points
 import * as permissionBundle from '../entries/permission.js';
@@ -32,7 +33,7 @@ describe('Split Bundle Entry Points', () => {
     test('hooks registry contains permission hooks', () => {
       const hookNames = Object.keys(permissionBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
-      expect(hookNames.every(name => name.startsWith('permission/'))).toBe(true);
+      expect(hookNames.every(name => name.startsWith('permission/') || name.startsWith('permission-denied/'))).toBe(true);
     });
 
     test('all hooks are functions', () => {
@@ -334,7 +335,16 @@ describe('Cross-Bundle Consistency', () => {
     // 181 -> 184: CC 2.1.84 — added creation-tracker, task-context-injector, task-progress-initializer (TaskCreated hooks)
     // 184 -> 185: CC 2.1.85 — added headless-responder (PreToolUse/AskUserQuestion)
     // 185 -> 186: #1191 — added fingerprint-saver (PostToolUse/expect)
-    expect(totalHooks).toBe(186);
+    // 186 -> 191: CC 2.1.88 — PermissionDenied hooks (#1208-#1211)
+    // 191 -> 195: CC 2.1.89 — mcp-output-transform (posttool), cwd-changed + file-changed (lifecycle), +1 posttool registry
+    // 195 -> 194: Removed dead antipatternWarning from prompt bundle (#1145)
+    // 194 -> 196: #1256 — webhookForwarder inlined in 8 more dispatchers (import adds to bundle export count)
+    // 196 -> 197: v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
+    // 197 -> 194: v7.30.0: Deleted 3 dead hooks — gh-issue-creation-guide, license-compliance, pr-merge-gate (#1274)
+    // 194 -> 196: v7.30.0: SessionStart+Notification+TeammateIdle+SubagentStop dispatchers flattened — +2 new lifecycle entries (stale-team-cleanup, type-error-indexer) (#1264)
+    // 196 -> 198: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
+    // 198 -> 199: v7.30.0: PostToolUse Agent — agent-task-auto-register
+    expect(totalHooks).toBe(199);
   });
 });
 
@@ -348,13 +358,14 @@ describe('Hook Execution Smoke Tests', () => {
     session_id: 'test-session',
     tool_input: {},
   };
+  const ctx = createTestContext();
 
   test('permission hooks return valid HookResult', async () => {
     const resultOrPromise = permissionBundle.hooks['permission/auto-approve-safe-bash']({
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    });
+    }, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -366,7 +377,7 @@ describe('Hook Execution Smoke Tests', () => {
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    });
+    }, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -375,7 +386,7 @@ describe('Hook Execution Smoke Tests', () => {
 
   test('lifecycle hooks return valid HookResult', async () => {
     const hookName = Object.keys(lifecycleBundle.hooks)[0];
-    const resultOrPromise = lifecycleBundle.hooks[hookName](baseInput);
+    const resultOrPromise = lifecycleBundle.hooks[hookName](baseInput, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');
@@ -384,7 +395,7 @@ describe('Hook Execution Smoke Tests', () => {
 
   test('stop hooks return valid HookResult', async () => {
     const hookName = Object.keys(stopBundle.hooks)[0];
-    const resultOrPromise = stopBundle.hooks[hookName](baseInput);
+    const resultOrPromise = stopBundle.hooks[hookName](baseInput, ctx);
 
     const result = await Promise.resolve(resultOrPromise);
     expect(result).toHaveProperty('continue');

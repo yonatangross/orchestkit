@@ -39,11 +39,19 @@ tests/evals/
 │   ├── python-fastapi/    # FastAPI starter
 │   ├── typescript-nextjs/ # Next.js starter
 │   └── empty/             # Empty project
+├── known-hook-conflicts.json  # Registry of expected hook-skill conflicts
 ├── scripts/
 │   ├── run-evals.sh       # Golden test runner
-│   ├── compare.sh         # A/B comparison (index effectiveness)
-│   ├── run-trigger-eval.sh   # Skill trigger eval (CC Max, local)
-│   └── run-quality-eval.sh   # Skill quality A/B eval (CC Max, local)
+│   ├── run-trigger-eval.sh   # Skill trigger eval (💰 CC API)
+│   ├── run-quality-eval.sh   # Skill quality A/B eval (💰 CC API)
+│   ├── run-agent-eval.sh     # Agent routing eval (💰 CC API)
+│   ├── run-skill-eval.sh     # Unified eval runner (dry-run: free)
+│   ├── run-full-eval.sh      # Full pipeline runner (dry-run: free)
+│   ├── eval-report.sh        # Duration aggregator (free, reads JSONs)
+│   ├── compare.sh            # A/B comparison (index effectiveness)
+│   ├── check-eval-regression.sh  # Regression detection (free)
+│   ├── optimize-description.sh   # Description optimization (💰 CC API)
+│   └── lib/eval-common.sh    # Shared colors, deps, timeout, cache
 └── results/               # Output (gitignored)
     ├── with-index/
     ├── without-index/
@@ -78,13 +86,21 @@ tags:
 ## Running Locally
 
 ```bash
-# Full evaluation (requires Claude CLI)
+# FREE — no Claude API calls
+npm run eval:report              # Duration report (reads existing JSONs)
+npm run eval:report -- --json    # Machine-readable output
+npm run eval:quality -- --dry-run --all   # Validate YAML structure
+npm run eval:trigger -- --dry-run --all   # Validate trigger YAML
+
+# COSTS $$ — calls Claude API (CC Max or ANTHROPIC_API_KEY)
+npm run eval:trigger -- commit           # Test one skill trigger
+npm run eval:quality -- --force-skill commit  # Test one skill quality
+npm run eval:quality -- --all            # Full quality eval (~$2/skill)
+
+# Golden test evaluation
 EVAL_MODE=with-index ./tests/evals/scripts/run-evals.sh
 EVAL_MODE=without-index ./tests/evals/scripts/run-evals.sh
 ./tests/evals/scripts/compare.sh
-
-# Dry-run (structural validation only — works without Claude CLI)
-./tests/evals/scripts/run-evals.sh
 ```
 
 ## CI Integration
@@ -94,6 +110,32 @@ The GitHub Actions workflow (`.github/workflows/eval-index-effectiveness.yml`) r
 2. Manual trigger via workflow_dispatch
 
 In CI (no Claude CLI), the workflow validates golden test structure only. Full agent routing evaluation requires a self-hosted runner with Claude CLI installed.
+
+## Duration Report
+
+`npm run eval:report` aggregates trigger + quality durations from result JSONs:
+
+```
+Skill                                      Trigger   Quality     Total
+⚠ i18n-date-patterns                           —   47m 06s   47m 06s
+  api-design                              16m 13s    3m 45s   19m 58s
+  ...
+TOTAL (64 skills)                          55m 09s  160m 42s  215m 51s
+
+Insights:
+  ⚠ 1 outlier(s) exceed 3× median quality duration (8m 39s)
+  --changed vs --all saves ~199min per PR
+```
+
+Flags: `--json` for machine-readable output, `--top N` to control display length.
+
+## Hook Conflict Registry
+
+`known-hook-conflicts.json` tracks expected hook-skill conflicts. The quality eval runner diffs actual hook rejections against this registry and prints a `HOOK COMPATIBILITY` section:
+
+- **COMPATIBLE ✓** — zero rejections
+- **KNOWN CONFLICTS** — rejections match registry (expected)
+- **NEW CONFLICTS ✗** — rejections NOT in registry (investigate)
 
 ## Metrics
 

@@ -4,22 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
@@ -28,6 +16,7 @@ vi.mock('node:child_process', () => ({
 import { conflictPredictor } from '../../pretool/bash/conflict-predictor.js';
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -38,14 +27,16 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('conflict-predictor', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
   it('returns silent success for non-merge/rebase commands', () => {
     const input = createBashInput('git status');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -55,7 +46,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -74,7 +65,7 @@ describe('conflict-predictor', () => {
     });
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Potential conflicts');
@@ -84,7 +75,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git rebase develop');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     // Should process and call execSync with 'develop' as target
     expect(result.continue).toBe(true);
@@ -94,7 +85,7 @@ describe('conflict-predictor', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('git pull');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
   });
@@ -105,7 +96,7 @@ describe('conflict-predictor', () => {
     });
 
     const input = createBashInput('git merge main');
-    const result = conflictPredictor(input);
+    const result = conflictPredictor(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

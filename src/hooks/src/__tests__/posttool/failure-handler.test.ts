@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies to prevent file I/O side effects (failure tracking, debug flag)
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: { additionalContext: ctx },
-  })),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: vi.fn(),
@@ -26,12 +19,14 @@ vi.mock('node:fs', () => ({
   writeFileSync: vi.fn(),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { failureHandler } from '../../posttool/failure-handler.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -42,13 +37,15 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('failureHandler', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ logDir: '/tmp/test-logs' });
     vi.clearAllMocks();
   });
 
   it('returns silent success when no error', () => {
-    const result = failureHandler(makeInput({ exit_code: 0 }));
+    const result = failureHandler(makeInput({ exit_code: 0 }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -57,7 +54,7 @@ describe('failureHandler', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ENOENT: no such file or directory',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('File not found');
   });
@@ -66,7 +63,7 @@ describe('failureHandler', () => {
     const result = failureHandler(makeInput({
       tool_error: 'EACCES: permission denied',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Permission denied');
   });
@@ -75,7 +72,7 @@ describe('failureHandler', () => {
     const result = failureHandler(makeInput({
       tool_error: 'Command timed out after 120000ms',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('timed out');
   });
@@ -84,7 +81,7 @@ describe('failureHandler', () => {
     const result = failureHandler(makeInput({
       tool_error: 'some unknown error xyz',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
@@ -93,7 +90,7 @@ describe('failureHandler', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ENOENT: no such file or directory, syntax error in config',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     const ctx = result.hookSpecificOutput?.additionalContext || '';
     expect(ctx).toContain('File not found');
@@ -110,7 +107,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ECONNREFUSED: connection refused to localhost:5432',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Network error');
   });
@@ -119,7 +116,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ETIMEDOUT: request timed out',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Network error');
   });
@@ -128,7 +125,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'npx: command not found',
       exit_code: 127,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Command not found');
   });
@@ -137,7 +134,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ENOMEM: not enough memory',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Out of memory');
   });
@@ -146,7 +143,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'JavaScript heap out of memory',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Out of memory');
   });
@@ -155,7 +152,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'CONFLICT (content): Merge conflict in src/index.ts',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Merge conflict');
   });
@@ -164,7 +161,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'ELOCK: file is locked by another process',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Resource is locked');
   });
@@ -173,7 +170,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: 'TypeError: Cannot read properties of undefined',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Type error');
   });
@@ -183,7 +180,7 @@ describe('failureHandler — additional error patterns', () => {
       tool_name: 'Write',
       tool_error: 'ENOENT: no such file or directory',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Write');
   });
 
@@ -191,7 +188,7 @@ describe('failureHandler — additional error patterns', () => {
     const result = failureHandler(makeInput({
       tool_error: '',
       exit_code: 1,
-    }));
+    }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });

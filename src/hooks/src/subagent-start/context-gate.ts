@@ -16,9 +16,10 @@
 
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputDeny, outputWarning, getProjectDir } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -181,7 +182,7 @@ function incrementSessionTotal(): void {
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
-export function contextGate(input: HookInput): HookResult {
+export function contextGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   initState();
 
   const toolInput = input.tool_input || {};
@@ -189,55 +190,41 @@ export function contextGate(input: HookInput): HookResult {
   const description = (toolInput.description as string) || '';
   const runInBackground = toolInput.run_in_background === true || toolInput.run_in_background === 'true';
 
-  logHook('context-gate', `Context gate check: ${subagentType} (background=${runInBackground})`);
+  ctx.log('context-gate', `Context gate check: ${subagentType} (background=${runInBackground})`);
 
   // Count current state
   const activeCount = countActiveBackground();
   const responseCount = countCurrentResponseAgents();
 
-  logHook('context-gate', `Active background: ${activeCount}, Current response: ${responseCount}`);
+  ctx.log('context-gate', `Active background: ${activeCount}, Current response: ${responseCount}`);
 
   const limits = getEffectiveLimits();
 
   // Check 1: Too many agents in single response
   if (responseCount >= limits.maxPerResponse) {
-    logHook('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
+    ctx.log('context-gate', `BLOCKED: Too many agents in single response (${responseCount} >= ${limits.maxPerResponse})`);
 
-    return outputDeny(`Context Overflow Protection
-
-Too many agents spawned in a single response (${responseCount} agents).
-
-Maximum allowed: ${limits.maxPerResponse} per response
-
-SOLUTION: Split into multiple responses or use sequential execution.
-Consider using the /context-optimization skill first.
-
-Attempted: ${subagentType} - ${description}`);
+    return outputDeny(
+      `Too many agents in one response (${responseCount}/${limits.maxPerResponse}). ` +
+        `Split into multiple responses or run sequentially. Attempted: ${subagentType} — ${description}`,
+    );
   }
 
   // Check 2: Too many concurrent background agents
   if (runInBackground && activeCount >= limits.maxBackground) {
-    logHook('context-gate', `BLOCKED: Too many concurrent background agents (${activeCount} >= ${limits.maxBackground})`);
+    ctx.log('context-gate', `BLOCKED: Too many concurrent background agents (${activeCount} >= ${limits.maxBackground})`);
 
     incrementBlockedCount();
 
-    return outputDeny(`Background Agent Limit
-
-Too many background agents running concurrently (${activeCount} active).
-
-Maximum allowed: ${limits.maxBackground} concurrent background agents
-
-SOLUTION:
-1. Wait for existing agents to complete
-2. Run this agent in foreground (remove run_in_background)
-3. Use /context-optimization to free up context
-
-Attempted: ${subagentType} - ${description}`);
+    return outputDeny(
+      `Too many background agents (${activeCount}/${limits.maxBackground}). ` +
+        `Wait for existing agents or run in foreground. Attempted: ${subagentType} — ${description}`,
+    );
   }
 
   // Warning: Approaching limits
   if (activeCount >= WARNING_THRESHOLD) {
-    logHook('context-gate', `WARNING: Approaching context budget limit`);
+    ctx.log('context-gate', `WARNING: Approaching context budget limit`);
 
     // Update session total
     incrementSessionTotal();
@@ -256,7 +243,7 @@ Proceeding with: ${subagentType} - ${description}`);
 
   // Warning: Expensive agent type
   if (EXPENSIVE_TYPES.test(subagentType) && activeCount >= 2) {
-    logHook('context-gate', `WARNING: Expensive agent type with multiple active: ${subagentType}`);
+    ctx.log('context-gate', `WARNING: Expensive agent type with multiple active: ${subagentType}`);
     return outputWarning(`Spawning expensive agent (${subagentType}) with ${activeCount} others active`);
   }
 
@@ -264,7 +251,7 @@ Proceeding with: ${subagentType} - ${description}`);
   incrementSessionTotal();
 
   // Allow the agent to proceed
-  logHook('context-gate', `Context gate passed: ${subagentType}`);
+  ctx.log('context-gate', `Context gate passed: ${subagentType}`);
 
   return outputSilentSuccess();
 }

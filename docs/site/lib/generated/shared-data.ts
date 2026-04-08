@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 100,
+  "skills": 103,
   "agents": 36,
-  "hooks": 110,
-  "commands": 21,
+  "hooks": 169,
+  "commands": 23,
   "compositions": 14
 };
 
@@ -65,7 +65,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "data-pipeline-engineer",
@@ -101,7 +101,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "design"
   },
   {
     "name": "deployment-manager",
@@ -119,7 +119,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "design-system-architect",
@@ -128,7 +128,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "emulate-engineer",
@@ -137,7 +137,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "eval-runner",
@@ -146,7 +146,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "haiku",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "event-driven-architect",
@@ -164,7 +164,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "testing"
   },
   {
     "name": "frontend-performance-engineer",
@@ -173,7 +173,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "frontend-ui-developer",
@@ -186,12 +186,12 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "genui-architect",
-    "description": "json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
+    "description": "Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
     "plugins": [
       "ork"
     ],
     "model": "inherit",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "git-operations-engineer",
@@ -200,7 +200,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "haiku",
-    "category": "development"
+    "category": "git"
   },
   {
     "name": "infrastructure-architect",
@@ -218,7 +218,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "ai"
+    "category": "llm"
   },
   {
     "name": "market-intelligence",
@@ -245,7 +245,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "sonnet",
-    "category": "ai"
+    "category": "llm"
   },
   {
     "name": "product-strategist",
@@ -299,7 +299,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "opus",
-    "category": "development"
+    "category": "design"
   },
   {
     "name": "test-generator",
@@ -312,12 +312,12 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "ui-feedback",
-    "description": "Processes UI annotations from agentation. Watches for new annotations, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
+    "description": "UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to source code, implements fixes, and resolves annotations with summaries.",
     "plugins": [
       "ork"
     ],
     "model": "sonnet",
-    "category": "development"
+    "category": "frontend"
   },
   {
     "name": "web-research-analyst",
@@ -335,7 +335,7 @@ export const AGENTS: AgentSummary[] = [
       "ork"
     ],
     "model": "opus",
-    "category": "ai"
+    "category": "llm"
   }
 ];
 
@@ -396,6 +396,7 @@ export const SKILLS_SUMMARY = {
     ],
     "memory": [
       "doctor",
+      "dream",
       "memory",
       "memory-fabric",
       "remember"
@@ -436,6 +437,7 @@ export const SKILLS_SUMMARY = {
     "devops": [
       "devops-deployment",
       "monitoring-observability",
+      "portless",
       "web-research-workflow"
     ],
     "testing": [

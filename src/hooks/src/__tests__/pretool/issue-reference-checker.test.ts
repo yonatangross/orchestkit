@@ -7,23 +7,23 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
 // Track stderr calls since outputStderrWarning calls process.exit(2)
 let stderrMessages: string[] = [];
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   outputStderrWarning: vi.fn((msg: string) => {
     stderrMessages.push(msg);
     // Don't actually call process.exit in tests
   }),
-  getCachedBranch: vi.fn(() => 'main'),
 }));
 
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
 import type { HookInput } from '../../types.js';
 import { getCachedBranch, outputStderrWarning } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -34,8 +34,10 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('issue-reference-checker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     stderrMessages = [];
   });
@@ -48,10 +50,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when on main branch', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('main');
+      (testCtx as any).branch = 'main';
       const input = createBashInput('git commit -m "Fix bug"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -61,10 +64,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when on dev branch', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('dev');
+      (testCtx as any).branch = 'dev';
       const input = createBashInput('git commit -m "Update feature"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -74,10 +78,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when on feature branch without issue number', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('feature/add-authentication');
+      (testCtx as any).branch = 'feature/add-authentication';
       const input = createBashInput('git commit -m "Add auth"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -87,10 +92,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when branch is unknown', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('unknown');
+      (testCtx as any).branch = 'unknown';
       const input = createBashInput('git commit -m "Fix"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -106,10 +112,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from issue/123-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -m "Add authentication module"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert — now uses stderr (0 tokens) instead of additionalContext
       expect(outputStderrWarning).toHaveBeenCalled();
@@ -120,10 +127,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from fix/456-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('fix/456-memory-leak');
+      (testCtx as any).branch = 'fix/456-memory-leak';
       const input = createBashInput('git commit -m "Patch memory leak"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('fix/456-memory-leak');
@@ -133,10 +141,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from feat/789-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('feat/789-dark-mode');
+      (testCtx as any).branch = 'feat/789-dark-mode';
       const input = createBashInput('git commit -m "Implement dark mode"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('feat/789-dark-mode');
@@ -146,10 +155,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from bare number prefix 123-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('123-some-description');
+      (testCtx as any).branch = '123-some-description';
       const input = createBashInput('git commit -m "Update docs"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('123-some-description');
@@ -159,10 +169,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from bug/10-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('bug/10-fix-crash');
+      (testCtx as any).branch = 'bug/10-fix-crash';
       const input = createBashInput('git commit -m "Fix crash on startup"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#10');
@@ -171,10 +182,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from hotfix/11-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('hotfix/11-security-patch');
+      (testCtx as any).branch = 'hotfix/11-security-patch';
       const input = createBashInput('git commit -m "Apply security patch"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#11');
@@ -183,10 +195,11 @@ describe('issue-reference-checker', () => {
     it('extracts issue number from feature/99-desc pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('feature/99-add-export');
+      (testCtx as any).branch = 'feature/99-add-export';
       const input = createBashInput('git commit -m "Add export feature"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#99');
@@ -201,10 +214,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when message contains #123', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -m "Add authentication module (#123)"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -214,10 +228,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when message contains bare 123', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -m "Add authentication module 123"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -227,10 +242,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when message starts with #123', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -m "#123 Add authentication"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -240,10 +256,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success for Closes #456 format', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('fix/456-bug');
+      (testCtx as any).branch = 'fix/456-bug';
       const input = createBashInput('git commit -m "Fix bug - Closes #456"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -259,10 +276,11 @@ describe('issue-reference-checker', () => {
     it('provides reminder via stderr when on issue branch without reference', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -m "Add authentication module"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert — stderr output (0 tokens, user-visible only)
       expect(outputStderrWarning).toHaveBeenCalled();
@@ -275,10 +293,11 @@ describe('issue-reference-checker', () => {
     it('reminder includes correct issue number for different branches', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('fix/999-urgent');
+      (testCtx as any).branch = 'fix/999-urgent';
       const input = createBashInput('git commit -m "Urgent fix"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('fix/999-urgent');
@@ -294,10 +313,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when commit has no -m flag', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit --amend');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -307,10 +327,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success for git commit (no flags)', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -320,10 +341,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success for git commit -v (verbose mode)', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-add-auth');
+      (testCtx as any).branch = 'issue/123-add-auth';
       const input = createBashInput('git commit -v');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -344,7 +366,7 @@ describe('issue-reference-checker', () => {
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -354,10 +376,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success when branch is null', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue(null as any);
+      (testCtx as any).branch = null as any;
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -367,10 +390,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success for empty command', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       const input = createBashInput('');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -386,10 +410,11 @@ describe('issue-reference-checker', () => {
     it('handles double quotes', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       const input = createBashInput('git commit -m "Fix without reference"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#123');
@@ -398,10 +423,11 @@ describe('issue-reference-checker', () => {
     it('handles single quotes', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       const input = createBashInput("git commit -m 'Fix without reference'");
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#123');
@@ -410,10 +436,11 @@ describe('issue-reference-checker', () => {
     it('handles unquoted single word', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       const input = createBashInput('git commit -m bugfix');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#123');
@@ -428,10 +455,11 @@ describe('issue-reference-checker', () => {
     it('handles branch with leading # in pattern match', () => {
       // Arrange - extractIssueNumber strips leading # if present
       vi.mocked(getCachedBranch).mockReturnValue('issue/#123-test');
+      (testCtx as any).branch = 'issue/#123-test';
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert - should extract "123" without the # and emit stderr warning
       expect(outputStderrWarning).toHaveBeenCalled();
@@ -441,10 +469,11 @@ describe('issue-reference-checker', () => {
     it('returns silent success for non-numeric issue pattern', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/abc-desc');
+      (testCtx as any).branch = 'issue/abc-desc';
       const input = createBashInput('git commit -m "Test"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -454,10 +483,11 @@ describe('issue-reference-checker', () => {
     it('handles multi-digit issue numbers', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/99999-test');
+      (testCtx as any).branch = 'issue/99999-test';
       const input = createBashInput('git commit -m "Fix"');
 
       // Act
-      issueReferenceChecker(input);
+      issueReferenceChecker(input, testCtx);
 
       // Assert
       expect(stderrMessages[0]).toContain('#99999');
@@ -466,10 +496,11 @@ describe('issue-reference-checker', () => {
     it('matches when issue number appears as substring', () => {
       // Arrange
       vi.mocked(getCachedBranch).mockReturnValue('issue/123-test');
+      (testCtx as any).branch = 'issue/123-test';
       const input = createBashInput('git commit -m "Update v1234 release"');
 
       // Act
-      const result = issueReferenceChecker(input);
+      const result = issueReferenceChecker(input, testCtx);
 
       // Assert - "1234" contains "123" as substring, so check passes
       expect(result.continue).toBe(true);

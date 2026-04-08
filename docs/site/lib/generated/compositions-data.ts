@@ -247,9 +247,9 @@ export const COMPOSITIONS: Composition[] = [
     "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/daef6693e325ab9e6b5cd7df2c3bdb5252b7aeac-639x360.png"
   },
   {
-    "id": "Brainstorming",
-    "skill": "brainstorming",
-    "command": "/ork:brainstorming",
+    "id": "Brainstorm",
+    "skill": "brainstorm",
+    "command": "/ork:brainstorm",
     "hook": "Generate ideas in parallel. 4 specialists.",
     "style": "TriTerminalRace",
     "format": "landscape",
@@ -265,9 +265,7 @@ export const COMPOSITIONS: Composition[] = [
       "ai",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/5f5a4e19631f87fd49c9853f63b8b472e1d5d657-639x360.png",
-    "videoCdn": "https://cdn.sanity.io/files/8cv388wg/production/ec4da43076fd69090737ce846df4fea831475f22.mp4"
+    ]
   },
   {
     "id": "Assess",

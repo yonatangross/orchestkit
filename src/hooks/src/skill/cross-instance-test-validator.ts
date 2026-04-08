@@ -5,13 +5,14 @@
  */
 
 import { existsSync, readFileSync, } from 'node:fs';
-import type { HookInput, HookResult } from '../types.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputBlock,
   outputWithContext,
 } from '../lib/common.js';
 import { basename, dirname } from 'node:path';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Check if file is a test file
@@ -112,7 +113,7 @@ function extractTestableUnits(content: string, filePath: string): string[] {
 /**
  * Validate test coverage for cross-instance code
  */
-export function crossInstanceTestValidator(input: HookInput): HookResult {
+export function crossInstanceTestValidator(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const filePath = input.tool_input?.file_path || '';
   const content = input.tool_input?.content || (input as any).tool_result || '';
 

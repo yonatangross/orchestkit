@@ -10,6 +10,7 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST be before imports
@@ -43,16 +44,8 @@ vi.mock('../../lib/analytics-buffer.js', async () => {
   };
 });
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/test/project'),
-  lineContainsAll: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.includes(t))
-  ),
-  lineContainsAllCI: vi.fn((content: string, ...terms: string[]) =>
-    terms.every(t => content.toLowerCase().includes(t.toLowerCase()))
-  ),
 }));
 
 vi.mock('../../lib/task-integration.js', () => ({
@@ -85,6 +78,7 @@ vi.mock('../../lib/agent-teams.js', () => ({
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
 import { writeFileSync, mkdirSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../../lib/task-integration.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -114,8 +108,10 @@ function createSubagentStopInput(
 // Feedback Loop Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('feedback-loop', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
@@ -135,7 +131,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'API designed');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -146,7 +142,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Design complete');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -158,7 +154,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('security-auditor', 'Audit complete');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -172,7 +168,7 @@ describe('feedback-loop', () => {
       });
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -183,7 +179,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('unknown', 'Output');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -210,7 +206,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput(fromAgent, 'Work complete');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -243,7 +239,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput(agent, 'Output');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -263,7 +259,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('custom-agent', 'Output');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -286,7 +282,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'API designed');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -317,7 +313,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('test-generator', 'Tests done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -336,7 +332,7 @@ describe('feedback-loop', () => {
       });
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -354,7 +350,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -376,7 +372,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'API complete');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -391,7 +387,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('test-generator', 'Tests complete');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -412,7 +408,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('security-auditor', 'Audit done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -440,7 +436,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       expect(updateTaskStatus).toHaveBeenCalledWith('task-123', 'completed');
@@ -460,7 +456,7 @@ describe('feedback-loop', () => {
       });
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       expect(updateTaskStatus).toHaveBeenCalledWith('task-456', 'failed');
@@ -479,7 +475,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('frontend-ui-developer', 'UI done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -502,7 +498,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -519,7 +515,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('database-engineer', 'Schema done');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -538,7 +534,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'API done');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('task-xyz');
@@ -564,7 +560,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Done');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -578,7 +574,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('workflow-architect', 'Workflow done');
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -602,7 +598,7 @@ describe('feedback-loop', () => {
       };
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -620,7 +616,7 @@ describe('feedback-loop', () => {
       };
 
       // Act & Assert
-      expect(() => feedbackLoop(input)).not.toThrow();
+      expect(() => feedbackLoop(input, testCtx)).not.toThrow();
     });
 
     test('truncates long output in summary', () => {
@@ -630,7 +626,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', longOutput);
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -650,7 +646,7 @@ describe('feedback-loop', () => {
       });
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -669,7 +665,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('test-generator', 'Done');
 
       // Act & Assert
-      expect(() => feedbackLoop(input)).not.toThrow();
+      expect(() => feedbackLoop(input, testCtx)).not.toThrow();
     });
   });
 
@@ -690,7 +686,7 @@ describe('feedback-loop', () => {
       };
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -708,7 +704,7 @@ describe('feedback-loop', () => {
       };
 
       // Act
-      const result = feedbackLoop(input);
+      const result = feedbackLoop(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -726,7 +722,7 @@ describe('feedback-loop', () => {
       };
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(writeFileSync).mock.calls;
@@ -748,7 +744,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Output');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalled();
@@ -759,7 +755,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'Output');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(mkdirSync).mock.calls;
@@ -780,7 +776,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('backend-system-architect', 'API done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -796,7 +792,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('security-auditor', 'Audit done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -819,7 +815,7 @@ describe('feedback-loop', () => {
       const input = createSubagentStopInput('test-generator', 'Done');
 
       // Act
-      feedbackLoop(input);
+      feedbackLoop(input, testCtx);
 
       // Assert
       const calls = vi.mocked(appendFileSync).mock.calls;

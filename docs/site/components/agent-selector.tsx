@@ -34,7 +34,7 @@ import {
   type Agent,
   type Category,
   type TaskType,
-} from "@/lib/agent-data";
+} from "@/lib/generated/agents-data";
 
 // ── Icon components by task type ────────────────────────────
 const TASK_ICON_MAP: Record<TaskType, typeof Hammer> = {

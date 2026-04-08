@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -26,11 +27,8 @@ const { mockAnalyzeDecisionFlow, mockCompleteDecisionFlow } = vi.hoisted(() => (
 // ---------------------------------------------------------------------------
 // Module mocks
 // ---------------------------------------------------------------------------
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-001'),
-  logHook: vi.fn(),
 }));
 
 vi.mock('../../lib/decision-flow-tracker.js', () => ({
@@ -48,10 +46,10 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (p: string, d: string) => mockAtomicWriteSync(p, d),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
@@ -64,6 +62,7 @@ import {
 } from '../../stop/workflow-preference-learner.js';
 import { logHook } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -110,14 +109,16 @@ function makePreferencesData(overrides: Record<string, unknown> = {}) {
 // ===========================================================================
 // TESTS
 // ===========================================================================
+let testCtx: ReturnType<typeof createTestContext>;
 describe('workflow-preference-learner', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-session-001' });
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
 
   // =========================================================================
-  // workflowPreferenceLearner (main hook)
+  // workflowPreferenceLearner (main hook, testCtx)
   // =========================================================================
   describe('workflowPreferenceLearner', () => {
     it('returns silent success when no decision flow found', () => {
@@ -125,11 +126,11 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(null);
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('No decision flow found'),
         'debug',
@@ -143,11 +144,11 @@ describe('workflow-preference-learner', () => {
       }));
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Too few actions'),
         'debug',
@@ -159,7 +160,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow({ inferred_pattern: 'mixed' }));
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -174,7 +175,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false); // No existing file
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -195,7 +196,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       const writtenJson = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
@@ -208,7 +209,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(null);
 
       // Act
-      workflowPreferenceLearner(makeInput({ session_id: 'custom-session' }));
+      workflowPreferenceLearner(makeInput({ session_id: 'custom-session' }), testCtx);
 
       // Assert
       expect(mockAnalyzeDecisionFlow).toHaveBeenCalledWith('custom-session');
@@ -222,10 +223,10 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Strong workflow preference'),
         'info',
@@ -239,7 +240,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow());
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -252,7 +253,7 @@ describe('workflow-preference-learner', () => {
       mockExistsSync.mockReturnValue(false);
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(mockMkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
@@ -265,11 +266,11 @@ describe('workflow-preference-learner', () => {
       mockAtomicWriteSync.mockImplementation(() => { throw new Error('disk full'); });
 
       // Act
-      const result = workflowPreferenceLearner(makeInput());
+      const result = workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       expect(result).toEqual({ continue: true, suppressOutput: true });
-      expect(logHook).toHaveBeenCalledWith(
+      expect(vi.mocked(logHook)).toHaveBeenCalledWith(
         'workflow-preference-learner',
         expect.stringContaining('Failed to save'),
         'warn',
@@ -434,7 +435,7 @@ describe('workflow-preference-learner', () => {
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow({ stats: { success_rate: 0.95, total: 10 } }));
 
       // Act
-      workflowPreferenceLearner(makeInput());
+      workflowPreferenceLearner(makeInput(), testCtx);
 
       // Assert
       const writtenJson = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);

@@ -11,6 +11,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -18,14 +19,8 @@ import { tmpdir } from 'node:os';
 
 const FAKE_PLUGIN_ROOT = mkdtempSync(path.join(tmpdir(), 'first-run-'));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getPluginRoot: vi.fn(() => FAKE_PLUGIN_ROOT),
-  outputWithContext: vi.fn((msg: string) => ({
-    continue: true,
-    suppressOutput: false,
-    hookSpecificOutput: { additionalContext: msg },
-  })),
 }));
 
 vi.mock('../../lib/atomic-write.js', () => ({
@@ -45,6 +40,7 @@ vi.mock('node:child_process', () => ({
 import { firstRunSetup } from '../../setup/first-run-setup.js';
 import { outputWithContext } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -108,7 +104,9 @@ function mockJqMissing() {
 
 const originalArgv = [...process.argv];
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext({ pluginRoot: FAKE_PLUGIN_ROOT });
   vi.clearAllMocks();
   process.argv = [...originalArgv];
   rmSync(FAKE_PLUGIN_ROOT, { recursive: true, force: true });
@@ -135,7 +133,7 @@ describe('first-run-setup', () => {
       mockAllToolsAvailable();
 
       // Act
-      const result = firstRunSetup(createHookInput());
+      const result = firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -157,7 +155,7 @@ describe('first-run-setup', () => {
       mockAllToolsAvailable();
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       const configPath = path.join(FAKE_PLUGIN_ROOT, '.claude', 'defaults', 'config.json');
@@ -173,7 +171,7 @@ describe('first-run-setup', () => {
       mockAllToolsAvailable();
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       expect(fs.existsSync(path.join(FAKE_PLUGIN_ROOT, '.claude', 'defaults'))).toBe(true);
@@ -192,7 +190,7 @@ describe('first-run-setup', () => {
       fs.chmodSync(hookPath, 0o644);
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       const stats = fs.statSync(hookPath);
@@ -211,7 +209,7 @@ describe('first-run-setup', () => {
       mockJqMissing();
 
       // Act
-      const _result = firstRunSetup(createHookInput());
+      const _result = firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -233,7 +231,7 @@ describe('first-run-setup', () => {
       // No --silent flag
 
       // Act
-      const _result = firstRunSetup(createHookInput());
+      const _result = firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       expect(vi.mocked(outputWithContext)).toHaveBeenCalled();
@@ -249,7 +247,7 @@ describe('first-run-setup', () => {
       process.argv = [...originalArgv, '--silent'];
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       const msg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -271,7 +269,7 @@ describe('first-run-setup', () => {
       writeFileSync(path.join(configDir, 'config.json'), JSON.stringify({ preset: 'lite', custom: true }));
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert — existing config preserved
       const config = JSON.parse(fs.readFileSync(path.join(configDir, 'config.json'), 'utf-8'));
@@ -291,7 +289,7 @@ describe('first-run-setup', () => {
       mockAllToolsAvailable();
 
       // Act
-      firstRunSetup(createHookInput());
+      firstRunSetup(createHookInput(), testCtx);
 
       // Assert — marker should contain environment info
       const markerPath = path.join(FAKE_PLUGIN_ROOT, '.setup-complete');
@@ -313,7 +311,7 @@ describe('first-run-setup', () => {
       });
 
       // Act
-      const result = firstRunSetup(createHookInput());
+      const result = firstRunSetup(createHookInput(), testCtx);
 
       // Assert — should still succeed
       expect(result.continue).toBe(true);
@@ -334,7 +332,7 @@ describe('first-run-setup', () => {
       mockAllToolsAvailable();
 
       // Act
-      const result = firstRunSetup(createHookInput());
+      const result = firstRunSetup(createHookInput(), testCtx);
 
       // Assert
       expect(result.continue).toBe(true);

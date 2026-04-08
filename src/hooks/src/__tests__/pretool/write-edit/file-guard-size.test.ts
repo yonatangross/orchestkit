@@ -70,9 +70,8 @@ describe('file-guard size gate', () => {
       const input = createWriteInput('/src/big.ts', generateLines(400));
       const result = fileGuard(input);
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('400 lines');
-      expect(result.stopReason).toContain('limit: 300');
-      expect(result.stopReason).toContain('source files');
+      expect(result.stopReason).toContain('400/300');
+      expect(result.stopReason).toContain('source');
     });
 
     it('allows long test file under test limit (400 lines .test.ts)', () => {
@@ -85,9 +84,8 @@ describe('file-guard size gate', () => {
       const input = createWriteInput('/src/app.test.ts', generateLines(600));
       const result = fileGuard(input);
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('600 lines');
-      expect(result.stopReason).toContain('limit: 500');
-      expect(result.stopReason).toContain('test files');
+      expect(result.stopReason).toContain('600/500');
+      expect(result.stopReason).toContain('test');
     });
 
     it('allows JSON file of any length', () => {
@@ -167,12 +165,12 @@ describe('file-guard size gate', () => {
         expect(result.stopReason).toContain('extract types');
       });
 
-      it('shows override instructions in block message', () => {
+      it('shows concise block message with line count', () => {
         const input = createWriteInput('/src/big.ts', generateLines(400));
         const result = fileGuard(input);
         expect(result.continue).toBe(false);
-        expect(result.stopReason).toContain('ORCHESTKIT_MAX_FILE_LINES');
-        expect(result.stopReason).toContain('ORCHESTKIT_MAX_TEST_FILE_LINES');
+        expect(result.stopReason).toContain('File too long');
+        expect(result.stopReason).toContain('Split into smaller modules');
       });
     });
 
@@ -225,7 +223,7 @@ describe('file-guard size gate', () => {
       const input = createWriteInput('/src/huge.ts', generateLines(700));
       const result = fileGuard(input);
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('limit: 600');
+      expect(result.stopReason).toContain('700/600');
     });
 
     it('allows 700-line test file with raised test limit', () => {
@@ -238,7 +236,7 @@ describe('file-guard size gate', () => {
       const input = createWriteInput('/src/app.test.ts', generateLines(900));
       const result = fileGuard(input);
       expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('limit: 800');
+      expect(result.stopReason).toContain('900/800');
     });
   });
 });

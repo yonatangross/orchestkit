@@ -14,8 +14,9 @@
  * @see https://github.com/yonatangross/orchestkit/issues/706
  */
 
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, outputAllowWithContext, logHook } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'task-agent-advisor';
 
@@ -54,7 +55,7 @@ const BUILTIN_CASING_FIXES: Record<string, string> = {
 /** Built-in names that are already correct (exact casing per CC Feb 2026 spec) — never suggest replacing these. */
 const VALID_BUILTINS = new Set(['Explore', 'Plan', 'general-purpose', 'Bash', 'statusline-setup']);
 
-export function taskAgentAdvisor(input: HookInput): HookResult {
+export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
   const agentType = (toolInput.subagent_type as string) || '';
 
@@ -72,7 +73,7 @@ export function taskAgentAdvisor(input: HookInput): HookResult {
   // Check ork agent synonyms first
   const orkSuggestion = ORK_AGENT_SYNONYMS[normalizedName];
   if (orkSuggestion) {
-    logHook(HOOK_NAME, `Suggesting "${orkSuggestion}" instead of ad-hoc "${agentType}"`);
+    ctx.log(HOOK_NAME, `Suggesting "${orkSuggestion}" instead of ad-hoc "${agentType}"`);
     return outputAllowWithContext(
       `Consider using \`${orkSuggestion}\` instead of \`${agentType}\` — it includes a curated system prompt for this task type.`,
     );
@@ -81,7 +82,7 @@ export function taskAgentAdvisor(input: HookInput): HookResult {
   // Check built-in casing fixes
   const casingFix = BUILTIN_CASING_FIXES[normalizedName];
   if (casingFix) {
-    logHook(HOOK_NAME, `Casing fix: "${agentType}" -> "${casingFix}"`);
+    ctx.log(HOOK_NAME, `Casing fix: "${agentType}" -> "${casingFix}"`);
     return outputAllowWithContext(
       `\`${casingFix}\` is the correct built-in name — \`${agentType}\` is wrong-cased and may not resolve correctly (CC 2.1.45 spec).`,
     );

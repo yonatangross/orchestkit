@@ -2,6 +2,7 @@
 // Created: 2026-03-29
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -18,27 +19,16 @@ vi.mock('../../../lib/atomic-write.js', () => ({
   atomicWriteSync: (...args: unknown[]) => mockAtomicWriteSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-}));
+vi.mock('node:path', () => {
+  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), join: vi.fn((...a: string[]) => a.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
-vi.mock('../../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../../lib/common.js', () => mockCommonBasic());
 
 import { namingConventionLearner } from '../../../posttool/write/naming-convention-learner.js';
 import type { HookInput } from '../../../types.js';
+import { createTestContext } from '../../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -52,8 +42,10 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('namingConventionLearner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
@@ -61,7 +53,7 @@ describe('namingConventionLearner', () => {
   // -- Guard conditions --
 
   it('returns silent success for non-Write/Edit tools', () => {
-    const result = namingConventionLearner(makeInput({ tool_name: 'Bash' }));
+    const result = namingConventionLearner(makeInput({ tool_name: 'Bash' }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockAtomicWriteSync).not.toHaveBeenCalled();
   });
@@ -69,7 +61,7 @@ describe('namingConventionLearner', () => {
   it('returns silent success when file_path is empty', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '', content: 'const x = 1;' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockAtomicWriteSync).not.toHaveBeenCalled();
   });
@@ -77,35 +69,35 @@ describe('namingConventionLearner', () => {
   it('skips internal .claude/ paths', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/.claude/settings.json', content: '{}' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips node_modules paths', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/node_modules/foo/index.js', content: 'var x;' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips dist/ paths', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/dist/bundle.js', content: 'var x;' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips .lock files', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/package-lock.lock', content: '{}' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
   it('skips non-code extensions like .md', () => {
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/README.md', content: '# hello' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -113,7 +105,7 @@ describe('namingConventionLearner', () => {
     mockExistsSync.mockReturnValue(false);
     const result = namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/src/app.ts', content: '' },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
 
@@ -126,7 +118,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/utils.ts',
         content: 'const myVar = 1;\nfunction doStuff() {}\nclass MyClass {}',
       },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockAtomicWriteSync).toHaveBeenCalled();
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
@@ -142,7 +134,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/utils.ts',
         content: 'let counter = 0;',
       },
-    }));
+    }), testCtx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
     expect(mockAtomicWriteSync).toHaveBeenCalled();
   });
@@ -153,7 +145,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/app.js',
         content: 'const myVariable = 1;\nconst anotherVar = 2;',
       },
-    }));
+    }), testCtx);
     expect(mockAtomicWriteSync).toHaveBeenCalled();
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.javascript.variables.camelCase).toBeGreaterThan(0);
@@ -165,7 +157,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/app.js',
         content: 'class UserService {}\nclass AppController {}',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.javascript.classes.PascalCase).toBe(2);
   });
@@ -176,7 +168,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/types.ts',
         content: 'interface UserProfile {}\ntype AppConfig = {};',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.typescript.types.PascalCase).toBe(2);
   });
@@ -189,7 +181,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/app.py',
         content: 'def get_user():\n    pass\ndef create_item():\n    pass',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.functions.snake_case).toBe(2);
   });
@@ -200,7 +192,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/models.py',
         content: 'class UserModel:\n    pass\nclass BaseConfig:\n    pass',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.classes.PascalCase).toBe(2);
   });
@@ -211,7 +203,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/config.py',
         content: 'MAX_RETRIES = 3\nDEFAULT_TIMEOUT = 30',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.languages.python.constants.SCREAMING_SNAKE_CASE).toBe(2);
   });
@@ -224,7 +216,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/my-component.ts',
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.file_naming['kebab-case']).toBe(1);
   });
@@ -235,7 +227,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/my_module.py',
         content: 'x = 1',
       },
-    }));
+    }), testCtx);
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.file_naming.snake_case).toBe(1);
   });
@@ -267,7 +259,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/my-util.ts',
         content: 'function doWork() {}',
       },
-    }));
+    }), testCtx);
 
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.samples_count).toBe(6);
@@ -284,7 +276,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/util.ts',
         content: 'const a = 1;',
       },
-    }));
+    }), testCtx);
 
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
     expect(written.samples_count).toBe(1);
@@ -302,7 +294,7 @@ describe('namingConventionLearner', () => {
 
     namingConventionLearner(makeInput({
       tool_input: { file_path: '/proj/src/app.ts' },
-    }));
+    }), testCtx);
 
     expect(mockAtomicWriteSync).toHaveBeenCalled();
     const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
@@ -319,7 +311,7 @@ describe('namingConventionLearner', () => {
         file_path: '/proj/src/app.ts',
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
     // Should still return silent success even on write error
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
@@ -341,7 +333,7 @@ describe('namingConventionLearner', () => {
         file_path: `/proj/src/${filename}`,
         content: 'const x = 1;',
       },
-    }));
+    }), testCtx);
     // For non-JS/TS/Python langs, identifiers won't be extracted but profile is still updated
     if (mockAtomicWriteSync.mock.calls.length > 0) {
       const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);

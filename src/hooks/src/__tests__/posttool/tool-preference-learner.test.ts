@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const mockExistsSync = vi.fn();
 const mockReadFileSync = vi.fn();
@@ -12,28 +13,16 @@ vi.mock('node:fs', () => ({
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...parts: string[]) => parts.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...parts: string[]) => parts.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getField: vi.fn((input: Record<string, unknown>, path: string) => {
-    const parts = path.split('.');
-    let val: unknown = input;
-    for (const p of parts) {
-      if (val && typeof val === 'object') val = (val as Record<string, unknown>)[p];
-      else return undefined;
-    }
-    return val;
-  }),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { toolPreferenceLearner, flushPendingPreferences } from '../../posttool/tool-preference-learner.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
@@ -44,21 +33,23 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('toolPreferenceLearner', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
   });
 
   it('returns silent success for empty tool name', () => {
-    const result = toolPreferenceLearner(makeInput({ tool_name: '' }));
+    const result = toolPreferenceLearner(makeInput({ tool_name: '' }), testCtx);
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
   it('tracks Grep as content_search category', () => {
-    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -69,7 +60,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'git status' },
-    }));
+    }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     expect(mockWriteFileSync).toHaveBeenCalled();
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
@@ -81,7 +72,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'echo hello' },
-    }));
+    }), testCtx);
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
 
@@ -112,7 +103,7 @@ describe('toolPreferenceLearner', () => {
       },
       updated_at: new Date().toISOString(),
     }));
-    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }));
+    toolPreferenceLearner(makeInput({ tool_name: 'Grep' }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.content_search.Grep).toBe(6);
@@ -122,7 +113,7 @@ describe('toolPreferenceLearner', () => {
     toolPreferenceLearner(makeInput({
       tool_name: 'Bash',
       tool_input: { command: 'pytest tests/ -v' },
-    }));
+    }), testCtx);
     flushPendingPreferences(); // Force flush in-memory accumulator (#917)
     const written = JSON.parse(mockWriteFileSync.mock.calls[0][1] as string);
     expect(written.usage.testing['Bash:pytest']).toBe(1);

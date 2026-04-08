@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock analytics-buffer
 vi.mock('../../lib/analytics-buffer.js', () => ({
@@ -24,9 +25,8 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
 
 let tmpDir: string;
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => tmpDir),
-  logHook: vi.fn(),
 }));
 
 vi.mock('../../lib/session-tracker.js', () => ({
@@ -48,7 +48,6 @@ import {
   type Problem,
   type ProblemSolutionPair,
 } from '../../lib/problem-tracker.js';
-
 beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-problem-test-'));
   fs.mkdirSync(path.join(tmpDir, '.claude', 'memory'), { recursive: true });

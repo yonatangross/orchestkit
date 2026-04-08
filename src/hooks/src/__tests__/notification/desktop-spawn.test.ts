@@ -56,6 +56,7 @@ vi.mock('node:path', async () => {
 
 import { desktopNotification, _resetCommandCacheForTesting } from '../../notification/desktop.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -76,8 +77,10 @@ function createNotificationInput(notificationType: string): HookInput {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('notification/desktop — spawn behavior', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ projectDir: '/test/projects/orchestkit' });
     vi.clearAllMocks();
     _resetCommandCacheForTesting();
     // execFileSync used for `which` availability checks
@@ -100,26 +103,26 @@ describe('notification/desktop — spawn behavior', () => {
 
   describe('spawn-based notification delivery', () => {
     test('spawns osascript with detached: true', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true });
     });
 
     test('uses stdio: ignore when spawning osascript', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ stdio: 'ignore' });
     });
 
     test('calls unref on the spawned osascript child process', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(mockUnref).toHaveBeenCalled();
     });
 
     test('passes -e flag followed by full AppleScript to osascript', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       const args: string[] = calls[0][1] as string[];
@@ -130,7 +133,7 @@ describe('notification/desktop — spawn behavior', () => {
 
     test('returns silentSuccess when spawn throws', async () => {
       mockSpawn.mockImplementationOnce(() => { throw new Error('spawn ENOENT'); });
-      const result = await desktopNotification(createNotificationInput('permission_prompt'));
+      const result = await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });
@@ -142,7 +145,7 @@ describe('notification/desktop — spawn behavior', () => {
         if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       expect(calls[0][2]).toMatchObject({ detached: true, stdio: 'ignore' });
@@ -155,7 +158,7 @@ describe('notification/desktop — spawn behavior', () => {
         if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       expect(mockUnref).toHaveBeenCalled();
     });
 
@@ -166,7 +169,7 @@ describe('notification/desktop — spawn behavior', () => {
         if (cmd === 'which' && argStr.includes('notify-send')) return Buffer.from('/usr/bin/notify-send');
         return Buffer.from('');
       });
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'notify-send');
       expect(calls).toHaveLength(1);
       // spawn('notify-send', ['--', title, fullMessage], options)
@@ -183,7 +186,7 @@ describe('notification/desktop — spawn behavior', () => {
 
   describe('no focus stealing', () => {
     test('osascript script does not contain activate clause', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       expect(calls).toHaveLength(1);
       const script: string = (calls[0] as any[])[1][1] as string;
@@ -192,7 +195,7 @@ describe('notification/desktop — spawn behavior', () => {
     });
 
     test('osascript script only contains display notification', async () => {
-      await desktopNotification(createNotificationInput('permission_prompt'));
+      await desktopNotification(createNotificationInput('permission_prompt'), testCtx);
       const calls = (mockSpawn.mock.calls as any[][]).filter((c: any[]) => c[0] === 'osascript');
       const script: string = (calls[0] as any[])[1][1] as string;
       expect(script).toContain('display notification');

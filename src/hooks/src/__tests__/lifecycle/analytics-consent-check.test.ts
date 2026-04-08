@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Mock Setup - BEFORE imports
@@ -73,7 +74,9 @@ function daysAgo(days: number): string {
   return date.toISOString();
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
+  testCtx = createTestContext({ projectDir: process.env.CLAUDE_PROJECT_DIR || '/test/project' });
   vi.clearAllMocks();
 
   // Set environment
@@ -104,7 +107,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -117,7 +120,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -132,7 +135,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -146,7 +149,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toBeUndefined();
@@ -161,7 +164,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -176,7 +179,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -191,7 +194,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -206,7 +209,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -226,7 +229,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       if (showsReminder) {
@@ -245,7 +248,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -259,7 +262,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -276,7 +279,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       // Recent decline (10 days ago) should suppress the reminder
@@ -292,7 +295,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -307,7 +310,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -320,7 +323,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -335,7 +338,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -347,7 +350,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -368,7 +371,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -384,7 +387,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput({ project_dir: '/non/existent/path' });
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -395,7 +398,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput({ project_dir: undefined });
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -408,7 +411,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -421,7 +424,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue');
@@ -433,7 +436,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -457,7 +460,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -468,7 +471,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       if (result.systemMessage) {
@@ -484,7 +487,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('local usage metrics');
@@ -495,7 +498,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('/ork:feedback opt-in');
@@ -508,7 +511,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Reminder');
@@ -521,7 +524,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.systemMessage).toContain('Anonymous analytics');
@@ -536,7 +539,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -549,7 +552,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -564,7 +567,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -580,7 +583,7 @@ describe('analytics-consent-check', () => {
       const input = createHookInput();
 
       // Act
-      const result = analyticsConsentCheck(input);
+      const result = analyticsConsentCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -594,9 +597,9 @@ describe('analytics-consent-check', () => {
 
       // Act
       const results = [
-        analyticsConsentCheck(input),
-        analyticsConsentCheck(input),
-        analyticsConsentCheck(input),
+        analyticsConsentCheck(input, testCtx),
+        analyticsConsentCheck(input, testCtx),
+        analyticsConsentCheck(input, testCtx),
       ];
 
       // Assert

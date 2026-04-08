@@ -8,6 +8,8 @@
     "permission-request",
     "user-prompt-submit",
     "session-start",
+    "cwd-changed",
+    "file-changed",
     "session-end",
     "stop",
     "stop-failure",
@@ -25,6 +27,7 @@
     "worktree-remove",
     "instructions-loaded",
     "config-change",
+    "permission-denied",
     "setup",
     "spotlights"
   ]

@@ -12,11 +12,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getProjectDir: vi.fn(() => '/tmp/fake-project'),
   getPluginRoot: vi.fn(() => '/tmp/fake-plugin'),
-  logHook: vi.fn(),
 }));
 vi.mock('../../lib/atomic-write.js', () => ({ atomicWriteSync: vi.fn() }));
 vi.mock('../../lib/agent-teams.js', () => ({ isAgentTeamsActive: vi.fn(() => false) }));
@@ -33,6 +33,7 @@ import {
 import type { Decision, AggregatedDecisions } from '../../lib/decision-history.js';
 import { getProjectDir, getPluginRoot } from '../../lib/common.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
+
 
 function makeDecision(o: Partial<Decision> = {}): Decision {
   return { id: 'v1-general-1', date: '2026-01-15', summary: 'Added hook system',

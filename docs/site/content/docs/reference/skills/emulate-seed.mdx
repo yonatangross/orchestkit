@@ -1,6 +1,6 @@
 ---
 title: "Emulate Seed"
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -31,7 +31,7 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 ## Quick Start
 
 ```bash
-# Install
+# Install (v0.3.0+: packages moved to @emulators/* scope)
 npm install --save-dev emulate
 
 # Start all services
@@ -55,7 +55,6 @@ npx emulate init --service github
 | **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
 | **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation |
 | **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
-| **MongoDB Atlas** | `:4007` | Admin API v2 + Data API v1 — query, update, aggregation pipeline |
 
 See `references/api-coverage.md` for full endpoint lists.
 
@@ -99,10 +98,12 @@ See `rules/seed-config.md` for full schema and best practices.
 
 ## Programmatic SDK
 
-```typescript
-import { createEmulator } from 'emulate'
+> **v0.3.0 scope change**: Packages moved to `@emulators/*` scope (e.g., `@emulators/emulate`). The bare `emulate` import still works as a re-export but is deprecated.
 
-const github = await createEmulator({ service: 'github', port: 4001 })
+```typescript
+import { createEmulate } from '@emulators/emulate'
+
+const github = await createEmulate({ service: 'github', port: 4001 })
 // github.url -> 'http://localhost:4001'
 
 // State is real — create a PR and it appears in the list
@@ -204,7 +205,7 @@ See `references/cli-reference.md` for all CLI flags and commands.
 
 ## SDK Patterns
 
-See `references/sdk-patterns.md` for programmatic `createEmulator()` usage.
+See `references/sdk-patterns.md` for programmatic `createEmulate()` usage.
 
 
 ---
@@ -330,8 +331,8 @@ When running tests in parallel (Vitest, Jest workers, CI matrix), each worker ne
 
 ```typescript
 // vitest.setup.ts — each worker gets a unique port
-import { createEmulator } from 'emulate'
-import type { Emulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
+import type { Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
@@ -339,7 +340,7 @@ const BASE_PORT = 4001
 const workerPort = BASE_PORT + parseInt(process.env.VITEST_WORKER_ID || '0')
 
 beforeAll(async () => {
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: './emulate.config.yaml'
@@ -367,7 +368,7 @@ const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
 
 ```typescript
 // BAD: shared port causes race conditions
-const github = await createEmulator({ service: 'github', port: 4001 })
+const github = await createEmulate({ service: 'github', port: 4001 })
 
 // Worker 1 creates a PR, Worker 2 sees it — non-deterministic
 ```
@@ -377,7 +378,7 @@ const github = await createEmulator({ service: 'github', port: 4001 })
 ```typescript
 // GOOD: each worker has isolated state
 const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-const github = await createEmulator({ service: 'github', port: workerPort })
+const github = await createEmulate({ service: 'github', port: workerPort })
 
 // Worker 1 on :4002, Worker 2 on :4003 — fully isolated
 ```
@@ -545,9 +546,9 @@ const mockCreatePR = jest.fn().mockResolvedValue({ number: 1 })
 **Correct — use emulate for stateful GitHub API testing:**
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
-const github = await createEmulator({ service: 'github', port: 4001 })
+const github = await createEmulate({ service: 'github', port: 4001 })
 
 // Create PR via API
 await fetch(`${github.url}/repos/org/repo/pulls`, {
@@ -664,7 +665,7 @@ Reference: `references/sdk-patterns.md`
 
 ---
 
-## References (3)
+## References (7)
 
 ### Api Coverage
 
@@ -809,18 +810,6 @@ Full list of supported API endpoints per emulate service.
 ### IAM & STS
 - `POST /` — CreateUser, CreateRole, GetCallerIdentity, AssumeRole
 
-## MongoDB Atlas (`:4007`)
-
-### Admin API v2
-- `GET /api/atlas/v2/groups` — List projects
-- `GET /api/atlas/v2/groups/\{id\}/clusters` — List clusters
-
-### Data API v1
-- `POST /action/find` — Query with filter, projection, sort
-- `POST /action/insertOne` / `insertMany` — Insert documents
-- `POST /action/updateOne` / `updateMany` — Update with operators
-- `POST /action/aggregate` — Aggregation pipeline
-
 ## Stateful Behaviors
 
 All services maintain full state:
@@ -940,14 +929,14 @@ Set these in your test runner or CI to redirect API calls to the emulator:
 
 # SDK Patterns
 
-Programmatic usage of emulate via the `createEmulator()` API.
+Programmatic usage of emulate via the `createEmulate()` API (v0.3.0+, `@emulators/*` scope).
 
 ## Basic Usage
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
-const github = await createEmulator({
+const github = await createEmulate({
   service: 'github',
   port: 4001,
   seed: './emulate.config.yaml'  // Optional seed file
@@ -967,11 +956,11 @@ await github.close() // Async — shuts down server and frees port
 ## Multi-Service Setup
 
 ```typescript
-import { createEmulator } from 'emulate'
+import { createEmulate } from '@emulators/emulate'
 
 const [github, vercel] = await Promise.all([
-  createEmulator({ service: 'github', port: 4001, seed: './config.yaml' }),
-  createEmulator({ service: 'vercel', port: 4000, seed: './config.yaml' }),
+  createEmulate({ service: 'github', port: 4001, seed: './config.yaml' }),
+  createEmulate({ service: 'vercel', port: 4000, seed: './config.yaml' }),
 ])
 
 // Both share the same seed config — tokens, users, projects
@@ -988,13 +977,13 @@ await Promise.all([github.close(), vercel.close()])
 
 ```typescript
 // vitest.setup.ts
-import { createEmulator, type Emulator } from 'emulate'
+import { createEmulate, type Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
 beforeAll(async () => {
   const workerPort = 4001 + parseInt(process.env.VITEST_WORKER_ID || '0')
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: '.emulate/test.yaml'
@@ -1015,13 +1004,13 @@ beforeEach(() => {
 
 ```typescript
 // jest.setup.ts
-import { createEmulator, type Emulator } from 'emulate'
+import { createEmulate, type Emulator } from '@emulators/emulate'
 
 let github: Emulator
 
 beforeAll(async () => {
   const workerPort = 4001 + parseInt(process.env.JEST_WORKER_ID || '0')
-  github = await createEmulator({
+  github = await createEmulate({
     service: 'github',
     port: workerPort,
     seed: '.emulate/test.yaml'
@@ -1040,7 +1029,7 @@ beforeEach(() => {
 
 ## Emulator API
 
-### `createEmulator(options)`
+### `createEmulate(options)`
 
 Creates and starts an emulator instance.
 
@@ -1051,7 +1040,7 @@ interface EmulatorOptions {
   seed?: string      // Path to YAML seed config
 }
 
-const emulator: Emulator = await createEmulator(options)
+const emulator: Emulator = await createEmulate(options)
 ```
 
 ### `emulator.url`
@@ -1119,14 +1108,1376 @@ const res = await fetch(`${base}/repos/org/repo/pulls`, {
 ## State Lifecycle
 
 ```
-createEmulator() -> seed applied -> tests run -> reset() -> tests run -> close()
+createEmulate() -> seed applied -> tests run -> reset() -> tests run -> close()
                      ^                            ^
                      |                            |
                      Initial state                State wiped, seed re-applied
 ```
 
-- `createEmulator()` — Starts server, applies seed config
+- `createEmulate()` — Starts server, applies seed config
 - Tests run — State accumulates (created PRs, issues, etc.)
 - `reset()` — Wipes state, re-applies seed — server stays up
 - `close()` — Shuts down server, frees port
+
+
+### Upstream Github
+
+&lt;!-- SYNCED from vercel-labs/emulate (skills/github/SKILL.md) --&gt;
+&lt;!-- Hash: 635cb8ee698f5fe8b6fb4fafa9d5aaf0d9cd697c71fd980d1b56d34c328bda00 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# GitHub API Emulator
+
+Fully stateful GitHub REST API emulation. Creates, updates, and deletes persist in memory and affect related entities.
+
+## Start
+
+```bash
+# GitHub only
+npx emulate --service github
+
+# Default port
+# http://localhost:4001
+```
+
+Or programmatically:
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const github = await createEmulator({ service: 'github', port: 4001 })
+// github.url === 'http://localhost:4001'
+```
+
+## Auth
+
+Pass tokens as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`.
+
+```bash
+curl http://localhost:4001/user \
+  -H "Authorization: Bearer gho_test_token_admin"
+```
+
+Public repo endpoints work without auth. Private repos and write operations require a valid token. When no token is provided, requests fall back to the first seeded user.
+
+### GitHub App JWT
+
+Configure apps in the seed config with a private key. Sign a JWT with `\{ iss: "&lt;app_id&gt;" \}` using RS256. The emulator verifies the signature and resolves the app.
+
+```yaml
+github:
+  apps:
+    - app_id: 12345
+      slug: my-github-app
+      name: My GitHub App
+      private_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        ...
+        -----END RSA PRIVATE KEY-----
+      permissions:
+        contents: read
+        issues: write
+      events: [push, pull_request]
+      installations:
+        - installation_id: 100
+          account: my-org
+          repository_selection: all
+```
+
+## Pointing Your App at the Emulator
+
+### Environment Variable
+
+```bash
+GITHUB_EMULATOR_URL=http://localhost:4001
+```
+
+### Octokit
+
+```typescript
+import { Octokit } from '@octokit/rest'
+
+const octokit = new Octokit({
+  baseUrl: process.env.GITHUB_EMULATOR_URL ?? 'https://api.github.com',
+  auth: 'gho_test_token_admin',
+})
+```
+
+### OAuth URL Mapping
+
+| Real GitHub URL | Emulator URL |
+|-----------------|-------------|
+| `https://github.com/login/oauth/authorize` | `$GITHUB_EMULATOR_URL/login/oauth/authorize` |
+| `https://github.com/login/oauth/access_token` | `$GITHUB_EMULATOR_URL/login/oauth/access_token` |
+| `https://api.github.com/user` | `$GITHUB_EMULATOR_URL/user` |
+
+### Auth.js / NextAuth.js
+
+```typescript
+import GitHub from '@auth/core/providers/github'
+
+GitHub({
+  clientId: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  authorization: {
+    url: `${process.env.GITHUB_EMULATOR_URL}/login/oauth/authorize`,
+  },
+  token: {
+    url: `${process.env.GITHUB_EMULATOR_URL}/login/oauth/access_token`,
+  },
+  userinfo: {
+    url: `${process.env.GITHUB_EMULATOR_URL}/user`,
+  },
+})
+```
+
+## Seed Config
+
+```yaml
+tokens:
+  gho_test_token_admin:
+    login: admin
+    scopes: [repo, user, admin:org, admin:repo_hook]
+
+github:
+  users:
+    - login: octocat
+      name: The Octocat
+      email: octocat@github.com
+      bio: I am the Octocat
+      company: GitHub
+      location: San Francisco
+  orgs:
+    - login: my-org
+      name: My Organization
+      description: A test organization
+  repos:
+    - owner: octocat
+      name: hello-world
+      description: My first repository
+      language: JavaScript
+      topics: [hello, world]
+      auto_init: true
+  oauth_apps:
+    - client_id: Iv1.abc123
+      client_secret: secret_abc123
+      name: My Web App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/github
+```
+
+## Pagination
+
+All list endpoints support `page` and `per_page` query params with `Link` headers:
+
+```bash
+curl "http://localhost:4001/repos/octocat/hello-world/issues?page=1&per_page=10" \
+  -H "Authorization: Bearer gho_test_token_admin"
+```
+
+## API Endpoints
+
+### Users
+
+```bash
+# Authenticated user
+curl http://localhost:4001/user -H "Authorization: Bearer $TOKEN"
+
+# Update profile
+curl -X PATCH http://localhost:4001/user \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"bio": "Hello!"}'
+
+# Get user by username
+curl http://localhost:4001/users/octocat
+
+# List users
+curl http://localhost:4001/users
+
+# User repos / orgs / followers / following
+curl http://localhost:4001/users/octocat/repos
+curl http://localhost:4001/users/octocat/orgs
+curl http://localhost:4001/users/octocat/followers
+curl http://localhost:4001/users/octocat/following
+```
+
+### Repositories
+
+```bash
+# Get repo
+curl http://localhost:4001/repos/octocat/hello-world
+
+# Create user repo
+curl -X POST http://localhost:4001/user/repos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "new-repo", "private": false}'
+
+# Create org repo
+curl -X POST http://localhost:4001/orgs/my-org/repos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "org-project"}'
+
+# Update repo
+curl -X PATCH http://localhost:4001/repos/octocat/hello-world \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Updated description"}'
+
+# Delete repo (cascades issues, PRs, etc.)
+curl -X DELETE http://localhost:4001/repos/octocat/hello-world \
+  -H "Authorization: Bearer $TOKEN"
+
+# Topics, languages, contributors, forks, collaborators, tags, transfer
+```
+
+### Issues
+
+```bash
+# List issues (filter by state, labels, assignee, milestone, creator, since)
+curl "http://localhost:4001/repos/octocat/hello-world/issues?state=open&labels=bug"
+
+# Create issue
+curl -X POST http://localhost:4001/repos/octocat/hello-world/issues \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Bug report", "body": "Details here", "labels": ["bug"]}'
+
+# Get issue
+curl http://localhost:4001/repos/octocat/hello-world/issues/1
+
+# Update issue
+curl -X PATCH http://localhost:4001/repos/octocat/hello-world/issues/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"state": "closed"}'
+
+# Lock/unlock, timeline, events, assignees
+```
+
+### Pull Requests
+
+```bash
+# List PRs
+curl "http://localhost:4001/repos/octocat/hello-world/pulls?state=open"
+
+# Create PR
+curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Feature", "head": "feature-branch", "base": "main"}'
+
+# Get PR
+curl http://localhost:4001/repos/octocat/hello-world/pulls/1
+
+# Update PR
+curl -X PATCH http://localhost:4001/repos/octocat/hello-world/pulls/1 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Updated title"}'
+
+# Merge PR (enforces branch protection)
+curl -X PUT http://localhost:4001/repos/octocat/hello-world/pulls/1/merge \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"merge_method": "squash"}'
+
+# Commits, files, requested reviewers, update branch
+```
+
+### Comments
+
+```bash
+# Issue comments: full CRUD
+curl http://localhost:4001/repos/octocat/hello-world/issues/1/comments
+curl -X POST http://localhost:4001/repos/octocat/hello-world/issues/1/comments \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Looks good!"}'
+
+# Review comments on PRs
+curl http://localhost:4001/repos/octocat/hello-world/pulls/1/comments
+
+# Commit comments
+curl http://localhost:4001/repos/octocat/hello-world/commits/abc123/comments
+```
+
+### Reviews
+
+```bash
+# List reviews
+curl http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews
+
+# Create review (with inline comments)
+curl -X POST http://localhost:4001/repos/octocat/hello-world/pulls/1/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"event": "APPROVE", "body": "LGTM"}'
+
+# Get, update, submit, dismiss reviews
+```
+
+### Labels & Milestones
+
+Full CRUD for labels and milestones. Add/remove labels from issues, replace all labels.
+
+### Branches & Git Data
+
+```bash
+# List branches
+curl http://localhost:4001/repos/octocat/hello-world/branches
+
+# Get branch
+curl http://localhost:4001/repos/octocat/hello-world/branches/main
+
+# Branch protection CRUD (status checks, PR reviews, enforce admins)
+curl -X PUT http://localhost:4001/repos/octocat/hello-world/branches/main/protection \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"required_status_checks": {"strict": true, "contexts": ["ci"]}}'
+
+# Refs, commits, trees (recursive), blobs, tags
+```
+
+### Organizations & Teams
+
+```bash
+# Get org
+curl http://localhost:4001/orgs/my-org
+
+# Org members, teams, repos
+curl http://localhost:4001/orgs/my-org/members
+curl http://localhost:4001/orgs/my-org/teams
+```
+
+### Releases
+
+```bash
+# Create release
+curl -X POST http://localhost:4001/repos/octocat/hello-world/releases \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"tag_name": "v1.0.0", "name": "v1.0.0"}'
+
+# List, get, latest, by tag, assets, generate notes
+```
+
+### Webhooks
+
+```bash
+# Create webhook (real HTTP delivery on state changes)
+curl -X POST http://localhost:4001/repos/octocat/hello-world/hooks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"config": {"url": "http://localhost:8080/webhook"}, "events": ["push", "pull_request"]}'
+
+# Full CRUD, ping, test, deliveries
+# Org webhooks also supported
+```
+
+### Search
+
+```bash
+# Search repositories
+curl "http://localhost:4001/search/repositories?q=language:JavaScript+user:octocat"
+
+# Search issues and PRs
+curl "http://localhost:4001/search/issues?q=repo:octocat/hello-world+is:open"
+
+# Search users, code, commits, topics, labels
+```
+
+### Actions
+
+```bash
+# Workflows: list, get, enable/disable, dispatch
+# Workflow runs: list, get, cancel, rerun, delete, logs
+# Jobs: list, get, logs
+# Artifacts: list, get, delete
+# Secrets: repo + org CRUD
+```
+
+### Checks
+
+```bash
+# Create check run
+curl -X POST http://localhost:4001/repos/octocat/hello-world/check-runs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "CI", "head_sha": "abc123", "status": "completed", "conclusion": "success"}'
+
+# Check suites, annotations, rerequest, list by ref
+# Automatic suite status rollup from check run results
+```
+
+### OAuth
+
+```bash
+# Authorize (browser flow -- shows user picker)
+# GET /login/oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
+
+# Token exchange
+curl -X POST http://localhost:4001/login/oauth/access_token \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"client_id": "Iv1.abc123", "client_secret": "secret_abc123", "code": "<code>"}'
+
+# User emails
+curl http://localhost:4001/user/emails -H "Authorization: Bearer $TOKEN"
+```
+
+### Misc
+
+```bash
+curl http://localhost:4001/rate_limit
+curl http://localhost:4001/meta
+curl http://localhost:4001/octocat
+curl http://localhost:4001/zen
+```
+
+## Common Patterns
+
+### Create Repo, Issue, and PR
+
+```bash
+TOKEN="gho_test_token_admin"
+BASE="http://localhost:4001"
+
+# Create repo
+curl -X POST $BASE/user/repos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-project"}'
+
+# Create issue
+curl -X POST $BASE/repos/admin/my-project/issues \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "First issue"}'
+
+# Create PR
+curl -X POST $BASE/repos/admin/my-project/pulls \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "First PR", "head": "feature", "base": "main"}'
+```
+
+### OAuth Flow
+
+1. Redirect user to `$GITHUB_EMULATOR_URL/login/oauth/authorize?client_id=...&redirect_uri=...&scope=user+repo&state=...`
+2. User picks a seeded user on the emulator's UI
+3. Emulator redirects back with `?code=...&state=...`
+4. Exchange code for token via `POST /login/oauth/access_token`
+5. Use token to call API endpoints
+
+
+### Upstream Google
+
+&lt;!-- SYNCED from vercel-labs/emulate (skills/google/SKILL.md) --&gt;
+&lt;!-- Hash: 030d521bf26fe630f0b2efb5447785e1b704ae8eb10eb46cec23a487dbbe9fd0 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Google OAuth 2.0 / OIDC Emulator
+
+OAuth 2.0 and OpenID Connect emulation with authorization code flow, PKCE support, ID tokens, and OIDC discovery.
+
+## Start
+
+```bash
+# Google only
+npx emulate --service google
+
+# Default port
+# http://localhost:4002
+```
+
+Or programmatically:
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const google = await createEmulator({ service: 'google', port: 4002 })
+// google.url === 'http://localhost:4002'
+```
+
+## Pointing Your App at the Emulator
+
+### Environment Variable
+
+```bash
+GOOGLE_EMULATOR_URL=http://localhost:4002
+```
+
+### OAuth URL Mapping
+
+| Real Google URL | Emulator URL |
+|-----------------|-------------|
+| `https://accounts.google.com/o/oauth2/v2/auth` | `$GOOGLE_EMULATOR_URL/o/oauth2/v2/auth` |
+| `https://oauth2.googleapis.com/token` | `$GOOGLE_EMULATOR_URL/oauth2/token` |
+| `https://www.googleapis.com/oauth2/v2/userinfo` | `$GOOGLE_EMULATOR_URL/oauth2/v2/userinfo` |
+| `https://accounts.google.com/.well-known/openid-configuration` | `$GOOGLE_EMULATOR_URL/.well-known/openid-configuration` |
+| `https://www.googleapis.com/oauth2/v3/certs` | `$GOOGLE_EMULATOR_URL/oauth2/v3/certs` |
+
+### google-auth-library (Node.js)
+
+```typescript
+import { OAuth2Client } from 'google-auth-library'
+
+const GOOGLE_URL = process.env.GOOGLE_EMULATOR_URL ?? 'https://accounts.google.com'
+
+const client = new OAuth2Client({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: 'http://localhost:3000/api/auth/callback/google',
+})
+
+// Override the endpoints
+const authorizeUrl = client.generateAuthUrl({
+  access_type: 'offline',
+  scope: ['openid', 'email', 'profile'],
+})
+// Replace the host in authorizeUrl with GOOGLE_URL, or construct manually:
+const emulatorAuthorizeUrl = `${GOOGLE_URL}/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=...&scope=openid+email+profile&response_type=code&state=...`
+```
+
+### Auth.js / NextAuth.js
+
+```typescript
+import Google from '@auth/core/providers/google'
+
+Google({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  authorization: {
+    url: `${process.env.GOOGLE_EMULATOR_URL}/o/oauth2/v2/auth`,
+    params: { scope: 'openid email profile' },
+  },
+  token: {
+    url: `${process.env.GOOGLE_EMULATOR_URL}/oauth2/token`,
+  },
+  userinfo: {
+    url: `${process.env.GOOGLE_EMULATOR_URL}/oauth2/v2/userinfo`,
+  },
+})
+```
+
+### Passport.js
+
+```typescript
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+
+const GOOGLE_URL = process.env.GOOGLE_EMULATOR_URL ?? 'https://accounts.google.com'
+
+new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3000/api/auth/callback/google',
+  authorizationURL: `${GOOGLE_URL}/o/oauth2/v2/auth`,
+  tokenURL: `${GOOGLE_URL}/oauth2/token`,
+  userProfileURL: `${GOOGLE_URL}/oauth2/v2/userinfo`,
+}, verifyCallback)
+```
+
+## Seed Config
+
+```yaml
+google:
+  users:
+    - email: testuser@gmail.com
+      name: Test User
+      given_name: Test
+      family_name: User
+      picture: https://lh3.googleusercontent.com/a/default-user
+      email_verified: true
+      locale: en
+    - email: dev@example.com
+      name: Developer
+  oauth_clients:
+    - client_id: my-client-id.apps.googleusercontent.com
+      client_secret: GOCSPX-secret
+      name: My App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/google
+```
+
+When no OAuth clients are configured, the emulator accepts any `client_id`. With clients configured, strict validation is enforced for `client_id`, `client_secret`, and `redirect_uri`.
+
+## API Endpoints
+
+### OIDC Discovery
+
+```bash
+curl http://localhost:4002/.well-known/openid-configuration
+```
+
+Returns the standard OIDC discovery document with all endpoints pointing to the emulator:
+
+```json
+{
+  "issuer": "http://localhost:4002",
+  "authorization_endpoint": "http://localhost:4002/o/oauth2/v2/auth",
+  "token_endpoint": "http://localhost:4002/oauth2/token",
+  "userinfo_endpoint": "http://localhost:4002/oauth2/v2/userinfo",
+  "revocation_endpoint": "http://localhost:4002/oauth2/revoke",
+  "jwks_uri": "http://localhost:4002/oauth2/v3/certs",
+  "response_types_supported": ["code"],
+  "subject_types_supported": ["public"],
+  "id_token_signing_alg_values_supported": ["HS256"],
+  "scopes_supported": ["openid", "email", "profile"],
+  "code_challenge_methods_supported": ["plain", "S256"]
+}
+```
+
+### JWKS
+
+```bash
+curl http://localhost:4002/oauth2/v3/certs
+```
+
+Returns `\{ "keys": [] \}`. ID tokens are signed with HS256 using an internal secret.
+
+### Authorization
+
+```bash
+# Browser flow -- redirects to a user picker page
+curl -v "http://localhost:4002/o/oauth2/v2/auth?\
+client_id=my-client-id.apps.googleusercontent.com&\
+redirect_uri=http://localhost:3000/api/auth/callback/google&\
+scope=openid+email+profile&\
+response_type=code&\
+state=random-state&\
+nonce=random-nonce"
+```
+
+Query parameters:
+
+| Param | Description |
+|-------|-------------|
+| `client_id` | OAuth client ID |
+| `redirect_uri` | Callback URL |
+| `scope` | Space-separated scopes (`openid email profile`) |
+| `state` | Opaque state for CSRF protection |
+| `nonce` | Nonce for ID token (optional) |
+| `code_challenge` | PKCE challenge (optional) |
+| `code_challenge_method` | `plain` or `S256` (optional) |
+
+The emulator renders an HTML page where you select a seeded user. After selection, it redirects to `redirect_uri` with `?code=...&state=...`.
+
+### Token Exchange
+
+```bash
+curl -X POST http://localhost:4002/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "code=<authorization_code>&\
+client_id=my-client-id.apps.googleusercontent.com&\
+client_secret=GOCSPX-secret&\
+redirect_uri=http://localhost:3000/api/auth/callback/google&\
+grant_type=authorization_code"
+```
+
+Returns:
+
+```json
+{
+  "access_token": "google_...",
+  "id_token": "<jwt>",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "openid email profile"
+}
+```
+
+The `id_token` is a JWT (HS256) containing `sub`, `email`, `email_verified`, `name`, `given_name`, `family_name`, `picture`, `locale`, and optional `nonce`.
+
+For PKCE, include `code_verifier` in the token request.
+
+### User Info
+
+```bash
+curl http://localhost:4002/oauth2/v2/userinfo \
+  -H "Authorization: Bearer google_..."
+```
+
+Returns:
+
+```json
+{
+  "sub": "user-uid",
+  "email": "testuser@gmail.com",
+  "email_verified": true,
+  "name": "Test User",
+  "given_name": "Test",
+  "family_name": "User",
+  "picture": "https://lh3.googleusercontent.com/a/default-user",
+  "locale": "en"
+}
+```
+
+### Token Revocation
+
+```bash
+curl -X POST http://localhost:4002/oauth2/revoke \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "token=google_..."
+```
+
+Returns `200 OK`. The token is removed from the emulator's token map.
+
+## Common Patterns
+
+### Full Authorization Code Flow
+
+```bash
+GOOGLE_URL="http://localhost:4002"
+CLIENT_ID="my-client-id.apps.googleusercontent.com"
+CLIENT_SECRET="GOCSPX-secret"
+REDIRECT_URI="http://localhost:3000/api/auth/callback/google"
+
+# 1. Open in browser -- user picks a seeded account
+#    $GOOGLE_URL/o/oauth2/v2/auth?client_id=$CLIENT_ID&redirect_uri=$REDIRECT_URI&scope=openid+email+profile&response_type=code&state=abc
+
+# 2. After user selection, emulator redirects to:
+#    $REDIRECT_URI?code=<code>&state=abc
+
+# 3. Exchange code for tokens
+curl -X POST $GOOGLE_URL/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "code=<code>&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&redirect_uri=$REDIRECT_URI&grant_type=authorization_code"
+
+# 4. Fetch user info with the access_token
+curl $GOOGLE_URL/oauth2/v2/userinfo \
+  -H "Authorization: Bearer <access_token>"
+```
+
+### PKCE Flow
+
+```bash
+# Generate code_verifier and code_challenge
+CODE_VERIFIER=$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-43)
+CODE_CHALLENGE=$(echo -n $CODE_VERIFIER | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '+/' '-_')
+
+# 1. Authorize with challenge
+# $GOOGLE_URL/o/oauth2/v2/auth?...&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256
+
+# 2. Token exchange with verifier
+curl -X POST $GOOGLE_URL/oauth2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "code=<code>&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&redirect_uri=$REDIRECT_URI&grant_type=authorization_code&code_verifier=$CODE_VERIFIER"
+```
+
+### OIDC Discovery-Based Setup
+
+Libraries that support OIDC discovery (like `openid-client`) can auto-configure from the discovery document:
+
+```typescript
+import { Issuer } from 'openid-client'
+
+const googleIssuer = await Issuer.discover(
+  process.env.GOOGLE_EMULATOR_URL ?? 'https://accounts.google.com'
+)
+
+const client = new googleIssuer.Client({
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  client_secret: process.env.GOOGLE_CLIENT_SECRET,
+  redirect_uris: ['http://localhost:3000/api/auth/callback/google'],
+})
+```
+
+
+### Upstream Vercel
+
+&lt;!-- SYNCED from vercel-labs/emulate (skills/vercel/SKILL.md) --&gt;
+&lt;!-- Hash: 768ffadf22343415962e0be8d04606ae43e47944331a8e04bb1e683da0e642c3 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Vercel API Emulator
+
+Fully stateful Vercel REST API emulation with Vercel-style JSON responses and cursor-based pagination.
+
+## Start
+
+```bash
+# Vercel only
+npx emulate --service vercel
+
+# Default port
+# http://localhost:4000
+```
+
+Or programmatically:
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const vercel = await createEmulator({ service: 'vercel', port: 4000 })
+// vercel.url === 'http://localhost:4000'
+```
+
+## Auth
+
+Pass tokens as `Authorization: Bearer &lt;token&gt;`. All endpoints accept `teamId` or `slug` query params for team scoping.
+
+```bash
+curl http://localhost:4000/v2/user \
+  -H "Authorization: Bearer gho_test_token_admin"
+```
+
+When no token is provided, requests fall back to the first seeded user.
+
+## Pointing Your App at the Emulator
+
+### Environment Variable
+
+```bash
+VERCEL_EMULATOR_URL=http://localhost:4000
+```
+
+### Vercel SDK / Custom Fetch
+
+```typescript
+const VERCEL_API = process.env.VERCEL_EMULATOR_URL ?? 'https://api.vercel.com'
+
+const res = await fetch(`${VERCEL_API}/v10/projects`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+```
+
+### OAuth URL Mapping
+
+| Real Vercel URL | Emulator URL |
+|-----------------|-------------|
+| `https://vercel.com/integrations/oauth/authorize` | `$VERCEL_EMULATOR_URL/oauth/authorize` |
+| `https://api.vercel.com/login/oauth/token` | `$VERCEL_EMULATOR_URL/login/oauth/token` |
+| `https://api.vercel.com/login/oauth/userinfo` | `$VERCEL_EMULATOR_URL/login/oauth/userinfo` |
+
+### Auth.js / NextAuth.js
+
+```typescript
+{
+  id: 'vercel',
+  name: 'Vercel',
+  type: 'oauth',
+  authorization: {
+    url: `${process.env.VERCEL_EMULATOR_URL}/oauth/authorize`,
+  },
+  token: {
+    url: `${process.env.VERCEL_EMULATOR_URL}/login/oauth/token`,
+  },
+  userinfo: {
+    url: `${process.env.VERCEL_EMULATOR_URL}/login/oauth/userinfo`,
+  },
+  clientId: process.env.VERCEL_CLIENT_ID,
+  clientSecret: process.env.VERCEL_CLIENT_SECRET,
+  profile(profile) {
+    return {
+      id: profile.sub,
+      name: profile.name,
+      email: profile.email,
+      image: profile.picture,
+    }
+  },
+}
+```
+
+## Seed Config
+
+```yaml
+tokens:
+  gho_test_token_admin:
+    login: admin
+    scopes: []
+
+vercel:
+  users:
+    - username: developer
+      name: Developer
+      email: dev@example.com
+  teams:
+    - slug: my-team
+      name: My Team
+  projects:
+    - name: my-app
+      team: my-team
+      framework: nextjs
+  integrations:
+    - client_id: oac_abc123
+      client_secret: secret_abc123
+      name: My Vercel App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/vercel
+```
+
+## Pagination
+
+Cursor-based pagination using `limit`, `since`, and `until` query params. Responses include a `pagination` object:
+
+```bash
+curl "http://localhost:4000/v10/projects?limit=10" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## API Endpoints
+
+### User & Teams
+
+```bash
+# Authenticated user
+curl http://localhost:4000/v2/user -H "Authorization: Bearer $TOKEN"
+
+# Update user
+curl -X PATCH http://localhost:4000/v2/user \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "New Name"}'
+
+# List teams (cursor paginated)
+curl http://localhost:4000/v2/teams -H "Authorization: Bearer $TOKEN"
+
+# Get team (by ID or slug)
+curl http://localhost:4000/v2/teams/my-team -H "Authorization: Bearer $TOKEN"
+
+# Create team
+curl -X POST http://localhost:4000/v2/teams \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "new-team", "name": "New Team"}'
+
+# Update team
+curl -X PATCH http://localhost:4000/v2/teams/my-team \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Updated Team"}'
+
+# List members, add member
+curl http://localhost:4000/v2/teams/my-team/members -H "Authorization: Bearer $TOKEN"
+```
+
+### Projects
+
+```bash
+# Create project (with optional env vars and git integration)
+curl -X POST http://localhost:4000/v11/projects \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app", "framework": "nextjs"}'
+
+# List projects (search, cursor pagination)
+curl "http://localhost:4000/v10/projects?search=my-app" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get project (includes env vars)
+curl http://localhost:4000/v9/projects/my-app \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update project
+curl -X PATCH http://localhost:4000/v9/projects/my-app \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"framework": "remix"}'
+
+# Delete project (cascades deployments, domains, env vars)
+curl -X DELETE http://localhost:4000/v9/projects/my-app \
+  -H "Authorization: Bearer $TOKEN"
+
+# Promote aliases status
+curl http://localhost:4000/v1/projects/my-app/promote/aliases \
+  -H "Authorization: Bearer $TOKEN"
+
+# Protection bypass
+curl -X PATCH http://localhost:4000/v1/projects/my-app/protection-bypass \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"revoke": false}'
+```
+
+### Deployments
+
+```bash
+# Create deployment (auto-transitions to READY)
+curl -X POST http://localhost:4000/v13/deployments \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app", "target": "production"}'
+
+# Get deployment (by ID or URL)
+curl http://localhost:4000/v13/deployments/dpl_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+
+# List deployments (filter by project, target, state)
+curl "http://localhost:4000/v6/deployments?projectId=my-app&target=production" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Delete deployment (cascades)
+curl -X DELETE http://localhost:4000/v13/deployments/dpl_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+
+# Cancel building deployment
+curl -X PATCH http://localhost:4000/v12/deployments/dpl_abc123/cancel \
+  -H "Authorization: Bearer $TOKEN"
+
+# List deployment aliases
+curl http://localhost:4000/v2/deployments/dpl_abc123/aliases \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get build events/logs
+curl http://localhost:4000/v3/deployments/dpl_abc123/events \
+  -H "Authorization: Bearer $TOKEN"
+
+# List deployment files
+curl http://localhost:4000/v6/deployments/dpl_abc123/files \
+  -H "Authorization: Bearer $TOKEN"
+
+# Upload file (by SHA digest)
+curl -X POST http://localhost:4000/v2/files \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/octet-stream" \
+  -H "x-vercel-digest: sha256hash" \
+  --data-binary @file.txt
+```
+
+### Domains
+
+```bash
+# Add domain (with verification challenge)
+curl -X POST http://localhost:4000/v10/projects/my-app/domains \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "example.com"}'
+
+# List domains
+curl http://localhost:4000/v9/projects/my-app/domains \
+  -H "Authorization: Bearer $TOKEN"
+
+# Get, update, remove domain
+curl http://localhost:4000/v9/projects/my-app/domains/example.com \
+  -H "Authorization: Bearer $TOKEN"
+
+# Verify domain
+curl -X POST http://localhost:4000/v9/projects/my-app/domains/example.com/verify \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Environment Variables
+
+```bash
+# List env vars (with decrypt option)
+curl "http://localhost:4000/v10/projects/my-app/env?decrypt=true" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Create env vars (single, batch, or upsert)
+curl -X POST http://localhost:4000/v10/projects/my-app/env \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"key": "API_KEY", "value": "secret123", "type": "encrypted", "target": ["production", "preview"]}'
+
+# Get env var
+curl http://localhost:4000/v10/projects/my-app/env/env_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update env var
+curl -X PATCH http://localhost:4000/v9/projects/my-app/env/env_abc123 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"value": "newsecret"}'
+
+# Delete env var
+curl -X DELETE http://localhost:4000/v9/projects/my-app/env/env_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### OAuth / Integrations
+
+```bash
+# Authorize (browser flow -- shows user picker)
+# GET /oauth/authorize?client_id=...&redirect_uri=...&scope=...&state=...
+
+# Token exchange (supports PKCE)
+curl -X POST http://localhost:4000/login/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{"client_id": "oac_abc123", "client_secret": "secret_abc123", "code": "<code>", "redirect_uri": "http://localhost:3000/api/auth/callback/vercel"}'
+
+# User info (returns sub, email, name, preferred_username, picture)
+curl http://localhost:4000/login/oauth/userinfo \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### API Keys
+
+```bash
+# Manage API keys for programmatic access
+```
+
+## Common Patterns
+
+### Create Project and Deploy
+
+```bash
+TOKEN="gho_test_token_admin"
+BASE="http://localhost:4000"
+
+# Create project
+curl -X POST $BASE/v11/projects \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app", "framework": "nextjs"}'
+
+# Add env var
+curl -X POST $BASE/v10/projects/my-app/env \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"key": "DATABASE_URL", "value": "postgres://...", "type": "encrypted", "target": ["production"]}'
+
+# Create deployment
+curl -X POST $BASE/v13/deployments \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-app", "target": "production"}'
+```
+
+### OAuth Integration Flow
+
+1. Redirect user to `$VERCEL_EMULATOR_URL/oauth/authorize?client_id=...&redirect_uri=...&state=...`
+2. User picks a seeded user on the emulator's UI
+3. Emulator redirects back with `?code=...&state=...`
+4. Exchange code for token via `POST /login/oauth/token`
+5. Fetch user info via `GET /login/oauth/userinfo`
+
+PKCE is supported -- pass `code_challenge` and `code_challenge_method` on authorize, then `code_verifier` on token exchange.
+
+### Team-Scoped Requests
+
+All endpoints accept `teamId` or `slug` query params:
+
+```bash
+curl "http://localhost:4000/v10/projects?teamId=team_abc123" \
+  -H "Authorization: Bearer $TOKEN"
+
+curl "http://localhost:4000/v10/projects?slug=my-team" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+
+### Upstream
+
+&lt;!-- SYNCED from vercel-labs/emulate (skills/emulate/SKILL.md) --&gt;
+&lt;!-- Hash: 4cbe1c29594d746595ad412fc40dd5e3be129d48b284ce95680a714bdf73a660 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Service Emulation with emulate
+
+Local drop-in replacement services for CI and no-network sandboxes. Fully stateful, production-fidelity API emulation -- not mocks.
+
+## Quick Start
+
+```bash
+npx emulate
+```
+
+All services start with sensible defaults:
+
+| Service | Default Port |
+|---------|-------------|
+| Vercel  | 4000        |
+| GitHub  | 4001        |
+| Google  | 4002        |
+
+## CLI
+
+```bash
+# Start all services (zero-config)
+emulate
+
+# Start specific services
+emulate --service vercel,github
+
+# Custom base port (auto-increments per service)
+emulate --port 3000
+
+# Use a seed config file
+emulate --seed config.yaml
+
+# Generate a starter config
+emulate init
+
+# Generate config for a specific service
+emulate init --service vercel
+
+# List available services
+emulate list
+```
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `4000` | Base port (auto-increments per service) |
+| `-s, --service` | all | Comma-separated services to enable |
+| `--seed` | auto-detect | Path to seed config (YAML or JSON) |
+
+The port can also be set via `EMULATE_PORT` or `PORT` environment variables.
+
+## Programmatic API
+
+```bash
+npm install emulate
+```
+
+Each call to `createEmulator` starts a single service:
+
+```typescript
+import { createEmulator } from 'emulate'
+
+const github = await createEmulator({ service: 'github', port: 4001 })
+const vercel = await createEmulator({ service: 'vercel', port: 4002 })
+
+github.url   // 'http://localhost:4001'
+vercel.url   // 'http://localhost:4002'
+
+await github.close()
+await vercel.close()
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `service` | *(required)* | `'github'`, `'vercel'`, or `'google'` |
+| `port` | `4000` | Port for the HTTP server |
+| `seed` | none | Inline seed data (same shape as YAML config) |
+
+### Instance Methods
+
+| Method | Description |
+|--------|-------------|
+| `url` | Base URL of the running server |
+| `reset()` | Wipe the store and replay seed data |
+| `close()` | Shut down the HTTP server, returns a Promise |
+
+## Vitest / Jest Setup
+
+```typescript
+import { createEmulator, type Emulator } from 'emulate'
+
+let github: Emulator
+let vercel: Emulator
+
+beforeAll(async () => {
+  ;[github, vercel] = await Promise.all([
+    createEmulator({ service: 'github', port: 4001 }),
+    createEmulator({ service: 'vercel', port: 4002 }),
+  ])
+  process.env.GITHUB_URL = github.url
+  process.env.VERCEL_URL = vercel.url
+})
+
+afterEach(() => { github.reset(); vercel.reset() })
+afterAll(() => Promise.all([github.close(), vercel.close()]))
+```
+
+## Configuration
+
+Configuration is optional. The CLI auto-detects config files in this order:
+
+1. `emulate.config.yaml` / `.yml`
+2. `emulate.config.json`
+3. `service-emulator.config.yaml` / `.yml`
+4. `service-emulator.config.json`
+
+Or pass `--seed &lt;file&gt;` explicitly. Run `emulate init` to generate a starter file.
+
+### Config Structure
+
+```yaml
+tokens:
+  my_token:
+    login: admin
+    scopes: [repo, user]
+
+vercel:
+  users:
+    - username: developer
+      name: Developer
+      email: dev@example.com
+  teams:
+    - slug: my-team
+      name: My Team
+  projects:
+    - name: my-app
+      team: my-team
+      framework: nextjs
+  integrations:
+    - client_id: oac_abc123
+      client_secret: secret_abc123
+      name: My Vercel App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/vercel
+
+github:
+  users:
+    - login: octocat
+      name: The Octocat
+      email: octocat@github.com
+  orgs:
+    - login: my-org
+      name: My Organization
+  repos:
+    - owner: octocat
+      name: hello-world
+      language: JavaScript
+      auto_init: true
+  oauth_apps:
+    - client_id: Iv1.abc123
+      client_secret: secret_abc123
+      name: My Web App
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/github
+
+google:
+  users:
+    - email: testuser@example.com
+      name: Test User
+  oauth_clients:
+    - client_id: my-client-id.apps.googleusercontent.com
+      client_secret: GOCSPX-secret
+      redirect_uris:
+        - http://localhost:3000/api/auth/callback/google
+```
+
+### Auth
+
+Tokens map to users. Pass them as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`. When no tokens are configured, a default `gho_test_token_admin` is created for the `admin` user.
+
+Each service also has a fallback user -- if no token is provided, requests authenticate as the first seeded user.
+
+## Pointing Your App at the Emulator
+
+Set environment variables to override real service URLs:
+
+```bash
+GITHUB_EMULATOR_URL=http://localhost:4001
+VERCEL_EMULATOR_URL=http://localhost:4000
+GOOGLE_EMULATOR_URL=http://localhost:4002
+```
+
+Then use these in your app to construct API and OAuth URLs. See each service's skill for SDK-specific override instructions.
+
+## Architecture
+
+```
+packages/
+  emulate/           # CLI entry point + programmatic API
+  @emulators/
+    core/            # HTTP server (Hono), Store, plugin interface, middleware
+    vercel/          # Vercel API service plugin
+    github/          # GitHub API service plugin
+    google/          # Google OAuth 2.0 / OIDC plugin
+```
+
+The core provides a generic `Store` with typed `Collection&lt;T&gt;` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes on the shared Hono app and uses the store for state.
 

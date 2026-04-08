@@ -39,7 +39,8 @@ vi.mock('../../lib/common.js', async () => {
 });
 
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
-import { logHook, logPermissionFeedback, outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -59,8 +60,10 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 // Tests
 // ---------------------------------------------------------------------------
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -80,7 +83,7 @@ describe('gh-label-enforcer', () => {
       '',
     ])('returns silent success for: %s', (command) => {
       const input = createBashInput(command);
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -93,7 +96,7 @@ describe('gh-label-enforcer', () => {
         project_dir: '/test/project',
         tool_input: {},
       };
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -105,7 +108,7 @@ describe('gh-label-enforcer', () => {
   describe('gh issue create — without --label', () => {
     it('blocks gh issue create with no label flag', () => {
       const input = createBashInput('gh issue create --title "Fix auth bug"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(false);
       expect(outputDeny).toHaveBeenCalled();
@@ -113,14 +116,14 @@ describe('gh-label-enforcer', () => {
 
     it('blocks gh issue create with --title but no --label', () => {
       const input = createBashInput('gh issue create --title "My issue" --body "Details here"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(false);
     });
 
     it('deny message lists example labels', () => {
       const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
       const denyCall = vi.mocked(outputDeny).mock.calls[0][0];
       expect(denyCall).toContain('--label');
@@ -130,7 +133,7 @@ describe('gh-label-enforcer', () => {
 
     it('deny message includes example command', () => {
       const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
       const denyCall = vi.mocked(outputDeny).mock.calls[0][0];
       expect(denyCall).toContain('Example:');
@@ -138,9 +141,9 @@ describe('gh-label-enforcer', () => {
 
     it('calls logPermissionFeedback with deny', () => {
       const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
-      expect(logPermissionFeedback).toHaveBeenCalledWith(
+      expect(testCtx.logPermission).toHaveBeenCalledWith(
         'deny',
         expect.stringContaining('missing --label'),
         input,
@@ -149,9 +152,9 @@ describe('gh-label-enforcer', () => {
 
     it('calls logHook for blocked command', () => {
       const input = createBashInput('gh issue create --title "Test"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'gh-label-enforcer',
         expect.stringContaining('Blocked'),
       );
@@ -161,7 +164,7 @@ describe('gh-label-enforcer', () => {
   describe('gh issue create — with --label (allowed)', () => {
     it('allows gh issue create with --label flag', () => {
       const input = createBashInput('gh issue create --title "Fix auth bug" --label bug');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -169,14 +172,14 @@ describe('gh-label-enforcer', () => {
 
     it('allows gh issue create with --label followed by quoted value', () => {
       const input = createBashInput('gh issue create --title "Feature" --label "enhancement"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
 
     it('allows gh issue create with -l shorthand', () => {
       const input = createBashInput('gh issue create --title "Chore" -l chore');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -184,7 +187,7 @@ describe('gh-label-enforcer', () => {
 
     it('allows gh issue create with label before title', () => {
       const input = createBashInput('gh issue create --label bug --title "Crash on login"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -197,7 +200,7 @@ describe('gh-label-enforcer', () => {
   describe('gh pr create — without --label', () => {
     it('returns advisory context (not a block) for gh pr create without --label', () => {
       const input = createBashInput('gh pr create --title "My PR" --base main');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputAllowWithContext).toHaveBeenCalled();
@@ -206,7 +209,7 @@ describe('gh-label-enforcer', () => {
 
     it('advisory message mentions --label', () => {
       const input = createBashInput('gh pr create --title "My PR"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
       const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
       expect(ctxCall).toContain('--label');
@@ -214,9 +217,9 @@ describe('gh-label-enforcer', () => {
 
     it('logs advisory for pr without label', () => {
       const input = createBashInput('gh pr create --title "My PR"');
-      ghLabelEnforcer(input);
+      ghLabelEnforcer(input, testCtx);
 
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'gh-label-enforcer',
         expect.stringContaining('Advisory'),
       );
@@ -226,7 +229,7 @@ describe('gh-label-enforcer', () => {
   describe('gh pr create — with --label (silent)', () => {
     it('returns silent success for gh pr create with --label', () => {
       const input = createBashInput('gh pr create --title "My PR" --label enhancement');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -235,7 +238,7 @@ describe('gh-label-enforcer', () => {
 
     it('returns silent success for gh pr create with -l shorthand', () => {
       const input = createBashInput('gh pr create --title "My PR" -l bug');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });
@@ -249,7 +252,7 @@ describe('gh-label-enforcer', () => {
     it('gh issue create block takes priority over gh pr create advisory when both appear', () => {
       // Pathological command — gh issue create is matched first
       const input = createBashInput('gh issue create --title "A" && gh pr create --title "B"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       // isIssueCreate is true → block path
       expect(result.continue).toBe(false);
@@ -258,7 +261,7 @@ describe('gh-label-enforcer', () => {
     it('does not falsely match "gh issue created" (past tense)', () => {
       // "gh issue created" does NOT match /gh\s+issue\s+create/ with word boundary
       const input = createBashInput('echo "gh issue created successfully"');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       // The regex /gh\s+issue\s+create/ matches the substring "gh issue create" in "created"
       // This is intentional — the hook is conservative (false positive acceptable)
@@ -267,7 +270,7 @@ describe('gh-label-enforcer', () => {
 
     it('handles multiline command', () => {
       const input = createBashInput('gh issue create \\\n  --title "Bug" \\\n  --label bug');
-      const result = ghLabelEnforcer(input);
+      const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
     });

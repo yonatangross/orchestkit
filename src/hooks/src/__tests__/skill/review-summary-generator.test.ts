@@ -7,6 +7,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
@@ -30,14 +31,12 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getLogDir: vi.fn(() => '/test/logs'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { reviewSummaryGenerator } from '../../skill/review-summary-generator.js';
 import { outputSilentSuccess, getLogDir } from '../../lib/common.js';
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -60,8 +59,10 @@ function createStopInput(overrides: Partial<HookInput> = {}): HookInput {
 // Review Summary Generator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('review-summary-generator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-01-15T10:30:45.000Z'));
@@ -82,7 +83,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -96,7 +97,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -110,7 +111,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -121,7 +122,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -132,7 +133,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
@@ -149,7 +150,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith('/test/logs', { recursive: true });
@@ -159,9 +160,10 @@ describe('review-summary-generator', () => {
       // Arrange
       const input = createStopInput();
       vi.mocked(getLogDir).mockReturnValue('/custom/log/path');
+      (testCtx as any).logDir = '/custom/log/path';
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith('/custom/log/path', { recursive: true });
@@ -177,7 +179,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -195,7 +197,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const calls = vi.mocked(appendFileSync).mock.calls;
@@ -208,7 +210,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -226,7 +228,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -238,7 +240,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -250,7 +252,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -266,7 +268,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -282,7 +284,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -305,7 +307,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       const writtenContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
@@ -326,7 +328,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act & Assert
-      expect(() => reviewSummaryGenerator(input)).not.toThrow();
+      expect(() => reviewSummaryGenerator(input, testCtx)).not.toThrow();
     });
 
     test('silently ignores appendFileSync errors', () => {
@@ -337,7 +339,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act & Assert
-      expect(() => reviewSummaryGenerator(input)).not.toThrow();
+      expect(() => reviewSummaryGenerator(input, testCtx)).not.toThrow();
     });
 
     test('attempts to write log even if mkdir fails', () => {
@@ -348,7 +350,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act
-      reviewSummaryGenerator(input);
+      reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(appendFileSync).toHaveBeenCalled();
@@ -365,7 +367,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput({});
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -376,7 +378,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput({ hook_event: undefined });
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -391,7 +393,7 @@ describe('review-summary-generator', () => {
       };
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -408,11 +410,12 @@ describe('review-summary-generator', () => {
 
       for (const path of paths) {
         vi.mocked(getLogDir).mockReturnValue(path);
+        (testCtx as any).logDir = path;
         vi.clearAllMocks();
         const input = createStopInput();
 
         // Act
-        reviewSummaryGenerator(input);
+        reviewSummaryGenerator(input, testCtx);
 
         // Assert
         expect(mkdirSync).toHaveBeenCalledWith(path, { recursive: true });
@@ -437,7 +440,7 @@ describe('review-summary-generator', () => {
       });
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -449,7 +452,7 @@ describe('review-summary-generator', () => {
       const input = createStopInput();
 
       // Act
-      const result = reviewSummaryGenerator(input);
+      const result = reviewSummaryGenerator(input, testCtx);
 
       // Assert
       expect(result).toHaveProperty('continue');

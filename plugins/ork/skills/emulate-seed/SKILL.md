@@ -1,6 +1,6 @@
 ---
 name: emulate-seed
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 tags: [emulate, testing, api-emulation, github, vercel, google, seed, ci, stateful-testing]
 version: 1.0.0
 author: OrchestKit
@@ -10,7 +10,7 @@ complexity: medium
 metadata:
   category: testing
   upstream-package: emulate
-  upstream-version-tested: "0.2.0"
+  upstream-version-tested: "0.3.0"
 ---
 
 # Emulate Seed Configs
@@ -34,7 +34,7 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 ## Quick Start
 
 ```bash
-# Install
+# Install (v0.3.0+: packages moved to @emulators/* scope)
 npm install --save-dev emulate
 
 # Start all services
@@ -58,7 +58,6 @@ npx emulate init --service github
 | **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
 | **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation |
 | **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
-| **MongoDB Atlas** | `:4007` | Admin API v2 + Data API v1 — query, update, aggregation pipeline |
 
 See `references/api-coverage.md` for full endpoint lists.
 
@@ -102,10 +101,12 @@ See `rules/seed-config.md` for full schema and best practices.
 
 ## Programmatic SDK
 
-```typescript
-import { createEmulator } from 'emulate'
+> **v0.3.0 scope change**: Packages moved to `@emulators/*` scope (e.g., `@emulators/emulate`). The bare `emulate` import still works as a re-export but is deprecated.
 
-const github = await createEmulator({ service: 'github', port: 4001 })
+```typescript
+import { createEmulate } from '@emulators/emulate'
+
+const github = await createEmulate({ service: 'github', port: 4001 })
 // github.url -> 'http://localhost:4001'
 
 // State is real — create a PR and it appears in the list
@@ -207,4 +208,4 @@ See `references/cli-reference.md` for all CLI flags and commands.
 
 ## SDK Patterns
 
-See `references/sdk-patterns.md` for programmatic `createEmulator()` usage.
+See `references/sdk-patterns.md` for programmatic `createEmulate()` usage.

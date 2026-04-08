@@ -100,50 +100,66 @@ DIVERGENT MODE: Generate as many approaches as possible.
 
 ---
 
-## Phase 3: Feasibility Fast-Check
+## Phase 3: Keep / Discard / Crash Gate
 
-30-second viability assessment per idea, including testability.
+Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring — just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
 
-| Score | Label | Action |
-|-------|-------|--------|
-| 0-2 | Infeasible | Drop immediately |
-| 3-5 | Challenging | Keep (flag risks) |
-| 6-8 | Feasible | Keep for evaluation |
-| 9-10 | Easy | Keep (may be too simple) |
+**Time budget: 10 seconds per idea.** For each idea from Phase 2, answer ONE question: *"If we built this, would it work?"*
 
-### Testability Quick-Check (per idea)
+| Status | Criteria | Action |
+|--------|----------|--------|
+| **keep** | Could work with known technology for this tier | → Phase 4 |
+| **discard** | Fundamentally broken, OVERKILL for tier, or duplicates a prior `discard` in experiment journal | → Drop |
+| **crash** | Can't assess — missing information or ambiguous scope | → Flag for user, skip |
 
-Ask these 3 questions for each surviving idea:
+**Discard reasons** (tag each discard for experiment journal):
+- `overkill` — exceeds project tier complexity ceiling
+- `infeasible` — requires technology/resources not available
+- `duplicate` — too similar to a previously discarded approach
+- `untestable` — no seam for testing core logic without real services
 
-1. **Unit testable?** Can core logic be tested without external services?
-2. **Mock surface?** How many dependencies need mocking/stubbing? (fewer = better)
-3. **Integration testable?** Can this be tested with real services via docker-compose/testcontainers?
+**Experiment journal check** (if `.claude/experiments/brainstorm-{topic}.tsv` exists):
+```python
+# Pre-filter: skip ideas similar to previous 'discard' entries
+prior = Read(f".claude/experiments/brainstorm-{topic_slug}.tsv")
+# If a similar idea was discarded before, auto-discard with reason 'duplicate'
+```
 
-Flag ideas that require mocking 5+ dependencies or cannot be integration-tested without complex setup.
+**Output format:**
+```
+Phase 3 Gate Results (N ideas → M survivors)
+  ✓ keep    — JWT + Redis sessions
+  ✓ keep    — Session-only with signed cookies
+  ✗ discard — Custom token protocol (infeasible: reinvents OAuth)
+  ? crash   — Blockchain auth (can't assess without more context)
+```
 
 ---
 
 ## Phase 4: Evaluation & Rating
 
-See `evaluation-rubric.md` for scoring criteria (6 dimensions including **testability**).
+See `evaluation-rubric.md` for scoring criteria (7 dimensions including **testability** and **simplicity**).
 See `devils-advocate-prompts.md` for challenge templates (including testing challenges).
 
 ### Composite Score Formula
 
 ```python
 composite = (
-    impact * 0.20 +
+    impact * 0.15 +
     (10 - effort) * 0.20 +
     (10 - risk) * 0.15 +
     alignment * 0.20 +
     testability * 0.15 +
-    innovation * 0.10
+    simplicity * 0.10 +
+    innovation * 0.05
 )
 
 # Devil's advocate adjustment
 if critical_concerns > 0:
     composite *= 0.7  # 30% penalty
 ```
+
+See `evaluation-rubric.md` for the Simplicity scoring guide — scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
 
 ---
 

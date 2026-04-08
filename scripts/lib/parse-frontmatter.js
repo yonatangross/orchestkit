@@ -63,7 +63,12 @@ function parseYamlFrontmatter(content) {
     // Check for array item
     if (line.match(/^\s+-\s+/)) {
       if (inArray && currentKey) {
-        const value = line.replace(/^\s+-\s+/, '').trim();
+        let value = line.replace(/^\s+-\s+/, '').trim();
+        // Remove surrounding quotes from array items
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
         if (!Array.isArray(frontmatter[currentKey])) {
           frontmatter[currentKey] = [];
         }

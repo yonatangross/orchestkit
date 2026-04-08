@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 const { mockAppendFileSync } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
@@ -19,11 +20,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
@@ -31,16 +28,15 @@ vi.mock('node:fs', () => ({
   mkdirSync: vi.fn(),
 }));
 
-vi.mock('node:path', () => ({
-  join: vi.fn((...args: string[]) => args.join('/')),
-  dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-  basename: vi.fn((p: string) => p.split('/').pop() || ''),
-}));
+vi.mock('node:path', () => {
+  const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
+  return { ...named, default: named };
+});
 
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import type { HookInput } from '../../types.js';
 // appendFileSync import removed — use mockAppendFileSync directly
-import { logHook } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createSkillInput(skillName: string, args: string = ''): HookInput {
   return {
@@ -51,8 +47,10 @@ function createSkillInput(skillName: string, args: string = ''): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('skill-tracker', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -63,7 +61,7 @@ describe('skill-tracker', () => {
       project_dir: '/test/project',
       tool_input: {},
     };
-    const result = skillTracker(input);
+    const result = skillTracker(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -71,7 +69,7 @@ describe('skill-tracker', () => {
 
   it('logs skill invocation to usage log file', () => {
     const input = createSkillInput('unit-testing');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
     expect(mockAppendFileSync).toHaveBeenCalledTimes(1); // usage log only (analytics JSONL removed #919)
     const usageCall = mockAppendFileSync.mock.calls[0];
@@ -81,7 +79,7 @@ describe('skill-tracker', () => {
 
   it('always returns silent success after logging', () => {
     const input = createSkillInput('recall', '--graph database');
-    const result = skillTracker(input);
+    const result = skillTracker(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -89,9 +87,9 @@ describe('skill-tracker', () => {
 
   it('calls logHook with skill name', () => {
     const input = createSkillInput('e2e-testing');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
-    expect(logHook).toHaveBeenCalledWith(
+    expect(testCtx.log).toHaveBeenCalledWith(
       'skill-tracker',
       expect.stringContaining('e2e-testing')
     );
@@ -99,7 +97,7 @@ describe('skill-tracker', () => {
 
   it('handles skill invocation without args', () => {
     const input = createSkillInput('run-tests');
-    skillTracker(input);
+    skillTracker(input, testCtx);
 
     const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[1])).toContain('no args');

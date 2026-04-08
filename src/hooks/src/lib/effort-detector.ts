@@ -4,11 +4,20 @@
 /**
  * Effort Level Detector — Reads the current /effort setting
  * CC 2.1.76+: /effort slash command sets model effort level mid-session.
+ * CC 2.1.94+: default effort level changed from 'medium' to 'high' for
+ *             API-key / Bedrock / Vertex / Foundry / Team / Enterprise users.
  *
  * Detection order:
- * 1. hook input field (effort_level)
+ * 1. hook input field (effort_level) — authoritative when CC sends it
  * 2. CLAUDE_EFFORT environment variable
- * 3. Default: 'medium'
+ * 3. Default: 'high' (aligned with CC 2.1.94 default — was 'medium' pre-2.1.94)
+ *
+ * Why 'high' as the fallback: on CC >= 2.1.94 the field is normally present,
+ * so this fallback mostly affects test runs and edge cases where effort_level
+ * is missing. Aligning the fallback with CC's new default keeps token budgets
+ * consistent between tests and production. Tests that need a specific level
+ * should set `effort_level` on the input explicitly rather than rely on the
+ * fallback.
  */
 
 import type { HookInput } from '../types.js';
@@ -16,6 +25,9 @@ import type { HookInput } from '../types.js';
 export type EffortLevel = 'low' | 'medium' | 'high';
 
 const VALID_LEVELS = new Set<EffortLevel>(['low', 'medium', 'high']);
+
+/** Default effort level — aligned with CC 2.1.94+ (was 'medium' pre-2.1.94) */
+export const DEFAULT_EFFORT_LEVEL: EffortLevel = 'high';
 
 /**
  * Detect current effort level from hook input or environment.
@@ -33,8 +45,8 @@ export function detectEffortLevel(input: HookInput): EffortLevel {
     return fromEnv as EffortLevel;
   }
 
-  // 3. Default
-  return 'medium';
+  // 3. Default (CC 2.1.94+ aligned)
+  return DEFAULT_EFFORT_LEVEL;
 }
 
 /**

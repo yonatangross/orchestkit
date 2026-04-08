@@ -7,13 +7,14 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess } from '../lib/common.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Check if we should run tests
  */
-function shouldRunTests(projectDir: string): boolean {
+function shouldRunTests(projectDir: string, ctx: HookContext): boolean {
   const lastRunFile = `${projectDir}/.claude/hooks/logs/.last-test-run`;
 
   // Always run if no previous run
@@ -38,14 +39,14 @@ function shouldRunTests(projectDir: string): boolean {
     return true;
   }
 
-  logHook('full-test-suite', 'No code changes detected, skipping tests');
+  ctx.log('full-test-suite', 'No code changes detected, skipping tests');
   return false;
 }
 
 /**
  * Detect project type and run appropriate tests
  */
-function runTests(projectDir: string, _logFile: string): boolean {
+function runTests(projectDir: string, _logFile: string, ctx: HookContext): boolean {
   let exitCode = 0;
 
   // Python project (pytest)
@@ -54,7 +55,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
     existsSync(`${projectDir}/pyproject.toml`) ||
     (existsSync(`${projectDir}/tests`) && existsSync(`${projectDir}/requirements.txt`))
   ) {
-    logHook('full-test-suite', 'Detected Python project, running pytest...');
+    ctx.log('full-test-suite', 'Detected Python project, running pytest...');
     try {
       execFileSync('pytest', ['--tb=short', '--timeout=300', '-q'], {
         cwd: projectDir,
@@ -69,11 +70,11 @@ function runTests(projectDir: string, _logFile: string): boolean {
 
   // Node.js project (npm/yarn/pnpm)
   if (existsSync(`${projectDir}/package.json`)) {
-    logHook('full-test-suite', 'Detected Node.js project...');
+    ctx.log('full-test-suite', 'Detected Node.js project...');
     try {
       const packageJson = JSON.parse(readFileSync(`${projectDir}/package.json`, 'utf-8'));
       if (packageJson.scripts?.test) {
-        logHook('full-test-suite', 'Running npm test...');
+        ctx.log('full-test-suite', 'Running npm test...');
 
         // Try different package managers
         let testCmd = 'npm';
@@ -106,7 +107,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
 
   // Go project
   if (existsSync(`${projectDir}/go.mod`)) {
-    logHook('full-test-suite', 'Detected Go project, running go test...');
+    ctx.log('full-test-suite', 'Detected Go project, running go test...');
     try {
       execFileSync('go', ['test', '-v', '-timeout', '5m', './...'], {
         cwd: projectDir,
@@ -121,7 +122,7 @@ function runTests(projectDir: string, _logFile: string): boolean {
 
   // Rust project
   if (existsSync(`${projectDir}/Cargo.toml`)) {
-    logHook('full-test-suite', 'Detected Rust project, running cargo test...');
+    ctx.log('full-test-suite', 'Detected Rust project, running cargo test...');
     try {
       execFileSync('cargo', ['test'], {
         cwd: projectDir,
@@ -140,10 +141,10 @@ function runTests(projectDir: string, _logFile: string): boolean {
 /**
  * Full test suite runner
  */
-export function fullTestSuite(input: HookInput): HookResult {
-  logHook('full-test-suite', '=== Full Test Suite Started ===');
+export function fullTestSuite(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  ctx.log('full-test-suite', '=== Full Test Suite Started ===');
 
-  const projectDir = input.project_dir || getProjectDir();
+  const projectDir = input.project_dir || (ctx.projectDir);
   const logDir = `${projectDir}/.claude/hooks/logs`;
 
   // Ensure log directory exists
@@ -155,14 +156,14 @@ export function fullTestSuite(input: HookInput): HookResult {
 
   const logFile = `${logDir}/full-test-suite.log`;
 
-  if (!shouldRunTests(projectDir)) {
+  if (!shouldRunTests(projectDir, ctx)) {
     return outputSilentSuccess();
   }
 
-  const passed = runTests(projectDir, logFile);
+  const passed = runTests(projectDir, logFile, ctx);
 
   if (passed) {
-    logHook('full-test-suite', '=== All tests passed ===');
+    ctx.log('full-test-suite', '=== All tests passed ===');
     // Update last run file
     try {
       writeFileSync(`${logDir}/.last-test-run`, String(Date.now()));
@@ -170,7 +171,7 @@ export function fullTestSuite(input: HookInput): HookResult {
       // Ignore
     }
   } else {
-    logHook('full-test-suite', '=== Some tests failed ===');
+    ctx.log('full-test-suite', '=== Some tests failed ===');
     // Don't block - just log the failure
   }
 

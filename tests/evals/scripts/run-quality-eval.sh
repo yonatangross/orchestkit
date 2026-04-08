@@ -41,6 +41,7 @@ source "$SCRIPT_DIR/lib/eval-common.sh"
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 SKILLS_EVAL_DIR="$EVALS_DIR/skills"
 RESULTS_DIR="$EVALS_DIR/results/skills"
+HOOK_CONFLICTS_FILE="$EVALS_DIR/known-hook-conflicts.json"
 PLUGIN_DIR="plugins/ork"
 REPS=1
 CAPTURE_ONLY=false
@@ -995,11 +996,33 @@ eval_skill() {
     local end_time; end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
+    # ─── Hook Compatibility Section ──────────────────────────────────
+    local known_rejections=0
+    local new_rejections="$agg_hook_rejections"
+    local compat_status="${GREEN}COMPATIBLE ✓${NC}"
+
+    if [[ -f "$HOOK_CONFLICTS_FILE" ]] && command -v jq &> /dev/null; then
+        known_rejections=$(jq -r \
+            --arg skill "$skill_id" \
+            '[.expected_conflicts[] | select(.skill == $skill) | .rejections] | add // 0' \
+            "$HOOK_CONFLICTS_FILE" 2>/dev/null) || known_rejections=0
+        new_rejections=$((agg_hook_rejections - known_rejections))
+        if [[ $new_rejections -lt 0 ]]; then new_rejections=0; fi
+    fi
+
+    if [[ $new_rejections -gt 0 ]]; then
+        compat_status="${RED}NEW CONFLICTS ✗${NC}"
+    elif [[ $agg_hook_rejections -gt 0 ]]; then
+        compat_status="${YELLOW}KNOWN CONFLICTS${NC}"
+    fi
+
     echo -e "${BLUE}+========================================================+${NC}"
     if [[ "$non_disc" -gt 0 ]]; then
         echo -e "${BLUE}|${NC}  ${YELLOW}Non-discriminating: $non_disc assertion(s)${NC}"
     fi
-    echo -e "${BLUE}|${NC}  Hook rejections: $agg_hook_rejections"
+    echo -e "${BLUE}|${NC}  Hook Compatibility"
+    echo -e "${BLUE}|${NC}    Rejections: $agg_hook_rejections (${new_rejections} new, ${known_rejections} known)"
+    echo -e "${BLUE}|${NC}    Status: $compat_status"
     echo -e "${BLUE}|${NC}  Verdict: ${BOLD}$verdict_display${NC}"
     echo -e "${BLUE}|${NC}  Duration: ${duration}s"
     echo -e "${BLUE}+========================================================+${NC}"

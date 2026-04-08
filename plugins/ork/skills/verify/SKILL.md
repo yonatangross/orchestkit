@@ -9,7 +9,7 @@ version: 4.2.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
 complexity: high
 effort: high
@@ -161,19 +161,34 @@ CronCreate(
 ## Task Management (CC 2.1.16)
 
 ```python
-# Create main verification task
+# 1. Create main verification task
 TaskCreate(
   subject="Verify [feature-name] implementation",
   description="Comprehensive verification with nuanced grading",
   activeForm="Verifying [feature-name] implementation"
 )
 
-# Create subtasks for 8-phase process
-phases = ["Run code quality checks", "Execute security audit",
-          "Verify test coverage", "Validate API", "Check UI/UX",
-          "Calculate grades", "Generate suggestions", "Compile report"]
-for phase in phases:
-    TaskCreate(subject=phase, activeForm=f"{phase}ing")
+# 2. Create subtasks for 8-phase process
+TaskCreate(subject="Run code quality checks", activeForm="Running quality checks")    # id=2
+TaskCreate(subject="Execute security audit", activeForm="Running security audit")     # id=3
+TaskCreate(subject="Verify test coverage", activeForm="Verifying test coverage")      # id=4
+TaskCreate(subject="Validate API", activeForm="Validating API")                       # id=5
+TaskCreate(subject="Check UI/UX", activeForm="Checking UI/UX")                       # id=6
+TaskCreate(subject="Calculate grades", activeForm="Calculating grades")               # id=7
+TaskCreate(subject="Generate suggestions", activeForm="Generating suggestions")       # id=8
+TaskCreate(subject="Compile report", activeForm="Compiling report")                   # id=9
+
+# 3. Set dependencies — phases 2-6 run in parallel, 7-9 are sequential
+TaskUpdate(taskId="7", addBlockedBy=["2", "3", "4", "5", "6"])  # Grading needs all checks
+TaskUpdate(taskId="8", addBlockedBy=["7"])  # Suggestions need grades
+TaskUpdate(taskId="9", addBlockedBy=["8"])  # Report needs suggestions
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---
@@ -312,6 +327,26 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 | `evidence-collection.md` | Evidence gathering and test patterns |
 
 ---
+
+## Agent Coordination
+
+### SendMessage (Cross-Agent Findings)
+
+When a security agent finds a critical issue, share it with other verification agents:
+
+```python
+SendMessage(to="test-generator", message="Security: SQL injection in user_service.py:88 — add parameterized query test")
+SendMessage(to="code-quality-reviewer", message="Security finding at user_service.py:88 — flag in review")
+```
+
+### Skill Chain
+
+After verification, chain to commit if all gates pass:
+
+```python
+TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlockedBy=[verify_task_id])
+# Then: /ork:commit
+```
 
 ## Related Skills
 

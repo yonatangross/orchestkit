@@ -1,12 +1,13 @@
 ---
 title: "ElicitationResult"
-description: "Hooks triggered on ElicitationResult events (1 hooks)."
+description: "Hooks triggered on ElicitationResult events (2 hooks)."
 ---
 
 # ElicitationResult Hooks
 
-**1 hooks** registered for the `ElicitationResult` lifecycle event.
+**2 hooks** registered for the `ElicitationResult` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `elicitation-result-logger` | `*` | 🔇 Silent | ElicitationResult Logger — Tracks elicitation outcomes for analytics |
+| `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

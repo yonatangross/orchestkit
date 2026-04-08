@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.84 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.84 TaskCreated/WorktreeCreate HTTP)
+ * CC 2.1.94 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit)
  */
 
 /**
@@ -30,7 +30,10 @@ export type HookEvent =
   | 'InstructionsLoaded'
   | 'PostCompact'
   | 'Elicitation'
-  | 'ElicitationResult';
+  | 'ElicitationResult'
+  | 'PermissionDenied'
+  | 'CwdChanged'
+  | 'FileChanged';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -52,8 +55,8 @@ export interface HookInput {
   exit_code?: number;
   /** Whether a stop hook is currently active (prevents re-entry) */
   stop_hook_active?: boolean;
-  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only) */
-  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk';
+  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only; CC 2.1.88: 'auto' mode — classifier-based approval) */
+  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk' | 'auto';
   /** User prompt (UserPromptSubmit only) */
   prompt?: string;
   /** Project directory */
@@ -168,6 +171,26 @@ export interface HookInput {
   worktree_path?: string;
   /** Hook type: "command" (default) or "http" (CC 2.1.84 — returns worktreePath in hookSpecificOutput) */
   type?: string;
+
+  // CwdChanged specific fields (CC 2.1.83)
+  /** Previous working directory (CwdChanged) */
+  old_cwd?: string;
+  /** New working directory (CwdChanged) */
+  new_cwd?: string;
+
+  // SubagentStart context (CC 2.1.89)
+  /** Whether this subagent was forked (cache-sharing) vs cold-started (CC 2.1.89) */
+  is_fork?: boolean;
+  /** Cache creation input tokens (CC 2.1.89 — SubagentStop) */
+  cache_creation_input_tokens?: number;
+  /** Cache read input tokens (CC 2.1.89 — SubagentStop) */
+  cache_read_input_tokens?: number;
+
+  // FileChanged specific fields (CC 2.1.83)
+  /** Basename of the changed file (FileChanged — matched via hook `matcher` on basename) */
+  changed_file?: string;
+  /** Absolute path to the changed file (FileChanged) */
+  changed_file_path?: string;
 }
 
 /**
@@ -197,9 +220,9 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit';
-  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask') */
-  permissionDecision?: 'allow' | 'deny' | 'ask';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop';
+  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer') */
+  permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
   /** Additional context injected before tool execution (CC 2.1.9) */
@@ -212,6 +235,12 @@ export interface HookSpecificOutput {
   updatedPermissions?: Record<string, unknown>;
   /** Worktree path returned by HTTP-type WorktreeCreate hooks (CC 2.1.84) */
   worktreePath?: string;
+  /** Signal model to retry the denied tool call (PermissionDenied, CC 2.1.88) */
+  retry?: boolean;
+  /** Paths to watch for changes (CwdChanged, CC 2.1.89) */
+  watchPaths?: string[];
+  /** Session title (UserPromptSubmit, CC 2.1.94) — sets the display name shown in the prompt bar and remote sessions */
+  sessionTitle?: string;
 }
 
 /**
@@ -234,7 +263,7 @@ export interface HookResult {
 /**
  * Hook function signature
  */
-export type HookFn = (input: HookInput) => Promise<HookResult> | HookResult;
+export type HookFn = (input: HookInput, ctx: HookContext) => Promise<HookResult> | HookResult;
 
 /**
  * Hook metadata for auto-discovery and governance
@@ -339,4 +368,41 @@ export function isEditInput(input: ToolInput): input is EditToolInput {
 
 export function isReadInput(input: ToolInput): input is ReadToolInput {
   return typeof input.file_path === 'string' && input.content === undefined;
+}
+
+// -----------------------------------------------------------------------------
+// Hook Context — Dependency Injection (v7.29.0 Phase 4)
+// -----------------------------------------------------------------------------
+
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+/**
+ * HookContext provides environment and side-effect dependencies to hooks.
+ * Production: constructed by run-hook.mjs from real env/filesystem.
+ * Tests: plain objects with vi.fn() stubs — ZERO vi.mock needed.
+ */
+export interface HookContext {
+  /** Project directory (from CLAUDE_PROJECT_DIR or cwd) */
+  readonly projectDir: string;
+  /** Log directory (platform-specific) */
+  readonly logDir: string;
+  /** Plugin root directory (from CLAUDE_PLUGIN_ROOT) */
+  readonly pluginRoot: string;
+  /** Plugin persistent data directory (CC 2.1.78+, null if unavailable) */
+  readonly pluginDataDir: string | null;
+  /** Session ID (from CLAUDE_SESSION_ID or generated) */
+  readonly sessionId: string;
+  /** Current git branch (cached) */
+  readonly branch: string;
+  /** Log level (debug/info/warn/error) */
+  readonly logLevel: string;
+
+  /** Log a message (writes to logDir/hooks.log with rotation) */
+  log(hookName: string, message: string, level?: LogLevel): void;
+  /** Log a permission decision (security audit trail) */
+  logPermission(decision: 'allow' | 'deny' | 'ask' | 'warn', reason: string, input?: HookInput | Record<string, unknown>): void;
+  /** Write a rules file atomically with hash-guard skip */
+  writeRules(rulesDir: string, filename: string, content: string, hookName: string): boolean;
+  /** Check if should log at given level */
+  shouldLog(level: LogLevel): boolean;
 }

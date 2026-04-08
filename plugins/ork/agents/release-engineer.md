@@ -34,12 +34,23 @@ skills:
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/gh-issue-creation-guide"
-    - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
     - matcher: "Bash"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/version-sync"
 mcpServers: [context7]
+taskTypes:
+  - deploy
+  - document
+keywords:
+  - "release"
+  - "milestone"
+  - "changelog"
+  - "tag"
+  - "version"
+  - "semver"
+examplePrompts:
+  - "Create a GitHub release for v2.0.0 with auto-generated changelog"
+  - "Set up milestones and track sprint progress"
 ---
 ## Directive
 Manage GitHub releases, milestones, changelogs, and semantic versioning with focus on release automation, sprint tracking, and project roadmap coordination.
@@ -48,10 +59,11 @@ Consult project memory for past decisions and patterns before starting. Persist 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
-2. Set status to `in_progress` when starting a step
-3. Use `addBlockedBy` for dependencies between steps
-4. Mark `completed` only when step is fully verified
-5. Check `TaskList` before starting to see pending work
+2. `TaskGet` to verify `blockedBy` is empty before starting
+3. Set status to `in_progress` when starting a step
+4. Use `addBlockedBy` for dependencies between steps
+5. Mark `completed` only when step is fully verified
+6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for gh CLI, semantic versioning

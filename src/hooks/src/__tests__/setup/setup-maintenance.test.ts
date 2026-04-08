@@ -11,17 +11,9 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdirSync, writeFileSync, mkdtempSync, rmSync, statSync, chmodSync, utimesSync, readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import os from 'node:os';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputWithContext: vi.fn((msg: string) => ({
-    continue: true, suppressOutput: false,
-    hookSpecificOutput: { additionalContext: msg },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getPluginRoot: vi.fn(() => '/test/plugin-root'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/paths.js', () => ({
   getHomeDir: vi.fn(() => '/mock/home'),
@@ -43,6 +35,7 @@ import { getPluginRoot } from '../../lib/common.js';
 import { getHomeDir, getTempDir } from '../../lib/paths.js';
 import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import type { HookInput } from '../../types.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockGetPluginRoot = vi.mocked(getPluginRoot);
 const mockGetHomeDir = vi.mocked(getHomeDir);
@@ -63,9 +56,11 @@ function readMarker(): Record<string, unknown> {
   return JSON.parse(readFileSync(join(tmpDir, '.setup-complete'), 'utf-8'));
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 beforeEach(() => {
   vi.clearAllMocks();
   tmpDir = mkdtempSync(join(os.tmpdir(), 'setup-maint-test-'));
+  testCtx = createTestContext({ pluginRoot: tmpDir, projectDir: tmpDir });
   mockGetPluginRoot.mockReturnValue(tmpDir);
   mockGetHomeDir.mockReturnValue(join(tmpDir, 'home'));
   mockGetTempDir.mockReturnValue(join(tmpDir, 'tmp'));
@@ -82,7 +77,7 @@ describe('setup-maintenance', () => {
     test('auto mode with no marker still continues', () => {
       // Note: tasksCompleted is module-level and accumulates across calls,
       // so we only assert continue:true (not suppressOutput).
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -90,14 +85,14 @@ describe('setup-maintenance', () => {
       process.argv = ['node', 'test', '--force'];
       mkdirSync(join(tmpDir, '.claude', 'logs'), { recursive: true });
       writeMarker({ version: '4.25.0', last_maintenance: null });
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
     });
 
     test('migrate mode only runs version migration', () => {
       process.argv = ['node', 'test', '--migrate'];
       writeMarker({ version: '3.0.0' });
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
       expect(readMarker().version).toBe('4.25.0');
     });
@@ -122,7 +117,7 @@ describe('setup-maintenance', () => {
     test('runs daily tasks when >24h since last maintenance', () => {
       writeMarker({ last_maintenance: new Date(Date.now() - 25 * 3600_000).toISOString(), version: '4.25.0' });
       mkdirSync(join(tmpDir, '.claude', 'logs'), { recursive: true });
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
     });
 
@@ -130,7 +125,7 @@ describe('setup-maintenance', () => {
       writeMarker({ last_maintenance: new Date(Date.now() - 170 * 3600_000).toISOString(), version: '4.25.0' });
       mkdirSync(join(tmpDir, '.claude', 'logs'), { recursive: true });
       mkdirSync(join(tmpDir, 'hooks'), { recursive: true });
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
     });
   });
@@ -143,7 +138,7 @@ describe('setup-maintenance', () => {
       mkdirSync(logsDir, { recursive: true });
       writeFileSync(join(logsDir, 'big.log'), 'x'.repeat(205_000));
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(join(logsDir, 'big.log'))).toBe(false);
     });
 
@@ -153,7 +148,7 @@ describe('setup-maintenance', () => {
       mkdirSync(logsDir, { recursive: true });
       writeFileSync(join(logsDir, 'small.log'), 'small');
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(join(logsDir, 'small.log'))).toBe(true);
     });
 
@@ -163,7 +158,7 @@ describe('setup-maintenance', () => {
       mkdirSync(logsDir, { recursive: true });
       for (let i = 0; i < 7; i++) writeFileSync(join(logsDir, `a.log.old.2026-01-0${i + 1}`), 'old');
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       const remaining = readdirSync(logsDir).filter((f: string) => f.includes('.log.old.'));
       expect(remaining.length).toBeLessThanOrEqual(5);
     });
@@ -180,7 +175,7 @@ describe('setup-maintenance', () => {
       const eightDaysAgo = new Date(Date.now() - 8 * 86_400_000);
       utimesSync(old, eightDaysAgo, eightDaysAgo);
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(join(tmpDir, '.claude', 'context', 'archive', 'old-session'))).toBe(true);
       expect(existsSync(old)).toBe(false);
     });
@@ -192,7 +187,7 @@ describe('setup-maintenance', () => {
       const recent = join(sessionDir, 'recent');
       mkdirSync(recent);
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(recent)).toBe(true);
     });
   });
@@ -205,7 +200,7 @@ describe('setup-maintenance', () => {
       writeFileSync(lockFile, 'locked');
       utimesSync(lockFile, new Date(Date.now() - 48 * 3600_000), new Date(Date.now() - 48 * 3600_000));
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(lockFile)).toBe(false);
     });
 
@@ -214,7 +209,7 @@ describe('setup-maintenance', () => {
       const lockFile = join(tmpDir, 'recent.lock');
       writeFileSync(lockFile, 'locked');
       writeMarker({ version: '4.25.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(existsSync(lockFile)).toBe(true);
     });
 
@@ -226,7 +221,7 @@ describe('setup-maintenance', () => {
       // Create coordination dir so the path exists (triggering the check)
       mkdirSync(join(tmpDir, '.claude', 'coordination'), { recursive: true });
       writeFileSync(join(tmpDir, '.claude', 'coordination', '.claude.db'), '');
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(mockIsAgentTeamsActive).toHaveBeenCalled();
     });
   });
@@ -241,7 +236,7 @@ describe('setup-maintenance', () => {
       const sh = join(hooksDir, 'hook.sh');
       writeFileSync(sh, '#!/bin/bash');
       chmodSync(sh, 0o644);
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(statSync(sh).mode & 0o111).toBeTruthy();
     });
 
@@ -260,14 +255,14 @@ describe('setup-maintenance', () => {
     test('updates marker version on mismatch', () => {
       process.argv = ['node', 'test', '--migrate'];
       writeMarker({ version: '3.0.0' });
-      setupMaintenance(input());
+      setupMaintenance(input(), testCtx);
       expect(readMarker().version).toBe('4.25.0');
     });
 
     test('skips when version matches', () => {
       process.argv = ['node', 'test', '--migrate'];
       writeMarker({ version: '4.25.0' });
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
       // Version should remain unchanged
       expect(readMarker().version).toBe('4.25.0');
@@ -276,7 +271,7 @@ describe('setup-maintenance', () => {
     test('skips when no version in marker', () => {
       process.argv = ['node', 'test', '--migrate'];
       writeMarker({});
-      const result = setupMaintenance(input());
+      const result = setupMaintenance(input(), testCtx);
       expect(result.continue).toBe(true);
       // No version key should be added
       expect(readMarker().version).toBeUndefined();

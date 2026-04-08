@@ -67,7 +67,6 @@ export const TOOL_CATEGORIES: Record<string, ToolCategory> = {
   TaskUpdate: 'task_mgmt',
   TaskList: 'task_mgmt',
   TaskGet: 'task_mgmt',
-  TaskOutput: 'task_mgmt',
   TaskStop: 'task_mgmt',
 
   // Planning

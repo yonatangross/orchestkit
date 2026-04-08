@@ -7,31 +7,22 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks - MUST come BEFORE imports
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputBlock: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  logHook: vi.fn(),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('../../lib/guards.js', () => ({
   guardCodeFiles: vi.fn(() => null), // Default: allow through
 }));
 
 import { structureLocationValidator } from '../../skill/structure-location-validator.js';
-import { outputSilentSuccess, outputBlock, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputBlock } from '../../lib/common.js';
 import { guardCodeFiles } from '../../lib/guards.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -59,8 +50,10 @@ function createWriteInput(
 // Structure Location Validator Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('structure-location-validator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
     vi.mocked(guardCodeFiles).mockReturnValue(null); // Reset guard
   });
@@ -79,7 +72,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/services/user.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -90,7 +83,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/services/useAuth.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -101,7 +94,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/services/api.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.suppressOutput).toBe(true);
@@ -113,7 +106,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/README.md');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -131,7 +124,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/file.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
       expect(guardCodeFiles).toHaveBeenCalledWith(input);
@@ -144,7 +137,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/image.png');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result).toEqual(guardResult);
@@ -161,7 +154,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -177,7 +170,7 @@ describe('structure-location-validator', () => {
       };
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -199,7 +192,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -215,7 +208,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -229,7 +222,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/a/b/c/d/e/file.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
       expect(outputBlock).toHaveBeenCalledWith(
@@ -245,7 +238,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/lib/a/b/c/d/e/file.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -266,7 +259,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -280,7 +273,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/app/dashboard/index.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -291,7 +284,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/node_modules/react/index.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -302,7 +295,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/dist/index.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -313,7 +306,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/build/index.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -335,7 +328,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -351,7 +344,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -365,7 +358,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/utils/Button.tsx');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
       expect(outputBlock).toHaveBeenCalledWith(
@@ -381,7 +374,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/utils/buttonHelpers.tsx');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -402,7 +395,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -418,7 +411,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -432,7 +425,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/utils/useAuth.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
       expect(outputBlock).toHaveBeenCalledWith(
@@ -455,7 +448,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -470,7 +463,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -493,7 +486,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -508,7 +501,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -531,7 +524,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(expected);
@@ -546,7 +539,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput(filePath);
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -566,10 +559,10 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/utils/useAuth.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).toHaveBeenCalledWith(
+      expect(testCtx.log).toHaveBeenCalledWith(
         'structure-location-validator',
         expect.stringContaining('BLOCKED'),
       );
@@ -580,10 +573,10 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/services/api.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
-      expect(logHook).not.toHaveBeenCalled();
+      expect(testCtx.log).not.toHaveBeenCalled();
     });
   });
 
@@ -597,7 +590,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/archived/src/file.ts');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -608,7 +601,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -619,7 +612,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('C:\\project\\src\\components\\Button.tsx');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert - Windows backslash paths are normalized and validated correctly
       expect(result.continue).toBe(true);
@@ -630,7 +623,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/a/b/c/d/e/useAuth.ts');
 
       // Act
-      structureLocationValidator(input);
+      structureLocationValidator(input, testCtx);
 
       // Assert
       expect(outputBlock).toHaveBeenCalledTimes(1);
@@ -648,8 +641,8 @@ describe('structure-location-validator', () => {
       const appInput = createWriteInput('/project/app/a/b/c/d/e/file.ts');
 
       // Act
-      const srcResult = structureLocationValidator(srcInput);
-      const appResult = structureLocationValidator(appInput);
+      const srcResult = structureLocationValidator(srcInput, testCtx);
+      const appResult = structureLocationValidator(appInput, testCtx);
 
       // Assert
       expect(srcResult.continue).toBe(false);
@@ -661,7 +654,7 @@ describe('structure-location-validator', () => {
       const input = createWriteInput('/project/src/Button.tsx');
 
       // Act
-      const result = structureLocationValidator(input);
+      const result = structureLocationValidator(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);

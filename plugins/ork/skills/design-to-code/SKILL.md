@@ -113,13 +113,40 @@ INPUT = ""  # Full argument string
 ## Step 0: Detect Input Type and Project Context
 
 ```python
-TaskCreate(subject="Design to code: {INPUT}", description="Four-stage pipeline: extract, match, adapt, render")
+# 1. Create main task IMMEDIATELY
+TaskCreate(subject="Design to code: {INPUT}", description="Four-stage pipeline: extract, match, adapt, render", activeForm="Converting design to code")
+
+# 2. Create subtasks for each stage
+TaskCreate(subject="Extract design context", activeForm="Extracting design context")               # id=2
+TaskCreate(subject="Match components (Storybook-first)", activeForm="Matching components")         # id=3
+TaskCreate(subject="Adapt to project tokens and conventions", activeForm="Adapting to project")    # id=4
+TaskCreate(subject="Register in json-render catalog", activeForm="Registering in catalog")         # id=5
+TaskCreate(subject="Verify with Storybook self-healing", activeForm="Verifying component")         # id=6
+
+# 3. Set dependencies for sequential stages
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Match needs extracted design context
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Adapt needs matched components
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Render needs adapted component
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Verify needs rendered component
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 
 # Detect project's design system
 Glob("**/tailwind.config.*")
 Glob("**/tokens.css")
 Glob("**/.tokens.json")
 # Read existing tokens if found → used in Stage 3
+
+# Detect shadcn/ui style (v4 style system)
+Glob("**/components.json")
+# Read → style field (e.g., "radix-luma", "base-nova")
+# Determines class names: Luma=rounded-4xl, Nova=compact, Lyra=sharp
+# Store: SHADCN_STYLE for Stage 2 filtering + Stage 3 adaptation
 ```
 
 ## Stage 1: Extract Design Context
@@ -168,6 +195,8 @@ for component in inventory.components:
 # Use the component descriptions from Stage 1
 # Example: "animated pricing table with toggle"
 # Filter: React, Tailwind CSS, shadcn/ui compatible
+# If SHADCN_STYLE detected, prefer components matching style's visual language
+# (e.g., Luma → rounded/pill-shaped, Nova → compact/dense, Lyra → sharp/boxy)
 ```
 
 **Priority 3 — Filesystem fallback (if no MCP servers available):**
@@ -199,10 +228,15 @@ AskUserQuestion(questions=[{
 Merge the extracted design context with matched/generated components:
 
 1. **Apply project tokens** — Replace hardcoded colors/spacing with project's design tokens
-2. **Match naming conventions** — Follow project's component naming patterns
-3. **Add TypeScript types** — Full type safety with Zod validation for any data props
-4. **Include tests** — MSW handlers for API-backed components, render tests for static
-5. **Responsive** — Mobile-first with breakpoints matching project's system
+2. **Apply shadcn style classes** — If `SHADCN_STYLE` detected, use style-correct class names:
+   - Luma: `rounded-4xl` buttons/cards, `shadow-md` + `ring-1 ring-foreground/5`, `gap-6 py-6`
+   - Nova: compact `px-2 py-1`, reduced margins, tight spacing
+   - Lyra: `rounded-none`, sharp edges, monospace-friendly
+   - Mira: ultra-dense, minimal padding
+3. **Match naming conventions** — Follow project's component naming patterns
+4. **Add TypeScript types** — Full type safety with Zod validation for any data props
+5. **Include tests** — MSW handlers for API-backed components, render tests for static
+6. **Responsive** — Mobile-first with breakpoints matching project's system
 
 ### Output Structure
 ```

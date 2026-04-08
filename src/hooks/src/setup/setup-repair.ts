@@ -23,9 +23,10 @@ import {
   chmodSync,
 } from 'node:fs';
 import { atomicWriteSync } from '../lib/atomic-write.js';
-import type { HookInput, HookResult } from '../types.js';
-import { logHook, getPluginRoot, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { logHook, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -324,10 +325,10 @@ function checkCriticalComponents(pluginRoot: string): boolean {
 /**
  * Setup repair hook
  */
-export function setupRepair(_input: HookInput): HookResult {
-  const pluginRoot = getPluginRoot();
+export function setupRepair(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  const pluginRoot = ctx.pluginRoot;
 
-  logHook('setup-repair', 'Setup repair starting');
+  ctx.log('setup-repair', 'Setup repair starting');
 
   // Run repairs in order of importance
   repairDirectories(pluginRoot);
@@ -336,7 +337,7 @@ export function setupRepair(_input: HookInput): HookResult {
 
   // Check for critical missing components
   if (!checkCriticalComponents(pluginRoot)) {
-    logHook('setup-repair', 'WARN: Critical components missing, repair incomplete');
+    ctx.log('setup-repair', 'WARN: Critical components missing, repair incomplete');
   }
 
   // Regenerate marker file last (after other repairs)
@@ -353,7 +354,7 @@ export function setupRepair(_input: HookInput): HookResult {
     notifyUser = true;
   }
 
-  logHook('setup-repair', `Repair complete: ${repairsMade.length} repairs made, ${repairsFailed.length} issues`);
+  ctx.log('setup-repair', `Repair complete: ${repairsMade.length} repairs made, ${repairsFailed.length} issues`);
 
   // Output result
   if (notifyUser && repairSummary) {

@@ -10,16 +10,17 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWithContext, getProjectDir } from '../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../types.js';
+import { outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { safeExec, readPackageJson, findFirstConfig } from './context-loader-utils.js';
+import { NOOP_CTX } from '../lib/context.js';
 
 /**
  * Repo Structure Indexer — builds lightweight repo map.
  * Used by: explore skill (PreToolUse/Glob, once:true)
  */
-export function repoStructureIndexer(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function repoStructureIndexer(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   const tree = safeExec(
     'find . -maxdepth 2 -type d -not -path "*/node_modules/*" -not -path "*/.git/*" | head -40',
@@ -48,8 +49,8 @@ export function repoStructureIndexer(_input: HookInput): HookResult {
  * Test Framework Detector — identifies test tooling.
  * Used by: verify skill (PreToolUse/Bash, once:true)
  */
-export function testFrameworkDetector(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function testFrameworkDetector(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
   const frameworks: string[] = [];
 
   const pkg = readPackageJson(projectDir);
@@ -89,8 +90,8 @@ export function testFrameworkDetector(_input: HookInput): HookResult {
  * Project Convention Loader — detects code style conventions.
  * Used by: implement skill (PreToolUse/Write, once:true)
  */
-export function projectConventionLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function projectConventionLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
   const conventions: string[] = [];
 
   const linter = findFirstConfig(projectDir, [
@@ -115,8 +116,8 @@ export function projectConventionLoader(_input: HookInput): HookResult {
  * Doctor Env Snapshot — captures environment for diagnostics.
  * Used by: doctor skill (PreToolUse/Bash, once:true)
  */
-export function doctorEnvSnapshot(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function doctorEnvSnapshot(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
   const nodeVersion = safeExec('node --version', projectDir);
   const npmVersion = safeExec('npm --version', projectDir);
   const ccVersion = process.env.CLAUDE_CODE_VERSION || 'unknown';
@@ -135,8 +136,8 @@ export function doctorEnvSnapshot(_input: HookInput): HookResult {
  * Setup Env Detector — detects project stack for onboarding.
  * Used by: setup skill (PreToolUse/Bash, once:true)
  */
-export function setupEnvDetector(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function setupEnvDetector(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
   const stack: string[] = [];
 
   if (existsSync(join(projectDir, 'package.json'))) stack.push('Node.js');
@@ -160,7 +161,7 @@ export function setupEnvDetector(_input: HookInput): HookResult {
  * Prior Decisions Loader — reminds to search memory before brainstorming.
  * Used by: brainstorming skill (PreToolUse/Agent, once:true)
  */
-export function priorDecisionsLoader(_input: HookInput): HookResult {
+export function priorDecisionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Brainstorm Context — loaded once]',
     'IMPORTANT: Before generating ideas, search memory for prior decisions:',
@@ -175,7 +176,7 @@ export function priorDecisionsLoader(_input: HookInput): HookResult {
  * Assessment Baseline Loader — reminds to check prior scores.
  * Used by: assess skill (PreToolUse/Read, once:true)
  */
-export function assessmentBaselineLoader(_input: HookInput): HookResult {
+export function assessmentBaselineLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Assessment Context — loaded once]',
     'TIP: Search memory for previous assessments of this target:',
@@ -190,8 +191,8 @@ export function assessmentBaselineLoader(_input: HookInput): HookResult {
  * Quality Baseline Loader — captures baseline quality metrics.
  * Used by: quality-gates skill (PreToolUse/Read, once:true)
  */
-export function qualityBaselineLoader(_input: HookInput): HookResult {
-  const projectDir = getProjectDir();
+export function qualityBaselineLoader(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  const projectDir = hookCtx.projectDir;
 
   const todoCount = safeExec(
     'grep -r "TODO\\|FIXME\\|HACK" --include="*.ts" --include="*.js" -c 2>/dev/null | awk -F: "{s+=\\$2}END{print s+0}"',

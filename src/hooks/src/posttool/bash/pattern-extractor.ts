@@ -13,8 +13,9 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { basename } from 'node:path';
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 interface PatternQueue {
   patterns: PatternEntry[];
@@ -242,7 +243,7 @@ function handleBuildResult(command: string, exitCode: number, patternsQueue: str
 /**
  * Extract patterns from bash events
  */
-export function patternExtractor(input: HookInput): HookResult {
+export function patternExtractor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process Bash tool
@@ -258,7 +259,7 @@ export function patternExtractor(input: HookInput): HookResult {
   }
 
   const commandLower = command.toLowerCase();
-  const projectDir = getProjectDir();
+  const projectDir = ctx.projectDir;
   const patternsQueue = `${projectDir}/.claude/feedback/patterns-queue.json`;
 
   // Route to appropriate handler

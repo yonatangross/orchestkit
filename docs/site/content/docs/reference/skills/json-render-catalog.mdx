@@ -70,6 +70,17 @@ export const catalog = defineCatalog({
 })
 ```
 
+### LLM Structured Output Compatibility
+
+Use `jsonSchema(\{ strict: true \})` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
+
+```typescript
+import { jsonSchema } from '@json-render/core'
+
+const schema = jsonSchema(catalog, { strict: true })
+// Pass to OpenAI response_format, Anthropic tool_use, or Gemini structured output
+```
+
 ### Step 2: Implement Components
 
 ```tsx
@@ -155,7 +166,7 @@ Load `rules/action-state.md` for event handlers, watch bindings, and state adapt
 
 ## YAML Mode — 30% Fewer Tokens
 
-For one-shot (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
+For standalone (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
 
 ```yaml
 root: card-1
@@ -172,7 +183,7 @@ elements:
       variant: default
 ```
 
-Use JSON for streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for one-shot generation where token cost matters. Load `rules/token-optimization.md` for selection criteria.
+Use JSON for inline mode / streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for standalone mode where token cost matters. Load `rules/token-optimization.md` for selection criteria.
 
 ## Progressive Streaming
 
@@ -200,6 +211,34 @@ import { mergeCatalogs } from '@json-render/core'
 // Or merge with custom components
 const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
 ```
+
+### Style-Aware Catalogs
+
+The shadcn catalog components use default Tailwind classes. When your project uses a specific shadcn v4 style (Luma, Nova, etc.), override component implementations to match:
+
+```typescript
+import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { mergeCatalogs, type CatalogComponents } from '@json-render/core'
+
+// Override shadcn component implementations for Luma style
+const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
+  Card: ({ title, description, children }) => (
+    <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+      <h3 className="font-semibold">{title}</h3>
+      {description && <p className="text-muted-foreground">{description}</p>}
+      <div className="mt-6">{children}</div>
+    </div>
+  ),
+  Button: ({ label, variant }) => (
+    <button className={cn('rounded-4xl', buttonVariants({ variant }))}>{label}</button>
+  ),
+}
+
+// Merge: catalog schema unchanged, only rendering adapts to style
+const components = { ...shadcnComponents, ...lumaComponents }
+```
+
+**Detection pattern:** Read `components.json` → `"style"` field to determine which overrides to apply. Style-specific class names: Luma (`rounded-4xl`, `shadow-md`, `gap-6`), Nova (compact `px-2 py-1`), Lyra (`rounded-none`).
 
 ## Package Ecosystem
 
@@ -255,7 +294,7 @@ Choosing JSON vs YAML for token efficiency.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Optimization | `rules/token-optimization.md` | YAML for one-shot, JSON for streaming |
+| Token Optimization | `rules/token-optimization.md` | YAML for standalone mode, JSON for inline/streaming |
 
 ### Actions & State
 
@@ -270,14 +309,14 @@ Adding interactivity with events, watchers, and state.
 | Decision | Recommendation |
 |----------|----------------|
 | Custom vs shadcn catalog | Start with shadcn, extend with custom types for domain-specific components |
-| JSON vs YAML spec format | YAML for one-shot (30% fewer tokens), JSON for streaming |
+| JSON vs YAML spec format | YAML for standalone mode (30% fewer tokens), JSON for inline/streaming |
 | Zod constraint strictness | Tighter is better — use z.enum over z.string, z.array().max() over unbounded |
 | State management adapter | Match your app's existing state library (Zustand, Redux, Jotai, XState) |
 
 ## Common Mistakes
 
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
-2. Always using JSON specs — wastes 30% tokens when streaming is not needed
+2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
 4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts
@@ -744,7 +783,6 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Alert | title, description, variant | false |
 | AlertDialog | title, description, actionLabel | false |
 | Toast | title, description, variant, action | false |
-
 ### When to Extend vs Use As-Is
 
 | Scenario | Approach |
@@ -752,15 +790,39 @@ const appCatalog = mergeCatalogs(shadcnCatalog, {
 | Standard UI (dashboards, settings, forms) | Use shadcn as-is |
 | Domain-specific display (pricing, metrics, timelines) | Add custom components via `mergeCatalogs` |
 | Branded components (custom design system) | Override shadcn implementations, keep schemas |
+| Project uses shadcn v4 style (Luma, Nova, etc.) | Override implementations with style-correct classes |
 | Highly specialized (3D, charts, maps) | Add custom + use `@json-render/react-three-fiber` |
 
-**Key rules:**
-- Start with `shadcnCatalog` — it covers 80% of common UI patterns out of the box
-- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
-- Override implementations (not schemas) when you need branded styling on standard components
-- Check the shadcn component list before creating a custom catalog entry — avoid reimplementing existing components
+### Style-Aware Overrides
 
-Reference: https://ui.shadcn.com
+When your project uses a shadcn v4 style, the default `shadcnComponents` use generic Tailwind classes that may not match. Override implementations to match the project's style.
+
+**Incorrect — using default components in a Luma project:**
+```typescript
+// Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
+<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+```
+
+**Correct — overriding implementations for project's v4 style:**
+```typescript
+import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+// Read components.json → style to determine overrides (Luma, Nova, etc.)
+const lumaOverrides = {
+  Card: ({ title, children }) => (
+    <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+      <h3 className="font-semibold">{title}</h3>
+      <div className="mt-6">{children}</div>
+    </div>
+  ),
+}
+const components = { ...shadcnComponents, ...lumaOverrides }
+```
+
+**Key rules:**
+- Start with `shadcnCatalog` — covers 80% of common UI patterns out of the box
+- Use `mergeCatalogs()` to add domain-specific components alongside shadcn
+- Override implementations (not schemas) for branded styling or v4 style conformance
+- Check `components.json` → `"style"` to determine which class overrides apply
 
 
 ### Token Optimization — YAML Mode — MEDIUM
@@ -768,7 +830,7 @@ Reference: https://ui.shadcn.com
 
 ## Token Optimization — YAML Mode
 
-json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For one-shot generation, YAML is the default choice.
+json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For standalone mode (formerly "generate"), YAML is the default choice. Note: "generate"/"chat" mode names were deprecated in v0.12.1 — use "standalone"/"inline" instead.
 
 **Incorrect:**
 ```typescript
@@ -806,7 +868,7 @@ const systemPrompt = `Generate a json-render spec in JSON format:
 
 **Correct:**
 ```typescript
-// YAML for one-shot generation — 30% fewer tokens
+// YAML for standalone mode — 30% fewer tokens
 import { parseYamlSpec } from '@json-render/yaml'
 
 const systemPrompt = `Generate a json-render spec in YAML format:
@@ -838,8 +900,8 @@ const spec = parseYamlSpec(yamlString)
 
 | Criterion | JSON | YAML |
 |-----------|------|------|
-| Streaming (progressive render) | Required | Not supported |
-| One-shot generation | Works but wasteful | 30% fewer tokens |
+| Inline mode / streaming (progressive render) | Required | Not supported |
+| Standalone mode | Works but wasteful | 30% fewer tokens |
 | Token cost sensitivity | Higher | Lower |
 | Parsing reliability | Native JSON.parse | Requires yaml parser |
 | AI familiarity | Higher (more training data) | High (common in configs) |
@@ -848,10 +910,10 @@ const spec = parseYamlSpec(yamlString)
 ### Decision Rule
 
 ```
-If streaming (progressive render needed) → JSON
-If one-shot AND token cost matters → YAML
-If one-shot AND debugging matters → either (both readable)
-Default for one-shot → YAML
+If inline mode / streaming (progressive render needed) → JSON
+If standalone AND token cost matters → YAML
+If standalone AND debugging matters → either (both readable)
+Default for standalone → YAML
 ```
 
 ### Token Comparison Example
@@ -864,8 +926,8 @@ A spec with 5 components:
 At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The real value is in output token reduction — LLMs generate fewer tokens in YAML format, which reduces latency.
 
 **Key rules:**
-- Use YAML for one-shot generation — it reduces both input and output tokens by ~30%
-- Use JSON when streaming is required — JSON Patch (RFC 6902) operates on JSON, not YAML
+- Use YAML for standalone mode — it reduces both input and output tokens by ~30%
+- Use JSON for inline mode / streaming — JSON Patch (RFC 6902) operates on JSON, not YAML
 - Import `parseYamlSpec` from `@json-render/yaml` to convert YAML strings to spec objects
 - Do not mix formats in a single spec — pick one and stay consistent
 - Measure token usage with your provider's tokenizer to validate savings for your specific catalogs
@@ -876,7 +938,7 @@ Reference: https://github.com/nicholasgriffintn/json-render
 
 ---
 
-## References (3)
+## References (24)
 
 ### Migrating from Custom GenUI to json-render
 
@@ -1341,4 +1403,3433 @@ json-render uses a flat tree (all elements as siblings) rather than nested JSON 
 5. Children are only allowed if the catalog entry permits them
 6. `on` event names must be valid for the component type
 7. `watch` paths must reference paths in the `state` tree
+
+
+### Upstream Core
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/core/SKILL.md) --&gt;
+&lt;!-- Hash: 70cfc936a6c0f1dfdf52d08a5f4ffb39da1cf9dcd4624750a092fedfaa4fd5d9 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/core
+
+Core package for schema definition, catalog creation, and spec streaming.
+
+## Key Concepts
+
+- **Schema**: Defines the structure of specs and catalogs (use `defineSchema`)
+- **Catalog**: Maps component/action names to their definitions (use `defineCatalog`)
+- **Spec**: JSON output from AI that conforms to the schema
+- **SpecStream**: JSONL streaming format for progressive spec building
+
+## Defining a Schema
+
+```typescript
+import { defineSchema } from "@json-render/core";
+
+export const schema = defineSchema((s) => ({
+  spec: s.object({
+    // Define spec structure
+  }),
+  catalog: s.object({
+    components: s.map({
+      props: s.zod(),
+      description: s.string(),
+    }),
+  }),
+}), {
+  promptTemplate: myPromptTemplate, // Optional custom AI prompt
+});
+```
+
+## Creating a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "./schema";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Button: {
+      props: z.object({
+        label: z.string(),
+        variant: z.enum(["primary", "secondary"]).nullable(),
+      }),
+      description: "Clickable button component",
+    },
+  },
+});
+```
+
+## Generating AI Prompts
+
+```typescript
+const systemPrompt = catalog.prompt(); // Uses schema's promptTemplate
+const systemPrompt = catalog.prompt({ customRules: ["Rule 1", "Rule 2"] });
+```
+
+## SpecStream Utilities
+
+For streaming AI responses (JSONL patches):
+
+```typescript
+import { createSpecStreamCompiler } from "@json-render/core";
+
+const compiler = createSpecStreamCompiler<MySpec>();
+
+// Process streaming chunks
+const { result, newPatches } = compiler.push(chunk);
+
+// Get final result
+const finalSpec = compiler.getResult();
+```
+
+## Dynamic Prop Expressions
+
+Any prop value can be a dynamic expression resolved at render time:
+
+- **`\{ "$state": "/state/key" \}`** - reads a value from the state model (one-way read)
+- **`\{ "$bindState": "/path" \}`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
+- **`\{ "$bindItem": "field" \}`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`\{ "$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt; \}`** - evaluates a visibility condition and picks a branch
+- **`\{ "$template": "Hello, $\{/user/name\}!" \}`** - interpolates `$\{/path\}` references with state values
+- **`\{ "$computed": "fnName", "args": \{ "key": &lt;expression&gt; \} \}`** - calls a registered function with resolved args
+
+`$cond` uses the same syntax as visibility conditions (`$state`, `eq`, `neq`, `not`, arrays for AND). `$then` and `$else` can themselves be expressions (recursive).
+
+Components do not use a `statePath` prop for two-way binding. Instead, use `\{ "$bindState": "/path" \}` on the natural value prop (e.g. `value`, `checked`, `pressed`).
+
+```json
+{
+  "color": {
+    "$cond": { "$state": "/activeTab", "eq": "home" },
+    "$then": "#007AFF",
+    "$else": "#8E8E93"
+  },
+  "label": { "$template": "Welcome, ${/user/name}!" },
+  "fullName": {
+    "$computed": "fullName",
+    "args": {
+      "first": { "$state": "/form/firstName" },
+      "last": { "$state": "/form/lastName" }
+    }
+  }
+}
+```
+
+```typescript
+import { resolvePropValue, resolveElementProps } from "@json-render/core";
+
+const resolved = resolveElementProps(element.props, { stateModel: myState });
+```
+
+## State Watchers
+
+Elements can declare a `watch` field (top-level, sibling of type/props/children) to trigger actions when state values change:
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": {
+    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+  },
+  "children": []
+}
+```
+
+Watchers only fire on value changes, not on initial render.
+
+## Validation
+
+Built-in validation functions: `required`, `email`, `url`, `numeric`, `minLength`, `maxLength`, `min`, `max`, `pattern`, `matches`, `equalTo`, `lessThan`, `greaterThan`, `requiredIf`.
+
+Cross-field validation uses `$state` expressions in args:
+
+```typescript
+import { check } from "@json-render/core";
+
+check.required("Field is required");
+check.matches("/form/password", "Passwords must match");
+check.lessThan("/form/endDate", "Must be before end date");
+check.greaterThan("/form/startDate", "Must be after start date");
+check.requiredIf("/form/enableNotifications", "Required when enabled");
+```
+
+## User Prompt Builder
+
+Build structured user prompts with optional spec refinement and state context:
+
+```typescript
+import { buildUserPrompt } from "@json-render/core";
+
+// Fresh generation
+buildUserPrompt({ prompt: "create a todo app" });
+
+// Refinement with edit modes (default: patch-only)
+buildUserPrompt({ prompt: "add a toggle", currentSpec: spec, editModes: ["patch", "merge"] });
+
+// With runtime state
+buildUserPrompt({ prompt: "show data", state: { todos: [] } });
+```
+
+Available edit modes: `"patch"` (RFC 6902 JSON Patch), `"merge"` (RFC 7396 Merge Patch), `"diff"` (unified diff).
+
+## Spec Validation
+
+Validate spec structure and auto-fix common issues:
+
+```typescript
+import { validateSpec, autoFixSpec } from "@json-render/core";
+
+const { valid, issues } = validateSpec(spec);
+const fixed = autoFixSpec(spec);
+```
+
+## Visibility Conditions
+
+Control element visibility with state-based conditions. `VisibilityContext` is `\{ stateModel: StateModel \}`.
+
+```typescript
+import { visibility } from "@json-render/core";
+
+// Syntax
+{ "$state": "/path" }                    // truthiness
+{ "$state": "/path", "not": true }      // falsy
+{ "$state": "/path", "eq": value }      // equality
+[ cond1, cond2 ]                         // implicit AND
+
+// Helpers
+visibility.when("/path")                 // { $state: "/path" }
+visibility.unless("/path")               // { $state: "/path", not: true }
+visibility.eq("/path", val)              // { $state: "/path", eq: val }
+visibility.and(cond1, cond2)             // { $and: [cond1, cond2] }
+visibility.or(cond1, cond2)              // { $or: [cond1, cond2] }
+visibility.always                        // true
+visibility.never                         // false
+```
+
+## Built-in Actions in Schema
+
+Schemas can declare `builtInActions` -- actions that are always available at runtime and auto-injected into prompts:
+
+```typescript
+const schema = defineSchema(builder, {
+  builtInActions: [
+    { name: "setState", description: "Update a value in the state model" },
+  ],
+});
+```
+
+These appear in prompts as `[built-in]` and don't require handlers in `defineRegistry`.
+
+## StateStore
+
+The `StateStore` interface allows external state management libraries (Redux, Zustand, XState, etc.) to be plugged into json-render renderers. The `createStateStore` factory creates a simple in-memory implementation:
+
+```typescript
+import { createStateStore, type StateStore } from "@json-render/core";
+
+const store = createStateStore({ count: 0 });
+
+store.get("/count");         // 0
+store.set("/count", 1);      // updates and notifies subscribers
+store.update({ "/a": 1, "/b": 2 }); // batch update
+
+store.subscribe(() => {
+  console.log(store.getSnapshot()); // { count: 1 }
+});
+```
+
+The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineSchema` | Create a new schema |
+| `defineCatalog` | Create a catalog from schema |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `resolvePropValue` | Resolve a single prop expression against data |
+| `resolveElementProps` | Resolve all prop expressions in an element |
+| `buildUserPrompt` | Build user prompts with refinement and state context |
+| `buildEditUserPrompt` | Build user prompt for editing existing specs |
+| `buildEditInstructions` | Generate prompt section for available edit modes |
+| `isNonEmptySpec` | Check if spec has root and at least one element |
+| `deepMergeSpec` | RFC 7396 deep merge (null deletes, arrays replace, objects recurse) |
+| `diffToPatches` | Generate RFC 6902 JSON Patch operations from object diff |
+| `EditMode` | Type: `"patch" \| "merge" \| "diff"` |
+| `validateSpec` | Validate spec structure |
+| `autoFixSpec` | Auto-fix common spec issues |
+| `createSpecStreamCompiler` | Stream JSONL patches into spec |
+| `createJsonRenderTransform` | TransformStream separating text from JSONL in mixed streams |
+| `parseSpecStreamLine` | Parse single JSONL line |
+| `applySpecStreamPatch` | Apply patch to object |
+| `StateStore` | Interface for plugging in external state management |
+| `ComputedFunction` | Function signature for `$computed` expressions |
+| `check` | TypeScript helpers for creating validation checks |
+| `BuiltInAction` | Type for built-in action definitions (`name` + `description`) |
+| `ActionBinding` | Action binding type (includes `preventDefault` field) |
+
+
+### Upstream Email
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-email/SKILL.md) --&gt;
+&lt;!-- Hash: 8b376b37da07dd68944e72e0e322a272571f39271e5b08b6efd437db201470c9 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-email
+
+React Email renderer that converts JSON specs into HTML or plain-text email output.
+
+## Quick Start
+
+```typescript
+import { renderToHtml } from "@json-render/react-email";
+import { schema, standardComponentDefinitions } from "@json-render/react-email";
+import { defineCatalog } from "@json-render/core";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+
+const spec = {
+  root: "html-1",
+  elements: {
+    "html-1": { type: "Html", props: { lang: "en", dir: "ltr" }, children: ["head-1", "body-1"] },
+    "head-1": { type: "Head", props: {}, children: [] },
+    "body-1": {
+      type: "Body",
+      props: { style: { backgroundColor: "#f6f9fc" } },
+      children: ["container-1"],
+    },
+    "container-1": {
+      type: "Container",
+      props: { style: { maxWidth: "600px", margin: "0 auto", padding: "20px" } },
+      children: ["heading-1", "text-1"],
+    },
+    "heading-1": { type: "Heading", props: { text: "Welcome" }, children: [] },
+    "text-1": { type: "Text", props: { text: "Thanks for signing up." }, children: [] },
+  },
+};
+
+const html = await renderToHtml(spec);
+```
+
+## Spec Structure (Element Tree)
+
+Same flat element tree as `@json-render/react`: `root` key plus `elements` map. Root must be `Html`; children of `Html` should be `Head` and `Body`. Use `Container` (e.g. max-width 600px) inside `Body` for client-safe layout.
+
+## Creating a Catalog and Registry
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry, renderToHtml } from "@json-render/react-email";
+import { standardComponentDefinitions } from "@json-render/react-email/catalog";
+import { Container, Heading, Text } from "@react-email/components";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Alert: {
+      props: z.object({
+        message: z.string(),
+        variant: z.enum(["info", "success", "warning"]).nullable(),
+      }),
+      slots: [],
+      description: "A highlighted message block",
+    },
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Alert: ({ props }) => (
+      <Container style={{ padding: 16, backgroundColor: "#eff6ff", borderRadius: 8 }}>
+        <Text style={{ margin: 0 }}>{props.message}</Text>
+      </Container>
+    ),
+  },
+});
+
+const html = await renderToHtml(spec, { registry });
+```
+
+## Server-Side Render APIs
+
+| Function | Purpose |
+|----------|---------|
+| `renderToHtml(spec, options?)` | Render spec to HTML email string |
+| `renderToPlainText(spec, options?)` | Render spec to plain-text email string |
+
+`RenderOptions`: `registry`, `includeStandard` (default true), `state` (for `$state` / `$cond`).
+
+## Visibility and State
+
+Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
+
+## Server-Safe Import
+
+Import schema and catalog without React or `@react-email/components`:
+
+```typescript
+import { schema, standardComponentDefinitions } from "@json-render/react-email/server";
+```
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create type-safe component registry from catalog |
+| `Renderer` | Render spec in browser (e.g. preview); use with `JSONUIProvider` for state/actions |
+| `createRenderer` | Standalone renderer component with state/actions/validation |
+| `renderToHtml` | Server: spec to HTML string |
+| `renderToPlainText` | Server: spec to plain-text string |
+| `schema` | Email element schema |
+| `standardComponents` | Pre-built component implementations |
+| `standardComponentDefinitions` | Catalog definitions (Zod props) |
+
+## Sub-path Exports
+
+| Path | Purpose |
+|------|---------|
+| `@json-render/react-email` | Full package |
+| `@json-render/react-email/server` | Schema and catalog only (no React) |
+| `@json-render/react-email/catalog` | Standard component definitions and types |
+| `@json-render/react-email/render` | Render functions only |
+
+## Standard Components
+
+All components accept a `style` prop (object) for inline styles. Use inline styles for email client compatibility; avoid external CSS.
+
+### Document structure
+
+| Component | Description |
+|-----------|-------------|
+| `Html` | Root wrapper (lang, dir). Children: Head, Body. |
+| `Head` | Email head section. |
+| `Body` | Body wrapper; use `style` for background. |
+
+### Layout
+
+| Component | Description |
+|-----------|-------------|
+| `Container` | Constrain width (e.g. max-width 600px). |
+| `Section` | Group content; table-based for compatibility. |
+| `Row` | Horizontal row. |
+| `Column` | Column in a Row; set width via style. |
+
+### Content
+
+| Component | Description |
+|-----------|-------------|
+| `Heading` | Heading text (as: h1–h6). |
+| `Text` | Body text. |
+| `Link` | Hyperlink (text, href). |
+| `Button` | CTA link styled as button (text, href). |
+| `Image` | Image from URL (src, alt, width, height). |
+| `Hr` | Horizontal rule. |
+
+### Utility
+
+| Component | Description |
+|-----------|-------------|
+| `Preview` | Inbox preview text (inside Html). |
+| `Markdown` | Markdown content as email-safe HTML. |
+
+## Email Best Practices
+
+- Keep width constrained (e.g. Container max-width 600px).
+- Use inline styles or React Email's style props; many clients strip `&lt;style&gt;` blocks.
+- Prefer table-based layout (Section, Row, Column) for broad client support.
+- Use absolute URLs for images; many clients block relative or cid: references in some contexts.
+- Test in multiple clients (Gmail, Outlook, Apple Mail); use a preview tool or Litmus-like service when possible.
+
+
+### Upstream Image
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/image/SKILL.md) --&gt;
+&lt;!-- Hash: fc6469e1592a86d4d92058b81704023394ab8cbdd9f422d541ad3a752f2a0e42 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/image
+
+Image renderer that converts JSON specs into SVG and PNG images using Satori.
+
+## Quick Start
+
+```typescript
+import { renderToPng } from "@json-render/image/render";
+import type { Spec } from "@json-render/core";
+
+const spec: Spec = {
+  root: "frame",
+  elements: {
+    frame: {
+      type: "Frame",
+      props: { width: 1200, height: 630, backgroundColor: "#1a1a2e" },
+      children: ["heading"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Hello World", level: "h1", color: "#ffffff" },
+      children: [],
+    },
+  },
+};
+
+const png = await renderToPng(spec, {
+  fonts: [{ name: "Inter", data: fontData, weight: 400, style: "normal" }],
+});
+```
+
+## Using Standard Components
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, standardComponentDefinitions } from "@json-render/image";
+
+export const imageCatalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+});
+```
+
+## Adding Custom Components
+
+```typescript
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Badge: {
+      props: z.object({ label: z.string(), color: z.string().nullable() }),
+      slots: [],
+      description: "A colored badge label",
+    },
+  },
+});
+```
+
+## Standard Components
+
+| Component | Category | Description |
+|-----------|----------|-------------|
+| `Frame` | Root | Root container. Defines width, height, background. Must be root. |
+| `Box` | Layout | Container with padding, margin, border, absolute positioning |
+| `Row` | Layout | Horizontal flex layout |
+| `Column` | Layout | Vertical flex layout |
+| `Heading` | Content | h1-h4 heading text |
+| `Text` | Content | Body text with full styling |
+| `Image` | Content | Image from URL |
+| `Divider` | Decorative | Horizontal line separator |
+| `Spacer` | Decorative | Empty vertical space |
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `renderToSvg` | Render spec to SVG string |
+| `renderToPng` | Render spec to PNG buffer (requires `@resvg/resvg-js`) |
+| `schema` | Image element schema |
+| `standardComponents` | Pre-built component registry |
+| `standardComponentDefinitions` | Catalog definitions for AI prompts |
+
+## Sub-path Exports
+
+| Export | Description |
+|--------|-------------|
+| `@json-render/image` | Full package: schema, components, render functions |
+| `@json-render/image/server` | Schema and catalog definitions only (no React/Satori) |
+| `@json-render/image/catalog` | Standard component definitions and types |
+| `@json-render/image/render` | Render functions only |
+
+
+### Upstream Ink
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/ink/SKILL.md) --&gt;
+&lt;!-- Hash: 10721bbc7ee13fc084cc08ec3a0a4eda86b5b7fbc97c2ea82cfc8994bc8ea7f0 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/ink
+
+Ink terminal renderer that converts JSON specs into interactive terminal component trees with standard components, data binding, visibility, actions, and dynamic props.
+
+## Quick Start
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/ink/schema";
+import {
+  standardComponentDefinitions,
+  standardActionDefinitions,
+} from "@json-render/ink/catalog";
+import { defineRegistry, Renderer, type Components } from "@json-render/ink";
+import { z } from "zod";
+
+// Create catalog with standard + custom components
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    CustomWidget: {
+      props: z.object({ title: z.string() }),
+      slots: [],
+      description: "Custom widget",
+    },
+  },
+  actions: standardActionDefinitions,
+});
+
+// Register only custom components (standard ones are built-in)
+const { registry } = defineRegistry(catalog, {
+  components: {
+    CustomWidget: ({ props }) => <Text>{props.title}</Text>,
+  } as Components<typeof catalog>,
+});
+
+// Render
+function App({ spec }) {
+  return (
+    <JSONUIProvider initialState={{}}>
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
+  );
+}
+```
+
+## Spec Structure (Flat Element Map)
+
+The Ink schema uses a flat element map with a root key:
+
+```json
+{
+  "root": "main",
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "padding": 1 },
+      "children": ["heading", "content"]
+    },
+    "heading": {
+      "type": "Heading",
+      "props": { "text": "Dashboard", "level": "h1" },
+      "children": []
+    },
+    "content": {
+      "type": "Text",
+      "props": { "text": "Hello from the terminal!" },
+      "children": []
+    }
+  }
+}
+```
+
+## Standard Components
+
+### Layout
+- `Box` - Flexbox layout container (like a terminal `<div>`). Use for grouping, spacing, borders, alignment. Default flexDirection is row.
+- `Text` - Text output with optional styling (color, bold, italic, etc.)
+- `Newline` - Inserts blank lines. Must be inside a Box with flexDirection column.
+- `Spacer` - Flexible empty space that expands along the main axis.
+
+### Content
+- `Heading` - Section heading (h1: bold+underlined, h2: bold, h3: bold+dimmed, h4: dimmed)
+- `Divider` - Horizontal separator with optional centered title
+- `Badge` - Colored inline label (variants: default, info, success, warning, error)
+- `Spinner` - Animated loading spinner with optional label
+- `ProgressBar` - Horizontal progress bar (0-1)
+- `Sparkline` - Inline chart using Unicode block characters
+- `BarChart` - Horizontal bar chart with labels and values
+- `Table` - Tabular data with headers and rows
+- `List` - Bulleted or numbered list
+- `ListItem` - Structured list row with title, subtitle, leading/trailing text
+- `Card` - Bordered container with optional title
+- `KeyValue` - Key-value pair display
+- `Link` - Clickable URL with optional label
+- `StatusLine` - Status message with colored icon (info, success, warning, error)
+- `Markdown` - Renders markdown text with terminal styling
+
+### Interactive
+- `TextInput` - Text input field (events: submit, change)
+- `Select` - Selection menu with arrow key navigation (events: change)
+- `MultiSelect` - Multi-selection with space to toggle (events: change, submit)
+- `ConfirmInput` - Yes/No confirmation prompt (events: confirm, deny)
+- `Tabs` - Tab bar navigation with left/right arrow keys (events: change)
+
+## Visibility Conditions
+
+Use `visible` on elements to show/hide based on state. Syntax: `\{ "$state": "/path" \}`, `\{ "$state": "/path", "eq": value \}`, `\{ "$state": "/path", "not": true \}`, `\{ "$and": [cond1, cond2] \}` for AND, `\{ "$or": [cond1, cond2] \}` for OR.
+
+## Dynamic Prop Expressions
+
+Any prop value can be a data-driven expression resolved at render time:
+
+- **`\{ "$state": "/state/key" \}`** - reads from state model (one-way read)
+- **`\{ "$bindState": "/path" \}`** - two-way binding: use on the natural value prop of form components
+- **`\{ "$bindItem": "field" \}`** - two-way binding to a repeat item field
+- **`\{ "$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt; \}`** - conditional value
+- **`\{ "$template": "Hello, $\{/name\}!" \}`** - interpolates state values into strings
+
+Components do not use a `statePath` prop for two-way binding. Use `\{ "$bindState": "/path" \}` on the natural value prop instead.
+
+## Event System
+
+Components use `emit` to fire named events. The element's `on` field maps events to action bindings:
+
+```tsx
+CustomButton: ({ props, emit }) => (
+  <Box>
+    <Text>{props.label}</Text>
+    {/* emit("press") triggers the action bound in the spec's on.press */}
+  </Box>
+),
+```
+
+```json
+{
+  "type": "CustomButton",
+  "props": { "label": "Submit" },
+  "on": { "press": { "action": "submit" } },
+  "children": []
+}
+```
+
+## Built-in Actions
+
+`setState`, `pushState`, and `removeState` are built-in and handled automatically:
+
+```json
+{ "action": "setState", "params": { "statePath": "/activeTab", "value": "home" } }
+{ "action": "pushState", "params": { "statePath": "/items", "value": { "text": "New" } } }
+{ "action": "removeState", "params": { "statePath": "/items", "index": 0 } }
+```
+
+## Repeat (Dynamic Lists)
+
+Use the `repeat` field on a container element to render items from a state array:
+
+```json
+{
+  "type": "Box",
+  "props": { "flexDirection": "column" },
+  "repeat": { "statePath": "/items", "key": "id" },
+  "children": ["item-row"]
+}
+```
+
+Inside repeated children, use `\{ "$item": "field" \}` to read from the current item and `\{ "$index": true \}` for the current index.
+
+## Streaming
+
+Use `useUIStream` to progressively render specs from JSONL patch streams:
+
+```tsx
+import { useUIStream } from "@json-render/ink";
+
+const { spec, send, isStreaming } = useUIStream({ api: "/api/generate" });
+```
+
+## Server-Side Prompt Generation
+
+Use the `./server` export to generate AI system prompts from your catalog:
+
+```typescript
+import { catalog } from "./catalog";
+
+const systemPrompt = catalog.prompt({ system: "You are a terminal assistant." });
+```
+
+## Providers
+
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
+| `ActionProvider` | Handle actions dispatched via the event system |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
+| `FocusProvider` | Manage focus across interactive components |
+| `JSONUIProvider` | Combined provider for all contexts |
+
+### External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider` (or `JSONUIProvider`) to use external state management:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/ink";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>{children}</StateProvider>
+
+store.set("/count", 1); // React re-renders automatically
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored.
+
+## createRenderer (Higher-Level API)
+
+```tsx
+import { createRenderer } from "@json-render/ink";
+import { standardComponents } from "@json-render/ink";
+import { catalog } from "./catalog";
+
+const InkRenderer = createRenderer(catalog, {
+  ...standardComponents,
+  // custom component overrides here
+});
+
+// InkRenderer includes all providers (state, visibility, actions, focus)
+render(
+  <InkRenderer spec={spec} state={{ activeTab: "overview" }} />
+);
+```
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `Renderer` | Render a spec using a registry |
+| `createRenderer` | Higher-level: creates a component with built-in providers |
+| `JSONUIProvider` | Combined provider for all contexts |
+| `schema` | Ink flat element map schema (includes built-in state actions) |
+| `standardComponentDefinitions` | Catalog definitions for all standard components |
+| `standardActionDefinitions` | Catalog definitions for standard actions |
+| `standardComponents` | Pre-built component implementations |
+| `useStateStore` | Access state context |
+| `useStateValue` | Get single value from state |
+| `useBoundProp` | Two-way binding for `$bindState`/`$bindItem` expressions |
+| `useActions` | Access actions context |
+| `useAction` | Get a single action dispatch function |
+| `useOptionalValidation` | Non-throwing variant of useValidation |
+| `useUIStream` | Stream specs from an API endpoint |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management |
+| `Components` | Typed component map (catalog-aware) |
+| `Actions` | Typed action map (catalog-aware) |
+| `ComponentContext` | Typed component context (catalog-aware) |
+| `flatToTree` | Convert flat element map to tree structure |
+
+## Terminal UI Design Guidelines
+
+- Use Box for layout (flexDirection, padding, gap). Default flexDirection is row.
+- Terminal width is ~80-120 columns. Prefer vertical layouts (flexDirection: column) for main structure.
+- Use borderStyle on Box for visual grouping (single, double, round, bold).
+- Use named terminal colors: red, green, yellow, blue, magenta, cyan, white, gray.
+- Use Heading for section titles, Divider to separate sections, Badge for status, KeyValue for labeled data, Card for bordered groups.
+- Use Tabs for multi-view UIs with visible conditions on child content.
+- Use Sparkline for inline trends and BarChart for comparing values.
+
+
+### Upstream Jotai
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/jotai/SKILL.md) --&gt;
+&lt;!-- Hash: 62d41ffc480e1d4b3517b599d4a18cba8a8894009d7fe42933f829b6067789a7 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/jotai
+
+Jotai adapter for json-render's `StateStore` interface. Wire a Jotai atom as the state backend for json-render.
+
+## Installation
+
+```bash
+npm install @json-render/jotai @json-render/core @json-render/react jotai
+```
+
+## Usage
+
+```tsx
+import { atom } from "jotai";
+import { jotaiStateStore } from "@json-render/jotai";
+import { StateProvider } from "@json-render/react";
+
+// 1. Create an atom that holds the json-render state
+const uiAtom = atom<Record<string, unknown>>({ count: 0 });
+
+// 2. Create the json-render StateStore adapter
+const store = jotaiStateStore({ atom: uiAtom });
+
+// 3. Use it
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Jotai */}
+</StateProvider>
+```
+
+### With a Shared Jotai Store
+
+When your app already uses a Jotai `&lt;Provider&gt;` with a custom store, pass it so both json-render and your components share the same state:
+
+```tsx
+import { atom, createStore } from "jotai";
+import { Provider as JotaiProvider } from "jotai/react";
+import { jotaiStateStore } from "@json-render/jotai";
+import { StateProvider } from "@json-render/react";
+
+const jStore = createStore();
+const uiAtom = atom<Record<string, unknown>>({ count: 0 });
+
+const store = jotaiStateStore({ atom: uiAtom, store: jStore });
+
+<JotaiProvider store={jStore}>
+  <StateProvider store={store}>
+    {/* Both json-render and useAtom() see the same state */}
+  </StateProvider>
+</JotaiProvider>
+```
+
+## API
+
+### `jotaiStateStore(options)`
+
+Creates a `StateStore` backed by a Jotai atom.
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `atom` | `WritableAtom&lt;StateModel, [StateModel], void&gt;` | Yes | A writable atom holding the state model |
+| `store` | Jotai `Store` | No | The Jotai store instance. Defaults to a new store. Pass your own to share state with `&lt;Provider&gt;`. |
+
+
+### Upstream Mcp
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/mcp/SKILL.md) --&gt;
+&lt;!-- Hash: fdc45b80ea851e518ba1ce37cbc6bdfff8627512caca55265f1f85b8639c662d --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/mcp
+
+MCP Apps integration that serves json-render UIs as interactive MCP Apps inside Claude, ChatGPT, Cursor, VS Code, and other MCP-capable clients.
+
+## Quick Start
+
+### Server (Node.js)
+
+```typescript
+import { createMcpApp } from "@json-render/mcp";
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import fs from "node:fs";
+
+const catalog = defineCatalog(schema, {
+  components: { ...shadcnComponentDefinitions },
+  actions: {},
+});
+
+const server = createMcpApp({
+  name: "My App",
+  version: "1.0.0",
+  catalog,
+  html: fs.readFileSync("dist/index.html", "utf-8"),
+});
+
+await server.connect(new StdioServerTransport());
+```
+
+### Client (React, inside iframe)
+
+```tsx
+import { useJsonRenderApp } from "@json-render/mcp/app";
+import { JSONUIProvider, Renderer } from "@json-render/react";
+
+function McpAppView({ registry }) {
+  const { spec, loading, error } = useJsonRenderApp();
+  if (error) return <div>Error: {error.message}</div>;
+  if (!spec) return <div>Waiting...</div>;
+  return (
+    <JSONUIProvider registry={registry} initialState={spec.state ?? {}}>
+      <Renderer spec={spec} registry={registry} loading={loading} />
+    </JSONUIProvider>
+  );
+}
+```
+
+## Architecture
+
+1. `createMcpApp()` creates an `McpServer` that registers a `render-ui` tool and a `ui://` HTML resource
+2. The tool description includes the catalog prompt so the LLM knows how to generate valid specs
+3. The HTML resource is a Vite-bundled single-file React app with json-render renderers
+4. Inside the iframe, `useJsonRenderApp()` connects to the host via `postMessage` and renders specs
+
+## Server API
+
+- `createMcpApp(options)` - main entry, creates a full MCP server
+- `registerJsonRenderTool(server, options)` - register a json-render tool on an existing server
+- `registerJsonRenderResource(server, options)` - register the UI resource
+
+## Client API (`@json-render/mcp/app`)
+
+- `useJsonRenderApp(options?)` - React hook, returns `\{ spec, loading, connected, error, callServerTool \}`
+- `buildAppHtml(options)` - generate HTML from bundled JS/CSS
+
+## Building the iframe HTML
+
+Bundle the React app into a single self-contained HTML file using Vite + `vite-plugin-singlefile`:
+
+```typescript
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { viteSingleFile } from "vite-plugin-singlefile";
+
+export default defineConfig({
+  plugins: [react(), viteSingleFile()],
+  build: { outDir: "dist" },
+});
+```
+
+## Client Configuration
+
+### Cursor (`.cursor/mcp.json`)
+
+```json
+{
+  "mcpServers": {
+    "my-app": {
+      "command": "npx",
+      "args": ["tsx", "server.ts", "--stdio"]
+    }
+  }
+}
+```
+
+### Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "my-app": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/server.ts", "--stdio"]
+    }
+  }
+}
+```
+
+## Dependencies
+
+```bash
+# Server
+npm install @json-render/mcp @json-render/core @modelcontextprotocol/sdk
+
+# Client (iframe)
+npm install @json-render/react @json-render/shadcn react react-dom
+
+# Build tools
+npm install -D vite @vitejs/plugin-react vite-plugin-singlefile
+```
+
+
+### Upstream Next
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/next/SKILL.md) --&gt;
+&lt;!-- Hash: 2a4b7b3694ec204bf08a09bb7074300a963183ed015920fb807a75dbc14cd3fa --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/next
+
+Next.js renderer that converts JSON specs into full Next.js applications with routes, pages, layouts, metadata, and SSR support.
+
+## Quick Start
+
+```bash
+npm install @json-render/core @json-render/react @json-render/next
+```
+
+### 1. Define Your Spec
+
+```typescript
+// lib/spec.ts
+import type { NextAppSpec } from "@json-render/next";
+
+export const spec: NextAppSpec = {
+  metadata: {
+    title: { default: "My App", template: "%s | My App" },
+    description: "A json-render Next.js application",
+  },
+  layouts: {
+    main: {
+      root: "shell",
+      elements: {
+        shell: { type: "Container", props: {}, children: ["nav", "slot"] },
+        nav: { type: "NavBar", props: { links: [
+          { href: "/", label: "Home" },
+          { href: "/about", label: "About" },
+        ]}, children: [] },
+        slot: { type: "Slot", props: {}, children: [] },
+      },
+    },
+  },
+  routes: {
+    "/": {
+      layout: "main",
+      metadata: { title: "Home" },
+      page: {
+        root: "hero",
+        elements: {
+          hero: { type: "Card", props: { title: "Welcome" }, children: [] },
+        },
+      },
+    },
+    "/about": {
+      layout: "main",
+      metadata: { title: "About" },
+      page: {
+        root: "content",
+        elements: {
+          content: { type: "Card", props: { title: "About Us" }, children: [] },
+        },
+      },
+    },
+  },
+};
+```
+
+### 2. Create the App
+
+```typescript
+// lib/app.ts
+import { createNextApp } from "@json-render/next/server";
+import { spec } from "./spec";
+
+export const { Page, generateMetadata, generateStaticParams } = createNextApp({
+  spec,
+  loaders: {
+    // Server-side data loaders (optional)
+    loadPost: async ({ slug }) => {
+      const post = await getPost(slug as string);
+      return { post };
+    },
+  },
+});
+```
+
+### 3. Wire Up Route Files
+
+```tsx
+// app/[[...slug]]/page.tsx
+export { Page as default, generateMetadata, generateStaticParams } from "@/lib/app";
+```
+
+```tsx
+// app/[[...slug]]/layout.tsx
+import { NextAppProvider } from "@json-render/next";
+import { registry, handlers } from "@/lib/registry";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <NextAppProvider registry={registry} handlers={handlers}>
+          {children}
+        </NextAppProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Key Concepts
+
+### NextAppSpec
+
+The top-level spec defines an entire Next.js application:
+
+- **metadata**: Root-level SEO metadata (title template, description, OpenGraph)
+- **layouts**: Reusable layout element trees (each must include a `Slot` component)
+- **routes**: Route definitions keyed by URL pattern
+- **state**: Global initial state shared across all routes
+
+### Route Patterns
+
+Routes use Next.js URL conventions:
+
+- `"/"` -- home page
+- `"/about"` -- static route
+- `"/blog/[slug]"` -- dynamic segment
+- `"/docs/[...path]"` -- catch-all segment
+- `"/settings/[[...path]]"` -- optional catch-all segment
+
+### Layouts
+
+Layouts wrap page content. Every layout MUST include a `Slot` component where page content will be rendered. Layouts are defined once in `spec.layouts` and referenced by routes via the `layout` field.
+
+### Built-in Components
+
+- **Slot**: Placeholder in layouts where page content is rendered
+- **Link**: Client-side navigation link (wraps `next/link`)
+
+### Built-in Actions
+
+- **setState**: Update state value. Params: `\{ statePath, value \}`
+- **pushState**: Append to array. Params: `\{ statePath, value, clearStatePath? \}`
+- **removeState**: Remove from array by index. Params: `\{ statePath, index \}`
+- **navigate**: Client-side navigation. Params: `\{ href \}`
+
+### Data Loaders
+
+Server-side async functions that run in the Server Component before rendering. Results are merged into the page's initial state.
+
+```typescript
+createNextApp({
+  spec,
+  loaders: {
+    loadPost: async ({ slug }) => {
+      const post = await db.post.findUnique({ where: { slug } });
+      return { post };
+    },
+  },
+});
+```
+
+### SSR
+
+Pages are server-rendered automatically. The `createNextApp` `Page` component is an async Server Component that:
+
+1. Matches the route from the spec
+2. Runs server-side data loaders
+3. Generates metadata
+4. Passes the resolved spec to the client renderer for hydration
+
+### Entry Points
+
+- `@json-render/next` -- Client components (NextAppProvider, PageRenderer, Link)
+- `@json-render/next/server` -- Server utilities (createNextApp, matchRoute, schema)
+
+## API Reference
+
+### Server Exports (`@json-render/next/server`)
+
+- `createNextApp(options)` -- Create Page, generateMetadata, generateStaticParams
+- `schema` -- Custom schema for Next.js apps (for AI catalog generation)
+- `matchRoute(spec, pathname)` -- Match a URL to a route spec
+- `resolveMetadata(spec, route)` -- Resolve metadata for a route
+- `slugToPath(slug)` -- Convert catch-all slug array to pathname
+- `collectStaticParams(spec)` -- Collect static params for all routes
+
+### Client Exports (`@json-render/next`)
+
+- `NextAppProvider` -- Context provider for registry and handlers
+- `PageRenderer` -- Renders a page spec with optional layout
+- `NextErrorBoundary` -- Error boundary component
+- `NextLoading` -- Loading state component
+- `NextNotFound` -- Not-found component
+- `Link` -- Built-in navigation component (wraps next/link)
+
+
+### Upstream Pdf
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-pdf/SKILL.md) --&gt;
+&lt;!-- Hash: 42d7d378733e0c1e6ff10ba788dc77c32b36b2f28841f1d6aa671e44ed9ad0be --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-pdf
+
+React PDF renderer that generates PDF documents from JSON specs using `@react-pdf/renderer`.
+
+## Installation
+
+```bash
+npm install @json-render/core @json-render/react-pdf
+```
+
+## Quick Start
+
+```typescript
+import { renderToBuffer } from "@json-render/react-pdf";
+import type { Spec } from "@json-render/core";
+
+const spec: Spec = {
+  root: "doc",
+  elements: {
+    doc: { type: "Document", props: { title: "Invoice" }, children: ["page"] },
+    page: {
+      type: "Page",
+      props: { size: "A4" },
+      children: ["heading", "table"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Invoice #1234", level: "h1" },
+      children: [],
+    },
+    table: {
+      type: "Table",
+      props: {
+        columns: [
+          { header: "Item", width: "60%" },
+          { header: "Price", width: "40%", align: "right" },
+        ],
+        rows: [
+          ["Widget A", "$10.00"],
+          ["Widget B", "$25.00"],
+        ],
+      },
+      children: [],
+    },
+  },
+};
+
+const buffer = await renderToBuffer(spec);
+```
+
+## Render APIs
+
+```typescript
+import { renderToBuffer, renderToStream, renderToFile } from "@json-render/react-pdf";
+
+// In-memory buffer
+const buffer = await renderToBuffer(spec);
+
+// Readable stream (pipe to HTTP response)
+const stream = await renderToStream(spec);
+stream.pipe(res);
+
+// Direct to file
+await renderToFile(spec, "./output.pdf");
+```
+
+All render functions accept an optional second argument: `\{ registry?, state?, handlers? \}`.
+
+## Standard Components
+
+| Component | Description |
+|-----------|-------------|
+| `Document` | Top-level PDF wrapper (must be root) |
+| `Page` | Page with size (A4, LETTER), orientation, margins |
+| `View` | Generic container (padding, margin, background, border) |
+| `Row`, `Column` | Flex layout with gap, align, justify |
+| `Heading` | h1-h4 heading text |
+| `Text` | Body text (fontSize, color, weight, alignment) |
+| `Image` | Image from URL or base64 |
+| `Link` | Hyperlink with text and href |
+| `Table` | Data table with typed columns and rows |
+| `List` | Ordered or unordered list |
+| `Divider` | Horizontal line separator |
+| `Spacer` | Empty vertical space |
+| `PageNumber` | Current page number and total pages |
+
+## Custom Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry, renderToBuffer } from "@json-render/react-pdf";
+import { standardComponentDefinitions } from "@json-render/react-pdf/catalog";
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Badge: {
+      props: z.object({ label: z.string(), color: z.string().nullable() }),
+      slots: [],
+      description: "A colored badge label",
+    },
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Badge: ({ props }) => (
+      <View style={{ backgroundColor: props.color ?? "#e5e7eb", padding: 4 }}>
+        <Text>{props.label}</Text>
+      </View>
+    ),
+  },
+});
+
+const buffer = await renderToBuffer(spec, { registry });
+```
+
+## External Store (Controlled Mode)
+
+Pass a `StateStore` for full control over state:
+
+```typescript
+import { createStateStore } from "@json-render/react-pdf";
+
+const store = createStateStore({ invoice: { total: 100 } });
+store.set("/invoice/total", 200);
+```
+
+## Server-Safe Import
+
+Import schema and catalog without pulling in React:
+
+```typescript
+import { schema, standardComponentDefinitions } from "@json-render/react-pdf/server";
+```
+
+
+### Upstream R3f
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-three-fiber/SKILL.md) --&gt;
+&lt;!-- Hash: 1d7c0ef28bcd529f6b97fc0e63c5410564c7e64d9f0c4f8807c27077d452e33f --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-three-fiber
+
+React Three Fiber renderer for json-render. 19 built-in 3D components.
+
+## Two Entry Points
+
+| Entry Point | Exports | Use For |
+|-------------|---------|---------|
+| `@json-render/react-three-fiber/catalog` | `threeComponentDefinitions` | Catalog schemas (no R3F dependency, safe for server) |
+| `@json-render/react-three-fiber` | `threeComponents`, `ThreeRenderer`, `ThreeCanvas`, schemas | R3F implementations and renderer |
+
+## Usage Pattern
+
+Pick the 3D components you need from the standard definitions:
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { threeComponentDefinitions } from "@json-render/react-three-fiber/catalog";
+import { defineRegistry } from "@json-render/react";
+import { threeComponents, ThreeCanvas } from "@json-render/react-three-fiber";
+
+// Catalog: pick definitions
+const catalog = defineCatalog(schema, {
+  components: {
+    Box: threeComponentDefinitions.Box,
+    Sphere: threeComponentDefinitions.Sphere,
+    AmbientLight: threeComponentDefinitions.AmbientLight,
+    DirectionalLight: threeComponentDefinitions.DirectionalLight,
+    OrbitControls: threeComponentDefinitions.OrbitControls,
+  },
+  actions: {},
+});
+
+// Registry: pick matching implementations
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Box: threeComponents.Box,
+    Sphere: threeComponents.Sphere,
+    AmbientLight: threeComponents.AmbientLight,
+    DirectionalLight: threeComponents.DirectionalLight,
+    OrbitControls: threeComponents.OrbitControls,
+  },
+});
+```
+
+## Rendering
+
+### ThreeCanvas (convenience wrapper)
+
+```tsx
+<ThreeCanvas
+  spec={spec}
+  registry={registry}
+  shadows
+  camera={{ position: [5, 5, 5], fov: 50 }}
+  style={{ width: "100%", height: "100vh" }}
+/>
+```
+
+### Manual Canvas setup
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { ThreeRenderer } from "@json-render/react-three-fiber";
+
+<Canvas shadows>
+  <ThreeRenderer spec={spec} registry={registry}>
+    {/* Additional R3F elements */}
+  </ThreeRenderer>
+</Canvas>
+```
+
+## Available Components (19)
+
+### Primitives (7)
+- `Box` -- width, height, depth, material
+- `Sphere` -- radius, widthSegments, heightSegments, material
+- `Cylinder` -- radiusTop, radiusBottom, height, material
+- `Cone` -- radius, height, material
+- `Torus` -- radius, tube, material
+- `Plane` -- width, height, material
+- `Capsule` -- radius, length, material
+
+All primitives share: `position`, `rotation`, `scale`, `castShadow`, `receiveShadow`, `material`.
+
+### Lights (4)
+- `AmbientLight` -- color, intensity
+- `DirectionalLight` -- position, color, intensity, castShadow
+- `PointLight` -- position, color, intensity, distance, decay
+- `SpotLight` -- position, color, intensity, angle, penumbra
+
+### Other (8)
+- `Group` -- container with position/rotation/scale, supports children
+- `Model` -- GLTF/GLB loader via url prop
+- `Environment` -- HDRI environment map (preset, background, blur, intensity)
+- `Fog` -- linear fog (color, near, far)
+- `GridHelper` -- reference grid (size, divisions, color)
+- `Text3D` -- SDF text (text, fontSize, color, anchorX, anchorY)
+- `PerspectiveCamera` -- camera (position, fov, near, far, makeDefault)
+- `OrbitControls` -- orbit controls (enableDamping, enableZoom, autoRotate)
+
+## Shared Schemas
+
+Reusable Zod schemas for custom 3D catalog definitions:
+
+```typescript
+import { vector3Schema, materialSchema, transformProps, shadowProps } from "@json-render/react-three-fiber";
+import { z } from "zod";
+
+// Custom 3D component
+const myComponentDef = {
+  props: z.object({
+    ...transformProps,
+    ...shadowProps,
+    material: materialSchema.nullable(),
+    myCustomProp: z.string(),
+  }),
+  description: "My custom 3D component",
+};
+```
+
+## Material Schema
+
+```typescript
+materialSchema = z.object({
+  color: z.string().nullable(),         // default "#ffffff"
+  metalness: z.number().nullable(),     // default 0
+  roughness: z.number().nullable(),     // default 1
+  emissive: z.string().nullable(),      // default "#000000"
+  emissiveIntensity: z.number().nullable(), // default 1
+  opacity: z.number().nullable(),       // default 1
+  transparent: z.boolean().nullable(),  // default false
+  wireframe: z.boolean().nullable(),    // default false
+});
+```
+
+## Spec Format
+
+3D specs use the standard json-render flat element format:
+
+```json
+{
+  "root": "scene",
+  "elements": {
+    "scene": {
+      "type": "Group",
+      "props": { "position": [0, 0, 0] },
+      "children": ["light", "box"]
+    },
+    "light": {
+      "type": "AmbientLight",
+      "props": { "intensity": 0.5 },
+      "children": []
+    },
+    "box": {
+      "type": "Box",
+      "props": {
+        "position": [0, 0.5, 0],
+        "material": { "color": "#4488ff", "metalness": 0.3, "roughness": 0.7 }
+      },
+      "children": []
+    }
+  }
+}
+```
+
+## Dependencies
+
+Peer dependencies required:
+- `@react-three/fiber` >= 8.0.0
+- `@react-three/drei` >= 9.0.0
+- `three` >= 0.160.0
+- `react` ^19.0.0
+- `zod` ^4.0.0
+
+
+### Upstream React Native
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react-native/SKILL.md) --&gt;
+&lt;!-- Hash: 6fdf47f243ff033601e515fd7c138ccf3ce08d203c8e73f61e0502b0acd117b6 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react-native
+
+React Native renderer that converts JSON specs into native mobile component trees with standard components, data binding, visibility, actions, and dynamic props.
+
+## Quick Start
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react-native/schema";
+import {
+  standardComponentDefinitions,
+  standardActionDefinitions,
+} from "@json-render/react-native/catalog";
+import { defineRegistry, Renderer, type Components } from "@json-render/react-native";
+import { z } from "zod";
+
+// Create catalog with standard + custom components
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    Icon: {
+      props: z.object({ name: z.string(), size: z.number().nullable(), color: z.string().nullable() }),
+      slots: [],
+      description: "Icon display",
+    },
+  },
+  actions: standardActionDefinitions,
+});
+
+// Register only custom components (standard ones are built-in)
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Icon: ({ props }) => <Ionicons name={props.name} size={props.size ?? 24} />,
+  } as Components<typeof catalog>,
+});
+
+// Render
+function App({ spec }) {
+  return (
+    <StateProvider initialState={{}}>
+      <VisibilityProvider>
+        <ActionProvider handlers={{}}>
+          <Renderer spec={spec} registry={registry} />
+        </ActionProvider>
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+## Standard Components
+
+### Layout
+- `Container` - wrapper with padding, background, border radius
+- `Row` - horizontal flex layout with gap, alignment
+- `Column` - vertical flex layout with gap, alignment
+- `ScrollContainer` - scrollable area (vertical or horizontal)
+- `SafeArea` - safe area insets for notch/home indicator
+- `Pressable` - touchable wrapper that triggers actions on press
+- `Spacer` - fixed or flexible spacing
+- `Divider` - thin line separator
+
+### Content
+- `Heading` - heading text (levels 1-6)
+- `Paragraph` - body text
+- `Label` - small label text
+- `Image` - image display with sizing modes
+- `Avatar` - circular avatar image
+- `Badge` - small status badge
+- `Chip` - tag/chip for categories
+
+### Input
+- `Button` - pressable button with variants
+- `TextInput` - text input field
+- `Switch` - toggle switch
+- `Checkbox` - checkbox with label
+- `Slider` - range slider
+- `SearchBar` - search input
+
+### Feedback
+- `Spinner` - loading indicator
+- `ProgressBar` - progress indicator
+
+### Composite
+- `Card` - card container with optional header
+- `ListItem` - list row with title, subtitle, accessory
+- `Modal` - bottom sheet modal
+
+## Visibility Conditions
+
+Use `visible` on elements. Syntax: `\{ "$state": "/path" \}`, `\{ "$state": "/path", "eq": value \}`, `\{ "$state": "/path", "not": true \}`, `[ cond1, cond2 ]` for AND.
+
+## Pressable + setState Pattern
+
+Use `Pressable` with the built-in `setState` action for interactive UIs like tab bars:
+
+```json
+{
+  "type": "Pressable",
+  "props": {
+    "action": "setState",
+    "actionParams": { "statePath": "/activeTab", "value": "home" }
+  },
+  "children": ["home-icon", "home-label"]
+}
+```
+
+## Dynamic Prop Expressions
+
+Any prop value can be a data-driven expression resolved at render time:
+
+- **`\{ "$state": "/state/key" \}`** - reads from state model (one-way read)
+- **`\{ "$bindState": "/path" \}`** - two-way binding: use on the natural value prop (value, checked, pressed, etc.) of form components.
+- **`\{ "$bindItem": "field" \}`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`\{ "$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt; \}`** - conditional value
+
+```json
+{
+  "type": "TextInput",
+  "props": {
+    "value": { "$bindState": "/form/email" },
+    "placeholder": "Email"
+  }
+}
+```
+
+Components do not use a `statePath` prop for two-way binding. Use `\{ "$bindState": "/path" \}` on the natural value prop instead.
+
+## Built-in Actions
+
+The `setState` action is handled automatically by `ActionProvider` and updates the state model directly, which re-evaluates visibility conditions and dynamic prop expressions:
+
+```json
+{ "action": "setState", "actionParams": { "statePath": "/activeTab", "value": "home" } }
+```
+
+## Providers
+
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
+| `ActionProvider` | Handle actions dispatched from components |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
+
+### External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider` (or `JSONUIProvider` / `createRenderer`) to use external state management:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-native";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>{children}</StateProvider>
+
+store.set("/count", 1); // React re-renders automatically
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored.
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `Renderer` | Render a spec using a registry |
+| `schema` | React Native element tree schema |
+| `standardComponentDefinitions` | Catalog definitions for all standard components |
+| `standardActionDefinitions` | Catalog definitions for standard actions |
+| `standardComponents` | Pre-built component implementations |
+| `createStandardActionHandlers` | Create handlers for standard actions |
+| `useStateStore` | Access state context |
+| `useStateValue` | Get single value from state |
+| `useBoundProp` | Two-way state binding via `$bindState`/`$bindItem` |
+| `useStateBinding` | _(deprecated)_ Legacy two-way binding by path |
+| `useActions` | Access actions context |
+| `useAction` | Get a single action dispatch function |
+| `useUIStream` | Stream specs from an API endpoint |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management |
+
+
+### Upstream React
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/react/SKILL.md) --&gt;
+&lt;!-- Hash: 9160db7dcdac2bb5be7201c79f43c834f972834671a640b412b426f4adaa7785 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/react
+
+React renderer that converts JSON specs into React component trees.
+
+## Quick Start
+
+```typescript
+import { defineRegistry, Renderer } from "@json-render/react";
+import { catalog } from "./catalog";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => <div>{props.title}{children}</div>,
+  },
+});
+
+function App({ spec }) {
+  return <Renderer spec={spec} registry={registry} />;
+}
+```
+
+## Creating a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { defineRegistry } from "@json-render/react";
+import { z } from "zod";
+
+// Create catalog with props schemas
+export const catalog = defineCatalog(schema, {
+  components: {
+    Button: {
+      props: z.object({
+        label: z.string(),
+        variant: z.enum(["primary", "secondary"]).nullable(),
+      }),
+      description: "Clickable button",
+    },
+    Card: {
+      props: z.object({ title: z.string() }),
+      description: "Card container with title",
+    },
+  },
+});
+
+// Define component implementations with type-safe props
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Button: ({ props }) => (
+      <button className={props.variant}>{props.label}</button>
+    ),
+    Card: ({ props, children }) => (
+      <div className="card">
+        <h2>{props.title}</h2>
+        {children}
+      </div>
+    ),
+  },
+});
+```
+
+## Spec Structure (Element Tree)
+
+The React schema uses an element tree format:
+
+```json
+{
+  "root": {
+    "type": "Card",
+    "props": { "title": "Hello" },
+    "children": [
+      { "type": "Button", "props": { "label": "Click me" } }
+    ]
+  }
+}
+```
+
+## Visibility Conditions
+
+Use `visible` on elements to show/hide based on state. New syntax: `\{ "$state": "/path" \}`, `\{ "$state": "/path", "eq": value \}`, `\{ "$state": "/path", "not": true \}`, `\{ "$and": [cond1, cond2] \}` for AND, `\{ "$or": [cond1, cond2] \}` for OR. Helpers: `visibility.when("/path")`, `visibility.unless("/path")`, `visibility.eq("/path", val)`, `visibility.and(cond1, cond2)`, `visibility.or(cond1, cond2)`.
+
+## Providers
+
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
+| `ActionProvider` | Handle actions dispatched via the event system |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
+
+### External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider` (or `JSONUIProvider` / `createRenderer`) to use external state management (Redux, Zustand, XState, etc.):
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>{children}</StateProvider>
+
+// Mutate from anywhere — React re-renders automatically:
+store.set("/count", 1);
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored.
+
+## Dynamic Prop Expressions
+
+Any prop value can be a data-driven expression resolved by the renderer before components receive props:
+
+- **`\{ "$state": "/state/key" \}`** - reads from state model (one-way read)
+- **`\{ "$bindState": "/path" \}`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
+- **`\{ "$bindItem": "field" \}`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`\{ "$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt; \}`** - conditional value
+- **`\{ "$template": "Hello, $\{/name\}!" \}`** - interpolates state values into strings
+- **`\{ "$computed": "fn", "args": \{ ... \} \}`** - calls registered functions with resolved args
+
+```json
+{
+  "type": "Input",
+  "props": {
+    "value": { "$bindState": "/form/email" },
+    "placeholder": "Email"
+  }
+}
+```
+
+Components do not use a `statePath` prop for two-way binding. Use `\{ "$bindState": "/path" \}` on the natural value prop instead.
+
+Components receive already-resolved props. For two-way bound props, use the `useBoundProp` hook with the `bindings` map the renderer provides.
+
+Register `$computed` functions via the `functions` prop on `JSONUIProvider` or `createRenderer`:
+
+```tsx
+<JSONUIProvider
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+```
+
+## Event System
+
+Components use `emit` to fire named events, or `on()` to get an event handle with metadata. The element's `on` field maps events to action bindings:
+
+```tsx
+// Simple event firing
+Button: ({ props, emit }) => (
+  <button onClick={() => emit("press")}>{props.label}</button>
+),
+
+// Event handle with metadata (e.g. preventDefault)
+Link: ({ props, on }) => {
+  const click = on("click");
+  return (
+    <a href={props.href} onClick={(e) => {
+      if (click.shouldPreventDefault) e.preventDefault();
+      click.emit();
+    }}>{props.label}</a>
+  );
+},
+```
+
+```json
+{
+  "type": "Button",
+  "props": { "label": "Submit" },
+  "on": { "press": { "action": "submit" } }
+}
+```
+
+The `EventHandle` returned by `on()` has: `emit()`, `shouldPreventDefault` (boolean), and `bound` (boolean).
+
+## State Watchers
+
+Elements can declare a `watch` field (top-level, sibling of type/props/children) to trigger actions when state values change:
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": { "/form/country": { "action": "loadCities" } },
+  "children": []
+}
+```
+
+## Built-in Actions
+
+The `setState`, `pushState`, `removeState`, and `validateForm` actions are built into the React schema and handled automatically by `ActionProvider`. They are injected into AI prompts without needing to be declared in catalog `actions`:
+
+```json
+{ "action": "setState", "params": { "statePath": "/activeTab", "value": "home" } }
+{ "action": "pushState", "params": { "statePath": "/items", "value": { "text": "New" } } }
+{ "action": "removeState", "params": { "statePath": "/items", "index": 0 } }
+{ "action": "validateForm", "params": { "statePath": "/formResult" } }
+```
+
+`validateForm` validates all registered fields and writes `\{ valid, errors \}` to state.
+
+Note: `statePath` in action params (e.g. `setState.statePath`) targets the mutation path. Two-way binding in component props uses `\{ "$bindState": "/path" \}` on the value prop, not `statePath`.
+
+## useBoundProp
+
+For form components that need two-way binding, use `useBoundProp` with the `bindings` map the renderer provides when a prop uses `\{ "$bindState": "/path" \}` or `\{ "$bindItem": "field" \}`:
+
+```tsx
+import { useBoundProp } from "@json-render/react";
+
+Input: ({ element, bindings }) => {
+  const [value, setValue] = useBoundProp<string>(
+    element.props.value,
+    bindings?.value
+  );
+  return (
+    <input
+      value={value ?? ""}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+},
+```
+
+`useBoundProp(propValue, bindingPath)` returns `[value, setValue]`. The `value` is the resolved prop; `setValue` writes back to the bound state path (no-op if not bound).
+
+## BaseComponentProps
+
+For building reusable component libraries not tied to a specific catalog (e.g. `@json-render/shadcn`):
+
+```typescript
+import type { BaseComponentProps } from "@json-render/react";
+
+const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
+  <div>{props.title}{children}</div>
+);
+```
+
+## defineRegistry
+
+`defineRegistry` conditionally requires the `actions` field only when the catalog declares actions. Catalogs with `actions: \{\}` can omit it.
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `Renderer` | Render a spec using a registry |
+| `schema` | Element tree schema (includes built-in state actions: setState, pushState, removeState, validateForm) |
+| `useStateStore` | Access state context |
+| `useStateValue` | Get single value from state |
+| `useBoundProp` | Two-way binding for `$bindState`/`$bindItem` expressions |
+| `useActions` | Access actions context |
+| `useAction` | Get a single action dispatch function |
+| `useOptionalValidation` | Non-throwing variant of useValidation (returns null if no provider) |
+| `useUIStream` | Stream specs from an API endpoint |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management |
+| `BaseComponentProps` | Catalog-agnostic base type for reusable component libraries |
+| `EventHandle` | Event handle type (`emit`, `shouldPreventDefault`, `bound`) |
+| `ComponentContext` | Typed component context (catalog-aware) |
+
+
+### Upstream Redux
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/redux/SKILL.md) --&gt;
+&lt;!-- Hash: 7df1d68857ed6e11bbbef5e29999d9d82c0a0e21193f863a406fd98b0b6d29c0 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/redux
+
+Redux adapter for json-render's `StateStore` interface. Wire a Redux store (or Redux Toolkit slice) as the state backend for json-render.
+
+## Installation
+
+```bash
+npm install @json-render/redux @json-render/core @json-render/react redux
+# or with Redux Toolkit (recommended):
+npm install @json-render/redux @json-render/core @json-render/react @reduxjs/toolkit
+```
+
+## Usage
+
+```tsx
+import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { reduxStateStore } from "@json-render/redux";
+import { StateProvider } from "@json-render/react";
+
+// 1. Define a slice for json-render state
+const uiSlice = createSlice({
+  name: "ui",
+  initialState: { count: 0 } as Record<string, unknown>,
+  reducers: {
+    replaceUiState: (_state, action) => action.payload,
+  },
+});
+
+// 2. Create the Redux store
+const reduxStore = configureStore({
+  reducer: { ui: uiSlice.reducer },
+});
+
+// 3. Create the json-render StateStore adapter
+const store = reduxStateStore({
+  store: reduxStore,
+  selector: (state) => state.ui,
+  dispatch: (next, s) => s.dispatch(uiSlice.actions.replaceUiState(next)),
+});
+
+// 4. Use it
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Redux */}
+</StateProvider>
+```
+
+## API
+
+### `reduxStateStore(options)`
+
+Creates a `StateStore` backed by a Redux store.
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `store` | `Store` | Yes | The Redux store instance |
+| `selector` | `(state) => StateModel` | Yes | Select the json-render slice from the Redux state tree. Use `(s) => s` if the entire state is the model. |
+| `dispatch` | `(nextState, store) => void` | Yes | Dispatch an action that replaces the selected slice with the next state |
+
+The `dispatch` callback receives the full next state model and the Redux store.
+
+
+### Upstream Remotion
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/remotion/SKILL.md) --&gt;
+&lt;!-- Hash: 59d63ac06729795f0981fe0cfadf6c1c34454be0329a34f2d36c9be2391fbbe9 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/remotion
+
+Remotion renderer that converts JSON timeline specs into video compositions.
+
+## Quick Start
+
+```typescript
+import { Player } from "@remotion/player";
+import { Renderer, type TimelineSpec } from "@json-render/remotion";
+
+function VideoPlayer({ spec }: { spec: TimelineSpec }) {
+  return (
+    <Player
+      component={Renderer}
+      inputProps={{ spec }}
+      durationInFrames={spec.composition.durationInFrames}
+      fps={spec.composition.fps}
+      compositionWidth={spec.composition.width}
+      compositionHeight={spec.composition.height}
+      controls
+    />
+  );
+}
+```
+
+## Using Standard Components
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import {
+  schema,
+  standardComponentDefinitions,
+  standardTransitionDefinitions,
+  standardEffectDefinitions,
+} from "@json-render/remotion";
+
+export const videoCatalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+  transitions: standardTransitionDefinitions,
+  effects: standardEffectDefinitions,
+});
+```
+
+## Adding Custom Components
+
+```typescript
+import { z } from "zod";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    MyCustomClip: {
+      props: z.object({ text: z.string() }),
+      type: "scene",
+      defaultDuration: 90,
+      description: "My custom video clip",
+    },
+  },
+});
+
+// Pass custom component to Renderer
+<Player
+  component={Renderer}
+  inputProps={{
+    spec,
+    components: { MyCustomClip: MyCustomComponent },
+  }}
+/>
+```
+
+## Timeline Spec Structure
+
+```json
+{
+  "composition": { "id": "video", "fps": 30, "width": 1920, "height": 1080, "durationInFrames": 300 },
+  "tracks": [{ "id": "main", "name": "Main", "type": "video", "enabled": true }],
+  "clips": [
+    { "id": "clip-1", "trackId": "main", "component": "TitleCard", "props": { "title": "Hello" }, "from": 0, "durationInFrames": 90 }
+  ],
+  "audio": { "tracks": [] }
+}
+```
+
+## Standard Components
+
+| Component | Type | Description |
+|-----------|------|-------------|
+| `TitleCard` | scene | Full-screen title with subtitle |
+| `TypingText` | scene | Terminal-style typing animation |
+| `ImageSlide` | image | Full-screen image display |
+| `SplitScreen` | scene | Two-panel comparison |
+| `QuoteCard` | scene | Quote with attribution |
+| `StatCard` | scene | Animated statistic display |
+| `TextOverlay` | overlay | Text overlay |
+| `LowerThird` | overlay | Name/title overlay |
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `Renderer` | Render spec to Remotion composition |
+| `schema` | Timeline schema |
+| `standardComponents` | Pre-built component registry |
+| `standardComponentDefinitions` | Catalog definitions |
+| `useTransition` | Transition animation hook |
+| `ClipWrapper` | Wrap clips with transitions |
+
+
+### Upstream Shadcn Svelte
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/shadcn-svelte/SKILL.md) --&gt;
+&lt;!-- Hash: f0029125daa312c5fd32c2ee105d31f87a0c67a371315f5d73c63486ec139e79 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/shadcn-svelte
+
+Pre-built shadcn-svelte component definitions and implementations for json-render. Provides 36 components built on Svelte 5 + Tailwind CSS.
+
+## Two Entry Points
+
+| Entry Point | Exports | Use For |
+|-------------|---------|---------|
+| `@json-render/shadcn-svelte/catalog` | `shadcnComponentDefinitions` | Catalog schemas (no Svelte dependency, safe for server) |
+| `@json-render/shadcn-svelte` | `shadcnComponents`, `shadcnComponentDefinitions` | Svelte implementations + catalog schemas |
+
+## Usage Pattern
+
+Pick the components you need from the standard definitions. Do not spread all definitions -- explicitly select what your app uses:
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/svelte/schema";
+import { shadcnComponentDefinitions } from "@json-render/shadcn-svelte/catalog";
+import { defineRegistry } from "@json-render/svelte";
+import { shadcnComponents } from "@json-render/shadcn-svelte";
+
+// Catalog: pick definitions
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Stack: shadcnComponentDefinitions.Stack,
+    Heading: shadcnComponentDefinitions.Heading,
+    Button: shadcnComponentDefinitions.Button,
+    Input: shadcnComponentDefinitions.Input,
+  },
+  actions: {},
+});
+
+// Registry: pick matching implementations
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
+  },
+});
+```
+
+Then render in your Svelte component:
+
+```svelte
+<script lang="ts">
+  import { Renderer, JsonUIProvider } from "@json-render/svelte";
+
+  export let spec;
+  export let registry;
+</script>
+
+<JsonUIProvider initialState={spec?.state ?? {}}>
+  <Renderer {spec} {registry} />
+</JsonUIProvider>
+```
+
+## Available Components
+
+### Layout
+- **Card** - Container with optional title, description, maxWidth, centered
+- **Stack** - Flex container with direction, gap, align, justify
+- **Grid** - Grid layout with columns (number) and gap
+- **Separator** - Visual divider with orientation
+
+### Navigation
+- **Tabs** - Tabbed navigation with tabs array, defaultValue, value
+- **Accordion** - Collapsible sections with items array and type (single/multiple)
+- **Collapsible** - Single collapsible section with title
+- **Pagination** - Page navigation with totalPages and page
+
+### Overlay
+- **Dialog** - Modal dialog with title, description, openPath
+- **Drawer** - Bottom drawer with title, description, openPath
+- **Tooltip** - Hover tooltip with content and text
+- **Popover** - Click-triggered popover with trigger and content
+- **DropdownMenu** - Dropdown with label and items array
+
+### Content
+- **Heading** - Heading text with level (h1-h4)
+- **Text** - Paragraph with variant (body, caption, muted, lead, code)
+- **Image** - Image with alt, width, height
+- **Avatar** - User avatar with src, name, size
+- **Badge** - Status badge with text and variant (default, secondary, destructive, outline)
+- **Alert** - Alert banner with title, message, type (success, warning, info, error)
+- **Carousel** - Scrollable carousel with items array
+- **Table** - Data table with columns (string[]) and rows (string[][])
+
+### Feedback
+- **Progress** - Progress bar with value, max, label
+- **Skeleton** - Loading placeholder with width, height, rounded
+- **Spinner** - Loading spinner with size and label
+
+### Input
+- **Button** - Button with label, variant (primary, secondary, danger), disabled
+- **Link** - Anchor link with label and href
+- **Input** - Text input with label, name, type, placeholder, value, checks
+- **Textarea** - Multi-line input with label, name, placeholder, rows, value, checks
+- **Select** - Dropdown select with label, name, options (string[]), value, checks
+- **Checkbox** - Checkbox with label, name, checked, checks, validateOn
+- **Radio** - Radio group with label, name, options (string[]), value, checks, validateOn
+- **Switch** - Toggle switch with label, name, checked, checks, validateOn
+- **Slider** - Range slider with label, min, max, step, value
+- **Toggle** - Toggle button with label, pressed, variant
+- **ToggleGroup** - Group of toggles with items, type, value
+- **ButtonGroup** - Button group with buttons array and selected
+
+## Validation Timing (`validateOn`)
+
+All form components support `validateOn` to control when validation runs:
+- `"change"` -- validate on every input change (default for Select, Checkbox, Radio, Switch)
+- `"blur"` -- validate when field loses focus (default for Input, Textarea)
+- `"submit"` -- validate only on form submission
+
+## Important Notes
+
+- The `/catalog` entry point has no Svelte dependency -- use it for server-side prompt generation
+- Components use Tailwind CSS classes -- your app must have Tailwind configured
+- Component implementations use bundled shadcn-svelte primitives (not your app's `$lib/components/ui/`)
+- All form inputs support `checks` for validation (type + message pairs) and `validateOn` for timing
+- Events: inputs emit `change`/`submit`/`focus`/`blur`; buttons emit `press`; selects emit `change`/`select`
+
+
+### Upstream Shadcn
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/shadcn/SKILL.md) --&gt;
+&lt;!-- Hash: d6f1591aa8055898ef65b0903083caf25ed43304c42c668e070e357a4ac95316 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/shadcn
+
+Pre-built shadcn/ui component definitions and implementations for json-render. Provides 36 components built on Radix UI + Tailwind CSS.
+
+## Two Entry Points
+
+| Entry Point | Exports | Use For |
+|-------------|---------|---------|
+| `@json-render/shadcn/catalog` | `shadcnComponentDefinitions` | Catalog schemas (no React dependency, safe for server) |
+| `@json-render/shadcn` | `shadcnComponents` | React implementations |
+
+## Usage Pattern
+
+Pick the components you need from the standard definitions. Do not spread all definitions -- explicitly select what your app uses:
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
+import { defineRegistry } from "@json-render/react";
+import { shadcnComponents } from "@json-render/shadcn";
+
+// Catalog: pick definitions
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Stack: shadcnComponentDefinitions.Stack,
+    Heading: shadcnComponentDefinitions.Heading,
+    Button: shadcnComponentDefinitions.Button,
+    Input: shadcnComponentDefinitions.Input,
+  },
+  actions: {},
+});
+
+// Registry: pick matching implementations
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
+  },
+});
+```
+
+> State actions (`setState`, `pushState`, `removeState`) are built into the React schema and handled by `ActionProvider` automatically. No need to declare them.
+
+## Extending with Custom Components
+
+Add custom components alongside standard ones:
+
+```typescript
+const catalog = defineCatalog(schema, {
+  components: {
+    // Standard
+    Card: shadcnComponentDefinitions.Card,
+    Stack: shadcnComponentDefinitions.Stack,
+
+    // Custom
+    Metric: {
+      props: z.object({
+        label: z.string(),
+        value: z.string(),
+        trend: z.enum(["up", "down", "neutral"]).nullable(),
+      }),
+      description: "KPI metric display",
+    },
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Metric: ({ props }) => <div>{props.label}: {props.value}</div>,
+  },
+});
+```
+
+## Available Components
+
+### Layout
+- **Card** - Container with optional title, description, maxWidth, centered
+- **Stack** - Flex container with direction, gap, align, justify
+- **Grid** - Grid layout with columns (number) and gap
+- **Separator** - Visual divider with orientation
+
+### Navigation
+- **Tabs** - Tabbed navigation with tabs array, defaultValue, value
+- **Accordion** - Collapsible sections with items array and type (single/multiple)
+- **Collapsible** - Single collapsible section with title
+- **Pagination** - Page navigation with totalPages and page
+
+### Overlay
+- **Dialog** - Modal dialog with title, description, openPath
+- **Drawer** - Bottom drawer with title, description, openPath
+- **Tooltip** - Hover tooltip with content and text
+- **Popover** - Click-triggered popover with trigger and content
+- **DropdownMenu** - Dropdown with label and items array
+
+### Content
+- **Heading** - Heading text with level (h1-h4)
+- **Text** - Paragraph with variant (body, caption, muted, lead, code)
+- **Image** - Image with alt, width, height
+- **Avatar** - User avatar with src, name, size
+- **Badge** - Status badge with text and variant (default, secondary, destructive, outline)
+- **Alert** - Alert banner with title, message, type (success, warning, info, error)
+- **Carousel** - Scrollable carousel with items array
+- **Table** - Data table with columns (string[]) and rows (string[][])
+
+### Feedback
+- **Progress** - Progress bar with value, max, label
+- **Skeleton** - Loading placeholder with width, height, rounded
+- **Spinner** - Loading spinner with size and label
+
+### Input
+- **Button** - Button with label, variant (primary, secondary, danger), disabled
+- **Link** - Anchor link with label and href
+- **Input** - Text input with label, name, type, placeholder, value, checks
+- **Textarea** - Multi-line input with label, name, placeholder, rows, value, checks
+- **Select** - Dropdown select with label, name, options (string[]), value, checks
+- **Checkbox** - Checkbox with label, name, checked, checks, validateOn
+- **Radio** - Radio group with label, name, options (string[]), value, checks, validateOn
+- **Switch** - Toggle switch with label, name, checked, checks, validateOn
+- **Slider** - Range slider with label, min, max, step, value
+- **Toggle** - Toggle button with label, pressed, variant
+- **ToggleGroup** - Group of toggles with items, type, value
+- **ButtonGroup** - Button group with buttons array and selected
+
+## Built-in Actions (from `@json-render/react`)
+
+These are built into the React schema and handled by `ActionProvider` automatically. They appear in prompts without needing to be declared in the catalog.
+
+- **setState** - Set a value at a state path (`\{ statePath, value \}`)
+- **pushState** - Push a value onto an array (`\{ statePath, value, clearStatePath? \}`)
+- **removeState** - Remove an array item by index (`\{ statePath, index \}`)
+- **validateForm** - Validate all fields, write `\{ valid, errors \}` to state (`\{ statePath? \}`)
+
+## Validation Timing (`validateOn`)
+
+All form components support `validateOn` to control when validation runs:
+- `"change"` — validate on every input change (default for Select, Checkbox, Radio, Switch)
+- `"blur"` — validate when field loses focus (default for Input, Textarea)
+- `"submit"` — validate only on form submission
+
+## Important Notes
+
+- The `/catalog` entry point has no React dependency -- use it for server-side prompt generation
+- Components use Tailwind CSS classes -- your app must have Tailwind configured
+- Component implementations use bundled shadcn/ui primitives (not your app's `components/ui/`)
+- All form inputs support `checks` for validation (type + message pairs) and `validateOn` for timing
+- Events: inputs emit `change`/`submit`/`focus`/`blur`; buttons emit `press`; selects emit `change`/`select`
+
+
+### Upstream Solid
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/solid/SKILL.md) --&gt;
+&lt;!-- Hash: f94634c558d7d9fb323ba61bd9c8b08b1663260172bb9152b13f6af9b8296542 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/solid
+
+`@json-render/solid` renders json-render specs into Solid component trees with fine-grained reactivity.
+
+## Quick Start
+
+```tsx
+import { Renderer, JSONUIProvider } from "@json-render/solid";
+import type { Spec } from "@json-render/solid";
+import { registry } from "./registry";
+
+export function App(props: { spec: Spec | null }) {
+  return (
+    <JSONUIProvider registry={registry} initialState={{}}>
+      <Renderer spec={props.spec} registry={registry} />
+    </JSONUIProvider>
+  );
+}
+```
+
+## Create a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/solid/schema";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Button: {
+      props: z.object({
+        label: z.string(),
+        variant: z.enum(["primary", "secondary"]).nullable(),
+      }),
+      description: "Clickable button",
+    },
+    Card: {
+      props: z.object({ title: z.string() }),
+      description: "Card container",
+    },
+  },
+  actions: {
+    submit: { description: "Submit data" },
+  },
+});
+```
+
+## Define Components
+
+Components receive `ComponentRenderProps` from the renderer:
+
+```ts
+interface ComponentRenderProps<P = Record<string, unknown>> {
+  element: UIElement<string, P>;
+  children?: JSX.Element;
+  emit: (event: string) => void;
+  on: (event: string) => EventHandle;
+  bindings?: Record<string, string>;
+  loading?: boolean;
+}
+```
+
+Example:
+
+```tsx
+import type { BaseComponentProps } from "@json-render/solid";
+
+export function Button(props: BaseComponentProps<{ label: string }>) {
+  return (
+    <button onClick={() => props.emit("press")}>{props.props.label}</button>
+  );
+}
+```
+
+## Create a Registry
+
+```typescript
+import { defineRegistry } from "@json-render/solid";
+import { catalog } from "./catalog";
+import { Card } from "./Card";
+import { Button } from "./Button";
+
+const { registry, handlers, executeAction } = defineRegistry(catalog, {
+  components: {
+    Card,
+    Button,
+  },
+  actions: {
+    submit: async (params, setState, state) => {
+      // custom action logic
+    },
+  },
+});
+```
+
+## Spec Structure
+
+```json
+{
+  "root": "card1",
+  "elements": {
+    "card1": {
+      "type": "Card",
+      "props": { "title": "Hello" },
+      "children": ["btn1"]
+    },
+    "btn1": {
+      "type": "Button",
+      "props": { "label": "Click me" },
+      "on": {
+        "press": { "action": "submit" }
+      }
+    }
+  }
+}
+```
+
+## Providers
+
+- `StateProvider`: state model read/write and controlled mode via `store`
+- `VisibilityProvider`: evaluates `visible` conditions
+- `ValidationProvider`: field validation + `validateForm` integration
+- `ActionProvider`: runs built-in and custom actions
+- `JSONUIProvider`: combined provider wrapper
+
+## Hooks
+
+- `useStateStore`, `useStateValue`, `useStateBinding`
+- `useVisibility`, `useIsVisible`
+- `useActions`, `useAction`
+- `useValidation`, `useOptionalValidation`, `useFieldValidation`
+- `useBoundProp`
+- `useUIStream`, `useChatUI`
+
+## Built-in Actions
+
+Handled automatically by `ActionProvider`:
+
+- `setState`
+- `pushState`
+- `removeState`
+- `validateForm`
+
+## Dynamic Props and Bindings
+
+Supported expression forms include:
+
+- `\{"$state": "/path"\}`
+- `\{"$bindState": "/path"\}`
+- `\{"$bindItem": "field"\}`
+- `\{"$template": "Hi $\{/user/name\}"\}`
+- `\{"$computed": "fn", "args": \{...\}\}`
+- `\{"$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt;\}`
+
+Use `useBoundProp` in components for writable bound values:
+
+```tsx
+import { useBoundProp } from "@json-render/solid";
+
+function Input(props: BaseComponentProps<{ value?: string }>) {
+  const [value, setValue] = useBoundProp(
+    props.props.value,
+    props.bindings?.value,
+  );
+  return (
+    <input
+      value={String(value() ?? "")}
+      onInput={(e) => setValue(e.currentTarget.value)}
+    />
+  );
+}
+```
+
+`useStateValue`, `useStateBinding`, and the `state` / `errors` / `isValid` fields from `useFieldValidation` are reactive accessors in Solid. Call them as functions inside JSX, `createMemo`, or `createEffect`.
+
+## Solid Reactivity Rules
+
+- Do not destructure component props in function signatures when values need to stay reactive.
+- Keep changing reads inside JSX expressions, `createMemo`, or `createEffect`.
+- Context values are exposed through getter-based objects so consumers always observe live signals.
+
+## Streaming UI
+
+```tsx
+import { useUIStream, Renderer } from "@json-render/solid";
+
+const stream = useUIStream({ api: "/api/generate-ui" });
+await stream.send("Create a support dashboard");
+
+<Renderer
+  spec={stream.spec}
+  registry={registry}
+  loading={stream.isStreaming}
+/>;
+```
+
+Use `useChatUI` for chat + UI generation flows.
+
+
+### Upstream Svelte
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/svelte/SKILL.md) --&gt;
+&lt;!-- Hash: 5aced90dba057566833f53cd5c5ea25734650bbd5d160ec6d11517d8f0c8807e --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/svelte
+
+Svelte 5 renderer that converts json-render specs into Svelte component trees.
+
+## Quick Start
+
+```svelte
+<script lang="ts">
+  import { Renderer, JsonUIProvider } from "@json-render/svelte";
+  import type { Spec } from "@json-render/svelte";
+  import Card from "./components/Card.svelte";
+  import Button from "./components/Button.svelte";
+
+  interface Props {
+    spec: Spec | null;
+  }
+
+  let { spec }: Props = $props();
+  const registry = { Card, Button };
+</script>
+
+<JsonUIProvider>
+  <Renderer {spec} {registry} />
+</JsonUIProvider>
+```
+
+## Creating a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/svelte";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Button: {
+      props: z.object({
+        label: z.string(),
+        variant: z.enum(["primary", "secondary"]).nullable(),
+      }),
+      description: "Clickable button",
+    },
+    Card: {
+      props: z.object({ title: z.string() }),
+      description: "Card container with title",
+    },
+  },
+});
+```
+
+## Defining Components
+
+Components should accept `BaseComponentProps&lt;TProps&gt;`:
+
+```typescript
+interface BaseComponentProps<TProps> {
+  props: TProps; // Resolved props for this component
+  children?: Snippet; // Child elements (use {@render children()})
+  emit: (event: string) => void; // Fire a named event
+  bindings?: Record<string, string>; // Map of prop names to state paths (for $bindState)
+  loading?: boolean; // True while spec is streaming
+}
+```
+
+```svelte
+<!-- Button.svelte -->
+<script lang="ts">
+  import type { BaseComponentProps } from "@json-render/svelte";
+
+  interface Props extends BaseComponentProps<{ label: string; variant?: string }> {}
+  let { props, emit }: Props = $props();
+</script>
+
+<button class={props.variant} onclick={() => emit("press")}>
+  {props.label}
+</button>
+```
+
+```svelte
+<!-- Card.svelte -->
+<script lang="ts">
+  import type { Snippet } from "svelte";
+  import type { BaseComponentProps } from "@json-render/svelte";
+
+  interface Props extends BaseComponentProps<{ title: string }> {
+    children?: Snippet;
+  }
+
+  let { props, children }: Props = $props();
+</script>
+
+<div class="card">
+  <h2>{props.title}</h2>
+  {#if children}
+    {@render children()}
+  {/if}
+</div>
+```
+
+## Creating a Registry
+
+```typescript
+import { defineRegistry } from "@json-render/svelte";
+import { catalog } from "./catalog";
+import Card from "./components/Card.svelte";
+import Button from "./components/Button.svelte";
+
+const { registry, handlers, executeAction } = defineRegistry(catalog, {
+  components: {
+    Card,
+    Button,
+  },
+  actions: {
+    submit: async (params, setState, state) => {
+      // handle action
+    },
+  },
+});
+```
+
+## Spec Structure (Element Tree)
+
+The Svelte schema uses the element tree format:
+
+```json
+{
+  "root": "card1",
+  "elements": {
+    "card1": {
+      "type": "Card",
+      "props": { "title": "Hello" },
+      "children": ["btn1"]
+    },
+    "btn1": {
+      "type": "Button",
+      "props": { "label": "Click me" }
+    }
+  }
+}
+```
+
+## Visibility Conditions
+
+Use `visible` on elements to show/hide based on state:
+
+- `\{ "$state": "/path" \}` - truthy check
+- `\{ "$state": "/path", "eq": value \}` - equality check
+- `\{ "$state": "/path", "not": true \}` - falsy check
+- `\{ "$and": [cond1, cond2] \}` - AND conditions
+- `\{ "$or": [cond1, cond2] \}` - OR conditions
+
+## Providers (via JsonUIProvider)
+
+`JsonUIProvider` composes all contexts. Individual contexts:
+
+| Context             | Purpose                                            |
+| ------------------- | -------------------------------------------------- |
+| `StateContext`      | Share state across components (JSON Pointer paths) |
+| `ActionContext`     | Handle actions dispatched via the event system     |
+| `VisibilityContext` | Enable conditional rendering based on state        |
+| `ValidationContext` | Form field validation                              |
+
+## Event System
+
+Components use `emit` to fire named events. The element's `on` field maps events to action bindings:
+
+```svelte
+<!-- Button.svelte -->
+<script lang="ts">
+  import type { BaseComponentProps } from "@json-render/svelte";
+
+  interface Props extends BaseComponentProps<{ label: string }> {}
+
+  let { props, emit }: Props = $props();
+</script>
+
+<button onclick={() => emit("press")}>{props.label}</button>
+```
+
+```json
+{
+  "type": "Button",
+  "props": { "label": "Submit" },
+  "on": { "press": { "action": "submit" } }
+}
+```
+
+## Built-in Actions
+
+The `setState` action is handled automatically and updates the state model:
+
+```json
+{
+  "action": "setState",
+  "actionParams": { "statePath": "/activeTab", "value": "home" }
+}
+```
+
+Other built-in actions: `pushState`, `removeState`, `push`, `pop`.
+
+## Dynamic Props and Two-Way Binding
+
+Expression forms resolved before your component receives props:
+
+- `\{"$state": "/state/key"\}` - read from state
+- `\{"$bindState": "/form/email"\}` - read + write-back to state
+- `\{"$bindItem": "field"\}` - read + write-back for repeat items
+- `\{"$cond": &lt;condition&gt;, "$then": &lt;value&gt;, "$else": &lt;value&gt;\}` - conditional value
+
+For writable bindings inside components, use `getBoundProp`:
+
+```svelte
+<script lang="ts">
+  import { getBoundProp } from "@json-render/svelte";
+  import type { BaseComponentProps } from "@json-render/svelte";
+
+  interface Props extends BaseComponentProps<{ value?: string }> {}
+  let { props, bindings }: Props = $props();
+
+  let value = getBoundProp<string>(
+    () => props.value,
+    () => bindings?.value,
+  );
+</script>
+
+<input bind:value={value.current} />
+```
+
+## Context Helpers
+
+Preferred helpers:
+
+- `getStateValue(path)` - returns `\{ current \}` (read/write)
+- `getBoundProp(() => value, () => bindingPath)` - returns `\{ current \}` (read/write when bound)
+- `isVisible(condition)` - returns `\{ current \}` (boolean)
+- `getAction(name)` - returns `\{ current \}` (registered handler)
+
+Advanced context access:
+
+- `getStateContext()`
+- `getActionContext()`
+- `getVisibilityContext()`
+- `getValidationContext()`
+- `getOptionalValidationContext()`
+- `getFieldValidation(ctx, path, config?)`
+
+## Streaming UI
+
+Use `createUIStream` for spec streaming:
+
+```svelte
+<script lang="ts">
+  import { createUIStream, Renderer } from "@json-render/svelte";
+
+  const stream = createUIStream({
+    api: "/api/generate-ui",
+    onComplete: (spec) => console.log("Done", spec),
+  });
+
+  async function generate() {
+    await stream.send("Create a login form");
+  }
+</script>
+
+<button onclick={generate} disabled={stream.isStreaming}>
+  {stream.isStreaming ? "Generating..." : "Generate UI"}
+</button>
+
+{#if stream.spec}
+  <Renderer spec={stream.spec} {registry} loading={stream.isStreaming} />
+{/if}
+```
+
+Use `createChatUI` for chat + UI responses:
+
+```typescript
+const chat = createChatUI({ api: "/api/chat-ui" });
+await chat.send("Build a settings panel");
+```
+
+
+### Upstream Vue
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/vue/SKILL.md) --&gt;
+&lt;!-- Hash: a501e60dd4104dab555b76021b39d8fbf8014dabcf09dd57477fb56b647a3e76 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/vue
+
+Vue 3 renderer that converts JSON specs into Vue component trees with data binding, visibility, and actions.
+
+## Installation
+
+```bash
+npm install @json-render/vue @json-render/core zod
+```
+
+Peer dependencies: `vue ^3.5.0` and `zod ^4.0.0`.
+
+## Quick Start
+
+### Create a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/vue/schema";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({ title: z.string(), description: z.string().nullable() }),
+      description: "A card container",
+    },
+    Button: {
+      props: z.object({ label: z.string(), action: z.string() }),
+      description: "A clickable button",
+    },
+  },
+  actions: {},
+});
+```
+
+### Define Registry with h() Render Functions
+
+```typescript
+import { h } from "vue";
+import { defineRegistry } from "@json-render/vue";
+import { catalog } from "./catalog";
+
+export const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) =>
+      h("div", { class: "card" }, [
+        h("h3", null, props.title),
+        props.description ? h("p", null, props.description) : null,
+        children,
+      ]),
+    Button: ({ props, emit }) =>
+      h("button", { onClick: () => emit("press") }, props.label),
+  },
+});
+```
+
+### Render Specs
+
+```vue
+<script setup lang="ts">
+import { StateProvider, ActionProvider, Renderer } from "@json-render/vue";
+import { registry } from "./registry";
+
+const spec = { root: "card-1", elements: { /* ... */ } };
+</script>
+
+<template>
+  <StateProvider :initial-state="{ form: { name: '' } }">
+    <ActionProvider :handlers="{ submit: handleSubmit }">
+      <Renderer :spec="spec" :registry="registry" />
+    </ActionProvider>
+  </StateProvider>
+</template>
+```
+
+## Providers
+
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts `initialState` or `store` for controlled mode. |
+| `ActionProvider` | Handle actions dispatched via the event system |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
+
+## Composables
+
+| Composable | Purpose |
+|------------|---------|
+| `useStateStore()` | Access state context (`state` as `ShallowRef`, `get`, `set`, `update`) |
+| `useStateValue(path)` | Get single value from state |
+| `useIsVisible(condition)` | Check if a visibility condition is met |
+| `useActions()` | Access action context |
+| `useAction(binding)` | Get a single action dispatch function |
+| `useFieldValidation(path, config)` | Field validation state |
+| `useBoundProp(propValue, bindingPath)` | Two-way binding for `$bindState`/`$bindItem` |
+
+Note: `useStateStore().state` returns a `ShallowRef&lt;StateModel&gt;` — use `state.value` to access.
+
+## External Store (StateStore)
+
+Pass a `StateStore` to `StateProvider` to wire json-render to Pinia, VueUse, or any state management:
+
+```typescript
+import { createStateStore, type StateStore } from "@json-render/vue";
+
+const store = createStateStore({ count: 0 });
+```
+
+```vue
+<StateProvider :store="store">
+  <Renderer :spec="spec" :registry="registry" />
+</StateProvider>
+```
+
+## Dynamic Prop Expressions
+
+Props support `$state`, `$bindState`, `$cond`, `$template`, `$computed`. Use `\{ "$bindState": "/path" \}` on the natural value prop for two-way binding.
+
+## Visibility Conditions
+
+```typescript
+{ "$state": "/user/isAdmin" }
+{ "$state": "/status", "eq": "active" }
+{ "$state": "/maintenance", "not": true }
+[ cond1, cond2 ]  // implicit AND
+```
+
+## Built-in Actions
+
+`setState`, `pushState`, `removeState`, and `validateForm` are built into the Vue schema and handled by `ActionProvider`:
+
+```json
+{
+  "action": "setState",
+  "params": { "statePath": "/activeTab", "value": "settings" }
+}
+```
+
+## Event System
+
+Components use `emit(event)` to fire events, or `on(event)` for metadata (`shouldPreventDefault`, `bound`).
+
+## Streaming
+
+`useUIStream` and `useChatUI` return Vue Refs for streaming specs from an API.
+
+## BaseComponentProps
+
+For catalog-agnostic reusable components:
+
+```typescript
+import type { BaseComponentProps } from "@json-render/vue";
+
+const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) =>
+  h("div", null, [props.title, children]);
+```
+
+## Key Exports
+
+| Export | Purpose |
+|--------|---------|
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `Renderer` | Render a spec using a registry |
+| `schema` | Element tree schema (from `@json-render/vue/schema`) |
+| `StateProvider`, `ActionProvider`, `VisibilityProvider`, `ValidationProvider` | Context providers |
+| `useStateStore`, `useStateValue`, `useBoundProp` | State composables |
+| `useActions`, `useAction` | Action composables |
+| `useFieldValidation`, `useIsVisible` | Validation and visibility |
+| `useUIStream`, `useChatUI` | Streaming composables |
+| `createStateStore` | Create in-memory `StateStore` |
+| `BaseComponentProps` | Catalog-agnostic component props type |
+
+
+### Upstream Xstate
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/xstate/SKILL.md) --&gt;
+&lt;!-- Hash: f69e656f8e72e5f3225aa9e5b68304b1a4acf85cbc59c17a4b9f4c595b76d7bb --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/xstate
+
+[XState Store](https://stately.ai/docs/xstate-store) adapter for json-render's `StateStore` interface. Wire an `@xstate/store` atom as the state backend for json-render.
+
+## Installation
+
+```bash
+npm install @json-render/xstate @json-render/core @json-render/react @xstate/store
+```
+
+Requires `@xstate/store` v3+.
+
+## Usage
+
+```tsx
+import { createAtom } from "@xstate/store";
+import { xstateStoreStateStore } from "@json-render/xstate";
+import { StateProvider } from "@json-render/react";
+
+// 1. Create an atom
+const uiAtom = createAtom({ count: 0 });
+
+// 2. Create the json-render StateStore adapter
+const store = xstateStoreStateStore({ atom: uiAtom });
+
+// 3. Use it
+<StateProvider store={store}>
+  {/* json-render reads/writes go through @xstate/store */}
+</StateProvider>
+```
+
+## API
+
+### `xstateStoreStateStore(options)`
+
+Creates a `StateStore` backed by an `@xstate/store` atom.
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `atom` | `Atom&lt;StateModel&gt;` | Yes | An `@xstate/store` atom (from `createAtom`) holding the json-render state model |
+
+
+### Upstream Yaml
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/yaml/SKILL.md) --&gt;
+&lt;!-- Hash: 7fbf15795ce16be3379ca2f62a0f7be103162ab9996392eb878441b70f1c0621 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/yaml
+
+YAML wire format for `@json-render/core`. Progressive rendering and surgical edits via streaming YAML.
+
+## Key Concepts
+
+- **YAML wire format**: Alternative to JSONL that uses code fences (`yaml-spec`, `yaml-edit`, `yaml-patch`, `diff`)
+- **Streaming parser**: Incrementally parses YAML, emits JSON Patch operations via diffing
+- **Edit modes**: Patch (RFC 6902), merge (RFC 7396), and unified diff
+- **AI SDK transform**: `TransformStream` that converts YAML fences into json-render patches
+
+## Generating YAML Prompts
+
+```typescript
+import { yamlPrompt } from "@json-render/yaml";
+import { catalog } from "./catalog";
+
+// Standalone mode (LLM outputs only YAML)
+const systemPrompt = yamlPrompt(catalog, {
+  mode: "standalone",
+  editModes: ["merge"],
+  customRules: ["Always use dark theme"],
+});
+
+// Inline mode (LLM responds conversationally, wraps YAML in fences)
+const chatPrompt = yamlPrompt(catalog, { mode: "inline" });
+```
+
+Options:
+
+- `system` (string) — Custom system message intro
+- `mode` ("standalone" | "inline") — Output mode, default "standalone"
+- `customRules` (string[]) — Additional rules appended to prompt
+- `editModes` (EditMode[]) — Edit modes to document, default ["merge"]
+
+## AI SDK Transform
+
+Use `pipeYamlRender` as a drop-in replacement for `pipeJsonRender`:
+
+```typescript
+import { pipeYamlRender } from "@json-render/yaml";
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
+
+const stream = createUIMessageStream({
+  execute: async ({ writer }) => {
+    writer.merge(pipeYamlRender(result.toUIMessageStream()));
+  },
+});
+return createUIMessageStreamResponse({ stream });
+```
+
+For multi-turn edits, pass the previous spec:
+
+```typescript
+pipeYamlRender(result.toUIMessageStream(), {
+  previousSpec: currentSpec,
+});
+```
+
+The transform recognizes four fence types:
+
+- `yaml-spec` — Full spec, parsed progressively line-by-line
+- `yaml-edit` — Partial YAML deep-merged with current spec (RFC 7396)
+- `yaml-patch` — RFC 6902 JSON Patch lines
+- `diff` — Unified diff applied to serialized spec
+
+## Streaming Parser (Low-Level)
+
+```typescript
+import { createYamlStreamCompiler } from "@json-render/yaml";
+
+const compiler = createYamlStreamCompiler<Spec>();
+
+// Feed chunks as they arrive from any source
+const { result, newPatches } = compiler.push("root: main\n");
+compiler.push("elements:\n  main:\n    type: Card\n");
+
+// Flush remaining data at end of stream
+const { result: final } = compiler.flush();
+
+// Reset for next stream (optionally with initial state)
+compiler.reset({ root: "main", elements: {} });
+```
+
+Methods: `push(chunk)`, `flush()`, `getResult()`, `getPatches()`, `reset(initial?)`
+
+## Edit Modes (from @json-render/core)
+
+The YAML package uses the universal edit mode system from core:
+
+```typescript
+import { buildEditInstructions, buildEditUserPrompt } from "@json-render/core";
+import type { EditMode } from "@json-render/core";
+
+// Generate edit instructions for YAML format
+const instructions = buildEditInstructions({ modes: ["merge", "patch"] }, "yaml");
+
+// Build user prompt with current spec context
+const userPrompt = buildEditUserPrompt({
+  prompt: "Change the title to Dashboard",
+  currentSpec: spec,
+  config: { modes: ["merge"] },
+  format: "yaml",
+  serializer: (s) => yamlStringify(s, { indent: 2 }).trimEnd(),
+});
+```
+
+## Fence Constants
+
+For custom parsing, use the exported constants:
+
+```typescript
+import {
+  YAML_SPEC_FENCE,   // "```yaml-spec"
+  YAML_EDIT_FENCE,   // "```yaml-edit"
+  YAML_PATCH_FENCE,  // "```yaml-patch"
+  DIFF_FENCE,        // "```diff"
+  FENCE_CLOSE,       // "```"
+} from "@json-render/yaml";
+```
+
+## Key Exports
+
+| Export | Description |
+|--------|-------------|
+| `yamlPrompt` | Generate YAML system prompt from catalog |
+| `createYamlTransform` | AI SDK TransformStream for YAML fences |
+| `pipeYamlRender` | Convenience pipe wrapper (replaces `pipeJsonRender`) |
+| `createYamlStreamCompiler` | Streaming YAML parser with patch emission |
+| `YAML_SPEC_FENCE` | Fence constant for yaml-spec |
+| `YAML_EDIT_FENCE` | Fence constant for yaml-edit |
+| `YAML_PATCH_FENCE` | Fence constant for yaml-patch |
+| `DIFF_FENCE` | Fence constant for diff |
+| `FENCE_CLOSE` | Fence close constant |
+| `diffToPatches` | Re-export: object diff to JSON Patch |
+| `deepMergeSpec` | Re-export: RFC 7396 deep merge |
+
+
+### Upstream Zustand
+
+&lt;!-- SYNCED from vercel-labs/json-render (skills/zustand/SKILL.md) --&gt;
+&lt;!-- Hash: 5ad0665e480b5e2a926626b82dbc89388801879503bdc1ceb152346692ddc502 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# @json-render/zustand
+
+Zustand adapter for json-render's `StateStore` interface. Wire a Zustand vanilla store as the state backend for json-render.
+
+## Installation
+
+```bash
+npm install @json-render/zustand @json-render/core @json-render/react zustand
+```
+
+Requires Zustand v5+. Zustand v4 is not supported due to breaking API changes in the vanilla store interface.
+
+## Usage
+
+```tsx
+import { createStore } from "zustand/vanilla";
+import { zustandStateStore } from "@json-render/zustand";
+import { StateProvider } from "@json-render/react";
+
+// 1. Create a Zustand vanilla store
+const bearStore = createStore(() => ({
+  count: 0,
+  name: "Bear",
+}));
+
+// 2. Create the json-render StateStore adapter
+const store = zustandStateStore({ store: bearStore });
+
+// 3. Use it
+<StateProvider store={store}>
+  {/* json-render reads/writes go through Zustand */}
+</StateProvider>
+```
+
+### With a Nested Slice
+
+```tsx
+const appStore = createStore(() => ({
+  ui: { count: 0 },
+  auth: { token: null },
+}));
+
+const store = zustandStateStore({
+  store: appStore,
+  selector: (s) => s.ui,
+  updater: (next, s) => s.setState({ ui: next }),
+});
+```
+
+## API
+
+### `zustandStateStore(options)`
+
+Creates a `StateStore` backed by a Zustand store.
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `store` | `StoreApi&lt;S&gt;` | Yes | Zustand vanilla store (from `createStore` in `zustand/vanilla`) |
+| `selector` | `(state) => StateModel` | No | Select the json-render slice. Defaults to entire state. |
+| `updater` | `(nextState, store) => void` | No | Apply next state to the store. Defaults to shallow merge. Override for nested slices, or use `(next, s) => s.setState(next, true)` for full replacement. |
 

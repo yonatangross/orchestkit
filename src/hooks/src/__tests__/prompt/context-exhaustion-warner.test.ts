@@ -11,6 +11,7 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks
@@ -34,9 +35,7 @@ vi.mock('../../lib/sanitize-shell.js', async (importOriginal) => {
   };
 });
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-fallback-session'),
 }));
 
@@ -48,6 +47,7 @@ import {
   TIERS,
   _resetForTesting,
 } from '../../prompt/context-exhaustion-warner.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 const mockExistsSync = vi.mocked(existsSync);
 const mockReadFileSync = vi.mocked(readFileSync);
@@ -81,8 +81,10 @@ function mockNoContextFile(): void {
 // Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/context-exhaustion-warner', () => {
   beforeEach(() => {
+    testCtx = createTestContext({ sessionId: 'test-fallback-session' });
     _resetForTesting();
     vi.clearAllMocks();
   });
@@ -197,7 +199,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns silent success when no temp file exists', () => {
       mockNoContextFile();
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -207,7 +209,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns silent success when pct < 70', () => {
       mockContextFile('55');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -217,7 +219,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns silent success at pct 69 (just below threshold)', () => {
       mockContextFile('69');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -227,7 +229,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns silent success when session_id is missing', () => {
       mockNoContextFile();
       const input = createPromptInput('hello', { session_id: '' });
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -242,7 +244,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns NOTICE warning at exactly 70%', () => {
       mockContextFile('70');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
@@ -252,7 +254,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns WARNING at 80%', () => {
       mockContextFile('80');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context WARNING]');
@@ -262,7 +264,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns CRITICAL at 90%', () => {
       mockContextFile('90');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context CRITICAL]');
@@ -272,7 +274,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns CRITICAL at 95% (above 90 threshold)', () => {
       mockContextFile('95');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context CRITICAL]');
@@ -282,7 +284,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns WARNING at 85% (between 80 and 90)', () => {
       mockContextFile('85');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context WARNING]');
@@ -292,7 +294,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('returns NOTICE at 75% (between 70 and 80)', () => {
       mockContextFile('75');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
@@ -309,10 +311,10 @@ describe('prompt/context-exhaustion-warner', () => {
       mockContextFile('75');
       const input = createPromptInput('hello');
 
-      const result1 = contextExhaustionWarner(input);
+      const result1 = contextExhaustionWarner(input, testCtx);
       expect(result1.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
 
-      const result2 = contextExhaustionWarner(input);
+      const result2 = contextExhaustionWarner(input, testCtx);
       expect(result2.continue).toBe(true);
       expect(result2.suppressOutput).toBe(true);
       expect(result2.hookSpecificOutput).toBeUndefined();
@@ -322,11 +324,11 @@ describe('prompt/context-exhaustion-warner', () => {
       const input = createPromptInput('hello');
 
       mockContextFile('72');
-      const result1 = contextExhaustionWarner(input);
+      const result1 = contextExhaustionWarner(input, testCtx);
       expect(result1.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
 
       mockContextFile('82');
-      const result2 = contextExhaustionWarner(input);
+      const result2 = contextExhaustionWarner(input, testCtx);
       expect(result2.hookSpecificOutput?.additionalContext).toContain('[Context WARNING]');
     });
 
@@ -334,11 +336,11 @@ describe('prompt/context-exhaustion-warner', () => {
       const input = createPromptInput('hello');
 
       mockContextFile('80');
-      const result1 = contextExhaustionWarner(input);
+      const result1 = contextExhaustionWarner(input, testCtx);
       expect(result1.hookSpecificOutput?.additionalContext).toContain('[Context WARNING]');
 
       mockContextFile('92');
-      const result2 = contextExhaustionWarner(input);
+      const result2 = contextExhaustionWarner(input, testCtx);
       expect(result2.hookSpecificOutput?.additionalContext).toContain('[Context CRITICAL]');
     });
 
@@ -346,11 +348,11 @@ describe('prompt/context-exhaustion-warner', () => {
       const input = createPromptInput('hello');
 
       mockContextFile('90');
-      const result1 = contextExhaustionWarner(input);
+      const result1 = contextExhaustionWarner(input, testCtx);
       expect(result1.hookSpecificOutput?.additionalContext).toContain('[Context CRITICAL]');
 
       mockContextFile('95');
-      const result2 = contextExhaustionWarner(input);
+      const result2 = contextExhaustionWarner(input, testCtx);
       expect(result2.suppressOutput).toBe(true);
       expect(result2.hookSpecificOutput).toBeUndefined();
     });
@@ -365,16 +367,16 @@ describe('prompt/context-exhaustion-warner', () => {
       const input = createPromptInput('hello');
 
       mockContextFile('80');
-      const result1 = contextExhaustionWarner(input);
+      const result1 = contextExhaustionWarner(input, testCtx);
       expect(result1.hookSpecificOutput?.additionalContext).toContain('[Context WARNING]');
 
       mockContextFile('40');
-      const result2 = contextExhaustionWarner(input);
+      const result2 = contextExhaustionWarner(input, testCtx);
       expect(result2.suppressOutput).toBe(true);
       expect(result2.hookSpecificOutput).toBeUndefined();
 
       mockContextFile('75');
-      const result3 = contextExhaustionWarner(input);
+      const result3 = contextExhaustionWarner(input, testCtx);
       expect(result3.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
     });
 
@@ -382,25 +384,24 @@ describe('prompt/context-exhaustion-warner', () => {
       const input = createPromptInput('hello');
 
       mockContextFile('92');
-      contextExhaustionWarner(input);
+      contextExhaustionWarner(input, testCtx);
 
       mockContextFile('30');
-      contextExhaustionWarner(input);
+      contextExhaustionWarner(input, testCtx);
 
       mockContextFile('70');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
       expect(result.hookSpecificOutput?.additionalContext).toContain('[Context NOTICE]');
     });
 
     test('no log when pct below 70 and no prior warnings', async () => {
       const input = createPromptInput('hello');
       mockContextFile('50');
-      contextExhaustionWarner(input);
+      contextExhaustionWarner(input, testCtx);
 
       // logHook should NOT be called with 'resetting warnings'
-      const { logHook } = await import('../../lib/common.js');
-      const calls = vi.mocked(logHook).mock.calls;
-      const resetCalls = calls.filter(c => String(c[1]).includes('resetting'));
+      const calls = vi.mocked(testCtx.log).mock.calls;
+      const resetCalls = calls.filter((c: unknown[]) => String(c[1]).includes('resetting'));
       expect(resetCalls).toHaveLength(0);
     });
   });
@@ -413,7 +414,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('handles NaN file content gracefully', () => {
       mockContextFile('abc');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -422,7 +423,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('handles pct > 100 gracefully', () => {
       mockContextFile('200');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -431,7 +432,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('handles negative pct gracefully', () => {
       mockContextFile('-10');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -440,7 +441,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('handles empty file content gracefully', () => {
       mockContextFile('');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
@@ -455,7 +456,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('contains the right tier label in brackets', () => {
       mockContextFile('90');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toMatch(/^\[Context CRITICAL\]/);
@@ -464,7 +465,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('contains current usage percentage', () => {
       mockContextFile('83');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('(Current usage: 83%)');
@@ -473,7 +474,7 @@ describe('prompt/context-exhaustion-warner', () => {
     test('contains actionable advice text', () => {
       mockContextFile('71');
       const input = createPromptInput('hello');
-      const result = contextExhaustionWarner(input);
+      const result = contextExhaustionWarner(input, testCtx);
 
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:commit');
@@ -485,7 +486,7 @@ describe('prompt/context-exhaustion-warner', () => {
         vi.clearAllMocks();
         mockContextFile(pct);
         const input = createPromptInput('hello');
-        const result = contextExhaustionWarner(input);
+        const result = contextExhaustionWarner(input, testCtx);
         expect(result.continue).toBe(true);
       }
     });

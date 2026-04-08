@@ -15,9 +15,10 @@
  * CC 2.1.9 Compliant: Uses outputWithContext / outputDeny
  */
 
-import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, outputWithContext, outputDeny, logHook } from '../../lib/common.js';
+import type { HookInput, HookResult , HookContext} from '../../types.js';
+import { outputSilentSuccess, outputWithContext, outputDeny } from '../../lib/common.js';
 import { getActivePipeline, getTaskByAgent } from '../../lib/task-integration.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'task-existence-gate';
 
@@ -69,12 +70,12 @@ function isExempt(input: HookInput): boolean {
  * - Active pipeline + no task found → BLOCK with instruction to create task first
  * - Exempt agents → always pass silently
  */
-export function taskExistenceGate(input: HookInput): HookResult {
+export function taskExistenceGate(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const subagentType = getSubagentType(input) || 'unknown';
 
   // Exempt agents pass silently
   if (isExempt(input)) {
-    logHook(HOOK_NAME, `Exempt agent: ${subagentType}`);
+    ctx.log(HOOK_NAME, `Exempt agent: ${subagentType}`);
     return outputSilentSuccess();
   }
 
@@ -83,13 +84,13 @@ export function taskExistenceGate(input: HookInput): HookResult {
 
   // Case 1: Task exists — all good
   if (existingTask) {
-    logHook(HOOK_NAME, `Task found for ${subagentType}: ${existingTask.taskId}`);
+    ctx.log(HOOK_NAME, `Task found for ${subagentType}: ${existingTask.taskId}`);
     return outputSilentSuccess();
   }
 
   // Case 2: No active pipeline — advisory nudge (don't block ad-hoc work)
   if (!activePipeline) {
-    logHook(HOOK_NAME, `No pipeline active, advisory nudge for ${subagentType}`);
+    ctx.log(HOOK_NAME, `No pipeline active, advisory nudge for ${subagentType}`);
     return outputWithContext(
       `[Task Tracking] No task registered for agent "${subagentType}". ` +
       `Consider using TaskCreate before spawning agents to enable progress tracking and pipeline coordination.`
@@ -97,7 +98,7 @@ export function taskExistenceGate(input: HookInput): HookResult {
   }
 
   // Case 3: Active pipeline but no task — BLOCK
-  logHook(HOOK_NAME, `BLOCKED: ${subagentType} has no task in pipeline ${activePipeline.pipelineId}`);
+  ctx.log(HOOK_NAME, `BLOCKED: ${subagentType} has no task in pipeline ${activePipeline.pipelineId}`);
   return outputDeny(
     `Pipeline "${activePipeline.type}" is active but no task is registered for agent "${subagentType}". ` +
     `Create a task with TaskCreate before spawning this agent. ` +

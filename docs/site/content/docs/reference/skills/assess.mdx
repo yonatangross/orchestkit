@@ -114,11 +114,36 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/orchestration-mode.md")` f
 ## Task Management (CC 2.1.16)
 
 ```python
+# 1. Create main task IMMEDIATELY
 TaskCreate(
   subject="Assess: {target}",
   description="Comprehensive evaluation with quality scores and recommendations",
   activeForm="Assessing {target}"
 )
+
+# 2. Create subtasks for each assessment phase
+TaskCreate(subject="Understand target and gather context", activeForm="Understanding target")   # id=2
+TaskCreate(subject="Discover scope and build file list", activeForm="Discovering scope")        # id=3
+TaskCreate(subject="Rate quality across 7 dimensions", activeForm="Rating quality")             # id=4
+TaskCreate(subject="Analyze pros and cons", activeForm="Analyzing pros/cons")                   # id=5
+TaskCreate(subject="Compare alternatives", activeForm="Comparing alternatives")                 # id=6
+TaskCreate(subject="Generate improvement suggestions", activeForm="Generating suggestions")     # id=7
+TaskCreate(subject="Compile assessment report", activeForm="Compiling report")                  # id=8
+
+# 3. Set dependencies for sequential phases
+TaskUpdate(taskId="3", addBlockedBy=["2"])  # Scope needs target understanding
+TaskUpdate(taskId="4", addBlockedBy=["3"])  # Rating needs scoped file list
+TaskUpdate(taskId="5", addBlockedBy=["4"])  # Pros/cons needs quality scores
+TaskUpdate(taskId="6", addBlockedBy=["4"])  # Alternatives need quality scores
+TaskUpdate(taskId="7", addBlockedBy=["5", "6"])  # Suggestions need analysis
+TaskUpdate(taskId="8", addBlockedBy=["7"])  # Report needs suggestions
+
+# 4. Before starting each task, verify it's unblocked
+task = TaskGet(taskId="2")  # Verify blockedBy is empty
+
+# 5. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
 ```
 
 ---
@@ -226,10 +251,9 @@ Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scor
 
 ## Related Skills
 
-- `assess-complexity` - Task complexity assessment
 - `ork:verify` - Post-implementation verification
 - `ork:code-review-playbook` - Code review patterns
-- `ork:quality-gates` - Quality gate patterns
+- `ork:quality-gates` - Task complexity assessment, gate patterns
 
 ---
 
@@ -786,9 +810,11 @@ Uses the unified scoring framework with 7 base dimensions (no Visual).
 
 ## assess-Specific Overrides
 
-None. Uses base 7 dimensions at base weights (total = 1.00).
+**Simplicity dimension:** Activate when the user is comparing alternatives, evaluating design options, or assessing refactoring approaches. Skip for single-implementation reviews where there's nothing to compare against.
 
 ## Dimensions Used
+
+### Default Mode (single implementation review)
 
 | Dimension | Weight |
 |-----------|--------|
@@ -799,6 +825,21 @@ None. Uses base 7 dimensions at base weights (total = 1.00).
 | Scalability | 0.10 |
 | Testability | 0.13 |
 | Compliance | 0.15 |
+
+### Comparison Mode (design alternatives, refactoring options)
+
+| Dimension | Weight |
+|-----------|--------|
+| Correctness | 0.14 |
+| Maintainability | 0.14 |
+| Performance | 0.11 |
+| Security | 0.18 |
+| Scalability | 0.09 |
+| Testability | 0.12 |
+| Compliance | 0.12 |
+| **Simplicity** | **0.10** |
+
+Activate Comparison Mode when the user asks "which is better", "compare these", "should we refactor", or is evaluating multiple approaches. See unified framework for Simplicity scoring guide.
 
 See unified framework for grade thresholds, improvement prioritization, effort/impact scales, and blocking rules.
 

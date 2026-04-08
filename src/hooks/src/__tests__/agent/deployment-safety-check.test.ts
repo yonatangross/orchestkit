@@ -8,37 +8,17 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputDeny: vi.fn((reason: string) => ({
-    continue: false,
-    stopReason: reason,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  })),
-  outputWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PostToolUse',
-      additionalContext: ctx,
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-  getSessionId: vi.fn(() => 'test-session-123'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { deploymentSafetyCheck } from '../../agent/deployment-safety-check.js';
 import { outputSilentSuccess, outputDeny, outputWithContext } from '../../lib/common.js';
+import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
 // Test Utilities
@@ -65,8 +45,10 @@ function createToolInput(
 // Deployment Safety Check Tests
 // =============================================================================
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('deployment-safety-check', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
@@ -92,7 +74,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -105,7 +87,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'deploy to prod' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -117,7 +99,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'build product page' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert - "product" does not match \bprod\b
       expect(result.continue).toBe(true);
@@ -141,7 +123,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -154,7 +136,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'rollback v1.2' });
 
       // Act
-      deploymentSafetyCheck(input);
+      deploymentSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -182,7 +164,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -195,7 +177,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'terraform apply' });
 
       // Act
-      deploymentSafetyCheck(input);
+      deploymentSafetyCheck(input, testCtx);
 
       // Assert
       const contextArg = vi.mocked(outputWithContext).mock.calls[0][0];
@@ -208,7 +190,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'docker build -t myapp .' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -236,7 +218,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -259,7 +241,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('BLOCKED');
@@ -272,7 +254,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Production deployment');
@@ -283,7 +265,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'deploy main' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('Pattern:');
@@ -295,7 +277,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'deploy --env prod' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.stopReason).toContain('proper release processes');
@@ -306,7 +288,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: 'deploy master' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result).toMatchObject({
@@ -331,7 +313,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: '' });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -343,7 +325,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', {});
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(true);
@@ -355,7 +337,7 @@ describe('deployment-safety-check', () => {
       const input = createToolInput('Bash', { command: undefined });
 
       // Act & Assert
-      expect(() => deploymentSafetyCheck(input)).not.toThrow();
+      expect(() => deploymentSafetyCheck(input, testCtx)).not.toThrow();
       expect(outputSilentSuccess).toHaveBeenCalledTimes(1);
     });
 
@@ -366,7 +348,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -379,7 +361,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert
       expect(result.continue).toBe(false);
@@ -392,7 +374,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert - production should take precedence (deny, not warn)
       expect(result.continue).toBe(false);
@@ -407,7 +389,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert - production should take precedence
       expect(result.continue).toBe(false);
@@ -421,7 +403,7 @@ describe('deployment-safety-check', () => {
       });
 
       // Act
-      const result = deploymentSafetyCheck(input);
+      const result = deploymentSafetyCheck(input, testCtx);
 
       // Assert - first match triggers deny
       expect(result.continue).toBe(false);
@@ -450,7 +432,7 @@ describe('deployment-safety-check', () => {
       for (const cmd of productionCommands) {
         vi.clearAllMocks();
         const input = createToolInput('Bash', { command: cmd });
-        const result = deploymentSafetyCheck(input);
+        const result = deploymentSafetyCheck(input, testCtx);
         expect(result.continue).toBe(false);
       }
     });
@@ -463,7 +445,7 @@ describe('deployment-safety-check', () => {
       for (const cmd of rollbackCommands) {
         vi.clearAllMocks();
         const input = createToolInput('Bash', { command: cmd });
-        const result = deploymentSafetyCheck(input);
+        const result = deploymentSafetyCheck(input, testCtx);
         expect(result.continue).toBe(true);
         expect(outputWithContext).toHaveBeenCalledTimes(1);
       }
@@ -482,7 +464,7 @@ describe('deployment-safety-check', () => {
       for (const cmd of infraCommands) {
         vi.clearAllMocks();
         const input = createToolInput('Bash', { command: cmd });
-        const result = deploymentSafetyCheck(input);
+        const result = deploymentSafetyCheck(input, testCtx);
         expect(result.continue).toBe(true);
         expect(outputWithContext).toHaveBeenCalledTimes(1);
       }

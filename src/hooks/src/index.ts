@@ -31,6 +31,7 @@ export * from './lib/effort-detector.js';
 import { autoApproveSafeBash } from './permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from './permission/auto-approve-project-writes.js';
 import { learningTracker } from './permission/learning-tracker.js';
+import { headlessDefer } from './permission/headless-defer.js';
 
 // PreTool/Bash hooks
 import { dangerousCommandBlocker } from './pretool/bash/dangerous-command-blocker.js';
@@ -42,11 +43,8 @@ import { conflictPredictor } from './pretool/bash/conflict-predictor.js';
 import { affectedTestsFinder } from './pretool/bash/affected-tests-finder.js';
 import { ciSimulation } from './pretool/bash/ci-simulation.js';
 import { preCommitSimulation } from './pretool/bash/pre-commit-simulation.js';
-import { prMergeGate } from './pretool/bash/pr-merge-gate.js';
 import { changelogGenerator } from './pretool/bash/changelog-generator.js';
 import { versionSync } from './pretool/bash/version-sync.js';
-import { licenseCompliance } from './pretool/bash/license-compliance.js';
-import { ghIssueCreationGuide } from './pretool/bash/gh-issue-creation-guide.js';
 import { issueDocsRequirement } from './pretool/bash/issue-docs-requirement.js';
 import { multiInstanceQualityGate } from './pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from './pretool/bash/agent-browser-safety.js';
@@ -104,7 +102,6 @@ import { implementStandardsLoader, reviewDimensionsLoader, verifyScoringRubricLo
 
 // Prompt hooks (UserPromptSubmit)
 import { antipatternDetector } from './prompt/antipattern-detector.js';
-import { antipatternWarning } from './prompt/antipattern-warning.js';
 import { handoffInjector } from './prompt/handoff-injector.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
@@ -187,6 +184,8 @@ import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
+import { cwdChanged } from './lifecycle/cwd-changed.js';
+import { fileChanged } from './lifecycle/file-changed.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
@@ -228,6 +227,7 @@ export const hooks: Record<string, HookFn> = {
   'permission/auto-approve-safe-bash': autoApproveSafeBash,
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
+  'permission/headless-defer': headlessDefer,
 
   // PreTool/Bash hooks (17 - consolidated git hooks)
   'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
@@ -239,11 +239,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/ci-simulation': ciSimulation,
   'pretool/bash/pre-commit-simulation': preCommitSimulation,
-  'pretool/bash/pr-merge-gate': prMergeGate,
   'pretool/bash/changelog-generator': changelogGenerator,
   'pretool/bash/version-sync': versionSync,
-  'pretool/bash/license-compliance': licenseCompliance,
-  'pretool/bash/gh-issue-creation-guide': ghIssueCreationGuide,
   'pretool/bash/issue-docs-requirement': issueDocsRequirement,
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
@@ -272,7 +269,6 @@ export const hooks: Record<string, HookFn> = {
 
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
-  'prompt/antipattern-warning': antipatternWarning,
   'prompt/handoff-injector': handoffInjector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
@@ -391,6 +387,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
+  'lifecycle/cwd-changed': cwdChanged,
+  'lifecycle/file-changed': fileChanged,
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
@@ -446,11 +444,12 @@ export function listHooks(): string[] {
  */
 export async function runHook(
   name: string,
-  input: Parameters<HookFn>[0]
+  input: Parameters<HookFn>[0],
+  ctx: Parameters<HookFn>[1]
 ): Promise<ReturnType<HookFn>> {
   const hook = getHook(name);
   if (!hook) {
     return { continue: true, suppressOutput: true };
   }
-  return hook(input);
+  return hook(input, ctx);
 }

@@ -5,13 +5,14 @@ version: 2.1.0
 
 # Rule Categories
 
-## 1. shadcn/ui (shadcn) — HIGH — 3 rules
+## 1. shadcn/ui (shadcn) — HIGH — 4 rules
 
 Beautifully designed, accessible components built on CVA variants, cn() utility, and OKLCH theming.
 
 - `shadcn-customization.md` — CVA variants, cn() utility, OKLCH theming, component extension
 - `shadcn-forms.md` — Form field wrappers, react-hook-form integration, validation
 - `shadcn-data-table.md` — TanStack Table integration, column definitions, sorting/filtering
+- `shadcn-v4-styles.md` — v4 style system (6 styles), preset codes, style detection, class mapping
 
 ## 2. Radix Primitives (radix) — HIGH — 3 rules
 

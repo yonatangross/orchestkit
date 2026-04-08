@@ -1,14 +1,14 @@
 /**
  * Configuration for TriTerminalRace demo
- * Showcasing the /ork:run-tests skill at 3 difficulty levels
+ * Showcasing the /ork:cover skill at 3 difficulty levels
  */
 
 import type { z } from "zod";
 import type { triTerminalRaceSchema } from "../TriTerminalRace";
 
 export const runTestsDemoConfig: z.infer<typeof triTerminalRaceSchema> = {
-  skillName: "run-tests",
-  skillCommand: "/ork:run-tests",
+  skillName: "cover",
+  skillCommand: "/ork:cover",
   hook: "Parallel test execution at scale",
   primaryColor: "#22c55e",
   secondaryColor: "#3b82f6",

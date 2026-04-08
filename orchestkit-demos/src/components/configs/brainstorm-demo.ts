@@ -1,14 +1,14 @@
 /**
  * Configuration for TriTerminalRace demo
- * Showcasing the /ork:brainstorming skill at 3 difficulty levels
+ * Showcasing the /ork:brainstorm skill at 3 difficulty levels
  */
 
 import type { z } from "zod";
 import type { triTerminalRaceSchema } from "../TriTerminalRace";
 
 export const brainstormDemoConfig: z.infer<typeof triTerminalRaceSchema> = {
-  skillName: "brainstorming",
-  skillCommand: "/ork:brainstorming",
+  skillName: "brainstorm",
+  skillCommand: "/ork:brainstorm",
   hook: "Generate ideas in parallel. 4 specialists. Synthesis included.",
   primaryColor: "#f59e0b",
   secondaryColor: "#8b5cf6",

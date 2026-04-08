@@ -4,22 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 // Mock dependencies before imports
-vi.mock('../../lib/common.js', () => ({
-  logHook: vi.fn(),
-  logPermissionFeedback: vi.fn(),
-  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-  outputAllowWithContext: vi.fn((ctx: string) => ({
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      additionalContext: ctx,
-      permissionDecision: 'allow',
-    },
-  })),
-  getProjectDir: vi.fn(() => '/test/project'),
-}));
+vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => ''),
@@ -28,6 +16,7 @@ vi.mock('node:child_process', () => ({
 import { changelogGenerator } from '../../pretool/bash/changelog-generator.js';
 import type { HookInput } from '../../types.js';
 import { execFileSync } from 'node:child_process';
+import { createTestContext } from '../fixtures/test-context.js';
 
 function createBashInput(command: string): HookInput {
   return {
@@ -38,14 +27,16 @@ function createBashInput(command: string): HookInput {
   };
 }
 
+let testCtx: ReturnType<typeof createTestContext>;
 describe('changelog-generator', () => {
   beforeEach(() => {
+    testCtx = createTestContext();
     vi.clearAllMocks();
   });
 
   it('returns silent success for non-version commands', () => {
     const input = createBashInput('npm run build');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -55,7 +46,7 @@ describe('changelog-generator', () => {
     vi.mocked(execFileSync).mockReturnValue('');
 
     const input = createBashInput('npm version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -67,7 +58,7 @@ describe('changelog-generator', () => {
     );
 
     const input = createBashInput('npm version minor');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Features');
@@ -81,7 +72,7 @@ describe('changelog-generator', () => {
     );
 
     const input = createBashInput('poetry version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput?.additionalContext).toContain('Maintenance');
@@ -91,7 +82,7 @@ describe('changelog-generator', () => {
     vi.mocked(execFileSync).mockReturnValue('update readme\nmerge branch main');
 
     const input = createBashInput('npm version patch');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
@@ -103,7 +94,7 @@ describe('changelog-generator', () => {
     });
 
     const input = createBashInput('npm version major');
-    const result = changelogGenerator(input);
+    const result = changelogGenerator(input, testCtx);
 
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);

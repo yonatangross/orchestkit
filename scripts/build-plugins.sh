@@ -417,6 +417,24 @@ fi
 echo ""
 
 # ============================================================================
+# Phase 7.5: Verify Vendor Upstream References
+# ============================================================================
+echo -e "${BLUE}[7.5/10] Checking vendor upstream references...${NC}"
+
+if [[ -f "$SCRIPT_DIR/sync-vercel-skills.sh" ]]; then
+    if bash "$SCRIPT_DIR/sync-vercel-skills.sh" --check 2>/dev/null; then
+        echo -e "${GREEN}  Vendor refs: all present${NC}"
+    else
+        echo -e "${RED}  Vendor refs: stale or missing — run: bash scripts/sync-vercel-skills.sh${NC}"
+        # Non-fatal: warn but don't fail the build (network may be unavailable)
+    fi
+else
+    echo -e "${YELLOW}  sync-vercel-skills.sh not found, skipping${NC}"
+fi
+
+echo ""
+
+# ============================================================================
 # Phase 8: Regenerate Fumadocs reference pages
 # ============================================================================
 echo -e "${BLUE}[8/10] Regenerating docs reference pages...${NC}"

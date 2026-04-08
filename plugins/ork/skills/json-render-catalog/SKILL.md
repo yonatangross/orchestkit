@@ -10,7 +10,7 @@ complexity: medium
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.15.0"
+  upstream-version-tested: "0.13.0"
   shadcn-component-count: 29
 ---
 
@@ -72,6 +72,17 @@ export const catalog = defineCatalog({
     children: false,
   },
 })
+```
+
+### LLM Structured Output Compatibility
+
+Use `jsonSchema({ strict: true })` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
+
+```typescript
+import { jsonSchema } from '@json-render/core'
+
+const schema = jsonSchema(catalog, { strict: true })
+// Pass to OpenAI response_format, Anthropic tool_use, or Gemini structured output
 ```
 
 ### Step 2: Implement Components
@@ -159,7 +170,7 @@ Load `rules/action-state.md` for event handlers, watch bindings, and state adapt
 
 ## YAML Mode — 30% Fewer Tokens
 
-For one-shot (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
+For standalone (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
 
 ```yaml
 root: card-1
@@ -176,7 +187,7 @@ elements:
       variant: default
 ```
 
-Use JSON for streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for one-shot generation where token cost matters. Load `rules/token-optimization.md` for selection criteria.
+Use JSON for inline mode / streaming (JSON Patch RFC 6902 over JSONL requires JSON). Use YAML for standalone mode where token cost matters. Load `rules/token-optimization.md` for selection criteria.
 
 ## Progressive Streaming
 
@@ -204,6 +215,34 @@ import { mergeCatalogs } from '@json-render/core'
 // Or merge with custom components
 const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
 ```
+
+### Style-Aware Catalogs
+
+The shadcn catalog components use default Tailwind classes. When your project uses a specific shadcn v4 style (Luma, Nova, etc.), override component implementations to match:
+
+```typescript
+import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { mergeCatalogs, type CatalogComponents } from '@json-render/core'
+
+// Override shadcn component implementations for Luma style
+const lumaComponents: Partial<CatalogComponents<typeof shadcnCatalog>> = {
+  Card: ({ title, description, children }) => (
+    <div className="rounded-4xl border shadow-md ring-1 ring-foreground/5 p-6">
+      <h3 className="font-semibold">{title}</h3>
+      {description && <p className="text-muted-foreground">{description}</p>}
+      <div className="mt-6">{children}</div>
+    </div>
+  ),
+  Button: ({ label, variant }) => (
+    <button className={cn('rounded-4xl', buttonVariants({ variant }))}>{label}</button>
+  ),
+}
+
+// Merge: catalog schema unchanged, only rendering adapts to style
+const components = { ...shadcnComponents, ...lumaComponents }
+```
+
+**Detection pattern:** Read `components.json` → `"style"` field to determine which overrides to apply. Style-specific class names: Luma (`rounded-4xl`, `shadow-md`, `gap-6`), Nova (compact `px-2 py-1`), Lyra (`rounded-none`).
 
 ## Package Ecosystem
 
@@ -259,7 +298,7 @@ Choosing JSON vs YAML for token efficiency.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Token Optimization | `rules/token-optimization.md` | YAML for one-shot, JSON for streaming |
+| Token Optimization | `rules/token-optimization.md` | YAML for standalone mode, JSON for inline/streaming |
 
 ### Actions & State
 
@@ -274,14 +313,14 @@ Adding interactivity with events, watchers, and state.
 | Decision | Recommendation |
 |----------|----------------|
 | Custom vs shadcn catalog | Start with shadcn, extend with custom types for domain-specific components |
-| JSON vs YAML spec format | YAML for one-shot (30% fewer tokens), JSON for streaming |
+| JSON vs YAML spec format | YAML for standalone mode (30% fewer tokens), JSON for inline/streaming |
 | Zod constraint strictness | Tighter is better — use z.enum over z.string, z.array().max() over unbounded |
 | State management adapter | Match your app's existing state library (Zustand, Redux, Jotai, XState) |
 
 ## Common Mistakes
 
 1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
-2. Always using JSON specs — wastes 30% tokens when streaming is not needed
+2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
 3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
 4. Skipping `mergeCatalogs()` when combining shadcn + custom — manual merging loses type safety
 5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts

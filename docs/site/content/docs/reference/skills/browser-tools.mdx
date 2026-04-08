@@ -43,9 +43,8 @@ agent-browser open "http://localhost:3000"  # which app is this?
 
 **Breaking changes** — update scripts now:
 - `--full` / `-f` moved from global to command-level (v0.21): use `screenshot --full`, NOT `--full screenshot`
-- Node.js/Playwright daemon fully removed (v0.20): `--native` and `AGENT_BROWSER_NATIVE=1` are no-ops
-- `-C` / `--cursor` flag for `snapshot` deprecated (v0.22): cursor-interactive elements included by default
 - Auth encryption format changed (v0.17): saved auth states from v0.16.x may not load
+- Auto-dialog dismissal (v0.23.1): alert/beforeunload dialogs are auto-dismissed by default, opt out with `--no-auto-dialog`
 
 **New commands:**
 
@@ -117,7 +116,7 @@ Rate limits and behavior are configurable via environment variables:
 | `AGENT_BROWSER_BURST_LIMIT` | 3 | Max requests in 3-second window |
 | `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
 | `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
-| `AGENT_BROWSER_NATIVE_CONFIRM` | 1 | Use native `--confirm-actions` for sensitive ops |
+| `AGENT_BROWSER_CONFIRM` | 1 | Use `--confirm-actions` for sensitive ops |
 | `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
 | `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
@@ -147,10 +146,8 @@ agent-browser get text body                    # Prefer targeted ref extraction
 agent-browser network route "http://internal-api/*" --body '{}'  # Never mock internal APIs
 agent-browser cookies set token "$SECRET" --url https://prod.com # Never set prod cookies
 
-# Deprecated / removed (v0.20+)
-agent-browser --native screenshot              # --native removed, Rust is the ONLY impl
-AGENT_BROWSER_NATIVE=1 agent-browser open ...  # No-op since v0.20
-agent-browser --full screenshot                # BREAKING: --full is now command-level
+# Deprecated / removed
+agent-browser --full screenshot                # BREAKING: --full is now command-level (v0.21)
 agent-browser screenshot --full                # Correct: flag after subcommand
 
 # Sensitive data leaks
@@ -904,9 +901,1800 @@ agent-browser diff screenshot --baseline /tmp/baseline.png
 - Use `find --role button "Submit"` to locate elements by ARIA role + text — more resilient than `@ref` numbers
 - Use `highlight @e1` (v0.16) to visually mark elements during debugging — clear with `highlight --clear`
 - Use `screenshot --annotate` for numbered element labels that correspond to `@ref` identifiers
-- **v0.22 breaking**: `-C`/`--cursor` flag is deprecated — cursor-interactive elements are included by default
 - **v0.21+**: iframes are traversed automatically in snapshots — no need for `frame @e1` first
 - **v0.21 breaking**: `--full` is now command-level, not global — use `screenshot --full`, not `--full screenshot`
+- **v0.23.1**: alert/beforeunload dialogs are auto-dismissed by default — opt out with `--no-auto-dialog`
 
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
+
+
+
+---
+
+## References (5)
+
+### Upstream Dogfood
+
+&lt;!-- SYNCED from vercel-labs/agent-browser (skills/dogfood/SKILL.md) --&gt;
+&lt;!-- Hash: 1cf732e6c7eb668ffac12c97add17459f8b633ffc1c40a111f54456a2a3d9afb --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Dogfood
+
+Systematically explore a web application, find issues, and produce a report with full reproduction evidence for every finding.
+
+## Setup
+
+Only the **Target URL** is required. Everything else has sensible defaults -- use them unless the user explicitly provides an override.
+
+| Parameter | Default | Example override |
+|-----------|---------|-----------------|
+| **Target URL** | _(required)_ | `vercel.com`, `http://localhost:3000` |
+| **Session name** | Slugified domain (e.g., `vercel.com` -> `vercel-com`) | `--session my-session` |
+| **Output directory** | `./dogfood-output/` | `Output directory: /tmp/qa` |
+| **Scope** | Full app | `Focus on the billing page` |
+| **Authentication** | None | `Sign in to user@example.com` |
+
+If the user says something like "dogfood vercel.com", start immediately with defaults. Do not ask clarifying questions unless authentication is mentioned but credentials are missing.
+
+Always use `agent-browser` directly -- never `npx agent-browser`. The direct binary uses the fast Rust client. `npx` routes through Node.js and is significantly slower.
+
+## Workflow
+
+```
+1. Initialize    Set up session, output dirs, report file
+2. Authenticate  Sign in if needed, save state
+3. Orient        Navigate to starting point, take initial snapshot
+4. Explore       Systematically visit pages and test features
+5. Document      Screenshot + record each issue as found
+6. Wrap up       Update summary counts, close session
+```
+
+### 1. Initialize
+
+```bash
+mkdir -p {OUTPUT_DIR}/screenshots {OUTPUT_DIR}/videos
+```
+
+Copy the report template into the output directory and fill in the header fields:
+
+```bash
+cp {SKILL_DIR}/templates/dogfood-report-template.md {OUTPUT_DIR}/report.md
+```
+
+Start a named session:
+
+```bash
+agent-browser --session {SESSION} open {TARGET_URL}
+agent-browser --session {SESSION} wait --load networkidle
+```
+
+### 2. Authenticate
+
+If the app requires login:
+
+```bash
+agent-browser --session {SESSION} snapshot -i
+# Identify login form refs, fill credentials
+agent-browser --session {SESSION} fill @e1 "{EMAIL}"
+agent-browser --session {SESSION} fill @e2 "{PASSWORD}"
+agent-browser --session {SESSION} click @e3
+agent-browser --session {SESSION} wait --load networkidle
+```
+
+For OTP/email codes: ask the user, wait for their response, then enter the code.
+
+After successful login, save state for potential reuse:
+
+```bash
+agent-browser --session {SESSION} state save {OUTPUT_DIR}/auth-state.json
+```
+
+### 3. Orient
+
+Take an initial annotated screenshot and snapshot to understand the app structure:
+
+```bash
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/initial.png
+agent-browser --session {SESSION} snapshot -i
+```
+
+Identify the main navigation elements and map out the sections to visit.
+
+### 4. Explore
+
+Read [references/issue-taxonomy.md](references/issue-taxonomy.md) for the full list of what to look for and the exploration checklist.
+
+**Strategy -- work through the app systematically:**
+
+- Start from the main navigation. Visit each top-level section.
+- Within each section, test interactive elements: click buttons, fill forms, open dropdowns/modals.
+- Check edge cases: empty states, error handling, boundary inputs.
+- Try realistic end-to-end workflows (create, edit, delete flows).
+- Check the browser console for errors periodically.
+
+**At each page:**
+
+```bash
+agent-browser --session {SESSION} snapshot -i
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/{page-name}.png
+agent-browser --session {SESSION} errors
+agent-browser --session {SESSION} console
+```
+
+Use your judgment on how deep to go. Spend more time on core features and less on peripheral pages. If you find a cluster of issues in one area, investigate deeper.
+
+### 5. Document Issues (Repro-First)
+
+Steps 4 and 5 happen together -- explore and document in a single pass. When you find an issue, stop exploring and document it immediately before moving on. Do not explore the whole app first and document later.
+
+Every issue must be reproducible. When you find something wrong, do not just note it -- prove it with evidence. The goal is that someone reading the report can see exactly what happened and replay it.
+
+**Choose the right level of evidence for the issue:**
+
+#### Interactive / behavioral issues (functional, ux, console errors on action)
+
+These require user interaction to reproduce -- use full repro with video and step-by-step screenshots:
+
+1. **Start a repro video** _before_ reproducing:
+
+```bash
+agent-browser --session {SESSION} record start {OUTPUT_DIR}/videos/issue-{NNN}-repro.webm
+```
+
+2. **Walk through the steps at human pace.** Pause 1-2 seconds between actions so the video is watchable. Take a screenshot at each step:
+
+```bash
+agent-browser --session {SESSION} screenshot {OUTPUT_DIR}/screenshots/issue-{NNN}-step-1.png
+sleep 1
+# Perform action (click, fill, etc.)
+sleep 1
+agent-browser --session {SESSION} screenshot {OUTPUT_DIR}/screenshots/issue-{NNN}-step-2.png
+sleep 1
+# ...continue until the issue manifests
+```
+
+3. **Capture the broken state.** Pause so the viewer can see it, then take an annotated screenshot:
+
+```bash
+sleep 2
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/issue-{NNN}-result.png
+```
+
+4. **Stop the video:**
+
+```bash
+agent-browser --session {SESSION} record stop
+```
+
+5. Write numbered repro steps in the report, each referencing its screenshot.
+
+#### Static / visible-on-load issues (typos, placeholder text, clipped text, misalignment, console errors on load)
+
+These are visible without interaction -- a single annotated screenshot is sufficient. No video, no multi-step repro:
+
+```bash
+agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/issue-{NNN}.png
+```
+
+Write a brief description and reference the screenshot in the report. Set **Repro Video** to `N/A`.
+
+
+**For all issues:**
+
+1. **Append to the report immediately.** Do not batch issues for later. Write each one as you find it so nothing is lost if the session is interrupted.
+
+2. **Increment the issue counter** (ISSUE-001, ISSUE-002, ...).
+
+### 6. Wrap Up
+
+Aim to find **5-10 well-documented issues**, then wrap up. Depth of evidence matters more than total count -- 5 issues with full repro beats 20 with vague descriptions.
+
+After exploring:
+
+1. Re-read the report and update the summary severity counts so they match the actual issues. Every `### ISSUE-` block must be reflected in the totals.
+2. Close the session:
+
+```bash
+agent-browser --session {SESSION} close
+```
+
+3. Tell the user the report is ready and summarize findings: total issues, breakdown by severity, and the most critical items.
+
+## Guidance
+
+- **Repro is everything.** Every issue needs proof -- but match the evidence to the issue. Interactive bugs need video and step-by-step screenshots. Static bugs (typos, placeholder text, visual glitches visible on load) only need a single annotated screenshot.
+- **Verify reproducibility before collecting evidence.** Before recording video or taking screenshots, verify the issue is reproducible with at least one retry. If it can't be reproduced consistently, it's not a valid issue.
+- **Don't record video for static issues.** A typo or clipped text doesn't benefit from a video. Save video for issues that involve user interaction, timing, or state changes.
+- **For interactive issues, screenshot each step.** Capture the before, the action, and the after -- so someone can see the full sequence.
+- **Write repro steps that map to screenshots.** Each numbered step in the report should reference its corresponding screenshot. A reader should be able to follow the steps visually without touching a browser.
+- **Use the right snapshot command.**
+  - `snapshot -i` — for finding clickable/fillable elements (buttons, inputs, links)
+  - `snapshot` (no flag) — for reading page content (text, headings, data lists)
+- **Be thorough but use judgment.** You are not following a test script -- you are exploring like a real user would. If something feels off, investigate.
+- **Write findings incrementally.** Append each issue to the report as you discover it. If the session is interrupted, findings are preserved. Never batch all issues for the end.
+- **Never delete output files.** Do not `rm` screenshots, videos, or the report mid-session. Do not close the session and restart. Work forward, not backward.
+- **Never read the target app's source code.** You are testing as a user, not auditing code. Do not read HTML, JS, or config files of the app under test. All findings must come from what you observe in the browser.
+- **Check the console.** Many issues are invisible in the UI but show up as JS errors or failed requests.
+- **Test like a user, not a robot.** Try common workflows end-to-end. Click things a real user would click. Enter realistic data.
+- **Type like a human.** When filling form fields during video recording, use `type` instead of `fill` -- it types character-by-character. Use `fill` only outside of video recording when speed matters.
+- **Pace repro videos for humans.** Add `sleep 1` between actions and `sleep 2` before the final result screenshot. Videos should be watchable at 1x speed -- a human reviewing the report needs to see what happened, not a blur of instant state changes.
+- **Be efficient with commands.** Batch multiple `agent-browser` commands in a single shell call when they are independent (e.g., `agent-browser ... screenshot ... && agent-browser ... console`). Use `agent-browser --session \{SESSION\} scroll down 300` for scrolling -- do not use `key` or `evaluate` to scroll.
+
+## References
+
+| Reference | When to Read |
+|-----------|--------------|
+| [references/issue-taxonomy.md](references/issue-taxonomy.md) | Start of session -- calibrate what to look for, severity levels, exploration checklist |
+
+## Templates
+
+| Template | Purpose |
+|----------|---------|
+| [templates/dogfood-report-template.md](templates/dogfood-report-template.md) | Copy into output directory as the report file |
+
+
+### Upstream Electron
+
+&lt;!-- SYNCED from vercel-labs/agent-browser (skills/electron/SKILL.md) --&gt;
+&lt;!-- Hash: 805f619998c2a36bef6899dd9dee974fd227afa3f22d08601d8cff097579d331 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Electron App Automation
+
+Automate any Electron desktop app using agent-browser. Electron apps are built on Chromium and expose a Chrome DevTools Protocol (CDP) port that agent-browser can connect to, enabling the same snapshot-interact workflow used for web pages.
+
+## Core Workflow
+
+1. **Launch** the Electron app with remote debugging enabled
+2. **Connect** agent-browser to the CDP port
+3. **Snapshot** to discover interactive elements
+4. **Interact** using element refs
+5. **Re-snapshot** after navigation or state changes
+
+```bash
+# Launch an Electron app with remote debugging
+open -a "Slack" --args --remote-debugging-port=9222
+
+# Connect agent-browser to the app
+agent-browser connect 9222
+
+# Standard workflow from here
+agent-browser snapshot -i
+agent-browser click @e5
+agent-browser screenshot slack-desktop.png
+```
+
+## Launching Electron Apps with CDP
+
+Every Electron app supports the `--remote-debugging-port` flag since it's built into Chromium.
+
+### macOS
+
+```bash
+# Slack
+open -a "Slack" --args --remote-debugging-port=9222
+
+# VS Code
+open -a "Visual Studio Code" --args --remote-debugging-port=9223
+
+# Discord
+open -a "Discord" --args --remote-debugging-port=9224
+
+# Figma
+open -a "Figma" --args --remote-debugging-port=9225
+
+# Notion
+open -a "Notion" --args --remote-debugging-port=9226
+
+# Spotify
+open -a "Spotify" --args --remote-debugging-port=9227
+```
+
+### Linux
+
+```bash
+slack --remote-debugging-port=9222
+code --remote-debugging-port=9223
+discord --remote-debugging-port=9224
+```
+
+### Windows
+
+```bash
+"C:\Users\%USERNAME%\AppData\Local\slack\slack.exe" --remote-debugging-port=9222
+"C:\Users\%USERNAME%\AppData\Local\Programs\Microsoft VS Code\Code.exe" --remote-debugging-port=9223
+```
+
+**Important:** If the app is already running, quit it first, then relaunch with the flag. The `--remote-debugging-port` flag must be present at launch time.
+
+## Connecting
+
+```bash
+# Connect to a specific port
+agent-browser connect 9222
+
+# Or use --cdp on each command
+agent-browser --cdp 9222 snapshot -i
+
+# Auto-discover a running Chromium-based app
+agent-browser --auto-connect snapshot -i
+```
+
+After `connect`, all subsequent commands target the connected app without needing `--cdp`.
+
+## Tab Management
+
+Electron apps often have multiple windows or webviews. Use tab commands to list and switch between them:
+
+```bash
+# List all available targets (windows, webviews, etc.)
+agent-browser tab
+
+# Switch to a specific tab by index
+agent-browser tab 2
+
+# Switch by URL pattern
+agent-browser tab --url "*settings*"
+```
+
+## Webview Support
+
+Electron `&lt;webview&gt;` elements are automatically discovered and can be controlled like regular pages. Webviews appear as separate targets in the tab list with `type: "webview"`:
+
+```bash
+# Connect to running Electron app
+agent-browser connect 9222
+
+# List targets -- webviews appear alongside pages
+agent-browser tab
+# Example output:
+#   0: [page]    Slack - Main Window     https://app.slack.com/
+#   1: [webview] Embedded Content        https://example.com/widget
+
+# Switch to a webview
+agent-browser tab 1
+
+# Interact with the webview normally
+agent-browser snapshot -i
+agent-browser click @e3
+agent-browser screenshot webview.png
+```
+
+**Note:** Webview support works via raw CDP connection.
+
+## Common Patterns
+
+### Inspect and Navigate an App
+
+```bash
+open -a "Slack" --args --remote-debugging-port=9222
+sleep 3  # Wait for app to start
+agent-browser connect 9222
+agent-browser snapshot -i
+# Read the snapshot output to identify UI elements
+agent-browser click @e10  # Navigate to a section
+agent-browser snapshot -i  # Re-snapshot after navigation
+```
+
+### Take Screenshots of Desktop Apps
+
+```bash
+agent-browser connect 9222
+agent-browser screenshot app-state.png
+agent-browser screenshot --full full-app.png
+agent-browser screenshot --annotate annotated-app.png
+```
+
+### Extract Data from a Desktop App
+
+```bash
+agent-browser connect 9222
+agent-browser snapshot -i
+agent-browser get text @e5
+agent-browser snapshot --json > app-state.json
+```
+
+### Fill Forms in Desktop Apps
+
+```bash
+agent-browser connect 9222
+agent-browser snapshot -i
+agent-browser fill @e3 "search query"
+agent-browser press Enter
+agent-browser wait 1000
+agent-browser snapshot -i
+```
+
+### Run Multiple Apps Simultaneously
+
+Use named sessions to control multiple Electron apps at the same time:
+
+```bash
+# Connect to Slack
+agent-browser --session slack connect 9222
+
+# Connect to VS Code
+agent-browser --session vscode connect 9223
+
+# Interact with each independently
+agent-browser --session slack snapshot -i
+agent-browser --session vscode snapshot -i
+```
+
+## Color Scheme
+
+The default color scheme when connecting via CDP may be `light`. To preserve dark mode:
+
+```bash
+agent-browser connect 9222
+agent-browser --color-scheme dark snapshot -i
+```
+
+Or set it globally:
+
+```bash
+AGENT_BROWSER_COLOR_SCHEME=dark agent-browser connect 9222
+```
+
+## Troubleshooting
+
+### "Connection refused" or "Cannot connect"
+
+- Make sure the app was launched with `--remote-debugging-port=NNNN`
+- If the app was already running, quit and relaunch with the flag
+- Check that the port isn't in use by another process: `lsof -i :9222`
+
+### App launches but connect fails
+
+- Wait a few seconds after launch before connecting (`sleep 3`)
+- Some apps take time to initialize their webview
+
+### Elements not appearing in snapshot
+
+- The app may use multiple webviews. Use `agent-browser tab` to list targets and switch to the right one
+
+### Cannot type in input fields
+
+- Try `agent-browser keyboard type "text"` to type at the current focus without a selector
+- Some Electron apps use custom input components; use `agent-browser keyboard inserttext "text"` to bypass key events
+
+## Supported Apps
+
+Any app built on Electron works, including:
+
+- **Communication:** Slack, Discord, Microsoft Teams, Signal, Telegram Desktop
+- **Development:** VS Code, GitHub Desktop, Postman, Insomnia
+- **Design:** Figma, Notion, Obsidian
+- **Media:** Spotify, Tidal
+- **Productivity:** Todoist, Linear, 1Password
+
+If an app is built with Electron, it supports `--remote-debugging-port` and can be automated with agent-browser.
+
+
+### Upstream Sandbox
+
+&lt;!-- SYNCED from vercel-labs/agent-browser (skills/vercel-sandbox/SKILL.md) --&gt;
+&lt;!-- Hash: 7e1b39b7ebb57b9e416722e740a6a21c461d114f1b58aecab40fa1f9e4498e71 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Browser Automation with Vercel Sandbox
+
+Run agent-browser + headless Chrome inside ephemeral Vercel Sandbox microVMs. A Linux VM spins up on demand, executes browser commands, and shuts down. Works with any Vercel-deployed framework (Next.js, SvelteKit, Nuxt, Remix, Astro, etc.).
+
+## Dependencies
+
+```bash
+pnpm add @vercel/sandbox
+```
+
+The sandbox VM needs system dependencies for Chromium plus agent-browser itself. Use sandbox snapshots (below) to pre-install everything for sub-second startup.
+
+## Core Pattern
+
+```ts
+import { Sandbox } from "@vercel/sandbox";
+
+// System libraries required by Chromium on the sandbox VM (Amazon Linux / dnf)
+const CHROMIUM_SYSTEM_DEPS = [
+  "nss", "nspr", "libxkbcommon", "atk", "at-spi2-atk", "at-spi2-core",
+  "libXcomposite", "libXdamage", "libXrandr", "libXfixes", "libXcursor",
+  "libXi", "libXtst", "libXScrnSaver", "libXext", "mesa-libgbm", "libdrm",
+  "mesa-libGL", "mesa-libEGL", "cups-libs", "alsa-lib", "pango", "cairo",
+  "gtk3", "dbus-libs",
+];
+
+function getSandboxCredentials() {
+  if (
+    process.env.VERCEL_TOKEN &&
+    process.env.VERCEL_TEAM_ID &&
+    process.env.VERCEL_PROJECT_ID
+  ) {
+    return {
+      token: process.env.VERCEL_TOKEN,
+      teamId: process.env.VERCEL_TEAM_ID,
+      projectId: process.env.VERCEL_PROJECT_ID,
+    };
+  }
+  return {};
+}
+
+async function withBrowser<T>(
+  fn: (sandbox: InstanceType<typeof Sandbox>) => Promise<T>,
+): Promise<T> {
+  const snapshotId = process.env.AGENT_BROWSER_SNAPSHOT_ID;
+  const credentials = getSandboxCredentials();
+
+  const sandbox = snapshotId
+    ? await Sandbox.create({
+        ...credentials,
+        source: { type: "snapshot", snapshotId },
+        timeout: 120_000,
+      })
+    : await Sandbox.create({ ...credentials, runtime: "node24", timeout: 120_000 });
+
+  if (!snapshotId) {
+    await sandbox.runCommand("sh", [
+      "-c",
+      `sudo dnf clean all 2>&1 && sudo dnf install -y --skip-broken ${CHROMIUM_SYSTEM_DEPS.join(" ")} 2>&1 && sudo ldconfig 2>&1`,
+    ]);
+    await sandbox.runCommand("npm", ["install", "-g", "agent-browser"]);
+    await sandbox.runCommand("npx", ["agent-browser", "install"]);
+  }
+
+  try {
+    return await fn(sandbox);
+  } finally {
+    await sandbox.stop();
+  }
+}
+```
+
+## Screenshot
+
+The `screenshot --json` command saves to a file and returns the path. Read the file back as base64:
+
+```ts
+export async function screenshotUrl(url: string) {
+  return withBrowser(async (sandbox) => {
+    await sandbox.runCommand("agent-browser", ["open", url]);
+
+    const titleResult = await sandbox.runCommand("agent-browser", [
+      "get", "title", "--json",
+    ]);
+    const title = JSON.parse(await titleResult.stdout())?.data?.title || url;
+
+    const ssResult = await sandbox.runCommand("agent-browser", [
+      "screenshot", "--json",
+    ]);
+    const ssPath = JSON.parse(await ssResult.stdout())?.data?.path;
+    const b64Result = await sandbox.runCommand("base64", ["-w", "0", ssPath]);
+    const screenshot = (await b64Result.stdout()).trim();
+
+    await sandbox.runCommand("agent-browser", ["close"]);
+
+    return { title, screenshot };
+  });
+}
+```
+
+## Accessibility Snapshot
+
+```ts
+export async function snapshotUrl(url: string) {
+  return withBrowser(async (sandbox) => {
+    await sandbox.runCommand("agent-browser", ["open", url]);
+
+    const titleResult = await sandbox.runCommand("agent-browser", [
+      "get", "title", "--json",
+    ]);
+    const title = JSON.parse(await titleResult.stdout())?.data?.title || url;
+
+    const snapResult = await sandbox.runCommand("agent-browser", [
+      "snapshot", "-i", "-c",
+    ]);
+    const snapshot = await snapResult.stdout();
+
+    await sandbox.runCommand("agent-browser", ["close"]);
+
+    return { title, snapshot };
+  });
+}
+```
+
+## Multi-Step Workflows
+
+The sandbox persists between commands, so you can run full automation sequences:
+
+```ts
+export async function fillAndSubmitForm(url: string, data: Record<string, string>) {
+  return withBrowser(async (sandbox) => {
+    await sandbox.runCommand("agent-browser", ["open", url]);
+
+    const snapResult = await sandbox.runCommand("agent-browser", [
+      "snapshot", "-i",
+    ]);
+    const snapshot = await snapResult.stdout();
+    // Parse snapshot to find element refs...
+
+    for (const [ref, value] of Object.entries(data)) {
+      await sandbox.runCommand("agent-browser", ["fill", ref, value]);
+    }
+
+    await sandbox.runCommand("agent-browser", ["click", "@e5"]);
+    await sandbox.runCommand("agent-browser", ["wait", "--load", "networkidle"]);
+
+    const ssResult = await sandbox.runCommand("agent-browser", [
+      "screenshot", "--json",
+    ]);
+    const ssPath = JSON.parse(await ssResult.stdout())?.data?.path;
+    const b64Result = await sandbox.runCommand("base64", ["-w", "0", ssPath]);
+    const screenshot = (await b64Result.stdout()).trim();
+
+    await sandbox.runCommand("agent-browser", ["close"]);
+
+    return { screenshot };
+  });
+}
+```
+
+## Sandbox Snapshots (Fast Startup)
+
+A **sandbox snapshot** is a saved VM image of a Vercel Sandbox with system dependencies + agent-browser + Chromium already installed. Think of it like a Docker image -- instead of installing dependencies from scratch every time, the sandbox boots from the pre-built image.
+
+This is unrelated to agent-browser's *accessibility snapshot* feature (`agent-browser snapshot`), which dumps a page's accessibility tree. A sandbox snapshot is a Vercel infrastructure concept for fast VM startup.
+
+Without a sandbox snapshot, each run installs system deps + agent-browser + Chromium (~30s). With one, startup is sub-second.
+
+### Creating a sandbox snapshot
+
+The snapshot must include system dependencies (via `dnf`), agent-browser, and Chromium:
+
+```ts
+import { Sandbox } from "@vercel/sandbox";
+
+const CHROMIUM_SYSTEM_DEPS = [
+  "nss", "nspr", "libxkbcommon", "atk", "at-spi2-atk", "at-spi2-core",
+  "libXcomposite", "libXdamage", "libXrandr", "libXfixes", "libXcursor",
+  "libXi", "libXtst", "libXScrnSaver", "libXext", "mesa-libgbm", "libdrm",
+  "mesa-libGL", "mesa-libEGL", "cups-libs", "alsa-lib", "pango", "cairo",
+  "gtk3", "dbus-libs",
+];
+
+async function createSnapshot(): Promise<string> {
+  const sandbox = await Sandbox.create({
+    runtime: "node24",
+    timeout: 300_000,
+  });
+
+  await sandbox.runCommand("sh", [
+    "-c",
+    `sudo dnf clean all 2>&1 && sudo dnf install -y --skip-broken ${CHROMIUM_SYSTEM_DEPS.join(" ")} 2>&1 && sudo ldconfig 2>&1`,
+  ]);
+  await sandbox.runCommand("npm", ["install", "-g", "agent-browser"]);
+  await sandbox.runCommand("npx", ["agent-browser", "install"]);
+
+  const snapshot = await sandbox.snapshot();
+  return snapshot.snapshotId;
+}
+```
+
+Run this once, then set the environment variable:
+
+```bash
+AGENT_BROWSER_SNAPSHOT_ID=snap_xxxxxxxxxxxx
+```
+
+A helper script is available in the demo app:
+
+```bash
+npx tsx examples/environments/scripts/create-snapshot.ts
+```
+
+Recommended for any production deployment using the Sandbox pattern.
+
+## Authentication
+
+On Vercel deployments, the Sandbox SDK authenticates automatically via OIDC. For local development or explicit control, set:
+
+```bash
+VERCEL_TOKEN=<personal-access-token>
+VERCEL_TEAM_ID=<team-id>
+VERCEL_PROJECT_ID=<project-id>
+```
+
+These are spread into `Sandbox.create()` calls. When absent, the SDK falls back to `VERCEL_OIDC_TOKEN` (automatic on Vercel).
+
+## Scheduled Workflows (Cron)
+
+Combine with Vercel Cron Jobs for recurring browser tasks:
+
+```ts
+// app/api/cron/route.ts  (or equivalent in your framework)
+export async function GET() {
+  const result = await withBrowser(async (sandbox) => {
+    await sandbox.runCommand("agent-browser", ["open", "https://example.com/pricing"]);
+    const snap = await sandbox.runCommand("agent-browser", ["snapshot", "-i", "-c"]);
+    await sandbox.runCommand("agent-browser", ["close"]);
+    return await snap.stdout();
+  });
+
+  // Process results, send alerts, store data...
+  return Response.json({ ok: true, snapshot: result });
+}
+```
+
+```json
+// vercel.json
+{ "crons": [{ "path": "/api/cron", "schedule": "0 9 * * *" }] }
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `AGENT_BROWSER_SNAPSHOT_ID` | No (but recommended) | Pre-built sandbox snapshot ID for sub-second startup (see above) |
+| `VERCEL_TOKEN` | No | Vercel personal access token (for local dev; OIDC is automatic on Vercel) |
+| `VERCEL_TEAM_ID` | No | Vercel team ID (for local dev) |
+| `VERCEL_PROJECT_ID` | No | Vercel project ID (for local dev) |
+
+## Framework Examples
+
+The pattern works identically across frameworks. The only difference is where you put the server-side code:
+
+| Framework | Server code location |
+|---|---|
+| Next.js | Server actions, API routes, route handlers |
+| SvelteKit | `+page.server.ts`, `+server.ts` |
+| Nuxt | `server/api/`, `server/routes/` |
+| Remix | `loader`, `action` functions |
+| Astro | `.astro` frontmatter, API routes |
+
+## Example
+
+See `examples/environments/` in the agent-browser repo for a working app with the Vercel Sandbox pattern, including a sandbox snapshot creation script, streaming progress UI, and rate limiting.
+
+
+### Upstream Slack
+
+&lt;!-- SYNCED from vercel-labs/agent-browser (skills/slack/SKILL.md) --&gt;
+&lt;!-- Hash: 7e3dd7895efb597fa84807db66fe7d3fc6fcdf75b794d4ca4662a59a443e722c --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Slack Automation
+
+Interact with Slack workspaces to check messages, extract data, and automate common tasks.
+
+## Quick Start
+
+Connect to an existing Slack browser session or open Slack:
+
+```bash
+# Connect to existing session on port 9222 (typical for already-open Slack)
+agent-browser connect 9222
+
+# Or open Slack if not already running
+agent-browser open https://app.slack.com
+```
+
+Then take a snapshot to see what's available:
+
+```bash
+agent-browser snapshot -i
+```
+
+## Core Workflow
+
+1. **Connect/Navigate**: Open or connect to Slack
+2. **Snapshot**: Get interactive elements with refs (`@e1`, `@e2`, etc.)
+3. **Navigate**: Click tabs, expand sections, or navigate to specific channels
+4. **Extract/Interact**: Read data or perform actions
+5. **Screenshot**: Capture evidence of findings
+
+```bash
+# Example: Check unread channels
+agent-browser connect 9222
+agent-browser snapshot -i
+# Look for "More unreads" button
+agent-browser click @e21  # Ref for "More unreads" button
+agent-browser screenshot slack-unreads.png
+```
+
+## Common Tasks
+
+### Checking Unread Messages
+
+```bash
+# Connect to Slack
+agent-browser connect 9222
+
+# Take snapshot to locate unreads button
+agent-browser snapshot -i
+
+# Look for:
+# - "More unreads" button (usually near top of sidebar)
+# - "Unreads" toggle in Activity tab (shows unread count)
+# - Channel names with badges/bold text indicating unreads
+
+# Navigate to Activity tab to see all unreads in one view
+agent-browser click @e14  # Activity tab (ref may vary)
+agent-browser wait 1000
+agent-browser screenshot activity-unreads.png
+
+# Or check DMs tab
+agent-browser click @e13  # DMs tab
+agent-browser screenshot dms.png
+
+# Or expand "More unreads" in sidebar
+agent-browser click @e21  # More unreads button
+agent-browser wait 500
+agent-browser screenshot expanded-unreads.png
+```
+
+### Navigating to a Channel
+
+```bash
+# Search for channel in sidebar or by name
+agent-browser snapshot -i
+
+# Look for channel name in the list (e.g., "engineering", "product-design")
+# Click on the channel treeitem ref
+agent-browser click @e94  # Example: engineering channel ref
+agent-browser wait --load networkidle
+agent-browser screenshot channel.png
+```
+
+### Finding Messages/Threads
+
+```bash
+# Use Slack search
+agent-browser snapshot -i
+agent-browser click @e5  # Search button (typical ref)
+agent-browser fill @e_search "keyword"
+agent-browser press Enter
+agent-browser wait --load networkidle
+agent-browser screenshot search-results.png
+```
+
+### Extracting Channel Information
+
+```bash
+# Get list of all visible channels
+agent-browser snapshot --json > slack-snapshot.json
+
+# Parse for channel names and metadata
+# Look for treeitem elements with level=2 (sub-channels under sections)
+```
+
+### Checking Channel Details
+
+```bash
+# Open a channel
+agent-browser click @e_channel_ref
+agent-browser wait 1000
+
+# Get channel info (members, description, etc.)
+agent-browser snapshot -i
+agent-browser screenshot channel-details.png
+
+# Scroll through messages
+agent-browser scroll down 500
+agent-browser screenshot channel-messages.png
+```
+
+### Taking Notes/Capturing State
+
+When you need to document findings from Slack:
+
+```bash
+# Take annotated screenshot (shows element numbers)
+agent-browser screenshot --annotate slack-state.png
+
+# Take full-page screenshot
+agent-browser screenshot --full slack-full.png
+
+# Get current URL for reference
+agent-browser get url
+
+# Get page title
+agent-browser get title
+```
+
+## Sidebar Structure
+
+Understanding Slack's sidebar helps you navigate efficiently:
+
+```
+- Threads
+- Huddles
+- Drafts & sent
+- Directories
+- [Section Headers - External connections, Starred, Channels, etc.]
+  - [Channels listed as treeitems]
+- Direct Messages
+  - [DMs listed]
+- Apps
+  - [App shortcuts]
+- [More unreads] button (toggles unread channels list)
+```
+
+Key refs to look for:
+- `@e12` - Home tab (usually)
+- `@e13` - DMs tab
+- `@e14` - Activity tab
+- `@e5` - Search button
+- `@e21` - More unreads button (varies by session)
+
+## Tabs in Slack
+
+After clicking on a channel, you'll see tabs:
+- **Messages** - Channel conversation
+- **Files** - Shared files
+- **Pins** - Pinned messages
+- **Add canvas** - Collaborative canvas
+- Other tabs depending on workspace setup
+
+Click tab refs to switch views and get different information.
+
+## Extracting Data from Slack
+
+### Get Text Content
+
+```bash
+# Get a message or element's text
+agent-browser get text @e_message_ref
+```
+
+### Parse Accessibility Tree
+
+```bash
+# Full snapshot as JSON for programmatic parsing
+agent-browser snapshot --json > output.json
+
+# Look for:
+# - Channel names (name field in treeitem)
+# - Message content (in listitem/document elements)
+# - User names (button elements with user info)
+# - Timestamps (link elements with time info)
+```
+
+### Count Unreads
+
+```bash
+# After expanding unreads section:
+agent-browser snapshot -i | grep -c "treeitem"
+# Each treeitem with a channel name in the unreads section is one unread
+```
+
+## Best Practices
+
+- **Connect to existing sessions**: Use `agent-browser connect 9222` if Slack is already open. This is faster than opening a new browser.
+- **Take snapshots before clicking**: Always `snapshot -i` to identify refs before clicking buttons.
+- **Re-snapshot after navigation**: After navigating to a new channel or section, take a fresh snapshot to find new refs.
+- **Use JSON snapshots for parsing**: When you need to extract structured data, use `snapshot --json` for machine-readable output.
+- **Pace interactions**: Add `sleep 1` between rapid interactions to let the UI update.
+- **Check accessibility tree**: The accessibility tree shows what screen readers (and your automation) can see. If an element isn't in the snapshot, it may be hidden or require scrolling.
+- **Scroll in sidebar**: Use `agent-browser scroll down 300 --selector ".p-sidebar"` to scroll within the Slack sidebar if channel list is long.
+
+## Limitations
+
+- **Cannot access Slack API**: This uses browser automation, not the Slack API. No OAuth, webhooks, or bot tokens needed.
+- **Session-specific**: Screenshots and snapshots are tied to the current browser session.
+- **Rate limiting**: Slack may rate-limit rapid interactions. Add delays between commands if needed.
+- **Workspace-specific**: You interact with your own workspace -- no cross-workspace automation.
+
+## Debugging
+
+### Check console for errors
+
+```bash
+agent-browser console
+agent-browser errors
+```
+
+### Get current page state
+
+```bash
+agent-browser get url
+agent-browser get title
+agent-browser screenshot page-state.png
+```
+
+## Example: Full Unread Check
+
+```bash
+#!/bin/bash
+
+# Connect to Slack
+agent-browser connect 9222
+
+# Take initial snapshot
+echo "=== Checking Slack unreads ==="
+agent-browser snapshot -i > snapshot.txt
+
+# Check Activity tab for unreads
+agent-browser click @e14  # Activity tab
+agent-browser wait 1000
+agent-browser screenshot activity.png
+ACTIVITY_RESULT=$(agent-browser get text @e_main_area)
+echo "Activity: $ACTIVITY_RESULT"
+
+# Check DMs
+agent-browser click @e13  # DMs tab
+agent-browser wait 1000
+agent-browser screenshot dms.png
+
+# Check unread channels in sidebar
+agent-browser click @e21  # More unreads button
+agent-browser wait 500
+agent-browser snapshot -i > unreads-expanded.txt
+agent-browser screenshot unreads.png
+
+# Summary
+echo "=== Summary ==="
+echo "See activity.png, dms.png, and unreads.png for full details"
+```
+
+## References
+
+- **Slack docs**: https://slack.com/help
+- **Web experience**: https://app.slack.com
+- **Keyboard shortcuts**: Type `?` in Slack for shortcut list
+
+
+### Upstream
+
+&lt;!-- SYNCED from vercel-labs/agent-browser (skills/agent-browser/SKILL.md) --&gt;
+&lt;!-- Hash: 1010b1c5621165b23d3ba2735e1a276d5a047eb493aed3cfe577e51d320280d2 --&gt;
+&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
+
+
+# Browser Automation with agent-browser
+
+The CLI uses Chrome/Chromium via CDP directly. Install via `npm i -g agent-browser`, `brew install agent-browser`, or `cargo install agent-browser`. Run `agent-browser install` to download Chrome. Existing Chrome, Brave, Playwright, and Puppeteer installations are detected automatically. Run `agent-browser upgrade` to update to the latest version.
+
+## Core Workflow
+
+Every browser automation follows this pattern:
+
+1. **Navigate**: `agent-browser open &lt;url&gt;`
+2. **Snapshot**: `agent-browser snapshot -i` (get element refs like `@e1`, `@e2`)
+3. **Interact**: Use refs to click, fill, select
+4. **Re-snapshot**: After navigation or DOM changes, get fresh refs
+
+```bash
+agent-browser open https://example.com/form
+agent-browser snapshot -i
+# Output: @e1 [input type="email"], @e2 [input type="password"], @e3 [button] "Submit"
+
+agent-browser fill @e1 "user@example.com"
+agent-browser fill @e2 "password123"
+agent-browser click @e3
+agent-browser wait --load networkidle
+agent-browser snapshot -i  # Check result
+```
+
+## Command Chaining
+
+Commands can be chained with `&&` in a single shell invocation. The browser persists between commands via a background daemon, so chaining is safe and more efficient than separate calls.
+
+```bash
+# Chain open + wait + snapshot in one call
+agent-browser open https://example.com && agent-browser wait --load networkidle && agent-browser snapshot -i
+
+# Chain multiple interactions
+agent-browser fill @e1 "user@example.com" && agent-browser fill @e2 "password123" && agent-browser click @e3
+
+# Navigate and capture
+agent-browser open https://example.com && agent-browser wait --load networkidle && agent-browser screenshot page.png
+```
+
+**When to chain:** Use `&&` when you don't need to read the output of an intermediate command before proceeding (e.g., open + wait + screenshot). Run commands separately when you need to parse the output first (e.g., snapshot to discover refs, then interact using those refs).
+
+## Handling Authentication
+
+When automating a site that requires login, choose the approach that fits:
+
+**Option 1: Import auth from the user's browser (fastest for one-off tasks)**
+
+```bash
+# Connect to the user's running Chrome (they're already logged in)
+agent-browser --auto-connect state save ./auth.json
+# Use that auth state
+agent-browser --state ./auth.json open https://app.example.com/dashboard
+```
+
+State files contain session tokens in plaintext -- add to `.gitignore` and delete when no longer needed. Set `AGENT_BROWSER_ENCRYPTION_KEY` for encryption at rest.
+
+**Option 2: Persistent profile (simplest for recurring tasks)**
+
+```bash
+# First run: login manually or via automation
+agent-browser --profile ~/.myapp open https://app.example.com/login
+# ... fill credentials, submit ...
+
+# All future runs: already authenticated
+agent-browser --profile ~/.myapp open https://app.example.com/dashboard
+```
+
+**Option 3: Session name (auto-save/restore cookies + localStorage)**
+
+```bash
+agent-browser --session-name myapp open https://app.example.com/login
+# ... login flow ...
+agent-browser close  # State auto-saved
+
+# Next time: state auto-restored
+agent-browser --session-name myapp open https://app.example.com/dashboard
+```
+
+**Option 4: Auth vault (credentials stored encrypted, login by name)**
+
+```bash
+echo "$PASSWORD" | agent-browser auth save myapp --url https://app.example.com/login --username user --password-stdin
+agent-browser auth login myapp
+```
+
+`auth login` navigates with `load` and then waits for login form selectors to appear before filling/clicking, which is more reliable on delayed SPA login screens.
+
+**Option 5: State file (manual save/load)**
+
+```bash
+# After logging in:
+agent-browser state save ./auth.json
+# In a future session:
+agent-browser state load ./auth.json
+agent-browser open https://app.example.com/dashboard
+```
+
+See [references/authentication.md](references/authentication.md) for OAuth, 2FA, cookie-based auth, and token refresh patterns.
+
+## Essential Commands
+
+```bash
+# Navigation
+agent-browser open <url>              # Navigate (aliases: goto, navigate)
+agent-browser close                   # Close browser
+agent-browser close --all             # Close all active sessions
+
+# Snapshot
+agent-browser snapshot -i             # Interactive elements with refs (recommended)
+agent-browser snapshot -s "#selector" # Scope to CSS selector
+
+# Interaction (use @refs from snapshot)
+agent-browser click @e1               # Click element
+agent-browser click @e1 --new-tab     # Click and open in new tab
+agent-browser fill @e2 "text"         # Clear and type text
+agent-browser type @e2 "text"         # Type without clearing
+agent-browser select @e1 "option"     # Select dropdown option
+agent-browser check @e1               # Check checkbox
+agent-browser press Enter             # Press key
+agent-browser keyboard type "text"    # Type at current focus (no selector)
+agent-browser keyboard inserttext "text"  # Insert without key events
+agent-browser scroll down 500         # Scroll page
+agent-browser scroll down 500 --selector "div.content"  # Scroll within a specific container
+
+# Get information
+agent-browser get text @e1            # Get element text
+agent-browser get url                 # Get current URL
+agent-browser get title               # Get page title
+agent-browser get cdp-url             # Get CDP WebSocket URL
+
+# Wait
+agent-browser wait @e1                # Wait for element
+agent-browser wait --load networkidle # Wait for network idle
+agent-browser wait --url "**/page"    # Wait for URL pattern
+agent-browser wait 2000               # Wait milliseconds
+agent-browser wait --text "Welcome"    # Wait for text to appear (substring match)
+agent-browser wait --fn "!document.body.innerText.includes('Loading...')"  # Wait for text to disappear
+agent-browser wait "#spinner" --state hidden  # Wait for element to disappear
+
+# Downloads
+agent-browser download @e1 ./file.pdf          # Click element to trigger download
+agent-browser wait --download ./output.zip     # Wait for any download to complete
+agent-browser --download-path ./downloads open <url>  # Set default download directory
+
+# Network
+agent-browser network requests                 # Inspect tracked requests
+agent-browser network requests --type xhr,fetch  # Filter by resource type
+agent-browser network requests --method POST   # Filter by HTTP method
+agent-browser network requests --status 2xx    # Filter by status (200, 2xx, 400-499)
+agent-browser network request <requestId>      # View full request/response detail
+agent-browser network route "**/api/*" --abort  # Block matching requests
+agent-browser network har start                # Start HAR recording
+agent-browser network har stop ./capture.har   # Stop and save HAR file
+
+# Viewport & Device Emulation
+agent-browser set viewport 1920 1080          # Set viewport size (default: 1280x720)
+agent-browser set viewport 1920 1080 2        # 2x retina (same CSS size, higher res screenshots)
+agent-browser set device "iPhone 14"          # Emulate device (viewport + user agent)
+
+# Capture
+agent-browser screenshot              # Screenshot to temp dir
+agent-browser screenshot --full       # Full page screenshot
+agent-browser screenshot --annotate   # Annotated screenshot with numbered element labels
+agent-browser screenshot --screenshot-dir ./shots  # Save to custom directory
+agent-browser screenshot --screenshot-format jpeg --screenshot-quality 80
+agent-browser pdf output.pdf          # Save as PDF
+
+# Live preview / streaming
+agent-browser stream enable           # Start runtime WebSocket streaming on an auto-selected port
+agent-browser stream enable --port 9223  # Bind a specific localhost port
+agent-browser stream status           # Inspect enabled state, port, connection, and screencasting
+agent-browser stream disable          # Stop runtime streaming and remove the .stream metadata file
+
+# Clipboard
+agent-browser clipboard read                      # Read text from clipboard
+agent-browser clipboard write "Hello, World!"     # Write text to clipboard
+agent-browser clipboard copy                      # Copy current selection
+agent-browser clipboard paste                     # Paste from clipboard
+
+# Dialogs (alert, confirm, prompt, beforeunload)
+# By default, alert and beforeunload dialogs are auto-accepted so they never block the agent.
+# confirm and prompt dialogs still require explicit handling.
+# Use --no-auto-dialog (or AGENT_BROWSER_NO_AUTO_DIALOG=1) to disable automatic handling.
+agent-browser dialog accept              # Accept dialog
+agent-browser dialog accept "my input"   # Accept prompt dialog with text
+agent-browser dialog dismiss             # Dismiss/cancel dialog
+agent-browser dialog status              # Check if a dialog is currently open
+
+# Diff (compare page states)
+agent-browser diff snapshot                          # Compare current vs last snapshot
+agent-browser diff snapshot --baseline before.txt    # Compare current vs saved file
+agent-browser diff screenshot --baseline before.png  # Visual pixel diff
+agent-browser diff url <url1> <url2>                 # Compare two pages
+agent-browser diff url <url1> <url2> --wait-until networkidle  # Custom wait strategy
+agent-browser diff url <url1> <url2> --selector "#main"  # Scope to element
+```
+
+## Streaming
+
+Every session automatically starts a WebSocket stream server on an OS-assigned port. Use `agent-browser stream status` to see the bound port and connection state. Use `stream disable` to tear it down, and `stream enable --port &lt;port&gt;` to re-enable on a specific port.
+
+## Batch Execution
+
+Execute multiple commands in a single invocation by piping a JSON array of string arrays to `batch`. This avoids per-command process startup overhead when running multi-step workflows.
+
+```bash
+echo '[
+  ["open", "https://example.com"],
+  ["snapshot", "-i"],
+  ["click", "@e1"],
+  ["screenshot", "result.png"]
+]' | agent-browser batch --json
+
+# Stop on first error
+agent-browser batch --bail < commands.json
+```
+
+Use `batch` when you have a known sequence of commands that don't depend on intermediate output. Use separate commands or `&&` chaining when you need to parse output between steps (e.g., snapshot to discover refs, then interact).
+
+## Common Patterns
+
+### Form Submission
+
+```bash
+agent-browser open https://example.com/signup
+agent-browser snapshot -i
+agent-browser fill @e1 "Jane Doe"
+agent-browser fill @e2 "jane@example.com"
+agent-browser select @e3 "California"
+agent-browser check @e4
+agent-browser click @e5
+agent-browser wait --load networkidle
+```
+
+### Authentication with Auth Vault (Recommended)
+
+```bash
+# Save credentials once (encrypted with AGENT_BROWSER_ENCRYPTION_KEY)
+# Recommended: pipe password via stdin to avoid shell history exposure
+echo "pass" | agent-browser auth save github --url https://github.com/login --username user --password-stdin
+
+# Login using saved profile (LLM never sees password)
+agent-browser auth login github
+
+# List/show/delete profiles
+agent-browser auth list
+agent-browser auth show github
+agent-browser auth delete github
+```
+
+`auth login` waits for username/password/submit selectors before interacting, with a timeout tied to the default action timeout.
+
+### Authentication with State Persistence
+
+```bash
+# Login once and save state
+agent-browser open https://app.example.com/login
+agent-browser snapshot -i
+agent-browser fill @e1 "$USERNAME"
+agent-browser fill @e2 "$PASSWORD"
+agent-browser click @e3
+agent-browser wait --url "**/dashboard"
+agent-browser state save auth.json
+
+# Reuse in future sessions
+agent-browser state load auth.json
+agent-browser open https://app.example.com/dashboard
+```
+
+### Session Persistence
+
+```bash
+# Auto-save/restore cookies and localStorage across browser restarts
+agent-browser --session-name myapp open https://app.example.com/login
+# ... login flow ...
+agent-browser close  # State auto-saved to ~/.agent-browser/sessions/
+
+# Next time, state is auto-loaded
+agent-browser --session-name myapp open https://app.example.com/dashboard
+
+# Encrypt state at rest
+export AGENT_BROWSER_ENCRYPTION_KEY=$(openssl rand -hex 32)
+agent-browser --session-name secure open https://app.example.com
+
+# Manage saved states
+agent-browser state list
+agent-browser state show myapp-default.json
+agent-browser state clear myapp
+agent-browser state clean --older-than 7
+```
+
+### Working with Iframes
+
+Iframe content is automatically inlined in snapshots. Refs inside iframes carry frame context, so you can interact with them directly.
+
+```bash
+agent-browser open https://example.com/checkout
+agent-browser snapshot -i
+# @e1 [heading] "Checkout"
+# @e2 [Iframe] "payment-frame"
+#   @e3 [input] "Card number"
+#   @e4 [input] "Expiry"
+#   @e5 [button] "Pay"
+
+# Interact directly — no frame switch needed
+agent-browser fill @e3 "4111111111111111"
+agent-browser fill @e4 "12/28"
+agent-browser click @e5
+
+# To scope a snapshot to one iframe:
+agent-browser frame @e2
+agent-browser snapshot -i         # Only iframe content
+agent-browser frame main          # Return to main frame
+```
+
+### Data Extraction
+
+```bash
+agent-browser open https://example.com/products
+agent-browser snapshot -i
+agent-browser get text @e5           # Get specific element text
+agent-browser get text body > page.txt  # Get all page text
+
+# JSON output for parsing
+agent-browser snapshot -i --json
+agent-browser get text @e1 --json
+```
+
+### Parallel Sessions
+
+```bash
+agent-browser --session site1 open https://site-a.com
+agent-browser --session site2 open https://site-b.com
+
+agent-browser --session site1 snapshot -i
+agent-browser --session site2 snapshot -i
+
+agent-browser session list
+```
+
+### Connect to Existing Chrome
+
+```bash
+# Auto-discover running Chrome with remote debugging enabled
+agent-browser --auto-connect open https://example.com
+agent-browser --auto-connect snapshot
+
+# Or with explicit CDP port
+agent-browser --cdp 9222 snapshot
+```
+
+Auto-connect discovers Chrome via `DevToolsActivePort`, common debugging ports (9222, 9229), and falls back to a direct WebSocket connection if HTTP-based CDP discovery fails.
+
+### Color Scheme (Dark Mode)
+
+```bash
+# Persistent dark mode via flag (applies to all pages and new tabs)
+agent-browser --color-scheme dark open https://example.com
+
+# Or via environment variable
+AGENT_BROWSER_COLOR_SCHEME=dark agent-browser open https://example.com
+
+# Or set during session (persists for subsequent commands)
+agent-browser set media dark
+```
+
+### Viewport & Responsive Testing
+
+```bash
+# Set a custom viewport size (default is 1280x720)
+agent-browser set viewport 1920 1080
+agent-browser screenshot desktop.png
+
+# Test mobile-width layout
+agent-browser set viewport 375 812
+agent-browser screenshot mobile.png
+
+# Retina/HiDPI: same CSS layout at 2x pixel density
+# Screenshots stay at logical viewport size, but content renders at higher DPI
+agent-browser set viewport 1920 1080 2
+agent-browser screenshot retina.png
+
+# Device emulation (sets viewport + user agent in one step)
+agent-browser set device "iPhone 14"
+agent-browser screenshot device.png
+```
+
+The `scale` parameter (3rd argument) sets `window.devicePixelRatio` without changing CSS layout. Use it when testing retina rendering or capturing higher-resolution screenshots.
+
+### Visual Browser (Debugging)
+
+```bash
+agent-browser --headed open https://example.com
+agent-browser highlight @e1          # Highlight element
+agent-browser inspect                # Open Chrome DevTools for the active page
+agent-browser record start demo.webm # Record session
+agent-browser profiler start         # Start Chrome DevTools profiling
+agent-browser profiler stop trace.json # Stop and save profile (path optional)
+```
+
+Use `AGENT_BROWSER_HEADED=1` to enable headed mode via environment variable. Browser extensions work in both headed and headless mode.
+
+### Local Files (PDFs, HTML)
+
+```bash
+# Open local files with file:// URLs
+agent-browser --allow-file-access open file:///path/to/document.pdf
+agent-browser --allow-file-access open file:///path/to/page.html
+agent-browser screenshot output.png
+```
+
+### iOS Simulator (Mobile Safari)
+
+```bash
+# List available iOS simulators
+agent-browser device list
+
+# Launch Safari on a specific device
+agent-browser -p ios --device "iPhone 16 Pro" open https://example.com
+
+# Same workflow as desktop - snapshot, interact, re-snapshot
+agent-browser -p ios snapshot -i
+agent-browser -p ios tap @e1          # Tap (alias for click)
+agent-browser -p ios fill @e2 "text"
+agent-browser -p ios swipe up         # Mobile-specific gesture
+
+# Take screenshot
+agent-browser -p ios screenshot mobile.png
+
+# Close session (shuts down simulator)
+agent-browser -p ios close
+```
+
+**Requirements:** macOS with Xcode, Appium (`npm install -g appium && appium driver install xcuitest`)
+
+**Real devices:** Works with physical iOS devices if pre-configured. Use `--device "&lt;UDID&gt;"` where UDID is from `xcrun xctrace list devices`.
+
+## Security
+
+All security features are opt-in. By default, agent-browser imposes no restrictions on navigation, actions, or output.
+
+### Content Boundaries (Recommended for AI Agents)
+
+Enable `--content-boundaries` to wrap page-sourced output in markers that help LLMs distinguish tool output from untrusted page content:
+
+```bash
+export AGENT_BROWSER_CONTENT_BOUNDARIES=1
+agent-browser snapshot
+# Output:
+# --- AGENT_BROWSER_PAGE_CONTENT nonce=<hex> origin=https://example.com ---
+# [accessibility tree]
+# --- END_AGENT_BROWSER_PAGE_CONTENT nonce=<hex> ---
+```
+
+### Domain Allowlist
+
+Restrict navigation to trusted domains. Wildcards like `*.example.com` also match the bare domain `example.com`. Sub-resource requests, WebSocket, and EventSource connections to non-allowed domains are also blocked. Include CDN domains your target pages depend on:
+
+```bash
+export AGENT_BROWSER_ALLOWED_DOMAINS="example.com,*.example.com"
+agent-browser open https://example.com        # OK
+agent-browser open https://malicious.com       # Blocked
+```
+
+### Action Policy
+
+Use a policy file to gate destructive actions:
+
+```bash
+export AGENT_BROWSER_ACTION_POLICY=./policy.json
+```
+
+Example `policy.json`:
+
+```json
+{ "default": "deny", "allow": ["navigate", "snapshot", "click", "scroll", "wait", "get"] }
+```
+
+Auth vault operations (`auth login`, etc.) bypass action policy but domain allowlist still applies.
+
+### Output Limits
+
+Prevent context flooding from large pages:
+
+```bash
+export AGENT_BROWSER_MAX_OUTPUT=50000
+```
+
+## Diffing (Verifying Changes)
+
+Use `diff snapshot` after performing an action to verify it had the intended effect. This compares the current accessibility tree against the last snapshot taken in the session.
+
+```bash
+# Typical workflow: snapshot -> action -> diff
+agent-browser snapshot -i          # Take baseline snapshot
+agent-browser click @e2            # Perform action
+agent-browser diff snapshot        # See what changed (auto-compares to last snapshot)
+```
+
+For visual regression testing or monitoring:
+
+```bash
+# Save a baseline screenshot, then compare later
+agent-browser screenshot baseline.png
+# ... time passes or changes are made ...
+agent-browser diff screenshot --baseline baseline.png
+
+# Compare staging vs production
+agent-browser diff url https://staging.example.com https://prod.example.com --screenshot
+```
+
+`diff snapshot` output uses `+` for additions and `-` for removals, similar to git diff. `diff screenshot` produces a diff image with changed pixels highlighted in red, plus a mismatch percentage.
+
+## Timeouts and Slow Pages
+
+The default timeout is 25 seconds. This can be overridden with the `AGENT_BROWSER_DEFAULT_TIMEOUT` environment variable (value in milliseconds). For slow websites or large pages, use explicit waits instead of relying on the default timeout:
+
+```bash
+# Wait for network activity to settle (best for slow pages)
+agent-browser wait --load networkidle
+
+# Wait for a specific element to appear
+agent-browser wait "#content"
+agent-browser wait @e1
+
+# Wait for a specific URL pattern (useful after redirects)
+agent-browser wait --url "**/dashboard"
+
+# Wait for a JavaScript condition
+agent-browser wait --fn "document.readyState === 'complete'"
+
+# Wait a fixed duration (milliseconds) as a last resort
+agent-browser wait 5000
+```
+
+When dealing with consistently slow websites, use `wait --load networkidle` after `open` to ensure the page is fully loaded before taking a snapshot. If a specific element is slow to render, wait for it directly with `wait &lt;selector&gt;` or `wait @ref`.
+
+## JavaScript Dialogs (alert / confirm / prompt)
+
+When a page opens a JavaScript dialog (`alert()`, `confirm()`, or `prompt()`), it blocks all other browser commands (snapshot, screenshot, click, etc.) until the dialog is dismissed. If commands start timing out unexpectedly, check for a pending dialog:
+
+```bash
+# Check if a dialog is blocking
+agent-browser dialog status
+
+# Accept the dialog (dismiss the alert / click OK)
+agent-browser dialog accept
+
+# Accept a prompt dialog with input text
+agent-browser dialog accept "my input"
+
+# Dismiss the dialog (click Cancel)
+agent-browser dialog dismiss
+```
+
+When a dialog is pending, all command responses include a `warning` field indicating the dialog type and message. In `--json` mode this appears as a `"warning"` key in the response object.
+
+## Session Management and Cleanup
+
+When running multiple agents or automations concurrently, always use named sessions to avoid conflicts:
+
+```bash
+# Each agent gets its own isolated session
+agent-browser --session agent1 open site-a.com
+agent-browser --session agent2 open site-b.com
+
+# Check active sessions
+agent-browser session list
+```
+
+Always close your browser session when done to avoid leaked processes:
+
+```bash
+agent-browser close                    # Close default session
+agent-browser --session agent1 close   # Close specific session
+agent-browser close --all              # Close all active sessions
+```
+
+If a previous session was not closed properly, the daemon may still be running. Use `agent-browser close` to clean it up, or `agent-browser close --all` to shut down every session at once.
+
+To auto-shutdown the daemon after a period of inactivity (useful for ephemeral/CI environments):
+
+```bash
+AGENT_BROWSER_IDLE_TIMEOUT_MS=60000 agent-browser open example.com
+```
+
+## Ref Lifecycle (Important)
+
+Refs (`@e1`, `@e2`, etc.) are invalidated when the page changes. Always re-snapshot after:
+
+- Clicking links or buttons that navigate
+- Form submissions
+- Dynamic content loading (dropdowns, modals)
+
+```bash
+agent-browser click @e5              # Navigates to new page
+agent-browser snapshot -i            # MUST re-snapshot
+agent-browser click @e1              # Use new refs
+```
+
+## Annotated Screenshots (Vision Mode)
+
+Use `--annotate` to take a screenshot with numbered labels overlaid on interactive elements. Each label `[N]` maps to ref `@eN`. This also caches refs, so you can interact with elements immediately without a separate snapshot.
+
+```bash
+agent-browser screenshot --annotate
+# Output includes the image path and a legend:
+#   [1] @e1 button "Submit"
+#   [2] @e2 link "Home"
+#   [3] @e3 textbox "Email"
+agent-browser click @e2              # Click using ref from annotated screenshot
+```
+
+Use annotated screenshots when:
+
+- The page has unlabeled icon buttons or visual-only elements
+- You need to verify visual layout or styling
+- Canvas or chart elements are present (invisible to text snapshots)
+- You need spatial reasoning about element positions
+
+## Semantic Locators (Alternative to Refs)
+
+When refs are unavailable or unreliable, use semantic locators:
+
+```bash
+agent-browser find text "Sign In" click
+agent-browser find label "Email" fill "user@test.com"
+agent-browser find role button click --name "Submit"
+agent-browser find placeholder "Search" type "query"
+agent-browser find testid "submit-btn" click
+```
+
+## JavaScript Evaluation (eval)
+
+Use `eval` to run JavaScript in the browser context. **Shell quoting can corrupt complex expressions** -- use `--stdin` or `-b` to avoid issues.
+
+```bash
+# Simple expressions work with regular quoting
+agent-browser eval 'document.title'
+agent-browser eval 'document.querySelectorAll("img").length'
+
+# Complex JS: use --stdin with heredoc (RECOMMENDED)
+agent-browser eval --stdin <<'EVALEOF'
+JSON.stringify(
+  Array.from(document.querySelectorAll("img"))
+    .filter(i => !i.alt)
+    .map(i => ({ src: i.src.split("/").pop(), width: i.width }))
+)
+EVALEOF
+
+# Alternative: base64 encoding (avoids all shell escaping issues)
+agent-browser eval -b "$(echo -n 'Array.from(document.querySelectorAll("a")).map(a => a.href)' | base64)"
+```
+
+**Why this matters:** When the shell processes your command, inner double quotes, `!` characters (history expansion), backticks, and `$()` can all corrupt the JavaScript before it reaches agent-browser. The `--stdin` and `-b` flags bypass shell interpretation entirely.
+
+**Rules of thumb:**
+
+- Single-line, no nested quotes -> regular `eval 'expression'` with single quotes is fine
+- Nested quotes, arrow functions, template literals, or multiline -> use `eval --stdin &lt;&lt;'EVALEOF'`
+- Programmatic/generated scripts -> use `eval -b` with base64
+
+## Configuration File
+
+Create `agent-browser.json` in the project root for persistent settings:
+
+```json
+{
+  "headed": true,
+  "proxy": "http://localhost:8080",
+  "profile": "./browser-data"
+}
+```
+
+Priority (lowest to highest): `~/.agent-browser/config.json` &lt; `./agent-browser.json` &lt; env vars &lt; CLI flags. Use `--config &lt;path&gt;` or `AGENT_BROWSER_CONFIG` env var for a custom config file (exits with error if missing/invalid). All CLI options map to camelCase keys (e.g., `--executable-path` -> `"executablePath"`). Boolean flags accept `true`/`false` values (e.g., `--headed false` overrides config). Extensions from user and project configs are merged, not replaced.
+
+## Deep-Dive Documentation
+
+| Reference                                                            | When to Use                                               |
+| -------------------------------------------------------------------- | --------------------------------------------------------- |
+| [references/commands.md](references/commands.md)                     | Full command reference with all options                   |
+| [references/snapshot-refs.md](references/snapshot-refs.md)           | Ref lifecycle, invalidation rules, troubleshooting        |
+| [references/session-management.md](references/session-management.md) | Parallel sessions, state persistence, concurrent scraping |
+| [references/authentication.md](references/authentication.md)         | Login flows, OAuth, 2FA handling, state reuse             |
+| [references/video-recording.md](references/video-recording.md)       | Recording workflows for debugging and documentation       |
+| [references/profiling.md](references/profiling.md)                   | Chrome DevTools profiling for performance analysis        |
+| [references/proxy-support.md](references/proxy-support.md)           | Proxy configuration, geo-testing, rotating proxies        |
+
+## Browser Engine Selection
+
+Use `--engine` to choose a local browser engine. The default is `chrome`.
+
+```bash
+# Use Lightpanda (fast headless browser, requires separate install)
+agent-browser --engine lightpanda open example.com
+
+# Via environment variable
+export AGENT_BROWSER_ENGINE=lightpanda
+agent-browser open example.com
+
+# With custom binary path
+agent-browser --engine lightpanda --executable-path /path/to/lightpanda open example.com
+```
+
+Supported engines:
+- `chrome` (default) -- Chrome/Chromium via CDP
+- `lightpanda` -- Lightpanda headless browser via CDP (10x faster, 10x less memory than Chrome)
+
+Lightpanda does not support `--extension`, `--profile`, `--state`, or `--allow-file-access`. Install Lightpanda from https://lightpanda.io/docs/open-source/installation.
+
+## Observability Dashboard
+
+The dashboard is a standalone background server that shows live browser viewports, command activity, and console output for all sessions.
+
+```bash
+# Install the dashboard once
+agent-browser dashboard install
+
+# Start the dashboard server (background, port 4848)
+agent-browser dashboard start
+
+# All sessions are automatically visible in the dashboard
+agent-browser open example.com
+
+# Stop the dashboard
+agent-browser dashboard stop
+```
+
+The dashboard runs independently of browser sessions on port 4848 (configurable with `--port`). All sessions automatically stream to the dashboard. Sessions can also be created from the dashboard UI with local engines or cloud providers.
+
+## Ready-to-Use Templates
+
+| Template                                                                 | Description                         |
+| ------------------------------------------------------------------------ | ----------------------------------- |
+| [templates/form-automation.sh](templates/form-automation.sh)             | Form filling with validation        |
+| [templates/authenticated-session.sh](templates/authenticated-session.sh) | Login once, reuse state             |
+| [templates/capture-workflow.sh](templates/capture-workflow.sh)           | Content extraction with screenshots |
+
+```bash
+./templates/form-automation.sh https://example.com/form
+./templates/authenticated-session.sh https://app.example.com/login
+./templates/capture-workflow.sh https://example.com ./output
+```
 

@@ -26,6 +26,7 @@ allowed-tools:
   - WebFetch
   - WebSearch
 paths: ["src/**/auth/**", "src/**/middleware/**", "**/*security*"]
+path_patterns: ["**/auth/**", "**/middleware/**", "**/security/**", ".env*"]
 ---
 
 # Security Patterns

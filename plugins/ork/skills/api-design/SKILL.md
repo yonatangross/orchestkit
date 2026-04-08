@@ -19,6 +19,7 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+path_patterns: ["**/routes/**", "**/api/**", "**/endpoints/**", "openapi.*", "swagger.*"]
 ---
 
 # API Design
