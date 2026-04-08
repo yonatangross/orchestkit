@@ -181,11 +181,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v7.29.0** — HookContext DI + CC 2.1.92 + Telemetry Architecture
+**v7.30.0** — CC 2.1.94 Integration + Skill Hook Unlock
 
-- **HookContext DI migration** — all 214 hooks migrated to `(input, ctx)` dependency injection signature
-- **CC 2.1.92 integration** — `forceRemoteSettingsRefresh`, JSON-string streaming fix, Write tool perf
-- **Telemetry sink architecture** — pluggable JSONL + HTTP sinks, HMAC signing, circuit breaker
+- **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
+- **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
+- **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
 - **103 skills**, **36 agents**, **169 hooks**, **23 invocable commands**
 
 **v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
