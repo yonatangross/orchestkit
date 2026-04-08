@@ -134,7 +134,7 @@ describe('prompt/unified-dispatcher — sessionTitle (CC 2.1.94)', () => {
   });
 
   test('truncates very long branch names to 40 chars', () => {
-    const longBranch = 'feature/' + 'x'.repeat(80);
+    const longBranch = `feature/${'x'.repeat(80)}`;
     testCtx = createTestContext({ branch: longBranch });
     const input = createPromptInput('hi');
     const result = unifiedPromptDispatcher(input, testCtx);

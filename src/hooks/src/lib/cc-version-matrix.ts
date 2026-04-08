@@ -225,6 +225,7 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'session_title_hook_output',   minVersion: '2.1.94', description: 'UserPromptSubmit hooks can set session title via hookSpecificOutput.sessionTitle' },
   { feature: 'keep_coding_instructions',    minVersion: '2.1.94', description: 'keep-coding-instructions frontmatter field preserves coding instructions in plugin output styles' },
   { feature: 'plugin_skill_name_stability', minVersion: '2.1.94', description: 'Plugin skills declared via "skills": ["./"] use frontmatter name for stable invocation across install methods' },
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: intentional literal ${CLAUDE_PLUGIN_ROOT} text
   { feature: 'plugin_root_local_mkt_fix',   minVersion: '2.1.94', description: '${CLAUDE_PLUGIN_ROOT} resolves to installed cache (not marketplace source) for local-marketplace plugins' },
   { feature: 'plugin_hooks_no_root_env_fix', minVersion: '2.1.94', description: 'Plugin hooks no longer fail with "No such file or directory" when CLAUDE_PLUGIN_ROOT env var unset' },
   { feature: 'effort_default_high',         minVersion: '2.1.94', description: 'Default effort level changed medium → high for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users' },

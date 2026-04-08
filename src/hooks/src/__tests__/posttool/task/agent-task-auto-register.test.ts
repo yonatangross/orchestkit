@@ -89,7 +89,7 @@ describe('agent-task-auto-register', () => {
   });
 
   it('skips exempt agents (general-purpose)', () => {
-    const result = agentTaskAutoRegister(
+    agentTaskAutoRegister(
       createInput({ subagent_type: 'general-purpose' }),
       testCtx,
     );
@@ -98,7 +98,7 @@ describe('agent-task-auto-register', () => {
   });
 
   it('skips exempt agents (Plan)', () => {
-    const result = agentTaskAutoRegister(
+    agentTaskAutoRegister(
       createInput({ subagent_type: 'Plan' }),
       testCtx,
     );
