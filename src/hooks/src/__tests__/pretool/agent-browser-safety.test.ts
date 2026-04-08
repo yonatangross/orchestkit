@@ -78,16 +78,24 @@ describe('agent-browser-safety', () => {
     expect(agentBrowserSafety(input).continue).toBe(true);
   });
 
-  it('blocks agent-browser navigating to file:// URLs', () => {
-    // Arrange
-    const input = createBashInput('agent-browser goto "file:///etc/passwd"');
-
-    // Act
+  it('allows file:// URLs by default (ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE)', () => {
+    const input = createBashInput('agent-browser open "file:///Users/dev/playground.html"');
     const result = agentBrowserSafety(input, testCtx);
+    expect(result.continue).toBe(true);
+  });
 
-    // Assert
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toContain('blocked');
+  it('blocks file:// URLs when ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE=0', () => {
+    const original = process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE;
+    process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE = '0';
+    try {
+      const input = createBashInput('agent-browser goto "file:///etc/passwd"');
+      const result = agentBrowserSafety(input, testCtx);
+      expect(result.continue).toBe(false);
+      expect(result.stopReason).toContain('blocked');
+    } finally {
+      if (original === undefined) delete process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE;
+      else process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE = original;
+    }
   });
 
   it('blocks navigation to OAuth provider login pages', () => {

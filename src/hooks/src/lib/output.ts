@@ -52,7 +52,7 @@ export function outputBlock(reason: string): HookResult {
  * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
 export function outputWithContext(ctx: string): HookResult {
-  if (!ctx || !ctx.trim()) return outputSilentSuccess();
+  if (!ctx?.trim()) return outputSilentSuccess();
   return {
     continue: true,
     suppressOutput: true,
@@ -69,7 +69,7 @@ export function outputWithContext(ctx: string): HookResult {
  * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
 export function outputPromptContext(ctx: string): HookResult {
-  if (!ctx || !ctx.trim()) return outputSilentSuccess();
+  if (!ctx?.trim()) return outputSilentSuccess();
   return {
     continue: true,
     suppressOutput: true,
@@ -99,7 +99,7 @@ export function outputPromptContextWithTitle(ctx: string, title: string): HookRe
   if (!trimmedTitle) return outputPromptContext(ctx);
 
   // Title-only (no context) — still valid per CC 2.1.94 spec
-  if (!ctx || !ctx.trim()) {
+  if (!ctx?.trim()) {
     return {
       continue: true,
       suppressOutput: true,

@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-04-08T11:19:26.860Z",
-  "buildTimeMs": 741,
+  "generatedAt": "2026-04-08T15:37:04.301Z",
+  "buildTimeMs": 481,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 25730,
-      "sizeKB": "25.13",
+      "size": 25720,
+      "sizeKB": "25.12",
       "exports": 63
     },
     "pretool": {
-      "size": 97603,
-      "sizeKB": "95.32",
+      "size": 97668,
+      "sizeKB": "95.38",
       "exports": 78
     },
     "posttool": {
-      "size": 76494,
-      "sizeKB": "74.70",
+      "size": 76484,
+      "sizeKB": "74.69",
       "exports": 61
     },
     "prompt": {
-      "size": 42794,
-      "sizeKB": "41.79",
+      "size": 42784,
+      "sizeKB": "41.78",
       "exports": 103
     },
     "lifecycle": {
-      "size": 99095,
-      "sizeKB": "96.77",
+      "size": 99085,
+      "sizeKB": "96.76",
       "exports": 61
     },
     "stop": {
-      "size": 48202,
-      "sizeKB": "47.07",
+      "size": 48192,
+      "sizeKB": "47.06",
       "exports": 46
     },
     "subagent": {
-      "size": 73388,
-      "sizeKB": "71.67",
+      "size": 73378,
+      "sizeKB": "71.66",
       "exports": 79
     },
     "notification": {
@@ -44,29 +44,29 @@
       "exports": 4
     },
     "setup": {
-      "size": 36326,
-      "sizeKB": "35.47",
+      "size": 36316,
+      "sizeKB": "35.46",
       "exports": 46
     },
     "skill": {
-      "size": 72799,
-      "sizeKB": "71.09",
+      "size": 72789,
+      "sizeKB": "71.08",
       "exports": 61
     },
     "agent": {
-      "size": 19099,
-      "sizeKB": "18.65",
+      "size": 19089,
+      "sizeKB": "18.64",
       "exports": 63
     },
     "hooks": {
-      "size": 339072,
-      "sizeKB": "331.13",
+      "size": 339137,
+      "sizeKB": "331.19",
       "exports": 161,
       "unified": true
     }
   },
-  "totalSize": 601554,
-  "totalSizeKB": "587.46",
+  "totalSize": 601529,
+  "totalSizeKB": "587.43",
   "inputs": 78,
-  "avgBundleSizeKB": "53.41"
+  "avgBundleSizeKB": "53.40"
 }
