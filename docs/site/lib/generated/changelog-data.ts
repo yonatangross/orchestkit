@@ -17,6 +17,53 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.30.0",
+    "date": "2026-04-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.94 + 2.1.96 integration** (minimum CC version: 2.1.92 → 2.1.94)\n  - **Skill frontmatter hooks unlock (CC 2.1.94 bug fix)** — before 2.1.94, skill `hooks:` blocks in SKILL.md frontmatter were silently ignored by CC. 20 OrchestKit context loaders across 15 skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) were dead code until now. CC 2.1.94 activates them — users now get primed context (PR context, project conventions, assessment baselines, verify scoring rubric, etc.) before every workflow skill runs.\n  - **`hookSpecificOutput.sessionTitle` on UserPromptSubmit (CC 2.1.94)** — unified prompt dispatcher now sets the CC session title dynamically. Format: `{branch}` or `{branch} · {effort}` when effort differs from the default. Visible in the prompt bar, `--resume` picker, and `/remote-control` session list. Emitted on every turn (no delta skip) so the title stays current across branch changes.\n  - **New output builder `outputPromptContextWithTitle(ctx, title)`** in `src/hooks/src/lib/output.ts` — handles all four combinations: ctx+title, ctx only, title only, neither.\n  - **`sessionTitle` field in `HookSpecificOutput`** type (CC 2.1.94).\n  - **`DEFAULT_EFFORT_LEVEL` constant** in `src/hooks/src/lib/effort-detector.ts` — set to `'high'` to match CC 2.1.94's new default (was `'medium'` pre-2.1.94). Used by unified-dispatcher to decide when to log effort and when to suffix the session title.\n  - **`keep-coding-instructions` frontmatter field documentation** (CC 2.1.94) for future plugin output-style skills.\n  - **`src/__tests__/skill-frontmatter-hooks-invariant.test.ts`** — guards against dangling `skill/<name>` references in SKILL.md frontmatter. Every reference must be registered in `src/hooks/src/entries/skill.ts`, otherwise CC 2.1.94+ will try to spawn a missing handler on every invocation.\n  - **`src/__tests__/prompt/session-title.test.ts`** — 13 new tests covering `outputPromptContextWithTitle` semantics, `buildSessionTitle` format, branch cleanup, effort suffix, branch prefix stripping, truncation, and edge cases (empty branch, oversized prompt, newlines in branch).\n  - **13 new entries in `cc-version-matrix.ts`** — 12 for 2.1.94, 1 for 2.1.96 (Bedrock bearer-token 403 hotfix).",
+          "**Task lifecycle enforcement across 21 skills + 33 agents** — all multi-phase skills and agents now follow complete TaskCreate → TaskGet → TaskUpdate lifecycle with `addBlockedBy` dependency chains, `activeForm` spinner text, and explicit completion markers\n  - 8 MANDATORY skills enhanced: brainstorm, explore, verify, assess, implement, create-pr, audit-full, expect\n  - 7 skills got new task sections: fix-issue, github-operations, notebooklm, demo-producer, audit-skills, release-management, setup\n  - 6 partial skills completed: cover, visualize-plan, write-prd, component-search, design-context-extract, design-to-code\n  - 33 agents upgraded to 6-item task management standard (added TaskGet validation)\n  - CONTRIBUTING-SKILLS.md updated with task management authoring requirements",
+          "**34 new tests for 4 untested PreToolUse bash hooks** (#1271) — coverage for secret-env-guard, terraform-plan-guard, dangerous-command-guard, docker-safety-guard",
+          "**10 new tests for stop-uncommitted-check.mjs** — output text assertions, staged/modified/untracked classification, conciseness check",
+          "**`eval-report.sh`** — eval duration aggregator (`npm run eval:report`)\n  - Reads `*.trigger.json` + `*.quality.json` results, aggregates per-skill durations\n  - Flags outliers (>3× median quality duration) with ⚠\n  - `--json` for machine-readable output, `--top N` to control display\n  - Tested against 84 real skill results (413min total, 2 outliers flagged)",
+          "**`known-hook-conflicts.json`** — hook-skill conflict registry for quality eval\n  - Quality eval diffs actual hook rejections vs registry\n  - HOOK COMPATIBILITY section: COMPATIBLE ✓ / KNOWN CONFLICTS / NEW CONFLICTS ✗\n  - Seeded with i18n-date-patterns finding (2 incidental rejections)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**Hook dispatcher flattening** — all 6 async dispatchers replaced with CC 2.1.92 native async hook entries\n  - Stop dispatcher → 9 individual entries (ff75bedd)\n  - 4 more async dispatchers flattened (1de40ec3)\n  - PostToolUse dispatcher — last of 6 (6a082e32)\n  - Hook count: 146 → 169 (100 global + 47 agent-scoped + 22 skill-scoped)",
+          "**3 dead/low-value hooks removed** — gh-issue-creation-guide, license-compliance, pr-merge-gate (−494 LOC) (#1274)",
+          "**Deprecated TaskOutput references removed** (#1268)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**19 stale skill name references** across docs, demos, and source\n  - `brainstorming` → `brainstorm` (6 files), `plan-viz` → `visualize-plan` (2), `prd` → `write-prd` (1), `assess-complexity` → `quality-gates` (4), `agent-browser` prefix fix (2), `git-workflow` rows removed (2)",
+          "**2 phantom demo configs deleted** — `add-golden-demo.ts`, `worktree-coordination-demo.ts` (skills never existed)",
+          "**2 demo configs remapped** — `assess-complexity` → `quality-gates`, `run-tests` → `cover`",
+          "**hooks.json description count drift** — `171` → `169`, `47 agent-scoped` → `45`",
+          "**api-design trigger eval removed** — `user-invocable: false` skill can't be tested by trigger classifier (0% precision/recall was expected, not a bug)",
+          "**41 stale \"balance is too low\" quality result files purged** — API credit exhaustion during grading produced fake 0% pass rates",
+          "**stop-uncommitted-check `.trim()` bug** — `.trim()` on `git status --porcelain` output stripped leading spaces, misclassifying unstaged modifications as staged changes (#1293)",
+          "**Stop hook message shortened** — verbose AI-instruction text replaced with concise human-readable summary"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**learning-tracker pattern caching** — patterns compiled once per process instead of per-invocation (#1265)",
+          "**SessionStart sync hooks gated on `input.source`** — skip sync hooks when source is not relevant (#1269)",
+          "**3 redundant `appendAnalytics` JSONL writes removed** (#1266)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.29.0",
     "date": "2026-04-05",
     "compareUrl": "",
