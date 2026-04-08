@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.30.1] - 2026-04-08
+
+### Fixed
+
+- TODO: Describe your changes here
+
+---
+
+
 ## [Unreleased]
 
 ## [7.30.0] - 2026-04-08

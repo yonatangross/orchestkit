@@ -194,10 +194,10 @@ async def check_db_health() -> dict:
                 "checked_in": pool.checkedin(),
             },
         }
-    except Exception as e:
+    except Exception:
         return {
             "status": "unhealthy",
-            "error": str(e),
+            "error": "database connectivity check failed",
         }
 
 
