@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.31.1",
+    "date": "2026-04-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Docs site CC version** — banner showed \"Claude Code 2.1.76+\" instead of \"2.1.94+\". Now derived dynamically from `MIN_CC_VERSION` in `cc-version-matrix.ts` via the docs data generator, so it stays in sync automatically."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.31.0",
     "date": "2026-04-08",
     "compareUrl": "",
