@@ -1,3 +1,27 @@
+# =============================================================================
+# Wrangler / Cloudflare local state (R2 blobs, SQLite, miniflare)
+# =============================================================================
+.wrangler/
+
+# =============================================================================
+# Branch-specific artifacts (playgrounds, prototypes, design exports)
+# =============================================================================
+playgrounds/
+overcut/
+docs/feat--*/
+docs/fix--*/
+docs/refactor--*/
+docs/design/
+docs/research/
+docs/migrations/
+
+# =============================================================================
+# Large binary assets (use external hosting, not git)
+# =============================================================================
+docs/*.pdf
+docs/*.png
+docs/*.html
+
 # OS generated files
 .DS_Store
 .DS_Store?

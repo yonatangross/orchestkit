@@ -17,6 +17,23 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.30.1",
+    "date": "2026-04-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**27 Dependabot vulnerabilities resolved** — refreshed lockfiles across all 5 workspaces (root, docs/site, src/hooks, orchestkit-demos, src/mcp-server). Bumped `@modelcontextprotocol/sdk` ^1.27.1 → ^1.29.0 which resolves hono@4.12.12 and @hono/node-server@1.19.13 natively. Vite resolved to 8.0.7 via vitest peer range.",
+          "**2 CodeQL alerts** — pinned `orchestkit-eval.yml` actions to SHA (Scorecard Pinned-Dependencies); redacted exception in `pool-setup-template.py` `check_db_health()` (py/stack-trace-exposure)",
+          "**3 secret scanning alerts** — dismissed as `used_in_tests` (fake fixtures in `crypto-sanitize.test.ts`)",
+          "**6 Biome lint errors** — `useOptionalChain` in output.ts, mock-common.ts, normalize-command.ts",
+          "**agent-browser `file://` URL blocking** — added `ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE` env var (default: allowed) mirroring the localhost bypass pattern"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.30.0",
     "date": "2026-04-08",
     "compareUrl": "",
