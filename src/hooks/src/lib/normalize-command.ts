@@ -79,7 +79,7 @@ export function normalizeSingle(cmd: string): string {
  * Returns array of individual normalized sub-commands.
  */
 export function normalizeCommand(cmd: string): string[] {
-  if (!cmd || !cmd.trim()) return [];
+  if (!cmd?.trim()) return [];
 
   // Pre-process: expand escapes and strip quotes on the raw input,
   // but preserve newlines and compound operators for splitting.
