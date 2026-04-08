@@ -431,6 +431,8 @@ function extractUrl(command: string): string | null {
 function isBlockedUrl(url: string): boolean {
   const allowLocalhost = process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST !== '0';
   if (allowLocalhost && /^https?:\/\/(localhost|127\.0\.0\.1|[a-z0-9-]+\.localhost)(:\d+)?(\/|$)/i.test(url)) return false;
+  const allowFile = process.env.ORCHESTKIT_AGENT_BROWSER_ALLOW_FILE !== '0';
+  if (allowFile && /^file:\/\//i.test(url)) return false;
   return BLOCKED_URL_PATTERNS.some((pattern) => pattern.test(url));
 }
 
