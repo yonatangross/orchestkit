@@ -26,18 +26,20 @@
  * - memory-context-loader → materializeDecisionRules()
  *
  * CC 2.1.9 Compliant: Single additionalContext output
+ * CC 2.1.94: sessionTitle set from branch + effort for prompt-bar identification
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
   outputPromptContext,
+  outputPromptContextWithTitle,
   estimateTokenCount,
   extractContext,
   fnv1aHash,
 } from '../lib/common.js';
 import { isImageOrBinaryPrompt, MAX_PROMPT_LENGTH } from '../lib/prompt-guards.js';
-import { detectEffortLevel, effortTokenBudget } from '../lib/effort-detector.js';
+import { detectEffortLevel, effortTokenBudget, DEFAULT_EFFORT_LEVEL } from '../lib/effort-detector.js';
 import { trackTokenUsage } from '../lib/token-tracker.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
@@ -151,6 +153,32 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
 // -----------------------------------------------------------------------------
 
 /**
+ * Build a session title for the CC prompt bar (CC 2.1.94 sessionTitle).
+ *
+ * Format: `{branch}` or `{branch} · {effort}` (when effort is non-default).
+ * Bounded to 60 chars to fit narrow prompt bars. Returns empty string when
+ * there's nothing meaningful to surface (no branch, no effort override).
+ *
+ * Why branch: branch is the single most useful session identifier — it
+ * answers "which feature am I on" at a glance in the prompt bar and the
+ * --resume picker. Effort is only appended when it differs from the
+ * CC 2.1.94 default ('high') so the default case stays uncluttered.
+ */
+function buildSessionTitle(branch: string, effort: string): string {
+  const cleanBranch = (branch || '').trim().replace(/[\r\n]+/g, ' ');
+  if (!cleanBranch) return '';
+  // Strip common branch prefixes to save characters in the title bar
+  const shortBranch = cleanBranch
+    .replace(/^(refs\/heads\/|origin\/)/, '')
+    .slice(0, 40);
+  const parts = [shortBranch];
+  if (effort && effort !== DEFAULT_EFFORT_LEVEL) {
+    parts.push(effort);
+  }
+  return parts.join(' · ').slice(0, 60);
+}
+
+/**
  * Detect noisy/low-value context that shouldn't consume token budget.
  * Returns true if the context is only bracket-enclosed markers or
  * cross-project context lines with no actionable content.
@@ -193,9 +221,10 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   let totalTokens = 0;
 
   // Effort-aware budget (CC 2.1.76): /effort low → 200t, medium → 800t, high → 1200t
+  // CC 2.1.94 changed default effort from 'medium' → 'high' for most user tiers.
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
-  if (effort !== 'medium') {
+  if (effort !== DEFAULT_EFFORT_LEVEL) {
     ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
   }
 
@@ -267,8 +296,16 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     }
   }
 
-  // No context produced — return silent
+  // Build the session title (CC 2.1.94) — emitted alongside context so the
+  // prompt bar shows the current branch + effort. Safe to emit repeatedly:
+  // CC treats a sessionTitle identical to the previous turn's as a no-op.
+  const sessionTitle = buildSessionTitle(ctx.branch, effort);
+
+  // No context produced — still try to set the title if we have one
   if (contextParts.length === 0) {
+    if (sessionTitle) {
+      return outputPromptContextWithTitle('', sessionTitle);
+    }
     return outputSilentSuccess();
   }
 
@@ -276,6 +313,8 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   const consolidated = contextParts.join('\n\n---\n\n');
 
   // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
+  // Note: the title is still emitted on delta-skip turns because it's cheap
+  // and ensures the prompt bar stays current even when context is cached.
   const consolidatedHash = fnv1aHash(consolidated);
   const hashDir = getPromptSessionDir(sessionId, projectDir);
   const hashFile = join(hashDir, 'prompt-hash.txt');
@@ -285,6 +324,9 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       const lastHash = readFileSync(hashFile, 'utf8').trim();
       if (lastHash === consolidatedHash) {
         ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
+        if (sessionTitle) {
+          return outputPromptContextWithTitle('', sessionTitle);
+        }
         return outputSilentSuccess();
       }
     }
@@ -298,12 +340,15 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     // Proceed with injection on error
   }
 
-  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t${sessionTitle ? ` · title="${sessionTitle}"` : ''}`);
 
   // Track token usage for budget enforcement
   if (totalTokens > 0) {
     trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
   }
 
+  if (sessionTitle) {
+    return outputPromptContextWithTitle(consolidated, sessionTitle);
+  }
   return outputPromptContext(consolidated);
 }

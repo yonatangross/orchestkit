@@ -122,6 +122,33 @@ export function mockCommonBasic(
       suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx },
     })),
+    outputPromptContextWithTitle: vi.fn((ctx: string, title: string): HookResult => {
+      const trimmedTitle = title?.trim();
+      if (!trimmedTitle) {
+        if (!ctx || !ctx.trim()) return { continue: true, suppressOutput: true };
+        return {
+          continue: true,
+          suppressOutput: true,
+          hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx },
+        };
+      }
+      if (!ctx || !ctx.trim()) {
+        return {
+          continue: true,
+          suppressOutput: true,
+          hookSpecificOutput: { hookEventName: 'UserPromptSubmit', sessionTitle: trimmedTitle },
+        };
+      }
+      return {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: 'UserPromptSubmit',
+          additionalContext: ctx,
+          sessionTitle: trimmedTitle,
+        },
+      };
+    }),
     outputWithNotification: vi.fn((userMessage: string | undefined, claudeContext: string | undefined): HookResult => {
       const result: HookResult = { continue: true, suppressOutput: true };
       if (userMessage) result.systemMessage = userMessage;

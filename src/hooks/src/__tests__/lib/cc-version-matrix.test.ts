@@ -17,14 +17,15 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.92', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.92');
+    test('is 2.1.94', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.94');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(179);
+      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) = 192
+      expect(CC_FEATURE_MATRIX.length).toBe(192);
     });
 
     test('is sorted by version ascending', () => {
@@ -72,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.92');
+      const features = getAvailableFeatures('2.1.96');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -98,9 +99,18 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.92', () => {
-      const missing = getMissingFeatures('2.1.92');
+    test('no missing features at 2.1.96', () => {
+      const missing = getMissingFeatures('2.1.96');
       expect(missing.length).toBe(0);
+    });
+
+    test('2.1.92 is missing 2.1.94 + 2.1.96 features', () => {
+      const missing = getMissingFeatures('2.1.92');
+      // 12 from 2.1.94 + 1 from 2.1.96 = 13
+      expect(missing.length).toBe(13);
+      expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
+      expect(missing.some(f => f.feature === 'session_title_hook_output')).toBe(true);
+      expect(missing.some(f => f.feature === 'bedrock_bearer_token_fix')).toBe(true);
     });
 
     test('2.1.47 missing 2.1.49+ features', () => {

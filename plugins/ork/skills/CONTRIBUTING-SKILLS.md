@@ -69,7 +69,14 @@ paths:                   # YAML list of globs — auto-loaded when skill activat
 path_patterns:           # Globs for file-aware skill suggestions in CwdChanged (CC 2.1.89+)
   - "*.py"               # Matches files at project root or 1 level deep
   - "**/migrations/**"   # Matches nested directory names (2-level scan)
+keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
+                                 # preserves Claude's coding instructions when the
+                                 # skill changes output voice/format. Omit (false)
+                                 # when you want the output style to fully replace
+                                 # the default coding guidance.
 ```
+
+**`keep-coding-instructions` (CC 2.1.94+)** is only meaningful for skills that ship as **plugin output styles** — skills that change how Claude speaks (tone, verbosity, persona). It has no effect on workflow or reference skills. Use `true` when the output style is a layer on top of coding (e.g., "explain every change in plain English" — Claude should still know how to code). Use `false` (or omit) when the output style is a full replacement (e.g., a creative-writing skill where code generation doesn't apply).
 
 **Model invocation guide:**
 - `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
@@ -88,6 +95,10 @@ hooks:
 ```
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
+> **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating 20 context loaders across 15 OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
+>
+> **Handler requirement**: Every `skill/<name>` reference must be registered in `src/hooks/src/entries/skill.ts`. The test `src/__tests__/skill-frontmatter-hooks-invariant.test.ts` enforces this — any dangling reference will fail CI.
 
 ### Invocation Hooks (CC 2.1.89+)
 

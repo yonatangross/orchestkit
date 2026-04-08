@@ -17,6 +17,7 @@ export {
   outputBlock,
   outputWithContext,
   outputPromptContext,
+  outputPromptContextWithTitle,
   outputWithNotification,
   outputAllowWithContext,
   outputError,

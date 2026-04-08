@@ -1,6 +1,6 @@
 /**
  * TypeScript type definitions for Claude Code hooks
- * CC 2.1.89 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission)
+ * CC 2.1.94 compliant (2.1.9 additionalContext, 2.1.25 updatedInput, 2.1.69 hook fields, 2.1.76 PostCompact/Elicitation, 2.1.78 StopFailure, 2.1.83 CwdChanged/FileChanged, 2.1.84 TaskCreated/WorktreeCreate HTTP, 2.1.88 PermissionDenied + auto permission mode, 2.1.89 defer permission, 2.1.94 sessionTitle on UserPromptSubmit)
  */
 
 /**
@@ -239,6 +239,8 @@ export interface HookSpecificOutput {
   retry?: boolean;
   /** Paths to watch for changes (CwdChanged, CC 2.1.89) */
   watchPaths?: string[];
+  /** Session title (UserPromptSubmit, CC 2.1.94) — sets the display name shown in the prompt bar and remote sessions */
+  sessionTitle?: string;
 }
 
 /**

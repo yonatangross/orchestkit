@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CC 2.1.94 + 2.1.96 integration** (minimum CC version: 2.1.92 → 2.1.94)
+  - **Skill frontmatter hooks unlock (CC 2.1.94 bug fix)** — before 2.1.94, skill `hooks:` blocks in SKILL.md frontmatter were silently ignored by CC. 20 OrchestKit context loaders across 15 skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) were dead code until now. CC 2.1.94 activates them — users now get primed context (PR context, project conventions, assessment baselines, verify scoring rubric, etc.) before every workflow skill runs.
+  - **`hookSpecificOutput.sessionTitle` on UserPromptSubmit (CC 2.1.94)** — unified prompt dispatcher now sets the CC session title dynamically. Format: `{branch}` or `{branch} · {effort}` when effort differs from the default. Visible in the prompt bar, `--resume` picker, and `/remote-control` session list. Emitted on every turn (no delta skip) so the title stays current across branch changes.
+  - **New output builder `outputPromptContextWithTitle(ctx, title)`** in `src/hooks/src/lib/output.ts` — handles all four combinations: ctx+title, ctx only, title only, neither.
+  - **`sessionTitle` field in `HookSpecificOutput`** type (CC 2.1.94).
+  - **`DEFAULT_EFFORT_LEVEL` constant** in `src/hooks/src/lib/effort-detector.ts` — set to `'high'` to match CC 2.1.94's new default (was `'medium'` pre-2.1.94). Used by unified-dispatcher to decide when to log effort and when to suffix the session title.
+  - **`keep-coding-instructions` frontmatter field documentation** (CC 2.1.94) for future plugin output-style skills.
+  - **`src/__tests__/skill-frontmatter-hooks-invariant.test.ts`** — guards against dangling `skill/<name>` references in SKILL.md frontmatter. Every reference must be registered in `src/hooks/src/entries/skill.ts`, otherwise CC 2.1.94+ will try to spawn a missing handler on every invocation.
+  - **`src/__tests__/prompt/session-title.test.ts`** — 13 new tests covering `outputPromptContextWithTitle` semantics, `buildSessionTitle` format, branch cleanup, effort suffix, branch prefix stripping, truncation, and edge cases (empty branch, oversized prompt, newlines in branch).
+  - **13 new entries in `cc-version-matrix.ts`** — 12 for 2.1.94, 1 for 2.1.96 (Bedrock bearer-token 403 hotfix).
 - **Task lifecycle enforcement across 21 skills + 33 agents** — all multi-phase skills and agents now follow complete TaskCreate → TaskGet → TaskUpdate lifecycle with `addBlockedBy` dependency chains, `activeForm` spinner text, and explicit completion markers
   - 8 MANDATORY skills enhanced: brainstorm, explore, verify, assess, implement, create-pr, audit-full, expect
   - 7 skills got new task sections: fix-issue, github-operations, notebooklm, demo-producer, audit-skills, release-management, setup

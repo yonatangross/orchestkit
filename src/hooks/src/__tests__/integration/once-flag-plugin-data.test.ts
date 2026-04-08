@@ -28,6 +28,7 @@ vi.mock('../../lib/prompt-guards.js', () => ({
 vi.mock('../../lib/effort-detector.js', () => ({
   detectEffortLevel: () => 'high',
   effortTokenBudget: () => 50000,
+  DEFAULT_EFFORT_LEVEL: 'high',
 }));
 
 vi.mock('../../prompt/handoff-injector.js', () => ({

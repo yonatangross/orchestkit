@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.92. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -234,6 +234,19 @@ OrchestKit requires Claude Code >= 2.1.92. This matrix documents which CC featur
 | `/vim` command removed | 2.1.92 | Removed — toggle via `/config` → Editor mode | N/A |
 | Subagent tmux pane fix | 2.1.92 | Subagent spawning no longer fails after tmux windows killed/renumbered | "Could not determine pane count" error |
 | Prompt cache expiry hint | 2.1.92 | Pro users see uncached token count when returning after cache expires | No cache expiry visibility |
+| **Skill frontmatter hooks fix** | **2.1.94** | **20 OrchestKit skill context loaders (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) declared via `hooks:` in SKILL.md frontmatter now fire — previously silently ignored** | **All 20 skill context loaders dead — skills run without their primed context (much worse UX)** |
+| `hookSpecificOutput.sessionTitle` | 2.1.94 | unified-dispatcher sets session title from branch/effort/skill context — visible in prompt bar and remote sessions | Sessions use auto-generated names |
+| `keep-coding-instructions` frontmatter | 2.1.94 | Plugin output styles preserve coding instructions when set true | Output styles may strip coding guidance |
+| Plugin skill name stability | 2.1.94 | `"skills": ["./"]` uses frontmatter `name` for invocation, stable across install methods | Invocation name depends on directory basename |
+| `${CLAUDE_PLUGIN_ROOT}` local-marketplace fix | 2.1.94 | Resolves to installed cache (not marketplace source) for local-marketplace plugins | File lookups point at wrong directory |
+| Plugin hooks CLAUDE_PLUGIN_ROOT fix | 2.1.94 | Plugin hooks no longer fail with "No such file or directory" when env var unset | Hooks fail cold-start on some platforms |
+| Default effort `high` | 2.1.94 | Default effort level is `high` for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users (use `/effort low` or `/effort medium` to reduce) | Default `medium` — token budgets scaled conservatively |
+| 429 rate-limit surface | 2.1.94 | Agents no longer stuck after 429 with long Retry-After — error surfaces immediately | Agents appear stuck, silent wait |
+| SDK/print mode partial response fix | 2.1.94 | Preserves partial assistant response on interrupt mid-stream | Partial responses lost, breaks bare-eval/eval-runner |
+| `--resume` across worktrees | 2.1.94 | Resume sessions from other worktrees of the same repo directly (was: print `cd` command) | Must cd manually to resume worktree session |
+| CJK/multibyte stream-json fix | 2.1.94 | No U+FFFD corruption when chunk boundaries split UTF-8 sequences | International content corrupted in stream-json |
+| Amazon Bedrock via Mantle | 2.1.94 | Opt in with `CLAUDE_CODE_USE_MANTLE=1` | Standard Bedrock only |
+| Bedrock bearer token 403 fix | 2.1.96 | Fixed 403 "Authorization header is missing" regression when using `AWS_BEARER_TOKEN_BEDROCK` or `CLAUDE_CODE_SKIP_BEDROCK_AUTH` (regression in 2.1.94) | Bedrock bearer-token auth broken on 2.1.94 |
 
 ## Version Detection
 
@@ -277,7 +290,9 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.89 | Full++++++++++++++++ | defer permission, TaskCreated blocking, MCP_CONNECTION_NONBLOCKING, named subagent typeahead, hook disk spill |
 | >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
 | >= 2.1.91 | Full | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix |
-| >= 2.1.92 | **Recommended** | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix — **current minimum** |
+| >= 2.1.92 | Full | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix |
+| >= 2.1.94 | **Recommended** | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
+| >= 2.1.96 | Latest | Bedrock bearer token 403 hotfix (2.1.94 regression) |
 
 ## Doctor Check Implementation
 
@@ -356,6 +371,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.30.x | 2.1.94 | **Skill frontmatter hooks unlock (20 context loaders activated), sessionTitle on UserPromptSubmit, keep-coding-instructions, default effort high adaptation, --resume across worktrees, CJK stream-json fix, Bedrock bearer token 2.1.96 hotfix** |
 | v7.29.x | 2.1.92 | forceRemoteSettingsRefresh policy, Stop hook preventContinuation fix, tool input JSON-string fix, plugin MCP dedup fix, Write perf 60%, /tag + /vim removed, MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors |
 | v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |
 | v7.24.x | 2.1.84 | TaskCreated hook, WorktreeCreate HTTP, paths: glob lists, ANTHROPIC_DEFAULT_* env vars, stream idle timeout, json-schema fix |

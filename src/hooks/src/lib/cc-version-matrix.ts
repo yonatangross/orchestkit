@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.92';
+export const MIN_CC_VERSION = '2.1.94';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -220,6 +220,21 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'remote_control_hostname',    minVersion: '2.1.92', description: 'Remote Control session names default to hostname prefix, overridable with --remote-control-session-name-prefix' },
   { feature: 'cost_per_model_breakdown',   minVersion: '2.1.92', description: '/cost shows per-model and cache-hit breakdown for subscription users' },
   { feature: 'subagent_tmux_pane_fix',     minVersion: '2.1.92', description: 'Subagent spawning no longer permanently fails after tmux windows killed/renumbered' },
+  // 2.1.94 (2026-04-07) — skipped 2.1.93
+  { feature: 'skill_frontmatter_hooks_fix', minVersion: '2.1.94', description: 'Plugin skill hooks defined in YAML frontmatter now fire (previously silently ignored) — unlocks 20 OrchestKit context loaders' },
+  { feature: 'session_title_hook_output',   minVersion: '2.1.94', description: 'UserPromptSubmit hooks can set session title via hookSpecificOutput.sessionTitle' },
+  { feature: 'keep_coding_instructions',    minVersion: '2.1.94', description: 'keep-coding-instructions frontmatter field preserves coding instructions in plugin output styles' },
+  { feature: 'plugin_skill_name_stability', minVersion: '2.1.94', description: 'Plugin skills declared via "skills": ["./"] use frontmatter name for stable invocation across install methods' },
+  { feature: 'plugin_root_local_mkt_fix',   minVersion: '2.1.94', description: '${CLAUDE_PLUGIN_ROOT} resolves to installed cache (not marketplace source) for local-marketplace plugins' },
+  { feature: 'plugin_hooks_no_root_env_fix', minVersion: '2.1.94', description: 'Plugin hooks no longer fail with "No such file or directory" when CLAUDE_PLUGIN_ROOT env var unset' },
+  { feature: 'effort_default_high',         minVersion: '2.1.94', description: 'Default effort level changed medium → high for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users' },
+  { feature: 'rate_limit_429_surface',      minVersion: '2.1.94', description: 'Agents no longer stuck after 429 rate-limit with long Retry-After — error surfaces immediately' },
+  { feature: 'sdk_partial_response_fix',    minVersion: '2.1.94', description: 'SDK/print mode preserves partial assistant response on interrupt mid-stream' },
+  { feature: 'resume_across_worktrees',     minVersion: '2.1.94', description: '--resume can attach to sessions in other worktrees of the same repo directly' },
+  { feature: 'stream_json_cjk_fix',         minVersion: '2.1.94', description: 'CJK/multibyte text no longer corrupted with U+FFFD when chunk boundaries split UTF-8 sequences in stream-json I/O' },
+  { feature: 'mantle_bedrock',              minVersion: '2.1.94', description: 'Amazon Bedrock powered by Mantle via CLAUDE_CODE_USE_MANTLE=1' },
+  // 2.1.96 (2026-04-08) — skipped 2.1.95
+  { feature: 'bedrock_bearer_token_fix',    minVersion: '2.1.96', description: 'Fixed Bedrock 403 "Authorization header is missing" regression when using AWS_BEARER_TOKEN_BEDROCK or CLAUDE_CODE_SKIP_BEDROCK_AUTH (hotfix from 2.1.94)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

@@ -81,6 +81,47 @@ export function outputPromptContext(ctx: string): HookResult {
 }
 
 /**
+ * Output with additionalContext + sessionTitle for UserPromptSubmit hooks (CC 2.1.94)
+ *
+ * Sets the display name shown in the prompt bar and remote sessions.
+ * If ctx is empty, returns a title-only result so hooks can set a title
+ * without injecting context. If title is empty/whitespace, falls back to
+ * outputPromptContext (no title update).
+ *
+ * CC 2.1.94 introduced hookSpecificOutput.sessionTitle for UserPromptSubmit
+ * hooks. Useful for surfacing branch, effort level, or active skill in the
+ * title bar so long-running sessions are identifiable in the prompt bar,
+ * --resume picker, and /remote-control session list.
+ */
+export function outputPromptContextWithTitle(ctx: string, title: string): HookResult {
+  const trimmedTitle = title?.trim();
+  // No title — fall back to plain context injection
+  if (!trimmedTitle) return outputPromptContext(ctx);
+
+  // Title-only (no context) — still valid per CC 2.1.94 spec
+  if (!ctx || !ctx.trim()) {
+    return {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'UserPromptSubmit',
+        sessionTitle: trimmedTitle,
+      },
+    };
+  }
+
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: ctx,
+      sessionTitle: trimmedTitle,
+    },
+  };
+}
+
+/**
  * Output with user notification + Claude context (CC 2.1.9+)
  * Issue #278: Dual-channel output for three-tier UX
  *
