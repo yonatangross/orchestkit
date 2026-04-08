@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-      - uses: anthropics/claude-code-action@88c168b39e7e64da0286d812b6e9fbebb6708185  # v1.0.82
+      - uses: anthropics/claude-code-action@26ddc358fe3befff50c5ec2f80304c90c763f6f8  # v1.0.90
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
