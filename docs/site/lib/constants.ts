@@ -3,7 +3,7 @@
 // Counts are read from generated data (scripts/generate-docs-data.js).
 
 import orkManifest from "../../../manifests/ork.json";
-import { TOTALS } from "./generated/shared-data";
+import { TOTALS, MIN_CC_VERSION } from "./generated/shared-data";
 
 export const SITE = {
   name: "OrchestKit",
@@ -11,7 +11,7 @@ export const SITE = {
   domain: "https://orchestkit.vercel.app",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
-  ccVersion: "2.1.76+",
+  ccVersion: `${MIN_CC_VERSION}+`,
 } as const;
 
 export const COUNTS = {
