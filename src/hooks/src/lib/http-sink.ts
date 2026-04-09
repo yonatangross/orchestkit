@@ -214,7 +214,7 @@ export class HttpSink implements TelemetrySink {
       'X-CC-Hooks-Signature': signature,
     };
     if (process.env.TRACEPARENT) {
-      headers['traceparent'] = process.env.TRACEPARENT;
+      headers.traceparent = process.env.TRACEPARENT;
     }
 
     // Fire-and-forget with retry — process stays alive until promise settles
