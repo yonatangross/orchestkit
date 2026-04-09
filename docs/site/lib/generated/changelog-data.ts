@@ -17,6 +17,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.34.0",
+    "date": "2026-04-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**Persuasion-type classification** — all 103 skills tagged with `persuasion-type` frontmatter (14 discipline, 32 guidance, 35 reference, 22 collaborative) based on Cialdini's persuasion principles ([#1308](https://github.com/yonatangross/orchestkit/issues/1308))",
+          "**Anti-sycophancy protocol** — shared rule banning performative agreement (\"Great work!\", \"You're absolutely right!\") in review and feedback skills, with pushback protocol ([#1309](https://github.com/yonatangross/orchestkit/issues/1309))",
+          "**Verification gate** — cross-cutting 5-step evidence rule (\"NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE\") referenced by review-pr, verify, fix-issue, implement, cover, commit, create-pr ([#1311](https://github.com/yonatangross/orchestkit/issues/1311))",
+          "**Agent status protocol** — standardized DONE/DONE_WITH_CONCERNS/BLOCKED/NEEDS_CONTEXT reporting across all 36 agents ([#1312](https://github.com/yonatangross/orchestkit/issues/1312))",
+          "**Pressure-test framework** — `tests/pressure/` with multi-pressure behavioral scenarios for 5 discipline skills and RED-GREEN runner script ([#1310](https://github.com/yonatangross/orchestkit/issues/1310))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "`stamp-counts.sh`, `validate-counts.sh`, and lint scripts now exclude `shared/` utility dirs from skill/agent enumeration"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.33.0",
     "date": "2026-04-09",
     "compareUrl": "",

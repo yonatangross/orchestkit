@@ -129,7 +129,7 @@ if [[ ! -d "$SKILLS_DIR" ]]; then
 fi
 
 # Find all agent files
-AGENT_FILES=$(find "$AGENTS_DIR" -name "*.md" -type f 2>/dev/null | sort)
+AGENT_FILES=$(find "$AGENTS_DIR" -maxdepth 1 -name "*.md" -type f 2>/dev/null | sort)
 AGENT_COUNT=$(echo "$AGENT_FILES" | grep -c '.' || echo "0")
 
 if [[ "$AGENT_COUNT" -eq 0 ]]; then
