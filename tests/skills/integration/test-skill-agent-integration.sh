@@ -47,12 +47,13 @@ vlog() {
 # Get all skill IDs from directory structure
 get_all_skill_ids() {
     # Flat structure: skills/<category>/<skill-name>
-    find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort -u
+    # Exclude utility directories (shared/)
+    find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -not -name shared -exec basename {} \; 2>/dev/null | sort -u
 }
 
 # Get all agent IDs from directory structure
 get_all_agent_ids() {
-    find "$AGENTS_DIR" -name "*.md" -exec basename {} .md \; 2>/dev/null | sort -u
+    find "$AGENTS_DIR" -maxdepth 1 -name "*.md" -exec basename {} .md \; 2>/dev/null | sort -u
 }
 
 # Get skills from agent markdown file (from YAML frontmatter)

@@ -321,6 +321,13 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 - Higher max_tokens (64000 default, 128000 upper bound with CC 2.1.77+) for comprehensive workflow designs
 - Always design with checkpointing for production resilience
 
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.

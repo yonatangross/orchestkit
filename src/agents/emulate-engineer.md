@@ -127,3 +127,10 @@ Action:
 5. Configure webhook routes with HMAC secret from `WEBHOOK_SECRET` env var
 6. Add CI workflow steps: start emulate, health check, run tests, stop emulate
 7. Set `GITHUB_API_BASE=http://localhost:4001` in test environment
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

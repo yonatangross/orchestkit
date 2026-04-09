@@ -14,6 +14,7 @@ disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
 skills: [commit, review-pr, memory, chain-patterns]
 complexity: medium
+persuasion-type: guidance
 metadata:
   category: workflow-automation
   mcp-server: memory
@@ -317,6 +318,10 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 /loop 5m gh pr checks {PR_NUMBER}         # Watch CI until green
 /loop 1h gh pr view {PR_NUMBER} --json reviewDecision  # Monitor review status
 ```
+
+## Verification Gate
+
+Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
 
 ## Related Skills
 

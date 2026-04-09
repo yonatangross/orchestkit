@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch]
 skills: [testing-e2e, chain-patterns, memory]
 complexity: high
+persuasion-type: guidance
 effort: high
 model: sonnet
 metadata:

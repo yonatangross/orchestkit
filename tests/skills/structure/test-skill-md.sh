@@ -219,8 +219,10 @@ echo "────────────────────────�
 missing_files=()
 for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]]; then
-        TOTAL_SKILLS=$((TOTAL_SKILLS + 1))
         skill_name=$(basename "$skill_dir")
+        # Skip utility directories (not skills)
+        [[ "$skill_name" == "shared" ]] && continue
+        TOTAL_SKILLS=$((TOTAL_SKILLS + 1))
 
         if [[ ! -f "$skill_dir/SKILL.md" ]]; then
             missing_files+=("$skill_name")

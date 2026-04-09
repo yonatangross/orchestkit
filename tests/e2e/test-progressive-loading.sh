@@ -75,8 +75,9 @@ total_skills=0
 
 for skill_dir in "$SKILLS_DIR"/*/; do
     if [ -d "$skill_dir" ]; then
-        ((total_skills++)) || true
         skill_name=$(basename "$skill_dir")
+        [ "$skill_name" = "shared" ] && continue
+        ((total_skills++)) || true
 
         if [ ! -f "$skill_dir/SKILL.md" ]; then
             fail "Missing SKILL.md: $skill_name"

@@ -9,6 +9,7 @@ disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, ToolSearch]
 complexity: medium
+persuasion-type: guidance
 model: haiku
 ---
 

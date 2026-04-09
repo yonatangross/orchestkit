@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
 complexity: high
+persuasion-type: discipline
 effort: high
 model: sonnet
 hooks:
@@ -325,6 +326,18 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/rules/<file>")`:
 |------|---------|
 | `scoring-rubric.md` | Composite scoring, grades, verdicts |
 | `evidence-collection.md` | Evidence gathering and test patterns |
+
+### Verification Gate (Cross-Cutting)
+
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
+
+### Anti-Sycophancy Protocol
+
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
+
+### Agent Status Protocol
+
+All verification agents MUST report using the standardized protocol: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
 
 ---
 

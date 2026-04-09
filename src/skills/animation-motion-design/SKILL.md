@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+persuasion-type: reference
 targets:
   - library: framer-motion
     version: ">=11.0.0"

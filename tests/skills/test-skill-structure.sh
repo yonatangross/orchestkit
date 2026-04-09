@@ -20,6 +20,8 @@ for skill_dir in "$SKILLS_ROOT"/*/; do
   fi
 
   skill_name=$(basename "$skill_dir")
+  # Skip utility directories (not skills)
+  [[ "$skill_name" == "shared" ]] && continue
   SKILL_COUNT=$((SKILL_COUNT + 1))
 
   # SKILL.md is the only required file in CC 2.1.7

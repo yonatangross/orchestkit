@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
 complexity: high
+persuasion-type: discipline
 effort: high
 model: sonnet
 hooks:
@@ -459,6 +460,14 @@ SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fail
 ### Skill Chain
 
 Standard chain: `implement → cover → verify → commit`. Use `addBlockedBy` between each.
+
+### Verification Gate
+
+Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
+
+### Agent Status Protocol
+
+All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
 ## Related Skills
 

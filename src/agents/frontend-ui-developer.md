@@ -567,3 +567,10 @@ Action: Build real AnalysisStatus.tsx with:
 - **Receives from:** backend-system-architect (API contracts), design-system-architect (design tokens)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
 - **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation, animation-motion-design, design-system-tokens
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

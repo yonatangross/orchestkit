@@ -12,6 +12,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: low
+persuasion-type: reference
 effort: low
 targets:
   - library: zustand

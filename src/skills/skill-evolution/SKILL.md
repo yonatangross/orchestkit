@@ -12,6 +12,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: medium
+persuasion-type: collaborative
 metadata:
   category: document-asset-creation
 ---

@@ -6,6 +6,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 tags: [porter, swot, competitive, battlecard, moat, five-forces, landscape]
 context: fork
 agent: product-strategist

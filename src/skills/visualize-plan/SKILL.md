@@ -13,6 +13,7 @@ user-invocable: true
 allowed-tools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
 skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember]
 complexity: medium
+persuasion-type: guidance
 hooks:
   PreToolUse:
     - matcher: "Bash"

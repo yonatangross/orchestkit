@@ -10,6 +10,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 targets:
   - library: storybook
     version: ">=10.3.0"

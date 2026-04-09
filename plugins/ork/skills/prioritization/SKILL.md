@@ -9,6 +9,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 metadata:
   category: document-asset-creation
 allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]

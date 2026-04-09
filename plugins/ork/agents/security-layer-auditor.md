@@ -440,6 +440,13 @@ This agent uses:
 
 **Version:** 1.0.2 (January 2026)
 
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.

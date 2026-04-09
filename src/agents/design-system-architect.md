@@ -452,3 +452,10 @@ Action: Build real token infrastructure with:
 - **Receives from:** accessibility audits (contrast ratios, focus indicators), Figma design team (Variables export)
 - **Hands off to:** code-quality-reviewer (validation), frontend-ui-developer (component implementation)
 - **Skill references:** design-system-tokens, ui-components, accessibility, responsive-patterns, animation-motion-design, figma-design-handoff
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

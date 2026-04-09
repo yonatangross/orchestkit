@@ -11,6 +11,7 @@ tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
 allowed-tools: [Read, Bash, Grep]
 complexity: low
+persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:

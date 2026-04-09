@@ -12,6 +12,7 @@ user-invocable: true
 argument-hint: "product name or feature"
 disable-model-invocation: false
 complexity: medium
+persuasion-type: collaborative
 metadata:
   category: document-asset-creation
 allowed-tools:

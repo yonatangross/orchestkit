@@ -8,6 +8,7 @@ user-invocable: false
 disable-model-invocation: true
 context: fork
 complexity: medium
+persuasion-type: discipline
 allowed-tools:
   - Read
   - Glob

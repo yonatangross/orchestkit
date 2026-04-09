@@ -13,6 +13,7 @@ disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
+persuasion-type: collaborative
 effort: low
 model: haiku
 hooks:

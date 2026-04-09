@@ -241,3 +241,10 @@ Task: Process pending UI annotations
 - **Triggered by:** Agentation annotations from browser, team lead requests
 - **Hands off to:** frontend-ui-developer (complex component changes), accessibility-specialist (a11y issues), code-quality-reviewer (validation)
 - **Skill references:** fix-issue, ui-components, accessibility
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

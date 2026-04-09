@@ -11,6 +11,7 @@ tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rt
 user-invocable: false
 disable-model-invocation: true
 complexity: low
+persuasion-type: reference
 effort: low
 targets:
   - library: react-i18next

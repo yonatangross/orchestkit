@@ -147,6 +147,10 @@ git add . && git commit -m "fix(#123): Fix typo in error message
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
+## Verification Gate
+
+Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+
 ## Related Skills
 - `ork:create-pr`: Create pull requests from commits
 - `ork:review-pr`: Review changes before committing

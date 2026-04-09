@@ -11,6 +11,7 @@ tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualizati
 user-invocable: false
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
+persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:

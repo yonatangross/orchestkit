@@ -367,3 +367,10 @@ Task: "Set up monitoring for the order service"
 8. Define SLOs (99.9% availability, p99 &lt; 500ms)
 9. Document runbooks for each alert
 10. Return configuration files and instrumentation code
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

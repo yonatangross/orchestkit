@@ -272,3 +272,10 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 - Skip the content analysis step
 - Hardcode content that should be dynamic
 - Create misleading demonstrations
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

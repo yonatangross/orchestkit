@@ -6,6 +6,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 tags: [tam, sam, som, market-size, addressable-market, opportunity-sizing]
 context: fork
 agent: product-strategist

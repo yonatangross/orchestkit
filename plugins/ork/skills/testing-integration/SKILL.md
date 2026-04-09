@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: reference
 targets:
   - library: "@pact-foundation/pact"
     version: ">=12.0.0"

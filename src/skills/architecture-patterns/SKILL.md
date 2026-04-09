@@ -12,6 +12,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: high
+persuasion-type: reference
 effort: high
 metadata:
   category: document-asset-creation

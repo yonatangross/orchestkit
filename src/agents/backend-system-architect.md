@@ -309,3 +309,10 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
 - **Skill references:** api-design, database-patterns, architecture-patterns, distributed-systems, performance, async-jobs, python-backend, mcp-patterns
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

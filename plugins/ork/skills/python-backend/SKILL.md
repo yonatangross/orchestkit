@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: reference
 targets:
   - library: fastapi
     version: ">=0.100.0"
