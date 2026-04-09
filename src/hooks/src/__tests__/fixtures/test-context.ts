@@ -24,6 +24,7 @@ export function createTestContext(overrides: Partial<HookContext> = {}): HookCon
     pluginDataDir: null,
     sessionId: 'test-session-123',
     branch: 'main',
+    isWorktree: false,
     logLevel: 'warn',
     log: vi.fn(),
     logPermission: vi.fn(),

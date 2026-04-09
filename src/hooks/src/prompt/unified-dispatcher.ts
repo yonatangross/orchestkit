@@ -155,7 +155,7 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
 /**
  * Build a session title for the CC prompt bar (CC 2.1.94 sessionTitle).
  *
- * Format: `{branch}` or `{branch} · {effort}` (when effort is non-default).
+ * Format: `{branch}` or `{branch} [worktree]` or `{branch} · {effort}`.
  * Bounded to 60 chars to fit narrow prompt bars. Returns empty string when
  * there's nothing meaningful to surface (no branch, no effort override).
  *
@@ -163,8 +163,11 @@ function setOnceFlagDone(hookName: string, sessionId: string, projectDir: string
  * answers "which feature am I on" at a glance in the prompt bar and the
  * --resume picker. Effort is only appended when it differs from the
  * CC 2.1.94 default ('high') so the default case stays uncluttered.
+ *
+ * CC 2.1.97: worktree indicator appended when cwd is a linked git worktree,
+ * matching the workspace.git_worktree field in StatusLine JSON.
  */
-function buildSessionTitle(branch: string, effort: string): string {
+function buildSessionTitle(branch: string, effort: string, isWorktree = false): string {
   const cleanBranch = (branch || '').trim().replace(/[\r\n]+/g, ' ');
   if (!cleanBranch) return '';
   // Strip common branch prefixes to save characters in the title bar
@@ -172,6 +175,9 @@ function buildSessionTitle(branch: string, effort: string): string {
     .replace(/^(refs\/heads\/|origin\/)/, '')
     .slice(0, 40);
   const parts = [shortBranch];
+  if (isWorktree) {
+    parts.push('wt');
+  }
   if (effort && effort !== DEFAULT_EFFORT_LEVEL) {
     parts.push(effort);
   }
@@ -299,7 +305,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // Build the session title (CC 2.1.94) — emitted alongside context so the
   // prompt bar shows the current branch + effort. Safe to emit repeatedly:
   // CC treats a sessionTitle identical to the previous turn's as a no-op.
-  const sessionTitle = buildSessionTitle(ctx.branch, effort);
+  const sessionTitle = buildSessionTitle(ctx.branch, effort, ctx.isWorktree);
 
   // No context produced — still try to set the title if we have one
   if (contextParts.length === 0) {

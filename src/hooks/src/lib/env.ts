@@ -3,7 +3,7 @@
  * Extracted from common.ts for separation of pure vs. effectful code.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
@@ -102,6 +102,30 @@ export function getCachedBranch(projectDir?: string): string {
     return branch;
   } catch {
     return 'unknown';
+  }
+}
+
+/**
+ * Detect if the project directory is inside a linked git worktree.
+ * A linked worktree has `.git` as a file (containing "gitdir: ...") rather than a directory.
+ * Caches result in process.env to avoid repeated stat calls (CC 2.1.97).
+ */
+export function isGitWorktree(projectDir?: string): boolean {
+  if (process.env.ORCHESTKIT_IS_WORKTREE !== undefined) {
+    return process.env.ORCHESTKIT_IS_WORKTREE === '1';
+  }
+
+  try {
+    const dir = projectDir || getProjectDir();
+    const gitPath = join(dir, '.git');
+    // In a linked worktree, .git is a file, not a directory
+    const stat = statSync(gitPath);
+    const isWorktree = stat.isFile();
+    process.env.ORCHESTKIT_IS_WORKTREE = isWorktree ? '1' : '0';
+    return isWorktree;
+  } catch {
+    process.env.ORCHESTKIT_IS_WORKTREE = '0';
+    return false;
   }
 }
 

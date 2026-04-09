@@ -394,6 +394,8 @@ export interface HookContext {
   readonly sessionId: string;
   /** Current git branch (cached) */
   readonly branch: string;
+  /** Whether cwd is inside a linked git worktree (CC 2.1.97 workspace.git_worktree) */
+  readonly isWorktree: boolean;
   /** Log level (debug/info/warn/error) */
   readonly logLevel: string;
 

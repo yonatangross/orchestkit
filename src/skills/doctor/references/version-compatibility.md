@@ -247,6 +247,32 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | CJK/multibyte stream-json fix | 2.1.94 | No U+FFFD corruption when chunk boundaries split UTF-8 sequences | International content corrupted in stream-json |
 | Amazon Bedrock via Mantle | 2.1.94 | Opt in with `CLAUDE_CODE_USE_MANTLE=1` | Standard Bedrock only |
 | Bedrock bearer token 403 fix | 2.1.96 | Fixed 403 "Authorization header is missing" regression when using `AWS_BEARER_TOKEN_BEDROCK` or `CLAUDE_CODE_SKIP_BEDROCK_AUTH` (regression in 2.1.94) | Bedrock bearer-token auth broken on 2.1.94 |
+| MCP tool description 2KB cap | 2.1.95 | Tool descriptions and server instructions capped at 2KB — prevents OpenAPI-generated MCP servers from bloating context | Verbose MCP descriptions consume unbounded context |
+| MCP local config dedup | 2.1.95 | MCP servers configured both locally and via claude.ai connectors are deduplicated, local config wins | Duplicate MCP tools from both sources |
+| Focus view toggle (`Ctrl+O`) | 2.1.97 | Condensed view in NO_FLICKER mode: prompt, one-line tool summary with edit diffstats, final response | No condensed view option |
+| `refreshInterval` status line | 2.1.97 | New setting re-runs the status line command every N seconds automatically | Status line only updates per turn |
+| `workspace.git_worktree` | 2.1.97 | Boolean in status line JSON input, set when cwd is inside a linked git worktree | Must shell out to detect worktree |
+| `● N running` in `/agents` | 2.1.97 | Live subagent instance count next to each agent type | No live agent count |
+| Stop/SubagentStop long-session fix | 2.1.97 | prompt-type Stop/SubagentStop hooks no longer fail on long sessions; hook evaluator shows actual error | Hooks fail silently on long sessions |
+| Subagent worktree/cwd leak fix | 2.1.97 | Subagents with worktree isolation or `cwd:` override no longer leak working directory back to parent Bash tool | Parent inherits child's cwd |
+| `claude plugin update` fix | 2.1.97 | No longer reports "already at latest" for git-based marketplace plugins when remote has newer commits | Users stuck on stale plugin versions |
+| YAML boolean skill name fix | 2.1.97 | Slash command picker no longer breaks when plugin frontmatter `name` is a YAML boolean keyword | Skills named true/false/yes/no break picker |
+| Bash permissions hardened | 2.1.97 | Tighter env-var prefix checks and network redirect validation, fewer false prompts on common commands | Looser Bash permission checks |
+| Accept Edits env-prefix auto-approve | 2.1.97 | Auto-approves filesystem commands prefixed with safe env vars or process wrappers (e.g. `LANG=C rm foo`) | Env-prefixed commands always prompt |
+| `sandbox.network.allowMachLookup` macOS | 2.1.97 | Now actually takes effect on macOS | Setting ignored on macOS |
+| MCP HTTP/SSE memory leak fix | 2.1.97 | Connections no longer accumulate ~50 MB/hr of unreleased buffers on reconnect | Memory leak on MCP reconnect |
+| MCP OAuth metadata URL fix | 2.1.97 | `oauth.authServerMetadataUrl` honored on token refresh after restart (fixes ADFS) | Token refresh ignores custom auth URL |
+| 429 retry exponential backoff | 2.1.97 | Exponential backoff applied as minimum instead of burning all attempts in ~13s | Retries exhaust quickly |
+| `/resume` picker fixes | 2.1.97 | `--resume <name>` editable, Ctrl+A reload preserves search, task-status text fixed, cross-project staleness | Multiple resume UX bugs |
+| Resume large file diff fix | 2.1.97 | File-edit diffs no longer disappear on `--resume` for files >10KB | Diffs lost for large files |
+| Compaction subagent transcript dedup | 2.1.97 | No longer writes duplicate multi-MB subagent transcripts on prompt-too-long retries | Transcript bloat on long sessions |
+| Prototype property settings.json fix | 2.1.97 | Permission rules with names matching JS prototype properties (toString, constructor) no longer cause settings.json to be silently ignored | Named rules can break entire config |
+| Image compression parity | 2.1.97 | Pasted/attached images compressed to same token budget as Read tool images | Pasted images use more tokens than Read |
+| Bash OTEL TRACEPARENT | 2.1.97 | Subprocesses inherit W3C `TRACEPARENT` env var when OTEL tracing is enabled | No trace propagation to subprocesses |
+| Managed-settings removal fix | 2.1.97 | Allow rules removed by admin take effect without process restart | Stale rules until restart |
+| `additionalDirectories` mid-session | 2.1.97 | `permissions.additionalDirectories` changes in settings apply mid-session | Changes require restart |
+| Bridge session git info | 2.1.97 | Bridge sessions show local git repo, branch, and working directory on claude.ai session card | No git context on bridge card |
+| Transcript size optimization | 2.1.97 | Skip empty hook entries and cap stored pre-edit file copies | Larger transcripts |
 
 ## Version Detection
 
@@ -291,8 +317,10 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.90 | Full+++++++++++++++++ | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf |
 | >= 2.1.91 | Full | MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors, transcript fix |
 | >= 2.1.92 | Full | forceRemoteSettingsRefresh, Stop hook preventContinuation fix, tool input JSON-string fix, Write perf, tmux pane fix |
-| >= 2.1.94 | **Recommended** | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
-| >= 2.1.96 | Latest | Bedrock bearer token 403 hotfix (2.1.94 regression) |
+| >= 2.1.94 | Minimum | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
+| >= 2.1.95 | Full | MCP tool description 2KB cap, local MCP config dedup (npm-only release) |
+| >= 2.1.96 | Full | Bedrock bearer token 403 hotfix (2.1.94 regression) |
+| >= 2.1.97 | **Recommended** | **refreshInterval status line, workspace.git_worktree, Stop/SubagentStop long-session fix, subagent cwd leak fix, plugin update fix, Bash permissions hardened, TRACEPARENT OTEL, image compression parity, 429 exponential backoff, MCP memory leak fix, transcript optimization** |
 
 ## Doctor Check Implementation
 
@@ -371,6 +399,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.33.x | 2.1.97 | **CC 2.1.97 full utilization: refreshInterval status line, workspace.git_worktree awareness, TRACEPARENT OTEL tracing to HQ, Stop/SubagentStop long-session fix, subagent cwd leak fix, MCP 2KB cap guardrail, image compression parity, Bash permissions hardened, Accept Edits env-prefix, plugin update fix, prototype settings.json fix** |
 | v7.30.x | 2.1.94 | **Skill frontmatter hooks unlock (20 context loaders activated), sessionTitle on UserPromptSubmit, keep-coding-instructions, default effort high adaptation, --resume across worktrees, CJK stream-json fix, Bedrock bearer token 2.1.96 hotfix** |
 | v7.29.x | 2.1.92 | forceRemoteSettingsRefresh policy, Stop hook preventContinuation fix, tool input JSON-string fix, plugin MCP dedup fix, Write perf 60%, /tag + /vim removed, MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors |
 | v7.27.x | 2.1.90 | /powerup, PLUGIN_KEEP_MARKETPLACE, .husky protected, exit code 2 fix, format-on-save fix, 3x perf improvements |

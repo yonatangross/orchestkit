@@ -24,6 +24,7 @@ describe('HookContext shape', () => {
     'pluginDataDir',
     'sessionId',
     'branch',
+    'isWorktree',
     'logLevel',
     'log',
     'logPermission',
@@ -51,6 +52,7 @@ describe('HookContext shape', () => {
     expect(NOOP_CTX.pluginDataDir === null || typeof NOOP_CTX.pluginDataDir === 'string').toBe(true);
     expect(typeof NOOP_CTX.sessionId).toBe('string');
     expect(typeof NOOP_CTX.branch).toBe('string');
+    expect(typeof NOOP_CTX.isWorktree).toBe('boolean');
     expect(typeof NOOP_CTX.logLevel).toBe('string');
   });
 

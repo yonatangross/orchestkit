@@ -1,32 +1,38 @@
 # Session Handoff
 
-**Branch**: fix/subagent-hook-input-normalization
-**When**: 2026-03-31 08:50:03 UTC
-**Session**: e232a060-c4bb-416e-a56d-be929da36c0b
+**Branch**: main
+**When**: 2026-04-08 21:24:06 UTC
+**Session**: 7ea80c2e-fc8d-4be0-ad92-f0506249bfae
 
 ## Summary
-Done. Here's the full recap:
+All clean. Final state:
 
-**Milestone M101 "CC 2.1.88 Integration"** — 10 issues created:
+```
+version.txt          7.32.0
+GitHub Release       v7.32.0 (2026-04-08)
+CLAUDE.md            7.32.0 · CC >= 2.1.94
+Docs site banner     dynamic from MIN_CC_VERSION (2.1.94+)
+GitHub About         103 skills, 36 agents, 169 hooks
+CHANGELOG            Real entries for 7.30.1, 7.31.0, 7.31.1, 7.32.0
+Dependabot           0
+Secret scanning      0
+Code scanning        4 (2 pending re-scan, 2 false positives)
+Open PRs             0
+Branches             1 (main)
+.wrangler tracked    0
+```
 
-| # | Title | Priority |
-|---|-------|----------|
-| [#1208](https://github.com/yonatangross/orchestkit/issues/1208) | PermissionDenied dispatcher + denial-logger | P2 |
-| [#1209](https://github.com/yonatangross/orchestkit/issues/1209) | safe-command-retry hook | P2 |
-| [#1210](https://github.com/yonatangross/orchestkit/issues/1210) | project-write-retry hook | P2 |
-| [#1211](https://github.com/yonatangross/orchestkit/issues/1211) | denial-notification hook | P2 |
-| [#1212](https://github.com/yonatang...
+Ship shape.
 
 ## Modified Files
-- .claude/HANDOFF.md.consumed
 - docs/site/lib/generated/changelog-data.ts
 
 ## Recent Tasks
-- Add error handling tests to readme-sync.test.ts [completed]
-- Run full suite, verify, commit and push [completed]
-- Explore agent attribution system status [completed]
-- Brainstorm: Community strategy for Code with Yonatan + OrchestKit [completed]
-- Analyze CC 2.1.88 release notes for OrchestKit integration opportunities [completed]
-- Brainstorm: CC 2.1.88 integration opportunities for OrchestKit [completed]
-- Create GitHub milestone + issues for CC 2.1.88 integration [completed]
-- Create interactive playground for CC 2.1.88 integration plan [completed]
+- Rebuild plugins, run tests, amend commit [completed]
+- Add .wrangler/ to .gitignore and remove from git [completed]
+- Remove 90 committed junk files from docs/ [completed]
+- Update .gitignore with missing patterns [completed]
+- Fix CHANGELOG 7.30.1 TODO entry [completed]
+- Regenerate fumadocs data [completed]
+- Delete 40+ stale remote branches [completed]
+- Build, test, commit, push, open PR [completed]

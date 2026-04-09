@@ -3063,12 +3063,47 @@ user.id = "abc-123"
 service.name = "analysis-worker"
 ```
 
+## Claude Code TRACEPARENT Propagation (CC 2.1.97)
+
+CC 2.1.97 injects a W3C `TRACEPARENT` env var into all Bash subprocesses when OTEL tracing is enabled. This enables end-to-end distributed tracing from Claude Code through to your services.
+
+**Format:** `TRACEPARENT=00-\{trace_id\}-\{parent_id\}-\{trace_flags\}`
+
+```typescript
+// In a subprocess spawned by Claude Code's Bash tool:
+const traceparent = process.env.TRACEPARENT;
+if (traceparent) {
+  // Parse W3C Trace Context header
+  const [version, traceId, parentId, traceFlags] = traceparent.split('-');
+
+  // Propagate to downstream HTTP calls
+  fetch('https://api.example.com/data', {
+    headers: { 'traceparent': traceparent },
+  });
+}
+```
+
+**OrchestKit hook telemetry correlation:**
+Hook events forwarded to HQ include the `TRACEPARENT` value when available, enabling correlation between CC tool spans and downstream service traces in Langfuse/Jaeger.
+
+```typescript
+// Telemetry payload includes traceparent for cross-system correlation
+{
+  "event": "PostToolUse",
+  "tool": "Bash",
+  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "session_id": "...",
+  "timestamp": "..."
+}
+```
+
 ## Best Practices
 
 1. **Sample smartly** - 10% for high traffic, 100% for errors
 2. **Add attributes** - user_id, order_id, error_type
 3. **Propagate context** - across HTTP, gRPC, message queues
 4. **Tag errors** - `error=true` for filtering
+5. **Capture TRACEPARENT** - in subprocesses spawned by CC for end-to-end traces (CC 2.1.97)
 
 See `scripts/opentelemetry-tracing.ts` for complete setup.
 

@@ -24,8 +24,8 @@ describe('cc-version-matrix', () => {
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) = 192
-      expect(CC_FEATURE_MATRIX.length).toBe(192);
+      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) + 2 (2.1.95) + 24 (2.1.97) = 218
+      expect(CC_FEATURE_MATRIX.length).toBe(218);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.96');
+      const features = getAvailableFeatures('2.1.97');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,18 +99,20 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.96', () => {
-      const missing = getMissingFeatures('2.1.96');
+    test('no missing features at 2.1.97', () => {
+      const missing = getMissingFeatures('2.1.97');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.92 is missing 2.1.94 + 2.1.96 features', () => {
+    test('2.1.92 is missing 2.1.94 + 2.1.95 + 2.1.96 + 2.1.97 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 12 from 2.1.94 + 1 from 2.1.96 = 13
-      expect(missing.length).toBe(13);
+      // 12 from 2.1.94 + 2 from 2.1.95 + 1 from 2.1.96 + 24 from 2.1.97 = 39
+      expect(missing.length).toBe(39);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'session_title_hook_output')).toBe(true);
       expect(missing.some(f => f.feature === 'bedrock_bearer_token_fix')).toBe(true);
+      expect(missing.some(f => f.feature === 'statusline_refresh_interval')).toBe(true);
+      expect(missing.some(f => f.feature === 'bash_otel_traceparent')).toBe(true);
     });
 
     test('2.1.47 missing 2.1.49+ features', () => {

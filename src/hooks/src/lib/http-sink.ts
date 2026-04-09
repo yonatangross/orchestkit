@@ -208,13 +208,19 @@ export class HttpSink implements TelemetrySink {
     const signature = signPayload(body, hookToken);
     const url = `${hookUrl.replace(/\/$/, '')}/cc-event`;
 
+    // CC 2.1.97: propagate TRACEPARENT as HTTP header for HQ trace correlation
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-CC-Hooks-Signature': signature,
+    };
+    if (process.env.TRACEPARENT) {
+      headers.traceparent = process.env.TRACEPARENT;
+    }
+
     // Fire-and-forget with retry — process stays alive until promise settles
     fetchWithRetry(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CC-Hooks-Signature': signature,
-      },
+      headers,
       body,
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     }).then(success => {

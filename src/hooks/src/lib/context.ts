@@ -4,7 +4,7 @@
  */
 
 import type { HookContext, LogLevel } from '../types.js';
-import { getProjectDir, getLogDir, getPluginRoot, getPluginDataDir, getSessionId, getCachedBranch, getLogLevel, shouldLog } from './env.js';
+import { getProjectDir, getLogDir, getPluginRoot, getPluginDataDir, getSessionId, getCachedBranch, isGitWorktree, getLogLevel, shouldLog } from './env.js';
 import { logHook, logPermissionFeedback, writeRulesFile } from './log.js';
 
 /**
@@ -20,6 +20,7 @@ export function buildContext(): HookContext {
     pluginDataDir: getPluginDataDir(),
     sessionId: getSessionId(),
     branch: getCachedBranch(projectDir),
+    isWorktree: isGitWorktree(projectDir),
     logLevel: getLogLevel(),
     log: logHook,
     logPermission: logPermissionFeedback,
@@ -50,6 +51,7 @@ export const NOOP_CTX: HookContext = {
   pluginDataDir: null,
   sessionId: '',
   branch: '',
+  isWorktree: false,
   logLevel: 'warn',
   log: _noop as HookContext['log'],
   logPermission: _noop as HookContext['logPermission'],

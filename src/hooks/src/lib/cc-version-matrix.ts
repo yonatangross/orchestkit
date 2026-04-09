@@ -234,8 +234,36 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'resume_across_worktrees',     minVersion: '2.1.94', description: '--resume can attach to sessions in other worktrees of the same repo directly' },
   { feature: 'stream_json_cjk_fix',         minVersion: '2.1.94', description: 'CJK/multibyte text no longer corrupted with U+FFFD when chunk boundaries split UTF-8 sequences in stream-json I/O' },
   { feature: 'mantle_bedrock',              minVersion: '2.1.94', description: 'Amazon Bedrock powered by Mantle via CLAUDE_CODE_USE_MANTLE=1' },
-  // 2.1.96 (2026-04-08) — skipped 2.1.95
+  // 2.1.95 (2026-04-07, npm-only — no GitHub release tag)
+  { feature: 'mcp_tool_description_cap',    minVersion: '2.1.95', description: 'MCP tool descriptions and server instructions capped at 2KB to prevent context bloat from verbose OpenAPI schemas' },
+  { feature: 'mcp_local_config_dedup',      minVersion: '2.1.95', description: 'MCP servers configured both locally and via claude.ai connectors are deduplicated, local config wins' },
+  // 2.1.96 (2026-04-08) — hotfix only
   { feature: 'bedrock_bearer_token_fix',    minVersion: '2.1.96', description: 'Fixed Bedrock 403 "Authorization header is missing" regression when using AWS_BEARER_TOKEN_BEDROCK or CLAUDE_CODE_SKIP_BEDROCK_AUTH (hotfix from 2.1.94)' },
+  // 2.1.97 (2026-04-08)
+  { feature: 'focus_view_toggle',           minVersion: '2.1.97', description: 'Ctrl+O focus view in NO_FLICKER mode — shows prompt, one-line tool summary with edit diffstats, and final response' },
+  { feature: 'statusline_refresh_interval', minVersion: '2.1.97', description: 'refreshInterval status line setting re-runs the status line command every N seconds automatically' },
+  { feature: 'statusline_git_worktree',     minVersion: '2.1.97', description: 'workspace.git_worktree boolean in status line JSON input, set when cwd is inside a linked git worktree' },
+  { feature: 'agents_running_indicator',    minVersion: '2.1.97', description: '● N running indicator in /agents next to agent types with live subagent instances' },
+  { feature: 'stop_hook_long_session_fix',  minVersion: '2.1.97', description: 'prompt-type Stop/SubagentStop hooks no longer fail on long sessions; hook evaluator API errors show actual message' },
+  { feature: 'subagent_cwd_leak_fix',       minVersion: '2.1.97', description: 'Subagents with worktree isolation or cwd: override no longer leak working directory back to parent Bash tool' },
+  { feature: 'plugin_update_marketplace_fix', minVersion: '2.1.97', description: 'claude plugin update no longer reports "already at latest" for git-based marketplace plugins with newer remote commits' },
+  { feature: 'yaml_boolean_skill_name_fix', minVersion: '2.1.97', description: 'Slash command picker no longer breaks when a plugin frontmatter name is a YAML boolean keyword (true/false/yes/no)' },
+  { feature: 'bash_permissions_hardened',   minVersion: '2.1.97', description: 'Bash tool permissions hardened: tighter env-var prefix checks and network redirect validation, fewer false prompts' },
+  { feature: 'accept_edits_env_prefix',     minVersion: '2.1.97', description: 'Accept Edits mode auto-approves filesystem commands prefixed with safe env vars or process wrappers (e.g. LANG=C rm foo)' },
+  { feature: 'sandbox_mach_lookup_macos',   minVersion: '2.1.97', description: 'sandbox.network.allowMachLookup now takes effect on macOS' },
+  { feature: 'mcp_sse_memory_leak_fix',     minVersion: '2.1.97', description: 'MCP HTTP/SSE connections no longer accumulate ~50 MB/hr of unreleased buffers on reconnect' },
+  { feature: 'mcp_oauth_metadata_url_fix',  minVersion: '2.1.97', description: 'MCP OAuth oauth.authServerMetadataUrl honored on token refresh after restart (fixes ADFS/similar IdPs)' },
+  { feature: 'retry_429_exponential_backoff', minVersion: '2.1.97', description: '429 retries use exponential backoff as minimum instead of burning all attempts in ~13 seconds' },
+  { feature: 'resume_picker_fixes',         minVersion: '2.1.97', description: 'Multiple /resume fixes: --resume <name> editable, Ctrl+A reload preserves search, task-status text, cross-project staleness' },
+  { feature: 'resume_large_file_diff_fix',  minVersion: '2.1.97', description: 'File-edit diffs no longer disappear on --resume when edited file exceeds 10KB' },
+  { feature: 'compaction_subagent_dedup',   minVersion: '2.1.97', description: 'Compaction no longer writes duplicate multi-MB subagent transcript files on prompt-too-long retries' },
+  { feature: 'prototype_settings_fix',      minVersion: '2.1.97', description: 'Permission rules with names matching JS prototype properties (toString, constructor) no longer cause settings.json to be silently ignored' },
+  { feature: 'image_compression_parity',    minVersion: '2.1.97', description: 'Pasted and attached images compressed to same token budget as images read via Read tool' },
+  { feature: 'bash_otel_traceparent',       minVersion: '2.1.97', description: 'Bash subprocesses inherit W3C TRACEPARENT env var when OTEL tracing is enabled' },
+  { feature: 'managed_settings_removal_fix', minVersion: '2.1.97', description: 'Managed-settings allow rules removed by admin now take effect without process restart' },
+  { feature: 'additional_dirs_mid_session',  minVersion: '2.1.97', description: 'permissions.additionalDirectories changes in settings now apply mid-session' },
+  { feature: 'bridge_session_git_info',     minVersion: '2.1.97', description: 'Bridge sessions show local git repo, branch, and working directory on claude.ai session card' },
+  { feature: 'transcript_size_optimization', minVersion: '2.1.97', description: 'Session transcripts skip empty hook entries and cap stored pre-edit file copies' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

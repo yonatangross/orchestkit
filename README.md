@@ -181,6 +181,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
+**v7.33.0** — CC 2.1.97 Full Utilization
+
+- **26 new CC features tracked** — refreshInterval status line, workspace.git_worktree, TRACEPARENT OTEL, Stop/SubagentStop long-session fix, subagent cwd leak fix, MCP 2KB cap, and 20 more
+- **Worktree-aware session titles** — prompt bar shows `{branch} · wt` when inside a linked git worktree
+- **TRACEPARENT telemetry** — hook events forwarded to HQ include W3C trace context for cross-system correlation
+- **Image compression parity** — pasted/attached images now match Read tool token efficiency (CC 2.1.97)
+
 **v7.30.0** — CC 2.1.94 Integration + Skill Hook Unlock
 
 - **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
