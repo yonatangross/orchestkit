@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.32.1] - 2026-04-09
+
+### Features
+
+- **compat:** CC 2.1.97 full utilization — 26 new features tracked (2 for 2.1.95, 24 for 2.1.97)
+- **hooks:** Worktree-aware session titles — prompt bar shows `· wt` when inside a linked git worktree
+- **hooks:** TRACEPARENT propagation to HQ telemetry via JSON metadata and HTTP header (CC 2.1.97)
+- **hooks:** `isWorktree` field on HookContext — detects linked worktrees via `.git` file check
+- **docs:** TRACEPARENT section in distributed-tracing reference for CC 2.1.97 subprocess tracing
+- **docs:** Image compression parity note in design-context-extract skill (CC 2.1.97)
+- **compat:** version-compatibility.md updated — 2.1.97 = Recommended, v7.33.x history row added
+
+---
+
+
 ## [7.32.0](https://github.com/yonatangross/orchestkit/compare/v7.31.1...v7.32.0) (2026-04-08)
 
 
