@@ -11,8 +11,8 @@ author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, CronCreate, CronDelete]
-skills: [commit, review-pr, memory, chain-patterns]
+allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
+skills: [commit, review-pr, memory, chain-patterns, playground]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -101,11 +101,13 @@ TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks") 
 TaskCreate(subject="Run validation agents", activeForm="Validating with agents")       # id=3
 TaskCreate(subject="Run local tests", activeForm="Running local tests")                # id=4
 TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")             # id=5
+TaskCreate(subject="Generate PR playground", activeForm="Generating playground")       # id=6
 
 # 3. Set dependencies for sequential phases
 TaskUpdate(taskId="3", addBlockedBy=["2"])  # Agents need pre-flight to pass
 TaskUpdate(taskId="4", addBlockedBy=["3"])  # Tests run after agent validation
 TaskUpdate(taskId="5", addBlockedBy=["4"])  # PR creation needs tests to pass
+TaskUpdate(taskId="6", addBlockedBy=["5"])  # Playground after PR (needs title/summary)
 
 # 4. Before starting each task, verify it's unblocked
 task = TaskGet(taskId="2")  # Verify blockedBy is empty
@@ -226,6 +228,43 @@ Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
+
+### Phase 4b: Generate PR Playground (REQUIRED — CI blocks without it)
+
+Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/{branch-name}/*.html` exists.
+
+```python
+BRANCH=$(git branch --show-current)
+BRANCH_DIR = BRANCH.replace("/", "--")  # feat/foo → feat--foo
+
+# Invoke the playground skill with a summary of the PR changes
+Skill("playground:playground", args=f"""
+  {PR_TITLE} — visualize the key changes in this PR.
+  Show: architecture/data flow, before/after, key components changed.
+  Include presets for the main change areas.
+  Dark theme with purple/violet OrchestKit brand colors.
+""")
+
+# The playground skill writes to a temp path — move it to the correct location
+# Ensure file lands at: docs/{branch-dir}/<name>.html
+Bash(f"mkdir -p docs/{BRANCH_DIR}")
+Bash(f"mv /tmp/*.html docs/{BRANCH_DIR}/playground.html 2>/dev/null || true")
+
+# Force-add (docs/feat--*/ is gitignored by design)
+Bash(f"git add -f docs/{BRANCH_DIR}/")
+Bash(f'git commit -m "docs: add PR playground for {BRANCH}"')
+Bash(f"git push origin {BRANCH}")
+```
+
+Add a "Live Preview" section to the PR body:
+
+```markdown
+## Live Preview
+
+**[Open Interactive Playground](https://htmlpreview.github.io/?https://github.com/{OWNER}/{REPO}/blob/{BRANCH}/docs/{BRANCH_DIR}/playground.html)**
+```
+
+> **Why required:** CI Stage 1d (`playground-check`) blocks merge if `docs/{branch-dir}/*.html` is missing. Bot PRs (dependabot, release-please) are exempt.
 
 ### Phase 5: Verify
 
