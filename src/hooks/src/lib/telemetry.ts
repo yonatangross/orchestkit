@@ -127,6 +127,8 @@ export function buildEvent(input: HookInput): TelemetryEvent {
     metadata: {
       branch: getCachedBranch(),
       source_channel: 'orchestkit-forwarder',
+      // CC 2.1.97: TRACEPARENT env var for cross-system trace correlation
+      ...(process.env.TRACEPARENT ? { traceparent: process.env.TRACEPARENT } : {}),
     },
   };
 }

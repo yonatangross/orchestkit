@@ -115,7 +115,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ## Step 1: Capture Source
 
-**For screenshots:** Read the image directly (Claude is multimodal).
+**For screenshots:** Read the image directly (Claude is multimodal). Pasted/attached images are compressed to the same token budget as Read tool images (CC 2.1.97), so both workflows are equally efficient.
 
 **For URLs:**
 ```python
