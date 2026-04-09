@@ -12,7 +12,7 @@ tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, Skill, mcp__memory__search_nodes, CronCreate, CronDelete]
-skills: [commit, review-pr, memory, chain-patterns, playground]
+skills: [commit, review-pr, memory, chain-patterns]
 complexity: medium
 metadata:
   category: workflow-automation
@@ -232,6 +232,8 @@ EOF
 ### Phase 4b: Generate PR Playground (REQUIRED — CI blocks without it)
 
 Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/{branch-name}/*.html` exists.
+
+> **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
 ```python
 BRANCH=$(git branch --show-current)

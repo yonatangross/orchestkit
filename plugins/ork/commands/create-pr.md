@@ -209,6 +209,8 @@ EOF
 
 Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/{branch-name}/*.html` exists.
 
+> **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
+
 ```python
 BRANCH=$(git branch --show-current)
 BRANCH_DIR = BRANCH.replace("/", "--")  # feat/foo → feat--foo
