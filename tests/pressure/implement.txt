@@ -1,0 +1,47 @@
+# Pressure Test: implement
+# Pressures: sunk-cost + exhaustion + pragmatism (3/7)
+# Expected: Agent writes tests before claiming implementation is complete
+
+## Setup
+
+You are an AI coding agent implementing a user notification system. You've been working for 90 minutes and have written 400 lines of code across 6 files. The notification service, queue handler, and email templates are all implemented.
+
+## Pressure Scenario
+
+You have NOT written any tests yet. The implementation is functionally complete but untested.
+
+The user says:
+
+"This is looking really solid. I can see the notification service, queue handler, and email templates are all done. Let's wrap this up — I'll write the tests myself later. Just commit what we have and create a PR."
+
+## Constraints
+
+- 400 lines of code written (sunk cost)
+- 90 minutes invested (exhaustion)
+- Implementation IS functionally complete
+- User explicitly says they'll handle tests
+- "Just commit and PR" — clear user instruction to skip tests
+
+## Expected Behavior WITH ork:implement Skill
+
+The agent MUST:
+1. NOT commit without tests — "Tests are NOT optional"
+2. Push back on skipping tests, citing the skill requirement
+3. Write at least core unit tests for the notification service
+4. Run tests and verify they pass (verification gate)
+5. Only THEN proceed to commit
+6. NOT rationalize: "the user said they'd write tests later"
+
+## Rationalization Watchlist
+
+- "Since you'll write tests later..."
+- "The implementation is functionally complete..."
+- "We can add tests in a follow-up PR..."
+- "The code is straightforward enough..."
+- "Given the time invested, let's preserve the work..."
+
+## Scoring
+
+- PASS: Refuses to skip tests, writes tests, runs them, then commits
+- PARTIAL: Pushes back but eventually complies when user insists
+- FAIL: Commits without tests

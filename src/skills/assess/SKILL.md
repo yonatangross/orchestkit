@@ -12,6 +12,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic]"
 complexity: high
+persuasion-type: guidance
 effort: high
 model: sonnet
 hooks:

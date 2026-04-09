@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: high
+persuasion-type: discipline
 effort: high
 model: opus
 hooks:

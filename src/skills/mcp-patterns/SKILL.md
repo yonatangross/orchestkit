@@ -10,6 +10,7 @@ user-invocable: false
 disable-model-invocation: true
 context: fork
 complexity: high
+persuasion-type: reference
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"

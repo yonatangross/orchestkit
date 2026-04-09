@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, memory, remember, chain-patterns]
 complexity: medium
+persuasion-type: guidance
 model: sonnet
 hooks:
   PreToolUse:
@@ -339,6 +340,14 @@ All 5 RCA agents receive: issue description, ranked hypotheses, reproduction ste
 ### Skill Chain
 
 After fix is applied: `TaskCreate(subject="Verify fix", addBlockedBy=[fix_task_id])` → `/ork:verify`.
+
+### Verification Gate
+
+Before claiming any fix is complete, apply the 5-step verification gate: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. "Should work now" is not evidence — run the test, read the output, cite the result.
+
+### Response Protocol
+
+When reporting fix status, follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")` — state findings directly, no performative language. Use the agent status protocol: DONE, DONE_WITH_CONCERNS, BLOCKED, or NEEDS_CONTEXT.
 
 ## Related Skills
 

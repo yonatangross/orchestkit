@@ -10,6 +10,7 @@ user-invocable: false
 disable-model-invocation: true
 context: fork
 complexity: medium
+persuasion-type: collaborative
 metadata:
   category: mcp-enhancement
 allowed-tools:

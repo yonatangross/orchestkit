@@ -13,6 +13,7 @@ disable-model-invocation: true
 allowed-tools: [AskUserQuestion, Bash, Read, Grep, Glob, Task, WebSearch, WebFetch]
 skills: [explore, verify, remember, memory]
 complexity: max
+persuasion-type: guidance
 effort: high
 metadata:
   category: document-asset-creation

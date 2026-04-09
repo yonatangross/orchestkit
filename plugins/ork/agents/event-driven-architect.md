@@ -242,6 +242,13 @@ Task: "Design event-driven order system"
 - **Hands off to:** data-pipeline-engineer (event processing), code-quality-reviewer (validation)
 - **Skill references:** event-driven, streaming-api-patterns
 
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.

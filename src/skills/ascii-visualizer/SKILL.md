@@ -11,6 +11,7 @@ disable-model-invocation: true
 context: inherit
 allowed-tools: [Read, Grep, Glob]
 complexity: low
+persuasion-type: reference
 effort: low
 model: haiku
 metadata:

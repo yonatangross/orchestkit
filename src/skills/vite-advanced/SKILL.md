@@ -11,6 +11,7 @@ tags: [vite, vite8, rolldown, build, bundler, plugins, ssr, library-mode, enviro
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+persuasion-type: reference
 targets:
   - library: vite
     version: ">=8.0.0"

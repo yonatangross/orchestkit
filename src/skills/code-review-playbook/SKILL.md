@@ -15,6 +15,7 @@ hooks:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 complexity: low
+persuasion-type: discipline
 effort: low
 model: haiku
 metadata:

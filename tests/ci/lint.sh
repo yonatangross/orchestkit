@@ -130,6 +130,8 @@ complete_skills=0
 for skill_dir in "$PROJECT_ROOT/src/skills"/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
+        # Skip utility directories (not skills)
+        [ "$skill_name" = "shared" ] && continue
 
         # CC 2.1.7 only requires SKILL.md
         if [ -f "$skill_dir/SKILL.md" ]; then

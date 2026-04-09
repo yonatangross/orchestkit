@@ -11,6 +11,7 @@ version: 1.1.0
 author: OrchestKit
 user-invocable: false
 complexity: low
+persuasion-type: guidance
 ---
 
 # Portless Integration

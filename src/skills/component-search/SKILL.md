@@ -10,6 +10,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: true
 complexity: simple
+persuasion-type: collaborative
 effort: low
 model: sonnet
 allowed-tools:

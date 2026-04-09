@@ -10,6 +10,7 @@ user-invocable: false
 disable-model-invocation: true
 context: inherit
 complexity: low
+persuasion-type: guidance
 effort: low
 model: haiku
 metadata:

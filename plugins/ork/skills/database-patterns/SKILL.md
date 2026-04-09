@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: reference
 targets:
   - library: sqlalchemy
     version: ">=2.0.0"

@@ -10,6 +10,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: true
 complexity: medium
+persuasion-type: collaborative
 model: sonnet
 agent: design-context-extractor
 allowed-tools:

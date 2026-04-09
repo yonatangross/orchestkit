@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
+persuasion-type: discipline
 hooks:
   PreToolUse:
     - matcher: "Read"
@@ -211,6 +212,28 @@ All agent prompts receive `${PROJECT_CONTEXT}` so they know project conventions,
 ### Structured Output
 
 All agents return findings as JSON (see structured output contract in agent prompt files). This enables automated deduplication, severity sorting, and memory graph persistence in Phase 5.
+
+### Anti-Sycophancy Response Protocol
+
+All review agents and the coordinator MUST follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/anti-sycophancy.md")`:
+
+**NEVER use:** "Great work!", "Excellent!", "Nice!", "Thanks for catching that!", "You're absolutely right!", or ANY performative agreement.
+
+**INSTEAD:** State findings directly. The code speaks for itself.
+- `"Fixed. Changed X to Y in auth.ts:42."`
+- `"Security: JWT in localStorage. Move to httpOnly cookie."`
+- `[Just fix it and show the diff]`
+
+**When feedback seems wrong:** Push back with technical reasoning. Not "I respectfully disagree." Just facts and evidence.
+
+### Agent Status Protocol
+
+All agents MUST include a status field per `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`:
+
+- **DONE** — task completed, all requirements met
+- **DONE_WITH_CONCERNS** — completed but flagging risks
+- **BLOCKED** — cannot proceed
+- **NEEDS_CONTEXT** — insufficient information
 
 ### Domain-Aware Agent Selection
 

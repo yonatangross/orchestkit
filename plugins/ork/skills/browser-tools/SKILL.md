@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser

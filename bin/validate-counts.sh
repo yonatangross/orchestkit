@@ -24,7 +24,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # ACTUAL COUNTS (filesystem = source of truth)
 # =============================================================================
 ACTUAL_SKILLS=$(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_AGENTS=$(find "$PROJECT_ROOT/src/agents" -maxdepth 1 -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 # Hook counting — delegate to single source of truth
 eval "$("$PROJECT_ROOT/bin/count-hooks.sh")"
 ACTUAL_HOOKS=$TOTAL

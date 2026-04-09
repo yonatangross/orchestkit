@@ -12,6 +12,7 @@ user-invocable: false
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
+persuasion-type: discipline
 effort: high
 model: opus
 metadata:

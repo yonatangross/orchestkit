@@ -12,6 +12,7 @@ skills: [scope-appropriate-architecture]
 user-invocable: false
 disable-model-invocation: false
 complexity: max
+persuasion-type: discipline
 effort: high
 hooks:
   PreToolUse:

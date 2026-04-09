@@ -11,6 +11,7 @@ agent: backend-system-architect
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
+persuasion-type: guidance
 metadata:
   category: document-asset-creation
 allowed-tools:

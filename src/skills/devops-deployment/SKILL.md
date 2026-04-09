@@ -11,6 +11,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 metadata:
   category: workflow-automation
 allowed-tools:

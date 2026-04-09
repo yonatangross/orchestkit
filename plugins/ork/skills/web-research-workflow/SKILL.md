@@ -12,6 +12,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Bash, Read, Write, WebFetch]
 complexity: low
+persuasion-type: guidance
 effort: low
 model: haiku
 metadata:

@@ -25,8 +25,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # ── Compute canonical counts ────────────────────────────────────────────────
 
-SKILLS=$(find "$PROJECT_ROOT/src/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-AGENTS=$(find "$PROJECT_ROOT/src/agents" -name '*.md' | wc -l | tr -d ' ')
+SKILLS=$(find "$PROJECT_ROOT/src/skills" -mindepth 1 -maxdepth 1 -type d -not -name shared | wc -l | tr -d ' ')
+AGENTS=$(find "$PROJECT_ROOT/src/agents" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
 eval "$("$PROJECT_ROOT/bin/count-hooks.sh")"
 HOOKS=$TOTAL  # TOTAL set by count-hooks.sh
 HOOKS_GLOBAL=$GLOBAL

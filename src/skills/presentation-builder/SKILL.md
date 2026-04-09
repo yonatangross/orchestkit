@@ -12,6 +12,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [presentation, slides, html, pptx, design, animation, zero-dependency]
 complexity: medium
+persuasion-type: collaborative
 metadata:
   category: document-asset-creation
   upstream: https://github.com/zarazhangrui/frontend-slides

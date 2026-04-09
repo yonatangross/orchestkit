@@ -7,6 +7,7 @@ tags: [release, notebooklm, knowledge-base, content-sync, automation]
 user-invocable: true
 argument-hint: "[version]"
 complexity: low
+persuasion-type: collaborative
 triggers:
   keywords: [release-sync, sync release, update notebooklm, sync kb, push release content]
   examples:

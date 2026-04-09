@@ -9,6 +9,7 @@ version: 1.0.0
 tags: [github, gh, cli, issues, pr, milestones, projects, api]
 user-invocable: false
 complexity: medium
+persuasion-type: guidance
 metadata:
   category: workflow-automation
 allowed-tools:

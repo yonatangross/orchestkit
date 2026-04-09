@@ -283,6 +283,13 @@ Task: "Add image analysis endpoint with document OCR"
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
 - **Skill references:** multimodal-llm (vision + audio + video generation), rag-retrieval, api-design
 
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.

@@ -6,6 +6,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+persuasion-type: guidance
 tags: [roi, npv, irr, tco, build-vs-buy, financial-analysis, cost-benefit]
 context: fork
 agent: product-strategist

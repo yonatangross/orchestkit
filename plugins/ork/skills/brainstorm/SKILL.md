@@ -12,6 +12,7 @@ user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 complexity: medium
+persuasion-type: collaborative
 model: sonnet
 hooks:
   PreToolUse:

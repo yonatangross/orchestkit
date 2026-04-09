@@ -293,6 +293,10 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 /loop 1h gh pr view {PR_NUMBER} --json reviewDecision  # Monitor review status
 ```
 
+## Verification Gate
+
+Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
+
 ## Related Skills
 
 - `ork:commit` — Create commits before PRs

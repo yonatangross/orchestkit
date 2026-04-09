@@ -238,3 +238,10 @@ Task: "Run security audit before release"
 - **Triggered by:** code-quality-reviewer (pre-merge), CI pipeline
 - **Hands off to:** backend-system-architect (for fixes), frontend-ui-developer (for XSS fixes)
 - **Skill references:** security-checklist
+
+
+## Status Protocol
+
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`.
+
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.

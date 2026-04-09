@@ -11,6 +11,7 @@ tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob]
 complexity: low
+persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:

@@ -12,6 +12,7 @@ user-invocable: false
 disable-model-invocation: true
 allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
+persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
