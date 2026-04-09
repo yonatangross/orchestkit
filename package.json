@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "7.34.1",
+  "version": "7.35.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
