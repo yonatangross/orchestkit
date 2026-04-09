@@ -51,6 +51,10 @@
         {
           "type": "generic",
           "path": "docs/site/lib/generated/plugins-data.ts"
+        },
+        {
+          "type": "generic",
+          "path": "plugins/ork/hooks/bin/stop-uncommitted-check.mjs"
         }
       ]
     }
