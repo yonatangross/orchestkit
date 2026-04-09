@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.35.1] - 2026-04-09
+
+### Fixed
+
+- **CORS hardening** — restrict `Access-Control-Allow-Origin` from wildcard `*` to `https://orchestkit.vercel.app` on the docs site. Vercel defaults to `*` for static assets; this override ensures only same-origin requests are allowed.
+
+---
+
+
 ## [7.35.0](https://github.com/yonatangross/orchestkit/compare/v7.34.1...v7.35.0) (2026-04-09)
 
 
