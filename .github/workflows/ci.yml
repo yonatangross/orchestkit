@@ -144,6 +144,58 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ============================================================================
+  # STAGE 1d: PR Playground Validation (PRs only)
+  # Ensures every non-trivial PR includes an interactive playground
+  # ============================================================================
+  playground-check:
+    name: PR Playground
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Check playground exists
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          # Skip for bot PRs (dependabot, release-please)
+          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+            echo "::notice::Skipping playground check for bot PR"
+            exit 0
+          fi
+
+          # Skip for chore/ci/docs-only branches
+          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/) ]]; then
+            echo "::notice::Skipping playground check for automated branch"
+            exit 0
+          fi
+
+          # Derive docs directory from branch name (/ → --)
+          BRANCH_DIR=$(echo "$HEAD_REF" | sed 's|/|--|g')
+          DOCS_DIR="docs/${BRANCH_DIR}"
+
+          if [ ! -d "$DOCS_DIR" ]; then
+            echo "::error::Missing PR playground directory: ${DOCS_DIR}/"
+            echo "::error::Create an interactive HTML playground for this PR."
+            echo "::error::Run: /playground:playground <description of changes>"
+            echo "::error::Then commit to: ${DOCS_DIR}/<name>.html"
+            exit 1
+          fi
+
+          HTML_COUNT=$(find "$DOCS_DIR" -name '*.html' 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$HTML_COUNT" -eq 0 ]; then
+            echo "::error::No .html files found in ${DOCS_DIR}/"
+            echo "::error::Create an interactive HTML playground for this PR."
+            exit 1
+          fi
+
+          echo "::notice::Found ${HTML_COUNT} playground file(s) in ${DOCS_DIR}/"
+
+  # ============================================================================
   # STAGE 2: Unit Tests (< 5m)
   # Node versions: 20 (LTS), 22 (Current LTS)
   # Uses dynamic test discovery
@@ -548,7 +600,7 @@ jobs:
     name: CI Summary
     permissions:
       contents: read
-    needs: [build-plugins, lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
+    needs: [build-plugins, lint, security-audit, secret-scanning, playground-check, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -560,6 +612,7 @@ jobs:
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "Secret Scanning: ${{ needs.secret-scanning.result }}"
+          echo "PR Playground: ${{ needs.playground-check.result }}"
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
           echo "Hook TS Tests: ${{ needs.hook-typescript-tests.result }}"
           echo "Security Tests: ${{ needs.security-tests.result }}"
@@ -579,6 +632,7 @@ jobs:
             "${{ needs.lint.result }}" \
             "${{ needs.security-audit.result }}" \
             "${{ needs.secret-scanning.result }}" \
+            "${{ needs.playground-check.result }}" \
             "${{ needs.unit-tests.result }}" \
             "${{ needs.hook-typescript-tests.result }}" \
             "${{ needs.security-tests.result }}" \
