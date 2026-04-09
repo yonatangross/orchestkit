@@ -1,6 +1,6 @@
 ---
 title: Verification Gate
-impact: critical
+impact: CRITICAL
 impactDescription: Prevents premature completion claims across all skills
 tags: [verification, evidence, completion, cross-cutting]
 ---

@@ -1,6 +1,6 @@
 ---
 title: Anti-Sycophancy Response Protocol
-impact: high
+impact: HIGH
 impactDescription: Prevents performative agreement that buries critical findings
 tags: [communication, review, feedback, anti-sycophancy]
 ---
