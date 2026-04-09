@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.97 Integration — OrchestKit Playground</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0a1a;--surface:#1a1128;--surface2:#241a35;--border:#362a4d;--text:#e8e0f0;--muted:#9080a8;--accent:#8b5cf6;--accent2:#a78bfa;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--cyan:#06b6d4;--pink:#ec4899;--orange:#f97316}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header{padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-shrink:0}
+.header h1{font-size:16px;font-weight:600;color:var(--accent2)}
+.header .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent);color:#fff;font-weight:600}
+.header .presets{margin-left:auto;display:flex;gap:6px}
+.header .presets button{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;transition:all .15s}
+.header .presets button:hover{border-color:var(--accent);color:var(--text)}
+.header .presets button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.main{flex:1;display:flex;overflow:hidden}
+.panel{overflow-y:auto;padding:20px}
+.panel::-webkit-scrollbar{width:6px}
+.panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.left{width:280px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface)}
+.center{flex:1;background:var(--bg)}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 8px;font-weight:600}
+.section-title:first-child{margin-top:0}
+.stat{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.stat .val{font-family:"SF Mono",Monaco,monospace;color:var(--accent2);font-size:12px}
+.toggle-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer}
+.toggle-row input{accent-color:var(--accent)}
+.flow-container{padding:30px;height:100%}
+
+/* Flow diagram */
+.flow{display:flex;flex-direction:column;gap:0;align-items:center;max-width:700px;margin:0 auto}
+.flow-node{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;text-align:center;position:relative;min-width:280px;border:1px solid var(--border);transition:all .3s}
+.flow-node.active{border-color:var(--accent);box-shadow:0 0 20px rgba(139,92,246,.2)}
+.flow-node.done{border-color:var(--green);background:rgba(34,197,94,.08)}
+.flow-node.todo{border-color:var(--yellow);background:rgba(234,179,8,.06);border-style:dashed}
+.flow-node .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.flow-node .file{font-family:"SF Mono",Monaco,monospace;font-size:11px;color:var(--cyan);margin-top:4px}
+.flow-arrow{width:2px;height:24px;background:var(--border);position:relative}
+.flow-arrow.active{background:var(--accent)}
+.flow-arrow::after{content:"▼";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--border)}
+.flow-arrow.active::after{color:var(--accent)}
+
+/* Feature matrix */
+.matrix{max-width:800px;margin:0 auto;padding:20px}
+.matrix table{width:100%;border-collapse:collapse;font-size:12px}
+.matrix th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--border);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.matrix td{padding:6px 10px;border-bottom:1px solid rgba(54,42,77,.4)}
+.matrix tr:hover td{background:rgba(139,92,246,.05)}
+.matrix .ver{font-family:"SF Mono",Monaco,monospace;color:var(--accent2);white-space:nowrap;font-size:11px}
+.matrix .feat{color:var(--text)}
+.matrix .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-left:6px}
+.tag-hook{background:rgba(6,182,212,.15);color:var(--cyan)}
+.tag-perf{background:rgba(34,197,94,.15);color:var(--green)}
+.tag-fix{background:rgba(234,179,8,.15);color:var(--yellow)}
+.tag-security{background:rgba(239,68,68,.15);color:var(--red)}
+.tag-ui{background:rgba(236,72,153,.15);color:var(--pink)}
+.tag-mcp{background:rgba(249,115,22,.15);color:var(--orange)}
+
+/* Timeline */
+.timeline{max-width:700px;margin:0 auto;padding:20px}
+.tl-row{display:flex;align-items:flex-start;gap:16px;padding:12px 0}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid}
+.tl-dot.min{background:var(--accent);border-color:var(--accent)}
+.tl-dot.full{background:transparent;border-color:var(--green)}
+.tl-dot.rec{background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(34,197,94,.4)}
+.tl-line{width:2px;height:20px;background:var(--border);margin-left:6px}
+.tl-ver{font-family:"SF Mono",Monaco,monospace;font-size:14px;font-weight:600;color:var(--accent2);min-width:50px}
+.tl-badge{font-size:10px;padding:1px 8px;border-radius:10px;margin-left:8px;font-weight:600}
+.tl-badge.minimum{background:rgba(139,92,246,.2);color:var(--accent2)}
+.tl-badge.recommended{background:rgba(34,197,94,.2);color:var(--green)}
+.tl-badge.hotfix{background:rgba(234,179,8,.15);color:var(--yellow)}
+.tl-badge.npm{background:rgba(249,115,22,.15);color:var(--orange)}
+.tl-content{flex:1}
+.tl-title{font-size:13px;font-weight:500;margin-bottom:4px}
+.tl-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.tl-features{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+
+/* Prompt output */
+.prompt-bar{flex-shrink:0;border-top:1px solid var(--border);background:var(--surface);padding:10px 20px;display:flex;align-items:center;gap:12px}
+.prompt-bar .prompt-text{flex:1;font-family:"SF Mono",Monaco,monospace;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prompt-bar button{padding:5px 14px;border:1px solid var(--accent);border-radius:6px;background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;white-space:nowrap}
+.prompt-bar button:hover{background:var(--accent);color:#fff}
+.prompt-bar button.copied{background:var(--green);border-color:var(--green);color:#fff}
+
+/* Subagent viz */
+.agents{max-width:700px;margin:20px auto 0;padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
+.agents h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.agent-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.agent-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.agent-name{font-weight:500;min-width:140px}
+.agent-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.agent-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.agent-stage{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(139,92,246,.15);color:var(--accent2)}
+.agent-stage.parallel{background:rgba(6,182,212,.15);color:var(--cyan)}
+.agent-stage.bg{background:rgba(234,179,8,.15);color:var(--yellow)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CC 2.1.97 Integration</h1>
+  <span class="badge">v7.32.1</span>
+  <div class="presets">
+    <button onclick="setView('flow')" id="btn-flow">Telemetry Flow</button>
+    <button onclick="setView('matrix')" id="btn-matrix">Feature Matrix</button>
+    <button onclick="setView('timeline')" id="btn-timeline">Version Timeline</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="left panel">
+    <div class="section-title">This PR</div>
+    <div class="stat"><span>New features tracked</span><span class="val">26</span></div>
+    <div class="stat"><span>Source files changed</span><span class="val">13</span></div>
+    <div class="stat"><span>Insertions</span><span class="val" style="color:var(--green)">+165</span></div>
+    <div class="stat"><span>Deletions</span><span class="val" style="color:var(--red)">-22</span></div>
+
+    <div class="section-title">Version</div>
+    <div class="stat"><span>Minimum CC</span><span class="val">2.1.94</span></div>
+    <div class="stat"><span>Recommended CC</span><span class="val" style="color:var(--green)">2.1.97</span></div>
+    <div class="stat"><span>OrchestKit</span><span class="val">7.32.1</span></div>
+
+    <div class="section-title">Highlight Features</div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-traceparent" onchange="render()"><label for="t-traceparent">TRACEPARENT OTEL</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-worktree" onchange="render()"><label for="t-worktree">Worktree detection</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-refresh" onchange="render()"><label for="t-refresh">refreshInterval</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-stop" onchange="render()"><label for="t-stop">Stop hook fix</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-cwd" onchange="render()"><label for="t-cwd">Subagent cwd fix</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-bash" onchange="render()"><label for="t-bash">Bash hardened</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-mcp" onchange="render()"><label for="t-mcp">MCP leak fix</label></div>
+    <div class="toggle-row"><input type="checkbox" checked id="t-image" onchange="render()"><label for="t-image">Image compression</label></div>
+
+    <div class="section-title">Tests</div>
+    <div class="stat"><span>Unit tests</span><span class="val" style="color:var(--green)">7556/7556</span></div>
+    <div class="stat"><span>Security</span><span class="val" style="color:var(--green)">12/12</span></div>
+    <div class="stat"><span>Typecheck</span><span class="val" style="color:var(--green)">clean</span></div>
+    <div class="stat"><span>Biome lint</span><span class="val" style="color:var(--green)">0 errors</span></div>
+
+    <div class="agents">
+      <h3>Subagent Work</h3>
+      <div class="agent-row">
+        <div class="agent-icon" style="background:rgba(139,92,246,.2)">🔍</div>
+        <div class="agent-name">Explore (x3)</div>
+        <div class="agent-bar"><div class="agent-bar-fill" style="width:70%;background:var(--accent)"></div></div>
+        <div class="agent-stage parallel">parallel</div>
+      </div>
+      <div class="agent-row">
+        <div class="agent-icon" style="background:rgba(6,182,212,.2)">🌐</div>
+        <div class="agent-name">Web Research</div>
+        <div class="agent-bar"><div class="agent-bar-fill" style="width:90%;background:var(--cyan)"></div></div>
+        <div class="agent-stage bg">background</div>
+      </div>
+      <div class="agent-row">
+        <div class="agent-icon" style="background:rgba(34,197,94,.2)">🏗️</div>
+        <div class="agent-name">Lead (session)</div>
+        <div class="agent-bar"><div class="agent-bar-fill" style="width:100%;background:var(--green)"></div></div>
+        <div class="agent-stage">lead</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="center panel" id="view-container">
+    <!-- Rendered by JS -->
+  </div>
+</div>
+
+<div class="prompt-bar">
+  <div class="prompt-text" id="prompt-text"></div>
+  <button id="copy-btn" onclick="copyPrompt()">Copy</button>
+</div>
+
+<script>
+const FEATURES = [
+  {v:"2.1.95",f:"mcp_tool_description_cap",d:"MCP tool descriptions capped at 2KB",t:"mcp"},
+  {v:"2.1.95",f:"mcp_local_config_dedup",d:"Local MCP config wins over claude.ai dedup",t:"mcp"},
+  {v:"2.1.97",f:"focus_view_toggle",d:"Ctrl+O focus view in NO_FLICKER mode",t:"ui"},
+  {v:"2.1.97",f:"statusline_refresh_interval",d:"refreshInterval re-runs status line every N seconds",t:"ui"},
+  {v:"2.1.97",f:"statusline_git_worktree",d:"workspace.git_worktree in status line JSON",t:"hook"},
+  {v:"2.1.97",f:"agents_running_indicator",d:"● N running in /agents command",t:"ui"},
+  {v:"2.1.97",f:"stop_hook_long_session_fix",d:"Stop/SubagentStop hooks no longer fail on long sessions",t:"fix"},
+  {v:"2.1.97",f:"subagent_cwd_leak_fix",d:"Subagent worktree/cwd no longer leaks to parent",t:"fix"},
+  {v:"2.1.97",f:"plugin_update_marketplace_fix",d:"claude plugin update works for git marketplace plugins",t:"fix"},
+  {v:"2.1.97",f:"yaml_boolean_skill_name_fix",d:"Slash command picker handles YAML boolean names",t:"fix"},
+  {v:"2.1.97",f:"bash_permissions_hardened",d:"Tighter env-var prefix and network redirect checks",t:"security"},
+  {v:"2.1.97",f:"accept_edits_env_prefix",d:"Auto-approve env-prefixed commands in Accept Edits",t:"security"},
+  {v:"2.1.97",f:"sandbox_mach_lookup_macos",d:"sandbox.network.allowMachLookup works on macOS",t:"security"},
+  {v:"2.1.97",f:"mcp_sse_memory_leak_fix",d:"MCP HTTP/SSE ~50MB/hr leak fixed",t:"perf"},
+  {v:"2.1.97",f:"mcp_oauth_metadata_url_fix",d:"OAuth authServerMetadataUrl honored on refresh",t:"mcp"},
+  {v:"2.1.97",f:"retry_429_exponential_backoff",d:"429 retries use exponential backoff minimum",t:"perf"},
+  {v:"2.1.97",f:"resume_picker_fixes",d:"Multiple /resume picker UX fixes",t:"fix"},
+  {v:"2.1.97",f:"resume_large_file_diff_fix",d:"File-edit diffs preserved on resume for >10KB files",t:"fix"},
+  {v:"2.1.97",f:"compaction_subagent_dedup",d:"No duplicate subagent transcripts on compaction",t:"perf"},
+  {v:"2.1.97",f:"prototype_settings_fix",d:"JS prototype property names no longer break settings.json",t:"security"},
+  {v:"2.1.97",f:"image_compression_parity",d:"Pasted images match Read tool token budget",t:"perf"},
+  {v:"2.1.97",f:"bash_otel_traceparent",d:"Bash subprocesses inherit W3C TRACEPARENT",t:"hook"},
+  {v:"2.1.97",f:"managed_settings_removal_fix",d:"Admin-removed rules take effect without restart",t:"fix"},
+  {v:"2.1.97",f:"additional_dirs_mid_session",d:"additionalDirectories changes apply mid-session",t:"fix"},
+  {v:"2.1.97",f:"bridge_session_git_info",d:"Bridge sessions show git info on claude.ai",t:"ui"},
+  {v:"2.1.97",f:"transcript_size_optimization",d:"Skip empty hooks, cap pre-edit copies in transcript",t:"perf"},
+];
+
+const TAG_LABELS={hook:"Hook",perf:"Perf",fix:"Fix",security:"Security",ui:"UI",mcp:"MCP"};
+const TAG_CLASSES={hook:"tag-hook",perf:"tag-perf",fix:"tag-fix",security:"tag-security",ui:"tag-ui",mcp:"tag-mcp"};
+
+let currentView = "flow";
+
+function setView(v){
+  currentView=v;
+  document.querySelectorAll(".presets button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("btn-"+v).classList.add("active");
+  render();
+}
+
+function render(){
+  const c=document.getElementById("view-container");
+  if(currentView==="flow") c.innerHTML=renderFlow();
+  else if(currentView==="matrix") c.innerHTML=renderMatrix();
+  else c.innerHTML=renderTimeline();
+  updatePrompt();
+}
+
+function renderFlow(){
+  const tp=document.getElementById("t-traceparent").checked;
+  const wt=document.getElementById("t-worktree").checked;
+  const a=(n,cls,label,title,file)=>`<div class="flow-node ${cls}"><div class="label">${label}</div>${title}${file?`<div class="file">${file}</div>`:""}</div>`;
+  const arrow=(cls)=>`<div class="flow-arrow ${cls}"></div>`;
+
+  return `<div class="flow-container"><div class="flow">
+    ${a("","active","CC 2.1.97 Runtime","Bash Tool executes command",tp?"TRACEPARENT=00-{trace_id}-{parent_id}-01":"(tracing disabled)")}
+    ${arrow(tp?"active":"")}
+    ${a("","active","OrchestKit Hook Process","env.ts reads environment",wt?"isGitWorktree() detects .git file":"isGitWorktree() → false")}
+    ${arrow(tp?"active":"")}
+    ${a("",tp?"done":"","Telemetry Builder","telemetry.ts → buildEvent()",tp?"metadata.traceparent = process.env.TRACEPARENT":"(no traceparent in metadata)")}
+    ${arrow(tp?"active":"")}
+    ${a("",tp?"done":"","HTTP Sink","http-sink.ts → addEvent()",tp?"headers.traceparent = TRACEPARENT":"(no traceparent header)")}
+    ${arrow(tp?"active":"")}
+    ${a("",tp?"done":"","HMAC-Signed POST","X-CC-Hooks-Signature + traceparent","POST /api/hooks/cc-event")}
+    ${arrow("")}
+    ${a("","todo","HQ Endpoint","Index trace_id from header","Langfuse trace correlation (TODO)")}
+  </div>
+  ${wt?`<div style="max-width:700px;margin:24px auto 0;padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--surface2)">
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Session Title Flow</div>
+    <div style="font-family:monospace;font-size:13px;color:var(--accent2)">
+      unified-dispatcher.ts → buildSessionTitle("feat/cc-2.1.97", "high", <span style="color:var(--green)">true</span>)<br>
+      → <span style="color:var(--green)">"feat/cc-2.1.97 · wt"</span>
+    </div>
+  </div>`:""}</div>`;
+}
+
+function renderMatrix(){
+  const rows=FEATURES.map(f=>`<tr>
+    <td class="ver">${f.v}</td>
+    <td class="feat">${f.d}<span class="tag ${TAG_CLASSES[f.t]}">${TAG_LABELS[f.t]}</span></td>
+    <td class="ver" style="font-size:10px;color:var(--muted)">${f.f}</td>
+  </tr>`).join("");
+  return `<div class="matrix"><table>
+    <thead><tr><th>Version</th><th>Feature</th><th>Key</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+    ${FEATURES.filter(f=>f.v==="2.1.95").length} from 2.1.95 (npm-only) · ${FEATURES.filter(f=>f.v==="2.1.97").length} from 2.1.97
+  </div></div>`;
+}
+
+function renderTimeline(){
+  const versions=[
+    {v:"2.1.94",badge:"minimum",cls:"min",title:"Minimum (current floor)",desc:"Skill frontmatter hooks fix, sessionTitle, keep-coding-instructions, default effort high, 429 surface, resume across worktrees, CJK fix",count:12,date:"Apr 7"},
+    {v:"2.1.95",badge:"npm",cls:"full",title:"npm-only release",desc:"MCP tool description 2KB cap, local MCP config dedup",count:2,date:"Apr 7"},
+    {v:"2.1.96",badge:"hotfix",cls:"full",title:"Bedrock hotfix",desc:"Fixed 403 regression for AWS_BEARER_TOKEN_BEDROCK",count:1,date:"Apr 8"},
+    {v:"2.1.97",badge:"recommended",cls:"rec",title:"Recommended (new target)",desc:"refreshInterval, workspace.git_worktree, TRACEPARENT, Stop/SubagentStop fix, cwd leak fix, Bash hardened, MCP memory leak fix, image compression, transcript optimization",count:24,date:"Apr 8"},
+  ];
+  return `<div class="timeline">${versions.map((ver,i)=>`
+    ${i>0?`<div class="tl-line"></div>`:""}
+    <div class="tl-row">
+      <div class="tl-dot ${ver.cls}"></div>
+      <div class="tl-content">
+        <div class="tl-title">
+          <span class="tl-ver">${ver.v}</span>
+          <span class="tl-badge ${ver.badge}">${ver.badge}</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px">${ver.date}</span>
+        </div>
+        <div class="tl-desc">${ver.title} — ${ver.desc}</div>
+        <div class="tl-features">
+          <span style="font-size:11px;color:var(--accent2)">${ver.count} feature${ver.count>1?"s":""} tracked</span>
+        </div>
+      </div>
+    </div>
+  `).join("")}</div>`;
+}
+
+function getCheckedFeatures(){
+  const map={
+    "t-traceparent":"TRACEPARENT OTEL tracing to HQ",
+    "t-worktree":"worktree-aware session titles",
+    "t-refresh":"refreshInterval status line",
+    "t-stop":"Stop/SubagentStop long-session fix",
+    "t-cwd":"subagent cwd leak fix",
+    "t-bash":"hardened Bash permissions",
+    "t-mcp":"MCP memory leak fix",
+    "t-image":"image compression parity"
+  };
+  return Object.entries(map).filter(([id])=>document.getElementById(id).checked).map(([,l])=>l);
+}
+
+function updatePrompt(){
+  const checked=getCheckedFeatures();
+  const viewNames={flow:"telemetry flow",matrix:"feature matrix (26 entries)",timeline:"version timeline (2.1.94→2.1.97)"};
+  const prompt=`CC 2.1.97 integration for OrchestKit v7.32.1. Viewing: ${viewNames[currentView]}. Key features: ${checked.join(", ")}. Min CC: 2.1.94, recommended: 2.1.97. 13 source files, +165/-22 lines.`;
+  document.getElementById("prompt-text").textContent=prompt;
+}
+
+function copyPrompt(){
+  const text=document.getElementById("prompt-text").textContent;
+  navigator.clipboard.writeText(text);
+  const btn=document.getElementById("copy-btn");
+  btn.textContent="Copied!";btn.classList.add("copied");
+  setTimeout(()=>{btn.textContent="Copy";btn.classList.remove("copied")},1500);
+}
+
+setView("flow");
+</script>
+</body>
+</html>
