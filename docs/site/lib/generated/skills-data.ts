@@ -1234,6 +1234,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Task",
       "TaskCreate",
       "TaskUpdate",
+      "Skill",
       "mcp__memory__search_nodes",
       "CronCreate",
       "CronDelete"
