@@ -237,7 +237,23 @@ Output each agent's findings **as they complete** — don't batch until synthesi
 
 This lets the PR author start addressing blocking issues while remaining agents are still analyzing. Only the final synthesis (Phase 5) requires all agents to have completed.
 
-**Partial results (CC 2.1.98):** If a review agent fails mid-analysis, CC reports partial progress. A security agent that found 2 issues before crashing is more valuable than no security review. Include partial findings in synthesis with a `[partial]` note. Use `Monitor` for streaming CI check output in Phase 4.
+**Partial results (CC 2.1.98):** If a review agent fails mid-analysis, synthesize partial findings:
+
+```python
+for agent_result in review_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # A security agent that found 2 issues before crashing > no security review
+        findings.extend(parse_findings(agent_result.output))
+        findings[-1]["partial"] = True  # Flag in synthesis
+        # Do NOT re-spawn — partial findings are still valuable
+```
+
+**Monitor for CI streaming (CC 2.1.98):** Stream CI check output in Phase 4:
+
+```python
+Bash(command="gh pr checks $PR_NUMBER --watch 2>&1", run_in_background=true)
+Monitor(pid=ci_watch_id)  # Each status change → notification
+```
 
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 

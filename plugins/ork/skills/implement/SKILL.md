@@ -281,7 +281,24 @@ Agent(subagent_type="test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
-**Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning. Check for `[PARTIAL RESULT]` tag in agent responses.
+**Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning:
+
+```python
+# After collecting agent results:
+for agent_result in agent_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Agent crashed mid-work — salvage what it produced
+        partial_files = Bash(command="git diff --name-only", cwd=agent_result.worktree)
+        if partial_files:
+            # Merge partial work — commit what's usable, flag incomplete items
+            TaskUpdate(taskId=agent_task_id, status="completed",
+                       description=f"Partial: {len(partial_files)} files from crashed agent")
+        # Do NOT re-spawn — partial progress > wasted tokens re-doing work
+    elif agent_result.status == "BLOCKED":
+        # Agent hit a genuine blocker — escalate to user
+        TaskUpdate(taskId=agent_task_id, status="in_progress",
+                   description=f"BLOCKED: {agent_result.concerns[0]}")
+```
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 

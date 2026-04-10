@@ -246,7 +246,19 @@ Bash(command="npm test 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
-**Partial results:** If a verification agent fails mid-analysis (timeout, context limit), CC 2.1.98 reports partial progress. Synthesize partial scores rather than re-spawning — a 4-dimension score is better than no score. Note partial dimensions in the final report.
+**Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
+
+```python
+for agent_result in verification_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Extract whatever scores the agent produced before crashing
+        partial_score = parse_score(agent_result.output)  # May be incomplete
+        scores[agent_result.dimension] = {
+            "score": partial_score, "partial": True,
+            "note": "Agent crashed — score based on partial analysis"
+        }
+        # A 4-dimension score is better than no score. Do NOT re-spawn.
+```
 
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
