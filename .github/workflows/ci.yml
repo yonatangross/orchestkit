@@ -195,6 +195,31 @@ jobs:
 
           echo "::notice::Found ${HTML_COUNT} playground file(s) in ${DOCS_DIR}/"
 
+      - name: Check playground link in PR body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          # Skip for bot PRs
+          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+            exit 0
+          fi
+          # Skip for automated branches
+          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/) ]]; then
+            exit 0
+          fi
+
+          PR_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body 2>/dev/null || echo "")
+          if ! echo "$PR_BODY" | grep -qi "playground"; then
+            echo "::error::PR body is missing a Playground section."
+            echo "::error::Add an '## Interactive Playground' section with a link to the HTML file."
+            echo "::error::Example: **[Open Playground](https://htmlpreview.github.io/?https://github.com/...)**"
+            exit 1
+          fi
+          echo "::notice::PR body contains playground reference"
+
   # ============================================================================
   # STAGE 2: Unit Tests (< 5m)
   # Node versions: 20 (LTS), 22 (Current LTS)
