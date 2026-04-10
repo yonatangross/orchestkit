@@ -1,7 +1,7 @@
 ---
 name: cover
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires network access."
+compatibility: "Claude Code 2.1.98+. Requires network access."
 description: "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly)."
 argument-hint: "[scope-or-feature]"
 context: fork
@@ -9,7 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
 complexity: high
 persuasion-type: discipline
@@ -278,53 +278,13 @@ if "unit" in TIERS:
         model=MODEL_OVERRIDE
     )
 
-# Integration tests agent
-if "integration" in TIERS:
-    Agent(
-        subagent_type="test-generator",
-        prompt=f"""Generate integration tests for: {SCOPE}
-        Coverage gaps: {gap_map.integration_gaps}
-        Framework: {detected_framework}
-        Real services available: {real_service_infra}
-
-        Focus on:
-        - API endpoint tests (Supertest/httpx)
-        - Database tests with {'real DB via testcontainers/docker-compose' if real_services else 'in-memory/mocked DB'}
-        - Contract tests (Pact) for service boundaries
-        - Zod/Pydantic schema validation at edges
-        - Fresh state per test (transaction rollback or cleanup)
-        - Target: all API endpoints and service boundaries""",
-        isolation="worktree",
-        run_in_background=True,
-        max_turns=50,
-        model=MODEL_OVERRIDE
-    )
-
-# E2E tests agent
-if "e2e" in TIERS:
-    Agent(
-        subagent_type="test-generator",
-        prompt=f"""Generate E2E tests for: {SCOPE}
-        Framework: Playwright
-        Routes/pages: {discovered_routes}
-
-        Focus on:
-        - Semantic locators (getByRole > getByLabel > getByTestId)
-        - Page Object Model for complex pages
-        - User flow tests (happy path + error paths)
-        - Accessibility tests (axe-core WCAG 2.2 AA)
-        - Visual regression (toHaveScreenshot)
-        - No hardcoded waits (use auto-wait)""",
-        isolation="worktree",
-        run_in_background=True,
-        max_turns=50,
-        model=MODEL_OVERRIDE
-    )
+# Integration + E2E agents follow the same pattern:
+# - subagent_type="test-generator", isolation="worktree", run_in_background=True
+# - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
+# - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 ```
 
-Output each agent's results **as soon as it returns** — don't wait for all agents. This lets users see generated tests incrementally.
-
-> **Partial results (CC 2.1.76):** If an agent is killed (timeout, context limit), its response is tagged `[PARTIAL RESULT]`. Include partial tests but flag them in Phase 4.
+Output each agent's results **as soon as it returns** — don't wait for all agents.
 
 ### Phase 4: Execution
 
@@ -448,6 +408,31 @@ CronCreate(
 ### Context Passing
 
 Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
+
+### Monitor + Partial Results (CC 2.1.98)
+
+Use `Monitor` for streaming test execution output from background agents:
+
+```python
+# Stream test suite output in real-time
+Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
+Monitor(pid=test_task_id)  # Each line → notification
+```
+
+**Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
+
+```python
+for agent_result in test_gen_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Agent crashed — check if it wrote any test files before dying
+        partial_tests = Glob(pattern="**/tests/**/*.test.*", path=agent_result.worktree)
+        if partial_tests:
+            # 6 passing tests from a crashed agent > 0 tests
+            # Copy partial tests to main worktree, run them in Phase 4
+            for test_file in partial_tests:
+                Bash(command=f"cp {test_file} {main_worktree}/{test_file}")
+            # Flag as partial in report
+```
 
 ### SendMessage (Test Healing)
 

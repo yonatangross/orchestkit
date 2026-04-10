@@ -7,7 +7,7 @@
 
 **<!--ork:skills-->103<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->169<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.94-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.98-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 [![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
@@ -181,12 +181,25 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
+**v7.37.0** — CC 2.1.98 Full Adoption
+
+- **Monitor tool** — real-time streaming from background builds/tests in implement, cover, verify, review-pr
+- **Partial result synthesis** — crashed background agents report progress; 4 workflow skills salvage partial work instead of re-spawning
+- **Subprocess hardening** — `SCRIPT_CAPS=500` enforced, PID namespace sandbox, ENV_SCRUB active
+- **17 new CC features tracked** — 235 total in version matrix
+- **Anti-sycophancy protocol** — bans performative agreement in review skills (from Superpowers analysis)
+- **Verification gate** — cross-cutting 5-step evidence rule across 7 workflow skills
+- **Agent status protocol** — DONE/DONE_WITH_CONCERNS/BLOCKED/NEEDS_CONTEXT across all 36 agents
+- **Pressure-test framework** — RED-GREEN behavioral scenarios for 5 discipline skills
+
+**v7.36.0** — CORS Hardening + Release-Please Fix
+
+- **CORS restricted** — `Access-Control-Allow-Origin` from `*` to same-origin on docs site
+- **Release-please drift fix** — `x-release-please-version` marker eliminates build drift on release PRs
+
 **v7.33.0** — CC 2.1.97 Full Utilization
 
-- **26 new CC features tracked** — refreshInterval status line, workspace.git_worktree, TRACEPARENT OTEL, Stop/SubagentStop long-session fix, subagent cwd leak fix, MCP 2KB cap, and 20 more
-- **Worktree-aware session titles** — prompt bar shows `{branch} · wt` when inside a linked git worktree
-- **TRACEPARENT telemetry** — hook events forwarded to HQ include W3C trace context for cross-system correlation
-- **Image compression parity** — pasted/attached images now match Read tool token efficiency (CC 2.1.97)
+- **26 new CC features tracked** — refreshInterval status line, workspace.git_worktree, TRACEPARENT OTEL, Stop/SubagentStop long-session fix, and 20 more
 
 **v7.30.0** — CC 2.1.94 Integration + Skill Hook Unlock
 

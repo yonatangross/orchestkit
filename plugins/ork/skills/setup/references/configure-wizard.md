@@ -336,3 +336,7 @@ To see full readiness: /ork:setup --score-only
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
 | `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |
 | `ENABLE_TOOL_SEARCH` | `auto:5` | `auto:N` \| `off` | MCP tool discovery limit |
+| `CLAUDE_CODE_SCRIPT_CAPS` | (unset) | integer | Limit per-session script invocations (CC 2.1.98). Recommended for production. |
+| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | (unset) | `1` | Strip credentials from subprocess env vars (CC 2.1.98). Enables PID namespace isolation on Linux. |
+| `CLAUDE_CODE_PERFORCE_MODE` | (unset) | `1` | Edit/Write fail on read-only files with `p4 edit` hint (CC 2.1.98). For Perforce workflows. |
+| `CLAUDE_CODE_NO_FLICKER` | (unset) | `1` | Flicker-free alt-screen rendering (CC 2.1.88). |

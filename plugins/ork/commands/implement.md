@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -211,7 +211,7 @@ Write handoff JSON after major phases. See `chain-patterns` skill for schema.
 | 5. Implementation | `05-implementation.json` | Files created/modified, test results |
 | 7. Scope Creep | `07-scope.json` | Planned vs actual, PR split recommendation |
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output (CC 2.1.76+)
 
 Output results **incrementally** after each phase — don't batch everything until the end:
 
@@ -223,6 +223,42 @@ Output results **incrementally** after each phase — don't batch everything unt
 | 7. Scope Creep | Planned vs actual delta, PR split recommendation |
 
 When agents run with `run_in_background=true`, output each agent's findings **as soon as it returns** — don't wait for all agents to finish. This gives users ~60% faster perceived feedback and enables early intervention if an agent's approach diverges from the plan.
+
+### Monitor Tool for Background Streaming (CC 2.1.98)
+
+Use `Monitor` to stream real-time events from background build/test scripts instead of polling output files:
+
+```python
+# Start a long-running build in background
+Bash(command="npm run build 2>&1", run_in_background=true)
+
+# Stream its output line-by-line as notifications
+Monitor(pid=build_task_id)
+# Each stdout line arrives as a notification — no polling needed
+
+# For background agents with test suites:
+Agent(subagent_type="test-generator", run_in_background=true, ...)
+# Monitor agent progress via task notifications (CC 2.1.98 partial progress)
+```
+
+**Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning:
+
+```python
+# After collecting agent results:
+for agent_result in agent_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Agent crashed mid-work — salvage what it produced
+        partial_files = Bash(command="git diff --name-only", cwd=agent_result.worktree)
+        if partial_files:
+            # Merge partial work — commit what's usable, flag incomplete items
+            TaskUpdate(taskId=agent_task_id, status="completed",
+                       description=f"Partial: {len(partial_files)} files from crashed agent")
+        # Do NOT re-spawn — partial progress > wasted tokens re-doing work
+    elif agent_result.status == "BLOCKED":
+        # Agent hit a genuine blocker — escalate to user
+        TaskUpdate(taskId=agent_task_id, status="in_progress",
+                   description=f"BLOCKED: {agent_result.concerns[0]}")
+```
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 

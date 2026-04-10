@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.37.0] - 2026-04-10
+
+### Added
+
+- **CC 2.1.98 full adoption** — 17 new entries in cc-version-matrix.ts covering Monitor tool, SCRIPT_CAPS, subprocess PID sandboxing, Vertex AI wizard, /agents tabbed layout, partial progress from failed bg subagents, hook stderr display, and Bash permission hardening
+- **Monitor tool** added to `implement`, `cover`, `verify`, `review-pr` allowed-tools for real-time streaming of background build/test output (CC 2.1.98)
+- **Partial result synthesis** — all 4 workflow skills now handle partial progress from crashed background agents instead of re-spawning
+- **Subprocess hardening section** in security-patterns skill covering SCRIPT_CAPS, ENV_SCRUB, PID namespace isolation
+- **Hook error diagnostics** section in errors skill — CC 2.1.98 shows first stderr line in transcript
+- **4 new env vars** documented in setup configure wizard: SCRIPT_CAPS, SUBPROCESS_ENV_SCRUB, PERFORCE_MODE, NO_FLICKER
+
+### Changed
+
+- Recommended CC version bumped from 2.1.97 to **2.1.98**
+- `implement`, `cover`, `verify`, `review-pr` compatibility bumped to CC 2.1.98+ (Monitor tool dependency)
+
+---
+
+
 ## [7.36.0](https://github.com/yonatangross/orchestkit/compare/v7.35.1...v7.36.0) (2026-04-09)
 
 

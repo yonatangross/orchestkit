@@ -1,7 +1,7 @@
 ---
 name: verify
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.98+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 argument-hint: "[feature-or-scope]"
 context: fork
@@ -9,7 +9,7 @@ version: 4.2.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, mcp__agentation__agentation_get_all_pending, mcp__agentation__agentation_acknowledge, mcp__agentation__agentation_resolve, mcp__agentation__agentation_watch_annotations, ToolSearch, CronCreate, CronDelete, Monitor]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
 complexity: high
 persuasion-type: discipline
@@ -224,7 +224,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/verification-phases.md")` fo
 
 Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output (CC 2.1.76+)
 
 Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents:
 
@@ -235,6 +235,30 @@ Code Quality: 7.5/10 — 3 complexity hotspots identified
 ```
 
 This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+
+### Monitor + Partial Results (CC 2.1.98)
+
+Use `Monitor` for streaming test execution output from background scripts:
+
+```python
+# Stream test output in real-time instead of waiting for completion
+Bash(command="npm test 2>&1", run_in_background=true)
+Monitor(pid=test_task_id)  # Each line → notification
+```
+
+**Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
+
+```python
+for agent_result in verification_results:
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Extract whatever scores the agent produced before crashing
+        partial_score = parse_score(agent_result.output)  # May be incomplete
+        scores[agent_result.dimension] = {
+            "score": partial_score, "partial": True,
+            "note": "Agent crashed — score based on partial analysis"
+        }
+        # A 4-dimension score is better than no score. Do NOT re-spawn.
+```
 
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
