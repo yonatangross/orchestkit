@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CC 2.1.98 Adoption</title>
+<style>body{font-family:system-ui;background:#0d1117;color:#e6edf3;padding:24px;max-width:900px;margin:0 auto}
+h1{font-size:22px}h2{font-size:16px;margin-top:20px;color:#58a6ff}
+code{background:#21262d;padding:2px 6px;border-radius:3px;font-family:'SF Mono',monospace;font-size:13px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{text-align:left;padding:8px 12px;background:#21262d;border:1px solid #30363d;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;color:#8b949e}
+td{padding:8px 12px;border:1px solid #30363d}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.new{background:rgba(63,185,80,0.15);color:#3fb950}.fix{background:rgba(210,153,34,0.15);color:#d29922}
+.enforced{background:rgba(88,166,255,0.15);color:#58a6ff}</style></head>
+<body><h1>CC 2.1.98 Full Adoption — OrchestKit v7.37.0</h1>
+<p style="color:#8b949e">17 new features tracked, 4 workflow skills updated, settings enforced</p>
+<h2>Features Adopted</h2>
+<table><tr><th>Feature</th><th>Type</th><th>Where</th></tr>
+<tr><td><code>Monitor</code> tool for bg streaming</td><td><span class="tag new">New tool</span></td><td>implement, cover, verify, review-pr</td></tr>
+<tr><td>Partial result synthesis</td><td><span class="tag new">New code</span></td><td>4 workflow skills — detection + salvage code</td></tr>
+<tr><td><code>SCRIPT_CAPS=500</code></td><td><span class="tag enforced">Enforced</span></td><td>ork.settings.json</td></tr>
+<tr><td>Subprocess PID sandbox</td><td><span class="tag enforced">Enforced</span></td><td>ork.settings.json (ENV_SCRUB)</td></tr>
+<tr><td>Hook stderr in transcript</td><td><span class="tag fix">Diagnostic</span></td><td>errors skill</td></tr>
+<tr><td>Subprocess hardening section</td><td><span class="tag new">New docs</span></td><td>security-patterns skill</td></tr>
+<tr><td>4 new env vars documented</td><td><span class="tag new">New docs</span></td><td>setup configure wizard</td></tr>
+<tr><td>17 matrix entries</td><td><span class="tag new">New tracking</span></td><td>cc-version-matrix.ts (total: 235)</td></tr>
+</table>
+<h2>Utilization Depth</h2>
+<table><tr><th>Layer</th><th>Status</th></tr>
+<tr><td>Version matrix entries</td><td>17/17 added</td></tr>
+<tr><td>allowed-tools frontmatter</td><td>4/4 skills updated</td></tr>
+<tr><td>Workflow code blocks</td><td>4/4 skills have Monitor + partial result code</td></tr>
+<tr><td>Settings enforcement</td><td>SCRIPT_CAPS + ENV_SCRUB active</td></tr>
+<tr><td>Test coverage</td><td>7557 hook tests, 12 security tests — all passing</td></tr>
+</table></body></html>

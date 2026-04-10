@@ -23,6 +23,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.88 compliant: PermissionDenied hooks, absolute file_path, compound if matching, `auto` permission mode
 - CC 2.1.89 compliant: `defer` permission decision, TaskCreated hook, named subagent typeahead, headless-defer hook
 - CC 2.1.91 compliant: MCP `_meta["anthropic/maxResultSizeChars"]` respected by mcp-output-transform, `disableSkillShellExecution` awareness
+- CC 2.1.98 compliant: 235-entry version matrix, Monitor tool in workflow skills, SCRIPT_CAPS enforcement, bg subagent partial progress handling, hook stderr display awareness
 - Event coverage: 24/26 CC events hooked; CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---
