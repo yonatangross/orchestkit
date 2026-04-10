@@ -98,6 +98,19 @@ pattern: relation "X" does not exist
 fix: Check MCP postgres server connection string - may be connected to wrong database
 ```
 
+### Hook Errors (CC 2.1.98)
+
+Since CC 2.1.98, hook errors show the first line of stderr directly in the transcript — no need for `--debug`:
+
+```
+pattern: hook.*error|hook.*failed|PreToolUse.*error
+diagnosis: Read the stderr line shown in the transcript.
+  1. If path error → check CLAUDE_PLUGIN_ROOT is set
+  2. If JSON parse error → hook is returning invalid JSON
+  3. If timeout → hook exceeds 50ms budget (PreToolUse) or 100ms (PostToolUse)
+  4. If "module not found" → run: cd src/hooks && npm run build
+```
+
 ## Related Skills
 - `ork:fix-issue`: Fix identified errors
 - `debug-investigator`: Debug error root causes

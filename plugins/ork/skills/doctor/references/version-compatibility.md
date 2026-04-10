@@ -399,6 +399,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.37.x | 2.1.98 | **CC 2.1.98 adoption: Monitor tool for streaming background events, SCRIPT_CAPS env var, partial progress from failed bg subagents, hook stderr in transcript, /agents tabbed layout, /reload-plugins skill discovery, Bash permission hardening (backslash escape fix, compound cmd fix), stale worktree cleanup fix, team permission inheritance, Vertex AI wizard, Perforce mode** |
 | v7.33.x | 2.1.97 | **CC 2.1.97 full utilization: refreshInterval status line, workspace.git_worktree awareness, TRACEPARENT OTEL tracing to HQ, Stop/SubagentStop long-session fix, subagent cwd leak fix, MCP 2KB cap guardrail, image compression parity, Bash permissions hardened, Accept Edits env-prefix, plugin update fix, prototype settings.json fix** |
 | v7.30.x | 2.1.94 | **Skill frontmatter hooks unlock (20 context loaders activated), sessionTitle on UserPromptSubmit, keep-coding-instructions, default effort high adaptation, --resume across worktrees, CJK stream-json fix, Bedrock bearer token 2.1.96 hotfix** |
 | v7.29.x | 2.1.92 | forceRemoteSettingsRefresh policy, Stop hook preventContinuation fix, tool input JSON-string fix, plugin MCP dedup fix, Write perf 60%, /tag + /vim removed, MCP result size override, disableSkillShellExecution, plugin bin/, Edit shorter anchors |

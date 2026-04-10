@@ -276,6 +276,14 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 - Create immutable request context
 - Ensure tenant isolation at query level
 
+### cc-subprocess-hardening (CC 2.1.98)
+**Keywords:** subprocess, sandbox, PID namespace, env scrub, script caps
+**Solves:**
+- Limit runaway hook scripts: `CLAUDE_CODE_SCRIPT_CAPS=100`
+- Strip credentials from subprocesses: `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`
+- PID namespace isolation on Linux for subprocess sandboxing
+- Prevent Bash permission bypasses via backslash escapes and compound commands
+
 ### input-validation
 **Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
 **Solves:**

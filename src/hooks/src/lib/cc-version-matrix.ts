@@ -264,6 +264,24 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'additional_dirs_mid_session',  minVersion: '2.1.97', description: 'permissions.additionalDirectories changes in settings now apply mid-session' },
   { feature: 'bridge_session_git_info',     minVersion: '2.1.97', description: 'Bridge sessions show local git repo, branch, and working directory on claude.ai session card' },
   { feature: 'transcript_size_optimization', minVersion: '2.1.97', description: 'Session transcripts skip empty hook entries and cap stored pre-edit file copies' },
+  // 2.1.98 (2026-04-09)
+  { feature: 'monitor_tool',               minVersion: '2.1.98', description: 'Monitor tool streams events from background scripts (each stdout line → notification)' },
+  { feature: 'vertex_ai_wizard',           minVersion: '2.1.98', description: 'Interactive Google Vertex AI setup wizard from login screen' },
+  { feature: 'script_caps_env',            minVersion: '2.1.98', description: 'CLAUDE_CODE_SCRIPT_CAPS limits per-session script invocations' },
+  { feature: 'perforce_mode',              minVersion: '2.1.98', description: 'CLAUDE_CODE_PERFORCE_MODE fails Edit/Write on read-only files with p4 edit hint' },
+  { feature: 'pid_namespace_sandbox',      minVersion: '2.1.98', description: 'Subprocess PID namespace isolation on Linux via CLAUDE_CODE_SUBPROCESS_ENV_SCRUB' },
+  { feature: 'exclude_dynamic_prompt',     minVersion: '2.1.98', description: '--exclude-dynamic-system-prompt-sections for cross-user prompt caching in print mode' },
+  { feature: 'agents_tabbed_layout',       minVersion: '2.1.98', description: '/agents tabbed layout: Running tab for live subagents, Library tab with actions' },
+  { feature: 'reload_plugins_skills',      minVersion: '2.1.98', description: '/reload-plugins picks up plugin-provided skills without restart' },
+  { feature: 'hook_stderr_display',        minVersion: '2.1.98', description: 'Hook errors show first line of stderr in transcript for self-diagnosis' },
+  { feature: 'bg_subagent_partial_report', minVersion: '2.1.98', description: 'Background subagents that fail with errors now report partial progress to parent' },
+  { feature: 'accept_edits_safe_wrappers', minVersion: '2.1.98', description: 'Accept Edits mode auto-approves filesystem commands with safe env vars or process wrappers' },
+  { feature: 'vim_jk_history_nav',         minVersion: '2.1.98', description: 'Vim j/k in NORMAL mode navigate history and select footer pill' },
+  { feature: 'bash_backslash_escape_fix',  minVersion: '2.1.98', description: 'Fixed Bash tool permission bypass where backslash-escaped flags could auto-allow' },
+  { feature: 'compound_cmd_forced_prompt', minVersion: '2.1.98', description: 'Compound Bash commands no longer bypass forced permission prompts' },
+  { feature: 'stale_worktree_untracked_fix', minVersion: '2.1.98', description: 'Stale subagent worktree cleanup no longer removes worktrees with untracked files' },
+  { feature: 'team_permission_inherit',    minVersion: '2.1.98', description: 'Agent team members inherit leader permission mode in bypass-permissions' },
+  { feature: 'lsp_client_info',           minVersion: '2.1.98', description: 'LSP: Claude Code identifies itself to language servers via clientInfo in initialize request' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

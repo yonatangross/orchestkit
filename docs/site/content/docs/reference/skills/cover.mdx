@@ -426,6 +426,18 @@ CronCreate(
 
 Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
 
+### Monitor + Partial Results (CC 2.1.98)
+
+Use `Monitor` for streaming test execution output from background agents:
+
+```python
+# Stream test suite output in real-time
+Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
+Monitor(pid=test_task_id)  # Each line → notification
+```
+
+**Partial results:** If a test-generator agent crashes mid-generation (context limit, timeout), CC 2.1.98 reports partial progress. Synthesize partial test files instead of re-spawning — 6 passing tests from a crashed agent are better than 0.
+
 ### SendMessage (Test Healing)
 
 When a generated test fails, the healer agent can request context from the generator:

@@ -1186,6 +1186,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch",
       "CronCreate",
       "CronDelete",
+      "Monitor",
       "mcp__memory__search_nodes",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs"
@@ -2394,6 +2395,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch",
       "CronCreate",
       "CronDelete",
+      "Monitor",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -3964,7 +3966,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskOutput",
       "TaskStop",
       "mcp__memory__search_nodes",
-      "ToolSearch"
+      "ToolSearch",
+      "Monitor"
     ],
     "skills": [
       "code-review-playbook",
@@ -4847,7 +4850,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__agentation__agentation_watch_annotations",
       "ToolSearch",
       "CronCreate",
-      "CronDelete"
+      "CronDelete",
+      "Monitor"
     ],
     "skills": [
       "code-review-playbook",

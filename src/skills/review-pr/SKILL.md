@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.98+. Requires memory MCP server, gh CLI."
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 argument-hint: "[pr-number-or-branch]"
 context: fork
@@ -9,7 +9,7 @@ version: 1.7.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 persuasion-type: discipline
@@ -248,7 +248,7 @@ Only spawn agents relevant to the PR's changed domains:
 
 Skip agents for domains not present in the diff. This saves ~33% tokens on domain-specific PRs.
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output (CC 2.1.76+)
 
 Output each agent's findings **as they complete** — don't batch until synthesis:
 
@@ -257,6 +257,8 @@ Output each agent's findings **as they complete** — don't batch until synthesi
 - **Test coverage gaps** → show missing test cases
 
 This lets the PR author start addressing blocking issues while remaining agents are still analyzing. Only the final synthesis (Phase 5) requires all agents to have completed.
+
+**Partial results (CC 2.1.98):** If a review agent fails mid-analysis, CC reports partial progress. A security agent that found 2 issues before crashing is more valuable than no security review. Include partial findings in synthesis with a `[partial]` note. Use `Monitor` for streaming CI check output in Phase 4.
 
 See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 

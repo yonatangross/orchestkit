@@ -1,7 +1,7 @@
 ---
 name: cover
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires network access."
+compatibility: "Claude Code 2.1.98+. Requires network access."
 description: "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly)."
 argument-hint: "[scope-or-feature]"
 context: fork
@@ -9,7 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 skills: [testing-unit, testing-integration, testing-e2e, testing-perf, testing-llm, chain-patterns, memory, quality-gates]
 complexity: high
 persuasion-type: discipline
@@ -448,6 +448,18 @@ CronCreate(
 ### Context Passing
 
 Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
+
+### Monitor + Partial Results (CC 2.1.98)
+
+Use `Monitor` for streaming test execution output from background agents:
+
+```python
+# Stream test suite output in real-time
+Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
+Monitor(pid=test_task_id)  # Each line → notification
+```
+
+**Partial results:** If a test-generator agent crashes mid-generation (context limit, timeout), CC 2.1.98 reports partial progress. Synthesize partial test files instead of re-spawning — 6 passing tests from a crashed agent are better than 0.
 
 ### SendMessage (Test Healing)
 
