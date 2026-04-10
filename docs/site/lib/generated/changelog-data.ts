@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.37.0",
+    "date": "2026-04-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.98 full adoption** — 17 new entries in cc-version-matrix.ts covering Monitor tool, SCRIPT_CAPS, subprocess PID sandboxing, Vertex AI wizard, /agents tabbed layout, partial progress from failed bg subagents, hook stderr display, and Bash permission hardening",
+          "**Monitor tool** added to `implement`, `cover`, `verify`, `review-pr` allowed-tools for real-time streaming of background build/test output (CC 2.1.98)",
+          "**Partial result synthesis** — all 4 workflow skills now handle partial progress from crashed background agents instead of re-spawning",
+          "**Subprocess hardening section** in security-patterns skill covering SCRIPT_CAPS, ENV_SCRUB, PID namespace isolation",
+          "**Hook error diagnostics** section in errors skill — CC 2.1.98 shows first stderr line in transcript",
+          "**4 new env vars** documented in setup configure wizard: SCRIPT_CAPS, SUBPROCESS_ENV_SCRUB, PERFORCE_MODE, NO_FLICKER"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "Recommended CC version bumped from 2.1.97 to **2.1.98**",
+          "`implement`, `cover`, `verify`, `review-pr` compatibility bumped to CC 2.1.98+ (Monitor tool dependency)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.36.0",
     "date": "2026-04-09",
     "compareUrl": "",
