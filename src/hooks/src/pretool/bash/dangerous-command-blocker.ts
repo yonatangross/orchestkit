@@ -57,6 +57,9 @@ const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
 
 // =============================================================================
 // ASK tier — dangerous but sometimes legitimate, escalate to user
+// NOTE (CC 2.1.101): permissions.deny rules now override our 'ask' decision.
+// If a user has a deny rule matching these commands, CC blocks them outright
+// instead of prompting. This is correct behavior — deny > ask > allow.
 // =============================================================================
 
 /**

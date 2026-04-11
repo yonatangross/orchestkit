@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server, gh CLI."
 description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 argument-hint: "[title]"
 context: fork
-agent: git-operations-engineer
 version: 2.5.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]

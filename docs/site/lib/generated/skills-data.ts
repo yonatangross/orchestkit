@@ -183,7 +183,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "model-delegation"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Bash",
       "Read",
@@ -692,7 +692,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ci"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -961,7 +961,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "best-practices"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -1019,7 +1019,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "chain-patterns"
     ],
-    "agent": "git-operations-engineer",
+    "agent": null,
     "complexity": "low",
     "structure": {
       "references": [
@@ -1246,7 +1246,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "memory",
       "chain-patterns"
     ],
-    "agent": "git-operations-engineer",
+    "agent": null,
     "complexity": "medium",
     "structure": {
       "references": [
@@ -1340,7 +1340,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tutorial"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "AskUserQuestion",
       "Bash",
@@ -1545,7 +1545,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": "data-pipeline-engineer",
+    "agent": "ci-cd-engineer",
     "complexity": "medium",
     "structure": {
       "references": [
@@ -1806,7 +1806,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "consolidation"
     ],
     "userInvocable": true,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Write",
@@ -1841,7 +1841,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "stateful-testing"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -2297,7 +2297,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "meta"
     ],
     "userInvocable": true,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "AskUserQuestion",
       "Read",
@@ -2336,7 +2336,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Trans"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -2533,7 +2533,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "vercel"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -2765,7 +2765,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "genui"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -2800,7 +2800,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "search"
     ],
     "userInvocable": true,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Grep",
@@ -3006,7 +3006,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "rendering"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -3183,7 +3183,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": "frontend-ui-developer",
+    "agent": "frontend-performance-engineer",
     "complexity": "high",
     "structure": {
       "references": [
@@ -3257,7 +3257,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "devops"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -3746,7 +3746,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "automation"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Glob",
@@ -3796,7 +3796,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "automation"
     ],
     "userInvocable": true,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -3820,7 +3820,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "graph-memory"
     ],
     "userInvocable": true,
-    "context": "none",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Grep",
@@ -4509,7 +4509,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "deprecated"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [],
     "skills": [],
     "agent": null,
@@ -5033,7 +5033,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "monitoring"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Bash",
       "Read",
@@ -5120,7 +5120,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "slices"
     ],
     "userInvocable": false,
-    "context": "fork",
+    "context": "inherit",
     "allowedTools": [
       "Read",
       "Write",

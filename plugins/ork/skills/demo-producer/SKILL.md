@@ -6,7 +6,7 @@ description: "Creates polished demo videos for skills, tutorials, and CLI demons
 argument-hint: "[topic-or-feature]"
 user-invocable: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
-context: fork
+context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]

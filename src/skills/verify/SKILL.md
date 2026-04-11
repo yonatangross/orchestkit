@@ -226,7 +226,9 @@ Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25
 
 ### Progressive Output (CC 2.1.76+)
 
-Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents:
+Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents.
+
+> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message — the user didn't see the incremental outputs.
 
 ```
 Security:     8.2/10 — No critical vulnerabilities found

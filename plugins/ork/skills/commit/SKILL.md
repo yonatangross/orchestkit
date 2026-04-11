@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.76+."
 description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit
-agent: git-operations-engineer
 version: 1.2.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]

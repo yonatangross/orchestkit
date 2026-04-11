@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.38.0",
+    "date": "2026-04-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**CC 2.1.101 full adoption** — 18 new entries in cc-version-matrix.ts (253 total): deny-overrides-ask, subagent dynamic MCP inheritance, worktree agent file access, skill context:fork enforcement, `/team-onboarding`, OS CA cert trust, focus mode summaries, RemoteTrigger run fix, settings resilience, LSP command injection fix",
+          "**`/team-onboarding` and enterprise TLS** documented in setup skill"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**26 skill frontmatter corrections** — CC 2.1.101 enforces `context:` and `agent:` fields that were previously silently ignored:\n  - Removed `agent:` from commit and create-pr (prevents CC from delegating instead of running skill workflow)\n  - Fixed wrong agent: performance→frontend-performance-engineer, devops-deployment→ci-cd-engineer\n  - Changed `context: fork` → `inherit` on 10 skills that need project state (help, memory, analytics, 7 reference skills)\n  - Added missing `context: inherit` to 9 skills (bare-eval, dream, portless, etc.)\n  - Fixed `remember` from `context: none` → `inherit`",
+          "**deny-overrides-ask** documented in dangerous-command-blocker.ts — `permissions.deny` rules now correctly override our `outputAsk()` decisions"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.37.0",
     "date": "2026-04-10",
     "compareUrl": "",

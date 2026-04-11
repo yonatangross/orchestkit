@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
+context: inherit
 persuasion-type: discipline
 effort: low
 ---

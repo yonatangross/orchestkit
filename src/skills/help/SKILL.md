@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.76+."
 description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 argument-hint: "[category]"
-context: fork
+context: inherit
 version: 2.0.0
 author: OrchestKit
 tags: [help, documentation, skills, discovery, meta]
@@ -140,6 +140,8 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/loop` | Recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
 | `/effort` | Reasoning effort: low/medium/high/auto | CC 2.1.72 |
 | `/plan` | Enter plan mode | CC 2.1.72 |
+| `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
+| `/ultraplan` | Remote-session deep planning | CC 2.1.101 |
 
 ## Keyboard Shortcuts
 

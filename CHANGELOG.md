@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.38.0] - 2026-04-11
+
+### Added
+
+- **CC 2.1.101 full adoption** — 18 new entries in cc-version-matrix.ts (253 total): deny-overrides-ask, subagent dynamic MCP inheritance, worktree agent file access, skill context:fork enforcement, `/team-onboarding`, OS CA cert trust, focus mode summaries, RemoteTrigger run fix, settings resilience, LSP command injection fix
+- **`/team-onboarding` and enterprise TLS** documented in setup skill
+
+### Fixed
+
+- **26 skill frontmatter corrections** — CC 2.1.101 enforces `context:` and `agent:` fields that were previously silently ignored:
+  - Removed `agent:` from commit and create-pr (prevents CC from delegating instead of running skill workflow)
+  - Fixed wrong agent: performance→frontend-performance-engineer, devops-deployment→ci-cd-engineer
+  - Changed `context: fork` → `inherit` on 10 skills that need project state (help, memory, analytics, 7 reference skills)
+  - Added missing `context: inherit` to 9 skills (bare-eval, dream, portless, etc.)
+  - Fixed `remember` from `context: none` → `inherit`
+- **deny-overrides-ask** documented in dangerous-command-blocker.ts — `permissions.deny` rules now correctly override our `outputAsk()` decisions
+
+---
+
+
 ## [7.37.0] - 2026-04-10
 
 ### Added
