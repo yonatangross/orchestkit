@@ -73,7 +73,7 @@ jobs:
 
       - name: Install Claude Code CLI
         if: inputs.scope != 'hooks-only'
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.101 --ignore-scripts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
