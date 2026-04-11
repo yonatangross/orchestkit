@@ -181,11 +181,19 @@ function readCompactionCount(): number {
 function countDecisions(): number {
   try {
     const projectDir = getProjectDir();
-    const decisionFile = join(projectDir, '.claude', 'logs', 'decisions.jsonl');
-    if (!existsSync(decisionFile)) return 0;
-    const content = readFileSync(decisionFile, 'utf8').trim();
-    if (!content) return 0;
-    return content.split('\n').filter(Boolean).length;
+    // Check both possible locations (memory/ is the real path, logs/ is legacy)
+    const candidates = [
+      join(projectDir, '.claude', 'memory', 'decisions.jsonl'),
+      join(projectDir, '.claude', 'logs', 'decisions.jsonl'),
+    ];
+    for (const decisionFile of candidates) {
+      if (existsSync(decisionFile)) {
+        const content = readFileSync(decisionFile, 'utf8').trim();
+        if (!content) continue;
+        return content.split('\n').filter(Boolean).length;
+      }
+    }
+    return 0;
   } catch {
     return 0;
   }
