@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.40.0] - 2026-04-11
+
+### Added
+
+- **Session Quality Governor** — multi-signal quality score (0-100, S-F grades) injected into Claude's context on every turn via `additionalContext`. Claude self-regulates behavior based on grade: S/A normal, B efficiency mode, C conservation, D/F emergency. Computed from 4 signals: context fill %, compaction count, session age, and decision density. No new hooks, skills, or dependencies — enhances existing `context-exhaustion-warner.ts` from a single-signal threshold alarm into a behavioral governor. ~15ms overhead (3 file reads). Inspired by [token-optimizer](https://github.com/alexgreensh/token-optimizer).
+
+---
+
+
 ## [7.39.1] - 2026-04-11
 
 ### Fixed

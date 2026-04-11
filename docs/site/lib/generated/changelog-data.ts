@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.39.1",
+    "date": "2026-04-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Code scanning alert #138, #139** — wrap `health_db()` endpoint in try/except to prevent stack trace leaking to HTTP response (CodeQL py/stack-trace-exposure)",
+          "**Code scanning alert #143** — pin `@anthropic-ai/claude-code@2.1.101` with `--ignore-scripts` in orchestkit-eval.yml (Scorecard PinnedDependencies)",
+          "**Code scanning alert #144** — bump pinned claude-code 2.1.90 → 2.1.101 in plugin-validation.yml (Scorecard PinnedDependencies)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.39.0",
     "date": "2026-04-11",
     "compareUrl": "",
