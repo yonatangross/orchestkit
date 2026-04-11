@@ -216,9 +216,12 @@ def create_app() -> FastAPI:
     @app.get("/health/db")
     async def health_db():
         """Database health check endpoint."""
-        result = await check_db_health()
-        status_code = 200 if result["status"] == "healthy" else 503
-        return result, status_code
+        try:
+            result = await check_db_health()
+            status_code = 200 if result["status"] == "healthy" else 503
+            return result, status_code
+        except Exception:
+            return {"status": "unhealthy"}, 503
 
     return app
 
