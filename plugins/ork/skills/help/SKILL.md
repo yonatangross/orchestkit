@@ -140,6 +140,8 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/loop` | Recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
 | `/effort` | Reasoning effort: low/medium/high/auto | CC 2.1.72 |
 | `/plan` | Enter plan mode | CC 2.1.72 |
+| `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
+| `/ultraplan` | Remote-session deep planning | CC 2.1.101 |
 
 ## Keyboard Shortcuts
 

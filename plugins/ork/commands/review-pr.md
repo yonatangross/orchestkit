@@ -218,7 +218,9 @@ Skip agents for domains not present in the diff. This saves ~33% tokens on domai
 
 ### Progressive Output (CC 2.1.76+)
 
-Output each agent's findings **as they complete** — don't batch until synthesis:
+Output each agent's findings **as they complete** — don't batch until synthesis.
+
+> **Focus mode (CC 2.1.101):** In focus mode, the user only sees your final message. Include the full review verdict, all findings by severity, and the approve/request-changes recommendation — don't assume they saw per-agent outputs.
 
 - **Security findings** → show blockers and critical issues first
 - **Code quality** → show pattern violations, complexity hotspots

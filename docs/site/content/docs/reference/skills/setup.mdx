@@ -1066,6 +1066,7 @@ To see full readiness: /ork:setup --score-only
 | `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | (unset) | `1` | Strip credentials from subprocess env vars (CC 2.1.98). Enables PID namespace isolation on Linux. |
 | `CLAUDE_CODE_PERFORCE_MODE` | (unset) | `1` | Edit/Write fail on read-only files with `p4 edit` hint (CC 2.1.98). For Perforce workflows. |
 | `CLAUDE_CODE_NO_FLICKER` | (unset) | `1` | Flicker-free alt-screen rendering (CC 2.1.88). |
+| `CLAUDE_CODE_CERT_STORE` | `system` | `system` \| `bundled` | CA certificate store (CC 2.1.101). Default `system` trusts OS CA store for enterprise TLS proxies. Set `bundled` to use only bundled CAs. |
 
 
 ### Integrations
