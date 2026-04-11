@@ -447,13 +447,15 @@ describe('prompt/context-exhaustion-warner (quality governor)', () => {
     test('emergency directive at grade D', () => {
       // Force grade D: 88% ctx + 2 compactions + 140min
       _setSessionStartForTesting(Date.now() - 140 * 60000);
-      mockExistsSync.mockImplementation((p: string) => {
-        if (typeof p === 'string' && p.includes('state.json')) return true;
-        if (typeof p === 'string' && p.includes('ork-ctx-pct')) return true;
+      mockExistsSync.mockImplementation((p) => {
+        const path = String(p);
+        if (path.includes('state.json')) return true;
+        if (path.includes('ork-ctx-pct')) return true;
         return false;
       });
-      mockReadFileSync.mockImplementation((p: string) => {
-        if (typeof p === 'string' && p.includes('state.json')) return JSON.stringify({ compactionCount: 2 });
+      mockReadFileSync.mockImplementation((p) => {
+        const path = String(p);
+        if (path.includes('state.json')) return JSON.stringify({ compactionCount: 2 });
         return '88';
       });
       const result = contextExhaustionWarner(createPromptInput('hello'), testCtx);
