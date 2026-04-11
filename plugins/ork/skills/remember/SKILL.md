@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 argument-hint: "[decision-or-pattern]"
-context: none
+context: inherit
 version: 3.0.0
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]

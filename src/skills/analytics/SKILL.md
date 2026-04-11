@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+."
 author: OrchestKit
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
-context: fork
+context: inherit
 version: 2.1.0
 tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation]
 user-invocable: false

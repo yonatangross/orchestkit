@@ -7,7 +7,7 @@
 
 **<!--ork:skills-->103<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->169<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.98-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.101-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 [![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
@@ -180,6 +180,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 ---
 
 ## What's New
+
+**v7.38.0** — CC 2.1.101 Full Adoption + Frontmatter Audit
+
+- **26 skill frontmatter fixes** — CC 2.1.101 enforces `context:fork` and `agent:` fields that were previously silently ignored; audited and corrected all 103 skills
+- **18 new CC features tracked** — 253 total in version matrix (deny-overrides-ask, dynamic MCP in subagents, worktree file access, focus mode, `/team-onboarding`)
+- **Wrong agent assignments fixed** — performance→frontend-performance-engineer, devops→ci-cd-engineer
+- **agent: removed from commit/create-pr** — prevents CC from delegating to agent instead of running skill workflow
 
 **v7.37.0** — CC 2.1.98 Full Adoption
 

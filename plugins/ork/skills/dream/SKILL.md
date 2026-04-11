@@ -10,6 +10,7 @@ author: OrchestKit
 user-invocable: true
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 complexity: medium
+context: inherit
 persuasion-type: collaborative
 effort: low
 model: sonnet

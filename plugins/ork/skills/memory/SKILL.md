@@ -4,7 +4,7 @@ license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 argument-hint: "[subcommand] [query]"
-context: fork
+context: inherit
 version: 2.0.0
 author: OrchestKit
 tags: [memory, graph, session, context, sync, visualization, history, search]

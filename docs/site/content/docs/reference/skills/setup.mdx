@@ -113,6 +113,10 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 > **Console auth (CC 2.1.79+):** Users authenticating via Anthropic Console (API billing) can run `claude auth login --console` instead of the default OAuth flow. Useful for teams on usage-based API billing rather than Pro/Team subscriptions.
 
+> **Team onboarding (CC 2.1.101+):** `/team-onboarding` generates a teammate ramp-up guide from your local CC usage patterns. Suggest running it after setup to create onboarding docs for new team members.
+
+> **Enterprise TLS (CC 2.1.101+):** OS CA certificate store is trusted by default — enterprise TLS proxies work without extra setup. Set `CLAUDE_CODE_CERT_STORE=bundled` to use only bundled CAs if needed.
+
 ## Phase 3.5: Project Configuration Wizard
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.

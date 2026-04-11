@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CC 2.1.101 Adoption + Frontmatter Audit</title>
+<style>body{font-family:system-ui;background:#0d1117;color:#e6edf3;padding:24px;max-width:1000px;margin:0 auto}
+h1{font-size:22px}h2{font-size:16px;margin-top:20px;color:#58a6ff}p{color:#8b949e;font-size:14px}
+code{background:#21262d;padding:2px 6px;border-radius:3px;font-family:'SF Mono',monospace;font-size:12px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{text-align:left;padding:8px 12px;background:#21262d;border:1px solid #30363d;font-size:11px;text-transform:uppercase;color:#8b949e}
+td{padding:8px 12px;border:1px solid #30363d}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.fix{background:rgba(248,81,73,0.15);color:#f85149}.new{background:rgba(63,185,80,0.15);color:#3fb950}
+.change{background:rgba(210,153,34,0.15);color:#d29922}.info{background:rgba(88,166,255,0.15);color:#58a6ff}
+.tabs{display:flex;gap:0;margin-bottom:16px}.tab{padding:8px 16px;background:#161b22;border:1px solid #30363d;cursor:pointer;font-size:13px;color:#8b949e}
+.tab:first-child{border-radius:6px 0 0 6px}.tab:last-child{border-radius:0 6px 6px 0}.tab.active{background:#58a6ff;color:#fff;border-color:#58a6ff}
+.view{display:none}.view.active{display:block}</style></head>
+<body><h1>CC 2.1.101 Adoption + Frontmatter Audit</h1>
+<p>26 skill fixes + 18 new matrix entries. The biggest change: <code>context:</code> and <code>agent:</code> frontmatter fields are now <strong>enforced</strong> by CC.</p>
+<div class="tabs"><button class="tab active" onclick="show('audit')">Frontmatter Audit (26 fixes)</button><button class="tab" onclick="show('matrix')">Matrix Entries (18 new)</button><button class="tab" onclick="show('impact')">Behavioral Impact</button></div>
+<div id="audit" class="view active"><h2>Fixes Applied</h2>
+<table><tr><th>Skill</th><th>Issue</th><th>Fix</th><th>Type</th></tr>
+<tr><td><code>commit</code></td><td>agent: would delegate instead of running workflow</td><td>Removed <code>agent: git-operations-engineer</code></td><td><span class="tag fix">Removed</span></td></tr>
+<tr><td><code>create-pr</code></td><td>Same — user-invocable + agent conflict</td><td>Removed <code>agent: git-operations-engineer</code></td><td><span class="tag fix">Removed</span></td></tr>
+<tr><td><code>performance</code></td><td>Wrong domain agent</td><td><code>frontend-ui-developer</code> → <code>frontend-performance-engineer</code></td><td><span class="tag change">Changed</span></td></tr>
+<tr><td><code>devops-deployment</code></td><td>Wrong domain agent</td><td><code>data-pipeline-engineer</code> → <code>ci-cd-engineer</code></td><td><span class="tag change">Changed</span></td></tr>
+<tr><td><code>help</code></td><td>fork loses project state</td><td><code>context: fork</code> → <code>inherit</code></td><td><span class="tag change">Changed</span></td></tr>
+<tr><td><code>memory</code></td><td>fork isolates knowledge graph</td><td><code>context: fork</code> → <code>inherit</code></td><td><span class="tag change">Changed</span></td></tr>
+<tr><td><code>analytics</code></td><td>fork loses session data</td><td><code>context: fork</code> → <code>inherit</code></td><td><span class="tag change">Changed</span></td></tr>
+<tr><td colspan="4" style="color:#8b949e;font-style:italic">+ 7 low-complexity reference skills changed from fork→inherit, 9 skills got missing context:inherit added, 1 fixed from context:none→inherit</td></tr>
+</table></div>
+<div id="matrix" class="view"><h2>18 New Matrix Entries (253 total)</h2>
+<table><tr><th>Feature</th><th>Impact</th></tr>
+<tr><td><code>deny_overrides_ask</code></td><td>permissions.deny now overrides hook ask decisions</td></tr>
+<tr><td><code>skill_context_fork_fix</code></td><td>context:fork and agent: frontmatter now enforced</td></tr>
+<tr><td><code>subagent_dynamic_mcp</code></td><td>Subagents inherit MCP tools from dynamic servers</td></tr>
+<tr><td><code>worktree_agent_file_access</code></td><td>Worktree agents can Read/Edit their own files</td></tr>
+<tr><td><code>team_onboarding_command</code></td><td>/team-onboarding generates ramp-up guide</td></tr>
+<tr><td><code>os_ca_cert_store</code></td><td>Enterprise TLS proxies work out of the box</td></tr>
+<tr><td><code>focus_mode_summaries</code></td><td>Self-contained summaries in focus mode</td></tr>
+<tr><td><code>remote_trigger_run_fix</code></td><td>Scheduled triggers actually work now</td></tr>
+<tr><td colspan="2" style="color:#8b949e">+ 10 more: settings resilience, LSP injection fix, memory leak fix, resume fixes, grep fallback, etc.</td></tr>
+</table></div>
+<div id="impact" class="view"><h2>Why This Matters</h2>
+<p style="color:#e6edf3;line-height:1.7">Before CC 2.1.101, <code>context: fork</code> and <code>agent:</code> in skill frontmatter were <strong>silently ignored</strong>. Every skill ran in the parent context, and agent delegation never happened. Now they're enforced. This means:<br><br>
+<strong>71 skills with context:fork</strong> will now actually run in isolated fork contexts — they won't see parent conversation context.<br>
+<strong>51 skills with agent:</strong> will delegate to the specified agent type for loading.<br><br>
+Without this audit, 26 of those assignments were wrong — skills would break silently when users upgrade to CC 2.1.101.</p>
+</div>
+<script>function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');event.target.classList.add('active')}</script>
+</body></html>

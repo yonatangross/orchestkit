@@ -7,6 +7,7 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
+context: inherit
 persuasion-type: reference
 metadata:
   category: frontend

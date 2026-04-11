@@ -6,7 +6,7 @@ description: Use this skill when conducting or improving code reviews. Provides 
 version: 2.0.0
 author: AI Agent Hub
 tags: [code-review, quality, collaboration, best-practices]
-context: fork
+context: inherit
 agent: code-quality-reviewer
 user-invocable: false
 disable-model-invocation: true

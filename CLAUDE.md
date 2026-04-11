@@ -79,6 +79,6 @@ Single plugin `ork`: <!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36
 
 ## Version
 
-- **Current**: 7.37.0 · **Claude Code**: >= 2.1.94 (2.1.98 recommended) <!-- x-release-please-version -->
+- **Current**: 7.38.0 · **Claude Code**: >= 2.1.94 (2.1.101 recommended) <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

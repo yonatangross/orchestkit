@@ -282,6 +282,25 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'stale_worktree_untracked_fix', minVersion: '2.1.98', description: 'Stale subagent worktree cleanup no longer removes worktrees with untracked files' },
   { feature: 'team_permission_inherit',    minVersion: '2.1.98', description: 'Agent team members inherit leader permission mode in bypass-permissions' },
   { feature: 'lsp_client_info',           minVersion: '2.1.98', description: 'LSP: Claude Code identifies itself to language servers via clientInfo in initialize request' },
+  // 2.1.101 (2026-04-10)
+  { feature: 'team_onboarding_command',    minVersion: '2.1.101', description: '/team-onboarding generates teammate ramp-up guide from local CC usage' },
+  { feature: 'os_ca_cert_store',           minVersion: '2.1.101', description: 'OS CA certificate store trusted by default — enterprise TLS proxies work OOTB' },
+  { feature: 'deny_overrides_ask',         minVersion: '2.1.101', description: 'permissions.deny rules override PreToolUse hook permissionDecision:"ask"' },
+  { feature: 'subagent_dynamic_mcp',       minVersion: '2.1.101', description: 'Subagents inherit MCP tools from dynamically-injected servers' },
+  { feature: 'worktree_agent_file_access', minVersion: '2.1.101', description: 'Worktree-isolated agents can Read/Edit files inside their own worktree' },
+  { feature: 'skill_context_fork_fix',     minVersion: '2.1.101', description: 'Skills honor context:fork and agent frontmatter fields (previously silently ignored)' },
+  { feature: 'settings_resilience',        minVersion: '2.1.101', description: 'Unrecognized hook event name in settings.json no longer causes entire file to be ignored' },
+  { feature: 'focus_mode_summaries',       minVersion: '2.1.101', description: 'Focus mode: Claude writes self-contained summaries knowing user only sees final message' },
+  { feature: 'remote_trigger_run_fix',     minVersion: '2.1.101', description: 'RemoteTrigger run action no longer sends empty body (scheduled triggers work)' },
+  { feature: 'resume_session_title',       minVersion: '2.1.101', description: '--resume accepts session titles set via /rename or --name' },
+  { feature: 'rate_limit_detail',          minVersion: '2.1.101', description: 'Rate-limit retry messages show which limit was hit and when it resets' },
+  { feature: 'managed_hooks_force_run',    minVersion: '2.1.101', description: 'Plugin hooks from force-enabled managed settings run with allowManagedHooksOnly' },
+  { feature: 'lsp_which_injection_fix',    minVersion: '2.1.101', description: 'Fixed command injection vulnerability in POSIX which fallback for LSP binary detection' },
+  { feature: 'long_session_memory_fix',    minVersion: '2.1.101', description: 'Fixed memory leak retaining historical message list copies in virtual scroller' },
+  { feature: 'resume_chain_recovery_fix',  minVersion: '2.1.101', description: '--resume no longer bridges into unrelated subagent conversation on write gaps' },
+  { feature: 'worktree_stale_cleanup_fix', minVersion: '2.1.101', description: 'claude -w <name> no longer fails with "already exists" after stale worktree cleanup' },
+  { feature: 'sandbox_mktemp_fix',         minVersion: '2.1.101', description: 'Sandboxed Bash commands no longer fail with mktemp ENOENT after fresh boot' },
+  { feature: 'grep_rg_fallback',           minVersion: '2.1.101', description: 'Grep tool falls back to system rg when embedded ripgrep path is stale' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

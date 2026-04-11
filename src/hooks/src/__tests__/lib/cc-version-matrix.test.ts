@@ -24,8 +24,8 @@ describe('cc-version-matrix', () => {
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) + 2 (2.1.95) + 24 (2.1.97) + 17 (2.1.98) = 235
-      expect(CC_FEATURE_MATRIX.length).toBe(235);
+      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) + 2 (2.1.95) + 24 (2.1.97) + 17 (2.1.98) + 18 (2.1.101) = 253
+      expect(CC_FEATURE_MATRIX.length).toBe(253);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.98');
+      const features = getAvailableFeatures('2.1.101');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,29 +99,27 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.98', () => {
-      const missing = getMissingFeatures('2.1.98');
+    test('no missing features at 2.1.101', () => {
+      const missing = getMissingFeatures('2.1.101');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.97 is missing 2.1.98 features', () => {
-      const missing = getMissingFeatures('2.1.97');
-      // 17 features added in 2.1.98
-      expect(missing.length).toBe(17);
-      expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
-      expect(missing.some(f => f.feature === 'script_caps_env')).toBe(true);
-      expect(missing.some(f => f.feature === 'bg_subagent_partial_report')).toBe(true);
+    test('2.1.98 is missing 2.1.101 features', () => {
+      const missing = getMissingFeatures('2.1.98');
+      // 18 features added in 2.1.101
+      expect(missing.length).toBe(18);
+      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
+      expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
+      expect(missing.some(f => f.feature === 'subagent_dynamic_mcp')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 + 2.1.95 + 2.1.96 + 2.1.97 + 2.1.98 features', () => {
+    test('2.1.92 is missing 2.1.94 through 2.1.101 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 12 from 2.1.94 + 2 from 2.1.95 + 1 from 2.1.96 + 24 from 2.1.97 + 17 from 2.1.98 = 56
-      expect(missing.length).toBe(56);
+      // 12 + 2 + 1 + 24 + 17 + 18 = 74
+      expect(missing.length).toBe(74);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'session_title_hook_output')).toBe(true);
-      expect(missing.some(f => f.feature === 'bedrock_bearer_token_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'statusline_refresh_interval')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
+      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
     });
 
     test('2.1.47 missing 2.1.49+ features', () => {
