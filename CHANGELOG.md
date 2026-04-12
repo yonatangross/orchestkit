@@ -5,6 +5,16 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.40.1] - 2026-04-12
+
+### Added
+
+- **CC Release Watch** — GitHub Action (`.github/workflows/cc-release-watch.yml`) that checks for new Claude Code releases every 6 hours. Auto-creates an adoption issue with feature/fix/security counts, priority classification, and a checklist. Prevents falling behind on CC updates.
+- **StatusLine bridge** (`src/hooks/bin/ork-statusline-bridge.mjs`) — opt-in script that extracts context % from CC's StatusLine JSON and writes it for the Session Quality Governor. Not auto-registered (would break claude-hud). Users without a statusline can configure manually.
+
+---
+
+
 ## [7.40.0] - 2026-04-11
 
 ### Added
