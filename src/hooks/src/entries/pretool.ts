@@ -61,6 +61,9 @@ import headlessResponder from '../pretool/ask/headless-responder.js';
 // PreTool/Task hooks (1) — Agent Teams
 import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 
+// PreTool/Cron hooks (1) — CI/headless guard
+import { cronGuard } from '../pretool/cron-guard.js';
+
 // Unified dispatchers (3) — consolidate sequential hooks into single process
 import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
 import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
@@ -126,6 +129,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Task hooks (1) — Agent Teams
   'pretool/task/team-size-gate': teamSizeGate,
+
+  // PreTool/Cron hooks (1) — CI/headless guard
+  'pretool/cron-guard': cronGuard,
 
   // Unified dispatchers (3) — consolidate sequential hooks into single process
   'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,

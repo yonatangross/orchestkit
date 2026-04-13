@@ -33,6 +33,7 @@ import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
 import { retryHandler } from '../subagent-stop/retry-handler.js';
 import { unifiedSubagentStopDispatcher } from '../subagent-stop/unified-dispatcher.js';
 import { syncSubagentStopDispatcher } from '../subagent-stop/sync-subagent-stop-dispatcher.js';
+import { agentWatchdog } from '../subagent-stop/watchdog.js';
 
 import type { HookFn } from '../types.js';
 
@@ -48,7 +49,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-start/issue-context-injector': issueContextInjector,
   'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
-  // SubagentStop hooks (8)
+  // SubagentStop hooks (9)
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
   'subagent-stop/feedback-loop': feedbackLoop,
@@ -59,6 +60,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/retry-handler': retryHandler,
   'subagent-stop/unified-dispatcher': unifiedSubagentStopDispatcher,
   'subagent-stop/sync-subagent-stop-dispatcher': syncSubagentStopDispatcher,
+  'subagent-stop/watchdog': agentWatchdog,
 };
 
 export function getHook(name: string): HookFn | undefined {
