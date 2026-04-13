@@ -139,7 +139,7 @@ jobs:
 
       - name: Comment on PR with issues
         if: steps.check_required.outputs.skip != 'true' && (steps.version_check.outputs.bumped == 'false' || steps.changelog_check.outputs.updated == 'false' || steps.changelog_version_check.outputs.matches == 'false')
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
         env:
           PR_VERSION: ${{ steps.pr_version.outputs.version }}
           MAIN_VERSION: ${{ steps.main_version.outputs.version }}
