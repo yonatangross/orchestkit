@@ -71,6 +71,29 @@ describe('patternExtractor', () => {
     expect(commitPattern.text).toContain('JWT');
   });
 
+  it('extracts pattern from --message= style commit', () => {
+    patternExtractor(makeInput({
+      tool_input: { command: 'git commit --message="fix: resolve auth bug"' },
+    }), testCtx);
+    const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
+    const written = JSON.parse(lastCall[1] as string);
+    const commitPattern = written.patterns.find((p: { source: string }) => p.source === 'commit');
+    expect(commitPattern).toBeDefined();
+    expect(commitPattern.text).toContain('auth');
+  });
+
+  it('extracts pattern from heredoc-style commit', () => {
+    const heredocCmd = `git commit -m "\$(cat <<'EOF'\nfeat: add user dashboard\n\nCo-Authored-By: Claude\nEOF\n)"`;
+    patternExtractor(makeInput({
+      tool_input: { command: heredocCmd },
+    }), testCtx);
+    const lastCall = mockWriteFileSync.mock.calls[mockWriteFileSync.mock.calls.length - 1];
+    const written = JSON.parse(lastCall[1] as string);
+    const commitPattern = written.patterns.find((p: { source: string }) => p.source === 'commit');
+    expect(commitPattern).toBeDefined();
+    expect(commitPattern.text).toContain('dashboard');
+  });
+
   it('extracts test result patterns from pytest commands', () => {
     patternExtractor(makeInput({
       tool_input: { command: 'pytest tests/ -v' },

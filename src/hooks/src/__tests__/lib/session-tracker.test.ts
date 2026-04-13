@@ -508,6 +508,27 @@ describe('Session Event Tracker', () => {
       expect(event.payload.input.api_key).toBe('[REDACTED]');
     });
 
+    it('should handle deeply nested objects without stack overflow', () => {
+      mockExistsSync.mockReturnValue(true);
+
+      // Build an object nested 15 levels deep (exceeds depth limit of 10)
+      let nested: Record<string, unknown> = { leaf: 'value' };
+      for (let i = 0; i < 15; i++) {
+        nested = { [`level_${i}`]: nested };
+      }
+
+      trackEvent('tool_used', 'Bash', {
+        input: nested,
+        success: true,
+      });
+
+      // Should not throw (stack overflow), should write successfully
+      expect(mockAppendFileSync).toHaveBeenCalled();
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+      expect(event.payload.input).toBeDefined();
+    });
+
     it('should truncate long strings', () => {
       mockExistsSync.mockReturnValue(true);
       const longText = 'x'.repeat(1000);

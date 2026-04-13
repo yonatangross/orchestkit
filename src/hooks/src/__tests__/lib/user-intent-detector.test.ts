@@ -777,6 +777,14 @@ describe('extractRationale', () => {
     expect(rationale).toContain('supports async natively');
   });
 
+  it('should preserve rationale containing commas', () => {
+    const text = 'Using PostgreSQL because it supports JSONB, has great indexing, and scales well';
+    const rationale = extractRationale(text, 0);
+    expect(rationale).toBeDefined();
+    expect(rationale).toContain('great indexing');
+    expect(rationale).toContain('scales well');
+  });
+
   it('should return undefined when no rationale found', () => {
     const text = 'I chose PostgreSQL';
     const rationale = extractRationale(text, 0);

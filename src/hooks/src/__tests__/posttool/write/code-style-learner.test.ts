@@ -205,6 +205,17 @@ describe('codeStyleLearner', () => {
     expect(written.languages.python.type_hints.used).toBe(1);
   });
 
+  it('does not detect type hints inside comments or docstrings', () => {
+    codeStyleLearner(makeInput({
+      tool_input: {
+        file_path: '/proj/src/app.py',
+        content: '# TODO: add type hints -> str\n"""Returns: int"""\nx = 42\n',
+      },
+    }), testCtx);
+    const written = JSON.parse(mockAtomicWriteSync.mock.calls[0][1] as string);
+    expect(written.languages.python.type_hints.used).toBe(0);
+  });
+
   it('detects google-style docstrings in Python', () => {
     codeStyleLearner(makeInput({
       tool_input: {
