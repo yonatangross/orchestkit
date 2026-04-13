@@ -175,37 +175,37 @@ function detectRelationType(text: string): string {
 // =============================================================================
 
 const RATIONALE_PATTERNS: RegExp[] = [
-  /\bbecause\s+([^.,!?\n]+)/gi,
-  /\bsince\s+([^.,!?\n]+)/gi,
-  /\bdue to\s+([^.,!?\n]+)/gi,
-  /\bto avoid\s+([^.,!?\n]+)/gi,
-  /\bso that\s+([^.,!?\n]+)/gi,
-  /\bin order to\s+([^.,!?\n]+)/gi,
-  /\bas it\s+([^.,!?\n]+)/gi,
-  /\bfor\s+(better|improved|faster|simpler|easier)\s+([^.,!?\n]+)/gi,
+  /\bbecause\s+([^.!?\n]+)/gi,
+  /\bsince\s+([^.!?\n]+)/gi,
+  /\bdue to\s+([^.!?\n]+)/gi,
+  /\bto avoid\s+([^.!?\n]+)/gi,
+  /\bso that\s+([^.!?\n]+)/gi,
+  /\bin order to\s+([^.!?\n]+)/gi,
+  /\bas it\s+([^.!?\n]+)/gi,
+  /\bfor\s+(better|improved|faster|simpler|easier)\s+([^.!?\n]+)/gi,
 ];
 
 const ALTERNATIVE_PATTERNS: RegExp[] = [
-  /\bover\s+([^.,!?\n]+)/gi,
-  /\binstead of\s+([^.,!?\n]+)/gi,
-  /\brather than\s+([^.,!?\n]+)/gi,
-  /\bnot\s+([^.,!?\n]+)/gi,
-  /\bversus\s+([^.,!?\n]+)/gi,
-  /\bvs\.?\s+([^.,!?\n]+)/gi,
+  /\bover\s+([^.!?\n]+)/gi,
+  /\binstead of\s+([^.!?\n]+)/gi,
+  /\brather than\s+([^.!?\n]+)/gi,
+  /\bnot\s+([^.!?\n]+)/gi,
+  /\bversus\s+([^.!?\n]+)/gi,
+  /\bvs\.?\s+([^.!?\n]+)/gi,
 ];
 
 const CONSTRAINT_PATTERNS: RegExp[] = [
-  /\b(must|need to|required|constraint|requirement)\s+([^.,!?\n]+)/gi,
-  /\b(have to|has to|should)\s+([^.,!?\n]+)/gi,
-  /\b(mandatory|essential)\s+([^.,!?\n]+)/gi,
+  /\b(must|need to|required|constraint|requirement)\s+([^.!?\n]+)/gi,
+  /\b(have to|has to|should)\s+([^.!?\n]+)/gi,
+  /\b(mandatory|essential)\s+([^.!?\n]+)/gi,
 ];
 
 const TRADEOFF_PATTERNS: RegExp[] = [
-  /\b(tradeoff|trade-off|downside|drawback)\s*:?\s+([^.,!?\n]+)/gi,
-  /\bbut\s+([^.,!?\n]+)/gi,
-  /\bhowever\s+([^.,!?\n]+)/gi,
-  /\balthough\s+([^.,!?\n]+)/gi,
-  /\b(cost|limitation)\s+is\s+([^.,!?\n]+)/gi,
+  /\b(tradeoff|trade-off|downside|drawback)\s*:?\s+([^.!?\n]+)/gi,
+  /\bbut\s+([^.!?\n]+)/gi,
+  /\bhowever\s+([^.!?\n]+)/gi,
+  /\balthough\s+([^.!?\n]+)/gi,
+  /\b(cost|limitation)\s+is\s+([^.!?\n]+)/gi,
 ];
 
 // =============================================================================
@@ -302,9 +302,9 @@ function extractTradeoffs(text: string): string[] {
 function extractWhatWasChosen(text: string): string {
   // Look for common decision patterns
   const patterns = [
-    /\b(?:chose|decided on|selected|using|will use|going with)\s+([^.,!?\n]+)/i,
-    /\b(?:the decision is|decision:)\s+([^.,!?\n]+)/i,
-    /\brecommend(?:ation)?:?\s+([^.,!?\n]+)/i,
+    /\b(?:chose|decided on|selected|using|will use|going with)\s+([^.!?\n]+)/i,
+    /\b(?:the decision is|decision:)\s+([^.!?\n]+)/i,
+    /\brecommend(?:ation)?:?\s+([^.!?\n]+)/i,
   ];
 
   for (const pattern of patterns) {

@@ -629,9 +629,11 @@ function truncate(str: string, maxLen: number): string {
  * Sanitize object for storage (remove sensitive data, truncate)
  */
 function sanitizeForStorage(
-  obj: Record<string, unknown> | undefined
+  obj: Record<string, unknown> | undefined,
+  depth: number = 0
 ): Record<string, unknown> | undefined {
   if (!obj) return undefined;
+  if (depth > 10) return obj;
 
   const sanitized: Record<string, unknown> = {};
   const sensitiveKeys = ['password', 'secret', 'token', 'key', 'credential', 'auth'];
@@ -651,7 +653,7 @@ function sanitizeForStorage(
 
     // Recursively sanitize objects
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      sanitized[key] = sanitizeForStorage(value as Record<string, unknown>);
+      sanitized[key] = sanitizeForStorage(value as Record<string, unknown>, depth + 1);
       continue;
     }
 

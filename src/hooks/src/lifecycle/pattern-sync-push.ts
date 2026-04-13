@@ -73,8 +73,12 @@ function pushProjectPatterns(projectDir: string): void {
     const globalList = globalPatterns.patterns || [];
 
     // Merge patterns (avoid duplicates by text)
-    const existingTexts = new Set((globalList as Array<{ text?: string }>).map((p) => p.text));
-    const newPatterns = (projectList as Array<{ text?: string }>).filter((p) => !existingTexts.has(p.text));
+    const existingTexts = new Set(
+      (globalList as Array<{ text?: string }>).map((p) => p.text).filter(Boolean)
+    );
+    const newPatterns = (projectList as Array<{ text?: string }>).filter(
+      (p) => p.text && !existingTexts.has(p.text)
+    );
 
     if (newPatterns.length === 0) {
       logHook('pattern-sync-push', 'All project patterns already in global');

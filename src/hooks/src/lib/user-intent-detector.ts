@@ -71,31 +71,31 @@ export interface IntentDetectionResult {
  */
 const DECISION_PATTERNS: RegExp[] = [
   // Active choices - simple form
-  /\b(let'?s use|let'?s go with|going with|will use|should use)\s+([^.,!?\n]+)/gi,
-  /\b(decided on|decided to use|decided to go with|decided to)\s+([^.,!?\n]+)/gi,
-  /\b(chose|choose|selected|opting for|picked)\s+([^.,!?\n]+)/gi,
+  /\b(let'?s use|let'?s go with|going with|will use|should use)\s+([^.!?\n]+)/gi,
+  /\b(decided on|decided to use|decided to go with|decided to)\s+([^.!?\n]+)/gi,
+  /\b(chose|choose|selected|opting for|picked)\s+([^.!?\n]+)/gi,
   // Using X for Y
-  /\b(using)\s+([^.,!?\n]+)\s+for\s+/gi,
+  /\b(using)\s+([^.!?\n]+)\s+for\s+/gi,
   // Comparison choices: "X over Y" or "X instead of Y"
   /\b(chose|prefer|selected|going with)\s+([\w][\w\s-]*?)\s+over\s+([\w][\w\s-]*)/gi,
   /\b(chose|prefer|selected|going with)\s+([\w][\w\s-]*?)\s+instead of\s+([\w][\w\s-]*)/gi,
   // Implementation decisions
-  /\b(implementing|implement)\s+([^.,!?\n]+?)\s+(?:approach|pattern|solution)/gi,
-  /\b(?:the|our)\s+(?:approach|decision|choice)\s+is\s+([^.,!?\n]+)/gi,
+  /\b(implementing|implement)\s+([^.!?\n]+?)\s+(?:approach|pattern|solution)/gi,
+  /\b(?:the|our)\s+(?:approach|decision|choice)\s+is\s+([^.!?\n]+)/gi,
   // I/We decided
-  /\bI\s+(decided|chose)\s+([^.,!?\n]+)/gi,
+  /\bI\s+(decided|chose)\s+([^.!?\n]+)/gi,
 ];
 
 /**
  * Preference patterns - user stating preferences
  */
 const PREFERENCE_PATTERNS: RegExp[] = [
-  /\bi (prefer|like|always use|never use|want|favor)\s+([^.,!?\n]+)/gi,
-  /\bi'd prefer\s+([^.,!?\n]+)/gi,
-  /\b(my preference is|I'd rather|rather use)\s+([^.,!?\n]+)/gi,
-  /\b(style should be|convention is|naming should)\s+([^.,!?\n]+)/gi,
-  /\b(always|never)\s+(use|do|add|include)\s+([^.,!?\n]+)/gi,
-  /\bdon't\s+(use|like|want)\s+([^.,!?\n]+)/gi,
+  /\bi (prefer|like|always use|never use|want|favor)\s+([^.!?\n]+)/gi,
+  /\bi'd prefer\s+([^.!?\n]+)/gi,
+  /\b(my preference is|I'd rather|rather use)\s+([^.!?\n]+)/gi,
+  /\b(style should be|convention is|naming should)\s+([^.!?\n]+)/gi,
+  /\b(always|never)\s+(use|do|add|include)\s+([^.!?\n]+)/gi,
+  /\bdon't\s+(use|like|want)\s+([^.!?\n]+)/gi,
 ];
 
 /**
@@ -104,10 +104,10 @@ const PREFERENCE_PATTERNS: RegExp[] = [
 const PROBLEM_PATTERNS: RegExp[] = [
   /\b(issue|problem|error|bug|doesn't work|isn't working|can't|failing|broken)\b[^.!?\n]*[.!?]?/gi,
   /\bthe (\w[\w\s-]*) (is broken|isn't working|fails|errors|crashes)/gi,
-  /\b(getting|seeing|having)\s+(an error|errors|issues|problems)\s+(with|in|when)\s+([^.,!?\n]+)/gi,
-  /\b(fails|failed|failing)\s+(to|when|with)\s+([^.,!?\n]+)/gi,
+  /\b(getting|seeing|having)\s+(an error|errors|issues|problems)\s+(with|in|when)\s+([^.!?\n]+)/gi,
+  /\b(fails|failed|failing)\s+(to|when|with)\s+([^.!?\n]+)/gi,
   /\b(not working|doesn't work|won't work)\s*([^.,!?\n]*)/gi,
-  /\b(timeout|exception|crash|hang|freeze)\s+(in|with|when|on)\s+([^.,!?\n]+)/gi,
+  /\b(timeout|exception|crash|hang|freeze)\s+(in|with|when|on)\s+([^.!?\n]+)/gi,
 ];
 
 
@@ -134,14 +134,14 @@ const QUESTION_PATTERNS: RegExp[] = [
  * Each pattern should have the rationale in group 1
  */
 const RATIONALE_PATTERNS: RegExp[] = [
-  /\bbecause\s+([^.,!?\n]+)/i,
-  /\bsince\s+([^.,!?\n]+)/i,
-  /\bdue to\s+([^.,!?\n]+)/i,
-  /\bto avoid\s+([^.,!?\n]+)/i,
-  /\bfor\s+(?:better|improved|faster|easier|simpler)\s+([^.,!?\n]+)/i,
-  /\bso that\s+([^.,!?\n]+)/i,
-  /\bin order to\s+([^.,!?\n]+)/i,
-  /\bas it\s+([^.,!?\n]+)/i,
+  /\bbecause\s+([^.!?\n]+)/i,
+  /\bsince\s+([^.!?\n]+)/i,
+  /\bdue to\s+([^.!?\n]+)/i,
+  /\bto avoid\s+([^.!?\n]+)/i,
+  /\bfor\s+(?:better|improved|faster|easier|simpler)\s+([^.!?\n]+)/i,
+  /\bso that\s+([^.!?\n]+)/i,
+  /\bin order to\s+([^.!?\n]+)/i,
+  /\bas it\s+([^.!?\n]+)/i,
 ];
 
 /**
@@ -149,9 +149,9 @@ const RATIONALE_PATTERNS: RegExp[] = [
  * Group 1 or 2 captures the constraint text
  */
 const CONSTRAINT_PATTERNS: RegExp[] = [
-  /\b(?:must|need to|required|constraint|requirement)\s+([^.,!?\n]+)/gi,
-  /\b(?:have to|has to)\s+([^.,!?\n]+)/gi,
-  /\b(?:mandatory|essential)\s+([^.,!?\n]+)/gi,
+  /\b(?:must|need to|required|constraint|requirement)\s+([^.!?\n]+)/gi,
+  /\b(?:have to|has to)\s+([^.!?\n]+)/gi,
+  /\b(?:mandatory|essential)\s+([^.!?\n]+)/gi,
 ];
 
 /**
@@ -159,11 +159,11 @@ const CONSTRAINT_PATTERNS: RegExp[] = [
  * Group 1 or 2 captures the tradeoff text
  */
 const TRADEOFF_PATTERNS: RegExp[] = [
-  /\b(?:tradeoff|trade-off|downside|drawback)\s*:?\s+([^.,!?\n]+)/gi,
-  /\bbut\s+([^.,!?\n]+)/gi,
-  /\bhowever\s+([^.,!?\n]+)/gi,
-  /\balthough\s+([^.,!?\n]+)/gi,
-  /\b(?:cost|limitation)\s+is\s+([^.,!?\n]+)/gi,
+  /\b(?:tradeoff|trade-off|downside|drawback)\s*:?\s+([^.!?\n]+)/gi,
+  /\bbut\s+([^.!?\n]+)/gi,
+  /\bhowever\s+([^.!?\n]+)/gi,
+  /\balthough\s+([^.!?\n]+)/gi,
+  /\b(?:cost|limitation)\s+is\s+([^.!?\n]+)/gi,
 ];
 
 /**

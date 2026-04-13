@@ -235,15 +235,15 @@ describe('inferWorkflowPattern', () => {
     expect(inferWorkflowPattern(actions)).toBe('agent-delegate');
   });
 
-  it('detects agent-delegate pattern by ratio > 0.3', () => {
+  it('detects agent-delegate pattern by count >= 3 AND ratio > 0.4', () => {
     const actions: ToolAction[] = [
       makeAction({ category: 'agent' }),
       makeAction({ category: 'agent' }),
-      makeAction({ category: 'exploration' }),
+      makeAction({ category: 'agent' }),
       makeAction({ category: 'exploration' }),
       makeAction({ category: 'exploration' }),
     ];
-    // 2/5 = 0.4 > 0.3
+    // 3/5 = 0.6 > 0.4, count >= 3
     expect(inferWorkflowPattern(actions)).toBe('agent-delegate');
   });
 
