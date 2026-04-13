@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.41.2",
+    "date": "2026-04-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** sync stale hook count 169→172 across README, hooks.json description, and GitHub repo about"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.41.1",
     "date": "2026-04-13",
     "compareUrl": "",
