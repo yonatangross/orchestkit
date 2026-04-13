@@ -9,6 +9,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
+from fastapi.responses import JSONResponse
 from pydantic_settings import BaseSettings
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
@@ -218,10 +219,16 @@ def create_app() -> FastAPI:
         """Database health check endpoint."""
         try:
             result = await check_db_health()
-            status_code = 200 if result["status"] == "healthy" else 503
-            return result, status_code
+            is_healthy = result.get("status") == "healthy"
+            return JSONResponse(
+                content={"status": "healthy" if is_healthy else "unhealthy"},
+                status_code=200 if is_healthy else 503,
+            )
         except Exception:
-            return {"status": "unhealthy"}, 503
+            return JSONResponse(
+                content={"status": "unhealthy"},
+                status_code=503,
+            )
 
     return app
 
