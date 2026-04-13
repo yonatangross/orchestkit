@@ -37,7 +37,7 @@ function getCurrentBranch(projectDir: string): string {
       cwd: projectDir,
       encoding: 'utf-8',
       timeout: 500,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return '';

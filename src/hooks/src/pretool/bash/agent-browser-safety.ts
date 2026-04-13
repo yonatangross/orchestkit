@@ -331,7 +331,7 @@ function fetchRobotsTxt(origin: string): RobotsCacheEntry | null {
     const result = execFileSync('curl', ['-sL', '--max-time', '5', robotsUrl], {
       encoding: 'utf-8',
       timeout: 6000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     const disallowed = parseRobotsTxt(result);

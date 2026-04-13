@@ -23,7 +23,7 @@ function getCurrentBranch(): string | null {
     return execSync('git rev-parse --abbrev-ref HEAD', {
       encoding: 'utf8',
       timeout: 3000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return null;
@@ -35,7 +35,7 @@ function getRecentCommitSubject(): string | null {
     return execSync('git log -1 --format=%s', {
       encoding: 'utf8',
       timeout: 3000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return null;

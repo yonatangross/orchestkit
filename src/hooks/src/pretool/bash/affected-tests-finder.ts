@@ -54,7 +54,7 @@ function getChangedFiles(projectDir: string): string[] {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     return result

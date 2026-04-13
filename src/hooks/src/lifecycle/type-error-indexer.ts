@@ -94,7 +94,7 @@ export function typeErrorIndexer(input: HookInput, ctx: HookContext = NOOP_CTX):
       cwd: projectDir,
       timeout: TSC_TIMEOUT_MS,
       encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     // No errors — write empty cache

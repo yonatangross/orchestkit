@@ -26,7 +26,7 @@ function getWorktrees(): string[] {
     const output = execFileSync('git', ['worktree', 'list', '--porcelain'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     return output
@@ -47,7 +47,7 @@ function getWorktreeBranch(worktree: string): string {
       cwd: worktree,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return 'unknown';
@@ -63,7 +63,7 @@ function isFileModified(worktree: string, relPath: string): boolean {
       cwd: worktree,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return /^.M|^M.|^A/.test(status);
   } catch {
@@ -82,7 +82,7 @@ function getBranchDivergence(baseBranch: string, currentBranch: string): { ahead
       execFileSync('git', ['rev-list', '--count', `${safeBase}..${safeCurrent}`], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim(),
       10
     );
@@ -90,7 +90,7 @@ function getBranchDivergence(baseBranch: string, currentBranch: string): { ahead
       execFileSync('git', ['rev-list', '--count', `${safeCurrent}..${safeBase}`], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim(),
       10
     );

@@ -62,7 +62,7 @@ function runCheckWithArgs(name: string, cmd: string, args: string[], projectDir:
       cwd: projectDir,
       encoding: 'utf8',
       timeout: timeoutMs,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return { name, passed: true, output: '', durationMs: Date.now() - start };
   } catch (err: unknown) {

@@ -60,7 +60,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Python version
   try {
-    const result = execFileSync('python3', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = execFileSync('python3', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     const match = result.match(/(\d+\.\d+)/);
     if (match) {
       envInfo.python = match[1];
@@ -72,7 +72,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Node.js version
   try {
-    const result = execFileSync('node', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = execFileSync('node', ['--version'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     const match = result.match(/(\d+\.\d+)/);
     if (match) {
       envInfo.nodejs = match[1];
@@ -84,7 +84,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Git
   try {
-    execFileSync('which', ['git'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['git'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     envInfo.git = true;
     logHook('first-run-setup', 'Git: available');
   } catch {
@@ -93,7 +93,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect Docker
   try {
-    execFileSync('which', ['docker'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['docker'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     envInfo.docker = true;
     logHook('first-run-setup', 'Docker: available');
   } catch {
@@ -102,7 +102,7 @@ function detectEnvironment(): EnvironmentInfo {
 
   // Detect SQLite3
   try {
-    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     envInfo.sqlite3 = true;
     logHook('first-run-setup', 'SQLite3: available (multi-instance coordination enabled)');
   } catch {
@@ -123,21 +123,21 @@ function validateDependencies(): { valid: boolean; missing: string[]; warnings: 
 
   // Required: jq
   try {
-    execFileSync('which', ['jq'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['jq'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   } catch {
     missing.push('jq (required for JSON processing)');
   }
 
   // Optional: sqlite3
   try {
-    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['sqlite3'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   } catch {
     warnings.push('sqlite3 not found - multi-instance coordination disabled');
   }
 
   // Optional: anthropic SDK
   try {
-    execFileSync('python3', ['-c', 'import anthropic'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('python3', ['-c', 'import anthropic'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     logHook('first-run-setup', 'Anthropic SDK: available (Memory Fabric Agent enabled)');
   } catch {
     warnings.push('anthropic SDK not found - Memory Fabric Agent will use fallback mode');

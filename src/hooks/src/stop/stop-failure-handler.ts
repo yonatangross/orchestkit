@@ -107,7 +107,7 @@ export async function stopFailureHandler(input: HookInput, ctx: HookContext = NO
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 3000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim();
       if (status) {
         modifiedFiles = status.split('\n').map(l => l.trim());

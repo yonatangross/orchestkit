@@ -177,7 +177,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 2000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     // Git email not configured
@@ -188,7 +188,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 2000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     // Git name not configured

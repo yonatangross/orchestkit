@@ -35,7 +35,7 @@ let _hasAfplay: boolean | null = null;
 function hasAfplay(): boolean {
   if (_hasAfplay !== null) return _hasAfplay;
   try {
-    execFileSync('which', ['afplay'], { stdio: 'ignore' });
+    execFileSync('which', ['afplay'], { stdio: 'ignore', windowsHide: true });
     _hasAfplay = true;
   } catch {
     _hasAfplay = false;
@@ -54,7 +54,7 @@ function getLinuxPlayer(): string | null {
   if (_linuxPlayer !== undefined) return _linuxPlayer;
   for (const player of ['pw-play', 'paplay', 'aplay']) {
     try {
-      execFileSync('which', [player], { stdio: 'ignore' });
+      execFileSync('which', [player], { stdio: 'ignore', windowsHide: true });
       _linuxPlayer = player;
       return player;
     } catch {
@@ -84,7 +84,7 @@ function playSound(player: string, soundFile: string): void {
     // Spawn detached process so sound continues playing even after
     // this Node process exits (critical for async hooks).
     const child = spawn(player, [soundFile], {
-      stdio: 'ignore',
+      stdio: 'ignore', windowsHide: true,
       detached: true,
     });
     child.unref();

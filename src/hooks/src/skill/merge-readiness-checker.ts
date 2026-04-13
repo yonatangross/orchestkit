@@ -22,7 +22,7 @@ function gitExec(args: string[], cwd?: string): string {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',
       timeout: 30000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return '';

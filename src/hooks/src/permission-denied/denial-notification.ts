@@ -121,9 +121,9 @@ function sendDesktopNotification(title: string, message: string): void {
       execFileSync('osascript', [
         '-e',
         `display notification "${escapeAppleScript(message)}" with title "${escapeAppleScript(title)}"`,
-      ], { timeout: 3000, stdio: 'ignore' });
+      ], { timeout: 3000, stdio: 'ignore', windowsHide: true });
     } else if (os === 'linux') {
-      execFileSync('notify-send', [title, message], { timeout: 3000, stdio: 'ignore' });
+      execFileSync('notify-send', [title, message], { timeout: 3000, stdio: 'ignore', windowsHide: true });
     }
   } catch {
     logHook(HOOK_NAME, 'Failed to send desktop notification');

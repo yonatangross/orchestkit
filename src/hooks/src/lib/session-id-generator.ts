@@ -64,7 +64,7 @@ export function getGitBranchForSession(projectDir?: string): string {
       cwd: dir,
       encoding: 'utf8',
       timeout: 2000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
 
     const sanitized = sanitizeName(branch || 'detached', MAX_BRANCH_LENGTH);

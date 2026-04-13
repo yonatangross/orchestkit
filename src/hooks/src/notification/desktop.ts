@@ -38,7 +38,7 @@ function hasCommand(command: string): boolean {
   if (cached !== undefined) return cached;
   try {
     assertSafeCommandName(command);
-    execFileSync('which', [command], { stdio: 'ignore' });
+    execFileSync('which', [command], { stdio: 'ignore', windowsHide: true });
     _commandCache.set(command, true);
     return true;
   } catch {
@@ -130,7 +130,7 @@ function sendMacNotification(
     const m = escapeForAppleScript(truncateMessage(message));
     // Display notification only — never steal focus from the user's current app
     const script = `display notification "${m}" with title "${t}" subtitle "${s}"`;
-    const child = spawn('osascript', ['-e', script], { stdio: 'ignore', detached: true });
+    const child = spawn('osascript', ['-e', script], { stdio: 'ignore', windowsHide: true, detached: true });
     child.unref();
     return true;
   } catch {
@@ -144,7 +144,7 @@ function sendMacNotification(
 function sendLinuxNotification(title: string, subtitle: string, message: string): boolean {
   try {
     const fullMessage = `${subtitle}\n${message}`;
-    const child = spawn('notify-send', ['--', title, fullMessage], { stdio: 'ignore', detached: true });
+    const child = spawn('notify-send', ['--', title, fullMessage], { stdio: 'ignore', windowsHide: true, detached: true });
     child.unref();
     return true;
   } catch {

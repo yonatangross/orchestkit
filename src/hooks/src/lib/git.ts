@@ -18,7 +18,7 @@ export function gitExec(args: string[], cwd?: string, timeout = 10000): string {
       cwd: cwd || getProjectDir(),
       encoding: 'utf8',
       timeout,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return '';
@@ -35,7 +35,7 @@ export function getCurrentBranch(projectDir?: string): string {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return 'unknown';
@@ -81,7 +81,7 @@ export function getRepoRoot(projectDir?: string): string {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return dir;
@@ -98,7 +98,7 @@ export function isGitRepo(projectDir?: string): boolean {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return true;
   } catch {
@@ -116,7 +116,7 @@ export function getGitStatus(projectDir?: string): string {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return '';
@@ -140,7 +140,7 @@ export function getDirtyFileCount(projectDir?: string): number {
       cwd: dir,
       encoding: 'utf8',
       timeout: 3000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return output.trim().split('\n').filter(l => l.trim()).length;
   } catch {
@@ -159,7 +159,7 @@ export function getDefaultBranch(projectDir?: string): string {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return 'main';
   } catch {
@@ -169,7 +169,7 @@ export function getDefaultBranch(projectDir?: string): string {
         cwd: dir,
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       });
       return 'master';
     } catch {
@@ -216,7 +216,7 @@ export function getStagedFiles(projectDir?: string): string[] {
       cwd: dir,
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];
   } catch {
@@ -238,7 +238,7 @@ export function getStagedSourceFiles(filter = 'ACMR'): string[] {
       cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     return output ? output.split('\n').filter((f) => f.trim()) : [];
   } catch {

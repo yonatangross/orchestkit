@@ -179,7 +179,7 @@ describe('notification/sound', () => {
       soundNotification(input, testCtx);
 
       // Assert
-      expect(execFileSync).toHaveBeenCalledWith('which', ['afplay'], { stdio: 'ignore' });
+      expect(execFileSync).toHaveBeenCalledWith('which', ['afplay'], { stdio: 'ignore', windowsHide: true });
     });
 
     test('does not play sound when afplay is not available (and no Linux player)', () => {

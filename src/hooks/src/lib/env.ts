@@ -96,7 +96,7 @@ export function getCachedBranch(projectDir?: string): string {
       cwd: projectDir || getProjectDir(),
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     process.env.ORCHESTKIT_BRANCH = branch;
     return branch;

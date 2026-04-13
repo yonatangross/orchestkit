@@ -29,6 +29,7 @@ function shouldRunTests(projectDir: string, ctx: HookContext): boolean {
       encoding: 'utf8',
       timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
     });
 
     if (/\.(py|js|ts|go|rs)$/.test(result)) {

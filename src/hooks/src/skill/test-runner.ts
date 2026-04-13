@@ -55,12 +55,12 @@ export function testRunner(input: HookInput, _ctx: HookContext = NOOP_CTX): Hook
       // Check for poetry
       if (existsSync(`${dir}/pyproject.toml`)) {
         try {
-          execSync('command -v poetry', { stdio: ['pipe', 'pipe', 'pipe'] }); // shell required: `command -v` is a shell builtin
+          execSync('command -v poetry', { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true }); // shell required: `command -v` is a shell builtin
           const result = execFileSync('poetry', ['run', 'pytest', filePath, '-v', '--tb=short'], {
             cwd: dir,
             encoding: 'utf8',
             timeout: 60000,
-            stdio: ['pipe', 'pipe', 'pipe'],
+            stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
           });
           const lines = result.split('\n').slice(-30);
           process.stderr.write(`${lines.join('\n')}\n`);
@@ -71,12 +71,12 @@ export function testRunner(input: HookInput, _ctx: HookContext = NOOP_CTX): Hook
 
       // Try pytest directly
       try {
-        execSync('command -v pytest', { stdio: ['pipe', 'pipe', 'pipe'] }); // shell required: `command -v` is a shell builtin
+        execSync('command -v pytest', { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true }); // shell required: `command -v` is a shell builtin
         const result = execFileSync('pytest', [filePath, '-v', '--tb=short'], {
           cwd: dir,
           encoding: 'utf8',
           timeout: 60000,
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
         });
         const lines = result.split('\n').slice(-30);
         process.stderr.write(`${lines.join('\n')}\n`);
@@ -110,7 +110,7 @@ export function testRunner(input: HookInput, _ctx: HookContext = NOOP_CTX): Hook
           cwd: projectRoot,
           encoding: 'utf8',
           timeout: 60000,
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
         });
         const lines = result.split('\n').slice(-30);
         process.stderr.write(`${lines.join('\n')}\n`);

@@ -89,7 +89,7 @@ function fetchAndCacheIssue(issueNum: string, projectDir: string): IssueData | n
         cwd: projectDir,
         encoding: 'utf8',
         timeout: GH_TIMEOUT_MS,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }
     ).trim();
 

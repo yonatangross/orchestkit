@@ -21,7 +21,7 @@ export function safeExec(cmd: string, cwd: string, timeoutMs = 5000): string {
       cwd,
       encoding: 'utf8',
       timeout: timeoutMs,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return '';

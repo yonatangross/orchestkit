@@ -60,7 +60,7 @@ export function migrationValidator(input: HookInput, hookCtx: HookContext = NOOP
     execFileSync('python3', ['-m', 'py_compile', filePath], {
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
   } catch {
     errors.push('Python syntax error in migration');

@@ -28,8 +28,8 @@ interface IssueProgress {
  */
 function isGhAvailable(): boolean {
   try {
-    execFileSync('which', ['gh'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-    execFileSync('gh', ['auth', 'status'], { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['gh'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    execFileSync('gh', ['auth', 'status'], { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     return true;
   } catch {
     return false;
@@ -45,7 +45,7 @@ function isGitHubRepo(projectDir: string): boolean {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return remote.includes('github');
   } catch {
@@ -95,7 +95,7 @@ function postComment(issueNum: string, comment: string): boolean {
       input: comment,
       encoding: 'utf8',
       timeout: 30000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return true;
   } catch {
@@ -166,7 +166,7 @@ export function issueWorkSummary(input: HookInput, ctx: HookContext = NOOP_CTX):
       execFileSync('gh', ['issue', 'view', assertSafeIssueNumber(issueNum), '--json', 'number'], {
         encoding: 'utf8',
         timeout: 10000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       });
     } catch {
       ctx.log('issue-work-summary', `Issue #${issueNum} not found or not accessible, skipping`);

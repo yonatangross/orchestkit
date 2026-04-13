@@ -28,7 +28,7 @@ function getRecentCommits(projectDir: string, since?: string): string[] {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     return result.split('\n').filter(Boolean);

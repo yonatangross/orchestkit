@@ -117,7 +117,7 @@ function getUncheckedTasks(issueNum: string): string[] {
     const body = execFileSync('gh', ['issue', 'view', issueNum, '--json', 'body', '-q', '.body'], {
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     // Extract unchecked checkbox items: - [ ] text
@@ -148,7 +148,7 @@ function updateCheckbox(issueNum: string, checkboxText: string): boolean {
     const body = execFileSync('gh', ['issue', 'view', issueNum, '--json', 'body', '-q', '.body'], {
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     // Escape special regex characters in checkbox text
@@ -170,12 +170,12 @@ function updateCheckbox(issueNum: string, checkboxText: string): boolean {
     const repo = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
 
     // Update issue body via API (use --input for safe body passing)
     execFileSync('gh', ['api', '-X', 'PATCH', `repos/${repo}/issues/${issueNum}`, '-f', `body=${updatedBody}`], {
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       timeout: 10000,
     });
 
@@ -238,7 +238,7 @@ export function issueSubtaskUpdater(input: HookInput, ctx: HookContext = NOOP_CT
 
   // Check if gh CLI is available
   try {
-    execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
+    execFileSync('which', ['gh'], { stdio: 'ignore', windowsHide: true, timeout: 2000 });
   } catch {
     ctx.log('issue-subtask-updater', 'gh CLI not available, skipping subtask updates');
     return outputSilentSuccess();
@@ -249,7 +249,7 @@ export function issueSubtaskUpdater(input: HookInput, ctx: HookContext = NOOP_CT
     const remote = execFileSync('git', ['remote', 'get-url', 'origin'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     if (!remote.includes('github')) {
       ctx.log('issue-subtask-updater', 'Not a GitHub repository, skipping');
@@ -267,13 +267,13 @@ export function issueSubtaskUpdater(input: HookInput, ctx: HookContext = NOOP_CT
     branch = execFileSync('git', ['branch', '--show-current'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
 
     commitMsg = execFileSync('git', ['log', '-1', '--pretty=%s'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
     return outputSilentSuccess();

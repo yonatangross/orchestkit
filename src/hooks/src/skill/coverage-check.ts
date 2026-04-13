@@ -41,7 +41,7 @@ export function coverageCheck(_input: HookInput, ctx: HookContext = NOOP_CTX): H
         cwd: projectDir,
         encoding: 'utf8',
         timeout: 30000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       });
 
       const totalLine = result.split('\n').find((line) => line.includes('TOTAL'));

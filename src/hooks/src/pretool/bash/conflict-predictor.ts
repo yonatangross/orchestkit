@@ -24,7 +24,7 @@ function getPotentialConflicts(projectDir: string, targetBranch: string): string
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 10000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 
     const changedFiles = result.trim().split('\n').filter(Boolean);
@@ -40,7 +40,7 @@ function getPotentialConflicts(projectDir: string, targetBranch: string): string
             cwd: projectDir,
             encoding: 'utf8',
             timeout: 5000,
-            stdio: ['pipe', 'pipe', 'pipe'],
+            stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
           }
         );
 

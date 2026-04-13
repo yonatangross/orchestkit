@@ -38,7 +38,7 @@ function getModifiedFiles(projectDir: string): string[] {
       encoding: 'utf8',
       timeout: 3000,
       cwd: projectDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return output.trim().split('\n').filter(Boolean).slice(0, 30);
   } catch {

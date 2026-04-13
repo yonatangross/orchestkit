@@ -38,7 +38,7 @@ function runNpmAudit(projectDir: string, resultsDir: string): { critical: number
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
   } catch (error: any) {
     // npm audit returns non-zero on vulnerabilities, capture output
@@ -68,7 +68,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
   }
 
   try {
-    execFileSync('which', ['pip-audit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['pip-audit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   } catch {
     logHook('security-scan', 'pip-audit not installed, skipping');
     return null;
@@ -80,7 +80,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     writeFileSync(`${resultsDir}/pip-audit.json`, result);
     const parsed = JSON.parse(result);
@@ -96,7 +96,7 @@ function runPipAudit(projectDir: string, resultsDir: string): number | null {
  */
 function runSemgrep(projectDir: string, resultsDir: string): number | null {
   try {
-    execFileSync('which', ['semgrep'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['semgrep'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   } catch {
     logHook('security-scan', 'semgrep not installed, skipping');
     return null;
@@ -108,7 +108,7 @@ function runSemgrep(projectDir: string, resultsDir: string): number | null {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 300000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     writeFileSync(`${resultsDir}/semgrep.json`, result);
     const parsed = JSON.parse(result);
@@ -131,7 +131,7 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     if (!hasPython && !existsSync(`${projectDir}/backend`)) {
       return null;
@@ -141,7 +141,7 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
   }
 
   try {
-    execFileSync('which', ['bandit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    execFileSync('which', ['bandit'], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   } catch {
     logHook('security-scan', 'bandit not installed, skipping');
     return null;
@@ -153,7 +153,7 @@ function runBandit(projectDir: string, resultsDir: string): number | null {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 120000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     logHook('security-scan', 'bandit complete');
     return 0;

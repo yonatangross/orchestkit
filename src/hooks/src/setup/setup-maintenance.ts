@@ -117,7 +117,7 @@ function taskLogRotation(pluginRoot: string): void {
 
             // Try to gzip (use execFileSync to avoid shell injection via filenames)
             try {
-              execFileSync('gzip', [rotatedName], { stdio: ['pipe', 'pipe', 'pipe'] });
+              execFileSync('gzip', [rotatedName], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
             } catch {
               // gzip not available
             }
@@ -160,13 +160,13 @@ function taskStaleLockCleanup(pluginRoot: string): void {
     try {
       execFileSync('sqlite3', [coordDb, "DELETE FROM file_locks WHERE datetime(acquired_at) < datetime('now', '-24 hours');"], {
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       });
 
       const lockCount = execFileSync('sqlite3', [coordDb, "SELECT COUNT(*) FROM file_locks;"], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).toString().trim();
 
       logHook('setup-maintenance', `Coordination locks remaining: ${lockCount}`);

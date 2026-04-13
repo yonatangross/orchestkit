@@ -125,7 +125,7 @@ function getCCVersion(): string {
     const output = execFileSync('claude', ['--version'], {
       encoding: 'utf-8',
       timeout: 2000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     const match = output.match(/(\d+\.\d+\.\d+)/);
     if (match) return match[1];

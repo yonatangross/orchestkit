@@ -81,13 +81,13 @@ function getCurrentBranch(): string {
       return execFileSync('git', ['branch', '--show-current'], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim();
     } catch {
       return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim();
     }
   } catch {
@@ -103,19 +103,19 @@ function getLatestCommit(): CommitInfo | null {
     const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
 
     const message = execFileSync('git', ['log', '-1', '--pretty=%s'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
 
     const timestamp = execFileSync('git', ['log', '-1', '--pretty=%cI'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim() || new Date().toISOString();
 
     return { sha, message, timestamp };
@@ -202,7 +202,7 @@ export function issueProgressCommenter(input: HookInput, ctx: HookContext = NOOP
 
   // Check if gh CLI is available
   try {
-    execFileSync('which', ['gh'], { stdio: 'ignore', timeout: 2000 });
+    execFileSync('which', ['gh'], { stdio: 'ignore', windowsHide: true, timeout: 2000 });
   } catch {
     ctx.log('issue-progress-commenter', 'gh CLI not available, skipping issue progress tracking');
     return outputSilentSuccess();
@@ -213,7 +213,7 @@ export function issueProgressCommenter(input: HookInput, ctx: HookContext = NOOP
     const remote = execFileSync('git', ['remote', 'get-url', 'origin'], {
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     if (!remote.includes('github')) {
       ctx.log('issue-progress-commenter', 'Not a GitHub repository, skipping');
@@ -239,7 +239,7 @@ export function issueProgressCommenter(input: HookInput, ctx: HookContext = NOOP
       const commitMsg = execFileSync('git', ['log', '-1', '--pretty=%s'], {
         encoding: 'utf8',
         timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
       }).trim();
       issueNum = extractIssueFromCommit(commitMsg);
     } catch {
@@ -257,7 +257,7 @@ export function issueProgressCommenter(input: HookInput, ctx: HookContext = NOOP
 
   // Verify issue exists (quick check)
   try {
-    execFileSync('gh', ['issue', 'view', issueNum, '--json', 'number'], { stdio: ['pipe', 'pipe', 'pipe'], timeout: 5000 });
+    execFileSync('gh', ['issue', 'view', issueNum, '--json', 'number'], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, timeout: 5000 });
   } catch {
     ctx.log('issue-progress-commenter', `Issue #${issueNum} not found or not accessible`);
     return outputSilentSuccess();

@@ -21,7 +21,7 @@ function getGitBranch(projectDir: string): string | undefined {
       cwd: projectDir,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
     return branch || undefined;
   } catch {

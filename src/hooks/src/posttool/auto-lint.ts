@@ -49,7 +49,7 @@ function getLanguage(filePath: string): string | null {
 function commandExists(cmd: string): boolean {
   try {
     assertSafeCommandName(cmd);
-    execFileSync('which', [cmd], { stdio: 'ignore' });
+    execFileSync('which', [cmd], { stdio: 'ignore', windowsHide: true });
     return true;
   } catch {
     return false;
@@ -119,12 +119,12 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
             const ruffCheck = execFileSync('ruff', ['check', '--output-format=concise', safePath], {
               encoding: 'utf8',
               timeout: 5000,
-              stdio: ['pipe', 'pipe', 'pipe'],
+              stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
             });
             if (ruffCheck) {
               lintIssues = ruffCheck.split('\n').filter(Boolean).length;
               execFileSync('ruff', ['check', '--fix', '--unsafe-fixes=false', safePath], {
-                stdio: 'ignore',
+                stdio: 'ignore', windowsHide: true,
                 timeout: 5000,
               });
               fixesApplied = true;
@@ -133,7 +133,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
             // ruff check returns non-zero when issues found
           }
           try {
-            execFileSync('ruff', ['format', safePath], { stdio: 'ignore', timeout: 5000 });
+            execFileSync('ruff', ['format', safePath], { stdio: 'ignore', windowsHide: true, timeout: 5000 });
           } catch {
             // Ignore format errors
           }
@@ -147,7 +147,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
             const biomeOut = execFileSync('biome', ['check', '--write', safePath], {
               encoding: 'utf8',
               timeout: 5000,
-              stdio: ['pipe', 'pipe', 'pipe'],
+              stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
             });
             if (biomeOut.includes('Fixed')) {
               fixesApplied = true;
@@ -161,7 +161,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
         } else if (commandExists('prettier')) {
           try {
             execFileSync('prettier', ['--write', safePath], {
-              stdio: 'ignore',
+              stdio: 'ignore', windowsHide: true,
               timeout: 5000,
             });
             fixesApplied = true;
@@ -176,7 +176,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
         if (commandExists('biome')) {
           try {
             execFileSync('biome', ['format', '--write', safePath], {
-              stdio: 'ignore',
+              stdio: 'ignore', windowsHide: true,
               timeout: 5000,
             });
             fixesApplied = true;
@@ -186,7 +186,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
         } else if (commandExists('prettier')) {
           try {
             execFileSync('prettier', ['--write', safePath], {
-              stdio: 'ignore',
+              stdio: 'ignore', windowsHide: true,
               timeout: 5000,
             });
             fixesApplied = true;
@@ -205,7 +205,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
     try {
       const hashAfter = createHash('sha256').update(readFileSync(safePath)).digest('hex');
       if (hashBefore !== hashAfter) {
-        execFileSync('git', ['add', safePath], { stdio: 'ignore', timeout: 5000 });
+        execFileSync('git', ['add', safePath], { stdio: 'ignore', windowsHide: true, timeout: 5000 });
       }
     } catch {
       // Silently fail if not in a git repo

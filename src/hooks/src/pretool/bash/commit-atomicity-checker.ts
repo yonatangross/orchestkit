@@ -94,7 +94,7 @@ function getStagedFiles(cwd: string): string[] | null {
       cwd,
       encoding: 'utf8',
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return output.trim().split('\n').filter(Boolean);
   } catch {

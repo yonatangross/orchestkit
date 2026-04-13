@@ -140,7 +140,7 @@ function getRecentlyEditedFiles(): string[] {
       encoding: 'utf8',
       timeout: 3000,
       cwd: getProjectDir(),
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     return output.trim().split('\n').filter(Boolean).slice(0, 20);
   } catch {
