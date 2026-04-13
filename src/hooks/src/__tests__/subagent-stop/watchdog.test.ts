@@ -20,6 +20,7 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
     tool_name: 'Agent',
     session_id: 'test-session',
+    tool_input: {},
     agent_id: 'completed-agent-001',
     subagent_type: 'test-generator',
     ...overrides,
