@@ -103,8 +103,13 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
   // (assertSafeShellArg rejects paths with spaces, breaking user projects)
   const safePath = fullPath;
 
-  // Hash file content before formatting to detect actual changes
-  const hashBefore = createHash('sha256').update(readFileSync(safePath)).digest('hex');
+  let hashBefore = '';
+  try {
+    // Hash file content before formatting to detect actual changes
+    hashBefore = createHash('sha256').update(readFileSync(safePath)).digest('hex');
+  } catch {
+    return outputSilentSuccess(); // File gone between Write and PostToolUse
+  }
 
   try {
     switch (language) {

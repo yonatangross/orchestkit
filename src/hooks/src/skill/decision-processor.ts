@@ -237,9 +237,10 @@ function extractDecisions(output: string): string[] {
  */
 function extractRationale(text: string): string | undefined {
   for (const pattern of RATIONALE_PATTERNS) {
-    const match = text.match(pattern);
-    if (match) {
-      return match[1]?.trim().slice(0, 200);
+    pattern.lastIndex = 0; // Reset for g flag — exec tracks state
+    const match = pattern.exec(text);
+    if (match?.[1]) {
+      return match[1].trim().slice(0, 200);
     }
   }
   return undefined;

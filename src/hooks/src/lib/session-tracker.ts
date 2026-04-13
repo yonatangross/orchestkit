@@ -633,7 +633,7 @@ function sanitizeForStorage(
   depth: number = 0
 ): Record<string, unknown> | undefined {
   if (!obj) return undefined;
-  if (depth > 10) return obj;
+  if (depth > 10) return { _truncated: 'max depth exceeded' };
 
   const sanitized: Record<string, unknown> = {};
   const sensitiveKeys = ['password', 'secret', 'token', 'key', 'credential', 'auth'];

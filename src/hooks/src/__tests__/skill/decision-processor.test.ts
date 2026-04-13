@@ -340,12 +340,11 @@ describe('decision-processor', () => {
       // Act
       const decisions = extractEnrichedDecisions(output);
 
-      // Assert
+      // Assert — rationale MUST be defined (this is the point of the comma fix)
       expect(decisions.length).toBeGreaterThan(0);
-      if (decisions[0].rationale) {
-        expect(decisions[0].rationale).toContain('great indexing');
-        expect(decisions[0].rationale).toContain('well-tested');
-      }
+      expect(decisions[0].rationale).toBeDefined();
+      expect(decisions[0].rationale).toContain('great indexing');
+      expect(decisions[0].rationale).toContain('well-tested');
     });
 
     test.each([
