@@ -10,8 +10,9 @@
  * Toggle off: SKIP_AUTO_LINT=1
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { basename } from 'node:path';
@@ -102,6 +103,9 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
   // (assertSafeShellArg rejects paths with spaces, breaking user projects)
   const safePath = fullPath;
 
+  // Hash file content before formatting to detect actual changes
+  const hashBefore = createHash('sha256').update(readFileSync(safePath)).digest('hex');
+
   try {
     switch (language) {
       case 'python':
@@ -189,6 +193,18 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
     }
   } catch (error) {
     ctx.log('auto-lint', `Error: ${error}`);
+  }
+
+  // Stage file if formatter changed it (breaks edit→format→revert loop)
+  if (fixesApplied) {
+    try {
+      const hashAfter = createHash('sha256').update(readFileSync(safePath)).digest('hex');
+      if (hashBefore !== hashAfter) {
+        execFileSync('git', ['add', safePath], { stdio: 'ignore', timeout: 5000 });
+      }
+    } catch {
+      // Silently fail if not in a git repo
+    }
   }
 
   // Build output message

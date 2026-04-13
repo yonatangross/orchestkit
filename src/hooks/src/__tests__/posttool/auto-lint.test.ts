@@ -9,6 +9,13 @@ vi.mock('node:child_process', () => ({
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => true),
+  readFileSync: vi.fn(() => 'file-content'),
+}));
+
+const mockDigest = vi.fn(() => 'abc123');
+const mockUpdate = vi.fn(() => ({ digest: mockDigest }));
+vi.mock('node:crypto', () => ({
+  createHash: vi.fn(() => ({ update: mockUpdate })),
 }));
 
 vi.mock('node:path', () => {
