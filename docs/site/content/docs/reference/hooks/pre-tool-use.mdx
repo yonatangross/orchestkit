@@ -1,11 +1,11 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (14 hooks)."
+description: "Hooks triggered on PreToolUse events (16 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**14 hooks** registered for the `PreToolUse` lifecycle event.
+**16 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -23,3 +23,5 @@ description: "Hooks triggered on PreToolUse events (14 hooks)."
 | `webhook-forwarder` | `Read` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `headless-responder` | `AskUserQuestion` | 🔇 Silent | Headless AskUserQuestion Responder (CC 2.1.85) |
 | `webhook-forwarder` | `AskUserQuestion` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
+| `cron-guard` | `CronCreate` | 🔇 Silent | Blocks CronCreate in CI/headless environments. |
+| `webhook-forwarder` | `CronCreate` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |

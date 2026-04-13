@@ -896,6 +896,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "fork-pattern.md",
         "handoff-schema.md",
         "mcp-detection.md",
+        "schedule-wakeup.md",
         "tier-fallbacks.md",
         "worktree-agent-pattern.md"
       ]
