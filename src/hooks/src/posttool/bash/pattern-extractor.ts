@@ -161,12 +161,15 @@ function queuePattern(
  * Handle git commit pattern extraction
  */
 function handleGitCommit(command: string, exitCode: number, patternsQueue: string): void {
-  // Extract commit message
+  // Extract commit message (supports -m "...", --message=..., heredoc)
   let commitMsg = '';
   const msgMatch = command.match(/-m\s+["']([^"']+)["']/) ||
+                   command.match(/--message[= ]+["']([^"']+)["']/) ||
+                   command.match(/--message[= ]+([^\s]+)/) ||
+                   command.match(/-m\s+"\$\(cat <<['"]?EOF['"]?\n([\s\S]*?)\nEOF/) ||
                    command.match(/-m\s+([^\s]+)/);
   if (msgMatch) {
-    commitMsg = msgMatch[1];
+    commitMsg = (msgMatch[1] || '').slice(0, 500);
   }
 
   if (!commitMsg) {

@@ -135,7 +135,12 @@ function detectTrailingComma(content: string): string {
  * Detect Python-specific patterns
  */
 function detectPythonPatterns(content: string): { typeHints: boolean; docstringStyle: string } {
-  const hasTypeHints = /\) -> |: [A-Z][a-zA-Z]+(\[|$| =)/.test(content);
+  // Strip comments and docstrings before checking for type hints
+  const codeOnly = content
+    .replace(/"""[\s\S]*?"""/g, '')
+    .replace(/'''[\s\S]*?'''/g, '')
+    .replace(/#[^\n]*/g, '');
+  const hasTypeHints = /\) -> |: [A-Z][a-zA-Z]+(\[|$| =)/.test(codeOnly);
 
   let docstringStyle = 'unknown';
   if (/"""[^"]+"""/.test(content)) {

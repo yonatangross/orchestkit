@@ -13,6 +13,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
@@ -314,12 +315,9 @@ export function feedbackLoop(input: HookInput, _ctx: HookContext = NOOP_CTX): Ho
     return outputSilentSuccess();
   }
 
-  // Generate decision ID
+  // Generate decision ID (collision-safe with parallel agents)
   const dateStr = new Date().toISOString().replace(/[-:T.]/g, '').substring(0, 8);
-  const randomNum = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, '0');
-  const decisionId = `DEC-${dateStr}-${randomNum}`;
+  const decisionId = `DEC-${dateStr}-${randomUUID().slice(0, 8)}`;
 
   // CC 2.1.16: Look up associated task
   const task = getTaskByAgent(agentType);

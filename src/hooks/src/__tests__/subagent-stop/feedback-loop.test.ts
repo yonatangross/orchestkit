@@ -296,7 +296,7 @@ describe('feedback-loop', () => {
       expect(logContent.decisions).toHaveLength(1);
 
       const decision = logContent.decisions[0];
-      expect(decision.decision_id).toMatch(/^DEC-\d+-\d+$/);
+      expect(decision.decision_id).toMatch(/^DEC-\d+-[a-f0-9]+$/);
       expect(decision.made_by.agent_type).toBe('backend-system-architect');
       expect(decision.made_by.instance_id).toBeDefined();
       expect(decision.status).toBe('completed');

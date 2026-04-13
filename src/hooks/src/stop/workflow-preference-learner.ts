@@ -248,12 +248,7 @@ export function workflowPreferenceLearner(input: HookInput, ctx: HookContext = N
   // Complete and archive the flow
   completeDecisionFlow(sessionId);
 
-  // Skip 'mixed' patterns as they don't provide learning value
-  if (flow.inferred_pattern === 'mixed') {
-    return outputSilentSuccess();
-  }
-
-  // Load and update preferences
+  // Load and update preferences (including 'mixed' — has trend value)
   const data = loadWorkflowPreferences();
   updateWorkflowPreferences(data, flow);
   saveWorkflowPreferences(data);

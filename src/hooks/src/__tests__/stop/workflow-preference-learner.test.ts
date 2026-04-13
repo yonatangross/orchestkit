@@ -155,18 +155,17 @@ describe('workflow-preference-learner', () => {
       );
     });
 
-    it('returns silent success for mixed pattern without saving', () => {
+    it('records mixed pattern for trend analysis', () => {
       // Arrange
       mockAnalyzeDecisionFlow.mockReturnValue(makeFlow({ inferred_pattern: 'mixed' }));
 
       // Act
       const result = workflowPreferenceLearner(makeInput(), testCtx);
 
-      // Assert
+      // Assert — mixed patterns are now saved (has trend value)
       expect(result).toEqual({ continue: true, suppressOutput: true });
       expect(mockCompleteDecisionFlow).toHaveBeenCalledWith('test-session-001');
-      // Should NOT attempt to save preferences for mixed
-      expect(mockAtomicWriteSync).not.toHaveBeenCalled();
+      expect(mockAtomicWriteSync).toHaveBeenCalled();
     });
 
     it('saves preferences for valid non-mixed pattern', () => {

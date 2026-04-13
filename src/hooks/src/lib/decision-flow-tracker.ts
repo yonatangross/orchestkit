@@ -342,8 +342,8 @@ export function inferWorkflowPattern(actions: ToolAction[]): WorkflowPattern {
     }
   }
 
-  // Check for agent-delegate pattern
-  if (counts.agent >= 3 || counts.agent / actions.length > 0.3) {
+  // Check for agent-delegate pattern (AND, not OR; guard div-by-zero)
+  if (counts.agent >= 3 && actions.length > 0 && counts.agent / actions.length > 0.4) {
     return 'agent-delegate';
   }
 
