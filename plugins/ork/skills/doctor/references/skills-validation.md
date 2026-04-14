@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit includes 92 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 103 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 

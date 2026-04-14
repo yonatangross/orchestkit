@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.42.1",
+    "date": "2026-04-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** sync website MIN_CC_VERSION 2.1.94 → 2.1.105, fix hardcoded counts on homepage personas (104 hooks → dynamic, 33 agents → dynamic)",
+          "**docs:** update alt text on homepage composition thumbnails to be descriptive",
+          "**skills:** update stale counts in doctor + setup + demo-producer + validate-counts references (92→103 skills, 33→36 agents, 104→173 hooks)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.42.0",
     "date": "2026-04-14",
     "compareUrl": "",
