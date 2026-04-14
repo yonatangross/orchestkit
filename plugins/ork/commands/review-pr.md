@@ -1,6 +1,6 @@
 ---
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskOutput, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
 ---
 
 # Auto-generated from skills/review-pr/SKILL.md

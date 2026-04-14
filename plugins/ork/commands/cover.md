@@ -1,6 +1,6 @@
 ---
 description: "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly)."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskOutput, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
 ---
 
 # Auto-generated from skills/cover/SKILL.md

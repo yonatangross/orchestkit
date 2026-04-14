@@ -345,7 +345,8 @@ describe('Cross-Bundle Consistency', () => {
     // 196 -> 198: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
     // 198 -> 199: v7.30.0: PostToolUse Agent — agent-task-auto-register
     // 199 -> 201: v7.41.1: watchdog (subagent-stop) + cron-guard (pretool)
-    expect(totalHooks).toBe(201);
+    // 201 -> 202: v7.41.2: pre-compact-guard (lifecycle) — CC 2.1.105
+    expect(totalHooks).toBe(202);
   });
 });
 

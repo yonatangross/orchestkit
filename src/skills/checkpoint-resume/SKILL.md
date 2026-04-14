@@ -10,7 +10,7 @@ context: fork
 complexity: high
 persuasion-type: guidance
 effort: high
-allowed-tools: [Bash, Read, Write, Edit, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskOutput]
+allowed-tools: [Bash, Read, Write, Edit, Grep, Glob, TaskCreate, TaskUpdate, TaskList]
 ---
 
 # Checkpoint Resume

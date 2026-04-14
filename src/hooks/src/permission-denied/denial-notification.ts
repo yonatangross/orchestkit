@@ -157,5 +157,12 @@ export function denialNotification(input: HookInput, ctx: HookContext = NOOP_CTX
     ctx.log(HOOK_NAME, 'Desktop notification sent for repeated denials');
   }
 
+  // CC 2.1.89: Isolated denial (first in window) → suggest retry so user sees the prompt
+  // Only for explicit Bash/Write/Edit denials where retry makes sense.
+  // Skip when we're in a denial storm (THRESHOLD+) — no point pushing retry UI.
+  if (denialCount === 1 && /^(Bash|Write|Edit)$/.test(input.tool_name || '')) {
+    return { continue: true, suppressOutput: true, retry: true };
+  }
+
   return outputSilentSuccess();
 }

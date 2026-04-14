@@ -258,6 +258,10 @@ export interface HookResult {
   stopReason?: string;
   /** Hook-specific output fields */
   hookSpecificOutput?: HookSpecificOutput;
+  /** Decision for hooks that can block actions (CC 2.1.105: PreCompact block) */
+  decision?: 'block' | 'approve';
+  /** Retry flag for PermissionDenied hooks (CC 2.1.89) */
+  retry?: boolean;
 }
 
 /**

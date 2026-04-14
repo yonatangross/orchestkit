@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 105 global + 45 agent-scoped + 22 skill-scoped = 172 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 106 global + 45 agent-scoped + 22 skill-scoped = 173 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -621,6 +621,12 @@
     "PreCompact": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-guard",
+            "timeout": 5,
+            "statusMessage": "Checking compact safety..."
+          },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver",

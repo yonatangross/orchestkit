@@ -1,38 +1,41 @@
 # Session Handoff
 
-**Branch**: main
-**When**: 2026-04-08 21:24:06 UTC
-**Session**: 7ea80c2e-fc8d-4be0-ad92-f0506249bfae
+**Branch**: fix/windows-cmd-window-spam
+**When**: 2026-04-14 05:24:21 UTC
+**Session**: 7fd88de7-e8ab-4079-a656-ae5c912dcb1d
 
 ## Summary
-All clean. Final state:
-
 ```
-version.txt          7.32.0
-GitHub Release       v7.32.0 (2026-04-08)
-CLAUDE.md            7.32.0 · CC >= 2.1.94
-Docs site banner     dynamic from MIN_CC_VERSION (2.1.94+)
-GitHub About         103 skills, 36 agents, 169 hooks
-CHANGELOG            Real entries for 7.30.1, 7.31.0, 7.31.1, 7.32.0
-Dependabot           0
-Secret scanning      0
-Code scanning        4 (2 pending re-scan, 2 false positives)
-Open PRs             0
-Branches             1 (main)
-.wrangler tracked    0
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║        CC 2.1.101 → 2.1.105 — Integration Brainstorm for OrchestKit           ║
+║                                                                                ║
+║  Current: CC >= 2.1.94 (2.1.101 recommended) · Latest: CC 2.1.105 (+4 versions)║
+╚══════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-Ship shape.
+## What's New (Apr 2026)
 
-## Modified Files
-- docs/site/lib/generated/changelog-data.ts
+5 new hook events, 3 tool enhancements, several breakages, and one interesting deprecation.
+
+---
+
+## Integration Ideas — Ranked by Impact/Effort
+
+### TIER 1: Must-Adopt (High ROI, Low Risk)
+
+```
+┌─ 1.
+
+## Patterns Noted
+- All other hooks always    │
+│  fire, then bail early internally.
 
 ## Recent Tasks
-- Rebuild plugins, run tests, amend commit [completed]
-- Add .wrangler/ to .gitignore and remove from git [completed]
-- Remove 90 committed junk files from docs/ [completed]
-- Update .gitignore with missing patterns [completed]
-- Fix CHANGELOG 7.30.1 TODO entry [completed]
-- Regenerate fumadocs data [completed]
-- Delete 40+ stale remote branches [completed]
-- Build, test, commit, push, open PR [completed]
+- Fix 4 security scanning alerts [completed]
+- Build, test, commit, and create PR [completed]
+- Discover scope and existing test coverage [completed]
+- Generate tests for coverage gaps [completed]
+- Execute and heal test suite [completed]
+- Cover: 9 bug-fix files from PR #1332 [completed]
+- Review PR #1332 [completed]
+- Implement 3 CC background monitoring features [completed]

@@ -74,7 +74,7 @@ jobs:
       - name: Install Claude Code CLI
         if: inputs.scope != 'hooks-only'
         # nosemgrep: pinned-dependencies (npm packages cannot be SHA-pinned; --ignore-scripts mitigates)
-        run: npm install -g @anthropic-ai/claude-code@2.1.101 --ignore-scripts
+        run: npm install -g @anthropic-ai/claude-code@2.1.105 --ignore-scripts
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
