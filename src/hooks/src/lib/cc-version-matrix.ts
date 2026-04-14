@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.94';
+export const MIN_CC_VERSION = '2.1.105';
 
 export interface CCFeatureEntry {
   readonly feature: string;
