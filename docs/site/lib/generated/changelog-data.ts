@@ -17,6 +17,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.42.0",
+    "date": "2026-04-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**compat:** CC 2.1.105 adoption — PreCompact guard hook blocks compaction during active agent work (override via `CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1`)",
+          "**hooks:** PermissionDenied retry flag (CC 2.1.89) — isolated Bash/Write/Edit denials surface retry UI",
+          "**compat:** CC floor bump 2.1.94 → 2.1.105 across marketplace.json, CLAUDE.md, README badge, CI workflows",
+          "**types:** HookResult gains `decision: 'block' | 'approve'` and `retry: boolean` fields"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** add `windowsHide: true` to 140+ subprocess calls across 38 source files — fixes Windows CMD window spam ([#1338](https://github.com/yonatangross/orchestkit/issues/1338))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.41.2",
     "date": "2026-04-14",
     "compareUrl": "",

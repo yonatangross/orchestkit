@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.42.0](https://github.com/yonatangross/orchestkit/compare/v7.41.2...v7.42.0) (2026-04-14)
+
+
+### Features
+
+* **compat:** CC 2.1.105 adoption — PreCompact guard hook blocks compaction during active agent work (override via `CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1`)
+* **hooks:** PermissionDenied retry flag (CC 2.1.89) — isolated Bash/Write/Edit denials surface retry UI
+* **compat:** CC floor bump 2.1.94 → 2.1.105 across marketplace.json, CLAUDE.md, README badge, CI workflows
+* **types:** HookResult gains `decision: 'block' | 'approve'` and `retry: boolean` fields
+
+
+### Bug Fixes
+
+* **hooks:** add `windowsHide: true` to 140+ subprocess calls across 38 source files — fixes Windows CMD window spam ([#1338](https://github.com/yonatangross/orchestkit/issues/1338))
+
+
+### Breaking Changes (upstream sweep)
+
+* Removed `TaskOutput` from 5 skill allowed-tools — deprecated in CC 2.1.83 (use `Read` on task output file instead)
+
+
 ## [7.41.2](https://github.com/yonatangross/orchestkit/compare/v7.41.1...v7.41.2) (2026-04-14)
 
 
