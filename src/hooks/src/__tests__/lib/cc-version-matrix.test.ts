@@ -17,8 +17,8 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.94', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.94');
+    test('is 2.1.105', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.105');
     });
   });
 

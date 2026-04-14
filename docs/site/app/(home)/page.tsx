@@ -53,13 +53,13 @@ const PERSONAS = [
   },
   {
     title: "Evaluating for your team?",
-    desc: "104 hooks enforce security and quality automatically. Zero config.",
+    desc: `${COUNTS.hooks} hooks enforce security and quality automatically. Zero config.`,
     cta: "See the guardrails",
-    href: "/docs/hooks/overview",
+    href: "/docs/reference/hooks",
   },
   {
     title: "Already using Claude Code?",
-    desc: "33 parallel specialist agents, 3-tier memory, keyword activation.",
+    desc: `${COUNTS.agents} parallel specialist agents, 3-tier memory, keyword activation.`,
     cta: "What OrchestKit adds",
     href: "/docs/foundations/overview",
   },
@@ -297,7 +297,7 @@ export default async function HomePage() {
                 <div className="aspect-video bg-fd-background relative">
                   <OptimizedThumbnail
                     src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
-                    alt={comp.id}
+                    alt={`${comp.id.replace(/([A-Z])/g, ' $1').trim()} — ${comp.durationSeconds}s demo`}
                   />
                   <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
                     {comp.durationSeconds}s
