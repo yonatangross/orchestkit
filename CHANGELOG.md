@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.46.0](https://github.com/yonatangross/orchestkit/compare/v7.45.1...v7.46.0) (2026-04-15)
+
+
+### Features
+
+* **skills:** wrapper-skill modernization sweep (#1345) — 17 skills + expect-agent brought up-to-date with the 2026-04-15 upstream audit. P0 fixes for Stitch MCP tool names (design-to-code, design-context-extract), Playwright 1.58→1.59 + k6 v1.0 API paths (testing-e2e, testing-perf), canonical model IDs (llm-integration, multimodal-llm). P1 adoption of Figma Dev Mode MCP 16-tool surface (figma-design-handoff), Next.js 16.2.3 LTS cache variants + next-browser (react-server-components-framework), v0.app rebrand + Google Stitch + Bolt Cloud (ai-ui-generation), Pact v16 + Testcontainers (testing-integration), gh agent-task + sub-issues + gh-copilot retirement (github-operations). P2 updates across ui-components (shadcn CLI v4), storybook-testing/storybook-mcp-integration (componentsManifest rename), mcp-patterns (SDK floors 1.29/1.27 + --mcp-debug), bare-eval (stream-json), langgraph 1.2 (deferred nodes + node caching), testing-llm (DeepEval 2.3 + RAGAS 1.2), rag-retrieval (voyage-3 tiers + text-embedding-004), component-search (v0.app fallback), design-system-tokens (SD 5.x + DTCG v2025.10), demo-producer (VHS 0.11 + Remotion 4.0.448), and expect-agent (forbids `agent-browser chat`).
+
 ## [7.45.1](https://github.com/yonatangross/orchestkit/compare/v7.45.0...v7.45.1) (2026-04-15)
 
 
