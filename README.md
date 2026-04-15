@@ -161,7 +161,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.86**. Check with `claude --version`.
+Requires **≥2.1.108**. Check with `claude --version`.
 </details>
 
 ---
