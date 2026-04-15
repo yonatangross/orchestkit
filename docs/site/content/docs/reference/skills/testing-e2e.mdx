@@ -12,7 +12,7 @@ description: "End-to-end testing patterns with Playwright — page objects, AI a
 
 # E2E Testing Patterns
 
-End-to-end testing with Playwright 1.58+, visual regression, accessibility, and AI agent workflows.
+End-to-end testing with Playwright 1.59+, visual regression, accessibility, and AI agent workflows.
 
 ## Quick Reference
 
@@ -74,6 +74,11 @@ Anti-patterns (FORBIDDEN):
 - CSS selectors for interactions: `await page.click('.submit-btn')`
 - XPath locators
 
+Removed in 1.58/1.59 — do NOT use:
+- `_react=ComponentName[prop=value]` and `_vue=...` component selector engines — **removed in 1.58**
+- `:light` selector suffix — **removed**
+- `launch(\{ devtools: true \})` option — **removed**; use `args: ['--auto-open-devtools-for-tabs']`
+
 ## Page Objects
 
 Encapsulate page interactions into reusable classes.
@@ -91,7 +96,7 @@ await checkout.expectConfirmation();
 
 ## AI Agents
 
-Playwright 1.58+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
+Playwright 1.59+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -104,6 +109,12 @@ npx playwright init-agents --loop=claude    # For Claude Code
 **Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output — use this when running Playwright from AI agents to minimize token consumption.
 
 Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests live app) -> Healer (fixes failures, updates selectors).
+
+**New in Playwright 1.59 (Apr 2026) — relevant for AI agents:**
+
+- `page.screencast(\{ start, stop, showActions \})` — unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
+- `browser.bind()` / `npx playwright-cli attach` — attach to a running browser from an MCP client mid-test; useful for Healer to inspect a hung or failing CI run.
+- `locator.normalize()` — rewrites a brittle locator to best-practice equivalents. Pair with Healer to auto-upgrade `getByTestId` → `getByRole` where possible.
 
 ## Accessibility (Playwright)
 
@@ -158,9 +169,9 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Decision | Recommendation |
 |----------|----------------|
-| E2E framework | Playwright 1.58+ with semantic locators |
+| E2E framework | Playwright 1.59+ with semantic locators |
 | Locator strategy | `getByRole` > `getByLabel` > `getByTestId` |
-| Browser | Chromium (Chrome for Testing in 1.58+) |
+| Browser | Chromium (Chrome for Testing in 1.59+) |
 | Page pattern | Page Object Model for complex pages |
 | Visual regression | Playwright native `toHaveScreenshot()` |
 | A11y testing | axe-core (E2E) + jest-axe (unit) |
@@ -173,7 +184,7 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Resource | Description |
 |----------|-------------|
-| `references/playwright-1.57-api.md` | Playwright 1.58+ API: locators, assertions, AI agents, auth, flaky detection |
+| `references/playwright-1.59-api.md` | Playwright 1.59 API: locators, assertions, AI agents, `screencast`, `browser.bind()`, `locator.normalize()` |
 | `references/playwright-setup.md` | Installation, MCP server, seed tests, agent initialization |
 | `references/visual-regression.md` | Screenshot config, CI/CD workflows, cross-platform, Percy migration |
 | `references/a11y-testing-tools.md` | jest-axe setup, Playwright axe-core, CI pipelines, manual checklists |
@@ -206,7 +217,7 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
 - `emulate-seed` - Seed configuration authoring for emulate providers
-- `portless` (upstream) - Stable `baseURL` for local E2E tests (`myapp.localhost:1355` instead of port guessing)
+- `portless` (upstream) - Stable HTTPS `baseURL` for local E2E tests (`https://myapp.localhost` instead of port guessing; HTTPS-on-443 default since portless 0.10)
 
 
 ---
@@ -1242,9 +1253,9 @@ axe http://localhost:3000 \
 - **A11y Project Checklist:** https://www.a11yproject.com/checklist/
 
 
-### Playwright 1.57 Api
+### Playwright 1.59 Api
 
-# Playwright 1.58+ API Reference
+# Playwright 1.59 API Reference
 
 ## Semantic Locators (2026 Best Practice)
 
@@ -1321,17 +1332,17 @@ export default defineConfig({
 });
 ```
 
-## Breaking Changes (1.58)
+## Breaking Changes (1.58 → 1.59)
 
 ### Removed Features
 
-| Feature | Status | Migration |
-|---------|--------|-----------|
-| `_react` selector | Removed | Use `getByRole()` or `getByTestId()` |
-| `_vue` selector | Removed | Use `getByRole()` or `getByTestId()` |
-| `:light` selector suffix | Removed | Use standard CSS selectors |
-| `devtools` launch option | Removed | Use `args: ['--auto-open-devtools-for-tabs']` |
-| macOS 13 WebKit | Removed | Upgrade to macOS 14+ |
+| Feature | Removed in | Migration |
+|---------|------------|-----------|
+| `_react=ComponentName[prop=value]` selector | 1.58 | Use `getByRole()` or `getByTestId()` |
+| `_vue=ComponentName[prop=value]` selector | 1.58 | Use `getByRole()` or `getByTestId()` |
+| `:light` selector suffix | 1.58 | Use standard CSS selectors |
+| `devtools: true` launch option | 1.58 | Use `args: ['--auto-open-devtools-for-tabs']` |
+| macOS 13 WebKit | 1.58 | Upgrade to macOS 14+ |
 
 ### Migration Examples
 
@@ -1359,7 +1370,52 @@ const browser = await chromium.launch({
 });
 ```
 
-## New Features (1.58+)
+## New Features (1.59 — Apr 2026)
+
+### `page.screencast()` — unified video + real-time frame streaming
+
+```typescript
+// Start streaming JPEG frames while recording the full video.
+// Agents (e.g. Healer) can read frames mid-run to make visual assertions
+// without flushing a video file to disk first.
+const stop = await page.screencast({
+  showActions: true,
+  quality: 80,
+  onFrame: async frame => {
+    // frame: { data: Buffer, timestamp: number, width, height }
+    await healer.observe(frame);
+  },
+});
+// ... run the scenario ...
+await stop(); // returns path to the recorded .webm
+```
+
+### `browser.bind()` / `npx playwright-cli attach`
+
+```typescript
+// Attach to a running browser from an MCP client mid-test. Useful for
+// inspecting a hung CI job or pair-debugging with a Healer agent.
+const browser = await playwright.chromium.bind({
+  wsEndpoint: 'ws://ci-runner:9222/bind',
+});
+const context = browser.contexts()[0];
+```
+
+```bash
+# CLI — attach from a separate process (e.g. for live agent inspection)
+npx playwright-cli attach --ws-endpoint ws://ci-runner:9222/bind
+```
+
+### `locator.normalize()` — upgrade brittle locators
+
+```typescript
+// Rewrite a fragile locator to the best-practice equivalent. Pair with
+// a Healer agent to auto-upgrade `getByTestId` → `getByRole` where the
+// normalized form is semantically stable.
+const loc = page.getByTestId('submit-btn');
+const upgraded = await loc.normalize();
+// → getByRole('button', { name: 'Submit' })
+```
 
 ### connectOverCDP with isLocal
 

@@ -114,6 +114,28 @@ What are you building?
 | MCP Apps (UI extension) | 2026-01-26 | Extension (ext-apps) |
 | WebMCP (browser-native) | 2026-02-14 | W3C Community Draft |
 
+## SDK landscape (2026-Q2)
+
+| Package | What it is | When to use |
+|---------|-----------|-------------|
+| `mcp` (PyPI) **>=1.27** | Official Python SDK — includes the `FastMCP` helper, transport adapters, Inspector | New Python servers. This is the canonical package. |
+| `@modelcontextprotocol/sdk` (npm) **>=1.29** | Official TypeScript SDK | New TS servers |
+| `fastmcp` (PyPI) | Standalone fork by jlowin — predates `mcp`; API-compatible but diverges on lifespan and middleware | Existing projects pinned to it. New projects should prefer `mcp`. |
+
+> The `fastmcp` fork and the `mcp.server.fastmcp` module are *not the same package*. Imports and `pyproject.toml` entries must agree or stacktraces become cryptic.
+
+### Debugging with Claude Code
+
+Pass `--mcp-debug` to Claude Code when troubleshooting server wiring — it surfaces the raw JSON-RPC frames, handshake failures, and tool-registration events that the default logger swallows:
+
+```bash
+claude --mcp-debug "query the local test server"
+# or per-session:
+export CLAUDE_MCP_DEBUG=1
+```
+
+Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector &lt;cmd&gt;`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
+
 ## Example
 
 ```python

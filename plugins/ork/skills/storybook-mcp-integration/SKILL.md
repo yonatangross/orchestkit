@@ -56,12 +56,20 @@ Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness o
 # Storybook 10.3+ with Vite builder (no webpack)
 npx storybook@latest upgrade
 
-# Install the addon
+# Install the addon (current: @storybook/addon-mcp@0.6.0, Apr 2026)
 npx storybook add @storybook/addon-mcp
 
 # Enable docs toolset (required for component discovery)
 # In .storybook/main.ts:
-#   experimentalComponentsManifest: true
+#   componentsManifest: true
+# NOTE: the old `experimentalComponentsManifest` flag was renamed in
+# Storybook 10.3; it is now `componentsManifest` and default-on. Any
+# code still passing the `experimental` prefix will warn-then-ignore.
+
+# For Chromatic remote setups, use the standalone package instead of
+# the addon (same tool surface, no local Storybook required):
+#   npm i -D @storybook/mcp
+#   npx storybook-mcp --registry https://chromatic.storybook.cloud
 
 # Enable testing toolset (requires addon-vitest)
 # npx storybook add @storybook/addon-vitest

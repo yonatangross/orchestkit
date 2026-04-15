@@ -149,7 +149,7 @@ Make it realistic with follow-up questions and clarifications."""
 ```python
 async def validate_example(
     example: dict,
-    validator_model: str = "gpt-5.2-mini",
+    validator_model: str = "claude-haiku-4-5-20251001",
 ) -> dict:
     """Validate and score a training example."""
     response = await client.chat.completions.create(
@@ -345,7 +345,7 @@ def estimate_generation_cost(
     # GPT-5.2 pricing (as of 2026)
     prices = {
         "gpt-5.2": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
-        "gpt-5.2-mini": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
+        "claude-haiku-4-5-20251001": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
     }
 
     price = prices.get(model, prices["gpt-5.2"])

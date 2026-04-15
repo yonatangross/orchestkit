@@ -4,8 +4,8 @@ license: MIT
 compatibility: "Claude Code 2.1.91+."
 author: OrchestKit
 description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.
-version: 3.0.0
-tags: [mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps]
+version: 3.1.0
+tags: [mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps, fastmcp]
 user-invocable: false
 disable-model-invocation: true
 context: fork
@@ -14,7 +14,9 @@ persuasion-type: reference
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"
-    version: ">=1.0.0"
+    version: ">=1.29.0"
+  - library: "mcp"
+    version: ">=1.27.0"
 metadata:
   category: mcp-enhancement
   spec-version: "2025-11-25"
@@ -132,6 +134,28 @@ What are you building?
 | Elicitation URL mode | 2025-11-25 | Stable |
 | MCP Apps (UI extension) | 2026-01-26 | Extension (ext-apps) |
 | WebMCP (browser-native) | 2026-02-14 | W3C Community Draft |
+
+## SDK landscape (2026-Q2)
+
+| Package | What it is | When to use |
+|---------|-----------|-------------|
+| `mcp` (PyPI) **>=1.27** | Official Python SDK — includes the `FastMCP` helper, transport adapters, Inspector | New Python servers. This is the canonical package. |
+| `@modelcontextprotocol/sdk` (npm) **>=1.29** | Official TypeScript SDK | New TS servers |
+| `fastmcp` (PyPI) | Standalone fork by jlowin — predates `mcp`; API-compatible but diverges on lifespan and middleware | Existing projects pinned to it. New projects should prefer `mcp`. |
+
+> The `fastmcp` fork and the `mcp.server.fastmcp` module are *not the same package*. Imports and `pyproject.toml` entries must agree or stacktraces become cryptic.
+
+### Debugging with Claude Code
+
+Pass `--mcp-debug` to Claude Code when troubleshooting server wiring — it surfaces the raw JSON-RPC frames, handshake failures, and tool-registration events that the default logger swallows:
+
+```bash
+claude --mcp-debug "query the local test server"
+# or per-session:
+export CLAUDE_MCP_DEBUG=1
+```
+
+Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
 
 ## Example
 

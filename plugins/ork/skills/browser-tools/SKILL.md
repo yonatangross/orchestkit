@@ -15,7 +15,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.22.2"
+  upstream-version-tested: "0.25.4"
 allowed-tools:
   - Read
   - Glob
@@ -53,6 +53,27 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
+## New in 2026-04 (agent-browser 0.23 → 0.25.4)
+
+**Skill discovery & chat (0.25):**
+- `agent-browser skills list/get <name>` — discover and install capability packs on-demand. Hook treats first-party skills as trusted; warns on arbitrary third-party skill fetches.
+- `agent-browser chat` — single-shot or REPL natural-language driving over the same daemon. Hook pipes transcripts through the same URL/rate/robots checks as scripted commands.
+
+**Accessibility-first locators (0.24):**
+- `find` / `getByRole` — semantic locator via CDP accessibility tree (role + name) instead of brittle CSS/ref selectors. Prefer these in new scripts; they survive markup churn and are the locator path assumed by `chat`.
+- `snapshot --urls` — emits resolved URLs alongside refs, removing a round-trip for link-extraction flows.
+- `--annotate` — overlays ref IDs / role labels on screenshots for debugging.
+
+**Cloud providers (0.25):**
+- `--provider agentcore` — AWS Bedrock AgentCore cloud browser. Hook treats remote providers as egress surfaces — same URL/robots rules apply, but network routing is disabled (remote scope).
+- Browserless + AgentCore both honor `AGENT_BROWSER_PROVIDER` env var.
+
+**Dashboard (0.25):**
+- Embedded dashboard bundled with the binary — no separate install. Open via `agent-browser dashboard` or the `inspect` CDP link. Still flagged as local-proxy attack surface by the hook.
+
+**Auto-dialog dismissal (0.23.1):**
+- alert / beforeunload dialogs auto-dismissed by default. Opt out with `--no-auto-dialog` when a test needs to assert dialog content.
+
 ## What's New (v0.17 → v0.22.2)
 
 **Breaking changes** — update scripts now:
@@ -72,6 +93,11 @@ agent-browser open "http://localhost:3000"  # which app is this?
 | `network requests --type/--method/--status` | v0.22 | Filter network requests |
 | `dialog dismiss` / `dialog status` | v0.17/v0.22 | Dismiss or check browser dialogs |
 | `upgrade` | v0.21.1 | Self-update (auto-detects npm/Homebrew/Cargo) |
+| `find` / `getByRole` | v0.24 | Semantic locators via CDP a11y tree |
+| `snapshot --urls` / `--annotate` | v0.24 | URL-expanded snapshots, ref overlays |
+| `skills list/get` | v0.25 | Capability pack discovery — hook warns on third-party |
+| `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |
+| `dashboard` | v0.25 | Embedded debug UI — local proxy attack surface |
 
 **New flags:**
 
@@ -83,8 +109,11 @@ agent-browser open "http://localhost:3000"  # which app is this?
 | `--idle-timeout <duration>` | global | v0.20.14 |
 | `--user-data-dir <path>` | Chrome | v0.21 |
 | `set viewport W H [scale]` | viewport | v0.17.1 (retina) |
+| `--provider agentcore` | global | v0.25 (AWS Bedrock AgentCore) |
+| `--annotate` | screenshot | v0.24 |
+| `--no-auto-dialog` | global | v0.23.1 |
 
-**Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22).
+**Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22), AWS Bedrock AgentCore (v0.25).
 
 **Performance (v0.20):** 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
@@ -109,6 +138,9 @@ The hook intercepts all `agent-browser` Bash commands and enforces:
 | **DevTools inspect** | `inspect` / `get cdp-url` opens local CDP proxy — new attack surface (v0.18+) | **WARN** |
 | **Clipboard read** | `clipboard read` accesses host clipboard without prompt (v0.19+) | **WARN** |
 | **HAR capture** | `network har stop` dumps full request/response bodies incl. auth tokens (v0.21+) | **WARN** |
+| **Skill install** | `skills get` fetches third-party capability packs — treat as code install (v0.25+) | **WARN** |
+| **Chat transcripts** | `chat` REPL logs may capture sensitive page text — pipe through same URL rules (v0.25+) | **WARN** |
+| **Remote provider** | `--provider agentcore/browserless` sends traffic to cloud endpoints; routing disabled remotely | **WARN** |
 
 ### Security Rules (in `rules/`)
 

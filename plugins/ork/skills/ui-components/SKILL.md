@@ -111,13 +111,16 @@ shadcn CLI v4 ships 6 visual styles. Each rewrites component class names — not
 | **Mira** | Ultra-compact, minimal chrome | Spreadsheets, data-heavy interfaces |
 | **Luma** | Extreme rounding (`rounded-4xl`), soft elevation (`shadow-md` + ring), breathable layouts | Polished native-app feel, macOS Tahoe-inspired |
 
-**Preset codes** encode style + theme + fonts + icons into a shareable 7-char string:
+Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create) → pick style, theme, fonts, icons, then copy the generated command. **Do not hardcode preset codes in docs** — they're tied to a specific style snapshot and can drift.
 
-```bash
-npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist + HugeIcons
-```
+### shadcn CLI v4 (Apr 2026) — new commands
 
-Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create). Same code = same output on any machine.
+| Command | Purpose |
+|---------|---------|
+| `npx shadcn@latest apply <style>` | Apply a published style (e.g. `luma`, `nova`, `lyra`) to the current project — re-skins existing components without re-adding them |
+| `npx shadcn@latest info` | Show resolved config: registry, style, tokens, components present, Tailwind version |
+| `npx shadcn@latest skills` | List the `shadcn/skills` registry — Claude Code- and Cursor-ready skill packs that bundle CLI commands with agent guidance |
+| `npx shadcn@latest build` | Build a custom registry (already-documented) — pair with `apply` to ship a private style |
 
 **Detection:** Read `components.json` → `"style"` field (e.g., `"radix-luma"`, `"base-nova"`). Old `"new-york"` and `"default"` styles are superseded by Vega.
 

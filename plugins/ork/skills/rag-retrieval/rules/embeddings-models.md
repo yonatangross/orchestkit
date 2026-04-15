@@ -30,14 +30,22 @@ response = client.embeddings.create(
 vectors = [item.embedding for item in response.data]
 ```
 
-**Model Selection:**
+**Model Selection (2026-Q2):**
 
 | Model | Dims | Cost | Use Case |
 |-------|------|------|----------|
-| `text-embedding-3-small` | 1536 | $0.02/1M | General purpose |
-| `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy |
+| `text-embedding-3-small` | 1536 | $0.02/1M | General purpose (OpenAI) |
+| `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy (OpenAI) — Matryoshka-truncatable |
+| `voyage-3` | 1024 | $0.06/1M | Production (OrchestKit default) |
+| `voyage-3-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
+| `voyage-3-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
+| `text-embedding-004` (Gemini) | 768 | $0.025/1M | Google stack / multilingual (MRL-truncatable) |
 | `nomic-embed-text` (Ollama) | 768 | Free | Local/CI |
-| `voyage-3` | 1024 | $0.06/1M | Production (OrchestKit) |
+
+Guidance:
+- Default to `voyage-3` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
+- `text-embedding-3-large` is still the strongest OpenAI option when you need Matryoshka dim reduction (3072 → 1536) without retraining.
+- `text-embedding-004` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage.
 
 **Similarity Calculation:**
 ```python

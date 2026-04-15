@@ -6,7 +6,7 @@ description: End-to-end testing patterns with Playwright — page objects, AI ag
 tags: [testing, e2e, playwright, accessibility, visual-regression, page-objects]
 context: fork
 agent: test-generator
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -14,7 +14,7 @@ complexity: medium
 persuasion-type: reference
 targets:
   - library: "@playwright/test"
-    version: ">=1.58.0"
+    version: ">=1.59.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -28,7 +28,7 @@ path_patterns: ["**/e2e/**", "**/playwright/**", "**/cypress/**", "playwright.co
 
 # E2E Testing Patterns
 
-End-to-end testing with Playwright 1.58+, visual regression, accessibility, and AI agent workflows.
+End-to-end testing with Playwright 1.59+, visual regression, accessibility, and AI agent workflows.
 
 ## Quick Reference
 
@@ -90,6 +90,11 @@ Anti-patterns (FORBIDDEN):
 - CSS selectors for interactions: `await page.click('.submit-btn')`
 - XPath locators
 
+Removed in 1.58/1.59 — do NOT use:
+- `_react=ComponentName[prop=value]` and `_vue=...` component selector engines — **removed in 1.58**
+- `:light` selector suffix — **removed**
+- `launch({ devtools: true })` option — **removed**; use `args: ['--auto-open-devtools-for-tabs']`
+
 ## Page Objects
 
 Encapsulate page interactions into reusable classes.
@@ -107,7 +112,7 @@ await checkout.expectConfirmation();
 
 ## AI Agents
 
-Playwright 1.58+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
+Playwright 1.59+ AI agent framework for test planning, generation, and self-healing. Includes a **token-efficient CLI mode** designed for coding agents — minimal output, structured responses, reduced context overhead.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -120,6 +125,12 @@ npx playwright init-agents --loop=claude    # For Claude Code
 **Token-efficient CLI mode** (1.58+): Playwright ships a SKILL-focused CLI mode that produces compact, agent-friendly output — use this when running Playwright from AI agents to minimize token consumption.
 
 Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests live app) -> Healer (fixes failures, updates selectors).
+
+**New in Playwright 1.59 (Apr 2026) — relevant for AI agents:**
+
+- `page.screencast({ start, stop, showActions })` — unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
+- `browser.bind()` / `npx playwright-cli attach` — attach to a running browser from an MCP client mid-test; useful for Healer to inspect a hung or failing CI run.
+- `locator.normalize()` — rewrites a brittle locator to best-practice equivalents. Pair with Healer to auto-upgrade `getByTestId` → `getByRole` where possible.
 
 ## Accessibility (Playwright)
 
@@ -174,9 +185,9 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Decision | Recommendation |
 |----------|----------------|
-| E2E framework | Playwright 1.58+ with semantic locators |
+| E2E framework | Playwright 1.59+ with semantic locators |
 | Locator strategy | `getByRole` > `getByLabel` > `getByTestId` |
-| Browser | Chromium (Chrome for Testing in 1.58+) |
+| Browser | Chromium (Chrome for Testing in 1.59+) |
 | Page pattern | Page Object Model for complex pages |
 | Visual regression | Playwright native `toHaveScreenshot()` |
 | A11y testing | axe-core (E2E) + jest-axe (unit) |
@@ -189,7 +200,7 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 
 | Resource | Description |
 |----------|-------------|
-| `references/playwright-1.57-api.md` | Playwright 1.58+ API: locators, assertions, AI agents, auth, flaky detection |
+| `references/playwright-1.59-api.md` | Playwright 1.59 API: locators, assertions, AI agents, `screencast`, `browser.bind()`, `locator.normalize()` |
 | `references/playwright-setup.md` | Installation, MCP server, seed tests, agent initialization |
 | `references/visual-regression.md` | Screenshot config, CI/CD workflows, cross-platform, Percy migration |
 | `references/a11y-testing-tools.md` | jest-axe setup, Playwright axe-core, CI pipelines, manual checklists |
@@ -222,4 +233,4 @@ See `references/visual-regression.md` for full configuration, CI/CD workflows, c
 - `test-standards-enforcer` - AAA and naming enforcement
 - `run-tests` - Test execution orchestration
 - `emulate-seed` - Seed configuration authoring for emulate providers
-- `portless` (upstream) - Stable `baseURL` for local E2E tests (`myapp.localhost:1355` instead of port guessing)
+- `portless` (upstream) - Stable HTTPS `baseURL` for local E2E tests (`https://myapp.localhost` instead of port guessing; HTTPS-on-443 default since portless 0.10)

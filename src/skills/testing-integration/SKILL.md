@@ -6,7 +6,7 @@ description: Integration and contract testing patterns — API endpoint tests, c
 tags: [testing, integration, contract, pact, property, zod, api]
 context: fork
 agent: test-generator
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -14,7 +14,9 @@ complexity: medium
 persuasion-type: reference
 targets:
   - library: "@pact-foundation/pact"
-    version: ">=12.0.0"
+    version: ">=16.0.0"
+  - library: "testcontainers"
+    version: ">=11.0.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -86,6 +88,75 @@ For GitHub, Vercel, and Google API integration tests, **emulate is the first cho
 | Nock | Node.js unit-level HTTP interception |
 
 See `rules/emulate-stateful-testing.md` for the full decision matrix, seed-start-test-assert pattern, and incorrect/correct examples.
+
+---
+
+## Testcontainers (real dependencies in CI)
+
+When contract tests and emulate aren't enough — e.g. testing against real Postgres, Redis, Kafka, or an S3-compatible store — **Testcontainers** spins up ephemeral Docker containers per test and tears them down afterward. `path_patterns` above already matches `**/testcontainers/**`; use these patterns there.
+
+**Target**: `testcontainers >= 11.0.0` (Node) — v11 (Q1 2026) added named-network auto-cleanup, reusable containers via `.withReuse()`, and first-class Podman support.
+
+### Node.js (testcontainers-node)
+
+```typescript
+import { PostgreSqlContainer } from '@testcontainers/postgresql'
+import { describe, beforeAll, afterAll, test, expect } from 'vitest'
+
+describe('UserRepository integration', () => {
+  let container: Awaited<ReturnType<PostgreSqlContainer['start']>>
+  let repo: UserRepository
+
+  beforeAll(async () => {
+    container = await new PostgreSqlContainer('postgres:16-alpine')
+      .withDatabase('test')
+      .withUsername('test')
+      .withPassword('test')
+      .withReuse()  // v11+ — reuse across runs to speed CI
+      .start()
+
+    repo = new UserRepository(container.getConnectionUri())
+    await repo.migrate()
+  }, 30_000)
+
+  afterAll(async () => {
+    await container.stop()
+  })
+
+  test('persists and retrieves a user', async () => {
+    const created = await repo.create({ email: 'a@b.c' })
+    const found = await repo.findById(created.id)
+    expect(found?.email).toBe('a@b.c')
+  })
+})
+```
+
+### Python (testcontainers-python)
+
+```python
+from testcontainers.postgres import PostgresContainer
+import pytest
+
+@pytest.fixture(scope="session")
+def postgres():
+    with PostgresContainer("postgres:16-alpine") as pg:
+        yield pg.get_connection_url()
+
+def test_user_repo(postgres):
+    repo = UserRepository(postgres)
+    repo.migrate()
+    user = repo.create(email="a@b.c")
+    assert repo.find_by_id(user.id).email == "a@b.c"
+```
+
+**Decision matrix**:
+
+| Scenario | Pick |
+|----------|------|
+| Third-party API (GitHub, Vercel, Google) | emulate |
+| Cross-team API contract | Pact |
+| Real Postgres / Redis / Kafka integration | **Testcontainers** |
+| Just mocking HTTP in a frontend test | MSW |
 
 ---
 

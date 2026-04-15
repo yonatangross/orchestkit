@@ -92,7 +92,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For URLs:**
 ```python
-# If stitch available: use get_screen + get_project
+# If stitch available: call build_site(prompt=<url + extraction goal>)
+#   then get_screen_code / get_screen_image per generated screen
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -109,8 +110,16 @@ Glob("**/theme.*")
 
 **If stitch MCP is available:**
 ```python
-# Use official Stitch MCP tools: get_screen, get_project, list_screens
-# Returns structured design data: colors, typography, layout, components
+# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
+#   - build_site(prompt)          → generates the target design
+#   - get_screen_code(screenId)   → React/HTML output per screen
+#   - get_screen_image(screenId)  → PNG rasterization per screen
+#
+# Also consider Figma Dev Mode MCP as a complementary extraction path
+# when the source is a Figma file:
+#   - get_variable_defs    → design tokens straight from Figma variables
+#   - get_design_context   → layout + typography + spacing
+#   - search_design_system → locate existing tokens/components
 ```
 
 **If stitch MCP is NOT available (fallback):**
@@ -186,9 +195,11 @@ STYLE_MAP = {
     ("none/sharp", "balanced", "none"):     "Lyra — editorial, dev tools",
     ("small",      "dense",    "none"):     "Mira — ultra-dense data",
 }
-# Present recommendation with preset code link:
+# Present recommendation with the style picker URL:
 # "Based on extracted design DNA, recommended style: Luma"
-# "Configure: https://ui.shadcn.com/create?preset=b2D0xPaDb"
+# "Pick and install: https://ui.shadcn.com/create  (select 'Luma' style)"
+# Apply to existing project (CLI v4 apply command, Apr 2026):
+# "$ npx shadcn@latest apply luma"
 ```
 
 **Skip condition:** If the user only needs raw tokens (not a shadcn project), skip this step.

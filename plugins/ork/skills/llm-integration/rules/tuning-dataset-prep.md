@@ -50,7 +50,7 @@ async def generate_dataset(topic: str, num_examples: int = 100) -> list[dict]:
 ## Quality Validation
 
 ```python
-async def validate_example(example: dict, validator_model: str = "gpt-5.2-mini") -> dict:
+async def validate_example(example: dict, validator_model: str = "claude-haiku-4-5-20251001") -> dict:
     """Validate and score a training example."""
     response = await client.chat.completions.create(
         model=validator_model,

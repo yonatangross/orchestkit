@@ -195,6 +195,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 3. **5-minute page timeout.** If a single page takes longer than 5 minutes, skip remaining steps.
 4. **No blind clicking.** Always `snapshot -i` before interacting. Never guess element selectors.
 5. **Screenshot on failure only.** Don't screenshot every step — only on `ASSERTION_FAILED`.
+6. **FORBIDDEN: `agent-browser chat`.** The `chat` subcommand bypasses the STEP_START / STEP_DONE status protocol, disables the ARIA-first workflow, and makes freeform LLM navigation decisions that can't be parsed by the lead agent. Never invoke it from this agent under any circumstance. Use the explicit `open` / `snapshot -i` / `click` / `fill` pipeline instead.
 
 ## Integration
 
@@ -213,5 +214,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |expect:{SKILL.md,references/{aria-diffing.md,ci-integration.md,config-schema.md,diff-scanner.md,execution.md,fingerprint.md,human-review.md,report.md,research.md,route-map.md,rrweb-recording.md,saved-flows.md,scope-strategy.md,test-plan.md}}|testing,browser,e2e,diff-aware,regression,visual,accessibility,ai-testing
-|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
+|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.59-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 ```

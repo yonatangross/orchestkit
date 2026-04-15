@@ -14,6 +14,12 @@ description: "LangGraph 1.x (LTS) workflow patterns for state management, routin
 
 Comprehensive patterns for building production LangGraph workflows. **LangGraph 1.x is LTS** (Long Term Support) — the first stable major release, powering agents at Uber, LinkedIn, and Klarna. Each category has individual rule files in `rules/` loaded on-demand.
 
+> **LangGraph 1.2 (Q1 2026) — new in this bump:**
+>
+> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes for the current super-step have completed, which makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
+> - **Pre/post model hooks** on `create_react_agent(...)` and `ToolNode` — inject compression, summarization, or PII redaction without subclassing.
+> - **Node-level caching** via `CachePolicy(ttl=..., key_func=...)` with `SqliteCache` and `RedisCache` backends (pluggable via `graph.compile(cache=...)`). Idempotent nodes skip recomputation on replay.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
@@ -94,6 +100,43 @@ Persist workflow state for recovery and debugging.
 | Checkpointer Setup | `rules/checkpoints-setup.md` | `MemorySaver` dev / `PostgresSaver` prod |
 | State Recovery | `rules/checkpoints-recovery.md` | `thread_id` resume + `get_state_history` |
 | Cross-Thread Store | `rules/checkpoints-store.md` | `Store` for long-term memory across threads |
+
+## Node-Level Caching (1.2+)
+
+Independent of checkpointing. Cache individual node output so re-runs with identical inputs skip execution entirely.
+
+```python
+from langgraph.graph import StateGraph
+from langgraph.cache import CachePolicy, SqliteCache
+
+graph = StateGraph(State)
+graph.add_node(
+    "expensive_fetch",
+    fetch_fn,
+    cache_policy=CachePolicy(ttl=3600, key_func=lambda s: s["query"]),
+)
+# RedisCache(url=...) for distributed workers
+compiled = graph.compile(cache=SqliteCache("cache.db"))
+```
+
+Use when a node is idempotent and expensive (embeddings, external APIs). Do **not** use for nodes whose output depends on wall-clock time or mutable external state unless `key_func` captures that variance.
+
+## Deferred Nodes & Model Hooks (1.2+)
+
+```python
+# defer=True — node waits for every other upstream node at this super-step
+graph.add_node("aggregate", aggregate_fn, defer=True)
+
+# Pre/post model hooks — no subclassing required
+from langgraph.prebuilt import create_react_agent
+
+agent = create_react_agent(
+    model=model,
+    tools=tools,
+    pre_model_hook=compress_history,   # e.g. summarize if > N tokens
+    post_model_hook=redact_pii,        # e.g. scrub emails/SSNs before persist
+)
+```
 
 ## Human-in-Loop
 

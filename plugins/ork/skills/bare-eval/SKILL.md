@@ -46,8 +46,26 @@ claude --version  # Must be >= 2.1.81
 |-----------|----------------|
 | Grading | `claude -p "$prompt" --bare --max-turns 1 --output-format text` |
 | Trigger | `claude -p "$prompt" --bare --json-schema "$schema" --output-format json` |
+| Streaming grade | `claude -p "$prompt" --bare --max-turns 1 --output-format stream-json` |
 | Optimize | `echo "$prompt" \| claude -p --bare --max-turns 1 --output-format text` |
 | Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
+
+### `--output-format stream-json`
+
+Newline-delimited JSON events (one per token/tool-call) — lets a runner score partial output or abort early on a failing probe without waiting for the full response.
+
+```bash
+claude -p "$prompt" --bare --max-turns 1 --output-format stream-json \
+  | while IFS= read -r line; do
+      # line is a single JSON event; inspect $.type == "content_block_delta"
+      jq -r 'select(.type == "content_block_delta") | .delta.text' <<< "$line"
+    done
+```
+
+Use `stream-json` over `json` when:
+- grading long outputs and you want incremental scoring,
+- piping into another CLI step-by-step (e.g. `ork:eval-runner`),
+- you need per-token timing data alongside the content.
 
 ## Invocation Patterns
 

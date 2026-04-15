@@ -1,4 +1,4 @@
-# Playwright 1.58+ API Reference
+# Playwright 1.59 API Reference
 
 ## Semantic Locators (2026 Best Practice)
 
@@ -75,17 +75,17 @@ export default defineConfig({
 });
 ```
 
-## Breaking Changes (1.58)
+## Breaking Changes (1.58 → 1.59)
 
 ### Removed Features
 
-| Feature | Status | Migration |
-|---------|--------|-----------|
-| `_react` selector | Removed | Use `getByRole()` or `getByTestId()` |
-| `_vue` selector | Removed | Use `getByRole()` or `getByTestId()` |
-| `:light` selector suffix | Removed | Use standard CSS selectors |
-| `devtools` launch option | Removed | Use `args: ['--auto-open-devtools-for-tabs']` |
-| macOS 13 WebKit | Removed | Upgrade to macOS 14+ |
+| Feature | Removed in | Migration |
+|---------|------------|-----------|
+| `_react=ComponentName[prop=value]` selector | 1.58 | Use `getByRole()` or `getByTestId()` |
+| `_vue=ComponentName[prop=value]` selector | 1.58 | Use `getByRole()` or `getByTestId()` |
+| `:light` selector suffix | 1.58 | Use standard CSS selectors |
+| `devtools: true` launch option | 1.58 | Use `args: ['--auto-open-devtools-for-tabs']` |
+| macOS 13 WebKit | 1.58 | Upgrade to macOS 14+ |
 
 ### Migration Examples
 
@@ -113,7 +113,52 @@ const browser = await chromium.launch({
 });
 ```
 
-## New Features (1.58+)
+## New Features (1.59 — Apr 2026)
+
+### `page.screencast()` — unified video + real-time frame streaming
+
+```typescript
+// Start streaming JPEG frames while recording the full video.
+// Agents (e.g. Healer) can read frames mid-run to make visual assertions
+// without flushing a video file to disk first.
+const stop = await page.screencast({
+  showActions: true,
+  quality: 80,
+  onFrame: async frame => {
+    // frame: { data: Buffer, timestamp: number, width, height }
+    await healer.observe(frame);
+  },
+});
+// ... run the scenario ...
+await stop(); // returns path to the recorded .webm
+```
+
+### `browser.bind()` / `npx playwright-cli attach`
+
+```typescript
+// Attach to a running browser from an MCP client mid-test. Useful for
+// inspecting a hung CI job or pair-debugging with a Healer agent.
+const browser = await playwright.chromium.bind({
+  wsEndpoint: 'ws://ci-runner:9222/bind',
+});
+const context = browser.contexts()[0];
+```
+
+```bash
+# CLI — attach from a separate process (e.g. for live agent inspection)
+npx playwright-cli attach --ws-endpoint ws://ci-runner:9222/bind
+```
+
+### `locator.normalize()` — upgrade brittle locators
+
+```typescript
+// Rewrite a fragile locator to the best-practice equivalent. Pair with
+// a Healer agent to auto-upgrade `getByTestId` → `getByRole` where the
+// normalized form is semantically stable.
+const loc = page.getByTestId('submit-btn');
+const upgraded = await loc.normalize();
+// → getByRole('button', { name: 'Submit' })
+```
 
 ### connectOverCDP with isLocal
 

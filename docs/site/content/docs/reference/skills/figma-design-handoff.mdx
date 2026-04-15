@@ -26,6 +26,35 @@ Figma dominates design tooling in 2026, with the majority of product teams using
 
 **Total: 5 rules across 1 category**
 
+## Figma Dev Mode MCP Server (2026 default path)
+
+The Figma Dev Mode MCP Server replaces most manual REST + Dev Mode inspection. Configure it once and any Claude Code session with Figma access can pull design context, tokens, and code mappings directly.
+
+Key tools (16 documented — `developers.figma.com/docs/figma-mcp-server/tools-and-prompts`):
+
+| Tool | Returns | Use for |
+|------|---------|---------|
+| `get_design_context` | Component tree + layout + typography + spacing | First call on any Figma node → grounds every other tool |
+| `get_variable_defs` | Token collections (variables + modes + aliases) | Straight export to W3C DTCG JSON — skip the REST pipeline |
+| `get_code_connect_map` | Figma node → codebase component mapping | Linking generated code to existing repo components |
+| `get_screenshot` | PNG of a node or frame | Screenshot for visual diffing / embed in chat |
+| `search_design_system` | Token/component search across libraries | Finding existing tokens before generating new ones |
+| `use_figma` *(beta)* | Writes back to the Figma canvas | Code-to-design round-trip (write-to-canvas) |
+| `generate_figma_design` *(beta)* | Creates a design frame from a prompt | AI-generated design stubs for handoff |
+
+**Install**: Enable in the Figma desktop app under *Preferences → Dev Mode MCP Server*, or use the remote MCP endpoint (no desktop required for read tools). Pair with **Code Connect UI** (GA 2026) to map Figma node IDs → codebase components without manual JSON wiring.
+
+```jsonc
+// .claude/mcp-servers/figma.json — sample config
+{
+  "figma": {
+    "command": "figma-mcp",
+    "args": ["--mode=dev"],
+    "env": { "FIGMA_ACCESS_TOKEN": "${FIGMA_TOKEN}" }
+  }
+}
+```
+
 ## Quick Start
 
 ```bash

@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires gh CLI."
 author: OrchestKit
 description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
 context: fork
-version: 1.0.0
+version: 1.1.0
 tags: [github, gh, cli, issues, pr, milestones, projects, api]
 user-invocable: false
 complexity: medium
@@ -213,6 +213,59 @@ done
 7. **Close milestones, don't delete** - Preserve history
 8. **`--milestone` takes NAME, not number** - Load `Read("${CLAUDE_SKILL_DIR}/references/cli-vs-api-identifiers.md")`
 9. **Never `gh issue close` directly** - Comment progress with `gh issue comment`; issues close only when their linked PR merges to the default branch
+
+---
+
+## 2026 CLI changes — what to know
+
+### `gh-copilot` extension is retired
+
+GitHub retired the `gh-copilot` extension in **October 2025**. Copilot is now a standalone binary:
+
+```bash
+# OLD — no longer supported
+gh extension install github/gh-copilot   # fails
+gh copilot suggest "revert last commit"   # fails
+
+# NEW — standalone `copilot` binary
+copilot suggest "revert last commit"
+copilot explain "git rebase -i HEAD~5"
+```
+
+Install from `cli.github.com/copilot` or via Homebrew (`brew install github/gh/copilot`). Authentication is shared with `gh auth` when both are installed.
+
+### `gh agent-task` (2026)
+
+New subcommand for managing Copilot coding-agent tasks:
+
+```bash
+gh agent-task create --repo owner/repo --title "Fix flaky login test"
+gh agent-task list --state open
+gh agent-task view 42 --log          # stream agent log
+gh agent-task watch 42                # live-follow until completion
+gh agent-task cancel 42
+```
+
+Pairs with the REST endpoint `POST /repos/{owner}/{repo}/agent-tasks` for CI-driven task creation.
+
+### Sub-issues (native, 2026)
+
+Sub-issues are now a native GitHub concept — no extension required:
+
+```bash
+# List sub-issues of parent #123
+gh api repos/{owner}/{repo}/issues/123/sub_issues
+
+# Add an existing issue #456 as sub-issue of #123
+gh api -X POST repos/{owner}/{repo}/issues/123/sub_issues \
+  -f sub_issue_id=$(gh api repos/{owner}/{repo}/issues/456 --jq .node_id)
+
+# Remove a sub-issue relationship
+gh api -X DELETE repos/{owner}/{repo}/issues/123/sub_issue \
+  -F sub_issue_id=<id>
+```
+
+The old `gh-sub-issue` third-party extension still works but is superseded. GraphQL sub-issue mutations still require the issue `node_id` (see `references/cli-vs-api-identifiers.md`).
 
 ---
 

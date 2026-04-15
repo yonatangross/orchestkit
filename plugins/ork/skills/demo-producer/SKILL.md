@@ -7,9 +7,14 @@ argument-hint: "[topic-or-feature]"
 user-invocable: false
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 context: inherit
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
+targets:
+  - tool: "vhs"
+    version: ">=0.11.0"
+  - library: "remotion"
+    version: ">=4.0.448"
 complexity: low
 persuasion-type: collaborative
 effort: low
@@ -21,6 +26,13 @@ metadata:
 # Demo Producer
 
 Universal demo video creation for any content type.
+
+> **Tool versions (2026-Q2):** VHS >= 0.11, Remotion >= 4.0.448. VHS 0.11 added:
+>
+> - **`Wait` keyword** — supersedes `Sleep N` with a condition-based wait (`Wait "prompt>"` blocks until the given string appears). Use `Wait` over `Sleep` for any prompt that can appear at variable times.
+> - **`ScrollUp N` / `ScrollDown N`** — explicit scroll steps inside a recorded session; useful for demonstrating TUI apps and long `less`-style output.
+>
+> Keep existing `Sleep N` only for fixed visual pacing where no event is available.
 
 ## Quick Start
 

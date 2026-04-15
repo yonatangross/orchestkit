@@ -2,11 +2,11 @@
 name: ai-ui-generation
 license: MIT
 compatibility: "Claude Code 2.1.76+."
-description: AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
-tags: [ai-ui, json-render, v0, bolt, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui]
+description: AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
+tags: [ai-ui, json-render, v0, v0-app, stitch, bolt, bolt-cloud, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui]
 context: fork
 agent: frontend-ui-developer
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
@@ -24,7 +24,13 @@ allowed-tools:
 
 # AI UI Generation
 
-Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0, Bolt, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+Patterns for generating, reviewing, and integrating UI components produced by AI tools (json-render, v0.app, Google Stitch, Bolt Cloud, Cursor). **json-render is the first choice** for multi-surface, MCP visual output, and type-safe catalog workflows. AI-generated UI is **80% boilerplate, 20% custom** — the human reviews, refactors, and owns the output. These rules ensure AI output meets design system, accessibility, and quality standards before shipping.
+
+> **Tool landscape as of 2026-04:**
+> - **v0.dev → v0.app** (Jan 2026 rebrand) — expanded from component scaffolding to full-stack app generation with shipping targets (Vercel, Cloudflare, Railway). v0.app MCP server (`@vercel/v0-mcp`) exposes generation as an MCP tool, so agents can call it programmatically.
+> - **Google Stitch** — design-first generation via `stitch.withgoogle.com/docs/mcp`. Produces multi-screen apps (up to 5 interconnected screens) with React/HTML + PNG. Strong when input is a screenshot, URL, or DESIGN.md file.
+> - **Bolt Cloud** (StackBlitz, 2026) — Bolt now runs the dev environment in the cloud (no local WebContainer). Integrates with GitHub and supports persistent databases. Best for full-stack prototypes with backend + deploy.
+> - **v0.app** and **Stitch** both integrate with shadcn/ui styles; pair with the `shadcn apply <style>` CLI (v4) to reuse generated output.
 
 ## Quick Reference
 
@@ -38,19 +44,22 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 
 **Total: 8 rules across 5 categories**
 
-## Decision Table — json-render vs v0 vs Bolt vs Cursor
+## Decision Table — json-render vs v0.app vs Stitch vs Bolt Cloud vs Cursor
 
 | Scenario | Tool | Why |
 |----------|------|-----|
 | Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
-| New component from scratch | v0 | Full scaffold with shadcn/ui, Tailwind, a11y. Pass preset code for style consistency |
-| Full-stack prototype/app | Bolt | Includes backend, routing, deployment |
+| New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply <style>` for style consistency |
+| Full-stack app with deploy | v0.app | Jan 2026 expansion — routes, DB, auth, Vercel/Cloudflare deploy in one generation |
+| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `build_site` + `get_screen_code` / `get_screen_image`, up to 5 screens |
+| Multi-screen flow from a visual source | Google Stitch | Strongest when grounded in an existing design |
+| Full-stack prototype with persistent backend | Bolt Cloud | Cloud dev env, GitHub integration, databases |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
 | Refactor existing component | Cursor | Reads surrounding code, respects conventions |
-| Explore visual design variations | v0 | Fast iteration on look-and-feel |
-| Add feature to running app | Bolt | Hot-reload preview, full environment |
+| Explore visual design variations | v0.app or Stitch | v0.app for freeform, Stitch when grounded in a reference |
+| Add feature to running app | Bolt Cloud | Cloud preview, full environment, persists between sessions |
 | Fix bug in existing component | Cursor | Inline edits with full project awareness |
 
 ## Quick Start
@@ -61,7 +70,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 Generate a React signup form component using:
 - Framework: React 19 + TypeScript
 - Styling: Tailwind CSS v4 + shadcn/ui (Luma style — rounded-4xl, shadow-md elevation)
-- Preset: --preset b2D0xPaDb (or read from project's components.json style field)
+- Style: run `npx shadcn@latest apply luma` (CLI v4, Apr 2026) after generation
 - Tokens: use color.primary, color.destructive, spacing.md from our design system
 - A11y: ARIA labels on all inputs, error announcements via aria-live
 - States: default, loading (disabled + spinner), error (inline messages), success
@@ -139,7 +148,7 @@ Choosing the right AI tool and iterating effectively.
 - **Vague prompts** — "Make a nice form" produces inconsistent, non-conformant output. Always specify constraints.
 - **Hardcoded hex/rgb values** — AI tools default to arbitrary colors. Replace with OKLCH design tokens.
 - **Skipping CI for "simple" components** — AI-generated code has the same bug surface as hand-written code.
-- **Using v0 for incremental changes** — v0 generates from scratch; use Cursor for changes within an existing codebase.
+- **Using v0.app for incremental changes** — v0.app generates from scratch; use Cursor for changes within an existing codebase.
 - **Single-pass complex components** — Multi-state components (loading, error, empty, success) need iterative prompting.
 - **Trusting AI a11y claims** — AI tools add ARIA attributes inconsistently. Always verify with axe-core or Storybook a11y addon.
 
