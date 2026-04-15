@@ -17,15 +17,15 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.105', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.105');
+    test('is 2.1.108', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.108');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 179 (through 2.1.92) + 12 (2.1.94) + 1 (2.1.96) + 2 (2.1.95) + 24 (2.1.97) + 17 (2.1.98) + 18 (2.1.101) = 253
-      expect(CC_FEATURE_MATRIX.length).toBe(253);
+      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) = 278
+      expect(CC_FEATURE_MATRIX.length).toBe(278);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.101');
+      const features = getAvailableFeatures('2.1.109');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,27 +99,36 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.101', () => {
-      const missing = getMissingFeatures('2.1.101');
+    test('no missing features at 2.1.109', () => {
+      const missing = getMissingFeatures('2.1.109');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.98 is missing 2.1.101 features', () => {
-      const missing = getMissingFeatures('2.1.98');
-      // 18 features added in 2.1.101
-      expect(missing.length).toBe(18);
-      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
-      expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'subagent_dynamic_mcp')).toBe(true);
+    test('2.1.101 is missing 2.1.105 through 2.1.109 features', () => {
+      const missing = getMissingFeatures('2.1.101');
+      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) = 25
+      expect(missing.length).toBe(25);
+      expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
+      expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
+      expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 through 2.1.101 features', () => {
+    test('2.1.98 is missing 2.1.101 through 2.1.109 features', () => {
+      const missing = getMissingFeatures('2.1.98');
+      // 18 (2.1.101) + 25 (2.1.105-2.1.109) = 43
+      expect(missing.length).toBe(43);
+      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
+      expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
+      expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
+    });
+
+    test('2.1.92 is missing 2.1.94 through 2.1.109 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 12 + 2 + 1 + 24 + 17 + 18 = 74
-      expect(missing.length).toBe(74);
+      // 74 (through 2.1.101) + 25 (2.1.105-2.1.109) = 99
+      expect(missing.length).toBe(99);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
-      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
+      expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);
     });
 
     test('2.1.47 missing 2.1.49+ features', () => {
@@ -188,6 +197,30 @@ describe('cc-version-matrix', () => {
 
     test('format_on_save_fix available at 2.1.90', () => {
       expect(hasFeature('2.1.90', 'format_on_save_fix')).toBe(true);
+    });
+
+    test('plugin_monitors_manifest available at 2.1.105', () => {
+      expect(hasFeature('2.1.105', 'plugin_monitors_manifest')).toBe(true);
+    });
+
+    test('plugin_monitors_manifest not available at 2.1.101', () => {
+      expect(hasFeature('2.1.101', 'plugin_monitors_manifest')).toBe(false);
+    });
+
+    test('prompt_caching_1h_env available at 2.1.108', () => {
+      expect(hasFeature('2.1.108', 'prompt_caching_1h_env')).toBe(true);
+    });
+
+    test('prompt_caching_1h_env not available at 2.1.107', () => {
+      expect(hasFeature('2.1.107', 'prompt_caching_1h_env')).toBe(false);
+    });
+
+    test('skill_builtin_discovery available at 2.1.108', () => {
+      expect(hasFeature('2.1.108', 'skill_builtin_discovery')).toBe(true);
+    });
+
+    test('thinking_progress_rotation available at 2.1.109', () => {
+      expect(hasFeature('2.1.109', 'thinking_progress_rotation')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {
