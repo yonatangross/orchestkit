@@ -487,7 +487,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "emulate-engineer",
     "name": "Emulate Engineer",
-    "description": "Stateful API emulation with Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB API environments, configures webhooks and port isolation. Use when replacing flaky API mocks with stateful emulation.",
+    "description": "Stateful API emulation with Vercel emulate (v0.4+). Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe API environments, configures webhooks, per-worker port isolation, and Next.js same-origin adapter. Use when replacing flaky API mocks with stateful emulation.",
     "category": "testing",
     "model": "inherit",
     "taskTypes": [
@@ -500,7 +500,10 @@ export const AGENTS: Agent[] = [
       "stateful mock",
       "vercel emulate",
       "webhook",
-      "seed"
+      "seed",
+      "stripe testing",
+      "resend inbox",
+      "okta emulator"
     ],
     "examplePrompts": [
       "Set up stateful GitHub API emulation for integration tests",

@@ -1,11 +1,11 @@
 ---
 name: expect
 license: MIT
-compatibility: "Claude Code 2.1.84+. Requires agent-browser skill."
-description: "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser. Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
+compatibility: "Claude Code 2.1.84+. Requires agent-browser >= 0.25.0 (Rust-native, no Playwright)."
+description: "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [testing, browser, e2e, diff-aware, regression, visual, accessibility, ai-testing]
 user-invocable: true
@@ -18,6 +18,8 @@ model: sonnet
 metadata:
   category: testing
   milestone: M99
+  upstream-package: agent-browser
+  upstream-version-tested: "0.25.4"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -26,9 +28,9 @@ triggers:
     - "test the login flow after my auth refactor"
     - "run visual regression on the dashboard"
   anti-triggers: [cover, "unit test", "generate tests", verify, implement, "npm test"]
-paths: [".expect/**", "**/*.test.{ts,tsx}", "playwright.config.*"]
+paths: [".expect/**", "**/*.test.{ts,tsx}", "agent-browser.json"]
 invocation_hooks:
-  - "command -v agent-browser >/dev/null 2>&1 || echo 'Warning: agent-browser not installed — run npm install -g @anthropic-ai/agent-browser'"
+  - "command -v agent-browser >/dev/null 2>&1 || echo 'Warning: agent-browser not installed — run npm install -g agent-browser'"
 ---
 
 # Expect — Diff-Aware AI Browser Testing
@@ -88,9 +90,12 @@ if '-y' in raw.split():
 ```python
 ToolSearch(query="select:mcp__memory__search_nodes")
 
-# Verify agent-browser is available
+# Verify agent-browser is available (Rust-native, no Playwright)
 Bash("command -v agent-browser || npx agent-browser --version")
-# If missing: "Install agent-browser: npm i -g @anthropic-ai/agent-browser"
+# If missing: "Install agent-browser: npm i -g agent-browser"
+
+# Load agent-browser's own self-serving skill/workflow docs (required since 0.25.x)
+Bash("agent-browser skills get agent-browser")
 ```
 
 
@@ -231,7 +236,22 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ## Phase 5: Execution
 
-Run the test plan via `agent-browser`:
+### agent-browser 0.25.x Quick Primer
+
+| Area | Command | Notes |
+|------|---------|-------|
+| Snapshot | `agent-browser snapshot -i` | ARIA tree w/ `@eN` refs. `-C`/`--cursor` was removed in 0.22 |
+| Semantic locator | `agent-browser find --role button "Continue"` | Stable alternative to `@eN` refs |
+| Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs |
+| Waits | `wait --load networkidle`, `wait --text "Success"`, `wait --fn "window.ready"` | Event-driven, never sleep-based |
+| Network | `network route "*analytics*" --abort`, `network route "https://api/*" --body '{...}'` | Intercept + stub |
+| State | `state save/load auth.json`, `--session-name <name>` | Persist auth across runs |
+| Vault | `vault store github_pat`, `vault load github_pat` | Encrypted credential store |
+| Diff | `diff snapshot`, `diff screenshot --baseline /tmp/x.png` | ARIA + pixel diffing |
+| Capture | `screenshot --annotate`, `pdf`, `record start/stop` | Evidence artifacts |
+| Dashboard | `agent-browser dashboard start` *(0.25+)* | Browser-side runtime inspector on :4848 |
+
+### Run the test plan
 
 ```python
 Agent(

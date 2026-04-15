@@ -1825,8 +1825,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
-    "version": "1.0.0",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -1835,6 +1835,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "github",
       "vercel",
       "google",
+      "stripe",
+      "resend",
+      "okta",
+      "mongodb",
       "seed",
       "ci",
       "stateful-testing"
@@ -1894,8 +1898,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "expect": {
     "name": "expect",
-    "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser. Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
-    "version": "1.0.0",
+    "description": "Diff-aware AI browser testing — analyzes git changes, generates targeted test plans, and executes them via agent-browser (Rust daemon + CDP, ARIA-tree-first). Reads git diff to determine what changed, maps changes to affected pages via route map, generates a test plan scoped to the diff, and runs it with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, running regression checks on changed components, or validating that recent code changes don't break the user-facing experience.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2516,8 +2520,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "json-render-catalog": {
     "name": "json-render-catalog",
-    "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 29 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects.",
-    "version": "1.0.0",
+    "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2748,8 +2752,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "mcp-visual-output": {
     "name": "mcp-visual-output",
-    "description": "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, and ChatGPT conversations. Covers createMcpApp(), registerJsonRenderTool(), CSP config, streaming, and dashboard component patterns. Use when building MCP servers that return visual output, upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards.",
-    "version": "1.0.0",
+    "description": "Interactive MCP visual output via @json-render/mcp. Upgrade plain JSON tool responses to interactive dashboards rendered in sandboxed iframes inside Claude, Cursor, ChatGPT, VS Code Copilot, Goose, and Postman conversations. Covers createMcpApp(), registerJsonRenderTool(), registerJsonRenderResource(), CSP config, JSON Patch streaming, and dashboard component patterns. Use when building MCP servers that return visual output, upgrading existing MCP tools with interactive UI, or creating eval/monitoring dashboards.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -2988,8 +2992,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multi-surface-render": {
     "name": "multi-surface-render",
-    "description": "Multi-surface rendering with json-render — same JSON spec produces React components, PDFs, emails, Remotion videos, OG images, and more. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
-    "version": "1.0.0",
+    "description": "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -3000,7 +3004,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "video",
       "image",
       "react",
-      "rendering"
+      "rendering",
+      "ink",
+      "nextjs"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -3243,15 +3249,17 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "portless": {
     "name": "portless",
-    "description": "Named .localhost URLs for local development with portless. Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases and git worktrees for branch-named subdomains. Use when setting up local dev environments, configuring agent-accessible URLs, or running multi-service dev setups. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
-    "version": "1.1.0",
+    "description": "Named HTTPS .localhost URLs for local development with portless (v0.10.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, and LAN mode (--lan) for mDNS .local hostnames reachable across devices. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "dev-server",
       "localhost",
       "https",
       "portless",
-      "devops"
+      "devops",
+      "mdns",
+      "lan"
     ],
     "userInvocable": false,
     "context": "inherit",

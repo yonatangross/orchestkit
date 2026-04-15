@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.44.0",
+    "date": "2026-04-15",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**compat:** CC 2.1.108 full adoption — 25 new matrix entries (253→278), MIN_CC_VERSION bump 2.1.105→2.1.108 across marketplace.json, CLAUDE.md, README badge, docs site",
+          "**skills:** Expanded 33 skill descriptions leveraging new 1,536-char cap (was 250) — 11 user-invocable + 22 non-invocable skills now have rich WHAT+WHEN descriptions",
+          "**monitors:** First plugin monitors implementation — chain-state-watcher (alerts on stale multi-phase skills) and uncommitted-work-reminder (periodic commit nudge) via CC 2.1.105 monitors manifest key",
+          "**compat:** Doctor version-compatibility table updated with 2.1.101-2.1.109 features, new \"Recommended\" tier at 2.1.108, prompt caching section (`ENABLE_PROMPT_CACHING_1H`)",
+          "**compat:** EnterWorktree `path` parameter (CC 2.1.105) documented in implement worktree-isolation-mode for reusing existing worktrees",
+          "**compat:** `/recap` session recovery (CC 2.1.108) integrated into brainstorm, implement, cover, verify, fix-issue skills and chain-patterns checkpoint-resume",
+          "**compat:** `ENABLE_PROMPT_CACHING_1H` recommended in setup and help skills for long-running sessions",
+          "**compat:** `/recap` and `/undo` added to help skill command reference"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** Standardized all 15+ fumadocs pages from 5 conflicting hook counts (106/109/115/146) to 173, agents 35→36, skills 98/99/100→103, CC version 2.1.84/2.1.86→2.1.108",
+          "**docs:** Installation guide example output updated to v7.43.0 counts, FAQ hook breakdown math corrected",
+          "**monitors:** Fixed schema from `{\"monitors\":[...]}` to top-level array `[...]` per CC plugin schema",
+          "**monitors:** Removed unrecognized `persistent` field from monitor entries",
+          "**monitors:** Added python3 ISO date parsing fallback for Linux compatibility (macOS `date -jf` not portable)",
+          "**skills:** brainstorm/SKILL.md trimmed 501→499 lines to pass CI skill-length gate",
+          "**docs:** CONTRIBUTING.md CC 2.1.59 references clarified with current minimum 2.1.108"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.43.0",
     "date": "2026-04-14",
     "compareUrl": "",
