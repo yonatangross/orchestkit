@@ -17,7 +17,6 @@ interface Monitor {
   name: string;
   description: string;
   command: string;
-  persistent?: boolean;
 }
 
 describe('monitors.json', () => {
