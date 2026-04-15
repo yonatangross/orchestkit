@@ -466,7 +466,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "assess": {
     "name": "assess",
-    "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
+    "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.4.0",
     "author": "OrchestKit",
     "tags": [
@@ -711,7 +711,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "brainstorm": {
     "name": "brainstorm",
-    "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
+    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.8.0",
     "author": "OrchestKit",
     "tags": [
@@ -1002,7 +1002,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1216,7 +1216,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
+    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
@@ -1667,7 +1667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues.",
+    "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1865,7 +1865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "errors": {
     "name": "errors",
-    "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.",
+    "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2106,7 +2106,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
+    "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
@@ -2364,7 +2364,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "implement": {
     "name": "implement",
-    "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
+    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.6.0",
     "author": "OrchestKit",
     "tags": [
@@ -3806,7 +3806,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "remember": {
     "name": "remember",
-    "description": "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions.",
+    "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge.",
     "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3937,7 +3937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "PR review with parallel specialized agents. Use when reviewing pull requests or code.",
+    "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.7.0",
     "author": "OrchestKit",
     "tags": [
@@ -4813,7 +4813,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "verify": {
     "name": "verify",
-    "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
+    "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.2.0",
     "author": "OrchestKit",
     "tags": [

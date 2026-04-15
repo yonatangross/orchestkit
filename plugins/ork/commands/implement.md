@@ -1,5 +1,5 @@
 ---
-description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
+description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality."
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 

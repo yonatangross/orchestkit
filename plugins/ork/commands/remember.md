@@ -1,5 +1,5 @@
 ---
-description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
+description: "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge."
 allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 ---
 

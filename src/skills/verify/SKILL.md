@@ -2,7 +2,7 @@
 name: verify
 license: MIT
 compatibility: "Claude Code 2.1.98+. Requires memory MCP server."
-description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
+description: "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates."
 argument-hint: "[feature-or-scope]"
 context: fork
 version: 4.2.0
