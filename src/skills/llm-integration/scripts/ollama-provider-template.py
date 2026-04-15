@@ -321,8 +321,8 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
     model = {
         TaskType.REASONING: "gemini-3-flash-preview",
         TaskType.CODING: "claude-sonnet-4-6",
-        TaskType.GENERAL: "gpt-5.2-mini",
-    }.get(task_type, "gpt-5.2-mini")
+        TaskType.GENERAL: "claude-haiku-4-5-20251001",
+    }.get(task_type, "claude-haiku-4-5-20251001")
 
     return init_chat_model(model, temperature=0.0)
 

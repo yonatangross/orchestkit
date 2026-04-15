@@ -81,7 +81,7 @@ trainer = DPOTrainer(
 async def evaluate_alignment(
     model, tokenizer,
     test_prompts: list[str],
-    judge_model: str = "gpt-5.2-mini",
+    judge_model: str = "claude-haiku-4-5-20251001",
 ) -> dict:
     """Evaluate model alignment quality."""
     scores = []
