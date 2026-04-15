@@ -2,7 +2,7 @@
 name: verify
 license: MIT
 compatibility: "Claude Code 2.1.98+. Requires memory MCP server."
-description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
+description: "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates."
 argument-hint: "[feature-or-scope]"
 context: fork
 version: 4.2.0
@@ -386,6 +386,8 @@ After verification, chain to commit if all gates pass:
 TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlockedBy=[verify_task_id])
 # Then: /ork:commit
 ```
+
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
 
 ## Related Skills
 

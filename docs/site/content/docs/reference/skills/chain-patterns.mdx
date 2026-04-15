@@ -442,6 +442,17 @@ Write(".claude/chain/state.json", {
 - **Multiple skills**: Only one skill's state lives in `state.json` at a time. Starting a new skill overwrites.
 - **Stale state**: If `state.updated` is older than 24 hours, warn user and offer fresh start.
 
+## Session Context Restoration (CC 2.1.108+)
+
+When resuming a long chain after an idle period, CC 2.1.108 provides automatic session recap via `/recap`. This complements checkpoint-resume:
+
+- **`/recap`**: Restores conversational context (what was discussed, decided, attempted)
+- **`state.json`**: Restores pipeline progress (which phases completed, what data was produced)
+
+Both should be consulted on resume. The PostCompact hook already re-injects branch and task state — `/recap` adds the conversational layer on top.
+
+For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` to enable recap.
+
 
 ### Cron Monitoring
 

@@ -36,7 +36,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # <!--ork:skills-->103<!--/ork--> skills in flat CC 2.1.59 structure
+├── skills/               # <!--ork:skills-->103<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -89,9 +89,9 @@ bash scripts/build-plugins.sh
 4. Verify: `/ork:doctor`
 5. Commit: Only commit changes to `src/` and `manifests/` (not `plugins/`)
 
-## Adding New Skills (CC 2.1.59)
+## Adding New Skills
 
-Skills use the CC 2.1.59 native flat structure with SKILL.md as the only required file.
+Skills use the native flat SKILL.md structure (introduced in CC 2.1.59, current minimum CC 2.1.108).
 
 **Important:** Create skills in `src/skills/`, not `skills/` (which is a symlink).
 

@@ -1,6 +1,6 @@
 ---
 title: "Implement"
-description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
+description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -380,6 +380,8 @@ After implementation completes, chain to verification:
 TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addBlockedBy=[impl_task_id])
 # Then: /ork:verify {feature}
 ```
+
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
 
 ## Related Skills
 
@@ -2612,14 +2614,20 @@ AskUserQuestion(questions=[{
 ### 1. Enter Worktree
 
 ```python
-# CC 2.1.49: Native worktree support
+# CC 2.1.49: Create new worktree
 EnterWorktree(name="feat-{feature-slug}")
+
+# CC 2.1.105: Reuse existing worktree via path parameter
+# Use this when resuming work on an existing feature branch
+EnterWorktree(path="/path/to/existing/worktree")
 ```
 
-This creates:
-- New branch `feat-\{feature-slug\}` from HEAD
+This creates (or switches into):
+- New branch `feat-\{feature-slug\}` from HEAD (or reuses existing worktree)
 - Working directory at `.claude/worktrees/feat-\{feature-slug\}/`
 - Session CWD switches to the worktree automatically
+
+**Tip (CC 2.1.105+):** When a worktree already exists from a prior session, use the `path` parameter to switch into it instead of creating a new one. Check with `git worktree list` first.
 
 ### 2. Implement in Isolation
 

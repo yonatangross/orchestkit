@@ -161,7 +161,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "analytics": {
     "name": "analytics",
-    "description": "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects. Also replay sessions, estimate costs, and view model delegation trends.",
+    "description": "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -466,7 +466,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "assess": {
     "name": "assess",
-    "description": "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches.",
+    "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.4.0",
     "author": "OrchestKit",
     "tags": [
@@ -579,7 +579,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "audit-full": {
     "name": "audit-full",
-    "description": "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis.",
+    "description": "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -711,7 +711,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "brainstorm": {
     "name": "brainstorm",
-    "description": "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
+    "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.8.0",
     "author": "OrchestKit",
     "tags": [
@@ -1002,7 +1002,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with conventional format and validation. Use when committing changes or generating commit messages.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1039,7 +1039,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "competitive-analysis": {
     "name": "competitive-analysis",
-    "description": "Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics.",
+    "description": "Strategic analysis frameworks including Porter's Five Forces (industry attractiveness), SWOT (internal positioning), and competitive landscape mapping with battlecard generation. Produces competitor profiles, feature gap analysis, and positioning recommendations. Use when analyzing market position, evaluating threats, or building sales battlecards.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1117,7 +1117,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "configure": {
     "name": "configure",
-    "description": "Configures OrchestKit plugin settings, MCP servers, hook permissions, and keybindings. Use when customizing plugin behavior or managing settings.",
+    "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1216,7 +1216,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "create-pr": {
     "name": "create-pr",
-    "description": "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review.",
+    "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Use when opening PRs or submitting code for review.",
     "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
@@ -1325,7 +1325,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "demo-producer": {
     "name": "demo-producer",
-    "description": "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings.",
+    "description": "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1667,7 +1667,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues.",
+    "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1748,7 +1748,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "domain-driven-design": {
     "name": "domain-driven-design",
-    "description": "Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.",
+    "description": "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1865,7 +1865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "errors": {
     "name": "errors",
-    "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.",
+    "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1966,7 +1966,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "explore": {
     "name": "explore",
-    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
+    "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.3.0",
     "author": "OrchestKit",
     "tags": [
@@ -2022,7 +2022,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "feedback": {
     "name": "feedback",
-    "description": "Manages OrchestKit feedback, usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent.",
+    "description": "Manages OrchestKit learning system including feedback status, usage pattern tracking, and privacy/analytics consent. Supports pause/resume learning, data export, privacy policy display, and bug reporting. Tracks learned patterns and agent performance metrics. Use when reviewing learned patterns, pausing learning, or managing data consent.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -2106,7 +2106,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes GitHub issues with parallel analysis. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
+    "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.4.0",
     "author": "OrchestKit",
     "tags": [
@@ -2364,7 +2364,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "implement": {
     "name": "implement",
-    "description": "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features.",
+    "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.6.0",
     "author": "OrchestKit",
     "tags": [
@@ -2488,7 +2488,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "issue-progress-tracking": {
     "name": "issue-progress-tracking",
-    "description": "Auto-updates GitHub issues with commit progress. Use when starting work on an issue, tracking progress during implementation, or completing work with a PR.",
+    "description": "GitHub issue workflow ceremony using gh CLI — labels issues as in-progress, creates feature branches (issue/N-description), commits with issue references, posts progress comments, and links PRs with Closes #N. Keeps issues in sync with development work. Use when starting work on an issue, tracking progress, or completing work with a PR.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2670,7 +2670,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "market-sizing": {
     "name": "market-sizing",
-    "description": "TAM, SAM, SOM market sizing with top-down and bottom-up methods. Use when estimating addressable market, validating opportunity size, sizing new segments, or preparing investor pitch materials.",
+    "description": "TAM/SAM/SOM market sizing with top-down and bottom-up estimation methods, cross-validation of assumptions, and divergence reconciliation. Generates investor-ready materials with growth projections and confidence intervals. Use when estimating addressable markets, validating opportunity size, or preparing pitch deck market slides.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2783,7 +2783,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory": {
     "name": "memory",
-    "description": "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
+    "description": "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -2864,7 +2864,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory-fabric": {
     "name": "memory-fabric",
-    "description": "Knowledge graph memory orchestration - entity extraction, query parsing, deduplication, and cross-reference boosting. Use when designing memory orchestration.",
+    "description": "Knowledge graph orchestration layer with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting. Unifies search results ranked by recency, relevance, and authority. Use when designing memory retrieval, building entity graphs, or optimizing knowledge graph queries.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -3467,7 +3467,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "python-backend": {
     "name": "python-backend",
-    "description": "Python backend patterns for asyncio, FastAPI, SQLAlchemy 2.0 async, and connection pooling. Use when building async Python services, FastAPI endpoints, database sessions, or connection pool tuning.",
+    "description": "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ examples with structured error handling. Use when building async services, FastAPI endpoints, or tuning database connection pools.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3697,7 +3697,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "release-checklist": {
     "name": "release-checklist",
-    "description": "Validates release readiness with gated checklist — build, test, count validation, changelog, version bump. Use when preparing a release.",
+    "description": "Sequential release gate validating build success, test suite, security checks, type checking, manifest counts consistency, and changelog presence. Each step reports pass/fail with remediation guidance. Manages version bumping, staging, and pre-push confirmation. Use when preparing a release.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3731,7 +3731,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "release-management": {
     "name": "release-management",
-    "description": "GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.",
+    "description": "Automates GitHub releases with semantic versioning, changelog generation from merged PRs, and gh CLI integration. Supports draft, prerelease, and standard release workflows with task-tracked multi-phase execution. Use when creating releases, tagging versions, or publishing changelogs.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3782,7 +3782,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "release-sync": {
     "name": "release-sync",
-    "description": "Sync release content to NotebookLM and HQ Knowledge Base after tagging a new version. Reads CHANGELOG, CLAUDE.md, and hook README, then updates notebook sources and ingests to knowledge base.",
+    "description": "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3806,7 +3806,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "remember": {
     "name": "remember",
-    "description": "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions.",
+    "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge.",
     "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -3937,7 +3937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "PR review with parallel specialized agents. Use when reviewing pull requests or code.",
+    "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.7.0",
     "author": "OrchestKit",
     "tags": [
@@ -4105,7 +4105,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "setup": {
     "name": "setup",
-    "description": "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan.",
+    "description": "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks, project-scoped configuration, and release channel detection. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -4164,7 +4164,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "skill-evolution": {
     "name": "skill-evolution",
-    "description": "Analyzes skill usage patterns and suggests improvements. Use when reviewing skill performance, applying auto-suggested changes, or rolling back versions.",
+    "description": "Tracks skill usage patterns, edit frequency, and success rates to suggest improvements and optimizations. Manages skill versioning with safe rollback capability and confidence scoring for suggestions. Use when reviewing skill performance, applying auto-suggested changes, or rolling back problematic versions.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -4694,7 +4694,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "upgrade-assessment": {
     "name": "upgrade-assessment",
-    "description": "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades.",
+    "description": "Evaluates platform upgrade readiness across Claude model versions, CC releases, and OrchestKit updates with 6-dimensional assessment. Researches target versions, detects current environment, produces structured migration plan with risk scores. Use when planning major version transitions or evaluating upgrade impact.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -4813,7 +4813,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "verify": {
     "name": "verify",
-    "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
+    "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -4891,7 +4891,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "visualize-plan": {
     "name": "visualize-plan",
-    "description": "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact.",
+    "description": "Renders planned changes as ASCII visualizations with risk heat maps, execution order diagrams, dependency graphs, impact metrics, and before/after architecture comparisons. Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -5103,7 +5103,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "zustand-patterns": {
     "name": "zustand-patterns",
-    "description": "Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications. Use when building state management with Zustand.",
+    "description": "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [

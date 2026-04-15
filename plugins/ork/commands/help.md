@@ -120,6 +120,13 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/plan` | Enter plan mode | CC 2.1.72 |
 | `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
 | `/ultraplan` | Remote-session deep planning | CC 2.1.101 |
+| `/recap` | Session context restoration after idle | CC 2.1.108 |
+| `/undo` | Alias for `/rewind` | CC 2.1.108 |
+
+## Performance Tips
+
+- **`ENABLE_PROMPT_CACHING_1H=1`** — Extends prompt cache TTL from 5 min to 1 hour. Set this for long sessions with multi-phase skills (brainstorm, implement, cover). Available on API key, Bedrock, Vertex, Foundry.
+- **`/recap`** — Restores session context after stepping away. Complements OrchestKit's checkpoint-resume for chain recovery.
 
 ## Keyboard Shortcuts
 

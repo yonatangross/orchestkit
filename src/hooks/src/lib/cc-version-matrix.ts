@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.105';
+export const MIN_CC_VERSION = '2.1.108';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -301,6 +301,35 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'worktree_stale_cleanup_fix', minVersion: '2.1.101', description: 'claude -w <name> no longer fails with "already exists" after stale worktree cleanup' },
   { feature: 'sandbox_mktemp_fix',         minVersion: '2.1.101', description: 'Sandboxed Bash commands no longer fail with mktemp ENOENT after fresh boot' },
   { feature: 'grep_rg_fallback',           minVersion: '2.1.101', description: 'Grep tool falls back to system rg when embedded ripgrep path is stale' },
+  // 2.1.105 (2026-04-13)
+  { feature: 'enter_worktree_path_param',   minVersion: '2.1.105', description: 'EnterWorktree tool accepts path parameter to switch into an existing worktree' },
+  { feature: 'precompact_blocking',         minVersion: '2.1.105', description: 'PreCompact hooks can block compaction via exit code 2 or {"decision":"block"} JSON response' },
+  { feature: 'plugin_monitors_manifest',    minVersion: '2.1.105', description: 'Background monitor support for plugins via top-level monitors manifest key' },
+  { feature: 'skill_description_cap_1536',  minVersion: '2.1.105', description: 'Skill description listing cap raised from 250 to 1,536 characters' },
+  { feature: 'webfetch_strip_scripts',      minVersion: '2.1.105', description: 'WebFetch strips <style> and <script> body content before returning markdown' },
+  { feature: 'stale_worktree_squash_cleanup', minVersion: '2.1.105', description: 'Stale agent worktrees from squash-merged PRs cleaned up automatically' },
+  { feature: 'mcp_truncation_recipes',      minVersion: '2.1.105', description: 'MCP large-output truncation includes format-specific reduction recipes (jq for JSON, Read chunks for files)' },
+  { feature: 'doctor_interactive_fix',      minVersion: '2.1.105', description: '/doctor press f to have Claude auto-fix detected issues' },
+  { feature: 'stream_stall_retry',          minVersion: '2.1.105', description: 'Stalled API streams abort after 5 minutes and retry with non-streaming fallback' },
+  { feature: 'proactive_loop_alias',        minVersion: '2.1.105', description: '/proactive alias for /loop command' },
+  // 2.1.107 (2026-04-14)
+  { feature: 'thinking_hints_early',        minVersion: '2.1.107', description: 'Extended thinking hints shown sooner during long operations' },
+  // 2.1.108 (2026-04-14)
+  { feature: 'prompt_caching_1h_env',       minVersion: '2.1.108', description: 'ENABLE_PROMPT_CACHING_1H env var for 1-hour prompt cache TTL across API key, Bedrock, Vertex, Foundry' },
+  { feature: 'force_prompt_caching_5m_env', minVersion: '2.1.108', description: 'FORCE_PROMPT_CACHING_5M to explicitly force 5-minute cache TTL' },
+  { feature: 'recap_command',               minVersion: '2.1.108', description: '/recap command + auto-recap for session context restoration after idle periods' },
+  { feature: 'away_summary_env',            minVersion: '2.1.108', description: 'CLAUDE_CODE_ENABLE_AWAY_SUMMARY forces session recap even with DISABLE_TELEMETRY set' },
+  { feature: 'skill_builtin_discovery',     minVersion: '2.1.108', description: 'Model can auto-discover and invoke built-in slash commands (/init, /review, /security-review) via Skill tool' },
+  { feature: 'undo_rewind_alias',           minVersion: '2.1.108', description: '/undo alias for /rewind command' },
+  { feature: 'model_switch_warning',        minVersion: '2.1.108', description: '/model warns before switching models mid-conversation to prevent prompt cache invalidation' },
+  { feature: 'resume_cwd_default',          minVersion: '2.1.108', description: '/resume picker defaults to sessions from current directory; Ctrl+A shows all projects' },
+  { feature: 'lazy_language_grammars',      minVersion: '2.1.108', description: 'Language grammars loaded on demand, reducing memory footprint for file reads/edits/syntax highlighting' },
+  { feature: 'rate_limit_server_distinction', minVersion: '2.1.108', description: 'Error messages distinguish server rate limits from plan usage limits with status.claude.com link' },
+  { feature: 'prompt_cache_disable_warning', minVersion: '2.1.108', description: 'Startup warning when DISABLE_PROMPT_CACHING* env vars are set' },
+  { feature: 'agent_auto_classifier_fix',   minVersion: '2.1.108', description: 'Agent tool no longer prompts in auto mode when safety classifier transcript exceeds context window' },
+  { feature: 'telemetry_cache_ttl_fix',     minVersion: '2.1.108', description: 'Subscribers with DISABLE_TELEMETRY get 1-hour cache TTL instead of falling back to 5-minute' },
+  // 2.1.109 (2026-04-15)
+  { feature: 'thinking_progress_rotation',  minVersion: '2.1.109', description: 'Extended thinking indicator with rotating progress hint during long operations' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
