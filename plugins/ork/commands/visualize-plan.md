@@ -1,5 +1,5 @@
 ---
-description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
+description: "Renders planned changes as ASCII visualizations with risk heat maps, execution order diagrams, dependency graphs, impact metrics, and before/after architecture comparisons. Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
 allowed-tools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
 ---
 

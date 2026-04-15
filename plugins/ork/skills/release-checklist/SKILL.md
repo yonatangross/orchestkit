@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-description: "Validates release readiness with gated checklist — build, test, count validation, changelog, version bump. Use when preparing a release."
+description: "Sequential release gate validating build success, test suite, security checks, type checking, manifest counts consistency, and changelog presence. Each step reports pass/fail with remediation guidance. Manages version bumping, staging, and pre-push confirmation. Use when preparing a release."
 tags: [release, checklist, orchestkit]
 version: 2.0.0
 author: OrchestKit

@@ -2,7 +2,7 @@
 name: audit-full
 license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
-description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
+description: "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
 context: fork
 version: 1.1.0

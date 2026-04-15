@@ -381,6 +381,8 @@ TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addB
 # Then: /ork:verify {feature}
 ```
 
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+
 ## Related Skills
 
 - `ork:explore`: Explore codebase before implementing

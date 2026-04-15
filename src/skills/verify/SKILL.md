@@ -387,6 +387,8 @@ TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlocke
 # Then: /ork:commit
 ```
 
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+
 ## Related Skills
 
 - `ork:implement` - Full implementation with verification

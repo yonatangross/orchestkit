@@ -1,6 +1,6 @@
 ---
 name: competitive-analysis
-description: "Porter's Five Forces, SWOT analysis, and competitive landscape mapping. Use when analyzing market position, evaluating competitive threats, building battlecards, or assessing industry dynamics."
+description: "Strategic analysis frameworks including Porter's Five Forces (industry attractiveness), SWOT (internal positioning), and competitive landscape mapping with battlecard generation. Produces competitor profiles, feature gap analysis, and positioning recommendations. Use when analyzing market position, evaluating threats, or building sales battlecards."
 version: 1.0.0
 author: OrchestKit
 user-invocable: false

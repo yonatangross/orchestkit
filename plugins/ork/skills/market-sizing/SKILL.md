@@ -1,6 +1,6 @@
 ---
 name: market-sizing
-description: "TAM, SAM, SOM market sizing with top-down and bottom-up methods. Use when estimating addressable market, validating opportunity size, sizing new segments, or preparing investor pitch materials."
+description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation methods, cross-validation of assumptions, and divergence reconciliation. Generates investor-ready materials with growth projections and confidence intervals. Use when estimating addressable markets, validating opportunity size, or preparing pitch deck market slides."
 version: 1.0.0
 author: OrchestKit
 user-invocable: false

@@ -2,7 +2,7 @@
 name: feedback
 license: MIT
 compatibility: "Claude Code 2.1.76+."
-description: "Manages OrchestKit feedback, usage analytics, learning preferences, and privacy settings. Use when reviewing patterns, pausing learning, or managing consent."
+description: "Manages OrchestKit learning system including feedback status, usage pattern tracking, and privacy/analytics consent. Supports pause/resume learning, data export, privacy policy display, and bug reporting. Tracks learned patterns and agent performance metrics. Use when reviewing learned patterns, pausing learning, or managing data consent."
 argument-hint: "[subcommand]"
 context: inherit
 version: 1.2.0

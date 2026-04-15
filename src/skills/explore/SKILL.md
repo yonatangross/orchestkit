@@ -2,7 +2,7 @@
 name: explore
 license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
-description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
+description: "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns."
 argument-hint: "[topic-or-feature]"
 context: fork
 version: 2.3.0

@@ -1,5 +1,5 @@
 ---
-description: "Sync release content to NotebookLM and HQ Knowledge Base after tagging a new version. Reads CHANGELOG, CLAUDE.md, and hook README, then updates notebook sources and ingests to knowledge base."
+description: "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge."
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 

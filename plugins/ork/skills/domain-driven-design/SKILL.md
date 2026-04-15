@@ -2,7 +2,7 @@
 name: domain-driven-design
 license: MIT
 compatibility: "Claude Code 2.1.76+."
-description: Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts.
+description: "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
 context: fork
 agent: backend-system-architect
 version: 1.0.0

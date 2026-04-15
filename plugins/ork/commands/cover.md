@@ -428,6 +428,8 @@ All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/agents/shar
 - `testing-unit` / `testing-integration` / `testing-e2e` — knowledge skills loaded by test-generator agents
 - `ork:commit` — commit generated test files
 
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:

@@ -1,5 +1,5 @@
 ---
-description: "Personalized setup and onboarding wizard. Use when setting up OrchestKit for a new project, configuring plugins, or generating a readiness score and improvement plan."
+description: "Personalized 8-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks, project-scoped configuration, and release channel detection. Use when setting up OrchestKit for a new project or rescanning after major changes."
 allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations, mcp__ork-elicit__ork_elicit]
 ---
 
@@ -110,6 +110,8 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 > **Team onboarding (CC 2.1.101+):** `/team-onboarding` generates a teammate ramp-up guide from your local CC usage patterns. Suggest running it after setup to create onboarding docs for new team members.
 
 > **Enterprise TLS (CC 2.1.101+):** OS CA certificate store is trusted by default — enterprise TLS proxies work without extra setup. Set `CLAUDE_CODE_CERT_STORE=bundled` to use only bundled CAs if needed.
+
+> **Prompt caching (CC 2.1.108+):** For API-key, Bedrock, Vertex, or Foundry users, recommend setting `ENABLE_PROMPT_CACHING_1H=1` to extend the prompt cache TTL from 5 minutes to 1 hour. This significantly reduces token costs for long OrchestKit sessions (brainstorm, implement, cover chains). Users with `DISABLE_TELEMETRY=1` should also set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` for session recap on return.
 
 ## Phase 3.5: Project Configuration Wizard
 
