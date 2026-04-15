@@ -20,6 +20,18 @@ metadata:
 
 json-render (Vercel Labs, 12.9K stars, Apache-2.0) is a framework for AI-safe generative UI. AI generates flat-tree JSON (or YAML) specs constrained to a developer-defined catalog — the catalog is the contract between your design system and AI output. If a component or prop is not in the catalog, AI cannot generate it.
 
+## New in 2026-04 (json-render 0.14 → 0.17)
+
+- **Three edit modes (0.14)** — `patch` (RFC 6902), `merge` (RFC 7396), `diff` (unified) for progressive AI refinements. `buildEditUserPrompt()` + `diffToPatches()` + `deepMergeSpec()` in `@json-render/core`.
+- **`@json-render/yaml` (0.14)** — official YAML wire format + streaming parser; `buildUserPrompt({ format: 'yaml' })`.
+- **`@json-render/ink` (0.15)** — render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
+- **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
+- **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
+- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is or `mergeCatalogs()` with your custom types.
+- **`@json-render/react-three-fiber`** now ships 20 components including `GaussianSplat` (0.17).
+- **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
+- **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
@@ -320,7 +332,7 @@ Constraining props to prevent AI hallucination.
 
 ### shadcn Catalog
 
-Using the 29 pre-built shadcn components.
+Using the 36 pre-built shadcn components.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|

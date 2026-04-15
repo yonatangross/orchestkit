@@ -21,6 +21,17 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 
 **Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
 
+## New in 2026-04 (emulate 0.4.x)
+
+- **Modular `@emulators/*` packages** — each service is its own package (`@emulators/github`, `@emulators/stripe`, etc.); top-level `emulate` re-exports `createEmulator` and the CLI.
+- **4 new services** (12 total): `mongoatlas:4007`, `okta:4008`, `resend:4009`, `stripe:4010` with drop-in seed YAML blocks.
+- **Resend local inbox** — `GET http://localhost:4009/inbox` returns captured emails for assertions without hitting a real provider.
+- **Stripe hosted checkout** — real session redirect flow + `checkout.session.completed`/`expired` webhook delivery, suitable for E2E payment tests.
+- **MongoDB Atlas** — Admin API v2 (projects/clusters/DB users) + Data API v1 with full CRUD + aggregate.
+- **Okta OIDC** — full discovery, JWKS, `authorize/token/userinfo/revoke/introspect` plus Users/Groups/Apps CRUD.
+- **Entra / Apple / Slack expansions (v0.4.0)** — PKCE + refresh rotation (Entra), RS256 JWKS (Apple), OAuth v2 consent UI (Slack).
+- **`@emulators/adapter-next`** — catch-all Next.js route handler runs emulators on the same origin as the app; fixes OAuth callback URL drift on Vercel preview deploys.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
