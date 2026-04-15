@@ -416,7 +416,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table).
 
-> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context. This complements checkpoint-resume — `/recap` restores what was discussed and decided, while `state.json` restores pipeline progress. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` if `DISABLE_TELEMETRY=1`.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
@@ -456,6 +456,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `socratic-questions.md` | Requirements discovery |
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
-
 
 **Version:** 4.8.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)
