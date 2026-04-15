@@ -6,14 +6,18 @@ description: Design token management with W3C Design Token Community Group speci
 tags: [design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces]
 context: fork
 agent: frontend-ui-developer
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 complexity: medium
 persuasion-type: guidance
+targets:
+  - library: "style-dictionary"
+    version: ">=5.3.0"
 metadata:
   category: document-asset-creation
+  dtcg-version: "v2025.10"
 allowed-tools:
   - Read
   - Glob
@@ -145,6 +149,12 @@ Read("${CLAUDE_SKILL_DIR}/rules/tokens-versioning.md")
 
 Style Dictionary transforms W3C tokens into platform-specific outputs (CSS custom properties, Tailwind theme, iOS Swift, Android XML). Configure a single `config.json` to generate all platform outputs from one token source.
 
+> **Style Dictionary 5.x (current)** — pin `style-dictionary >= 5.3.0`. Relevant deltas vs the 4.x documented elsewhere:
+>
+> - **Native OKLCH output** — the custom `color/oklch` transform required in 4.x is **no longer needed**; the built-in `css/variables` formatter emits OKLCH directly when the input token uses `$type: "color"` with an OKLCH value. Remove hand-rolled transforms.
+> - **DTCG v2025.10 dimension object** — `$type: "dimension"` now takes an object `{ "value": 16, "unit": "px" }` instead of the bare string `"16px"`. 5.3+ parses both, but new tokens should use the object form.
+> - **Hooks API** replaces the 4.x `registerTransform` / `registerFormat` global calls — pass hooks in the config instead for better tree-shaking.
+
 See `rules/tokens-style-dictionary.md` for configuration patterns and custom transforms.
 
 ## Dark Mode & Theming
@@ -237,7 +247,7 @@ npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist
 | Resource | Description |
 |----------|-------------|
 | [references/w3c-token-spec.md](references/w3c-token-spec.md) | W3C DTCG specification overview |
-| [references/style-dictionary-config.md](references/style-dictionary-config.md) | Style Dictionary 4.x configuration guide |
+| [references/style-dictionary-config.md](references/style-dictionary-config.md) | Style Dictionary 5.x configuration guide |
 | [references/token-naming-conventions.md](references/token-naming-conventions.md) | Naming patterns and conventions |
 
 ## Agent Integration

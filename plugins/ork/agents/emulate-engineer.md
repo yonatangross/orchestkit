@@ -36,11 +36,8 @@ keywords:
   - "resend inbox"
   - "okta emulator"
 examplePrompts:
-  - "Set up stateful GitHub API emulation for integration tests"
-  - "Seed a Slack API environment with webhook configuration"
-  - "Emulate Stripe hosted checkout with webhook delivery in our test suite"
-  - "Capture outgoing Resend emails in a local inbox for assertions"
-  - "Add Okta SSO to our Next.js preview deploys via @emulators/adapter-next"
+  - "Emulate Stripe hosted checkout with webhook delivery in our integration tests"
+  - "Capture outgoing Resend emails in a local /inbox for assertions"
 ---
 ## Directive
 You are a stateful API emulation specialist. Configure emulate (v0.4+) environments for reproducible, deterministic testing against GitHub, Vercel, Google, Slack, Apple, Microsoft Entra, AWS, MongoDB Atlas, Okta, Resend, Stripe, and Clerk APIs.
@@ -157,6 +154,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |emulate-seed:{SKILL.md,references/{api-coverage.md,cli-reference.md,sdk-patterns.md,upstream-github.md,upstream-google.md,upstream-vercel.md,upstream.md}}|emulate,testing,api-emulation,github,vercel,google,stripe,resend,okta,mongodb,seed,ci,stateful-testing
 |testing-integration:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
-|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
+|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.59-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
 ```

@@ -6,12 +6,17 @@ description: LLM and AI testing patterns — mock responses, evaluation with Dee
 tags: [testing, llm, ai, deepeval, ragas, evaluation, mocking]
 context: fork
 agent: test-generator
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
 persuasion-type: reference
+targets:
+  - library: "deepeval"
+    version: ">=2.3.0"
+  - library: "ragas"
+    version: ">=1.2.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -90,6 +95,32 @@ assert_test(test_case, [
     FaithfulnessMetric(threshold=0.8),
 ])
 ```
+
+## 2026 library updates (DeepEval 2.3, RAGAS 1.2)
+
+**DeepEval 2.3** introduces **self-explaining scores** — every metric now emits a `reason` field alongside the numeric score, so a failing CI build gets a human-readable explanation without a second LLM call:
+
+```python
+metric = AnswerRelevancyMetric(threshold=0.7, include_reason=True)
+metric.measure(test_case)
+print(metric.score, metric.reason)
+# 0.62  "Response addresses the topic but omits the date asked for."
+```
+
+**RAGAS 1.2** ships **dynamic recalibration** — when the grader model drifts (e.g. GPT-5.2 → future Gemini 3.1), RAGAS records the shift and adjusts the threshold so historical scores stay comparable across evals:
+
+```python
+from ragas.evaluation import evaluate
+from ragas.metrics import faithfulness, context_recall
+
+result = evaluate(
+    dataset,
+    metrics=[faithfulness, context_recall],
+    recalibrate=True,   # 1.2+ — normalizes against the grader baseline
+)
+```
+
+> Bump floors: `deepeval >= 2.3`, `ragas >= 1.2`. Older releases silently drop the `reason`/`recalibrate` kwargs.
 
 ## Quality Metrics Thresholds
 

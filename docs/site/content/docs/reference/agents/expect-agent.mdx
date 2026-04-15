@@ -185,6 +185,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 3. **5-minute page timeout.** If a single page takes longer than 5 minutes, skip remaining steps.
 4. **No blind clicking.** Always `snapshot -i` before interacting. Never guess element selectors.
 5. **Screenshot on failure only.** Don't screenshot every step — only on `ASSERTION_FAILED`.
+6. **FORBIDDEN: `agent-browser chat`.** The `chat` subcommand bypasses the STEP_START / STEP_DONE status protocol, disables the ARIA-first workflow, and makes freeform LLM navigation decisions that can't be parsed by the lead agent. Never invoke it from this agent under any circumstance. Use the explicit `open` / `snapshot -i` / `click` / `fill` pipeline instead.
 
 ## Integration
 

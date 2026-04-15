@@ -68,8 +68,8 @@ Input (screenshot/description/URL)
   ▼
 ┌─────────────────────────┐
 │ Stage 1: EXTRACT         │  Stitch MCP → HTML + design context
-│ get_screen_code          │  Extract colors, typography, layout
-│ extract_design_context   │  Produce design-tokens.json
+│ build_site               │  Generate up to 5 screens from prompt
+│ get_screen_code / _image │  Extract React/HTML + PNG for each
 └─────────┬───────────────┘
           │
           ▼
@@ -154,12 +154,23 @@ Glob("**/components.json")
 
 **If stitch MCP is available:**
 ```python
+# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
+#   - build_site(prompt)          → multi-screen app, up to 5 interconnected screens
+#   - get_screen_code(screenId)   → returns React/HTML for a generated screen
+#   - get_screen_image(screenId)  → returns PNG of a generated screen
+#
 # For screenshot/URL input:
-# Use official Stitch MCP tools to extract design HTML and context
-# Tools: get_screen, list_screens, get_project
-
+#   1. Upload screenshot to Stitch (or pass URL)
+#   2. Call build_site() with the visual as context
+#   3. get_screen_code() to retrieve the React/HTML output
+#
 # For description input:
-# generate_screen_from_text to create design, then get_screen to extract
+#   1. Call build_site(prompt=<description>)
+#   2. get_screen_code() / get_screen_image() to retrieve the result
+#
+# DESIGN.md import (Stitch Pro, Mar 2026+):
+#   Stitch can also import a natural-language DESIGN.md file to regenerate
+#   a layout without starting from scratch. Useful for iterative edits.
 ```
 
 **If stitch MCP is NOT available (fallback):**

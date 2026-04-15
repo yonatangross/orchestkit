@@ -506,8 +506,8 @@ export const AGENTS: Agent[] = [
       "okta emulator"
     ],
     "examplePrompts": [
-      "Set up stateful GitHub API emulation for integration tests",
-      "Seed a Slack API environment with webhook configuration"
+      "Emulate Stripe hosted checkout with webhook delivery in our integration tests",
+      "Capture outgoing Resend emails in a local /inbox for assertions"
     ]
   },
   {

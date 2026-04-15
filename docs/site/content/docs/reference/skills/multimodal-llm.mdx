@@ -1,6 +1,6 @@
 ---
 title: "Multimodal Llm"
-description: "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling, Sora, Veo, Runway), or building multimodal AI pipelines."
+description: "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
@@ -12,7 +12,18 @@ description: "Vision, audio, video generation, and multimodal LLM integration pa
 
 # Multimodal LLM Patterns
 
-Integrate vision, audio, and video generation capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, text-to-speech, and AI video generation (Kling 3.0, Sora 2, Veo 3.1, Runway Gen-4.5).
+Integrate vision, audio, and video generation capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, text-to-speech, and AI video generation (Kling v3, Sora 2, Veo 3.1 std/lite/fast tiers, Runway Gen-4.5 via `gen4_turbo`).
+
+> **Canonical model IDs** (pinned against `yonatan-hq/platform/apps/api/app/config.py`):
+>
+> | Provider | Model IDs |
+> |----------|-----------|
+> | Anthropic | `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
+> | OpenAI    | `gpt-5.2` (current flagship) |
+> | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
+> | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
+> | Kling     | `kling-v3` (model_name field in Kling API) |
+> | Runway    | `gen4_turbo` (product label: Gen-4.5) |
 
 ## Quick Reference
 
@@ -100,28 +111,30 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| Multi-Shot | `rules/video-multi-shot.md` | Kling 3.0 character elements, 6-shot storyboards, identity binding |
+| Multi-Shot | `rules/video-multi-shot.md` | Kling v3 character elements, 6-shot storyboards, identity binding |
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | Claude Opus 4.6 or GPT-5 |
-| Long documents | Gemini 2.5 Pro (1M context) |
-| Cost-efficient vision | Gemini 2.5 Flash ($0.15/M tokens) |
-| Video analysis | Gemini 2.5/3 Pro (native video) |
-| Voice assistant | Grok Voice Agent (fastest, &lt;1s) |
+| High accuracy vision | `claude-opus-4-6` or `gpt-5.2` |
+| Long documents | `gemini-3.1-pro-preview` (1M+ context) |
+| Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
+| Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
+| Voice assistant | Grok Voice Agent on Grok 4.20 (fastest, &lt;1s) |
 | Emotional voice AI | Gemini Live API |
-| Long audio transcription | Gemini 2.5 Pro (9.5hr) |
+| Long audio transcription | `gemini-3.1-pro-preview` (9.5hr) |
 | Speaker diarization | AssemblyAI or Gemini |
 | Self-hosted STT | Whisper Large V3 |
-| Character-consistent video | Kling 3.0 (Character Elements 3.0) |
+| Character-consistent video | `kling-v3` (Character Elements 3.0) |
 | Narrative video / storytelling | Sora 2 (best cause-and-effect coherence) |
-| Cinematic B-roll | Veo 3.1 (camera control + polished motion) |
-| Professional VFX | Runway Gen-4.5 (Act-Two motion transfer) |
-| High-volume social video | Kling 3.0 Standard ($0.20/video) |
+| Cinematic B-roll | `veo-3.1-generate-preview` (camera control + polished motion) |
+| Budget drafts | `veo-3.1-lite-generate-preview` (~$0.05/s, 720/1080p) |
+| Mid-tier fast renders | `veo-3.1-fast-generate-preview` |
+| Professional VFX | Runway `gen4_turbo` (Act-Two motion transfer) |
+| High-volume social video | `kling-v3` Standard (~$0.20/video) |
 | Open-source video gen | Wan 2.6 or LTX-2 |
-| Lip-sync / avatar video | Kling 3.0 (native lip-sync API) |
+| Lip-sync / avatar video | `kling-v3` (native lip-sync API) |
 
 ## Example
 

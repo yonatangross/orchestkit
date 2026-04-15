@@ -202,6 +202,59 @@ done
 
 ---
 
+## 2026 CLI changes — what to know
+
+### `gh-copilot` extension is retired
+
+GitHub retired the `gh-copilot` extension in **October 2025**. Copilot is now a standalone binary:
+
+```bash
+# OLD — no longer supported
+gh extension install github/gh-copilot   # fails
+gh copilot suggest "revert last commit"   # fails
+
+# NEW — standalone `copilot` binary
+copilot suggest "revert last commit"
+copilot explain "git rebase -i HEAD~5"
+```
+
+Install from `cli.github.com/copilot` or via Homebrew (`brew install github/gh/copilot`). Authentication is shared with `gh auth` when both are installed.
+
+### `gh agent-task` (2026)
+
+New subcommand for managing Copilot coding-agent tasks:
+
+```bash
+gh agent-task create --repo owner/repo --title "Fix flaky login test"
+gh agent-task list --state open
+gh agent-task view 42 --log          # stream agent log
+gh agent-task watch 42                # live-follow until completion
+gh agent-task cancel 42
+```
+
+Pairs with the REST endpoint `POST /repos/\{owner\}/\{repo\}/agent-tasks` for CI-driven task creation.
+
+### Sub-issues (native, 2026)
+
+Sub-issues are now a native GitHub concept — no extension required:
+
+```bash
+# List sub-issues of parent #123
+gh api repos/{owner}/{repo}/issues/123/sub_issues
+
+# Add an existing issue #456 as sub-issue of #123
+gh api -X POST repos/{owner}/{repo}/issues/123/sub_issues \
+  -f sub_issue_id=$(gh api repos/{owner}/{repo}/issues/456 --jq .node_id)
+
+# Remove a sub-issue relationship
+gh api -X DELETE repos/{owner}/{repo}/issues/123/sub_issue \
+  -F sub_issue_id=<id>
+```
+
+The old `gh-sub-issue` third-party extension still works but is superseded. GraphQL sub-issue mutations still require the issue `node_id` (see `references/cli-vs-api-identifiers.md`).
+
+---
+
 ## Related Skills
 
 - `ork:create-pr` - Create pull requests with proper formatting and review assignments

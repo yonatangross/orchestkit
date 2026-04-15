@@ -6,12 +6,17 @@ description: Performance and load testing patterns — k6 load tests, Locust str
 tags: [testing, performance, k6, locust, pytest, load-testing, benchmarking]
 context: fork
 agent: test-generator
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
 persuasion-type: reference
+targets:
+  - library: "k6"
+    version: ">=1.0.0"
+  - library: "locust"
+    version: ">=2.40.0"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -74,6 +79,28 @@ export default function () {
 ```
 
 Run: `k6 run --out json=results.json tests/load/api.js`
+
+### k6 v1.0+ (May 2025) — what changed
+
+- **Native TypeScript**: `k6 run tests/load/api.ts` — no compilation step needed.
+- **Auto extension provisioning**: `k6 run` pulls required extensions automatically; manual `xk6 build` is superseded for most workflows.
+- **Browser module import**: `import browser from 'k6/browser'` — **the old `k6/experimental/browser` path was removed in v0.52+**. Any generated code using `/experimental/` will fail.
+- **OTLP output built in**: `k6 run --out experimental-opentelemetry=...` — stream results straight to your tracing backend.
+
+```typescript
+import http from 'k6/http'
+import browser from 'k6/browser'
+import { check } from 'k6'
+
+export const options = { vus: 5, duration: '30s' }
+
+export default async function () {
+  const page = await browser.newPage()
+  await page.goto('https://example.com')
+  check(page, { 'title present': async p => (await p.title()).length > 0 })
+  await page.close()
+}
+```
 
 ## Performance Test Types
 

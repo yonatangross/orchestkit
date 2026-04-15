@@ -5,16 +5,16 @@ compatibility: "Claude Code 2.1.76+."
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
 context: fork
 agent: frontend-ui-developer
-version: 1.4.0
+version: 1.5.0
 author: AI Agent Hub
-tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
+tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack]
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
 persuasion-type: reference
 targets:
   - library: next.js
-    version: ">=16.0.0"
+    version: ">=16.2.3"
   - library: react
     version: ">=19.2.0"
 metadata:
@@ -32,7 +32,9 @@ path_patterns: ["*.tsx", "*.jsx", "**/next.config.*", "**/app/**/*.tsx"]
 
 ## Overview
 
-React Server Components (RSC) enable server-first rendering with client-side interactivity. This skill covers Next.js 16 App Router patterns, Server Components, Server Actions, and streaming.
+React Server Components (RSC) enable server-first rendering with client-side interactivity. This skill covers Next.js 16.2 LTS App Router patterns, Server Components, Server Actions, and streaming.
+
+> **Next.js 16.2.3 LTS (Apr 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js also ships the `next-browser` binary (`npx next-browser`), a CDP client for mid-run inspection.
 
 **When to use this skill:**
 - Building Next.js 16+ applications with the App Router
@@ -65,7 +67,7 @@ React Server Components (RSC) enable server-first rendering with client-side int
 ```tsx
 import { cacheLife, cacheTag } from 'next/cache'
 
-// Cached component with duration
+// Default — shared across all users (public CDN-cached)
 async function CachedProducts() {
   'use cache'
   cacheLife('hours')
@@ -73,9 +75,36 @@ async function CachedProducts() {
   return await db.product.findMany()
 }
 
+// Remote variant (16.2+) — always served from the edge/CDN, never rendered
+// inline on the origin. Best for static product listings, marketing content.
+async function MarketingHero() {
+  'use cache: remote'
+  cacheLife('days')
+  return <Hero />
+}
+
+// Private variant (16.2+) — cached per-user session. Never shared across
+// users. Use for personalized dashboards with expensive computation.
+async function UserDashboard({ userId }: { userId: string }) {
+  'use cache: private'
+  cacheLife('minutes')
+  cacheTag(`user:${userId}`)
+  return await loadDashboard(userId)
+}
+
 // Invalidate cache
 import { revalidateTag } from 'next/cache'
 revalidateTag('products')
+```
+
+Enable via `next.config.ts`:
+
+```ts
+import type { NextConfig } from 'next'
+const config: NextConfig = {
+  cacheComponents: true,  // 16.2+ — replaces experimental_ppr flag
+}
+export default config
 ```
 
 **Legacy Fetch Options (Next.js 15):**
@@ -127,6 +156,12 @@ export default async function PostPage({
 ```
 
 **Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. Load: `Read("${CLAUDE_SKILL_DIR}/references/nextjs-16-upgrade.md")` for complete migration guide.
+
+### Dev Server (Next.js 16.2 LTS)
+
+- **Turbopack default** — `next dev` and `next build` run Turbopack without any flag. Pass `--webpack` only when forced (legacy plugin).
+- **Server Fast Refresh** — Server Components hot-reload on save without losing client state. No extra config; it's on by default in 16.2.
+- **`next-browser` agent CDP client** — `npx next-browser --url http://localhost:3000 --trace` attaches to the running dev server, streams RSC payloads and cache boundaries to stdout in JSON. Designed for AI agents that need to inspect render trees mid-session without screenshotting.
 
 ---
 

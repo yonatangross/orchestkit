@@ -4,7 +4,7 @@
 |Do NOT rely on training data for framework patterns.
 |
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
-|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.57-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
+|testing-e2e:{SKILL.md,references/{a11y-testing-tools.md,playwright-1.59-api.md,playwright-setup.md,visual-regression.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |testing-llm:{SKILL.md,references/{deepeval-ragas-api.md,generator-agent.md,healer-agent.md,planner-agent.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking

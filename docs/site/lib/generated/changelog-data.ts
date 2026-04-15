@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.45.0",
+    "date": "2026-04-15",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** M126 Vercel Labs skill refresh — \"New in 2026-04\" summary sections added near the top of 4 skills for at-a-glance feature discovery (platform issue #1899)\n  - **browser-tools:** bump upstream-version-tested 0.22.2 → 0.25.4; documented `skills list/get`, `chat` single-shot/REPL, `find`/`getByRole` semantic locators (CDP a11y tree), `snapshot --urls`, `--annotate`, `--provider agentcore` (AWS Bedrock), embedded dashboard, `--no-auto-dialog`; added 3 hook rows for skill-install/chat-transcripts/remote-provider warnings\n  - **portless:** documented 0.10.x full feature set — HTTPS on 443 default, `NODE_EXTRA_CA_CERTS` auto-inject, `--wildcard` subdomains, `portless alias`, `portless clean`, `--lan` mDNS, fixed app ports (`--app-port`), HTTP/2 HMR fixes, Expo/React Native support\n  - **emulate-seed:** documented 0.4.x modular `@emulators/*` packages, 12 services with MongoDB Atlas / Okta / Resend / Stripe, Resend local `/inbox`, Stripe hosted checkout + webhook delivery, `@emulators/adapter-next` for same-origin Next.js embedding\n  - **json-render-catalog:** documented 0.14 → 0.17 edit modes (patch/merge/diff), `@json-render/yaml` / `/ink` / `/next` / `/shadcn-svelte` / `/mcp` packages, shadcn catalog at 36 components, react-three-fiber 20 components (incl. GaussianSplat)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.44.0",
     "date": "2026-04-15",
     "compareUrl": "",

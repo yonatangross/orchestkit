@@ -24,7 +24,7 @@ Query: "animated pricing table with monthly/annual toggle"
   │
   ▼
 ┌──────────────────────────────┐
-│ 21st.dev Magic MCP           │  Search 1.4M+ developer registry
+│ 21st.dev Magic MCP           │  Search the 21st.dev developer registry
 │ @21st-dev/magic              │  Filter: React, Tailwind, shadcn
 └──────────┬───────────────────┘
            │
@@ -88,6 +88,20 @@ WebSearch("site:21st.dev {QUERY} React component")
 # Or browse the registry
 WebFetch("https://21st.dev", "Search for: {QUERY}")
 ```
+
+**Alternative generation path — v0.app MCP (2026):**
+When the registry doesn't have a matching component, fall back to AI
+generation via the v0.app MCP server rather than WebFetch scraping:
+
+```python
+# If @vercel/v0-mcp is available
+# v0.app generates from the same query and can pin to shadcn style
+# (e.g., luma / nova / lyra) via `shadcn apply` after download.
+```
+
+This is a **generation** path, not a registry search — results will not
+have view counts or stars. Prefer registry search when possible so you
+get battle-tested components; use v0.app only when the registry misses.
 
 ## Step 2: Present Results
 

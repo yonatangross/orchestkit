@@ -16,6 +16,19 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 > **Full CLI reference**: Load `Read("$\{CLAUDE_SKILL_DIR\}/references/upstream.md")` for complete command docs.
 
+## New in 2026-04 (portless 0.10.x)
+
+- **HTTPS on 443 by default** (breaking from 0.9.x http:1355). Valid cert, no setup. `--no-tls` reverts.
+- **`NODE_EXTRA_CA_CERTS` auto-injected (0.10.2)** into child processes — node HTTPS calls trust portless CA with zero setup.
+- **`--wildcard` subdomains** — `https://*.myapp.localhost` for multi-tenant / preview routing.
+- **`portless alias &lt;name&gt; &lt;port&gt;`** — map a docker-compose / emulate port to a named URL without a long-running `run` process.
+- **`portless clean`** — full teardown: stops proxy, removes CA, wipes state, cleans `/etc/hosts`.
+- **`--lan` mode** — mDNS `.local` hostnames reachable across wifi (phone, tablet, other machines) without router config.
+- **Fixed app ports** — `--app-port 3000` / `PORTLESS_APP_PORT` for tools that need a known port (debuggers, docker).
+- **hosts-sync on by default** for Safari compat (disable with `PORTLESS_SYNC_HOSTS=0`).
+- **HTTP/2 HMR fixes** for Vite/VitePlus/Next.js dev — websocket upgrades no longer break under h2.
+- **Expo / React Native** support — `portless run expo start` gives Metro a stable URL for device QR codes.
+
 ## When to Use
 
 - Starting a dev server that agents or browser tests will target

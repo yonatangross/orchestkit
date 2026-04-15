@@ -180,9 +180,9 @@ preview-stories(stories=[{ "storyId": "button--primary" }])
 ### Setup
 
 ```bash
-npx storybook add @storybook/addon-mcp
+npx storybook add @storybook/addon-mcp   # current: 0.6.0, Apr 2026
 # Enable docs toolset in .storybook/main.ts:
-#   experimentalComponentsManifest: true
+#   componentsManifest: true    # was experimentalComponentsManifest (SB 10.3 rename, default-on)
 npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
 ```
 

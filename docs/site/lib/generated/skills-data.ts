@@ -119,14 +119,17 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "ai-ui-generation": {
     "name": "ai-ui-generation",
-    "description": "AI-assisted UI generation patterns for json-render, v0, Bolt, and Cursor workflows. Covers prompt engineering for component generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
-    "version": "1.0.0",
+    "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
       "json-render",
       "v0",
+      "v0-app",
+      "stitch",
       "bolt",
+      "bolt-cloud",
       "cursor",
       "prompt-engineering",
       "code-generation",
@@ -1076,7 +1079,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "component-search": {
     "name": "component-search",
     "description": "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "components",
@@ -1326,7 +1329,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "demo-producer": {
     "name": "demo-producer",
     "description": "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "demo",
@@ -1427,7 +1430,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "design-system-tokens": {
     "name": "design-system-tokens",
     "description": "Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "design-tokens",
@@ -2068,7 +2071,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "figma-design-handoff": {
     "name": "figma-design-handoff",
     "description": "Figma-to-code design handoff patterns including Figma Variables to design tokens pipeline, component spec extraction, Dev Mode inspection, Auto Layout to CSS Flexbox/Grid mapping, and visual regression with Applitools. Use when converting Figma designs to code, documenting component specs, setting up design-dev workflows, or comparing production UI against Figma designs.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "figma",
@@ -2184,7 +2187,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "github-operations": {
     "name": "github-operations",
     "description": "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "github",
@@ -2577,7 +2580,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "langgraph": {
     "name": "langgraph",
     "description": "LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
@@ -2710,7 +2713,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "mcp-patterns": {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -2722,7 +2725,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "oauth",
       "elicitation",
       "sampling",
-      "mcp-apps"
+      "mcp-apps",
+      "fastmcp"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3033,8 +3037,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "multimodal-llm": {
     "name": "multimodal-llm",
-    "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling, Sora, Veo, Runway), or building multimodal AI pipelines.",
-    "version": "2.0.0",
+    "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3647,7 +3651,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "react-server-components-framework": {
     "name": "react-server-components-framework",
     "description": "Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "author": "AI Agent Hub",
     "tags": [
       "frontend",
@@ -3656,7 +3660,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "nextjs-16",
       "server-components",
       "streaming",
-      "cache-components"
+      "cache-components",
+      "turbopack"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -4354,7 +4359,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "testing-e2e": {
     "name": "testing-e2e",
     "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4379,7 +4384,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "a11y-testing-tools.md",
-        "playwright-1.57-api.md",
+        "playwright-1.59-api.md",
         "playwright-setup.md",
         "visual-regression.md"
       ],
@@ -4407,7 +4412,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "testing-integration": {
     "name": "testing-integration",
     "description": "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4460,7 +4465,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "testing-llm": {
     "name": "testing-llm",
     "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4527,7 +4532,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "testing-perf": {
     "name": "testing-perf",
     "description": "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
