@@ -1,6 +1,6 @@
 ---
 title: "Json Render Catalog"
-description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 29 pre-built components, optimize specs for token efficiency with YAML mode. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native projects."
+description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -197,9 +197,11 @@ json-render supports progressive rendering during streaming. As the AI generates
 
 Elements render as soon as their props are complete — no waiting for the full spec.
 
-## @json-render/shadcn — 29 Pre-Built Components
+## @json-render/shadcn — 36 Pre-Built Components
 
-The `@json-render/shadcn` package provides a production-ready catalog of 29 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
+The `@json-render/shadcn` package provides a production-ready catalog of 36 components with Zod schemas already defined. Load `rules/shadcn-catalog.md` for the full component list and when to extend vs use as-is.
+
+> **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
 ```typescript
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
@@ -240,9 +242,39 @@ const components = { ...shadcnComponents, ...lumaComponents }
 
 **Detection pattern:** Read `components.json` → `"style"` field to determine which overrides to apply. Style-specific class names: Luma (`rounded-4xl`, `shadow-md`, `gap-6`), Nova (compact `px-2 py-1`), Lyra (`rounded-none`).
 
+## Edit Modes — patch / merge / diff (0.14+)
+
+For updating specs after initial render (AI-driven refinements, user edits, partial regenerations), core ships three universal edit modes:
+
+| Mode | Spec | When to use |
+|------|------|-------------|
+| `patch` | RFC 6902 JSON Patch | Precise, streamed diffs (already used for progressive streaming) |
+| `merge` | RFC 7396 JSON Merge Patch | Simpler updates, whole-field replacements |
+| `diff`  | Unified diff of serialized spec | AI-native output when the model prefers plaintext diffs |
+
+```typescript
+import { deepMergeSpec, diffToPatches, buildEditUserPrompt } from '@json-render/core'
+
+// Ask the model for an edit in whichever format it finds easiest
+const prompt = buildEditUserPrompt(currentSpec, instruction, { format: 'yaml', mode: 'merge' })
+
+// Normalize any edit mode to RFC 6902 patches for application
+const patches = diffToPatches(aiResponse)
+const next = deepMergeSpec(currentSpec, patches)
+```
+
+`buildUserPrompt()` also gained `format` and `serializer` options in 0.14 — pick YAML for standalone specs and JSON for streaming.
+
 ## Package Ecosystem
 
-23 packages covering web, mobile, 3D, codegen, and state management. Load `references/package-ecosystem.md` for the full list organized by category.
+Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, codegen, and state management. Load `references/package-ecosystem.md` for the full list organized by category.
+
+**Added since 0.13:**
+- `@json-render/yaml` (0.14) — YAML wire format + streaming parser
+- `@json-render/ink` (0.15) — terminal UI renderer (Ink-based, 20+ components)
+- `@json-render/next` (0.16) — generates full Next.js apps (routes, layouts, SSR, metadata)
+- `@json-render/shadcn-svelte` (0.16) — 36-component Svelte 5 mirror of the React shadcn catalog
+- `@json-render/react-three-fiber` now ships 20 components (includes `GaussianSplat` in 0.17)
 
 ## When to Use vs When NOT to Use
 

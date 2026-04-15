@@ -1,6 +1,6 @@
 ---
 title: "Multi Surface Render"
-description: "Multi-surface rendering with json-render — same JSON spec produces React components, PDFs, emails, Remotion videos, OG images, and more. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec."
+description: "Multi-surface rendering with json-render — same JSON spec produces React web, Next.js apps, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform-specific APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for multiple platforms, creating PDF reports, email templates, demo videos, or social media images from a single component spec."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -136,21 +136,52 @@ export const DemoVideo = () => (
 )
 ```
 
+### Render to Terminal (Ink, 0.15+)
+
+```tsx
+import { render } from 'ink'
+import { InkRenderer } from '@json-render/ink'
+import { catalog } from './catalog'
+import { inkRegistry } from './registries/ink'
+
+render(<InkRenderer spec={spec} catalog={catalog} registry={inkRegistry} />)
+```
+
+Useful for `/ork:*` CLI dashboards and streaming agent chat interfaces — ships 20+ Ink-native components (Box, Text, Spinner, Table, Markdown, Progress, etc.).
+
+### Render to Next.js App (0.16+)
+
+```typescript
+import { generateNextApp } from '@json-render/next'
+
+await generateNextApp(spec, {
+  catalog,
+  registry: webRegistry,
+  outDir: './out',
+  // generates routes, layouts, SSR handlers, and metadata
+})
+```
+
+Output is a full Next.js App Router project — specs describe route trees, not just components.
+
 ## Decision Matrix — When to Use Each Target
 
 | Target | Package | When to Use | Output |
 |--------|---------|-------------|--------|
 | React | `@json-render/react` | Web apps, SPAs | JSX |
+| Next.js | `@json-render/next` *(0.16+)* | Full apps: routes, layouts, SSR, metadata | Next.js app |
 | Vue | `@json-render/vue` | Vue projects | Vue components |
 | Svelte | `@json-render/svelte` | Svelte projects | Svelte components |
+| Svelte+shadcn | `@json-render/shadcn-svelte` *(0.16+)* | 36-component Svelte 5 catalog | Svelte + Tailwind |
 | React Native | `@json-render/react-native` | Mobile apps (25+ components) | Native views |
+| Terminal | `@json-render/ink` *(0.15+)* | CLI UIs, TUIs, streaming chat | Ink (terminal) |
 | PDF | `@json-render/react-pdf` | Reports, documents | PDF buffer/file |
 | Email | `@json-render/react-email` | Notifications, digests | HTML string |
 | Remotion | `@json-render/remotion` | Demo videos, marketing | MP4/WebM |
 | Image | `@json-render/image` | OG images, social cards | SVG/PNG (Satori) |
-| YAML | `@json-render/yaml` | Token optimization | YAML string |
-| MCP | `@json-render/mcp` | Claude/Cursor conversations | Sandboxed iframe |
-| 3D | `@json-render/react-three-fiber` | 3D scenes (19 components) | Three.js canvas |
+| YAML | `@json-render/yaml` *(0.14+)* | Token optimization, streaming parser | YAML string |
+| MCP | `@json-render/mcp` | Claude/Cursor/ChatGPT conversations | Sandboxed iframe |
+| 3D | `@json-render/react-three-fiber` | 3D scenes (20 components, incl. `GaussianSplat` in 0.17) | Three.js canvas |
 | Codegen | `@json-render/codegen` | Source code from specs | TypeScript/JSX |
 
 Load `rules/target-selection.md` for detailed selection criteria and trade-offs.

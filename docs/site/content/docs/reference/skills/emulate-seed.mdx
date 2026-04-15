@@ -1,6 +1,6 @@
 ---
 title: "Emulate Seed"
-description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, and AWS (S3/SQS/IAM) APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list. Use when setting up test environments, CI pipelines, integration tests, or offline development."
+description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
@@ -31,32 +31,54 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 ## Quick Start
 
 ```bash
-# Install (v0.3.0+: packages moved to @emulators/* scope)
+# Install (packages published under @emulators/* scope)
 npm install --save-dev emulate
 
 # Start all services
 npx emulate
 
 # Start specific services with seed data
-npx emulate --service github,slack --seed ./emulate.config.yaml
+npx emulate --service github,stripe --seed ./emulate.config.yaml
 
 # Generate a starter config
 npx emulate init --service github
 ```
 
-## Services
+## Services (0.4.1 — 12 emulators)
 
 | Service | Default Port | Coverage |
 |---------|-------------|----------|
-| **GitHub** | `:4001` | Repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, teams |
 | **Vercel** | `:4000` | Projects, deployments, domains, env vars, teams |
+| **GitHub** | `:4001` | Repos, PRs, issues, comments, reviews, Actions, webhooks, orgs, teams |
 | **Google OAuth** | `:4002` | OAuth 2.0 authorize, token exchange, userinfo |
 | **Slack** | `:4003` | Chat, conversations, users, reactions, OAuth v2 with consent UI |
 | **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
-| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation |
+| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/\{id\}` |
 | **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
+| **MongoDB Atlas** *(0.4+)* | `:4007` | Admin API v2 (projects, clusters, DB users) + Data API v1 (full CRUD + aggregate) |
+| **Okta** *(0.4+)* | `:4008` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
+| **Resend** *(0.4+)* | `:4009` | Send + batch (100/req), list/retrieve/cancel, domains, API keys, audiences, contacts, **local inbox** (`GET /inbox`) |
+| **Stripe** *(0.4+)* | `:4010` | Customers, payment methods, customer sessions, payment intents, charges, products, prices, **hosted checkout session** w/ webhook delivery |
+| **Clerk** | (on-demand) | Users, sessions, organizations |
 
 See `references/api-coverage.md` for full endpoint lists.
+
+### Next.js Adapter (0.4+) — `@emulators/adapter-next`
+
+Runs emulators **on the same origin** as your Next.js app via a catch-all route handler. Fixes the OAuth callback URL drift problem on Vercel preview deploys — no more `http://localhost:4001` redirect mismatches.
+
+```typescript
+// next.config.js
+const { withEmulate } = require('@emulators/adapter-next')
+module.exports = withEmulate({ /* your next config */ })
+
+// app/api/[...emulate]/route.ts
+import { createEmulateHandler } from '@emulators/adapter-next'
+export const { GET, POST } = createEmulateHandler({
+  services: ['github', 'stripe', 'resend'],
+  persistence: { /* load(), save() or built-in filePersistence */ },
+})
+```
 
 ## Seed Config Structure
 
@@ -92,18 +114,50 @@ vercel:
   projects:
     - name: my-docs
       framework: next
+
+# NEW in 0.4.x — drop-in seed blocks
+okta:
+  users:
+    - login: alice@example.com
+      firstName: Alice
+      lastName: Smith
+  groups: [{ name: Everyone }, { name: Admins }]
+  apps: [{ name: My Web App }]
+  authorization_servers:
+    - name: default
+      audiences: ["api://default"]
+
+resend:
+  domains: [{ name: example.com }]
+  api_keys: [{ name: default }]
+  # In tests: GET http://localhost:4009/inbox to assert captured emails
+
+stripe:
+  customers:
+    - name: Test Customer
+      email: customer@example.com
+  products: [{ name: Pro Plan }, { name: Starter Plan }]
+  prices:
+    - { product: Pro Plan, unit_amount: 4900, currency: usd, recurring: { interval: month } }
+    - { product: Starter Plan, unit_amount: 1900, currency: usd, recurring: { interval: month } }
+  # Webhook delivery fires on checkout.session.completed / expired
+
+mongoatlas:
+  projects: [{ name: my-project }]
+  clusters: [{ project: my-project, name: my-cluster }]
+  database_users: [{ project: my-project, username: app-user }]
 ```
 
 See `rules/seed-config.md` for full schema and best practices.
 
 ## Programmatic SDK
 
-> **v0.3.0 scope change**: Packages moved to `@emulators/*` scope (e.g., `@emulators/emulate`). The bare `emulate` import still works as a re-export but is deprecated.
+> Service packages live under the `@emulators/*` scope (e.g., `@emulators/github`, `@emulators/stripe`). The programmatic API (`createEmulator`) is exported from the top-level `emulate` package.
 
 ```typescript
-import { createEmulate } from '@emulators/emulate'
+import { createEmulator } from 'emulate'
 
-const github = await createEmulate({ service: 'github', port: 4001 })
+const github = await createEmulator({ service: 'github', port: 4001 })
 // github.url -> 'http://localhost:4001'
 
 // State is real — create a PR and it appears in the list
@@ -175,17 +229,19 @@ See `rules/parallel-ci.md` for full parallel isolation patterns.
 
 | Tool | When to Use | Stateful? | Platforms |
 |------|------------|-----------|-----------|
-| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google API testing | YES | GitHub, Vercel, Google |
+| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google/Slack/Apple/Entra/AWS/Okta/Resend/Stripe/MongoDB testing | YES | All 12 services |
 | Pact | Contract verification between services | No | Any |
 | MSW | In-browser/Node HTTP mocking | No | Any |
 | Nock | Node.js HTTP intercept | No | Any |
 | WireMock | HTTP stub server | Partial | Any |
 
 **Use emulate when:**
-- Testing code that calls GitHub, Vercel, or Google APIs
+- Testing code that calls GitHub, Vercel, Google, Slack, Apple, Entra, AWS, Okta, Resend, Stripe, or MongoDB Atlas
 - You need state persistence across multiple API calls in a test
-- You want webhook delivery with real HMAC signatures
+- You want webhook delivery with real HMAC signatures (GitHub, Stripe)
 - You need cascading side-effects (delete repo -> PRs cascade-delete)
+- You need to assert on sent emails without hitting a real provider (Resend local `/inbox`)
+- You need hosted Stripe checkout sessions with real redirect flow in tests
 
 **Use MSW/Nock when:**
 - Mocking arbitrary HTTP APIs not covered by emulate

@@ -1,6 +1,6 @@
 ---
 title: "Portless"
-description: "Named .localhost URLs for local development with portless. Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases and git worktrees for branch-named subdomains. Use when setting up local dev environments, configuring agent-accessible URLs, or running multi-service dev setups. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
+description: "Named HTTPS .localhost URLs for local development with portless (v0.10.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, and LAN mode (--lan) for mDNS .local hostnames reachable across devices. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
@@ -29,13 +29,23 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 ```bash
 # Instead of: npm run dev (random port)
 portless run npm run dev
-# → https://myapp.localhost (stable, named, HTTPS)
+# → https://myapp.localhost (stable, named, HTTPS on 443 — default in 0.10+)
 
 # Multi-service
 portless run --name api npm run dev:api
 portless run --name web npm run dev:web
 # → https://api.localhost, https://web.localhost
+
+# LAN mode (0.10.0) — reachable from phone/tablet via mDNS
+portless proxy start --lan
+portless run npm run dev
+# → https://myapp.local (resolves across the local network, no router config)
+
+# Full teardown (0.10.1) — stops proxy, removes CA, wipes state, cleans /etc/hosts
+portless clean
 ```
+
+> **0.10.x breaking change:** default switched from `http://app.localhost:1355` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
 
 ## Framework-Specific Setup
 
@@ -72,6 +82,15 @@ When portless runs your command, it injects:
 | `PORT` | Assigned ephemeral port (4000-4999) | Internal only |
 | `HOST` | `127.0.0.1` | Internal only |
 | `PORTLESS_URL` | `https://myapp.localhost` | **Use this in agent prompts** |
+| `NODE_EXTRA_CA_CERTS` | Path to portless CA *(auto-injected 0.10.2)* | Child node processes trust portless certs without setup |
+
+### Toggle env vars
+
+| Variable | Effect |
+|----------|--------|
+| `PORTLESS=0` | Bypass portless entirely (CI) |
+| `PORTLESS_SYNC_HOSTS=0` | Disable auto `/etc/hosts` sync (default: on in 0.10.1+) |
+| `PORTLESS_STATE_DIR` | Override state dir (default: `~/.portless` or `/tmp/portless` for privileged ports) |
 
 ## OrchestKit Integration Patterns
 
