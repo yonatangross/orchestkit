@@ -1,0 +1,16 @@
+{
+  "monitors": [
+    {
+      "name": "chain-state-watcher",
+      "description": "Alerts when OrchestKit chain state becomes stale (>30min) during multi-phase skills",
+      "command": "while true; do if [ -f .claude/chain/state.json ]; then updated=$(cat .claude/chain/state.json 2>/dev/null | grep -o '\"updated\":\"[^\"]*\"' | cut -d'\"' -f4); if [ -n \"$updated\" ]; then now=$(date -u +%s); then_ts=$(date -jf '%Y-%m-%dT%H:%M:%S' \"${updated%%.*}\" +%s 2>/dev/null || date -d \"$updated\" +%s 2>/dev/null || echo 0); diff=$((now - then_ts)); if [ \"$diff\" -gt 1800 ]; then skill=$(cat .claude/chain/state.json 2>/dev/null | grep -o '\"skill\":\"[^\"]*\"' | cut -d'\"' -f4); phase=$(cat .claude/chain/state.json 2>/dev/null | grep -o '\"current_phase\":[0-9]*' | cut -d: -f2); echo \"Chain state stale: /ork:${skill:-unknown} phase ${phase:-?} unchanged for $((diff/60))min — consider /recap or resume\"; fi; fi; fi; sleep 300; done",
+      "persistent": true
+    },
+    {
+      "name": "uncommitted-work-reminder",
+      "description": "Periodic reminder when significant uncommitted changes accumulate",
+      "command": "sleep 600; while true; do changed=$(git diff --stat 2>/dev/null | tail -1 | grep -o '[0-9]* file' | grep -o '[0-9]*' || echo 0); if [ \"$changed\" -gt 10 ]; then echo \"$changed files with uncommitted changes — consider /ork:commit to save progress\"; fi; sleep 900; done",
+      "persistent": true
+    }
+  ]
+}
