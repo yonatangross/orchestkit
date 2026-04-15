@@ -20,30 +20,20 @@ interface Monitor {
   persistent?: boolean;
 }
 
-interface MonitorsConfig {
-  monitors: Monitor[];
-}
-
 describe('monitors.json', () => {
-  let config: MonitorsConfig;
+  let monitors: Monitor[];
 
-  test('is valid JSON', () => {
+  test('is valid JSON and top-level array', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    expect(config).toBeDefined();
-  });
-
-  test('has monitors array', () => {
-    const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    expect(Array.isArray(config.monitors)).toBe(true);
-    expect(config.monitors.length).toBeGreaterThan(0);
+    monitors = JSON.parse(content);
+    expect(Array.isArray(monitors)).toBe(true);
+    expect(monitors.length).toBeGreaterThan(0);
   });
 
   test('each monitor has required fields', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    for (const monitor of config.monitors) {
+    monitors = JSON.parse(content);
+    for (const monitor of monitors) {
       expect(monitor.name).toBeTruthy();
       expect(monitor.description).toBeTruthy();
       expect(monitor.command).toBeTruthy();
@@ -55,31 +45,31 @@ describe('monitors.json', () => {
 
   test('monitor names are unique', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    const names = config.monitors.map(m => m.name);
+    monitors = JSON.parse(content);
+    const names = monitors.map(m => m.name);
     expect(new Set(names).size).toBe(names.length);
   });
 
   test('monitor names are kebab-case', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    for (const monitor of config.monitors) {
+    monitors = JSON.parse(content);
+    for (const monitor of monitors) {
       expect(monitor.name).toMatch(/^[a-z][a-z0-9-]*$/);
     }
   });
 
   test('contains expected monitors', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    const names = config.monitors.map(m => m.name);
+    monitors = JSON.parse(content);
+    const names = monitors.map(m => m.name);
     expect(names).toContain('chain-state-watcher');
     expect(names).toContain('uncommitted-work-reminder');
   });
 
   test('commands do not use macOS-only date without fallback', () => {
     const content = readFileSync(MONITORS_PATH, 'utf-8');
-    config = JSON.parse(content);
-    for (const monitor of config.monitors) {
+    monitors = JSON.parse(content);
+    for (const monitor of monitors) {
       // If the command uses date -jf (macOS), it must also have a fallback
       if (monitor.command.includes('date -jf')) {
         expect(
