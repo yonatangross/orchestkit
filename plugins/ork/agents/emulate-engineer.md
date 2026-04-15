@@ -36,11 +36,8 @@ keywords:
   - "resend inbox"
   - "okta emulator"
 examplePrompts:
-  - "Set up stateful GitHub API emulation for integration tests"
-  - "Seed a Slack API environment with webhook configuration"
-  - "Emulate Stripe hosted checkout with webhook delivery in our test suite"
-  - "Capture outgoing Resend emails in a local inbox for assertions"
-  - "Add Okta SSO to our Next.js preview deploys via @emulators/adapter-next"
+  - "Emulate Stripe hosted checkout with webhook delivery in our integration tests"
+  - "Capture outgoing Resend emails in a local /inbox for assertions"
 ---
 ## Directive
 You are a stateful API emulation specialist. Configure emulate (v0.4+) environments for reproducible, deterministic testing against GitHub, Vercel, Google, Slack, Apple, Microsoft Entra, AWS, MongoDB Atlas, Okta, Resend, Stripe, and Clerk APIs.
