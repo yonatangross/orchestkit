@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.108 Adoption Explorer | OrchestKit v7.44.0</title>
+<style>
+  :root { --bg: #0a0a0f; --surface: #12121a; --border: #1e1e2e; --text: #e4e4ef; --muted: #8888a0; --accent: #7c3aed; --accent2: #06b6d4; --success: #22c55e; --warn: #f59e0b; --error: #ef4444; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 24px; }
+  .tabs { display: flex; gap: 2px; margin-bottom: 20px; background: var(--surface); border-radius: 8px; padding: 3px; }
+  .tab { flex: 1; padding: 8px 12px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; color: var(--muted); transition: all 0.2s; border: none; background: none; }
+  .tab.active { background: var(--accent); color: white; }
+  .tab:hover:not(.active) { color: var(--text); background: var(--border); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+  .card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right: 4px; }
+  .badge-new { background: #22c55e20; color: var(--success); }
+  .badge-fix { background: #f59e0b20; color: var(--warn); }
+  .badge-version { background: #7c3aed20; color: var(--accent); }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .stat .label { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .search { width: 100%; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; margin-bottom: 16px; outline: none; }
+  .search:focus { border-color: var(--accent); }
+  .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.75rem; }
+  .copy-btn { background: var(--border); border: none; color: var(--muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+  .copy-btn:hover { background: var(--accent); color: white; }
+  footer { text-align: center; padding: 20px; color: var(--muted); font-size: 0.7rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CC 2.1.108 Adoption Explorer</h1>
+  <p class="subtitle">OrchestKit v7.44.0 — Interactive guide to what changed</p>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="num">278</div><div class="label">Matrix Entries</div></div>
+    <div class="stat"><div class="num">33</div><div class="label">Descriptions Expanded</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">Plugin Monitors</div></div>
+    <div class="stat"><div class="num">15</div><div class="label">Docs Pages Fixed</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('matrix')">Version Matrix</button>
+    <button class="tab" onclick="showTab('skills')">Skill Descriptions</button>
+    <button class="tab" onclick="showTab('monitors')">Monitors</button>
+    <button class="tab" onclick="showTab('env')">Env Vars</button>
+  </div>
+
+  <div id="matrix" class="panel active">
+    <input type="text" class="search" placeholder="Filter features..." oninput="filterTable(this.value, 'matrix-table')">
+    <table id="matrix-table">
+      <thead><tr><th>Feature</th><th>Version</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">enter_worktree_path_param</td><td><span class="badge badge-version">2.1.105</span></td><td>EnterWorktree path parameter for reusing existing worktrees</td></tr>
+        <tr><td class="mono">precompact_blocking</td><td><span class="badge badge-version">2.1.105</span></td><td>PreCompact hooks can block compaction via exit code 2 or decision:block</td></tr>
+        <tr><td class="mono">plugin_monitors_manifest</td><td><span class="badge badge-version">2.1.105</span></td><td>Background monitor support via top-level monitors manifest key</td></tr>
+        <tr><td class="mono">skill_description_cap_1536</td><td><span class="badge badge-version">2.1.105</span></td><td>Skill description cap raised from 250 to 1,536 characters</td></tr>
+        <tr><td class="mono">webfetch_strip_scripts</td><td><span class="badge badge-version">2.1.105</span></td><td>WebFetch strips style/script body content</td></tr>
+        <tr><td class="mono">prompt_caching_1h_env</td><td><span class="badge badge-version">2.1.108</span></td><td>ENABLE_PROMPT_CACHING_1H for 1-hour prompt cache TTL</td></tr>
+        <tr><td class="mono">recap_command</td><td><span class="badge badge-version">2.1.108</span></td><td>/recap for session context restoration after idle</td></tr>
+        <tr><td class="mono">skill_builtin_discovery</td><td><span class="badge badge-version">2.1.108</span></td><td>Model auto-discovers built-in slash commands via Skill tool</td></tr>
+        <tr><td class="mono">model_switch_warning</td><td><span class="badge badge-version">2.1.108</span></td><td>/model warns before switching to prevent cache invalidation</td></tr>
+        <tr><td class="mono">lazy_language_grammars</td><td><span class="badge badge-version">2.1.108</span></td><td>Grammars loaded on demand, reducing memory footprint</td></tr>
+        <tr><td class="mono">thinking_progress_rotation</td><td><span class="badge badge-version">2.1.109</span></td><td>Rotating progress hint during extended thinking</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--muted);font-size:0.75rem;margin-top:8px;">Showing 11 of 25 new entries. Full matrix: 278 features across CC 2.1.3-2.1.109</p>
+  </div>
+
+  <div id="skills" class="panel">
+    <input type="text" class="search" placeholder="Filter skills..." oninput="filterTable(this.value, 'skills-table')">
+    <table id="skills-table">
+      <thead><tr><th>Skill</th><th>Type</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">review-pr</td><td><span class="badge badge-new">invocable</span></td><td>85 chars</td><td>340 chars</td></tr>
+        <tr><td class="mono">create-pr</td><td><span class="badge badge-new">invocable</span></td><td>97 chars</td><td>335 chars</td></tr>
+        <tr><td class="mono">brainstorm</td><td><span class="badge badge-new">invocable</span></td><td>118 chars</td><td>460 chars</td></tr>
+        <tr><td class="mono">implement</td><td><span class="badge badge-new">invocable</span></td><td>113 chars</td><td>430 chars</td></tr>
+        <tr><td class="mono">commit</td><td><span class="badge badge-new">invocable</span></td><td>115 chars</td><td>350 chars</td></tr>
+        <tr><td class="mono">verify</td><td><span class="badge badge-new">invocable</span></td><td>111 chars</td><td>395 chars</td></tr>
+        <tr><td class="mono">assess</td><td><span class="badge badge-new">invocable</span></td><td>106 chars</td><td>350 chars</td></tr>
+        <tr><td class="mono">fix-issue</td><td><span class="badge badge-new">invocable</span></td><td>126 chars</td><td>380 chars</td></tr>
+        <tr><td class="mono">doctor</td><td><span class="badge badge-new">invocable</span></td><td>131 chars</td><td>390 chars</td></tr>
+        <tr><td class="mono">explore</td><td><span class="badge badge-fix">reference</span></td><td>157 chars</td><td>340 chars</td></tr>
+        <tr><td class="mono">memory</td><td><span class="badge badge-fix">reference</span></td><td>168 chars</td><td>290 chars</td></tr>
+        <tr><td class="mono">setup</td><td><span class="badge badge-fix">reference</span></td><td>166 chars</td><td>310 chars</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--muted);font-size:0.75rem;margin-top:8px;">Showing 12 of 33 expanded skills. All descriptions now follow WHAT + WHEN convention.</p>
+  </div>
+
+  <div id="monitors" class="panel">
+    <div class="card">
+      <h3>chain-state-watcher <span class="badge badge-new">new</span></h3>
+      <p>Alerts when <code>.claude/chain/state.json</code> becomes stale (>30min) during multi-phase skills like brainstorm, implement, cover, fix-issue. Suggests <code>/recap</code> or resume.</p>
+      <p style="margin-top:8px;"><strong>Trigger:</strong> Auto-arms at session start. Checks every 5 minutes.</p>
+    </div>
+    <div class="card">
+      <h3>uncommitted-work-reminder <span class="badge badge-new">new</span></h3>
+      <p>Periodic reminder when >10 files have uncommitted changes, suggesting <code>/ork:commit</code> to save progress. Prevents work loss from rate limits or session crashes.</p>
+      <p style="margin-top:8px;"><strong>Trigger:</strong> First check after 10 min, then every 15 min.</p>
+    </div>
+    <div class="card" style="border-color: var(--accent);">
+      <h3>Schema Format</h3>
+      <p>CC 2.1.105 monitors use a top-level JSON array at <code>monitors/monitors.json</code>. Each entry has <code>name</code>, <code>description</code>, <code>command</code>. Auto-arms when plugin loads.</p>
+    </div>
+  </div>
+
+  <div id="env" class="panel">
+    <div class="card">
+      <h3>ENABLE_PROMPT_CACHING_1H <span class="badge badge-new">2.1.108</span></h3>
+      <p>Extends prompt cache TTL from 5 minutes to 1 hour. Major cost savings for long sessions (brainstorm, implement, cover chains). Works on API key, Bedrock, Vertex, Foundry.</p>
+      <div style="margin-top:8px;background:var(--bg);padding:8px 12px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+        <code class="mono">export ENABLE_PROMPT_CACHING_1H=1</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('export ENABLE_PROMPT_CACHING_1H=1')">Copy</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>CLAUDE_CODE_ENABLE_AWAY_SUMMARY <span class="badge badge-new">2.1.108</span></h3>
+      <p>Forces <code>/recap</code> session context restoration even with <code>DISABLE_TELEMETRY=1</code>.</p>
+      <div style="margin-top:8px;background:var(--bg);padding:8px 12px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+        <code class="mono">export CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('export CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1')">Copy</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>FORCE_PROMPT_CACHING_5M <span class="badge badge-fix">2.1.108</span></h3>
+      <p>Explicitly force 5-minute cache TTL. Useful for debugging cache behavior.</p>
+      <div style="margin-top:8px;background:var(--bg);padding:8px 12px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+        <code class="mono">export FORCE_PROMPT_CACHING_5M=1</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('export FORCE_PROMPT_CACHING_5M=1')">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>OrchestKit v7.44.0 &mdash; CC 2.1.108 Full Adoption &mdash; PR #1341</footer>
+</div>
+<script>
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+function filterTable(query, tableId) {
+  const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+  const q = query.toLowerCase();
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
