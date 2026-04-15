@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.45.1](https://github.com/yonatangross/orchestkit/compare/v7.45.0...v7.45.1) (2026-04-15)
+
+
+### Miscellaneous
+
+* bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))
+
 ## [7.45.0](https://github.com/yonatangross/orchestkit/compare/v7.44.0...v7.45.0) (2026-04-15)
 
 
