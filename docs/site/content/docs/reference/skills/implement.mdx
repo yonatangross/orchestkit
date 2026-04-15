@@ -2612,14 +2612,20 @@ AskUserQuestion(questions=[{
 ### 1. Enter Worktree
 
 ```python
-# CC 2.1.49: Native worktree support
+# CC 2.1.49: Create new worktree
 EnterWorktree(name="feat-{feature-slug}")
+
+# CC 2.1.105: Reuse existing worktree via path parameter
+# Use this when resuming work on an existing feature branch
+EnterWorktree(path="/path/to/existing/worktree")
 ```
 
-This creates:
-- New branch `feat-\{feature-slug\}` from HEAD
+This creates (or switches into):
+- New branch `feat-\{feature-slug\}` from HEAD (or reuses existing worktree)
 - Working directory at `.claude/worktrees/feat-\{feature-slug\}/`
 - Session CWD switches to the worktree automatically
+
+**Tip (CC 2.1.105+):** When a worktree already exists from a prior session, use the `path` parameter to switch into it instead of creating a new one. Check with `git worktree list` first.
 
 ### 2. Implement in Isolation
 

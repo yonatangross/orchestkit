@@ -1710,6 +1710,45 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | `additionalDirectories` mid-session | 2.1.97 | `permissions.additionalDirectories` changes in settings apply mid-session | Changes require restart |
 | Bridge session git info | 2.1.97 | Bridge sessions show local git repo, branch, and working directory on claude.ai session card | No git context on bridge card |
 | Transcript size optimization | 2.1.97 | Skip empty hook entries and cap stored pre-edit file copies | Larger transcripts |
+| `/team-onboarding` command | 2.1.101 | Generate teammate ramp-up guide from local CC usage | No onboarding automation |
+| OS CA certificate store trust | 2.1.101 | Enterprise TLS proxies work OOTB (set `CLAUDE_CODE_CERT_STORE=bundled` for only bundled CAs) | Must configure CA certs manually |
+| `deny` overrides `ask` | 2.1.101 | `permissions.deny` rules override PreToolUse hook `permissionDecision:"ask"` | deny and ask conflict silently |
+| Subagent dynamic MCP inheritance | 2.1.101 | Subagents inherit MCP tools from dynamically-injected servers | Subagents miss dynamic MCP tools |
+| Worktree agent file access | 2.1.101 | Worktree-isolated agents can Read/Edit files inside their own worktree | Worktree agents denied file access |
+| Focus mode self-contained summaries | 2.1.101 | Claude writes self-contained summaries knowing user only sees final message | Summaries reference invisible tool output |
+| Settings resilience | 2.1.101 | Unrecognized hook event name no longer causes entire settings.json to be ignored | Typo in event name breaks all hooks |
+| `EnterWorktree` path param | 2.1.105 | Switch into existing worktrees via `path` parameter (previously only created new) | Must create new worktree every time |
+| `PreCompact` blocking | 2.1.105 | Hooks can block compaction via exit code 2 or `\{"decision":"block"\}` JSON | PreCompact observe-only |
+| Plugin `monitors` manifest key | 2.1.105 | Background monitor support for plugins via top-level `monitors` manifest key | No declarative background monitoring |
+| Skill description cap 1,536 chars | 2.1.105 | Skill descriptions up to 1,536 chars (was 250) — better discovery and selection | Descriptions truncated at 250 chars |
+| `WebFetch` script stripping | 2.1.105 | Strips `&lt;style&gt;` and `&lt;script&gt;` content before returning markdown | CSS/JS waste context budget |
+| Stale worktree squash cleanup | 2.1.105 | Worktrees from squash-merged PRs auto-cleaned | Orphaned worktrees accumulate |
+| `ENABLE_PROMPT_CACHING_1H` | 2.1.108 | 1-hour prompt cache TTL across API key, Bedrock, Vertex, Foundry — **major cost savings for long sessions** | 5-minute cache TTL (default) |
+| `/recap` session context | 2.1.108 | Auto-recap on return + manual `/recap` command for session context restoration | No context restoration after idle |
+| Skill builtin discovery | 2.1.108 | Model auto-discovers `/init`, `/review`, `/security-review` via Skill tool | Must explicitly invoke built-in commands |
+| Model switch warning | 2.1.108 | `/model` warns before switching mid-conversation to prevent cache invalidation | Silent model switch loses cache |
+| Lazy language grammars | 2.1.108 | Grammars loaded on demand — reduced memory for file operations | All grammars loaded at startup |
+| Thinking progress rotation | 2.1.109 | Extended thinking indicator with rotating progress hint | Static thinking indicator |
+
+## Prompt Caching Recommendation
+
+For API-key, Bedrock, Vertex, or Foundry users running long OrchestKit sessions (brainstorm, implement, cover chains), enable 1-hour prompt caching:
+
+```bash
+export ENABLE_PROMPT_CACHING_1H=1
+```
+
+This extends the prompt cache TTL from 5 minutes to 1 hour, significantly reducing token costs when:
+- Returning to a session after brief breaks
+- Running multi-phase skills that exceed the 5-minute cache window
+- Using `/loop` or scheduled tasks with intervals > 5 minutes
+
+**Note:** Subscribers with `DISABLE_TELEMETRY=1` should also set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` to get the `/recap` feature for session context restoration.
+
+Doctor should check for this env var and recommend it when:
+- User is on API key / Bedrock / Vertex / Foundry (not subscription)
+- Session has been active for > 30 minutes
+- `ENABLE_PROMPT_CACHING_1H` is not set
 
 ## Version Detection
 
@@ -1757,7 +1796,10 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.94 | Minimum | **Skill frontmatter hooks fix (unlocks 20 context loaders), sessionTitle hook output, keep-coding-instructions, default effort high, rate-limit 429 surface, --resume across worktrees, CJK stream-json fix — current minimum** |
 | >= 2.1.95 | Full | MCP tool description 2KB cap, local MCP config dedup (npm-only release) |
 | >= 2.1.96 | Full | Bedrock bearer token 403 hotfix (2.1.94 regression) |
-| >= 2.1.97 | **Recommended** | **refreshInterval status line, workspace.git_worktree, Stop/SubagentStop long-session fix, subagent cwd leak fix, plugin update fix, Bash permissions hardened, TRACEPARENT OTEL, image compression parity, 429 exponential backoff, MCP memory leak fix, transcript optimization** |
+| >= 2.1.97 | Full | refreshInterval status line, workspace.git_worktree, Stop/SubagentStop long-session fix, subagent cwd leak fix, plugin update fix, Bash permissions hardened, TRACEPARENT OTEL, image compression parity, 429 exponential backoff, MCP memory leak fix, transcript optimization |
+| >= 2.1.101 | Full | /team-onboarding, OS CA cert trust, deny-overrides-ask, subagent dynamic MCP, worktree agent file access, focus mode summaries, settings resilience |
+| >= 2.1.105 | Full | EnterWorktree path param, PreCompact blocking (exit code 2 / decision:block), plugin monitors manifest, skill description cap 1536 chars, WebFetch script stripping, stale worktree squash cleanup |
+| >= 2.1.108 | **Recommended** | **ENABLE_PROMPT_CACHING_1H for 1-hour cache TTL (major cost savings), /recap session context restoration, Skill tool auto-discovery of built-in commands, model switch warning, lazy language grammars (lower memory), rate limit distinction, agent auto-classifier fix** |
 
 ## Doctor Check Implementation
 
@@ -1836,6 +1878,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.44.x | 2.1.108 | **CC 2.1.108 adoption: 25 new matrix entries (278 total), ENABLE_PROMPT_CACHING_1H env var, /recap session context, Skill tool auto-discovery, model switch warning, lazy language grammars, EnterWorktree path param, PreCompact blocking, plugin monitors manifest key, skill description cap 1536 chars, expanded 11 user-invocable skill descriptions** |
 | v7.38.x | 2.1.101 | **CC 2.1.101 adoption + frontmatter audit: 26 skill frontmatter fixes (context/agent fields now enforced), deny-overrides-ask behavior, subagent dynamic MCP inheritance, worktree agent file access, /team-onboarding command, OS CA cert trust, focus mode self-contained summaries, RemoteTrigger run fix, settings resilience, 18 new matrix entries (253 total)** |
 | v7.37.x | 2.1.98 | **CC 2.1.98 adoption: Monitor tool for streaming background events, SCRIPT_CAPS env var, partial progress from failed bg subagents, hook stderr in transcript, /agents tabbed layout, /reload-plugins skill discovery, Bash permission hardening (backslash escape fix, compound cmd fix), stale worktree cleanup fix, team permission inheritance, Vertex AI wizard, Perforce mode** |
 | v7.33.x | 2.1.97 | **CC 2.1.97 full utilization: refreshInterval status line, workspace.git_worktree awareness, TRACEPARENT OTEL tracing to HQ, Stop/SubagentStop long-session fix, subagent cwd leak fix, MCP 2KB cap guardrail, image compression parity, Bash permissions hardened, Accept Edits env-prefix, plugin update fix, prototype settings.json fix** |
