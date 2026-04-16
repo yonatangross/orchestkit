@@ -7,7 +7,7 @@ tags: [batch, pipelines, cross-notebook, multi-project]
 
 ## Batch Operations & Pipelines
 
-v0.4.6+ adds batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
+v0.5.25 batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
 
 **Incorrect — querying notebooks one at a time for synthesis:**
 ```
@@ -52,8 +52,9 @@ batch(
 **Pipelines — multi-step workflows in a single call:**
 ```
 # Ingest sources and immediately generate a podcast
-pipelines(
-    pipeline="ingest-and-podcast",
+pipeline(
+    action="run",
+    pipeline_name="ingest-and-podcast",
     notebook_id="...",
     sources=[{"type": "url", "url": "https://example.com/article"}],
     audio_format="deep_dive",
@@ -62,8 +63,9 @@ pipelines(
 )
 
 # Research a topic, add findings, generate a report
-pipelines(
-    pipeline="research-and-report",
+pipeline(
+    action="run",
+    pipeline_name="research-and-report",
     notebook_id="...",
     query="Latest trends in LLM safety",
     report_format="Briefing Doc",
@@ -71,8 +73,9 @@ pipelines(
 )
 
 # Generate multiple artifact types from the same sources
-pipelines(
-    pipeline="multi-format",
+pipeline(
+    action="run",
+    pipeline_name="multi-format",
     notebook_id="...",
     artifact_types=["audio", "infographic", "mind_map"],
     language="he",
@@ -83,7 +86,7 @@ pipelines(
 **Tagging notebooks for organization:**
 ```
 # Tag notebooks for smart filtering
-tags(notebook_id="...", action="add", tags=["security", "q1-2026"])
+tag(notebook_id="...", action="add", tags="security,q1-2026")
 
 # Use tags to select notebooks for batch operations
 batch(

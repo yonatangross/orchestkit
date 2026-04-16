@@ -32,9 +32,9 @@ download_artifact(artifact_id=artifact.id, path="./output/podcast.mp3")
 **All 10 studio artifact types:**
 | Type | Output | Use case |
 |------|--------|----------|
-| `audio_overview` | MP3 podcast | Summarize sources as conversational audio (4 formats: brief, critique, debate, deep_dive) |
-| `video_overview` | MP4 video | Visual summary with narration (slides + voiceover) |
-| `cinematic_video` | MP4 video | Fully animated cinematic video (Gemini 3 + Veo 3). **Requires Google AI Ultra**, English only, max 20/day |
+| `audio` | MP3 podcast | 4 formats (brief, critique, debate, deep_dive) + 3 lengths (short, default, long) |
+| `video` (explainer) | MP4 video | Visual summary with narration (slides + voiceover). Use `video_format="explainer"` |
+| `video` | MP4 video | 3 formats: explainer, brief, cinematic. 9 visual styles. Cinematic requires Plus/Ultra, English only, max 20/day |
 | `mind_map` | SVG/PNG | Visual topic relationships |
 | `quiz` | JSON | Test comprehension of sources |
 | `flashcards` | JSON | Study aid from source material |
