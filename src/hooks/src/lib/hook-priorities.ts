@@ -10,6 +10,7 @@
 
 import { logHook, getProjectDir } from './common.js';
 import { getTotalUsage, getCategoryUsage } from './token-tracker.js';
+import { scaleByContextWindow } from './context-window.js';
 import { existsSync, readFileSync } from 'node:fs';
 
 // -----------------------------------------------------------------------------
@@ -39,20 +40,19 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
  * CC 2.1.32+ scales skill budget to 2% of context window:
  *   1M context   → ~20000 tokens for skills
  *
- * We scale our internal budgets proportionally based on CLAUDE_MAX_CONTEXT.
- * Default (1M) preserves backward-compatible values.
+ * Baselines calibrated at the 1M context window; `scaleByContextWindow`
+ * adjusts for smaller contexts or future expansions. Tokenizer drift
+ * (e.g. Opus 4.7 adding ~0-35% overhead vs 4.6) is absorbed because
+ * every on-path hook reads the same scaled budget.
  */
 function getScaledBudgets(): Record<string, number> {
-  const contextWindow = parseInt(process.env.CLAUDE_MAX_CONTEXT || '1000000', 10);
-  const scale = contextWindow / 1000000; // 1.0x at 1M
-
   return {
-    'skill-injection': Math.round(1200 * scale),
-    'memory-inject': Math.round(800 * scale),
-    'decision-capture': Math.round(500 * scale),
-    'suggestions': Math.round(400 * scale),
-    'monitoring': Math.round(200 * scale),
-    'total': Math.round(2600 * scale),
+    'skill-injection': scaleByContextWindow(1200),
+    'memory-inject': scaleByContextWindow(800),
+    'decision-capture': scaleByContextWindow(500),
+    'suggestions': scaleByContextWindow(400),
+    'monitoring': scaleByContextWindow(200),
+    'total': scaleByContextWindow(2600),
   };
 }
 
