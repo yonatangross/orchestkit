@@ -45,6 +45,16 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 /ork:assess frontend/src/components/Dashboard
 ```
 
+### Effort levels (CC 2.1.111+ adds `xhigh`)
+
+| Effort | Behavior |
+|---|---|
+| `low` / `medium` | Subset of dimensions, faster turnaround |
+| `high` (default) | All six dimensions with pros/cons |
+| `xhigh` (Opus 4.7 only) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+
+> `xhigh` silently falls back to `high` on non-Opus-4.7 models. `/ork:doctor` warns when `xhigh` is used without Opus 4.7.
+
 ---
 
 ## Argument Resolution
