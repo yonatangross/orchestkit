@@ -117,7 +117,9 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 > **Enterprise TLS (CC 2.1.101+):** OS CA certificate store is trusted by default — enterprise TLS proxies work without extra setup. Set `CLAUDE_CODE_CERT_STORE=bundled` to use only bundled CAs if needed.
 
-> **Prompt caching (CC 2.1.108+):** For API-key, Bedrock, Vertex, or Foundry users, recommend setting `ENABLE_PROMPT_CACHING_1H=1` to extend the prompt cache TTL from 5 minutes to 1 hour. This significantly reduces token costs for long OrchestKit sessions (brainstorm, implement, cover chains). Users with `DISABLE_TELEMETRY=1` should also set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` for session recap on return.
+> **Prompt caching (CC 2.1.108+):** For API-key, Bedrock, Vertex, or Foundry users, recommend setting `ENABLE_PROMPT_CACHING_1H=1` to extend the prompt cache TTL from 5 minutes to 1 hour. This significantly reduces token costs for long OrchestKit sessions (brainstorm, implement, cover chains). Session recap is enabled by default since CC 2.1.110 (even with telemetry disabled).
+
+> **TUI mode (CC 2.1.110+):** Recommend `/tui fullscreen` for flicker-free rendering during long sessions. Pair with `autoScrollEnabled: false` in `/config` for manual scroll control during brainstorm/implement output review. The `/focus` command provides a condensed view (prompt + one-line tool summaries + final response).
 
 ## Phase 3.5: Project Configuration Wizard
 

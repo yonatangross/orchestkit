@@ -715,7 +715,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.8.0",
+    "version": "4.9.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -736,6 +736,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskList",
       "TaskStop",
       "ToolSearch",
+      "PushNotification",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -1189,6 +1190,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronCreate",
       "CronDelete",
       "Monitor",
+      "PushNotification",
       "mcp__memory__search_nodes",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs"
@@ -2141,6 +2143,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch",
       "CronCreate",
       "CronDelete",
+      "PushNotification",
       "mcp__memory__search_nodes",
       "mcp__context7__get_library_docs"
     ],
@@ -2400,6 +2403,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronCreate",
       "CronDelete",
       "Monitor",
+      "PushNotification",
       "mcp__context7__query_docs",
       "mcp__memory__search_nodes"
     ],
@@ -4860,7 +4864,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch",
       "CronCreate",
       "CronDelete",
-      "Monitor"
+      "Monitor",
+      "PushNotification"
     ],
     "skills": [
       "code-review-playbook",

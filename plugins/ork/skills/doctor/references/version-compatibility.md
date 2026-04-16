@@ -249,7 +249,7 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | Bedrock bearer token 403 fix | 2.1.96 | Fixed 403 "Authorization header is missing" regression when using `AWS_BEARER_TOKEN_BEDROCK` or `CLAUDE_CODE_SKIP_BEDROCK_AUTH` (regression in 2.1.94) | Bedrock bearer-token auth broken on 2.1.94 |
 | MCP tool description 2KB cap | 2.1.95 | Tool descriptions and server instructions capped at 2KB — prevents OpenAPI-generated MCP servers from bloating context | Verbose MCP descriptions consume unbounded context |
 | MCP local config dedup | 2.1.95 | MCP servers configured both locally and via claude.ai connectors are deduplicated, local config wins | Duplicate MCP tools from both sources |
-| Focus view toggle (`Ctrl+O`) | 2.1.97 | Condensed view in NO_FLICKER mode: prompt, one-line tool summary with edit diffstats, final response | No condensed view option |
+| Focus view toggle (`/focus`) | 2.1.97 (2.1.110: moved from `Ctrl+O` to `/focus` command) | Condensed view in NO_FLICKER mode: prompt, one-line tool summary with edit diffstats, final response | No condensed view option |
 | `refreshInterval` status line | 2.1.97 | New setting re-runs the status line command every N seconds automatically | Status line only updates per turn |
 | `workspace.git_worktree` | 2.1.97 | Boolean in status line JSON input, set when cwd is inside a linked git worktree | Must shell out to detect worktree |
 | `● N running` in `/agents` | 2.1.97 | Live subagent instance count next to each agent type | No live agent count |
@@ -292,6 +292,17 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | Model switch warning | 2.1.108 | `/model` warns before switching mid-conversation to prevent cache invalidation | Silent model switch loses cache |
 | Lazy language grammars | 2.1.108 | Grammars loaded on demand — reduced memory for file operations | All grammars loaded at startup |
 | Thinking progress rotation | 2.1.109 | Extended thinking indicator with rotating progress hint | Static thinking indicator |
+| `/tui` command | 2.1.110 | Switch to flicker-free fullscreen TUI rendering mid-conversation via `/tui fullscreen` | Must restart with `--tui` flag |
+| `PushNotification` tool | 2.1.110 | Built-in tool for mobile push notifications when Remote Control enabled | No programmatic push notifications |
+| `/focus` command | 2.1.110 | Dedicated command for focus view (previously `Ctrl+O` since 2.1.97) | Focus view via `Ctrl+O` |
+| `Ctrl+O` transcript toggle | 2.1.110 | Now only toggles between normal and verbose transcript view | Also toggled focus view |
+| Bash max timeout enforced | 2.1.110 | Bash tool enforces documented max timeout — values exceeding limit hard-fail | Accepted arbitrarily large values |
+| Write user-edit signal | 2.1.110 | Write tool tells model when user edits proposed diff before accepting | No user-edit feedback |
+| Session recap default-on | 2.1.110 | Session recap enabled even with telemetry disabled — opt out via `/config` | Required `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` |
+| `--resume` scheduled tasks | 2.1.110 | `--resume`/`--continue` resurrects unexpired scheduled tasks | Only restored session history |
+| Remote Control commands | 2.1.110 | `/autocompact`, `/context`, `/exit`, `/reload-plugins` work from Remote Control | Limited remote command set |
+| SDK TRACEPARENT/TRACESTATE | 2.1.110 | Auto-read in SDK/headless for OpenTelemetry distributed trace propagation | Manual trace propagation |
+| `/doctor` MCP duplicate | 2.1.110 | Warns when same MCP server defined in multiple config scopes with different endpoints | Silent duplicate MCP |
 
 ## Prompt Caching Recommendation
 
@@ -306,7 +317,7 @@ This extends the prompt cache TTL from 5 minutes to 1 hour, significantly reduci
 - Running multi-phase skills that exceed the 5-minute cache window
 - Using `/loop` or scheduled tasks with intervals > 5 minutes
 
-**Note:** Subscribers with `DISABLE_TELEMETRY=1` should also set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` to get the `/recap` feature for session context restoration.
+**Note:** Since CC 2.1.110, session recap is enabled by default even with telemetry disabled. Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`. On CC 2.1.108-2.1.109, users with `DISABLE_TELEMETRY=1` must set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` manually.
 
 Doctor should check for this env var and recommend it when:
 - User is on API key / Bedrock / Vertex / Foundry (not subscription)
@@ -362,7 +373,8 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.97 | Full | refreshInterval status line, workspace.git_worktree, Stop/SubagentStop long-session fix, subagent cwd leak fix, plugin update fix, Bash permissions hardened, TRACEPARENT OTEL, image compression parity, 429 exponential backoff, MCP memory leak fix, transcript optimization |
 | >= 2.1.101 | Full | /team-onboarding, OS CA cert trust, deny-overrides-ask, subagent dynamic MCP, worktree agent file access, focus mode summaries, settings resilience |
 | >= 2.1.105 | Full | EnterWorktree path param, PreCompact blocking (exit code 2 / decision:block), plugin monitors manifest, skill description cap 1536 chars, WebFetch script stripping, stale worktree squash cleanup |
-| >= 2.1.108 | **Recommended** | **ENABLE_PROMPT_CACHING_1H for 1-hour cache TTL (major cost savings), /recap session context restoration, Skill tool auto-discovery of built-in commands, model switch warning, lazy language grammars (lower memory), rate limit distinction, agent auto-classifier fix** |
+| >= 2.1.108 | Full | ENABLE_PROMPT_CACHING_1H for 1-hour cache TTL (major cost savings), /recap session context restoration, Skill tool auto-discovery of built-in commands, model switch warning, lazy language grammars (lower memory), rate limit distinction, agent auto-classifier fix |
+| >= 2.1.110 | **Recommended** | **/tui fullscreen rendering, PushNotification tool for long sessions, /focus command (replaces Ctrl+O), Bash max timeout enforced, Write user-edit signal, session recap default-on (no env var needed), --resume resurrects scheduled tasks, /doctor MCP duplicate warning, Remote Control commands (/autocompact, /context, /exit, /reload-plugins), SDK TRACEPARENT/TRACESTATE auto-propagation** |
 
 ## Doctor Check Implementation
 

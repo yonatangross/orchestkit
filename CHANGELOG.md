@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.48.0
+
+### Added
+
+- TODO: Describe your changes here
+
+---
+
+
+## [7.48.0](https://github.com/yonatangross/orchestkit/compare/v7.47.0...v7.48.0) (2026-04-16)
+
+
+### Features
+
+* **compat:** CC 2.1.110 full adoption — 16 matrix entries, PushNotification in 5 skills, /focus replaces Ctrl+O, session recap default-on, /tui + autoScrollEnabled in setup, doctor MCP duplicate warning, chain-patterns scheduled task recovery, Recommended tier → 2.1.110 ([#1349](https://github.com/yonatangross/orchestkit/issues/1349))
+
 ## [7.47.0](https://github.com/yonatangross/orchestkit/compare/v7.46.0...v7.47.0) (2026-04-15)
 
 

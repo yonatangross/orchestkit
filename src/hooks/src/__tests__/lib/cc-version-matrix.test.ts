@@ -24,8 +24,8 @@ describe('cc-version-matrix', () => {
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) = 278
-      expect(CC_FEATURE_MATRIX.length).toBe(278);
+      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) = 294
+      expect(CC_FEATURE_MATRIX.length).toBe(294);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.109');
+      const features = getAvailableFeatures('2.1.110');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,33 +99,33 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.109', () => {
-      const missing = getMissingFeatures('2.1.109');
+    test('no missing features at 2.1.110', () => {
+      const missing = getMissingFeatures('2.1.110');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.101 is missing 2.1.105 through 2.1.109 features', () => {
+    test('2.1.101 is missing 2.1.105 through 2.1.110 features', () => {
       const missing = getMissingFeatures('2.1.101');
-      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) = 25
-      expect(missing.length).toBe(25);
+      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) = 41
+      expect(missing.length).toBe(41);
       expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
       expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
     });
 
-    test('2.1.98 is missing 2.1.101 through 2.1.109 features', () => {
+    test('2.1.98 is missing 2.1.101 through 2.1.110 features', () => {
       const missing = getMissingFeatures('2.1.98');
-      // 18 (2.1.101) + 25 (2.1.105-2.1.109) = 43
-      expect(missing.length).toBe(43);
+      // 18 (2.1.101) + 41 (2.1.105-2.1.110) = 59
+      expect(missing.length).toBe(59);
       expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 through 2.1.109 features', () => {
+    test('2.1.92 is missing 2.1.94 through 2.1.110 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 74 (through 2.1.101) + 25 (2.1.105-2.1.109) = 99
-      expect(missing.length).toBe(99);
+      // 74 (through 2.1.101) + 41 (2.1.105-2.1.110) = 115
+      expect(missing.length).toBe(115);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
       expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);
@@ -221,6 +221,18 @@ describe('cc-version-matrix', () => {
 
     test('thinking_progress_rotation available at 2.1.109', () => {
       expect(hasFeature('2.1.109', 'thinking_progress_rotation')).toBe(true);
+    });
+
+    test('push_notification_tool available at 2.1.110', () => {
+      expect(hasFeature('2.1.110', 'push_notification_tool')).toBe(true);
+    });
+
+    test('push_notification_tool not available at 2.1.109', () => {
+      expect(hasFeature('2.1.109', 'push_notification_tool')).toBe(false);
+    });
+
+    test('focus_command available at 2.1.110', () => {
+      expect(hasFeature('2.1.110', 'focus_command')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {

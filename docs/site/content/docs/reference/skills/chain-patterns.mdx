@@ -451,7 +451,15 @@ When resuming a long chain after an idle period, CC 2.1.108 provides automatic s
 
 Both should be consulted on resume. The PostCompact hook already re-injects branch and task state — `/recap` adds the conversational layer on top.
 
-For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` to enable recap.
+Session recap is enabled by default since CC 2.1.110 (even with telemetry disabled). Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`.
+
+## Scheduled Task Recovery (CC 2.1.110+)
+
+`--resume` and `--continue` now resurrect unexpired scheduled tasks (created via `CronCreate` or `ScheduleWakeup`), not just session history. This means:
+
+- `/loop`-based chains that were interrupted by rate limits or session timeouts will auto-resume their scheduled ticks
+- Cron-scheduled agents will be restored alongside the session
+- No need to manually re-create scheduled work after resuming
 
 
 ### Cron Monitoring
