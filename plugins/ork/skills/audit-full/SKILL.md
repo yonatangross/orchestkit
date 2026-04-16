@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: false
@@ -33,9 +33,11 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 /ork:audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss.
+> **Opus 4.6 / 4.7**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss. On Opus 4.7, prefers `xhigh` effort for one additional cross-file pattern sweep.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
+
+> **Effort (CC 2.1.111+):** `xhigh` (Opus 4.7 only) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
 
 ---
 

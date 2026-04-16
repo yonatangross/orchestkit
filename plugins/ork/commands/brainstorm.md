@@ -236,7 +236,7 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
 
 
-## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76)
+## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
 
 Read the `/effort` setting to scale brainstorm depth. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly:
 
@@ -245,6 +245,7 @@ Read the `/effort` setting to scale brainstorm depth. The effort-aware context b
 | **low** | Phase 0 → Phase 2 (quick ideation) → Phase 5 (light synthesis) | ~50K | 2 max |
 | **medium** | Phase 0 → Phase 2 → Phase 3 → Phase 5 → Phase 6 | ~150K | 3 max |
 | **high** (default) | All 7 phases | ~400K | 3-5 |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 7 phases + extra devil's-advocate round in Phase 4 + extra synthesis dimension in Phase 5 | ~550K | 3-5 |
 
 ```python
 # Effort detection — the global hook injects effort level, but also check:

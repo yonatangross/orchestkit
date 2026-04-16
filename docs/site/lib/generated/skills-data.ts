@@ -470,7 +470,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -583,7 +583,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "audit-full": {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -715,7 +715,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "brainstorm": {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
-    "version": "4.9.0",
+    "version": "4.10.0",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1122,7 +1122,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "configure": {
     "name": "configure",
     "description": "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1159,7 +1159,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "cover": {
     "name": "cover",
     "description": "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly).",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -1386,7 +1386,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "design-context-extract": {
     "name": "design-context-extract",
     "description": "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1478,7 +1478,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "design-to-code": {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1673,7 +1673,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "doctor": {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2116,7 +2116,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "fix-issue": {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
-    "version": "2.4.0",
+    "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2375,7 +2375,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "implement": {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -2796,7 +2796,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "memory": {
     "name": "memory",
     "description": "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3042,7 +3042,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "multimodal-llm": {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3824,7 +3824,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "remember": {
     "name": "remember",
     "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge.",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3955,7 +3955,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "review-pr": {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4831,7 +4831,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
-    "version": "4.2.0",
+    "version": "4.3.0",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -5072,7 +5072,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "write-prd": {
     "name": "write-prd",
     "description": "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "author": "OrchestKit",
     "tags": [
       "prd",

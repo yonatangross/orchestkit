@@ -1,11 +1,11 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.76+."
+compatibility: "Claude Code 2.1.111+ for xhigh effort warning (Category 14); earlier versions skip that check."
 description: "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks."
 argument-hint: "[--verbose]"
 context: inherit
-version: 3.1.0
+version: 3.2.0
 author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
@@ -44,7 +44,7 @@ FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 13 categories:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 14 categories:
 
 1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -55,10 +55,11 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.108, detects release channel (stable/beta/alpha), recommends 2.1.110+ for `/tui`, `/focus`, PushNotification
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.111, detects release channel (stable/beta/alpha), recommends 2.1.111+ for `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
+14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.7 (silent fallback otherwise)
 
 ## When to Use
 
@@ -119,7 +120,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **8. Coordination** | Multi-worktree lock health, stale locks, sparse paths config |
 | **9. Context Budget** | Token usage against budget |
 
-### Categories 10-13: Environment
+### Categories 10-14: Environment
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
@@ -127,6 +128,28 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
+| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.7 — see below | inline |
+
+### Category 14: Effort/Model Compatibility (CC 2.1.111+)
+
+CC 2.1.111 added `xhigh` effort (Opus 4.7 only). Using it with any other model silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
+
+**Detection**:
+- If the active model is NOT Opus 4.7, check whether `/effort` is set to `xhigh`:
+  - Read `.claude/settings.json` → `effort` field
+  - Read `$ORCHESTKIT_EFFORT` env var (populated by the effort-detector hook)
+- Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-4.7 model in scope
+
+**Warning format**:
+```
+WARNING: xhigh effort requires Opus 4.7.
+  Current model: <model-id>
+  Configured effort: xhigh
+  Impact: Skills fall back to high — xhigh's extra deepening pass is lost silently.
+  Fix: Either switch to Opus 4.7 (`claude --model opus-4.7`) or lower effort to `high`.
+```
+
+**Exit code**: Non-zero in `--json` mode; soft warning in interactive mode.
 
 ## Report Format
 

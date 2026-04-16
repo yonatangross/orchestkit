@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.98+. Requires network access."
 description: "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly)."
 argument-hint: "[scope-or-feature]"
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
@@ -83,6 +83,7 @@ Scale test generation depth based on `/effort` level:
 | **low** | Unit only | 1 agent | 1 max |
 | **medium** | Unit + Integration | 2 agents | 2 max |
 | **high** (default) | Unit + Integration + E2E | 3 agents | 3 max |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
 
 > **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
 

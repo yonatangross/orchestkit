@@ -1126,6 +1126,16 @@ All hooks that inject `additionalContext` are classified by volatility. Volatile
 
 ## Troubleshooting
 
+### Debug Environment Variables (CC 2.1.111+)
+
+| Env Var | Purpose | Caveats |
+|---|---|---|
+| `OTEL_LOG_RAW_API_BODIES=1` | Log raw Anthropic API request/response bodies to the OpenTelemetry log stream. Essential for diagnosing tool-result parsing issues and prompt caching behavior. | **Risk: leaks secrets** — API bodies contain full prompt text, tool inputs, and tool outputs. Never enable in shared logging infrastructure. Local debugging only, and scrub before sharing. |
+| `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` | (Windows) Opts into the native PowerShell tool for Bash-equivalent commands. Progressively rolling out in CC 2.1.111. | Windows only. Shell semantics differ — hooks that parse command strings may need the `isWindows()` guard. |
+| `CLAUDE_MAX_CONTEXT=<tokens>` | Overrides the context window used by `lib/context-window.ts` for budget scaling. Default `1000000`. Lower values scale per-category budgets down proportionally (see `lib/hook-priorities.ts`). | Does not change CC's actual context window — only governs OrchestKit's budget math. Set for local testing of 200K-window behavior without switching models. |
+| `ENABLE_PROMPT_CACHING_1H=1` | CC 2.1.108+: 1-hour prompt cache TTL (vs 5 min). Meaningful cost savings for long OrchestKit sessions. | API key, Bedrock, Vertex, Foundry only. |
+| `ORK_SKIP_PLUGIN_ERROR_CHECK=1` | Skip eval preflight that exits on `plugin_errors` from stream-json init (see `tests/evals/scripts/lib/eval-common.sh`). | For meta-testing the eval runners themselves; never set in production eval runs. |
+
 ### Hook Not Running
 
 **Check:**
