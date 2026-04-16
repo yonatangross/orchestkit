@@ -255,6 +255,34 @@ See also: `Read("${CLAUDE_SKILL_DIR}/references/alternative-analysis.md")` | `Re
 
 ---
 
+## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
+
+Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
+
+Output schema per dimension (JSON):
+
+```json
+{
+  "dimension": "security",
+  "score": 7.2,
+  "confidence": "medium",              // "low" | "medium" | "high"
+  "caveats": [
+    "Didn't execute the SQL queries against a real DB to confirm parameterization",
+    "Assumed NODE_ENV=production in deployment; didn't verify CI config",
+    "Reviewed 12 of 15 handlers; remaining 3 deferred by scope filter"
+  ],
+  "evidence": ["src/api/auth.ts:42", "src/middleware/guard.ts:88"]
+}
+```
+
+Rules:
+- **Do not use `confidence` as an auto-gate.** It's a signal for the human reader, not a pass/fail threshold.
+- **`caveats` must be specific.** "Didn't check X" with file paths beats "uncertainty about security".
+- **If a caveat is cheap to resolve, resolve it** instead of recording it. Caveats are for things that genuinely can't be verified within the skill's scope (e.g., production runtime behavior, future input patterns).
+- **Composite score still computes from `score` only** — not weighted by confidence — to keep the number comparable across runs.
+
+---
+
 ## Grade Interpretation
 
 Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
