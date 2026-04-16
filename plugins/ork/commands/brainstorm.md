@@ -418,7 +418,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
-> **Push notifications (CC 2.1.110+):** For long brainstorm sessions with background agents, use `PushNotification` to alert the user when synthesis is complete (requires Remote Control enabled with "Push when Claude decides"). Particularly useful for high-effort open exploration that may take several minutes.
+> **Push notifications (CC 2.1.110+):** For long brainstorm sessions, use `PushNotification` to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
@@ -458,5 +458,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `socratic-questions.md` | Requirements discovery |
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
-
-**Version:** 4.9.0 (April 2026) — CC 2.1.110 compat: PushNotification for long sessions, /focus replaces Ctrl+O, session recap default-on
+**Version:** 4.9.0 (April 2026) — CC 2.1.110 compat: PushNotification, /focus, session recap default-on

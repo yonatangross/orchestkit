@@ -37,7 +37,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 9. **Memory System** - Graph memory health
 10. **Claude Code Version & Channel** - Validates CC >= 2.1.108, detects release channel (stable/beta/alpha), recommends 2.1.110+ for `/tui`, `/focus`, PushNotification
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
-12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: also warns when same MCP server defined in multiple config scopes with different endpoints
+12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 
 ## When to Use
