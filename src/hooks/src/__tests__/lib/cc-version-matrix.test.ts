@@ -17,15 +17,15 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.108', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.108');
+    test('is 2.1.111', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.111');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) = 294
-      expect(CC_FEATURE_MATRIX.length).toBe(294);
+      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) = 311
+      expect(CC_FEATURE_MATRIX.length).toBe(311);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.110');
+      const features = getAvailableFeatures('2.1.111');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,33 +99,41 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.110', () => {
-      const missing = getMissingFeatures('2.1.110');
+    test('no missing features at 2.1.111', () => {
+      const missing = getMissingFeatures('2.1.111');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.101 is missing 2.1.105 through 2.1.110 features', () => {
+    test('2.1.110 is missing 2.1.111 features', () => {
+      const missing = getMissingFeatures('2.1.110');
+      // 17 (2.1.111)
+      expect(missing.length).toBe(17);
+      expect(missing.some(f => f.feature === 'opus_4_7_xhigh')).toBe(true);
+      expect(missing.some(f => f.feature === 'ultrareview_command')).toBe(true);
+    });
+
+    test('2.1.101 is missing 2.1.105 through 2.1.111 features', () => {
       const missing = getMissingFeatures('2.1.101');
-      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) = 41
-      expect(missing.length).toBe(41);
+      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) = 58
+      expect(missing.length).toBe(58);
       expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
       expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
     });
 
-    test('2.1.98 is missing 2.1.101 through 2.1.110 features', () => {
+    test('2.1.98 is missing 2.1.101 through 2.1.111 features', () => {
       const missing = getMissingFeatures('2.1.98');
-      // 18 (2.1.101) + 41 (2.1.105-2.1.110) = 59
-      expect(missing.length).toBe(59);
+      // 18 (2.1.101) + 58 (2.1.105-2.1.111) = 76
+      expect(missing.length).toBe(76);
       expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 through 2.1.110 features', () => {
+    test('2.1.92 is missing 2.1.94 through 2.1.111 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 74 (through 2.1.101) + 41 (2.1.105-2.1.110) = 115
-      expect(missing.length).toBe(115);
+      // 74 (through 2.1.101) + 58 (2.1.105-2.1.111) = 132
+      expect(missing.length).toBe(132);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
       expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);
@@ -233,6 +241,22 @@ describe('cc-version-matrix', () => {
 
     test('focus_command available at 2.1.110', () => {
       expect(hasFeature('2.1.110', 'focus_command')).toBe(true);
+    });
+
+    test('opus_4_7_xhigh available at 2.1.111', () => {
+      expect(hasFeature('2.1.111', 'opus_4_7_xhigh')).toBe(true);
+    });
+
+    test('opus_4_7_xhigh not available at 2.1.110', () => {
+      expect(hasFeature('2.1.110', 'opus_4_7_xhigh')).toBe(false);
+    });
+
+    test('ultrareview_command available at 2.1.111', () => {
+      expect(hasFeature('2.1.111', 'ultrareview_command')).toBe(true);
+    });
+
+    test('stream_json_plugin_errors available at 2.1.111', () => {
+      expect(hasFeature('2.1.111', 'stream_json_plugin_errors')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {

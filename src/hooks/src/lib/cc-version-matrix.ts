@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.108';
+export const MIN_CC_VERSION = '2.1.111';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -347,6 +347,24 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'doctor_mcp_duplicate_warn',   minVersion: '2.1.110', description: '/doctor warns when same MCP server defined in multiple config scopes with different endpoints' },
   { feature: 'mcp_hang_fix',               minVersion: '2.1.110', description: 'MCP tool call hang fixes and connection hardening' },
   { feature: 'open_in_editor_security',     minVersion: '2.1.110', description: 'Security hardening for "Open in editor" actions — command injection protection' },
+  // 2.1.111 (2026-04-16) — Opus 4.7 launch
+  { feature: 'opus_4_7_xhigh',              minVersion: '2.1.111', description: 'xhigh effort level (between high and max) for Opus 4.7 — finer reasoning/latency control, new default for Claude Code plans' },
+  { feature: 'auto_mode_opus47_max',        minVersion: '2.1.111', description: 'Auto mode available for Max subscribers on Opus 4.7 without --enable-auto-mode flag' },
+  { feature: 'effort_slider',               minVersion: '2.1.111', description: '/effort without arguments opens interactive slider UI for effort level selection' },
+  { feature: 'ultrareview_command',         minVersion: '2.1.111', description: '/ultrareview skill — parallel multi-agent comprehensive code review (3 free per month for Pro/Max)' },
+  { feature: 'less_permission_prompts',     minVersion: '2.1.111', description: '/less-permission-prompts skill — scans transcripts for read-only Bash calls and proposes permission allowlist additions' },
+  { feature: 'auto_match_terminal_theme',   minVersion: '2.1.111', description: '"Auto (match terminal)" theme option mirrors terminal dark/light mode' },
+  { feature: 'powershell_tool_env',         minVersion: '2.1.111', description: 'CLAUDE_CODE_USE_POWERSHELL_TOOL env var opts into native PowerShell tool on Windows (progressively rolling out)' },
+  { feature: 'readonly_bash_glob_no_prompt', minVersion: '2.1.111', description: 'Read-only Bash commands containing glob patterns no longer trigger permission prompts' },
+  { feature: 'subcommand_typo_suggest',     minVersion: '2.1.111', description: 'CLI suggests closest matching subcommand on typo (e.g. `claude udpate` → suggests update)' },
+  { feature: 'plan_files_prompt_named',     minVersion: '2.1.111', description: 'Plan files named after the prompt instead of random words, improving discoverability' },
+  { feature: 'setup_vertex_bedrock_path',   minVersion: '2.1.111', description: '/setup-vertex and /setup-bedrock display settings path for the settings they write' },
+  { feature: 'skills_token_sort',           minVersion: '2.1.111', description: '/skills menu supports sorting by token count — press `t` to toggle' },
+  { feature: 'ctrl_u_y_clear_restore',      minVersion: '2.1.111', description: 'Ctrl+U clears entire input buffer; Ctrl+Y restores what was cleared' },
+  { feature: 'ctrl_l_full_redraw',          minVersion: '2.1.111', description: 'Ctrl+L forces full screen redraw in addition to clearing the prompt' },
+  { feature: 'transcript_view_footer_keys', minVersion: '2.1.111', description: 'Transcript view footer adds `[` (dump to scrollback) and `v` (open in editor) shortcuts' },
+  { feature: 'stream_json_plugin_errors',   minVersion: '2.1.111', description: 'Headless --output-format stream-json includes plugin_errors array on init event for CI/eval observability' },
+  { feature: 'otel_raw_api_bodies_env',     minVersion: '2.1.111', description: 'OTEL_LOG_RAW_API_BODIES env var logs raw API request/response bodies for debugging (secret leakage risk)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
