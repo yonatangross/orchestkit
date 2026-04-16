@@ -35,9 +35,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 EVALS_DIR="$(dirname "$SCRIPT_DIR")"
 ROOT_DIR="$(cd "$EVALS_DIR/../.." && pwd)"
 
-# Colors
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
+# Load shared library (colors, preflight, run_with_timeout, etc.)
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib/eval-common.sh"
 
 # Configuration
 TIER=""
@@ -194,6 +194,14 @@ log "  Flags: $(build_runner_flags)"
 log "  Parallelism: $PARALLELISM  |  Delay: ${DELAY}s  |  Retries: $MAX_RETRIES"
 log "  Results: $RUN_DIR"
 log ""
+
+# Preflight: detect plugin load errors from stream-json init event (CC 2.1.111+).
+# Fails fast if the plugin set is degraded — evals produce invalid pass/fail
+# signals against broken plugins.
+if [[ "$DRY_RUN" != "true" ]]; then
+    log "  Running plugin-error preflight check..."
+    preflight_check_plugin_errors
+fi
 
 total=0; passed=0; failed=0
 failed_list=()

@@ -170,3 +170,68 @@ else
         ' "$seconds" "$@"
     }
 fi
+
+# ---------------------------------------------------------------------------
+# Plugin error preflight (CC 2.1.111+)
+# ---------------------------------------------------------------------------
+# CC 2.1.111 added a `plugin_errors` array to the init event emitted by
+# `--output-format stream-json`. When a plugin fails to load, it shows up
+# there. Previously, the error was swallowed silently and evals ran
+# against a degraded plugin set — producing false pass/fail signals.
+#
+# Call preflight_check_plugin_errors() before any eval loop. The result is
+# cached in PREFLIGHT_CHECKED so additional calls in the same script are
+# no-ops. Set ORK_SKIP_PLUGIN_ERROR_CHECK=1 to disable (e.g. for unit
+# tests of the runners themselves).
+# ---------------------------------------------------------------------------
+PREFLIGHT_CHECKED=false
+
+preflight_check_plugin_errors() {
+    [[ "$PREFLIGHT_CHECKED" == "true" ]] && return 0
+    PREFLIGHT_CHECKED=true
+
+    if [[ "${ORK_SKIP_PLUGIN_ERROR_CHECK:-0}" == "1" ]]; then
+        return 0
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        echo -e "${YELLOW}  preflight: jq not found — skipping plugin_errors check${NC}" >&2
+        return 0
+    fi
+
+    local tmp_out
+    tmp_out=$(mktemp)
+    CLEANUP_FILES+=("$tmp_out")
+
+    # Minimal probe: ask Claude to emit its init event and stop immediately.
+    # Timeout short — this should be fast.
+    local probe_input='{"type":"user","message":{"role":"user","content":"noop"}}'
+    if ! echo "$probe_input" | run_with_timeout 30 claude -p --output-format stream-json --input-format stream-json --verbose \
+        > "$tmp_out" 2>/dev/null; then
+        # Non-zero exit isn't fatal — we only care about what we can parse
+        :
+    fi
+
+    # Find the first init event (type=="system" && subtype=="init")
+    local errors_json
+    errors_json=$(jq -s -c '
+        map(select(.type=="system" and (.subtype=="init" or .event=="init")))
+        | first
+        | .plugin_errors // []
+    ' "$tmp_out" 2>/dev/null || echo '[]')
+
+    if [[ "$errors_json" == "null" || "$errors_json" == "[]" || -z "$errors_json" ]]; then
+        return 0
+    fi
+
+    echo "" >&2
+    echo -e "${RED}============================================================${NC}" >&2
+    echo -e "${RED}  PLUGIN LOAD ERRORS DETECTED (CC stream-json init event)${NC}" >&2
+    echo -e "${RED}============================================================${NC}" >&2
+    echo "$errors_json" | jq -r '.[] | "  [\(.plugin // .name // "unknown")] \(.error // .message // .)"' >&2 || echo "$errors_json" >&2
+    echo -e "${RED}============================================================${NC}" >&2
+    echo -e "${RED}  Refusing to run evals against a degraded plugin set.${NC}" >&2
+    echo -e "${YELLOW}  Fix the plugin errors above, or set ORK_SKIP_PLUGIN_ERROR_CHECK=1 to bypass.${NC}" >&2
+    echo "" >&2
+    exit 1
+}
