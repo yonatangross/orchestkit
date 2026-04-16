@@ -118,6 +118,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For screenshots:** Read the image directly (Claude is multimodal). Pasted/attached images are compressed to the same token budget as Read tool images (CC 2.1.97), so both workflows are equally efficient.
 
+> **Resolution budget (Opus 4.7 / CC 2.1.111+):** Max input is **2,576 px on the long edge** (~3.75 MP) — roughly 3× Opus 4.6. Dense dashboards, dark-mode UIs, and technical diagrams benefit the most from the higher ceiling; extraction reads tiny labels, spacing ticks, and component boundaries that were previously blurred. Below 1,024 px, don't upscale — the source bitmap is the ceiling. Resize only when input exceeds 2,576 px.
+
 **For URLs:**
 ```python
 # If stitch available: call build_site(prompt=<url + extraction goal>)
