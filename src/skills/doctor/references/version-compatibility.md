@@ -303,6 +303,18 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | Remote Control commands | 2.1.110 | `/autocompact`, `/context`, `/exit`, `/reload-plugins` work from Remote Control | Limited remote command set |
 | SDK TRACEPARENT/TRACESTATE | 2.1.110 | Auto-read in SDK/headless for OpenTelemetry distributed trace propagation | Manual trace propagation |
 | `/doctor` MCP duplicate | 2.1.110 | Warns when same MCP server defined in multiple config scopes with different endpoints | Silent duplicate MCP |
+| Opus 4.7 + `xhigh` effort | 2.1.111 | New effort tier between `high` and `max` for Opus 4.7 — used by `brainstorm`, `implement`, `assess`, `cover`, `verify`, `fix-issue`, `audit-full` | Silent fallback to `high` |
+| `/ultrareview` skill | 2.1.111 | Built-in parallel multi-agent review; composed (gated) by `ork:review-pr` when triggers fire | Manual multi-agent review via `ork:review-pr` only |
+| `/less-permission-prompts` | 2.1.111 | Built-in skill that prunes overbroad permission rules by scanning transcripts | Manual permission audit |
+| Stream-json `plugin_errors` | 2.1.111 | Headless `--output-format stream-json` includes `plugin_errors` on init event | Silent plugin load failures — degraded evals |
+| `OTEL_LOG_RAW_API_BODIES` | 2.1.111 | Env var for debugging raw API request/response bodies | No raw-body debug path (secret leak risk if enabled carelessly) |
+| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | 2.1.111 | Windows PowerShell tool opt-in (progressively rolling out) | CMD tool on Windows |
+| Opus 4.7 vision 2,576px | 2.1.111 | Images up to 2,576 px on long edge (~3.75 MP, 3× Opus 4.6) | Must downscale large screenshots |
+| Opus 4.7 filesystem memory | 2.1.111 | Model "substantially better" at reading `.claude/chain/*.json` and `memory/*.md` across sessions | Filesystem memory less reliable |
+| Auto mode on Max + Opus 4.7 | 2.1.111 | No `--enable-auto-mode` flag required | Flag required |
+| Plan filename after prompt | 2.1.111 | Plan-mode files named after the prompt (was: random words) | Generic plan filenames |
+| Readonly bash+glob no prompt | 2.1.111 | Read-only Bash with glob patterns no longer prompts | Permission prompt per read-only command |
+| `/skills` menu token sort | 2.1.111 | Press `t` to toggle sort by token count | Alpha only |
 
 ## Prompt Caching Recommendation
 
@@ -453,6 +465,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.50.x | 2.1.111 | **CC 2.1.111 + Opus 4.7 adoption (23 issues, 1 PR): MIN_CC_VERSION 2.1.108 → 2.1.111, 17 new matrix entries (311 total), `xhigh` effort tier across 7 phase-based skills, token budgets converted to %-of-context via new `lib/context-window.ts`, `ork:review-pr` composes `/ultrareview` gated by sensitive-path/diff-size triggers via `AskUserQuestion`, eval preflight catches `plugin_errors` on stream-json init, 2,576px vision ceiling in design/UI skills, doctor Category 14 detects xhigh-without-Opus-4.7, retry-policy audit with rationale comments** |
 | v7.44.x | 2.1.108 | **CC 2.1.108 adoption: 25 new matrix entries (278 total), ENABLE_PROMPT_CACHING_1H env var, /recap session context, Skill tool auto-discovery, model switch warning, lazy language grammars, EnterWorktree path param, PreCompact blocking, plugin monitors manifest key, skill description cap 1536 chars, expanded 11 user-invocable skill descriptions** |
 | v7.38.x | 2.1.101 | **CC 2.1.101 adoption + frontmatter audit: 26 skill frontmatter fixes (context/agent fields now enforced), deny-overrides-ask behavior, subagent dynamic MCP inheritance, worktree agent file access, /team-onboarding command, OS CA cert trust, focus mode self-contained summaries, RemoteTrigger run fix, settings resilience, 18 new matrix entries (253 total)** |
 | v7.37.x | 2.1.98 | **CC 2.1.98 adoption: Monitor tool for streaming background events, SCRIPT_CAPS env var, partial progress from failed bg subagents, hook stderr in transcript, /agents tabbed layout, /reload-plugins skill discovery, Bash permission hardening (backslash escape fix, compound cmd fix), stale worktree cleanup fix, team permission inheritance, Vertex AI wizard, Perforce mode** |
