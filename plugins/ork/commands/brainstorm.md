@@ -1,6 +1,6 @@
 ---
 description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
-allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/brainstorm/SKILL.md
@@ -416,7 +416,9 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table).
 
-> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` if `DISABLE_TELEMETRY=1`.
+> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
+
+> **Push notifications (CC 2.1.110+):** For long brainstorm sessions with background agents, use `PushNotification` to alert the user when synthesis is complete (requires Remote Control enabled with "Push when Claude decides"). Particularly useful for high-effort open exploration that may take several minutes.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
@@ -457,4 +459,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
 
-**Version:** 4.8.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)
+**Version:** 4.9.0 (April 2026) — CC 2.1.110 compat: PushNotification for long sessions, /focus replaces Ctrl+O, session recap default-on

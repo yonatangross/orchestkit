@@ -1,6 +1,6 @@
 ---
 description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskStop, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -215,7 +215,7 @@ Write handoff JSON after major phases. See `chain-patterns` skill for schema.
 
 Output results **incrementally** after each phase — don't batch everything until the end.
 
-> **Focus mode (CC 2.1.101):** In focus mode (Ctrl+O), the user only sees your final message. Include a self-contained summary with all key results — don't assume they saw incremental outputs.
+> **Focus mode (CC 2.1.101):** In focus mode (`/focus`), the user only sees your final message. Include a self-contained summary with all key results — don't assume they saw incremental outputs.
 
 | After Phase | Show User |
 |-------------|-----------|
@@ -368,7 +368,7 @@ TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addB
 # Then: /ork:verify {feature}
 ```
 
-> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
 ## Related Skills
 

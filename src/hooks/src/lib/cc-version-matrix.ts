@@ -330,6 +330,23 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'telemetry_cache_ttl_fix',     minVersion: '2.1.108', description: 'Subscribers with DISABLE_TELEMETRY get 1-hour cache TTL instead of falling back to 5-minute' },
   // 2.1.109 (2026-04-15)
   { feature: 'thinking_progress_rotation',  minVersion: '2.1.109', description: 'Extended thinking indicator with rotating progress hint during long operations' },
+  // 2.1.110 (2026-04-15)
+  { feature: 'tui_command',                 minVersion: '2.1.110', description: '/tui command + tui setting — switch to flicker-free fullscreen TUI rendering mid-conversation' },
+  { feature: 'push_notification_tool',      minVersion: '2.1.110', description: 'PushNotification built-in tool — sends mobile push when Remote Control enabled' },
+  { feature: 'focus_command',               minVersion: '2.1.110', description: '/focus command for condensed view (replaces Ctrl+O focus toggle from 2.1.97)' },
+  { feature: 'ctrl_o_transcript_only',      minVersion: '2.1.110', description: 'Ctrl+O now only toggles between normal and verbose transcript (no longer focus view)' },
+  { feature: 'auto_scroll_enabled_config',  minVersion: '2.1.110', description: 'autoScrollEnabled config option to disable auto-scroll in fullscreen mode' },
+  { feature: 'editor_commented_context',    minVersion: '2.1.110', description: 'External editor (Ctrl+G) optionally shows Claude last response as commented context' },
+  { feature: 'bash_max_timeout_enforced',   minVersion: '2.1.110', description: 'Bash tool enforces documented max timeout — values exceeding limit now hard-fail' },
+  { feature: 'write_user_edit_signal',      minVersion: '2.1.110', description: 'Write tool tells model when user edits proposed diff before accepting — PostToolUse hooks see different tool_response' },
+  { feature: 'resume_scheduled_tasks',      minVersion: '2.1.110', description: '--resume/--continue resurrects unexpired scheduled tasks, not just session history' },
+  { feature: 'session_recap_default_on',    minVersion: '2.1.110', description: 'Session recap enabled by default even with telemetry disabled — opt out via /config or CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0' },
+  { feature: 'remote_control_commands',     minVersion: '2.1.110', description: '/autocompact, /context, /exit, /reload-plugins now work from Remote Control clients' },
+  { feature: 'sdk_traceparent_tracestate',  minVersion: '2.1.110', description: 'TRACEPARENT and TRACESTATE env vars auto-read in SDK/headless sessions for OpenTelemetry propagation' },
+  { feature: 'plugin_favorites_sorting',    minVersion: '2.1.110', description: '/plugin Installed tab: favorites and needs-attention sort to top, disabled items hidden behind fold' },
+  { feature: 'doctor_mcp_duplicate_warn',   minVersion: '2.1.110', description: '/doctor warns when same MCP server defined in multiple config scopes with different endpoints' },
+  { feature: 'mcp_hang_fix',               minVersion: '2.1.110', description: 'MCP tool call hang fixes and connection hardening' },
+  { feature: 'open_in_editor_security',     minVersion: '2.1.110', description: 'Security hardening for "Open in editor" actions — command injection protection' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

@@ -9,7 +9,7 @@ version: 2.4.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, mcp__memory__search_nodes, mcp__context7__get_library_docs]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, memory, remember, chain-patterns]
 complexity: medium
 persuasion-type: guidance
@@ -357,7 +357,7 @@ When reporting fix status, follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rul
 - `ork:issue-progress-tracking` - Auto-updates from commits
 - `ork:remember` - Store lessons learned
 
-> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. For users with `DISABLE_TELEMETRY=1`, set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1`.
+> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
 ## References
 
