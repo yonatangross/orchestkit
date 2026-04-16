@@ -31,10 +31,9 @@ task = research_start(
 status = research_status(task_id=task.id)
 # status: "searching" | "analyzing" | "completed"
 
-# 3. Import discovered sources into notebook (v0.5.0+: timeout configurable)
-research_import(task_id=task.id, notebook_id="...", timeout=300)
+# 3. Import discovered sources into notebook (timeout configurable, default 300s)
+research_import(task_id=task.id, notebook_id="...")
 # Adds the most relevant discovered sources automatically
-# Default timeout is 300s (was 120s pre-0.5.0). Use --timeout in CLI.
 ```
 
 **Deep research mode** (v0.5.1+):
