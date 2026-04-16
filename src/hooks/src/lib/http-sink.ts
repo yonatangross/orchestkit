@@ -24,11 +24,20 @@ import { getPluginDataDir, getProjectDir } from './paths.js';
 
 const HOOK_NAME = 'http-sink';
 const FETCH_TIMEOUT_MS = 3000;
+// Retry budget rationale (audited 2026-04-16 for CC 2.1.111):
+// MAX_RETRIES=3 covers the typical transient-network error modes (DNS
+// blip, receiver cold start, upstream 503). Short 200 ms base with 5 s
+// cap exponential backoff keeps tail latency bounded per telemetry
+// event — important because this hook is on the hot PostToolUse path.
+// The separate circuit breaker (below) handles sustained outages;
+// retries alone are not the long-term fallback.
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 200;
 const MAX_DELAY_MS = 5000;
 
-// Circuit breaker constants
+// Circuit breaker constants — trip open after 5 consecutive hard
+// failures, cool down 30 s before a HALF_OPEN probe. This is what
+// stops us from retrying a genuinely-dead webhook for every event.
 const CB_FAILURE_THRESHOLD = 5;
 const CB_COOLDOWN_MS = 30_000;
 
