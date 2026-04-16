@@ -99,9 +99,32 @@ Read(".claude/chain/state.json")
 Write(".claude/chain/state.json", JSON.stringify({
   "skill": "implement", "feature": FEATURE_DESC,
   "current_phase": 1, "completed_phases": [],
-  "capabilities": capabilities
+  "capabilities": capabilities,
+  "budget_remaining_pct": 100  // advisory; see Budget Awareness below
 }))
 ```
+
+### Budget Awareness (Opus 4.7 task budgets, public beta)
+
+Opus 4.7 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+
+```python
+# At end of every phase, estimate remaining budget:
+pct = tokensAsContextPct(tokensUsedSoFar)  # from lib/context-window.ts
+remaining = max(0, 100 - pct)
+state["budget_remaining_pct"] = remaining
+Write(".claude/chain/state.json", JSON.stringify(state))
+```
+
+Thresholds influence behavior:
+
+| Remaining | Behavior |
+|---|---|
+| `> 50%` | Normal — all optional depth (devil's advocate, visual capture, deep exploration). |
+| `20-50%` | Efficient — skip optional depth; keep core phases. Warn user once. |
+| `< 20%` | Conservation — finish current phase, emit a handoff with next steps, do not start new work. |
+
+When CC's native task-budget API ships GA, replace the estimate with the real signal; the thresholds and behavior stay the same.
 
 > Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
 
