@@ -172,6 +172,45 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# W3C Trace Context (CC 2.1.110+)
+# ---------------------------------------------------------------------------
+# CC 2.1.110 auto-reads TRACEPARENT and TRACESTATE env vars in SDK/headless
+# sessions for OpenTelemetry distributed trace propagation. Each eval
+# invocation becomes a child span of a parent eval run, enabling end-to-end
+# correlation in Langfuse / OTel backends without per-script instrumentation.
+#
+# We generate one traceparent per eval script run and export it so every
+# `claude -p` call inherits it. Each grading call within a script shares
+# the same trace_id but gets a fresh span_id.
+#
+# Skip by setting ORK_SKIP_TRACE_CONTEXT=1.
+# ---------------------------------------------------------------------------
+ORK_EVAL_TRACE_ID=""
+ORK_EVAL_PARENT_SPAN_ID=""
+
+ensure_trace_context() {
+    [[ "${ORK_SKIP_TRACE_CONTEXT:-0}" == "1" ]] && return 0
+
+    # Already set by a parent eval run — inherit.
+    if [[ -n "${TRACEPARENT:-}" ]]; then
+        # Format: 00-<32-hex trace_id>-<16-hex parent_id>-<2-hex flags>
+        ORK_EVAL_TRACE_ID="$(echo "$TRACEPARENT" | awk -F- '{print $2}')"
+        ORK_EVAL_PARENT_SPAN_ID="$(echo "$TRACEPARENT" | awk -F- '{print $3}')"
+        return 0
+    fi
+
+    # Generate new trace + span id. Portable hex RNG — /dev/urandom + od.
+    ORK_EVAL_TRACE_ID="$(od -An -N16 -tx1 /dev/urandom 2>/dev/null | tr -d ' \n')"
+    ORK_EVAL_PARENT_SPAN_ID="$(od -An -N8 -tx1 /dev/urandom 2>/dev/null | tr -d ' \n')"
+
+    [[ -z "$ORK_EVAL_TRACE_ID" || -z "$ORK_EVAL_PARENT_SPAN_ID" ]] && return 0
+
+    export TRACEPARENT="00-${ORK_EVAL_TRACE_ID}-${ORK_EVAL_PARENT_SPAN_ID}-01"
+    export TRACESTATE="${TRACESTATE:-orchestkit=eval}"
+    echo -e "${BLUE}  Trace context: trace_id=${ORK_EVAL_TRACE_ID} parent_span=${ORK_EVAL_PARENT_SPAN_ID}${NC}" >&2
+}
+
+# ---------------------------------------------------------------------------
 # Plugin error preflight (CC 2.1.111+)
 # ---------------------------------------------------------------------------
 # CC 2.1.111 added a `plugin_errors` array to the init event emitted by

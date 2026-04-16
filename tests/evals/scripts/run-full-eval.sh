@@ -201,6 +201,15 @@ log ""
 if [[ "$DRY_RUN" != "true" ]]; then
     log "  Running plugin-error preflight check..."
     preflight_check_plugin_errors
+
+    # Trace context (CC 2.1.110+): export TRACEPARENT/TRACESTATE so every
+    # subsequent `claude -p` inherits the same trace_id, enabling end-to-end
+    # correlation in Langfuse / OTel.
+    ensure_trace_context
+    # Record trace context in run metadata for the report step.
+    if [[ -n "${TRACEPARENT:-}" ]]; then
+        echo "$TRACEPARENT" > "$RUN_DIR/traceparent.txt"
+    fi
 fi
 
 total=0; passed=0; failed=0
@@ -292,7 +301,9 @@ cat > "$RUN_DIR/summary.json" <<ENDJSON
   "failed_skills": $(printf '%s\n' "${failed_list[@]}" | jq -R . | jq -s .),
   "duration_seconds": $duration,
   "flags": "$(build_runner_flags)",
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "traceparent": "${TRACEPARENT:-}",
+  "tracestate": "${TRACESTATE:-}"
 }
 ENDJSON
 
