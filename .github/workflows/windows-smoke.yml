@@ -1,0 +1,67 @@
+name: Windows Smoke Test (PowerShell)
+
+# CC 2.1.111 rolls out a native PowerShell tool on Windows via the
+# CLAUDE_CODE_USE_POWERSHELL_TOOL=1 opt-in. OrchestKit had a Windows
+# CMD-spam fix in 2.1.105; this smoke test catches regressions under
+# PowerShell before they reach users.
+#
+# Runs only when hook source or this workflow changes — ubuntu CI
+# already covers functional correctness, and Windows runner minutes
+# are expensive.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/hooks/**'
+      - '.github/workflows/windows-smoke.yml'
+  pull_request:
+    paths:
+      - 'src/hooks/**'
+      - '.github/workflows/windows-smoke.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Hook smoke test (PowerShell tool enabled)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      CLAUDE_CODE_USE_POWERSHELL_TOOL: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install hook dependencies
+        working-directory: src/hooks
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Build hook bundles
+        working-directory: src/hooks
+        run: npm run build
+
+      - name: Run hook unit tests (vitest)
+        working-directory: src/hooks
+        run: npx vitest run --reporter=basic
+
+      - name: Smoke test run-hook.mjs under PowerShell
+        shell: pwsh
+        run: |
+          $payload = '{"tool_name":"Bash","session_id":"winsmoke","tool_input":{"command":"echo hello"}}'
+          $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker
+          Write-Output "Hook result: $result"
+          if ($LASTEXITCODE -ne 0) { throw "Hook invocation failed with exit $LASTEXITCODE" }
