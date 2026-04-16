@@ -6,7 +6,7 @@ description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and St
 argument-hint: "[screenshot-path | description | url]"
 tags: [design-to-code, stitch, 21st-dev, ui-generation, mockup, component, react, frontend]
 context: fork
-version: 1.0.0
+version: 1.0.1
 author: OrchestKit
 user-invocable: true
 complexity: complex

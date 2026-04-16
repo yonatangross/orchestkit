@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+."
 description: "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings."
 argument-hint: "[preset-name]"
 context: inherit
-version: 1.0.0
+version: 1.0.1
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
 user-invocable: false

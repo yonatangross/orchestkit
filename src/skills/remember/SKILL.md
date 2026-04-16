@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge."
 argument-hint: "[decision-or-pattern]"
 context: inherit
-version: 3.0.0
+version: 3.0.1
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true

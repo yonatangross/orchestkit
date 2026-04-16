@@ -6,7 +6,7 @@ description: "Write PRD — Product Requirements Documents with structured 8-sec
 tags: [prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go]
 context: fork
 agent: product-strategist
-version: 2.0.0
+version: 2.0.1
 author: OrchestKit
 user-invocable: true
 argument-hint: "product name or feature"

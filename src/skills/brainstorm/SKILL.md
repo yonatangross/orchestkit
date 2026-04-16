@@ -6,7 +6,7 @@ description: "Design exploration using parallel agents through a 7-phase process
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 4.9.0
+version: 4.10.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
