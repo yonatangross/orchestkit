@@ -37,6 +37,7 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
+import { thrashDetector } from '../prompt/thrash-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
 
 import type { HookFn } from '../types.js';
@@ -57,6 +58,7 @@ export const hooks: Record<string, HookFn> = {
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
+  'prompt/thrash-detector': thrashDetector,
   // 'prompt/communication-style-tracker': replaced by type:prompt hook in hooks.json (#980)
 };
 

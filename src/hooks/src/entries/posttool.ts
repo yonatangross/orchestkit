@@ -24,6 +24,7 @@ import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
 import { staleImportDetector } from '../posttool/write/stale-import-detector.js';
+import { editHistoryTracker } from '../posttool/write/edit-history-tracker.js';
 // PostTool/Bash hooks (3)
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
@@ -75,6 +76,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/write/code-style-learner': codeStyleLearner,
   'posttool/write/naming-convention-learner': namingConventionLearner,
   'posttool/write/stale-import-detector': staleImportDetector,
+  'posttool/write/edit-history-tracker': editHistoryTracker,
 
   // PostTool/Bash hooks (3)
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,
