@@ -196,3 +196,4 @@ cellebrite-tech-stack.html
 .claude/state/last-test-run.json
 .claude/state/edit-history.jsonl
 .claude/state/ultrareview-usage.json
+.claude/state/ork-metrics-*.json
