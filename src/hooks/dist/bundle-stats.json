@@ -1,42 +1,42 @@
 {
-  "generatedAt": "2026-04-17T16:21:29.404Z",
-  "buildTimeMs": 482,
+  "generatedAt": "2026-04-17T17:21:06.187Z",
+  "buildTimeMs": 710,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 26187,
-      "sizeKB": "25.57",
-      "exports": 63
+      "size": 26960,
+      "sizeKB": "26.33",
+      "exports": 65
     },
     "pretool": {
-      "size": 100820,
-      "sizeKB": "98.46",
-      "exports": 78
+      "size": 103770,
+      "sizeKB": "101.34",
+      "exports": 80
     },
     "posttool": {
-      "size": 80639,
-      "sizeKB": "78.75",
-      "exports": 61
+      "size": 82856,
+      "sizeKB": "80.91",
+      "exports": 63
     },
     "prompt": {
-      "size": 46007,
-      "sizeKB": "44.93",
-      "exports": 103
+      "size": 46775,
+      "sizeKB": "45.68",
+      "exports": 105
     },
     "lifecycle": {
-      "size": 100936,
-      "sizeKB": "98.57",
-      "exports": 61
+      "size": 101709,
+      "sizeKB": "99.33",
+      "exports": 63
     },
     "stop": {
-      "size": 48847,
-      "sizeKB": "47.70",
-      "exports": 46
+      "size": 49620,
+      "sizeKB": "48.46",
+      "exports": 48
     },
     "subagent": {
-      "size": 77292,
-      "sizeKB": "75.48",
-      "exports": 79
+      "size": 78047,
+      "sizeKB": "76.22",
+      "exports": 81
     },
     "notification": {
       "size": 10460,
@@ -44,29 +44,29 @@
       "exports": 4
     },
     "setup": {
-      "size": 36826,
-      "sizeKB": "35.96",
-      "exports": 46
+      "size": 37599,
+      "sizeKB": "36.72",
+      "exports": 48
     },
     "skill": {
-      "size": 73501,
-      "sizeKB": "71.78",
-      "exports": 61
-    },
-    "agent": {
-      "size": 19436,
-      "sizeKB": "18.98",
+      "size": 74274,
+      "sizeKB": "72.53",
       "exports": 63
     },
+    "agent": {
+      "size": 20210,
+      "sizeKB": "19.74",
+      "exports": 65
+    },
     "hooks": {
-      "size": 343043,
-      "sizeKB": "335.00",
-      "exports": 161,
+      "size": 345946,
+      "sizeKB": "337.84",
+      "exports": 163,
       "unified": true
     }
   },
-  "totalSize": 620951,
-  "totalSizeKB": "606.40",
+  "totalSize": 632280,
+  "totalSizeKB": "617.46",
   "inputs": 80,
-  "avgBundleSizeKB": "55.13"
+  "avgBundleSizeKB": "56.13"
 }

@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (15 hooks)."
+description: "Hooks triggered on PostToolUse events (16 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**15 hooks** registered for the `PostToolUse` lifecycle event.
+**16 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -24,3 +24,4 @@ description: "Hooks triggered on PostToolUse events (15 hooks)."
 | `team-member-start` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | Links spawned teammates to the team activity log after successful spawn. |
 | `fingerprint-saver` | `Skill` | 🔇 Silent | Expect Fingerprint Auto-Saver (#1191) |
 | `webhook-forwarder` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
+| `metrics-bridge` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | Metrics Bridge — PostToolUse hook (all matchers) |

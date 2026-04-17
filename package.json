@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "7.51.0",
+  "version": "7.52.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
@@ -12,6 +12,7 @@
     "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh",
     "test:skills:directive-density": "bash tests/skills/structure/test-directive-density.sh",
     "test:skills:tokens": "bash tests/skills/structure/test-skill-tokens.sh",
+    "validate:pre-push": "bash bin/validate-counts.sh && bash tests/skills/test-skill-length.sh && bash tests/performance/test-token-overhead.sh",
     "test:skills:functional": "bash tests/skills/functional/test-rule-traceability.sh && bash tests/skills/functional/test-eval-completeness.sh && bash tests/skills/functional/test-cache-safety.sh && bash tests/skills/functional/skill-efficiency-scorecard.sh",
     "test:agents": "bash tests/agents/test-agent-frontmatter.sh",
     "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh",

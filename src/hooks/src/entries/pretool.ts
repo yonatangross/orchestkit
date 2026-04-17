@@ -20,6 +20,7 @@ import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
 import { conflictPredictor } from '../pretool/bash/conflict-predictor.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
 import { preCommitTestGate } from '../pretool/bash/pre-commit-test-gate.js';
+import { worktreeMergeVerifier } from '../pretool/bash/worktree-merge-verifier.js';
 import { ciSimulation } from '../pretool/bash/ci-simulation.js';
 import { preCommitSimulation } from '../pretool/bash/pre-commit-simulation.js';
 import { changelogGenerator } from '../pretool/bash/changelog-generator.js';
@@ -90,6 +91,7 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/conflict-predictor': conflictPredictor,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/pre-commit-test-gate': preCommitTestGate,
+  'pretool/bash/worktree-merge-verifier': worktreeMergeVerifier,
   'pretool/bash/ci-simulation': ciSimulation,
   'pretool/bash/pre-commit-simulation': preCommitSimulation,
   'pretool/bash/changelog-generator': changelogGenerator,

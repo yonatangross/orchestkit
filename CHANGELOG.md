@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.52.0](https://github.com/yonatangross/orchestkit/compare/v7.51.0...v7.52.0) (2026-04-17)
+
+**Usage-Driven Hardening — Milestone close-out** — 3 remaining issues (#1278, #1292, #1295) closed by one PR. The 9-issue milestone is now complete.
+
+### Added
+
+- **worktree-merge-verifier** (PreToolUse/Bash, Phase 6 of sync dispatcher): intercepts `git worktree remove`, resolves the worktree's branch via `git worktree list --porcelain`, compares against main/master/develop, and skips squash-merged branches (via `git cherry`). Advisory with concrete remediation (push or merge first). Opt-out: `ORK_DISABLE_WORKTREE_VERIFIER=1`. (#1278)
+- **metrics-bridge** (PostToolUse/catchall, async): accumulates per-session metrics into `.claude/state/ork-metrics-{session_id}.json` — edits, test_runs, commits, bash_calls, agent_spawns, started_at/updated_at. Flat JSON object for easy `jq`. Atomic writes, 1 MB cap. Runtime state gitignored. (#1295)
+- **`outputNotify()` + `wrapAt()` builders** (`lib/output.ts` + re-export from `lib/common.ts`): consistent hook advisory formatter with prefix + 80-char line wrapping + continuation-line indent. Options bag for `maxWidth` and `event` so the signature can grow without breaking callers. 12 unit tests. Existing hook migration deferred — additive change. (#1292)
+
+### Changed
+
+- Total hooks.json count: 177 → 178 (bundle totals 207 → 209). Async hooks: 74 → 75. `worktree-merge-verifier` runs through the existing `sync-bash-dispatcher` — bundle export but not a new hooks.json entry.
+- Test count assertions updated across `split-bundles.test.ts`, `async-registry.test.ts`, `dispatcher-registry-wiring.test.ts`.
+
+### Milestone status
+
+Usage-Driven Hardening — **9/9 issues closed**. 🎉
+
 ## [7.51.0](https://github.com/yonatangross/orchestkit/compare/v7.50.0...v7.51.0) (2026-04-17)
 
 **Usage-Driven Hardening bundle** — 6 issues (#1280, #1281, #1282, #1283, #1285, #1286) closed by one PR. Analytics-driven hooks that catch common friction points from the 126-session usage report.

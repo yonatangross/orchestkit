@@ -55,6 +55,8 @@ import { configChangeAuditor } from '../posttool/config-change/security-auditor.
 // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
 import { commitNudge } from '../posttool/commit-nudge.js';
 import { autoLint } from '../posttool/auto-lint.js';
+// v7.52.0: metrics bridge — per-session ork-metrics-*.json (#1295)
+import { metricsBridge } from '../posttool/metrics-bridge.js';
 
 import type { HookFn } from '../types.js';
 
@@ -71,6 +73,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
+  'posttool/metrics-bridge': metricsBridge,
 
   // PostTool/Write hooks (3) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector
   'posttool/write/code-style-learner': codeStyleLearner,

@@ -36,6 +36,9 @@ export {
   lineContainsAll,
   lineContainsAllCI,
   getField,
+  outputNotify,
+  wrapAt,
+  type NotifyOptions,
 } from './output.js';
 
 // Environment readers — read process.env, spawn git

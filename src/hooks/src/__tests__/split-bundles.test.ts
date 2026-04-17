@@ -347,7 +347,8 @@ describe('Cross-Bundle Consistency', () => {
     // 199 -> 201: v7.41.1: watchdog (subagent-stop) + cron-guard (pretool)
     // 201 -> 202: v7.41.2: pre-compact-guard (lifecycle) — CC 2.1.105
     // 202 -> 207: v7.51.0 Usage-Driven Hardening bundle — stale-import-detector + edit-history-tracker (posttool/write), pre-commit-test-gate (pretool/bash dispatcher), subagent-scope-auditor (subagent-stop), thrash-detector (prompt)
-    expect(totalHooks).toBe(207);
+    // 207 -> 209: v7.52.0 Usage-Driven Hardening completion — worktree-merge-verifier (pretool/bash dispatcher), metrics-bridge (posttool root)
+    expect(totalHooks).toBe(209);
   });
 });
 

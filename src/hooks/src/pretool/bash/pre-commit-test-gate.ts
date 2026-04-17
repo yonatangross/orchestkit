@@ -25,7 +25,7 @@ import { existsSync, readFileSync, statSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, getField } from '../../lib/common.js';
+import { outputSilentSuccess, outputNotify, getField } from '../../lib/common.js';
 import { atomicWriteSync } from '../../lib/atomic-write.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -137,26 +137,20 @@ export function preCommitTestGate(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   if (!lastRun) {
     // No recorded test run at all in this session
-    return {
-      continue: true,
-      hookSpecificOutput: {
-        additionalContext:
-          `[pre-commit-test-gate] About to commit ${staged.length} file(s), but no test run has been recorded this session. ` +
-          `Consider running tests before committing. (Advisory — commit not blocked.)`,
-      },
-    };
+    return outputNotify(
+      `About to commit ${staged.length} file(s), but no test run has been recorded this session. ` +
+        `Consider running tests before committing. (Advisory — commit not blocked.)`,
+      { prefix: 'pre-commit-test-gate', event: 'PreToolUse' },
+    );
   }
 
   if (newest > lastRun.timestamp) {
     const ageMin = Math.round((newest - lastRun.timestamp) / 60000);
-    return {
-      continue: true,
-      hookSpecificOutput: {
-        additionalContext:
-          `[pre-commit-test-gate] ${staged.length} staged file(s) were edited ${ageMin} minute(s) after the last test run. ` +
-          `Consider re-running tests before committing — 58% of analyzed sessions that skipped this step ended "mostly achieved." (Advisory.)`,
-      },
-    };
+    return outputNotify(
+      `${staged.length} staged file(s) were edited ${ageMin} minute(s) after the last test run. ` +
+        `Consider re-running tests before committing — 58% of analyzed sessions that skipped this step ended "mostly achieved." (Advisory.)`,
+      { prefix: 'pre-commit-test-gate', event: 'PreToolUse' },
+    );
   }
 
   // Test run is fresher than all edits — clean commit.

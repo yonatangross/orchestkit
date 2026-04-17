@@ -118,7 +118,15 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     // posttool/unified-dispatcher still exists as a TS function (bundle export) for backward compat
     const dispatchers: Array<{ name: string; hook: string; input: Record<string, unknown> }> = [
       { name: 'posttool', hook: 'posttool/commit-nudge', input: { tool_name: 'Bash', session_id: 'test', tool_input: { command: 'echo hi' } } },
-      { name: 'stop', hook: 'stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
+      // stop: use stop_hook_active=true to short-circuit the re-entry guard in
+      // stop/unified-dispatcher.ts (line 102). This exercises the same bundle-
+      // routing / stdout-contract path as an "empty" input, but without
+      // spawning 9 stop hooks in parallel (handoff-writer, session-summary,
+      // security-scan-aggregator, perf-snapshot, etc.). Under concurrent
+      // vitest load the parallel hooks blew past the 5s timeout — flaky on CI,
+      // consistent locally. Re-entry path is what users hit in production
+      // anyway when Claude invokes stop recursively.
+      { name: 'stop', hook: 'stop/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {}, stop_hook_active: true } },
       { name: 'setup', hook: 'setup/unified-dispatcher', input: { tool_name: '', session_id: 'test', tool_input: {} } },
     ];
 

@@ -96,7 +96,8 @@ describe('Async Hooks Registry', () => {
       // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
       // 68 -> 70: v7.41.1: watchdog (SubagentStop, async) + webhook-forwarder on CronCreate
       // 70 -> 74: v7.51.0 Usage-Driven Hardening — stale-import-detector, edit-history-tracker (posttool Write|Edit), subagent-scope-auditor (SubagentStop), thrash-detector (UserPromptSubmit)
-      expect(asyncHooks.length, 'Should have exactly 74 async hooks').toBe(74);
+      // 74 -> 75: v7.52.0 completion — metrics-bridge (async on catchall matcher)
+      expect(asyncHooks.length, 'Should have exactly 75 async hooks').toBe(75);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
