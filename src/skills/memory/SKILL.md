@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: inherit
-version: 2.0.0
+version: 2.0.1
 author: OrchestKit
 tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
@@ -32,6 +32,13 @@ paths:
 # Memory - Read & Access Operations
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
+
+> **Cross-session read strategy (Opus 4.7 / CC 2.1.111+):** Opus 4.7 reads filesystem memory more reliably than 4.6. When loading context at session start, prefer the layered read order:
+> 1. `~/.claude/projects/<slug>/memory/MEMORY.md` (durable index — load first, always)
+> 2. `.claude/chain/state.json` + most recent `NN-*.json` handoff (session continuation)
+> 3. MCP `mcp__memory__search_nodes` for anything the filesystem index doesn't answer (typed graph traversal)
+>
+> Layer 1 is cheap (small index file), Layer 2 is scoped (session-specific), Layer 3 is selective (only when needed). Avoid dumping the full knowledge graph into context — use the index to narrow the search first.
 
 ## Argument Resolution
 

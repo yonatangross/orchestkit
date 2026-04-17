@@ -67,6 +67,10 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 Commit after each logical unit of work — never batch all commits to end of session. Rate limits can kill a session at any time. If build/test fails mid-session, commit the passing work first, then fix the failure separately.
 
+## Long Chains (CC 2.1.111+ / Opus 4.7 / Max)
+
+Auto mode (no flag), `--resume` resurrects scheduled tasks, task budgets (public beta) via `budget_remaining_pct` in `.claude/chain/state.json`. See `src/skills/implement/SKILL.md` and `src/skills/loop/SKILL.md` for details.
+
 ## GitHub CLI
 
 - Use `gh api` for milestone assignment — the `--milestone` flag is unreliable with milestone numbers.
@@ -79,6 +83,6 @@ Single plugin `ork`: <!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36
 
 ## Version
 
-- **Current**: 7.49.0 · **Claude Code**: >= 2.1.108 <!-- x-release-please-version -->
+- **Current**: 7.50.0 · **Claude Code**: >= 2.1.111 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

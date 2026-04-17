@@ -25,6 +25,8 @@ allowed-tools:
 paths: ["src/**", "package.json", "tsconfig.json"]
 ---
 
+<!-- directive-density: intentional (teaches anti-patterns; NEVER markers describe real layering violations, not aspirational guidance) -->
+
 # Architecture Patterns
 
 Consolidated architecture validation and enforcement patterns covering clean architecture, backend layer separation, project structure conventions, and test standards. Each category has individual rule files in `references/` loaded on-demand.

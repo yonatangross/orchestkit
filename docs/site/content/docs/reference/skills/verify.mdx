@@ -54,6 +54,7 @@ Scale verification depth based on `/effort` level:
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
 | **medium** | Tests + code quality + security | 3 agents | Score + top issues |
 | **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 

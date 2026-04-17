@@ -114,6 +114,8 @@ Write(f"PRD-{product_slug}.md", prd_content)
 TaskUpdate(status="completed")
 ```
 
+> **Plan-mode filenames (CC 2.1.111+):** If this skill enters plan mode (via `EnterPlanMode`) before writing the PRD, CC 2.1.111 names the resulting plan file after the prompt stem rather than random words. To get a clean filename, include the product slug in the plan-mode prompt (e.g. `EnterPlanMode("PRD: authentication-rework")` → `plans/prd-authentication-rework.md`). Before 2.1.111, plan filenames were `plans/swift-cobra.md` etc. — review and rename as needed.
+
 ## Chain: Next Steps
 
 After PRD is approved, chain into implementation:

@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge."
 argument-hint: "[decision-or-pattern]"
 context: inherit
-version: 3.0.0
+version: 3.0.1
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
@@ -27,6 +27,13 @@ triggers:
 ---
 
 # Remember - Store Decisions and Patterns
+
+> **Filesystem vs MCP memory (Opus 4.7 guidance, CC 2.1.111+):** Opus 4.7 is *substantially* better than 4.6 at reading filesystem memory across multi-session work. Use that to your advantage:
+> - **Short-lived handoff state** (current phase, task in-progress, pending approvals) → `.claude/chain/*.json` files. Small, structured, session-scoped.
+> - **Durable auto-memory** (user facts, feedback, project conventions) → `~/.claude/projects/<slug>/memory/*.md` files with a one-line index in `MEMORY.md`. Read on every session start.
+> - **Cross-session knowledge graph** (typed entities + relations for query traversal) → MCP memory server (this skill's default path). Best when future sessions will *search* for patterns.
+>
+> The three are complementary, not alternatives. Prefer fs for anything you'd want to grep; prefer MCP for anything you'd want to traverse.
 
 Store important decisions, patterns, or context in the knowledge graph for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
 

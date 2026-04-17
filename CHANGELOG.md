@@ -5,6 +5,38 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.50.0](https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0) (2026-04-17)
+
+**CC 2.1.111 + Opus 4.7 full adoption** — 23 issues (#1353–#1375) under milestone [#112](https://github.com/yonatangross/orchestkit/milestone/112), closed by a single PR.
+
+### Added
+
+- **`xhigh` effort tier** across phase-based skills (brainstorm, implement, cover, verify, fix-issue, assess, audit-full). Semantics: `high + one additional deepening pass`. Opus 4.7 only; silently falls back to `high` otherwise. (#1354)
+- **17 new 2.1.111 feature-matrix entries** in `lib/cc-version-matrix.ts` (294 → 311 total). MIN_CC_VERSION 2.1.108 → 2.1.111. (#1353)
+- **`/ultrareview` composition** in `ork:review-pr` — trigger-gated (diff > 500 LOC, sensitive paths, reviewer disagreement, release/hotfix labels) with voice-friendly `AskUserQuestion` prompt. Never fires by default; quota tracked in `.claude/state/ultrareview-usage.json`. (#1356)
+- **Eval preflight**: `preflight_check_plugin_errors` captures `plugin_errors` from stream-json init event and fails eval:full loudly on degraded plugin sets. (#1357)
+- **W3C Trace Context propagation**: eval runners export `TRACEPARENT` / `TRACESTATE` so every `claude -p` call links into Langfuse/OTel. (#1370)
+- **Context-window helpers**: `lib/context-window.ts` with `getContextWindowTokens`, `scaleByContextWindow`, `tokensAsContextPct`. Replaces scattered absolute-token caps. (#1355)
+- **Doctor Category 14**: warns when `xhigh` effort is configured without Opus 4.7 (silent fallback otherwise). (#1360)
+- **Task-budget awareness** in `ork:implement`: advisory `budget_remaining_pct` in chain state + threshold-driven behavior. (#1371)
+- **Assess uncertainty output**: `confidence` + `caveats[]` per dimension under `xhigh` effort. (#1375)
+- **Directive-density test** (`npm run test:skills:directive-density`) and **skill token scorecard** (`npm run test:skills:tokens`) — advisory by default, pair with CC 2.1.111's `/skills` token sort. (#1362, #1363)
+- **Windows PowerShell smoke test** workflow (`.github/workflows/windows-smoke.yml`) — runs under `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` on `src/hooks/**` changes. (#1365)
+- **Model pricing**: `claude-opus-4-7` row added (same rates as 4.6); aliases `opus` → `claude-opus-4-7`, `sonnet` → `claude-sonnet-4-6`. Historical IDs retained for accurate stats-cache replay. (#1369)
+
+### Changed
+
+- **Token budgets converted to %-of-context**: `hook-priorities.ts` and `token-budget-tracker.ts` now read `CLAUDE_MAX_CONTEXT` via the shared helper. Absorbs Opus 4.7's 1.0–1.35× tokenizer drift automatically. (#1355)
+- **Retry policies audited**: `retry-manager.ts` and `http-sink.ts` counts retained at 3 with explicit rationale comments. No behavior change. (#1359)
+- **Vision ceiling bumped to 2,576 px** (~3.75 MP) in `design-context-extract`, `design-to-code`, `ui-feedback`. Dense dashboards, Retina screenshots, full-page desktop mockups now fit natively. (#1358)
+- **Filesystem memory lean-in** in `ork:remember` / `ork:memory` — layered read order (MEMORY.md index → chain handoff → MCP graph). Opus 4.7 reads fs memory more reliably than 4.6. (#1366)
+- **Long-chain guidance** added to CLAUDE.md: Auto mode without the old flag, scheduled-task resurrection via `--resume`, task budgets, fs memory strength. (#1368)
+- **Permission guidance** in `ork:configure`: since 2.1.111, read-only bash + globs no longer prompt — local `Bash(ls:*)` / `Bash(grep:*)` allows are now redundant. Points users at the built-in `/less-permission-prompts` skill for the prune. (#1361)
+- **Plan filename guidance** in `ork:write-prd`: CC 2.1.111 names plan files after the prompt stem. (#1367)
+- **Security-skill cyber-capability note** added to `security-auditor` and `ai-safety-auditor` agents: Opus 4.7 deliberately reduces cyber capabilities + ships detection safeguards; legitimate research should route through the Cyber Verification Program. (#1374)
+- **Skill version bumps** across 16 modified SKILL.md files — minor for semantic changes, patch for guidance-only edits. (#1372)
+- **Debug env vars documented**: `OTEL_LOG_RAW_API_BODIES`, `CLAUDE_CODE_USE_POWERSHELL_TOOL`, `CLAUDE_MAX_CONTEXT`, `ENABLE_PROMPT_CACHING_1H`, `ORK_SKIP_PLUGIN_ERROR_CHECK` in `src/hooks/README.md`. (#1364)
+
 ## [7.49.0](https://github.com/yonatangross/orchestkit/compare/v7.48.0...v7.49.0) (2026-04-16)
 
 

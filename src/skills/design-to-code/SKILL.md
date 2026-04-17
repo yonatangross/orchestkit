@@ -6,7 +6,7 @@ description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and St
 argument-hint: "[screenshot-path | description | url]"
 tags: [design-to-code, stitch, 21st-dev, ui-generation, mockup, component, react, frontend]
 context: fork
-version: 1.0.0
+version: 1.0.1
 author: OrchestKit
 user-invocable: true
 complexity: complex
@@ -180,6 +180,8 @@ Glob("**/components.json")
 # For URL: WebFetch the page, extract HTML structure
 # For description: Skip extraction, proceed to Stage 2 with description
 ```
+
+> **Resolution budget (Opus 4.7 / CC 2.1.111+):** Mockups up to **2,576 px on the long edge** (~3.75 MP, 3× prior ceiling) produce better component boundaries and spacing extraction. Full-page desktop mockups at native resolution are now in-budget; previously they had to be resized down and lost fine detail. Only downscale inputs exceeding 2,576 px.
 
 Extract and produce:
 - Color palette (hex/oklch values)

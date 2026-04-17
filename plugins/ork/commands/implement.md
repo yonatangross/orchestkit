@@ -62,14 +62,37 @@ Read(".claude/chain/state.json")
 Write(".claude/chain/state.json", JSON.stringify({
   "skill": "implement", "feature": FEATURE_DESC,
   "current_phase": 1, "completed_phases": [],
-  "capabilities": capabilities
+  "capabilities": capabilities,
+  "budget_remaining_pct": 100  // advisory; see Budget Awareness below
 }))
 ```
+
+### Budget Awareness (Opus 4.7 task budgets, public beta)
+
+Opus 4.7 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+
+```python
+# At end of every phase, estimate remaining budget:
+pct = tokensAsContextPct(tokensUsedSoFar)  # from lib/context-window.ts
+remaining = max(0, 100 - pct)
+state["budget_remaining_pct"] = remaining
+Write(".claude/chain/state.json", JSON.stringify(state))
+```
+
+Thresholds influence behavior:
+
+| Remaining | Behavior |
+|---|---|
+| `> 50%` | Normal — all optional depth (devil's advocate, visual capture, deep exploration). |
+| `20-50%` | Efficient — skip optional depth; keep core phases. Warn user once. |
+| `< 20%` | Conservation — finish current phase, emit a handoff with next steps, do not start new work. |
+
+When CC's native task-budget API ships GA, replace the estimate with the real signal; the thresholds and behavior stay the same.
 
 > Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
 
 
-## Step 0: Effort-Aware Phase Scaling (CC 2.1.76)
+## Step 0: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
 
 Read the `/effort` setting to scale implementation depth. The effort-aware context budgeting hook detects effort level automatically — adapt the phase plan accordingly:
 
@@ -78,6 +101,7 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 | **low** | 1 (Discovery) → 5 (Implement) → 10 (Reflect) | 2 max | ~50K |
 | **medium** | 1 → 2 → 5 → 7 (Scope Creep) → 10 | 3 max | ~150K |
 | **high** (default) | All 10 phases | 4-7 | ~400K |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
 
 > **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level.
 

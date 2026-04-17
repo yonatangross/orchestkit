@@ -6,7 +6,7 @@ description: "Design exploration using parallel agents through a 7-phase process
 argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 4.9.0
+version: 4.10.0
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
@@ -268,7 +268,7 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 
 ---
 
-## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76)
+## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
 
 Read the `/effort` setting to scale brainstorm depth. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly:
 
@@ -277,6 +277,7 @@ Read the `/effort` setting to scale brainstorm depth. The effort-aware context b
 | **low** | Phase 0 → Phase 2 (quick ideation) → Phase 5 (light synthesis) | ~50K | 2 max |
 | **medium** | Phase 0 → Phase 2 → Phase 3 → Phase 5 → Phase 6 | ~150K | 3 max |
 | **high** (default) | All 7 phases | ~400K | 3-5 |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 7 phases + extra devil's-advocate round in Phase 4 + extra synthesis dimension in Phase 5 | ~550K | 3-5 |
 
 ```python
 # Effort detection — the global hook injects effort level, but also check:
@@ -497,4 +498,3 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `socratic-questions.md` | Requirements discovery |
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
-**Version:** 4.9.0 (April 2026) — CC 2.1.110 compat: PushNotification, /focus, session recap default-on

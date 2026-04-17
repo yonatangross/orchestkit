@@ -63,11 +63,24 @@ export interface DailyCostEstimate {
 
 const DEFAULT_PRICING: PricingConfig = {
   models: {
+    // Opus 4.7 — same pricing as 4.6 per Anthropic launch post
+    'claude-opus-4-7': {
+      input_per_mtok: 5.0,
+      output_per_mtok: 25.0,
+      cache_read_per_mtok: 0.5,
+      cache_write_per_mtok: 6.25,
+    },
     'claude-opus-4-6': {
       input_per_mtok: 5.0,
       output_per_mtok: 25.0,
       cache_read_per_mtok: 0.5,
       cache_write_per_mtok: 6.25,
+    },
+    'claude-sonnet-4-6': {
+      input_per_mtok: 3.0,
+      output_per_mtok: 15.0,
+      cache_read_per_mtok: 0.3,
+      cache_write_per_mtok: 3.75,
     },
     'claude-sonnet-4-5-20250929': {
       input_per_mtok: 3.0,
@@ -82,15 +95,20 @@ const DEFAULT_PRICING: PricingConfig = {
       cache_write_per_mtok: 1.25,
     },
   },
-  updated: '2026-02-18',
+  updated: '2026-04-16',
 };
 
-// Short name aliases for matching stats-cache keys
+// Short name aliases for matching stats-cache keys.
+// Aliases always resolve to the CURRENT latest per channel — `opus` points
+// at Opus 4.7 (CC 2.1.111 default), `sonnet` at Sonnet 4.6. Older explicit
+// IDs still match their own pricing so historical cost reports replay accurately.
 const MODEL_ALIASES: Record<string, string> = {
+  'claude-opus-4-7': 'claude-opus-4-7',
   'claude-opus-4-6': 'claude-opus-4-6',
-  opus: 'claude-opus-4-6',
+  opus: 'claude-opus-4-7',
+  'claude-sonnet-4-6': 'claude-sonnet-4-6',
   'claude-sonnet-4-5-20250929': 'claude-sonnet-4-5-20250929',
-  sonnet: 'claude-sonnet-4-5-20250929',
+  sonnet: 'claude-sonnet-4-6',
   'claude-haiku-4-5-20251001': 'claude-haiku-4-5-20251001',
   haiku: 'claude-haiku-4-5-20251001',
 };
@@ -157,8 +175,9 @@ function getPricing(modelName: string): ModelPricing {
 
   // Default to sonnet pricing as fallback
   return (
+    config.models['claude-sonnet-4-6'] ||
     config.models['claude-sonnet-4-5-20250929'] ||
-    DEFAULT_PRICING.models['claude-sonnet-4-5-20250929']
+    DEFAULT_PRICING.models['claude-sonnet-4-6']
   );
 }
 

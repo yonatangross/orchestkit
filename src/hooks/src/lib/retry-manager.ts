@@ -19,7 +19,17 @@ import type {
 } from './orchestration-types.js';
 
 // -----------------------------------------------------------------------------
-// Constants
+// Retry budget rationale
+// -----------------------------------------------------------------------------
+// DEFAULT_MAX_RETRIES=3 is sized for agent orchestration failures, not tool
+// errors. Opus 4.7 has fewer tool errors than 4.6 per Anthropic's release
+// notes — but this constant governs *agent* retry (task failure / timeout /
+// alternative-agent fallback), which is a separate dimension. Keep 3: each
+// retry attempts a different alternative agent (see ALTERNATIVE_AGENTS below)
+// so 3 is "primary + two fallbacks," not "same call thrice."
+// Exponential backoff with 1s base / 30s cap rate-limits the retry storm
+// without starving long-running orchestrations.
+// Audited 2026-04-16 for CC 2.1.111 + Opus 4.7 — retained.
 // -----------------------------------------------------------------------------
 
 const DEFAULT_MAX_RETRIES = 3;

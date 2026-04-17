@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-04-16T16:04:43Z",
+  "threshold_per_100_lines": 4,
+  "offender_count": 3,
+  "offenders": [
+    "architecture-patterns (5.26 / 100 lines)",
+    "database-patterns (5.81 / 100 lines)",
+    "python-backend (5.08 / 100 lines)"
+  ]
+}

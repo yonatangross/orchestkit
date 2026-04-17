@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+. Requires memory MCP server, context7 MCP se
 description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork
-version: 2.4.0
+version: 2.5.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
@@ -128,6 +128,7 @@ Scale investigation depth based on `/effort` level:
 | **low** | Quick fix: read → fix → test → done | 0 agents | 1, 6, 7, 11 |
 | **medium** | Standard: investigate → fix → test → prevent | 2-3 agents | 1-4, 6-8, 11 |
 | **high** (default) | Full RCA: 5 parallel agents → fix → prevent → lessons | 5 agents | All 11 phases |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | Full RCA + extra regression-scan pass across sibling modules | 5 agents | All 11 phases + regression sweep |
 
 > **Override:** Explicit user selection (e.g., "Proper fix") overrides `/effort` downscaling. Hotfix always uses minimal phases regardless of effort.
 

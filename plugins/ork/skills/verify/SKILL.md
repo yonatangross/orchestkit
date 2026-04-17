@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.98+. Requires memory MCP server."
 description: "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates."
 argument-hint: "[feature-or-scope]"
 context: fork
-version: 4.2.0
+version: 4.3.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
@@ -77,6 +77,7 @@ Scale verification depth based on `/effort` level:
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
 | **medium** | Tests + code quality + security | 3 agents | Score + top issues |
 | **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
+| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 

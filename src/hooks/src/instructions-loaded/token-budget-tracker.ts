@@ -12,10 +12,10 @@ import { logHook } from '../lib/common.js';
 import { basename } from 'node:path';
 import type { LoadedFile } from './types.js';
 import { classifySource } from './classify-source.js';
+import { getContextWindowTokens } from '../lib/context-window.js';
 
 const HOOK_NAME = 'instructions-loaded/token-budget';
 const TOKEN_BUDGET_WARN_PCT = 15;
-const ESTIMATED_CONTEXT_TOKENS = 1_000_000;
 
 export function tokenBudgetTracker(filesLoaded: LoadedFile[], _contents: Map<string, string>): string | null {
   let totalBytes = 0;
@@ -30,9 +30,10 @@ export function tokenBudgetTracker(filesLoaded: LoadedFile[], _contents: Map<str
   }
 
   const totalTokens = Math.ceil(totalBytes / 4);
-  const pct = (totalTokens / ESTIMATED_CONTEXT_TOKENS) * 100;
+  const contextWindow = getContextWindowTokens();
+  const pct = (totalTokens / contextWindow) * 100;
 
-  logHook(HOOK_NAME, `Token budget: ${totalTokens} tokens (${pct.toFixed(1)}% of ${ESTIMATED_CONTEXT_TOKENS})`);
+  logHook(HOOK_NAME, `Token budget: ${totalTokens} tokens (${pct.toFixed(1)}% of ${contextWindow})`);
 
   if (pct < 1) return null;
 
