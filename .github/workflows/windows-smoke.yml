@@ -54,10 +54,10 @@ jobs:
         working-directory: src/hooks
         run: npm run build
 
-      - name: Run hook unit tests (vitest)
-        working-directory: src/hooks
-        run: npx vitest run
-
+      # Note: vitest runs on Ubuntu (ci.yml). Here we only verify PowerShell-
+      # specific behavior. Rerunning the full 1.3k-test suite on Windows would
+      # exercise Windows path/env quirks unrelated to the PowerShell tool
+      # rollout this workflow is meant to catch.
       - name: Smoke test run-hook.mjs under PowerShell
         shell: pwsh
         run: |
