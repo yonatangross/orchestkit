@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.50.0](https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0) (2026-04-17)
 
+
+### Features
+
+* **compat:** CC 2.1.111 + Opus 4.7 full adoption ([#1376](https://github.com/yonatangross/orchestkit/issues/1376)) ([425a7f7](https://github.com/yonatangross/orchestkit/commit/425a7f77d06580300a3ade0f44f96275dba51ec9))
+
+## [7.50.0](https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0) (2026-04-17)
+
 **CC 2.1.111 + Opus 4.7 full adoption** — 23 issues (#1353–#1375) under milestone [#112](https://github.com/yonatangross/orchestkit/milestone/112), closed by a single PR.
 
 ### Added
