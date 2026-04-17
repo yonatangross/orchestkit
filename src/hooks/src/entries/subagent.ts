@@ -22,8 +22,9 @@ import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
 import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
 
-// SubagentStop hooks (8)
+// SubagentStop hooks (9) — #1282 added subagent-scope-auditor
 import { autoSpawnQuality } from '../subagent-stop/auto-spawn-quality.js';
+import { subagentScopeAuditor } from '../subagent-stop/subagent-scope-auditor.js';
 import { contextPublisher } from '../subagent-stop/context-publisher.js';
 import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
 import { handoffPreparer } from '../subagent-stop/handoff-preparer.js';
@@ -61,6 +62,7 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/unified-dispatcher': unifiedSubagentStopDispatcher,
   'subagent-stop/sync-subagent-stop-dispatcher': syncSubagentStopDispatcher,
   'subagent-stop/watchdog': agentWatchdog,
+  'subagent-stop/subagent-scope-auditor': subagentScopeAuditor,
 };
 
 export function getHook(name: string): HookFn | undefined {
