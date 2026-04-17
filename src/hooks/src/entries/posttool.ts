@@ -20,9 +20,10 @@ import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { dirtyFileTracker } from '../posttool/dirty-file-tracker.js';
 import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
-// PostTool/Write hooks (3) — #922: removed dead entries (auto-lint, memory-bridge, coverage-predictor, readme-sync)
+// PostTool/Write hooks (3) — #922: removed dead entries; #1280 added stale-import-detector
 import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
+import { staleImportDetector } from '../posttool/write/stale-import-detector.js';
 // PostTool/Bash hooks (3)
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
@@ -70,9 +71,10 @@ export const hooks: Record<string, HookFn> = {
   'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 
-  // PostTool/Write hooks (2) — #922: removed coverage-predictor, readme-sync
+  // PostTool/Write hooks (3) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector
   'posttool/write/code-style-learner': codeStyleLearner,
   'posttool/write/naming-convention-learner': namingConventionLearner,
+  'posttool/write/stale-import-detector': staleImportDetector,
 
   // PostTool/Bash hooks (3)
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,

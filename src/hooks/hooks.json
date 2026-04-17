@@ -196,6 +196,12 @@
           },
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/stale-import-detector",
+            "async": true,
+            "timeout": 8
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/commit-nudge",
             "async": true,
             "timeout": 10
