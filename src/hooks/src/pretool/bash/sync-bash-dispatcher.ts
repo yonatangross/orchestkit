@@ -36,6 +36,8 @@ import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
 // Phase 5: Pre-commit test-gate — advisory warn on stale tests (#1281)
 import { preCommitTestGate } from './pre-commit-test-gate.js';
+// Phase 6: Worktree merge verifier — advisory warn on unmerged worktree removal (#1278)
+import { worktreeMergeVerifier } from './worktree-merge-verifier.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
@@ -71,6 +73,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'pre-commit-quality-runner', fn: preCommitQualityRunner },
   // Phase 5: Pre-commit test-gate (advisory — records test runs, warns on stale)
   { name: 'pre-commit-test-gate', fn: preCommitTestGate },
+  // Phase 6: Worktree merge verifier (advisory — warn on unmerged worktree removal)
+  { name: 'worktree-merge-verifier', fn: worktreeMergeVerifier },
 ];
 
 /**
