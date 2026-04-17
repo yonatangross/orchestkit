@@ -67,7 +67,7 @@ function readAndTrimHistory(path: string): EditEntry[] {
   if (entries.length > MAX_ENTRIES) {
     const trimmed = entries.slice(-MAX_ENTRIES);
     try {
-      writeFileSync(path, trimmed.map(e => JSON.stringify(e)).join('\n') + '\n', 'utf8');
+      writeFileSync(path, `${trimmed.map(e => JSON.stringify(e)).join('\n')}\n`, 'utf8');
     } catch {
       // best-effort
     }

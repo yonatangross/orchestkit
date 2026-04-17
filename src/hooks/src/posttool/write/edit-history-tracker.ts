@@ -36,7 +36,7 @@ export function editHistoryTracker(input: HookInput, ctx: HookContext = NOOP_CTX
     const p = getEditHistoryPath(ctx.projectDir);
     mkdirSync(dirname(p), { recursive: true });
     const entry = JSON.stringify({ t: Date.now(), f: filePath, tool: toolName });
-    appendFileSync(p, entry + '\n');
+    appendFileSync(p, `${entry}\n`);
   } catch (err) {
     ctx.log(HOOK_NAME, `Append failed: ${(err as Error).message}`);
   }
