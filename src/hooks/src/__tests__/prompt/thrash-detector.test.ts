@@ -74,7 +74,7 @@ describe('thrash-detector — pure logic', () => {
     test('trims file in-place when over MAX_ENTRIES', () => {
       const p = join(tmp, 'huge.jsonl');
       const lines = Array.from({ length: MAX_ENTRIES + 20 }, (_, i) => JSON.stringify({ t: i, f: `/f${i}.ts` })).join('\n');
-      writeFileSync(p, lines + '\n', 'utf8');
+      writeFileSync(p, `${lines}\n`, 'utf8');
       const entries = readAndTrimHistory(p);
       expect(entries.length).toBe(MAX_ENTRIES);
       // Verify the trim was written back
@@ -102,11 +102,8 @@ describe('thrash-detector — pure logic', () => {
       const dir = resolve(tmp, '.claude', 'state');
       mkdirSync(dir, { recursive: true });
       const p = resolve(dir, 'edit-history.jsonl');
-      writeFileSync(
-        p,
-        [1, 2, 3, 4].map(t => JSON.stringify({ t, f: '/src/auth.ts', tool: 'Edit' })).join('\n') + '\n',
-        'utf8',
-      );
+      const body = [1, 2, 3, 4].map(t => JSON.stringify({ t, f: '/src/auth.ts', tool: 'Edit' })).join('\n');
+      writeFileSync(p, `${body}\n`, 'utf8');
       expect(existsSync(p)).toBe(true);
 
       const result = thrashDetector({} as never, { ...NOOP_CTX, projectDir: tmp });
