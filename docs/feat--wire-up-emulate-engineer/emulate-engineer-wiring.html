@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+  MINIMUM VIABLE PR PLAYGROUND
+  ============================
+  Copy this file to docs/feat--{branch-slug}/{name}.html, fill in the
+  placeholders marked [[TODO]], and reference it from the PR body with:
+
+    ## Interactive Playground
+    **[Open Playground](https://htmlpreview.github.io/?https://github.com/.../blob/{branch}/docs/feat--{branch-slug}/{name}.html)**
+
+  That's enough to satisfy the PR Playground CI check. Add interactive
+  JS-driven sections only if the PR genuinely benefits from them.
+
+  Past PRs in docs/feat--* range from ~2 KB (this baseline) to ~21 KB
+  (PR #1376). Bigger is not better — reviewers spend ~30s on these.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>emulate-engineer wire-up — OrchestKit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--green:#22c55e;--mono:'SF Mono',Consolas,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:900px;margin:0 auto}
+header{margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+h1{color:var(--accent);font-size:20px;margin-bottom:6px}
+.meta{color:var(--muted);font-size:12px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent);color:#fff;font-weight:500;margin-right:8px}
+section{margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+h2{font-size:14px;margin-bottom:10px}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px;background:rgba(255,255,255,0.02);border-radius:6px;margin-bottom:6px;font-size:13px}
+.row .num{font-family:var(--mono);color:var(--accent);font-size:11px}
+code{font-family:var(--mono);background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;font-size:12px}
+.stat{display:inline-block;margin-right:16px;font-size:12px;color:var(--muted)}
+.stat strong{color:var(--accent);font-family:var(--mono);font-size:16px;display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>Wire up <code>emulate-engineer</code> — close last orphan agent</h1>
+  <div><span class="badge">PR #1381</span><span class="badge" style="background:var(--green)">0 orphans (was 1)</span></div>
+  <div class="meta" style="margin-top:6px">Pure discoverability wiring — 143 lines of emulator knowledge now reachable from its pair skill.</div>
+</header>
+
+<section>
+  <h2>At a glance</h2>
+  <div class="stat"><strong>0</strong>Orphans remaining</div>
+  <div class="stat"><strong>3</strong>Skills touched</div>
+  <div class="stat"><strong>+51 / −9</strong>LOC</div>
+  <div class="stat"><strong>1.2.0</strong>emulate-seed skill</div>
+</section>
+
+<section>
+  <h2>What got wired</h2>
+  <div class="row"><span><code>emulate-seed</code> skill gains <code>agent: emulate-engineer</code> frontmatter + paired-agent callout</span><span class="num">primary pair</span></div>
+  <div class="row"><span><code>testing-integration</code> skill mentions the agent above its Quick Reference</span><span class="num">discovery</span></div>
+  <div class="row"><span><code>cover</code> skill extends Phase 3 integration-agent comment to mention it</span><span class="num">discovery</span></div>
+</section>
+
+<section>
+  <h2>Files</h2>
+  <div class="row"><span><code>src/skills/emulate-seed/SKILL.md</code></span><span class="num">modified</span></div>
+  <div class="row"><span><code>src/skills/testing-integration/SKILL.md</code></span><span class="num">modified</span></div>
+  <div class="row"><span><code>src/skills/cover/SKILL.md</code></span><span class="num">modified</span></div>
+</section>
+
+<section>
+  <h2>Verification</h2>
+  <div class="row"><span><code>npm run audit:orphan-agents</code></span><span class="num" style="color:var(--green)">0 orphans</span></div>
+  <div class="row"><span><code>npm run audit:lifecycle</code></span><span class="num" style="color:var(--green)">clean</span></div>
+  <div class="row"><span><code>npm run validate:pre-push</code></span><span class="num" style="color:var(--green)">pass</span></div>
+</section>
+
+<!--
+  ADD MORE SECTIONS ONLY IF NEEDED. Examples worth adding:
+  - Before/after comparison (when behavior changes)
+  - Hook-event timeline (when new hooks fire on specific events)
+  - Interactive slider / demo (when there's a dimension worth exploring)
+
+  Skip adding them if the issue list + key files already tell the story.
+-->
+</body>
+</html>
