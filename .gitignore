@@ -191,3 +191,8 @@ tests/evals/results/
 # Playground prototypes (design artifacts, not shipped)
 playground-*.html
 cellebrite-tech-stack.html
+
+# Runtime hook state (session-specific, never committed)
+.claude/state/last-test-run.json
+.claude/state/edit-history.jsonl
+.claude/state/ultrareview-usage.json
