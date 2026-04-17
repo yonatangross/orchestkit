@@ -5,9 +5,9 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.50.0](https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0) (2026-04-17)
 
-**CC 2.1.111 + Opus 4.7 full adoption** — 23 issues (#1353–#1375) under milestone [#112](https://github.com/yonatangross/orchestkit/milestone/112), closed by a single PR. Release-please will generate the versioned entry from the commit list on next release.
+**CC 2.1.111 + Opus 4.7 full adoption** — 23 issues (#1353–#1375) under milestone [#112](https://github.com/yonatangross/orchestkit/milestone/112), closed by a single PR.
 
 ### Added
 

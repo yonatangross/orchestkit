@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.111 + Opus 4.7 Adoption — OrchestKit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--surface2:#241e34;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#7c3aed;--accent2:#a855f7;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6;--font:system-ui,-apple-system,sans-serif;--mono:'SF Mono',Consolas,monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.header{padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.header h1{font-size:16px;font-weight:600;color:var(--accent2)}
+.header .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent);color:#fff;font-weight:500}
+.header .meta{font-size:12px;color:var(--muted);margin-left:auto}
+.main{display:grid;grid-template-columns:280px 1fr;gap:0;flex:1;min-height:0}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:16px}
+.content{padding:24px;overflow-y:auto}
+.group{margin-bottom:20px}
+.group-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;font-weight:600}
+.filter-btn{display:block;width:100%;text-align:left;font-size:13px;padding:7px 10px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text);cursor:pointer;margin-bottom:4px}
+.filter-btn:hover{background:var(--surface2);border-color:var(--border)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.filter-btn .count{float:right;font-size:11px;color:var(--muted)}
+.filter-btn.active .count{color:rgba(255,255,255,0.75)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat .n{font-size:24px;font-weight:700;color:var(--accent2);font-family:var(--mono)}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.section{margin-bottom:28px}
+.section h2{font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+.section h2 .count{font-size:11px;background:var(--surface2);padding:2px 8px;border-radius:10px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:.15s}
+.card.dim{opacity:.3}
+.card.hi{border-color:var(--accent);background:var(--surface2)}
+.card .row1{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.card .num{font-family:var(--mono);font-size:11px;color:var(--accent2);font-weight:600}
+.card .kind{font-size:10px;padding:1px 7px;border-radius:4px;font-family:var(--mono);font-weight:500}
+.kind-feat{background:#7c3aed22;color:var(--accent2)}
+.kind-docs{background:#3b82f622;color:var(--blue)}
+.kind-chore{background:#9b8eb822;color:var(--muted)}
+.kind-test{background:#22c55e22;color:var(--green)}
+.kind-refactor{background:#eab30822;color:var(--yellow)}
+.kind-ci{background:#ef444422;color:var(--red)}
+.card .title{font-size:13px;font-weight:500}
+.card .body{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px}
+.card .files{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:6px;opacity:.8}
+.bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.4s}
+.matrix-row{display:grid;grid-template-columns:1fr 100px 100px;gap:10px;font-size:12px;padding:7px 0;border-bottom:1px solid var(--border)}
+.matrix-row.head{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+.matrix-row .mono{font-family:var(--mono);font-size:11px}
+.matrix-row .ok{color:var(--green)}
+.matrix-row .no{color:var(--red)}
+.matrix-row .warn{color:var(--yellow)}
+.effort-slider{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:10px}
+.effort-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.effort-opt{padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;font-size:12px;transition:.15s}
+.effort-opt:hover{border-color:var(--accent)}
+.effort-opt.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.effort-detail{margin-top:14px;padding:12px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.6}
+.effort-detail .label{color:var(--text);font-weight:600;display:block;margin-bottom:4px}
+@media(max-width:800px){.main{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--border)}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>CC 2.1.111 + Opus 4.7 Adoption</h1>
+  <span class="badge">PR #1376 · v7.50.0</span>
+  <span class="meta">23 issues · 1 PR · Milestone #112</span>
+</div>
+<div class="main">
+  <aside class="sidebar">
+    <div class="group">
+      <div class="group-title">Filter by kind</div>
+      <button class="filter-btn active" data-kind="all">All <span class="count">23</span></button>
+      <button class="filter-btn" data-kind="feat">Feat <span class="count">8</span></button>
+      <button class="filter-btn" data-kind="docs">Docs <span class="count">6</span></button>
+      <button class="filter-btn" data-kind="chore">Chore <span class="count">4</span></button>
+      <button class="filter-btn" data-kind="test">Test <span class="count">3</span></button>
+      <button class="filter-btn" data-kind="refactor">Refactor <span class="count">1</span></button>
+      <button class="filter-btn" data-kind="ci">CI <span class="count">1</span></button>
+    </div>
+    <div class="group">
+      <div class="group-title">Filter by area</div>
+      <button class="filter-btn" data-area="skills">Skills <span class="count">10</span></button>
+      <button class="filter-btn" data-area="hooks">Hooks <span class="count">4</span></button>
+      <button class="filter-btn" data-area="eval">Eval <span class="count">2</span></button>
+      <button class="filter-btn" data-area="compat">Compat matrix <span class="count">2</span></button>
+      <button class="filter-btn" data-area="agents">Agents <span class="count">2</span></button>
+      <button class="filter-btn" data-area="ci">CI/docs <span class="count">3</span></button>
+    </div>
+  </aside>
+  <section class="content">
+    <div class="stat-grid">
+      <div class="stat"><div class="n">23</div><div class="l">Issues closed</div></div>
+      <div class="stat"><div class="n">18</div><div class="l">Atomic commits</div></div>
+      <div class="stat"><div class="n">17</div><div class="l">New matrix rows</div></div>
+      <div class="stat"><div class="n">311</div><div class="l">Features tracked</div></div>
+    </div>
+    <div class="section">
+      <h2>Opus 4.7 effort tiers <span class="count">new: xhigh</span></h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Try the new xhigh tier — between high and max, Opus 4.7 only. Falls back to high on other models.</p>
+      <div class="effort-slider">
+        <div class="effort-options">
+          <button class="effort-opt" data-effort="low">low</button>
+          <button class="effort-opt" data-effort="medium">medium</button>
+          <button class="effort-opt active" data-effort="high">high</button>
+          <button class="effort-opt" data-effort="xhigh">xhigh (4.7)</button>
+        </div>
+        <div class="effort-detail" id="effort-detail">
+          <span class="label">high (default)</span>
+          brainstorm: all 7 phases · implement: all 10 phases · cover: Unit + Integration + E2E, 3 heal iterations · verify: all 8 phases · assess: all 6 dimensions · fix-issue: full RCA · audit-full: full cross-file analysis
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Issues <span class="count" id="visible-count">23 / 23</span></h2>
+      <div id="issues"></div>
+    </div>
+    <div class="section">
+      <h2>CC feature-matrix deltas <span class="count">+17 @ 2.1.111</span></h2>
+      <div class="matrix-row head"><div>Feature</div><div>Min CC</div><div>Adopted</div></div>
+      <div class="matrix-row"><div class="mono">opus_4_7_xhigh</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1354</div></div>
+      <div class="matrix-row"><div class="mono">ultrareview_command</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1356</div></div>
+      <div class="matrix-row"><div class="mono">less_permission_prompts</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1361</div></div>
+      <div class="matrix-row"><div class="mono">stream_json_plugin_errors</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1357</div></div>
+      <div class="matrix-row"><div class="mono">otel_raw_api_bodies_env</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1364</div></div>
+      <div class="matrix-row"><div class="mono">powershell_tool_env</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1365</div></div>
+      <div class="matrix-row"><div class="mono">plan_files_prompt_named</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1367</div></div>
+      <div class="matrix-row"><div class="mono">readonly_bash_glob_no_prompt</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1361</div></div>
+      <div class="matrix-row"><div class="mono">skills_token_sort</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1363</div></div>
+      <div class="matrix-row"><div class="mono">auto_mode_opus47_max</div><div class="mono">2.1.111</div><div class="ok mono">✓ #1368</div></div>
+      <div class="matrix-row"><div class="mono">effort_slider</div><div class="mono">2.1.111</div><div class="warn mono">doc only</div></div>
+      <div class="matrix-row"><div class="mono">transcript_view_footer_keys</div><div class="mono">2.1.111</div><div class="warn mono">doc only</div></div>
+      <div class="matrix-row"><div class="mono">ctrl_u_y_clear_restore</div><div class="mono">2.1.111</div><div class="warn mono">doc only</div></div>
+    </div>
+    <div class="section">
+      <h2>Opus 4.7 capability mapping</h2>
+      <div class="matrix-row head"><div>Capability</div><div>OrchestKit use</div><div>Status</div></div>
+      <div class="matrix-row"><div>Tokenizer +0–35%</div><div>%-of-context budgets</div><div class="ok mono">✓ #1355</div></div>
+      <div class="matrix-row"><div>Literal instructions</div><div>directive-density check</div><div class="warn mono">advisory</div></div>
+      <div class="matrix-row"><div>Better fs memory</div><div>remember/memory skills</div><div class="ok mono">✓ #1366</div></div>
+      <div class="matrix-row"><div>Long-horizon autonomy</div><div>task budgets in implement</div><div class="ok mono">✓ #1371</div></div>
+      <div class="matrix-row"><div>Fewer tool errors</div><div>retry-policy audit</div><div class="ok mono">✓ #1359</div></div>
+      <div class="matrix-row"><div>Self-verification</div><div>assess confidence + caveats</div><div class="ok mono">✓ #1375</div></div>
+      <div class="matrix-row"><div>Vision 2,576 px</div><div>design/UI skills</div><div class="ok mono">✓ #1358</div></div>
+      <div class="matrix-row"><div>Reduced cyber cap</div><div>security-auditor note</div><div class="ok mono">✓ #1374</div></div>
+    </div>
+  </section>
+</div>
+<script>
+const ISSUES = [
+  {n:1353,k:'feat',a:'compat',t:'Bump MIN_CC_VERSION 2.1.108 → 2.1.111',b:'17 new feature-matrix rows, 294→311. Source of truth in lib/cc-version-matrix.ts; mirrored in README badge, CLAUDE.md, marketplace.json, doctor refs.',f:'cc-version-matrix.ts, CLAUDE.md, README.md, marketplace.json'},
+  {n:1354,k:'feat',a:'skills',t:'xhigh effort tier (one extra deepening pass)',b:'Added xhigh row to brainstorm/implement/cover/verify/fix-issue effort tables; xhigh notes on assess/audit-full. Semantics: high + one extra pass. Opus 4.7 only; silent fallback otherwise.',f:'src/skills/{brainstorm,implement,cover,verify,fix-issue,assess,audit-full}/SKILL.md'},
+  {n:1355,k:'refactor',a:'hooks',t:'Token budgets → %-of-context',b:'New lib/context-window.ts helper. Hook-priorities + token-budget-tracker read CLAUDE_MAX_CONTEXT instead of hardcoded 1M. 11 new unit tests pass.',f:'src/hooks/src/lib/context-window.ts (new), hook-priorities.ts, token-budget-tracker.ts'},
+  {n:1356,k:'feat',a:'skills',t:'Gated /ultrareview composition in review-pr',b:'Voice-friendly AskUserQuestion prompt. Triggers: >500 LOC, sensitive paths, verdict disagreement, release/hotfix labels. Quota tracked in .claude/state/ultrareview-usage.json. Never auto-burns.',f:'src/skills/review-pr/SKILL.md'},
+  {n:1357,k:'test',a:'eval',t:'plugin_errors preflight',b:'preflight_check_plugin_errors in eval-common.sh parses stream-json init event. Fails eval:full loudly on degraded plugin set. ORK_SKIP_PLUGIN_ERROR_CHECK=1 to bypass.',f:'tests/evals/scripts/lib/eval-common.sh, run-full-eval.sh'},
+  {n:1358,k:'feat',a:'skills',t:'Vision 2,576 px (3× Opus 4.6)',b:'Design-context-extract, design-to-code, ui-feedback agent. Dense dashboards, Retina screenshots, full-page mockups now in-budget. Don\'t upscale below 1,024.',f:'design-context-extract, design-to-code, agents/ui-feedback.md'},
+  {n:1359,k:'chore',a:'hooks',t:'Retry-policy audit',b:'retry-manager.ts + http-sink.ts counts retained at 3 with explicit rationale comments. Opus 4.7 tool-error reduction doesn\'t apply to agent fallback chain. No behavior change.',f:'src/hooks/src/lib/{retry-manager,http-sink}.ts'},
+  {n:1360,k:'feat',a:'skills',t:'Doctor Category 14: xhigh without Opus 4.7',b:'New warning when xhigh effort is configured but active model isn\'t claude-opus-4-7. Silent fallback would lose the extra deepening pass.',f:'src/skills/doctor/SKILL.md, references/version-compatibility.md'},
+  {n:1361,k:'chore',a:'skills',t:'less-permission-prompts dogfood guidance',b:'Prune note in configure skill: read-only bash + globs no longer prompt since 2.1.111, so local Bash(ls:*)/Bash(grep:*) allows are redundant.',f:'src/skills/configure/SKILL.md'},
+  {n:1362,k:'test',a:'ci',t:'Directive-density check',b:'New npm run test:skills:directive-density. Flags MUST/CRITICAL/NEVER per 100 lines. 3 offenders (architecture-patterns, database-patterns, python-backend) tracked for follow-up.',f:'tests/skills/structure/test-directive-density.sh (new)'},
+  {n:1363,k:'test',a:'ci',t:'Skill token scorecard',b:'New npm run test:skills:tokens. Top-N ranking, 8k ceiling. All 103 under ceiling; brainstorm at ~7055. Pairs with CC 2.1.111 /skills menu sort-by-t.',f:'tests/skills/structure/test-skill-tokens.sh (new)'},
+  {n:1364,k:'docs',a:'hooks',t:'Debug env vars documented',b:'OTEL_LOG_RAW_API_BODIES (secret leakage warning), CLAUDE_CODE_USE_POWERSHELL_TOOL, CLAUDE_MAX_CONTEXT, ENABLE_PROMPT_CACHING_1H, ORK_SKIP_PLUGIN_ERROR_CHECK.',f:'src/hooks/README.md'},
+  {n:1365,k:'ci',a:'ci',t:'Windows PowerShell smoke test',b:'New workflow runs on src/hooks/** changes with CLAUDE_CODE_USE_POWERSHELL_TOOL=1. Exercises hook build, vitest, and run-hook.mjs under PowerShell.',f:'.github/workflows/windows-smoke.yml (new)'},
+  {n:1366,k:'docs',a:'skills',t:'Filesystem-memory lean-in',b:'remember skill: fs vs MCP split (grep-able vs traversable). memory skill: layered read order (MEMORY.md index → chain handoff → MCP graph). Opus 4.7 reads fs more reliably.',f:'src/skills/{remember,memory}/SKILL.md'},
+  {n:1367,k:'docs',a:'skills',t:'Plan-mode filename guidance',b:'CC 2.1.111 names plan files after the prompt stem. write-prd skill: include slug in EnterPlanMode prompt for clean filenames.',f:'src/skills/write-prd/SKILL.md'},
+  {n:1368,k:'docs',a:'skills',t:'Auto mode + scheduled-task resurrection',b:'CLAUDE.md "Long Chains" section: Auto mode without --enable-auto-mode flag on Max+4.7; --resume resurrects unexpired scheduled tasks (2.1.110); advisory budget_remaining_pct in chain state.',f:'CLAUDE.md'},
+  {n:1369,k:'chore',a:'agents',t:'Model-ID audit + Opus 4.7 aliases',b:'cost-estimator pricing: added claude-opus-4-7 row. Aliases refreshed: opus→4-7, sonnet→4-6. Historical IDs kept for replay. multimodal-llm recommends 4-7 for vision.',f:'cost-estimator.ts, multimodal-llm/SKILL.md, upgrade-assessment rules'},
+  {n:1370,k:'feat',a:'eval',t:'TRACEPARENT/TRACESTATE propagation',b:'ensure_trace_context helper generates fresh trace IDs from /dev/urandom, exports for headless claude -p. End-to-end Langfuse/OTel linking across eval runs.',f:'tests/evals/scripts/lib/eval-common.sh'},
+  {n:1371,k:'feat',a:'skills',t:'Task-budget awareness in implement',b:'budget_remaining_pct in .claude/chain/state.json. Thresholds: >50 normal, 20–50 skip optional depth, <20 conservation (finish phase + handoff, no new work). Swap for CC API when GA.',f:'src/skills/implement/SKILL.md'},
+  {n:1372,k:'chore',a:'skills',t:'Skill version bumps',b:'Minor bumps for semantic changes (xhigh, ultrareview, doctor cat, budget, uncertainty). Patch bumps for guidance-only edits. 16 files total.',f:'16 SKILL.md frontmatter versions'},
+  {n:1373,k:'docs',a:'compat',t:'CHANGELOG versioned entry',b:'7.50.0 entry with Added/Changed sections. Release-please compatible format.',f:'CHANGELOG.md'},
+  {n:1374,k:'docs',a:'agents',t:'Opus 4.7 cyber-capability note',b:'security-auditor + ai-safety-auditor: added directive block explaining Anthropic\'s deliberate cyber-capability reduction and the Cyber Verification Program for legitimate research. No prompt-engineering workarounds.',f:'src/agents/{security-auditor,ai-safety-auditor}.md'},
+  {n:1375,k:'feat',a:'skills',t:'Self-reported uncertainty schema (assess)',b:'xhigh effort emits confidence (low/med/high) + caveats[] per dimension. Rules: not an auto-gate; caveats must be specific; composite score still from score alone.',f:'src/skills/assess/SKILL.md'}
+];
+
+const EFFORT_DATA = {
+  low: { label: 'low', body: 'Fast surface pass. brainstorm: phases 0/2/5 only · implement: phases 1/5/10 · cover: unit tests only · verify: tests only · assess: quick score · fix-issue: quick fix path. 0–2 agents. ~50K tokens.' },
+  medium: { label: 'medium', body: 'Balanced. brainstorm: phases 0/2/3/5/6 · implement: phases 1/2/5/7/10 · cover: unit + integration · verify: tests + code quality + security · assess: core dimensions · fix-issue: standard RCA. 2–3 agents. ~150K tokens.' },
+  high: { label: 'high (default)', body: 'brainstorm: all 7 phases · implement: all 10 phases · cover: Unit + Integration + E2E, 3 heal iterations · verify: all 8 phases · assess: all 6 dimensions · fix-issue: full RCA · audit-full: full cross-file analysis. 3–7 agents. ~400K tokens.' },
+  xhigh: { label: 'xhigh (Opus 4.7, CC 2.1.111+)', body: 'high + one extra deepening pass per skill: brainstorm → extra devil\'s-advocate round · implement → extra heal iteration · cover → 4th heal pass · verify → cross-file sweep + self-verify · assess → uncertainty pass with confidence+caveats · fix-issue → regression sweep · audit-full → second cross-file pattern scan. ~550K tokens. Silent fallback to high on other models; doctor warns.' }
+};
+
+function kindOf(k){return ({feat:'kind-feat',docs:'kind-docs',chore:'kind-chore',test:'kind-test',refactor:'kind-refactor',ci:'kind-ci'})[k]||'kind-chore'}
+
+function render(filter){
+  const container=document.getElementById('issues');
+  container.innerHTML='';
+  let shown=0;
+  for(const i of ISSUES){
+    const match=!filter||(filter.kind&&filter.kind==='all')||(filter.kind&&i.k===filter.kind)||(filter.area&&i.a===filter.area);
+    if(!match)continue;
+    shown++;
+    const el=document.createElement('div');
+    el.className='card';
+    el.innerHTML=`
+      <div class="row1">
+        <span class="num">#${i.n}</span>
+        <span class="kind ${kindOf(i.k)}">${i.k}</span>
+        <span class="title">${i.t}</span>
+      </div>
+      <div class="body">${i.b}</div>
+      <div class="files">${i.f}</div>`;
+    container.appendChild(el);
+  }
+  document.getElementById('visible-count').textContent=`${shown} / ${ISSUES.length}`;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const kind=btn.dataset.kind;
+    const area=btn.dataset.area;
+    render(kind?{kind}:area?{area}:null);
+  });
+});
+
+document.querySelectorAll('.effort-opt').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.effort-opt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const d=EFFORT_DATA[btn.dataset.effort];
+    document.getElementById('effort-detail').innerHTML=`<span class="label">${d.label}</span>${d.body}`;
+  });
+});
+
+render(null);
+</script>
+</body>
+</html>

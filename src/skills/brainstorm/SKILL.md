@@ -498,4 +498,3 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `socratic-questions.md` | Requirements discovery |
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
-**Version:** 4.9.0 (April 2026) — CC 2.1.110 compat: PushNotification, /focus, session recap default-on

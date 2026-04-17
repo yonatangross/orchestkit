@@ -67,12 +67,9 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 Commit after each logical unit of work — never batch all commits to end of session. Rate limits can kill a session at any time. If build/test fails mid-session, commit the passing work first, then fix the failure separately.
 
-## Long Chains on Max + Opus 4.7 (CC 2.1.111+)
+## Long Chains (CC 2.1.111+ / Opus 4.7 / Max)
 
-- **Auto mode**: no `--enable-auto-mode` flag required on Max + Opus 4.7. Useful for `ork:implement` and long `/loop` chains where you don't want to approve every tool call. Off by default; enable via `/config` when you've reviewed the impact.
-- **Scheduled task resurrection (CC 2.1.110+)**: `--resume` / `--continue` now resurrects unexpired `ScheduleWakeup` / `CronCreate` tasks alongside session history. `/loop` runs survive idle periods without manual re-scheduling.
-- **Task budgets (public beta)**: Opus 4.7 exposes per-task token budgets to guide long-horizon spending. OrchestKit skills don't wire to the CC API yet; `ork:implement` and `/loop` emit advisory `budget_remaining_pct` in `.claude/chain/state.json` handoffs instead. Use it to self-throttle when the model is working for hours unattended.
-- **Filesystem memory**: Opus 4.7 reads `memory/*.md` and `.claude/chain/*.json` more reliably than 4.6. Prefer fs-backed handoff state for long chains; the model will read it on resume.
+Auto mode (no flag), `--resume` resurrects scheduled tasks, task budgets (public beta) via `budget_remaining_pct` in `.claude/chain/state.json`. See `src/skills/implement/SKILL.md` and `src/skills/loop/SKILL.md` for details.
 
 ## GitHub CLI
 
@@ -86,6 +83,6 @@ Single plugin `ork`: <!--ork:skills-->103<!--/ork--> skills, <!--ork:agents-->36
 
 ## Version
 
-- **Current**: 7.49.0 · **Claude Code**: >= 2.1.111 <!-- x-release-please-version -->
+- **Current**: 7.50.0 · **Claude Code**: >= 2.1.111 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

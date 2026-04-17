@@ -56,7 +56,7 @@ jobs:
 
       - name: Run hook unit tests (vitest)
         working-directory: src/hooks
-        run: npx vitest run --reporter=basic
+        run: npx vitest run
 
       - name: Smoke test run-hook.mjs under PowerShell
         shell: pwsh
