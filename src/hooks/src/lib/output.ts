@@ -63,6 +63,100 @@ export function outputWithContext(ctx: string): HookResult {
   };
 }
 
+// -----------------------------------------------------------------------------
+// outputNotify — consistently-formatted hook advisories (#1292)
+// -----------------------------------------------------------------------------
+
+export interface NotifyOptions {
+  /** Hook prefix shown in brackets. E.g. "thrash-detector". Required. */
+  prefix: string;
+  /** Event name used for hookSpecificOutput. Defaults to 'PostToolUse'. */
+  event?: 'PostToolUse' | 'PreToolUse' | 'UserPromptSubmit' | 'SubagentStop';
+  /** Max width to wrap at. Defaults to 80 characters. */
+  maxWidth?: number;
+}
+
+/**
+ * Wrap `text` at word boundaries to fit within `maxWidth`. Preserves
+ * existing newlines (treats them as hard breaks). Lines already under
+ * the width pass through unchanged.
+ */
+export function wrapAt(text: string, maxWidth: number): string {
+  if (maxWidth <= 0 || !text) return text;
+  const out: string[] = [];
+  for (const paragraph of text.split('\n')) {
+    if (paragraph.length <= maxWidth) {
+      out.push(paragraph);
+      continue;
+    }
+    // Word-wrap
+    const words = paragraph.split(/(\s+)/);
+    let line = '';
+    for (const word of words) {
+      if (line.length + word.length <= maxWidth) {
+        line += word;
+      } else {
+        if (line.length > 0) out.push(line.replace(/\s+$/, ''));
+        // A single word longer than maxWidth gets hard-split
+        if (word.length > maxWidth) {
+          let rest = word;
+          while (rest.length > maxWidth) {
+            out.push(rest.slice(0, maxWidth));
+            rest = rest.slice(maxWidth);
+          }
+          line = rest;
+        } else {
+          line = word.replace(/^\s+/, '');
+        }
+      }
+    }
+    if (line.length > 0) out.push(line.replace(/\s+$/, ''));
+  }
+  return out.join('\n');
+}
+
+/**
+ * Format and emit a hook advisory with a consistent shape:
+ *
+ *   [prefix] <wrapped message body>
+ *
+ * Lines are word-wrapped at `opts.maxWidth` (default 80). The prefix
+ * is prepended to the first line only. Returns a HookResult suitable
+ * for any additionalContext-bearing event.
+ *
+ * Empty/whitespace-only messages are silently dropped (returns
+ * outputSilentSuccess) to match the other builders' behavior.
+ *
+ * Usage:
+ *   return outputNotify(
+ *     'You edited auth.py 4 times in the last 10 events.',
+ *     { prefix: 'thrash-detector', event: 'UserPromptSubmit' },
+ *   );
+ */
+export function outputNotify(message: string, opts: NotifyOptions): HookResult {
+  if (!message?.trim()) return outputSilentSuccess();
+  const maxWidth = opts.maxWidth ?? 80;
+  const prefix = `[${opts.prefix}] `;
+
+  // First line gets the prefix; subsequent lines indent to align visually.
+  const indent = ' '.repeat(prefix.length);
+  const firstLineBudget = Math.max(10, maxWidth - prefix.length);
+  const body = wrapAt(message.trim(), firstLineBudget);
+  const lines = body.split('\n');
+  const first = `${prefix}${lines[0] ?? ''}`;
+  const rest = lines.slice(1).map(l => `${indent}${l}`);
+  const formatted = [first, ...rest].join('\n');
+
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: opts.event ?? 'PostToolUse',
+      additionalContext: formatted,
+    },
+  };
+}
+
 /**
  * Output with additionalContext for UserPromptSubmit hooks (CC 2.1.9)
  * hookEventName is REQUIRED for UserPromptSubmit
