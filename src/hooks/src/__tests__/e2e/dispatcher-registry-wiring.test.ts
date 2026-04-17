@@ -291,7 +291,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 60 -> 66: v7.30.0: PostToolUse dispatcher flattened — per-matcher async entries + auto-lint sync (#1284)
       // 66 -> 68: v7.30.0: PostToolUse Agent matcher — agent-task-auto-register + webhook-forwarder
       // 68 -> 70: v7.41.1: watchdog (SubagentStop, async) + webhook-forwarder on CronCreate
-      expect(asyncHooks.length, 'Should have exactly 70 async hooks').toBe(70);
+      // 70 -> 74: v7.51.0 Usage-Driven Hardening — 4 new async hooks in hooks.json
+      expect(asyncHooks.length, 'Should have exactly 74 async hooks').toBe(74);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -381,7 +382,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 60 -> 66: v7.30.0 — PostToolUse dispatcher flattened: per-matcher async entries + auto-lint sync (#1284)
       // 66 -> 68: v7.30.0 — PostToolUse Agent matcher: agent-task-auto-register + webhook-forwarder
       // 68 -> 70: v7.41.1 — watchdog (SubagentStop, async) + webhook-forwarder on CronCreate
-      expect(asyncCount).toBe(70);
+      // 70 -> 74: v7.51.0 Usage-Driven Hardening — 4 new async hooks
+      expect(asyncCount).toBe(74);
     });
 
     it('should have hooks for all critical security operations', () => {

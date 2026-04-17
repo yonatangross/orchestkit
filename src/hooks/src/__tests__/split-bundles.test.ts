@@ -346,7 +346,8 @@ describe('Cross-Bundle Consistency', () => {
     // 198 -> 199: v7.30.0: PostToolUse Agent — agent-task-auto-register
     // 199 -> 201: v7.41.1: watchdog (subagent-stop) + cron-guard (pretool)
     // 201 -> 202: v7.41.2: pre-compact-guard (lifecycle) — CC 2.1.105
-    expect(totalHooks).toBe(202);
+    // 202 -> 207: v7.51.0 Usage-Driven Hardening bundle — stale-import-detector + edit-history-tracker (posttool/write), pre-commit-test-gate (pretool/bash dispatcher), subagent-scope-auditor (subagent-stop), thrash-detector (prompt)
+    expect(totalHooks).toBe(207);
   });
 });
 
