@@ -17,6 +17,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.52.0",
+    "date": "2026-04-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**worktree-merge-verifier** (PreToolUse/Bash, Phase 6 of sync dispatcher): intercepts `git worktree remove`, resolves the worktree's branch via `git worktree list --porcelain`, compares against main/master/develop, and skips squash-merged branches (via `git cherry`). Advisory with concrete remediation (push or merge first). Opt-out: `ORK_DISABLE_WORKTREE_VERIFIER=1`. (#1278)",
+          "**metrics-bridge** (PostToolUse/catchall, async): accumulates per-session metrics into `.claude/state/ork-metrics-{session_id}.json` — edits, test_runs, commits, bash_calls, agent_spawns, started_at/updated_at. Flat JSON object for easy `jq`. Atomic writes, 1 MB cap. Runtime state gitignored. (#1295)",
+          "**`outputNotify()` + `wrapAt()` builders** (`lib/output.ts` + re-export from `lib/common.ts`): consistent hook advisory formatter with prefix + 80-char line wrapping + continuation-line indent. Options bag for `maxWidth` and `event` so the signature can grow without breaking callers. 12 unit tests. Existing hook migration deferred — additive change. (#1292)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "Total hooks.json count: 177 → 178 (bundle totals 207 → 209). Async hooks: 74 → 75. `worktree-merge-verifier` runs through the existing `sync-bash-dispatcher` — bundle export but not a new hooks.json entry.",
+          "Test count assertions updated across `split-bundles.test.ts`, `async-registry.test.ts`, `dispatcher-registry-wiring.test.ts`."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.51.0",
     "date": "2026-04-17",
     "compareUrl": "",
