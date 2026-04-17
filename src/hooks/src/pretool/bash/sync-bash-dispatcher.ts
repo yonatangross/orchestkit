@@ -34,6 +34,8 @@ import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 // Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
 import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
+// Phase 5: Pre-commit test-gate — advisory warn on stale tests (#1281)
+import { preCommitTestGate } from './pre-commit-test-gate.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
@@ -67,6 +69,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
   // Phase 4: Pre-commit quality (lint/test/typecheck — blocks on failure)
   { name: 'pre-commit-quality-runner', fn: preCommitQualityRunner },
+  // Phase 5: Pre-commit test-gate (advisory — records test runs, warns on stale)
+  { name: 'pre-commit-test-gate', fn: preCommitTestGate },
 ];
 
 /**
