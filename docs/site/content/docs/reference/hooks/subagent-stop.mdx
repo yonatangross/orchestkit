@@ -1,11 +1,11 @@
 ---
 title: "SubagentStop"
-description: "Hooks triggered on SubagentStop events (5 hooks)."
+description: "Hooks triggered on SubagentStop events (6 hooks)."
 ---
 
 # SubagentStop Hooks
 
-**5 hooks** registered for the `SubagentStop` lifecycle event.
+**6 hooks** registered for the `SubagentStop` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -14,3 +14,4 @@ description: "Hooks triggered on SubagentStop events (5 hooks)."
 | `sync-subagent-stop-dispatcher` | `*` | 🛑 Blocks | Consolidates 6 synchronous SubagentStop hooks into a single dispatcher. |
 | `webhook-forwarder` | `*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `watchdog` | `*` | 🔇 Silent | On each agent completion, scans remaining active background agents |
+| `subagent-scope-auditor` | `*` | 💡 Injects | Subagent Scope Auditor — SubagentStop hook |

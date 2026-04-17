@@ -24,6 +24,19 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       {
         "type": "added",
         "items": [
+          "**compat:** CC 2.1.111 + Opus 4.7 full adoption ([#1376](https://github.com/yonatangross/orchestkit/issues/1376)) ([425a7f7](https://github.com/yonatangross/orchestkit/commit/425a7f77d06580300a3ade0f44f96275dba51ec9))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.50.0",
+    "date": "2026-04-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
           "**`xhigh` effort tier** across phase-based skills (brainstorm, implement, cover, verify, fix-issue, assess, audit-full). Semantics: `high + one additional deepening pass`. Opus 4.7 only; silently falls back to `high` otherwise. (#1354)",
           "**17 new 2.1.111 feature-matrix entries** in `lib/cc-version-matrix.ts` (294 → 311 total). MIN_CC_VERSION 2.1.108 → 2.1.111. (#1353)",
           "**`/ultrareview` composition** in `ork:review-pr` — trigger-gated (diff > 500 LOC, sensitive paths, reviewer disagreement, release/hotfix labels) with voice-friendly `AskUserQuestion` prompt. Never fires by default; quota tracked in `.claude/state/ultrareview-usage.json`. (#1356)",
