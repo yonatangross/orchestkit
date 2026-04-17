@@ -27,6 +27,8 @@ paths: ["**/migrations/**", "**/models/**", "alembic.ini", "**/schema*"]
 path_patterns: ["*.sql", "**/migrations/**", "**/alembic/**", "**/prisma/**"]
 ---
 
+<!-- directive-density: intentional (teaches migration anti-patterns; NEVER markers describe real production-break conditions, not aspirational guidance) -->
+
 # Database Patterns
 
 Comprehensive patterns for database migrations, schema design, and version management. Each category has individual rule files in `rules/` loaded on-demand.

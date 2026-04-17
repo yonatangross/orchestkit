@@ -28,6 +28,8 @@ allowed-tools:
 path_patterns: ["*.py", "**/requirements*.txt", "**/pyproject.toml", "**/Pipfile"]
 ---
 
+<!-- directive-density: intentional (teaches asyncio/SQLAlchemy anti-patterns; NEVER markers describe real event-loop/race-condition bugs, not aspirational guidance) -->
+
 # Python Backend
 
 Patterns for building production Python backends with asyncio, FastAPI, SQLAlchemy 2.0, and connection pooling. Each category has individual rule files in `rules/` loaded on-demand.

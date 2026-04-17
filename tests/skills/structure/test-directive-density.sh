@@ -17,6 +17,11 @@
 # Threshold rationale: 4 directives per 100 lines is roughly one per
 # section heading in a typical 400-line SKILL.md — more than that usually
 # indicates boilerplate repetition rather than genuine hard constraints.
+#
+# Pattern-library skills (architecture-patterns, database-patterns,
+# python-backend, etc.) legitimately use NEVER to teach anti-patterns.
+# They can opt out by including this HTML comment in the SKILL.md:
+#     <!-- directive-density: intentional (teaches anti-patterns) -->
 # =============================================================================
 
 set -uo pipefail
@@ -31,6 +36,7 @@ BLUE='\033[0;34m'; BOLD='\033[1m'; NC='\033[0m'
 
 THRESHOLD_PER_100_LINES="${DIRECTIVE_DENSITY_THRESHOLD:-4}"
 ENFORCE="${DIRECTIVE_DENSITY_ENFORCE:-0}"
+OPTOUT_MARKER="directive-density: intentional"
 
 echo -e "${BLUE}${BOLD}Directive-density check (MUST/CRITICAL/NEVER per 100 lines)${NC}"
 echo -e "  Threshold: ${THRESHOLD_PER_100_LINES} directives / 100 lines"
@@ -38,6 +44,7 @@ echo -e "  Mode:      $([[ "$ENFORCE" == "1" ]] && echo "ENFORCE (fails on breac
 echo ""
 
 offenders=()
+intentional=()
 report_rows=()
 
 while IFS= read -r -d '' skill_md; do
@@ -53,7 +60,11 @@ while IFS= read -r -d '' skill_md; do
 
     # Floating-point comparison without bc
     if awk -v p="$per_100" -v t="$THRESHOLD_PER_100_LINES" 'BEGIN { exit (p > t) ? 0 : 1 }'; then
-        offenders+=("$(printf '%s (%s / 100 lines)' "$skill_name" "$per_100")")
+        if grep -q "$OPTOUT_MARKER" "$skill_md"; then
+            intentional+=("$(printf '%s (%s / 100 lines)' "$skill_name" "$per_100")")
+        else
+            offenders+=("$(printf '%s (%s / 100 lines)' "$skill_name" "$per_100")")
+        fi
     fi
 done < <(find "$SKILLS_DIR" -name SKILL.md -print0 | sort -z)
 
@@ -64,13 +75,22 @@ printf '%s\n' "${report_rows[@]}" | sort -k7 -nr | head -15 | while IFS= read -r
 done
 echo ""
 
+if [[ ${#intentional[@]} -gt 0 ]]; then
+    echo -e "${BLUE}${#intentional[@]} skill(s) above threshold but marked intentional (pattern libraries):${NC}"
+    printf '  - %s\n' "${intentional[@]}"
+    echo ""
+fi
+
 if [[ ${#offenders[@]} -eq 0 ]]; then
-    echo -e "${GREEN}✓ All skills under threshold (${THRESHOLD_PER_100_LINES}/100)${NC}"
+    echo -e "${GREEN}✓ All non-opted-out skills under threshold (${THRESHOLD_PER_100_LINES}/100)${NC}"
     exit 0
 fi
 
-echo -e "${YELLOW}⚠ ${#offenders[@]} skill(s) exceed the ${THRESHOLD_PER_100_LINES}/100 threshold:${NC}"
+echo -e "${YELLOW}⚠ ${#offenders[@]} skill(s) exceed the ${THRESHOLD_PER_100_LINES}/100 threshold without opt-out:${NC}"
 printf '  - %s\n' "${offenders[@]}"
+echo ""
+echo -e "${BLUE}  To mark a pattern-library skill as intentional, add this comment to SKILL.md:${NC}"
+echo -e "  <!-- directive-density: intentional (teaches anti-patterns) -->"
 echo ""
 
 # Write baseline snapshot on every run (informational; not a golden)
