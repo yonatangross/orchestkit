@@ -218,6 +218,18 @@ export function mockCommonBasic(
     lineContainsAll: vi.fn((content: string, ...terms: string[]) => content.split('\n').some((line: string) => terms.every(t => line.includes(t)))),
     lineContainsAllCI: vi.fn((content: string, ...terms: string[]) => content.split('\n').some((line: string) => { const lower = line.toLowerCase(); return terms.every(t => lower.includes(t.toLowerCase())); })),
     fnv1aHash: vi.fn(() => '00000000'),
+    wrapAt: vi.fn((text: string, _maxWidth: number) => text),
+    outputNotify: vi.fn((message: string, opts: { prefix: string; event?: 'PostToolUse' | 'PreToolUse' | 'UserPromptSubmit' | 'SubagentStop' }): HookResult => {
+      if (!message?.trim()) return { continue: true, suppressOutput: true };
+      return {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: opts.event ?? 'PostToolUse',
+          additionalContext: `[${opts.prefix}] ${message}`,
+        },
+      };
+    }),
 
     // --- Overrides ---
     ...overrides,
