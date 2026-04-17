@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.51.0](https://github.com/yonatangross/orchestkit/compare/v7.50.0...v7.51.0) (2026-04-17)
+
+
+### Features
+
+* **hooks:** Usage-Driven Hardening bundle — 5 analytics hooks + batch rule ([#1378](https://github.com/yonatangross/orchestkit/issues/1378)) ([7c5a3d1](https://github.com/yonatangross/orchestkit/commit/7c5a3d1e2ee79fa2160d6676da18325dd5116ce9))
+* **hooks:** Usage-Driven Hardening completion — milestone close-out (3 issues) ([#1380](https://github.com/yonatangross/orchestkit/issues/1380)) ([e23be85](https://github.com/yonatangross/orchestkit/commit/e23be85534fd5183bfa006287ba1e10708ae549c))
+
 ## [7.52.0](https://github.com/yonatangross/orchestkit/compare/v7.51.0...v7.52.0) (2026-04-17)
 
 **Usage-Driven Hardening — Milestone close-out** — 3 remaining issues (#1278, #1292, #1295) closed by one PR. The 9-issue milestone is now complete.
