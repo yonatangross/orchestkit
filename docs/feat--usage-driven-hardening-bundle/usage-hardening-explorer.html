@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usage-Driven Hardening Bundle — OrchestKit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--surface2:#241e34;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#7c3aed;--accent2:#a855f7;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6;--font:system-ui,-apple-system,sans-serif;--mono:'SF Mono',Consolas,monospace}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.header{padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.header h1{font-size:16px;font-weight:600;color:var(--accent2)}
+.header .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent);color:#fff;font-weight:500}
+.header .meta{font-size:12px;color:var(--muted);margin-left:auto}
+.content{padding:24px;max-width:1200px;margin:0 auto}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat .n{font-size:24px;font-weight:700;color:var(--accent2);font-family:var(--mono)}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.section{margin-bottom:28px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.section h2{font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.hook-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.hook-card:hover{border-color:var(--accent)}
+.hook-card.active{border-color:var(--accent2);background:linear-gradient(135deg,var(--surface2) 0%,#2a1f40 100%)}
+.hook-card .row1{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.hook-card .num{font-family:var(--mono);font-size:11px;color:var(--accent2);font-weight:600}
+.hook-card .event{font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--mono);background:#3b82f622;color:var(--blue);border:1px solid #3b82f644}
+.hook-card .title{font-size:13px;font-weight:500;flex:1}
+.hook-card .friction{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--red);color:#fff;font-weight:600}
+.hook-card .body{font-size:12px;color:var(--muted);line-height:1.5}
+.hook-card .files{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:6px;opacity:.7}
+.scenario{display:none;margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--muted)}
+.scenario.active{display:block}
+.scenario .turn{margin-bottom:10px}
+.scenario .turn-label{color:var(--accent2);font-size:10px;font-weight:600;margin-bottom:3px}
+.scenario .user{color:var(--text)}
+.scenario .tool{color:var(--muted);padding-left:14px}
+.scenario .hook-inject{color:var(--yellow);padding-left:14px;border-left:2px solid var(--yellow);margin:4px 0;padding:6px 10px;background:#eab30811}
+.metric-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.metric-row.head{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+.metric-row .mono{font-family:var(--mono)}
+.before{color:var(--red)}
+.after{color:var(--green)}
+@media(max-width:720px){.stat-grid{grid-template-columns:repeat(2,1fr)}.metric-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Usage-Driven Hardening Bundle</h1>
+  <span class="badge">v7.51.0</span>
+  <span class="meta">6 issues · 1 PR · 5 new hooks + 1 skill rule + 1 rule file</span>
+</div>
+<div class="content">
+  <div class="stat-grid">
+    <div class="stat"><div class="n">6</div><div class="l">Issues closed</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">New hooks</div></div>
+    <div class="stat"><div class="n">126</div><div class="l">Sessions analyzed</div></div>
+    <div class="stat"><div class="n">#1–#5</div><div class="l">Friction points addressed</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Hooks — click any card to see a before/after scenario</h2>
+    <div id="hooks"></div>
+  </div>
+
+  <div class="section">
+    <h2>Analytics-to-outcome mapping</h2>
+    <div class="metric-row head"><div>Friction point</div><div>Before</div><div>After</div></div>
+    <div class="metric-row"><div>Refactor imports not patched in tests (#3)</div><div class="before mono">cascade failures, +N turns</div><div class="after mono">advisory at Write time</div></div>
+    <div class="metric-row"><div>"Done" without tests (#4 — 58% partial)</div><div class="before mono">silent</div><div class="after mono">gate warns at git commit</div></div>
+    <div class="metric-row"><div>Sub-agent scope spillover (#5 — 481 calls)</div><div class="before mono">silent</div><div class="after mono">flagged at SubagentStop</div></div>
+    <div class="metric-row"><div>Edit-fail-revert thrash (10+ turns/file)</div><div class="before mono">silent</div><div class="after mono">flag at 3 edits/10-event window</div></div>
+    <div class="metric-row"><div>Large-batch cascade refactors</div><div class="before mono">176-file one-shots</div><div class="after mono">5-file batch w/ tests between</div></div>
+  </div>
+</div>
+<script>
+const HOOKS = [
+  {n:1280, event:'PostToolUse', title:'stale-import-detector', friction:'#3',
+   body:'After Write/Edit of a code file, greps src + tests for import sites that reference the file\'s module path. If ≥2 hits, injects an advisory listing up to 10 file:line references.',
+   files:'src/hooks/src/posttool/write/stale-import-detector.ts',
+   scenario:[
+     {label:'turn 1 — USER', cls:'user', text:'Split repositories/base.py into base.py + query.py'},
+     {label:'turn 2 — CLAUDE', cls:'tool', text:'Write repositories/base.py (new)\nWrite repositories/query.py (new)'},
+     {label:'HOOK — stale-import-detector', cls:'hook-inject', text:'[stale-import-detector] File base.py is referenced from 47 import site(s). If this edit renamed exports or split the file, verify these still resolve:\n  - tests/test_users.py:3\n  - tests/test_orders.py:5\n  - ... 45 more'},
+     {label:'turn 3 — CLAUDE', cls:'tool', text:'(acts on the advisory — greps + patches imports before moving on)'}
+   ]},
+  {n:1281, event:'PreToolUse', title:'pre-commit-test-gate', friction:'#4',
+   body:'Records timestamps for test-runner invocations. On git commit, compares last-test-run.json against staged-file mtimes. If any staged file is newer, injects advisory. Never blocks.',
+   files:'src/hooks/src/pretool/bash/pre-commit-test-gate.ts',
+   scenario:[
+     {label:'turn N — CLAUDE', cls:'tool', text:'Bash: npm test  → records last-test-run.json'},
+     {label:'turn N+1 — CLAUDE', cls:'tool', text:'Edit src/auth/login.ts'},
+     {label:'turn N+2 — CLAUDE', cls:'tool', text:'Bash: git commit -m "..."'},
+     {label:'HOOK — pre-commit-test-gate', cls:'hook-inject', text:'[pre-commit-test-gate] 1 staged file(s) were edited 3 minute(s) after the last test run. Consider re-running tests before committing. 58% of analyzed sessions that skipped this ended "mostly achieved."'},
+   ]},
+  {n:1282, event:'SubagentStop', title:'subagent-scope-auditor', friction:'#5',
+   body:'Parses agent_transcript_path (CC 2.1.69+), extracts Write/Edit targets, compares against scope fragments derived from the spawn prompt. Flags up to 8 out-of-scope files.',
+   files:'src/hooks/src/subagent-stop/subagent-scope-auditor.ts',
+   scenario:[
+     {label:'SPAWN', cls:'user', text:'Agent(subagent_type="backend", prompt="Fix auth.py — the password reset flow is broken")'},
+     {label:'AGENT edits', cls:'tool', text:'Write src/auth/auth.py\nWrite src/auth/password.py\nWrite config/app.yaml   ← out of scope\nWrite src/billing/rates.py ← out of scope'},
+     {label:'HOOK — subagent-scope-auditor', cls:'hook-inject', text:'[subagent-scope-auditor] Agent edited 2 file(s) that don\'t match its spawn prompt\'s scope:\n  - config/app.yaml\n  - src/billing/rates.py\nReview whether these edits were intended.'},
+   ]},
+  {n:1285, event:'UserPromptSubmit', title:'thrash-detector + edit-history-tracker', friction:'loop',
+   body:'Tracker appends edit events to edit-history.jsonl. Detector reads on each user prompt, counts per-file edits in the last 10 events, flags files with ≥3 edits as thrash.',
+   files:'src/hooks/src/prompt/thrash-detector.ts + src/hooks/src/posttool/write/edit-history-tracker.ts',
+   scenario:[
+     {label:'turn 1–5 — CLAUDE', cls:'tool', text:'Edit auth.py → tests fail → Edit auth.py → formatter reverts → Edit auth.py → format fails → Edit auth.py'},
+     {label:'turn 6 — USER', cls:'user', text:'try the password reset again'},
+     {label:'HOOK — thrash-detector', cls:'hook-inject', text:'[thrash-detector] You\'ve edited the same file(s) repeatedly in the last 10 edit events:\n  - auth.py: 4 edits in the last 10 events\nThis pattern often signals a test↔edit or formatter↔edit loop. Consider a different approach, read the file once more end-to-end, or ask the user for guidance.'},
+   ]},
+  {n:1286, event:'Skill rule', title:'batch-size-governor in ork:implement', friction:'cascade',
+   body:'New rule loaded by ork:implement when detecting >10-file refactors. Enforces max 5 files per agent batch, tests between, commit green batches, stop on red. --batch-size N override.',
+   files:'src/skills/implement/rules/batch-governance.md + implement/SKILL.md section',
+   scenario:[
+     {label:'BEFORE', cls:'tool', text:'Agent(prompt="Migrate 176 files to RepositoryBase")\n→ 40 test failures, no clean rollback target'},
+     {label:'AFTER', cls:'tool', text:'for batch in chunks(files, size=5):\n  Agent(prompt=f"Migrate these 5 files: {batch}")\n  if tests fail: STOP\n  else: git commit\n→ cleanly reversible, fast root-cause identification'},
+   ]},
+  {n:1283, event:'Rules file', title:'usage-analytics hardening rules', friction:'docs',
+   body:'4 codified rules in .claude/rules/usage-analytics-hardening.md: sub-agents & worktrees merge-back, refactoring grep checklist, batch changes (no type: ignore), 1Password/GPG interactive auth.',
+   files:'.claude/rules/usage-analytics-hardening.md',
+   scenario:[
+     {label:'TRIGGER', cls:'user', text:'Claude gets 1Password error mid-commit'},
+     {label:'RULE', cls:'hook-inject', text:'1Password CLI requires interactive biometric auth. Never assume it will work non-interactively. GPG signing may require manual unlock — if a commit fails with "1Password: failed to fill whole buffer", stop and ask the user to re-unlock rather than retrying silently or bypassing signing with --no-gpg-sign.'},
+   ]}
+];
+
+const hooksEl = document.getElementById('hooks');
+for (const h of HOOKS) {
+  const card = document.createElement('div');
+  card.className = 'hook-card';
+  card.innerHTML = `
+    <div class="row1">
+      <span class="num">#${h.n}</span>
+      <span class="event">${h.event}</span>
+      <span class="title">${h.title}</span>
+      <span class="friction">${h.friction}</span>
+    </div>
+    <div class="body">${h.body}</div>
+    <div class="files">${h.files}</div>
+    <div class="scenario">${h.scenario.map(s => `
+      <div class="turn">
+        <div class="turn-label">${s.label}</div>
+        <div class="${s.cls}">${s.text.replace(/\n/g, '<br>')}</div>
+      </div>`).join('')}</div>`;
+  card.addEventListener('click', () => {
+    const wasActive = card.classList.contains('active');
+    document.querySelectorAll('.hook-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.scenario').forEach(s => s.classList.remove('active'));
+    if (!wasActive) {
+      card.classList.add('active');
+      card.querySelector('.scenario').classList.add('active');
+    }
+  });
+  hooksEl.appendChild(card);
+}
+</script>
+</body>
+</html>

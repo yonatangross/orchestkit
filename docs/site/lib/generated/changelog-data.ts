@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.51.0",
+    "date": "2026-04-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**stale-import-detector** (PostToolUse/Write|Edit): greps src + tests for import sites referencing a just-edited file's module path. Advisory additionalContext listing up to 10 references. Language-aware TS/JS and Python patterns. (#1280)",
+          "**pre-commit-test-gate** (PreToolUse/Bash, Phase 5 of sync dispatcher): records test-runner invocations to `.claude/state/last-test-run.json`; on `git commit`, compares staged-file mtimes against last recorded test run and injects advisory if stale. Never blocks. (#1281)",
+          "**subagent-scope-auditor** (SubagentStop, async): parses `agent_transcript_path`, extracts Write/Edit targets, compares against scope fragments derived from spawn prompt. Flags up to 8 out-of-scope edits. (#1282)",
+          "**thrash-detector** (UserPromptSubmit, async) + **edit-history-tracker** (PostToolUse/Write|Edit, async): tracks edit events in `.claude/state/edit-history.jsonl` (capped at 50, self-trimming); flags any file hit ≥3 times in the last 10 events. (#1285)",
+          "**batch-size-governor** rule in `ork:implement`: >10-file refactors enforce max 5 files per agent batch with tests between batches. `--batch-size N` override. (#1286)",
+          "**Usage-analytics hardening rules** (`.claude/rules/usage-analytics-hardening.md`): 4 codified patterns on sub-agents & worktrees, refactoring checklists, batch changes, and 1Password/GPG interactive-auth handling. (#1283)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "Test count assertions updated: `split-bundles.test.ts` 202 → 207, `async-registry.test.ts` + `dispatcher-registry-wiring.test.ts` 70 → 74 async hooks.",
+          "Hook totals: 173 → 177 (110 global + 45 agent + 22 skill)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.50.0",
     "date": "2026-04-17",
     "compareUrl": "",
