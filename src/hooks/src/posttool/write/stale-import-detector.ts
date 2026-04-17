@@ -22,7 +22,7 @@ import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, basename, relative, sep } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, getField } from '../../lib/common.js';
+import { outputSilentSuccess, outputNotify, getField } from '../../lib/common.js';
 import { assertSafeShellArg } from '../../lib/sanitize-shell.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -150,12 +150,9 @@ export function staleImportDetector(input: HookInput, ctx: HookContext = NOOP_CT
   // Report as "touch points" to double-check after the edit, rather than as
   // confirmed stale. Low-friction advisory.
   const refsList = refs.map(r => `  - ${r}`).join('\n');
-  const advisory =
-    `[stale-import-detector] File ${basename(filePath)} is referenced from ${refs.length} import site(s). ` +
+  const message =
+    `File ${basename(filePath)} is referenced from ${refs.length} import site(s). ` +
     `If this edit renamed exports or split the file, verify these still resolve:\n${refsList}`;
 
-  return {
-    continue: true,
-    hookSpecificOutput: { additionalContext: advisory },
-  };
+  return outputNotify(message, { prefix: 'stale-import-detector' });
 }

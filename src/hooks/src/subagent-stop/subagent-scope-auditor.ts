@@ -24,7 +24,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
-import { outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess, outputNotify } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'subagent-stop/subagent-scope-auditor';
@@ -181,14 +181,11 @@ export function subagentScopeAuditor(input: HookInput, ctx: HookContext = NOOP_C
   const list = shown.map(f => `  - ${f}`).join('\n');
   const suffix = more > 0 ? `\n  … and ${more} more` : '';
 
-  return {
-    continue: true,
-    hookSpecificOutput: {
-      additionalContext:
-        `[subagent-scope-auditor] Agent edited ${outOfScope.length} file(s) that don't match its spawn prompt's scope:\n${list}${suffix}\n` +
-        `Review whether these edits were intended. Advisory — changes are already applied.`,
-    },
-  };
+  return outputNotify(
+    `Agent edited ${outOfScope.length} file(s) that don't match its spawn prompt's scope:\n${list}${suffix}\n` +
+      `Review whether these edits were intended. Advisory — changes are already applied.`,
+    { prefix: 'subagent-scope-auditor', event: 'SubagentStop' },
+  );
 }
 
 // Testing exports

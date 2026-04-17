@@ -22,7 +22,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
-import { outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess, outputNotify } from '../lib/common.js';
 import { getEditHistoryPath } from '../posttool/write/edit-history-tracker.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -107,14 +107,11 @@ export function thrashDetector(_input: HookInput, ctx: HookContext = NOOP_CTX): 
 
   ctx.log(HOOK_NAME, `Thrash detected on ${thrashing.size} file(s)`);
 
-  return {
-    continue: true,
-    hookSpecificOutput: {
-      additionalContext:
-        `[thrash-detector] You've edited the same file(s) repeatedly in the last ${WINDOW_ENTRIES} edit events:\n${lines.join('\n')}\n` +
-        `This pattern often signals a test↔edit or formatter↔edit loop. Consider a different approach, read the file once more end-to-end, or ask the user for guidance.`,
-    },
-  };
+  const message =
+    `You've edited the same file(s) repeatedly in the last ${WINDOW_ENTRIES} edit events:\n${lines.join('\n')}\n` +
+    `This pattern often signals a test↔edit or formatter↔edit loop. Consider a different approach, read the file once more end-to-end, or ask the user for guidance.`;
+
+  return outputNotify(message, { prefix: 'thrash-detector', event: 'UserPromptSubmit' });
 }
 
 // Testing exports
