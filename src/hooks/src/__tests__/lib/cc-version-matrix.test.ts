@@ -17,15 +17,15 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.111', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.111');
+    test('is 2.1.113', () => {
+      expect(MIN_CC_VERSION).toBe('2.1.113');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) = 311
-      expect(CC_FEATURE_MATRIX.length).toBe(311);
+      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) = 323
+      expect(CC_FEATURE_MATRIX.length).toBe(323);
     });
 
     test('is sorted by version ascending', () => {
@@ -73,7 +73,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.111');
+      const features = getAvailableFeatures('2.1.114');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -99,41 +99,43 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.111', () => {
-      const missing = getMissingFeatures('2.1.111');
+    test('no missing features at 2.1.114', () => {
+      const missing = getMissingFeatures('2.1.114');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.110 is missing 2.1.111 features', () => {
+    test('2.1.110 is missing 2.1.111 through 2.1.114 features', () => {
       const missing = getMissingFeatures('2.1.110');
-      // 17 (2.1.111)
-      expect(missing.length).toBe(17);
+      // 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) = 29
+      expect(missing.length).toBe(29);
       expect(missing.some(f => f.feature === 'opus_4_7_xhigh')).toBe(true);
       expect(missing.some(f => f.feature === 'ultrareview_command')).toBe(true);
+      expect(missing.some(f => f.feature === 'sandbox_denied_domains')).toBe(true);
+      expect(missing.some(f => f.feature === 'native_binary_spawn')).toBe(true);
     });
 
-    test('2.1.101 is missing 2.1.105 through 2.1.111 features', () => {
+    test('2.1.101 is missing 2.1.105 through 2.1.114 features', () => {
       const missing = getMissingFeatures('2.1.101');
-      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) = 58
-      expect(missing.length).toBe(58);
+      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) = 70
+      expect(missing.length).toBe(70);
       expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
       expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
     });
 
-    test('2.1.98 is missing 2.1.101 through 2.1.111 features', () => {
+    test('2.1.98 is missing 2.1.101 through 2.1.114 features', () => {
       const missing = getMissingFeatures('2.1.98');
-      // 18 (2.1.101) + 58 (2.1.105-2.1.111) = 76
-      expect(missing.length).toBe(76);
+      // 18 (2.1.101) + 70 (2.1.105-2.1.114) = 88
+      expect(missing.length).toBe(88);
       expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 through 2.1.111 features', () => {
+    test('2.1.92 is missing 2.1.94 through 2.1.114 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 74 (through 2.1.101) + 58 (2.1.105-2.1.111) = 132
-      expect(missing.length).toBe(132);
+      // 74 (through 2.1.101) + 70 (2.1.105-2.1.114) = 144
+      expect(missing.length).toBe(144);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
       expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);
