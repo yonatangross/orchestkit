@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.51.0",
+    "date": "2026-04-17",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** Usage-Driven Hardening bundle — 5 analytics hooks + batch rule ([#1378](https://github.com/yonatangross/orchestkit/issues/1378)) ([7c5a3d1](https://github.com/yonatangross/orchestkit/commit/7c5a3d1e2ee79fa2160d6676da18325dd5116ce9))",
+          "**hooks:** Usage-Driven Hardening completion — milestone close-out (3 issues) ([#1380](https://github.com/yonatangross/orchestkit/issues/1380)) ([e23be85](https://github.com/yonatangross/orchestkit/commit/e23be85534fd5183bfa006287ba1e10708ae549c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.52.0",
     "date": "2026-04-17",
     "compareUrl": "",
