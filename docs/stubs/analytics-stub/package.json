@@ -1,0 +1,21 @@
+{
+  "name": "@yonatan-hq/analytics",
+  "version": "1.0.4-stub",
+  "description": "No-op stub used when the real @yonatan-hq/analytics package can't be installed (e.g., feature-branch PR CI where NPM_TOKEN is branch-scoped to main/dev). Production builds from main use the real package.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./edge": {
+      "types": "./dist/edge.d.ts",
+      "default": "./dist/edge.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "private": true
+}

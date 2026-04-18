@@ -76,7 +76,20 @@ jobs:
       - run: npm run build
       - name: Install docs dependencies
         working-directory: docs/site
-        run: npm ci
+        # NPM_TOKEN is a repo secret restricted to main/dev branches (it grants
+        # access to private @yonatan-hq GitHub Packages). PRs from feature
+        # branches don't receive it — swap @yonatan-hq/analytics to the local
+        # stub under docs/stubs/analytics-stub/ so the build still succeeds.
+        # Production builds on main keep using the real package.
+        run: |
+          if [[ -z "${NPM_TOKEN:-}" ]]; then
+            echo "::notice::NPM_TOKEN unavailable (PR branch) — swapping @yonatan-hq/analytics to local stub"
+            npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
+            rm -f package-lock.json
+            npm install --no-audit --no-fund
+          else
+            npm ci
+          fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build docs site
