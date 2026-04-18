@@ -159,8 +159,8 @@ describe('hooks.json wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 173', () => {
-      expect(hooksConfig.description).toContain('173 total');
+    it('description total matches 180', () => {
+      expect(hooksConfig.description).toContain('180 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

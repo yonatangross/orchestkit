@@ -5,6 +5,31 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.53.0](https://github.com/yonatangross/orchestkit/compare/v7.52.0...v7.53.0) (2026-04-18)
+
+**Claude Design Integration — Bet A (Closed-Loop Pipeline)** — Milestone #113 complete. First-class integration with [claude.ai/design](https://claude.ai/design): handoff bundle URL → reviewable GitHub PR in one command.
+
+### Added
+
+- **`/ork:design-import`** — accepts a Claude Design handoff bundle (URL or local file), reconciles tokens against the project's design system, and pipes surviving components through the existing `design-to-code` pipeline. Does not open a PR. (#1382)
+- **`/ork:design-ship`** — end-to-end: import → Storybook stories + Playwright tests (`/ork:cover`) → diff-aware browser verification (`/ork:expect`) → PR opened (`/ork:create-pr`) with the handoff URL, before/after screenshots, component decisions, and coverage delta embedded. Auto-labels `claude-design`. (#1387)
+- **`claude-design-orchestrator` agent** — parses handoff bundles, validates the provisional schema, dedups proposed components via `component-search` (Storybook MCP → 21st.dev → filesystem), tracks bundle→PR provenance in `.claude/design-handoffs/<bundle_id>.json`. (#1384)
+- **`posttool/design-import/auto-verify` hook** — async PostToolUse hook fires after `/ork:design-import` completes, emits a non-blocking nudge suggesting `/ork:dogfood` + `/ork:expect`. (#1386)
+- **Docs cookbook page** — `docs/site/content/docs/cookbook/claude-design-handoff.mdx` with the full walkthrough from prompt-in-Claude-Design to merged PR. (#1383)
+
+### Changed
+
+- Skill count: 103 → 105. Agent count: 36 → 37. Hook count: 178 → 180 (112 global + 46 agent-scoped + 22 skill-scoped). User-invocable commands: 23 → 25.
+- `tests/performance/test-token-overhead.sh`: `MAX_USER_INVOCABLE_SKILLS` raised 23 → 25 for the two new Claude Design commands.
+- `tests/skills/structure/test-skill-md.sh`: `EXPECTED_USER_INVOCABLE` raised 23 → 25.
+- `src/hooks/src/__tests__/e2e/dispatcher-registry-wiring.test.ts`: async hook count assertion raised 75 → 76.
+
+### Known limitations
+
+- Claude Design has no public API yet — bundles are one-shot exports. Iteration means re-exporting from claude.ai/design and re-running `/ork:design-ship`. The programmatic drift-sync loop is **Bet B** (future milestone).
+- Bundle schema is provisional — the orchestrator agent adapts to deviations and surfaces unknown fields rather than failing silently.
+- No auto-merge — skills open PRs; humans review and merge.
+
 ## [7.51.0](https://github.com/yonatangross/orchestkit/compare/v7.50.0...v7.51.0) (2026-04-17)
 
 

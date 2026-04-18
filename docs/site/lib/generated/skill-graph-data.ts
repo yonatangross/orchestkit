@@ -232,7 +232,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 2
+    "usedByCount": 3
   },
   {
     "id": "configure",
@@ -252,7 +252,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 8,
-    "usedByCount": 0
+    "usedByCount": 1
   },
   {
     "id": "create-pr",
@@ -262,7 +262,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 4,
-    "usedByCount": 0
+    "usedByCount": 1
   },
   {
     "id": "database-patterns",
@@ -292,7 +292,27 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": true,
     "depCount": 3,
-    "usedByCount": 2
+    "usedByCount": 3
+  },
+  {
+    "id": "design-import",
+    "label": "Design Import",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": true,
+    "depCount": 6,
+    "usedByCount": 1
+  },
+  {
+    "id": "design-ship",
+    "label": "Design Ship",
+    "type": "command",
+    "complexity": "complex",
+    "category": "workflow",
+    "hasDeps": true,
+    "depCount": 6,
+    "usedByCount": 0
   },
   {
     "id": "design-system-tokens",
@@ -302,7 +322,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 2
+    "usedByCount": 3
   },
   {
     "id": "design-to-code",
@@ -312,7 +332,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": true,
     "depCount": 6,
-    "usedByCount": 1
+    "usedByCount": 2
   },
   {
     "id": "devops-deployment",
@@ -402,7 +422,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 3,
-    "usedByCount": 0
+    "usedByCount": 1
   },
   {
     "id": "explore",
@@ -582,7 +602,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 14
+    "usedByCount": 16
   },
   {
     "id": "memory-fabric",
@@ -782,7 +802,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 7
+    "usedByCount": 9
   },
   {
     "id": "responsive-patterns",
@@ -1207,6 +1227,54 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "design-context-extract",
+    "target": "memory"
+  },
+  {
+    "source": "design-import",
+    "target": "design-to-code"
+  },
+  {
+    "source": "design-import",
+    "target": "component-search"
+  },
+  {
+    "source": "design-import",
+    "target": "design-context-extract"
+  },
+  {
+    "source": "design-import",
+    "target": "design-system-tokens"
+  },
+  {
+    "source": "design-import",
+    "target": "remember"
+  },
+  {
+    "source": "design-import",
+    "target": "memory"
+  },
+  {
+    "source": "design-ship",
+    "target": "design-import"
+  },
+  {
+    "source": "design-ship",
+    "target": "cover"
+  },
+  {
+    "source": "design-ship",
+    "target": "expect"
+  },
+  {
+    "source": "design-ship",
+    "target": "create-pr"
+  },
+  {
+    "source": "design-ship",
+    "target": "remember"
+  },
+  {
+    "source": "design-ship",
     "target": "memory"
   },
   {
