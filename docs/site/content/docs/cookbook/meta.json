@@ -3,6 +3,7 @@
   "icon": "ChefHat",
   "pages": [
     "implement-feature",
+    "claude-design-handoff",
     "review-pr",
     "fix-github-issue",
     "task-management",

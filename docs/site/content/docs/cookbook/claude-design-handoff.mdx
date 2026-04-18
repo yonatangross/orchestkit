@@ -1,0 +1,206 @@
+---
+title: Claude Design → PR
+description: Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command — the closed-loop pipeline from design exploration to production code.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Files, Folder, File } from 'fumadocs-ui/components/files';
+
+[Claude Design](https://claude.ai/design) generates prototypes, mockups, slides, and one-pagers from natural-language prompts. Once a design is ready to build, it ships a **handoff bundle** that Claude Code can consume directly. OrchestKit's `/ork:design-ship` workflow turns that bundle into a reviewable pull request — with components scaffolded against your existing codebase, Storybook stories generated, browser verification run, and a PR opened with screenshots embedded.
+
+This cookbook walks through the full design-to-PR loop end-to-end.
+
+<Callout type="info">
+Claude Design is in research preview. The handoff bundle schema is provisional — the `claude-design-orchestrator` agent adapts to schema changes and surfaces deviations rather than failing silently.
+</Callout>
+
+## What You'll Use
+
+| Component | Type | Role |
+|---|---|---|
+| `/ork:design-ship` | Skill | One-shot Design URL → PR |
+| `/ork:design-import` | Skill | Just the import (no tests, no PR) |
+| `claude-design-orchestrator` | Agent | Parses bundle, dedups components, tracks provenance |
+| `post-design-import` | Hook | Auto-suggests verification after import |
+| `/ork:design-to-code` | Skill (composed) | Owns the actual EXTRACT/MATCH/ADAPT/RENDER pipeline |
+| `/ork:cover` | Skill (composed) | Generates Storybook stories and Playwright tests |
+| `/ork:expect` | Skill (composed) | Diff-aware browser verification |
+| `/ork:create-pr` | Skill (composed) | Opens the PR with templated body |
+
+---
+
+## Prerequisites
+
+1. **Connect your repo to Claude Design** — in claude.ai/design, link the GitHub repo so Claude reads your design tokens, Tailwind config, and existing components. Generated visuals will then stay on-brand automatically.
+2. **OrchestKit installed** — `ork` plugin enabled in Claude Code 2.1.78 or later.
+3. **`gh` CLI authenticated** — required for the PR-opening step.
+
+---
+
+## Step 1: Generate a design in Claude Design
+
+Open [claude.ai/design](https://claude.ai/design) and prompt for what you want:
+
+> "Generate a pricing section for a developer-tools SaaS — three tiers, highlight the middle one, match our existing brand."
+
+Because the repo is connected, Claude Design reads your tokens and produces visuals that already use your colors, typography, and spacing scale. Refine in-canvas with direct edits or follow-up prompts until you're happy.
+
+When ready, click **Export → Handoff bundle**. You get a sharable URL like `https://claude.ai/design/abc123` (or download the bundle as JSON).
+
+---
+
+## Step 2: Ship it
+
+In your project directory:
+
+```bash
+/ork:design-ship https://claude.ai/design/abc123
+```
+
+That single command runs the full pipeline. Here's what happens internally:
+
+```
+Handoff bundle (URL or file)
+  │
+  ▼
+┌──────────────────────────────┐
+│ 1. /ork:design-import         │  Scaffold components, write provenance
+│    (delegates to orchestrator │  Tokens reconciled
+│     for parse + dedup)        │  Components written or reused
+└──────────┬───────────────────┘
+           │
+           ▼
+┌──────────────────────────────┐
+│ 2. /ork:cover                 │  Storybook stories per new component
+│    (Storybook + Playwright)   │  Playwright E2E for new routes
+└──────────┬───────────────────┘
+           │
+           ▼
+┌──────────────────────────────┐
+│ 3. /ork:expect                │  Diff-aware browser verification
+│    (CDP + ARIA-tree-first)    │  Screenshots saved for PR body
+└──────────┬───────────────────┘
+           │
+           ▼
+┌──────────────────────────────┐
+│ 4. /ork:create-pr             │  PR opened with screenshots, coverage
+│                               │  Label: claude-design
+└──────────────────────────────┘
+```
+
+---
+
+## Step 3: Review the manifest
+
+After Phase 1 (`design-import`) completes, you'll see a concise manifest:
+
+```
+Imported bundle a1b2c3d4...
+  Source: https://claude.ai/design/abc123
+  Provenance: .claude/design-handoffs/a1b2c3d4.json
+
+Components:
+  ✓ PricingCard          scaffold  src/components/pricing/PricingCard.tsx
+  ↻ Button               reuse     existing: src/components/ui/Button.tsx
+  ⤳ Hero                 adapt     adapted from: src/components/Hero.tsx
+
+Tokens:
+  + 3 new (added to design-tokens.json)
+  ~ 1 modified (user accepted bundle value)
+  ✗ 0 conflicts unresolved
+```
+
+Three decisions per component:
+- **`scaffold`** — no existing match found; new file written
+- **`reuse`** — existing component matches; nothing touched on disk (still referenced by the design intent)
+- **`adapt`** — partial match; the existing component is updated rather than duplicated
+
+The orchestrator agent runs `component-search` (Storybook MCP first, then 21st.dev, then filesystem) so duplicates do not slip through.
+
+---
+
+## Step 4: Token reconciliation
+
+If the bundle declares tokens that conflict with your project's tokens, the import pauses and asks how to resolve:
+
+| Diff | Action |
+|---|---|
+| Added (new tokens) | Appended automatically — safe |
+| Modified (different value) | `AskUserQuestion`: keep project, accept bundle, or open editor |
+| Conflicts (same name, different semantics) | Block scaffolding; resolve before continuing |
+
+Conflict resolution is captured in the provenance file so re-runs do not re-prompt.
+
+---
+
+## Step 5: Open the PR
+
+`/ork:design-ship` opens the PR with a templated body that includes:
+
+- Link back to the Claude Design URL
+- Bundle ID and provenance file path
+- Component decision table (scaffold / reuse / adapt)
+- Token diff summary
+- `/ork:expect` verification results
+- Coverage delta from `/ork:cover`
+- Before/after screenshots (uploaded as PR comments)
+
+The PR is auto-labeled `claude-design` so all design-driven PRs are filterable: `gh issue list --label claude-design`.
+
+---
+
+## Provenance: connecting design to code
+
+Every imported bundle writes a provenance file to `.claude/design-handoffs/<bundle_id>.json`:
+
+<Files>
+  <Folder name=".claude" defaultOpen>
+    <Folder name="design-handoffs" defaultOpen>
+      <File name="a1b2c3d4...json" />
+      <File name="e5f6g7h8...json" />
+    </Folder>
+  </Folder>
+</Files>
+
+```json
+{
+  "bundle_id": "a1b2c3d4...",
+  "bundle_url": "https://claude.ai/design/abc123",
+  "fetched_at": "2026-04-18T12:00:00Z",
+  "imported_at": "2026-04-18T12:01:30Z",
+  "components": [
+    {"name": "PricingCard", "decision": "scaffold", "path": "src/components/pricing/PricingCard.tsx"}
+  ],
+  "pr": {"number": 1387, "url": "https://github.com/...", "opened_at": "2026-04-18T12:02:15Z"}
+}
+```
+
+This makes design intent traceable backward from any merged PR — the answer to "why does this component exist?" is one `git log → grep` away.
+
+---
+
+## When to use which command
+
+| Scenario | Command |
+|---|---|
+| Have a Claude Design URL, want a PR | `/ork:design-ship <url>` |
+| Have a bundle, want to scaffold but review before committing | `/ork:design-import <url>` |
+| Want to extract design tokens from an existing app (not generate) | `/ork:design-context-extract` |
+| Want to build a component from a screenshot (no Claude Design involved) | `/ork:design-to-code` |
+
+---
+
+## Limitations (current preview)
+
+- **No public Claude Design API yet** — bundles are a one-shot export. To iterate on a design, re-export from claude.ai/design and re-run `/ork:design-ship`. A future bidirectional sync (Bet B in our roadmap) will close this loop programmatically.
+- **No auto-merge** — the skill opens the PR; humans review and merge.
+- **Schema is provisional** — the orchestrator agent adapts to schema changes but may need updates as the Claude Design bundle format stabilizes.
+
+---
+
+## Related
+
+- [Implement a feature](/docs/cookbook/implement-feature) — the same agent-orchestration pattern for non-design work
+- [Review a PR](/docs/cookbook/review-pr) — what reviewers should look for in design-driven PRs
+- [Design to code](/docs/skills/design-to-code) — the underlying scaffold pipeline this workflow composes
+- [Claude Design](https://claude.ai/design) — the design tool itself

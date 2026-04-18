@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 104 OrchestKit skills."
+description: "Complete reference for all 106 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **104 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **106 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -38,6 +38,8 @@ OrchestKit includes **104 skills** — reusable knowledge modules that provide p
 | [Database Patterns](/docs/reference/skills/database-patterns) | Reference | medium | Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift. |
 | [Demo Producer](/docs/reference/skills/demo-producer) | Reference | low | Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings. |
 | [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity. |
+| [Design Import](/docs/reference/skills/design-import) | Command | medium | Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Accepts a bundle URL or local file, parses and validates the schema, deduplicates components against the existing codebase via component-search, then pipes the survivors through the design-to-code pipeline. Writes provenance metadata so future imports can detect drift between design versions. Use after exporting a handoff bundle from claude.ai/design — this is the entry point that turns a design into code. |
+| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body. The one-shot 'design URL in, reviewable PR out' workflow. Use when a designer or PM hands you a Claude Design URL and you want a PR back without intermediate steps. |
 | [Design System Tokens](/docs/reference/skills/design-system-tokens) | Reference | medium | Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines. |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots. |
 | [Devops Deployment](/docs/reference/skills/devops-deployment) | Reference | medium | Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns. |

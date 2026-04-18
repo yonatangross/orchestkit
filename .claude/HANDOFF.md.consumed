@@ -1,41 +1,36 @@
 # Session Handoff
 
-**Branch**: fix/windows-cmd-window-spam
-**When**: 2026-04-14 05:24:21 UTC
-**Session**: 7fd88de7-e8ab-4079-a656-ae5c912dcb1d
+**Branch**: chore/wire-up-emulate-engineer
+**When**: 2026-04-17 20:25:26 UTC
+**Session**: b859c36a-1b56-4d09-95eb-7b70b05a3e2b
 
 ## Summary
-```
-╔══════════════════════════════════════════════════════════════════════════════════╗
-║        CC 2.1.101 → 2.1.105 — Integration Brainstorm for OrchestKit           ║
-║                                                                                ║
-║  Current: CC >= 2.1.94 (2.1.101 recommended) · Latest: CC 2.1.105 (+4 versions)║
-╚══════════════════════════════════════════════════════════════════════════════════╝
-```
+Found it. Direct answer:
 
-## What's New (Apr 2026)
+**The `NPM_TOKEN` secret is configured with branch-scoped access** (almost certainly restricted to `main` and `dev` in repo Settings → Secrets → Actions). PRs from feature branches like `chore/wire-up-emulate-engineer` don't receive it.
 
-5 new hook events, 3 tool enhancements, several breakages, and one interesting deprecation.
+### The evidence chain
 
----
+1. **`docs/site/.npmrc` uses env-var expansion:**
+   ```
+   //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
+   ```
+2. **Workflow passes the secret:** `NPM_TOKEN: ${{ secrets.NPM_TOKEN }}`
+3. **When the secret isn't available, `${NPM_TOKEN}` expands to empty string.** npm then sends `_authToken=` (empty) to GitHub Packages.
+4.
 
-## Integration Ideas — Ranked by Impact/Effort
-
-### TIER 1: Must-Adopt (High ROI, Low Risk)
-
-```
-┌─ 1.
+## Modified Files
+- .claude/HANDOFF.md.consumed
 
 ## Patterns Noted
-- All other hooks always    │
-│  fire, then bail early internally.
+- Works from any branch because `GITHUB_TOKEN` is always available.
 
 ## Recent Tasks
-- Fix 4 security scanning alerts [completed]
-- Build, test, commit, and create PR [completed]
-- Discover scope and existing test coverage [completed]
-- Generate tests for coverage gaps [completed]
-- Execute and heal test suite [completed]
-- Cover: 9 bug-fix files from PR #1332 [completed]
-- Review PR #1332 [completed]
-- Implement 3 CC background monitoring features [completed]
+- Update SKILL.md main file for v0.5.25 [completed]
+- Update rule files with stale tool references [completed]
+- Build, test, commit, PR [completed]
+- Create 23 GitHub issues under milestone #112 [completed]
+- Land P0 commits (matrix + xhigh + budgets + review-pr + eval + vision + retries + doctor) [completed]
+- untitled [completed]
+- Land final expansion (model IDs + TRACEPARENT + budgets + version bumps + CHANGELOG + cyber note + uncertainty field) [completed]
+- Build + test + open PR [completed]
