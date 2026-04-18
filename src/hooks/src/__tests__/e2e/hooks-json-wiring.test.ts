@@ -2,11 +2,13 @@
 // Created: 2026-03-18
 
 /**
- * E2E: CC 2.1.78 hooks.json wiring completeness
+ * E2E: hooks.json wiring completeness
  *
- * Validates that all CC 2.1.78 hook events are correctly registered
- * in hooks.json and that the entry point files export the expected hooks.
- * Also validates async/timeout configuration for safety-critical handlers.
+ * Validates that every hook event in hooks.json has a matching entry-bundle
+ * export, async/timeout config is sane for error-loop-sensitive handlers
+ * (StopFailure, Stop), and the description field count-stamps match the
+ * actual number of registered hooks. Originally added for CC 2.1.78's
+ * StopFailure + --worktree fix; scope is now general wiring validation.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -31,7 +33,7 @@ interface HooksConfig {
   hooks: Record<string, HookGroup[]>;
 }
 
-describe('CC 2.1.78 Hooks Wiring E2E', () => {
+describe('hooks.json wiring E2E', () => {
   let hooksConfig: HooksConfig;
 
   beforeAll(() => {
@@ -112,15 +114,22 @@ describe('CC 2.1.78 Hooks Wiring E2E', () => {
 
   // ===========================================================================
   // Entry point exports match hooks.json
+  //
+  // These two tests import compiled entry bundles (~80-100KB each with
+  // transitive deps). Cold-import under vitest parallel workers is ~1.5s
+  // in isolation but can exceed the 5s default when CPU is saturated by
+  // sibling test files. Raise the timeout to 15s so parallel runs don't
+  // flake — the tests themselves are trivially fast once the import
+  // completes.
   // ===========================================================================
   describe('entry point bundle exports', () => {
-    it('stop bundle exports stop-failure-handler', async () => {
+    it('stop bundle exports stop-failure-handler', { timeout: 15000 }, async () => {
       const stopBundle = await import('../../entries/stop.js');
       expect(stopBundle.hooks['stop/stop-failure-handler']).toBeDefined();
       expect(typeof stopBundle.hooks['stop/stop-failure-handler']).toBe('function');
     });
 
-    it('lifecycle bundle exports worktree-lifecycle-logger', async () => {
+    it('lifecycle bundle exports worktree-lifecycle-logger', { timeout: 15000 }, async () => {
       const lifecycleBundle = await import('../../entries/lifecycle.js');
       expect(lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBeDefined();
       expect(typeof lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBe('function');
