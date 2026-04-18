@@ -76,19 +76,25 @@ jobs:
       - run: npm run build
       - name: Install docs dependencies
         working-directory: docs/site
-        # NPM_TOKEN is a repo secret restricted to main/dev branches (it grants
-        # access to private @yonatan-hq GitHub Packages). PRs from feature
-        # branches don't receive it — swap @yonatan-hq/analytics to the local
-        # stub under docs/stubs/analytics-stub/ so the build still succeeds.
-        # Production builds on main keep using the real package.
+        # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages. On
+        # push to main/dev the token has full scope. On pull_request from
+        # other branches the secret is substituted but with reduced scope —
+        # npm ci hits 401 Unauthorized. Detect that specific failure and fall
+        # back to the local stub under docs/stubs/analytics-stub/. Production
+        # builds on main still use the real package (npm ci succeeds there).
         run: |
-          if [[ -z "${NPM_TOKEN:-}" ]]; then
-            echo "::notice::NPM_TOKEN unavailable (PR branch) — swapping @yonatan-hq/analytics to local stub"
+          if npm ci 2>&1 | tee /tmp/npm-ci.log; then
+            echo "::notice::@yonatan-hq/analytics installed from private registry"
+            exit 0
+          fi
+          if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
+            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub"
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
             rm -f package-lock.json
             npm install --no-audit --no-fund
           else
-            npm ci
+            echo "::error::npm ci failed for a reason other than auth. See log above."
+            exit 1
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
