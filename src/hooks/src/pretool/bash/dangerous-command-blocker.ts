@@ -49,10 +49,16 @@ const DENY_PATTERNS: string[] = [
 
 /**
  * Regex patterns for root-path destruction (anchored to avoid false positives).
+ *
+ * macOS /private/{etc,var,home} map to /etc, /var, /home via symlinks, so
+ * deleting them is equally destructive. CC 2.1.113 hardened Bash(rm:*) rules
+ * to treat these as dangerous; we mirror that at the hook layer for defense
+ * in depth. /private/tmp is excluded — tmpdir cleanup is sometimes legit.
  */
 const DENY_REGEX_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\brm\s+-r[f]\s+\/(\s|$|\*|\))/i, label: 'rm -rf /' },
   { pattern: /\brm\s+-[f]r\s+\/(\s|$|\*|\))/i, label: 'rm -fr /' },
+  { pattern: /\brm\s+-[rf]{1,2}\s+\/private\/(etc|var|home)(\/|\s|$)/i, label: 'rm -rf /private/{etc,var,home}' },
 ];
 
 // =============================================================================
