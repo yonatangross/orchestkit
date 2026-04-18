@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Design → PR · OrchestKit Bet A Playground</title>
+<style>
+  :root {
+    --bg: #0b0b14;
+    --bg-elev: #14141f;
+    --bg-panel: #1a1a28;
+    --border: #2a2a3e;
+    --border-soft: #1f1f30;
+    --text: #e7e7f0;
+    --text-dim: #8b8ba3;
+    --text-faint: #5a5a70;
+    --primary: #7C3AED;
+    --primary-soft: #5b2bb5;
+    --primary-glow: rgba(124, 58, 237, 0.25);
+    --coral: #D97757;
+    --coral-soft: #B55E41;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, sans-serif;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: 1fr auto;
+    min-height: 100vh;
+  }
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  }
+  /* CONTROLS */
+  .controls {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+    grid-row: 1 / 3;
+  }
+  .controls h1 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .controls .subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 22px;
+    font-family: var(--mono);
+  }
+  .group { margin-bottom: 22px; }
+  .group-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .preset-btn {
+    background: var(--bg-panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+  }
+  .preset-btn:hover { border-color: var(--primary); background: var(--primary-glow); }
+  .preset-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+    color: var(--text);
+  }
+  .preset-btn-wide { grid-column: 1 / -1; }
+
+  .seg {
+    display: flex;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .seg button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 6px 4px;
+    font: 11px var(--mono);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.12s;
+  }
+  .seg button.on { background: var(--primary); color: white; }
+  .seg button:hover:not(.on) { color: var(--text); }
+
+  .radio-stack { display: flex; flex-direction: column; gap: 4px; }
+  .radio-stack label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.12s;
+  }
+  .radio-stack label:hover { border-color: var(--border); }
+  .radio-stack input:checked + span {
+    color: var(--text);
+  }
+  .radio-stack input { accent-color: var(--primary); }
+  .radio-stack label:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+  }
+  .tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font: 10px var(--mono);
+    margin-left: auto;
+  }
+  .tag-add { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+  .tag-mod { background: rgba(251, 191, 36, 0.15); color: var(--amber); }
+  .tag-con { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+
+  /* PREVIEW */
+  .preview {
+    padding: 28px 32px;
+    overflow-y: auto;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, 0.08), transparent 60%),
+      radial-gradient(ellipse at 90% 100%, rgba(217, 119, 87, 0.06), transparent 50%),
+      var(--bg);
+  }
+  .preview-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .preview-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .preview-title .coral { color: var(--coral); }
+  .preview-title .primary { color: var(--primary); }
+  .preview-meta {
+    font: 11px var(--mono);
+    color: var(--text-dim);
+  }
+
+  .pipeline {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre;
+    color: var(--text-dim);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+  }
+  .pipeline .claude { color: var(--coral); font-weight: 600; }
+  .pipeline .ork { color: var(--primary); font-weight: 600; }
+  .pipeline .gh { color: var(--text); font-weight: 600; }
+  .pipeline .muted { color: var(--text-faint); }
+  .pipeline .active {
+    background: var(--primary-glow);
+    color: var(--text);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .pipeline .hit {
+    color: var(--green);
+  }
+  .pipeline .skip {
+    color: var(--text-faint);
+    text-decoration: line-through;
+  }
+
+  .manifest {
+    margin-top: 18px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font: 12px var(--mono);
+  }
+  .manifest-head {
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .manifest-row {
+    display: grid;
+    grid-template-columns: 20px 110px 80px 1fr;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--border-soft);
+    align-items: baseline;
+  }
+  .manifest-row:last-child { border-bottom: none; }
+  .glyph { text-align: center; }
+  .dec-scaffold { color: var(--green); }
+  .dec-reuse { color: var(--amber); }
+  .dec-adapt { color: var(--coral); }
+  .muted-path { color: var(--text-dim); font-size: 11px; }
+
+  .tokens-row {
+    display: flex;
+    gap: 18px;
+    margin-top: 12px;
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+  .tokens-row span { color: var(--text-dim); }
+  .tokens-row b { color: var(--text); font-weight: 600; }
+
+  .node-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+    font: 11px var(--mono);
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+  .node-legend .swatch {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* PROMPT OUTPUT */
+  .prompt-bar {
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    grid-column: 2 / 3;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  @media (max-width: 900px) {
+    .prompt-bar { grid-column: 1 / 2; }
+  }
+  .prompt-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .prompt-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .prompt-text {
+    font: 13px/1.55 var(--mono);
+    color: var(--text);
+    background: var(--bg-panel);
+    padding: 12px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+  .copy-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font: 600 12px system-ui, sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    min-width: 90px;
+  }
+  .copy-btn:hover { background: var(--primary-soft); }
+  .copy-btn.ok { background: var(--green); color: #0b0b14; }
+
+  /* ISSUE BADGES */
+  .issues {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .issue-badge {
+    font: 10px var(--mono);
+    color: var(--text-dim);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .issue-badge b { color: var(--primary); font-weight: 600; }
+</style>
+</head>
+<body>
+<aside class="controls">
+  <h1>Claude Design → PR</h1>
+  <div class="subtitle">OrchestKit · Bet A · Milestone #113</div>
+
+  <div class="group">
+    <div class="group-title">Presets</div>
+    <div class="preset-grid">
+      <button class="preset-btn preset-btn-wide active" data-preset="full-loop">⟲ Full closed loop</button>
+      <button class="preset-btn" data-preset="scaffold">scaffold</button>
+      <button class="preset-btn" data-preset="reuse">reuse</button>
+      <button class="preset-btn" data-preset="adapt">adapt</button>
+      <button class="preset-btn" data-preset="conflict">token conflict</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Entry point</div>
+    <div class="seg" id="entryPoint">
+      <button data-val="ship" class="on">/ork:design-ship</button>
+      <button data-val="import">/ork:design-import</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Primary component decision</div>
+    <div class="radio-stack" id="decisionGroup">
+      <label><input type="radio" name="dec" value="scaffold" checked><span>Scaffold — no match found</span><span class="tag" style="color:var(--green);background:rgba(74,222,128,.15)">new</span></label>
+      <label><input type="radio" name="dec" value="reuse"><span>Reuse — existing match</span><span class="tag" style="color:var(--amber);background:rgba(251,191,36,.15)">skip</span></label>
+      <label><input type="radio" name="dec" value="adapt"><span>Adapt — partial match</span><span class="tag" style="color:var(--coral);background:rgba(217,119,87,.15)">edit</span></label>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Token reconciliation</div>
+    <div class="radio-stack" id="tokenGroup">
+      <label><input type="radio" name="tok" value="clean" checked><span>Clean — no diff</span><span class="tag tag-add">0</span></label>
+      <label><input type="radio" name="tok" value="added"><span>Added only</span><span class="tag tag-add">+3</span></label>
+      <label><input type="radio" name="tok" value="modified"><span>Modified value</span><span class="tag tag-mod">~1</span></label>
+      <label><input type="radio" name="tok" value="conflict"><span>Conflict (blocks)</span><span class="tag tag-con">!1</span></label>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Source binding</div>
+    <div class="seg" id="sourceBind">
+      <button data-val="repo" class="on">repo connected</button>
+      <button data-val="none">no binding</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Related issues</div>
+    <div class="issues">
+      <span class="issue-badge"><b>#1384</b> agent</span>
+      <span class="issue-badge"><b>#1382</b> import</span>
+      <span class="issue-badge"><b>#1387</b> ship</span>
+      <span class="issue-badge"><b>#1386</b> hook</span>
+      <span class="issue-badge"><b>#1383</b> docs</span>
+    </div>
+  </div>
+</aside>
+
+<main class="preview">
+  <div class="preview-header">
+    <div class="preview-title"><span class="coral">claude.ai/design</span> → <span class="primary">OrchestKit</span> → GitHub PR</div>
+    <div class="preview-meta" id="meta">full loop · scaffold · clean</div>
+  </div>
+
+  <pre class="pipeline" id="pipeline"></pre>
+
+  <div class="manifest">
+    <div class="manifest-head">Import manifest (preview)</div>
+    <div id="manifestRows"></div>
+    <div class="tokens-row" id="tokensRow"></div>
+  </div>
+
+  <div class="node-legend">
+    <span><span class="swatch" style="background:var(--coral)"></span>Claude Design</span>
+    <span><span class="swatch" style="background:var(--primary)"></span>OrchestKit skill/agent/hook</span>
+    <span><span class="swatch" style="background:var(--green)"></span>scaffold</span>
+    <span><span class="swatch" style="background:var(--amber)"></span>reuse</span>
+    <span><span class="swatch" style="background:var(--coral)"></span>adapt</span>
+  </div>
+</main>
+
+<div class="prompt-bar">
+  <div class="prompt-body">
+    <div class="prompt-label">Prompt for Claude</div>
+    <div class="prompt-text" id="promptText"></div>
+  </div>
+  <button class="copy-btn" id="copyBtn">Copy</button>
+</div>
+
+<script>
+(function () {
+  const DEFAULTS = {
+    entryPoint: 'ship',
+    decision: 'scaffold',
+    tokens: 'clean',
+    sourceBind: 'repo',
+    preset: 'full-loop',
+  };
+  const state = { ...DEFAULTS };
+
+  const PRESETS = {
+    'full-loop':  { entryPoint: 'ship',   decision: 'scaffold', tokens: 'added',    sourceBind: 'repo' },
+    'scaffold':   { entryPoint: 'import', decision: 'scaffold', tokens: 'clean',    sourceBind: 'repo' },
+    'reuse':      { entryPoint: 'import', decision: 'reuse',    tokens: 'clean',    sourceBind: 'repo' },
+    'adapt':      { entryPoint: 'import', decision: 'adapt',    tokens: 'modified', sourceBind: 'repo' },
+    'conflict':   { entryPoint: 'import', decision: 'scaffold', tokens: 'conflict', sourceBind: 'repo' },
+  };
+
+  // ---------- wiring ----------
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.preset;
+      state.preset = p;
+      Object.assign(state, PRESETS[p]);
+      syncUI();
+      updateAll();
+    });
+  });
+  document.querySelectorAll('#entryPoint button').forEach(b => {
+    b.addEventListener('click', () => {
+      state.entryPoint = b.dataset.val;
+      state.preset = null;
+      syncUI();
+      updateAll();
+    });
+  });
+  document.querySelectorAll('#sourceBind button').forEach(b => {
+    b.addEventListener('click', () => {
+      state.sourceBind = b.dataset.val;
+      state.preset = null;
+      syncUI();
+      updateAll();
+    });
+  });
+  document.querySelectorAll('#decisionGroup input').forEach(i => {
+    i.addEventListener('change', () => {
+      state.decision = i.value;
+      state.preset = null;
+      syncUI();
+      updateAll();
+    });
+  });
+  document.querySelectorAll('#tokenGroup input').forEach(i => {
+    i.addEventListener('change', () => {
+      state.tokens = i.value;
+      state.preset = null;
+      syncUI();
+      updateAll();
+    });
+  });
+
+  function syncUI() {
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.preset === state.preset);
+    });
+    document.querySelectorAll('#entryPoint button').forEach(b => {
+      b.classList.toggle('on', b.dataset.val === state.entryPoint);
+    });
+    document.querySelectorAll('#sourceBind button').forEach(b => {
+      b.classList.toggle('on', b.dataset.val === state.sourceBind);
+    });
+    document.querySelectorAll('#decisionGroup input').forEach(i => {
+      i.checked = (i.value === state.decision);
+    });
+    document.querySelectorAll('#tokenGroup input').forEach(i => {
+      i.checked = (i.value === state.tokens);
+    });
+  }
+
+  // ---------- render ----------
+  function renderPipeline() {
+    const d = state.decision;
+    const t = state.tokens;
+    const ep = state.entryPoint;
+    const bind = state.sourceBind;
+
+    const shipStages = (ep === 'ship');
+    const blocked = (t === 'conflict');
+
+    const bindLine = bind === 'repo'
+      ? `<span class="muted">│ (repo connected — Claude Design reads tokens + components from the codebase)</span>`
+      : `<span class="muted skip">│ no repo binding — bundle may not match your design tokens</span>`;
+
+    const decGlyph = d === 'scaffold' ? '<span class="hit">✓ scaffold</span>'
+                   : d === 'reuse'    ? '<span style="color:var(--amber)">↻ reuse</span>'
+                                      : '<span style="color:var(--coral)">⤳ adapt</span>';
+    const decNote = d === 'scaffold' ? 'PricingCard  → src/components/pricing/PricingCard.tsx'
+                   : d === 'reuse'    ? 'Button       → reuse src/components/ui/Button.tsx  (nothing written)'
+                                      : 'Hero         → adapt from src/components/Hero.tsx';
+
+    const tokenLine = t === 'clean'    ? '<span class="muted">tokens: clean — nothing to reconcile</span>'
+                    : t === 'added'    ? '<span class="hit">tokens: +3 added to design-tokens.json (safe)</span>'
+                    : t === 'modified' ? '<span style="color:var(--amber)">tokens: ~1 modified — user accepted bundle value</span>'
+                                       : '<span style="color:var(--red)">tokens: !1 conflict — BLOCKED (AskUserQuestion)</span>';
+
+    const shipTail = shipStages && !blocked ? `
+<span class="muted">         │</span>
+<span class="muted">         ▼</span>
+┌────────────────────────────────────┐
+│  <span class="ork">/ork:cover</span>      Storybook stories  │  2
+│                 + Playwright E2E     │
+└────────────────┬───────────────────┘
+<span class="muted">                 │</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  <span class="ork">/ork:expect</span>     diff-aware browser  │  3
+│                 verification (CDP)   │
+└────────────────┬───────────────────┘
+<span class="muted">                 │</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  <span class="ork">/ork:create-pr</span>  PR body: URL, diff,  │  4
+│                 screenshots, cover   │
+│                 label: claude-design │
+└────────────────┬───────────────────┘
+<span class="muted">                 │</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  <span class="gh">GitHub PR</span>        ← reviewable         │
+└────────────────┬───────────────────┘
+<span class="muted">                 │  merge</span>
+<span class="muted">                 ▼</span>
+<span class="muted">         closes the loop — next Claude Design</span>
+<span class="muted">         session reads the new tokens/components</span>`
+    : blocked ? `
+<span class="muted">         │</span>
+<span style="color:var(--red)">         ╳  BLOCKED: resolve token conflict before scaffold</span>`
+    : `
+<span class="muted">         │</span>
+<span class="muted">         ▼</span>
+<span class="muted">   Import manifest (stdout) · no PR (use /ork:design-ship for end-to-end)</span>`;
+
+    const importActive = '<span class="active">/ork:design-import</span>';
+    const shipActive = '<span class="active">/ork:design-ship</span>';
+
+    document.getElementById('pipeline').innerHTML =
+`<span class="claude">┌─ claude.ai/design ────────────────┐</span>
+<span class="claude">│  Prompt → refine → export handoff │</span>
+<span class="claude">└─────────────┬─────────────────────┘</span>
+${bindLine}
+<span class="muted">              │  handoff bundle (URL or file)</span>
+<span class="muted">              ▼</span>
+┌────────────────────────────────────┐
+│  ${ep === 'ship' ? shipActive : importActive}      <span class="muted">(entry point)</span>
+└────────────────┬───────────────────┘
+<span class="muted">                 │  delegates to…</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  <span class="ork">claude-design-orchestrator</span> (agent)│
+│   • fetch + validate bundle         │
+│   • dedup via component-search      │
+│   • write .claude/design-handoffs/  │
+└────────────────┬───────────────────┘
+<span class="muted">                 │</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  ${tokenLine}
+└────────────────┬───────────────────┘
+<span class="muted">                 │</span>
+<span class="muted">                 ▼</span>
+┌────────────────────────────────────┐
+│  per-component decision:            │  1
+│     ${decGlyph}
+│     <span class="muted">${decNote}</span>
+└────────────────┬───────────────────┘
+<span class="muted">                 │  delegates scaffold → <span class="ork">/ork:design-to-code</span></span>
+<span class="muted">                 ▼</span>
+<span class="muted">┌─ hook: <span class="ork">posttool/design-import/auto-verify</span></span>
+<span class="muted">│   fires on SkillEnd                │</span>
+<span class="muted">│   → suggests /ork:dogfood + /ork:expect (non-blocking)</span>
+<span class="muted">└────────────────┬───────────────────┘</span>${shipTail}`;
+  }
+
+  function renderManifest() {
+    const d = state.decision;
+    const rows = [];
+
+    // Always three components example
+    const comps = [
+      { name: 'PricingCard', decision: 'scaffold', path: 'src/components/pricing/PricingCard.tsx' },
+      { name: 'Button',      decision: 'reuse',    path: 'existing: src/components/ui/Button.tsx' },
+      { name: 'Hero',        decision: 'adapt',    path: 'adapted: src/components/Hero.tsx' },
+    ];
+
+    // Put the currently-selected decision first
+    comps.sort((a, b) => (a.decision === d ? -1 : b.decision === d ? 1 : 0));
+
+    comps.forEach(c => {
+      const glyph = c.decision === 'scaffold' ? '✓' : c.decision === 'reuse' ? '↻' : '⤳';
+      const cls = 'dec-' + c.decision;
+      const active = c.decision === d ? ' style="background:var(--primary-glow);border-radius:4px"' : '';
+      rows.push(`
+<div class="manifest-row"${active}>
+  <span class="glyph ${cls}">${glyph}</span>
+  <span>${c.name}</span>
+  <span class="${cls}">${c.decision}</span>
+  <span class="muted-path">${c.path}</span>
+</div>`);
+    });
+    document.getElementById('manifestRows').innerHTML = rows.join('');
+
+    const t = state.tokens;
+    const tRow = document.getElementById('tokensRow');
+    tRow.innerHTML = {
+      clean:    `<span>tokens</span> <b>0</b> added · <b>0</b> modified · <b>0</b> conflicts`,
+      added:    `<span>tokens</span> <b style="color:var(--green)">+3</b> added · <b>0</b> modified · <b>0</b> conflicts`,
+      modified: `<span>tokens</span> <b style="color:var(--green)">+1</b> added · <b style="color:var(--amber)">~1</b> modified · <b>0</b> conflicts`,
+      conflict: `<span>tokens</span> <b>0</b> added · <b>0</b> modified · <b style="color:var(--red)">!1</b> conflict (unresolved)`,
+    }[t];
+  }
+
+  function renderMeta() {
+    const parts = [
+      state.entryPoint === 'ship' ? 'end-to-end' : 'import only',
+      state.decision,
+      state.tokens,
+    ];
+    if (state.sourceBind === 'none') parts.push('no repo binding');
+    document.getElementById('meta').textContent = parts.join(' · ');
+  }
+
+  // ---------- prompt ----------
+  function updatePrompt() {
+    const parts = [];
+    const entry = state.entryPoint === 'ship' ? '/ork:design-ship' : '/ork:design-import';
+
+    parts.push(`Run ${entry} with a Claude Design handoff bundle.`);
+
+    if (state.sourceBind === 'none') {
+      parts.push('The repo is NOT connected to Claude Design — warn the user that the bundle may not match project tokens, and recommend connecting the repo first.');
+    }
+
+    if (state.decision === 'reuse') {
+      parts.push('The first component in the bundle already exists in the codebase — the orchestrator agent must run component-search (Storybook MCP first, then 21st.dev, then filesystem) and mark it reuse so nothing is duplicated.');
+    } else if (state.decision === 'adapt') {
+      parts.push('The first component has a partial match — produce an adapt decision that edits the existing file rather than scaffolding a new one. Preserve existing tests.');
+    } else {
+      parts.push('The first component has no match — scaffold a new one via /ork:design-to-code, using the bundle\'s tsx_scaffold as the seed and the project\'s resolved tokens.');
+    }
+
+    if (state.tokens === 'conflict') {
+      parts.push('A token conflict is present — BLOCK scaffolding and use AskUserQuestion to resolve (keep project, accept bundle, or namespace the bundle value). Do not proceed until resolved.');
+    } else if (state.tokens === 'modified') {
+      parts.push('One token value differs from the project — surface the diff and ask whether to keep project or accept bundle before writing components.');
+    } else if (state.tokens === 'added') {
+      parts.push('The bundle adds new tokens — append them to design-tokens.json without prompting (additions are safe).');
+    }
+
+    if (state.entryPoint === 'ship' && state.tokens !== 'conflict') {
+      parts.push('After the import, run /ork:cover for Storybook + Playwright coverage, /ork:expect for diff-aware browser verification, then open a PR via /ork:create-pr. Embed the handoff URL, before/after screenshots, component decisions, and coverage delta in the PR body. Label it claude-design.');
+    } else if (state.entryPoint === 'import') {
+      parts.push('Do not open a PR — stop at the import manifest. The post-design-import hook will nudge /ork:dogfood + /ork:expect as non-blocking follow-ups.');
+    }
+
+    parts.push('Write bundle→PR provenance to .claude/design-handoffs/<bundle_id>.json so the link back from the merged PR to the originating Claude Design URL is traceable.');
+
+    document.getElementById('promptText').textContent = parts.join('\n\n');
+  }
+
+  // ---------- copy ----------
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('copyBtn');
+    try {
+      await navigator.clipboard.writeText(document.getElementById('promptText').textContent);
+      btn.textContent = 'Copied!';
+      btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1400);
+    } catch (e) {
+      btn.textContent = 'Copy failed';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+    }
+  });
+
+  function updateAll() {
+    renderPipeline();
+    renderManifest();
+    renderMeta();
+    updatePrompt();
+  }
+
+  // init
+  Object.assign(state, PRESETS['full-loop']);
+  syncUI();
+  updateAll();
+})();
+</script>
+</body>
+</html>
