@@ -29,6 +29,14 @@
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
       "Bash(rm -rf .)",
+      "Bash(rm -rf /private/etc*)",
+      "Bash(rm -rf /private/var*)",
+      "Bash(rm -rf /private/home*)",
+      "Bash(rm -fr /private/etc*)",
+      "Bash(rm -fr /private/var*)",
+      "Bash(rm -fr /private/home*)",
+      "Bash(find:*-delete*)",
+      "Bash(find:*-fprint*)",
       "Bash(chmod 777 *)",
       "Bash(chmod -R 777 *)",
       "Bash(git push --force origin main)",
@@ -40,6 +48,22 @@
       "Bash(> /dev/sd*)",
       "Bash(:(){ :|:& };:)"
     ]
+  },
+  "sandbox": {
+    "network": {
+      "deniedDomains": [
+        "*.evil.com",
+        "raw.githubusercontent.com/*/malicious/*",
+        "pastebin.com",
+        "paste.ee",
+        "hastebin.com",
+        "ix.io",
+        "transfer.sh",
+        "0x0.st",
+        "anonfile.com",
+        "bashupload.com"
+      ]
+    }
   },
   "keybindings": [
     { "key": "ctrl+k ctrl+f", "skill": "fix-issue" },
