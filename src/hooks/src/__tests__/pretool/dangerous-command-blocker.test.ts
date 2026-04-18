@@ -64,6 +64,10 @@ describe('dangerous-command-blocker', () => {
         'rm -rf /private/home',
         'rm -rf /private/etc/passwd',
         'rm -fr /private/var',
+        'rm -R /private/etc',           // uppercase -R (valid GNU flag)
+        'rm -rf /private//etc',         // double-slash normalization bypass
+        'rm -rf /private/./etc',        // /./ normalization bypass
+        'rm -rf /private///var',        // triple-slash
       ];
       for (const cmd of privatePaths) {
         const result = dangerousCommandBlocker(createBashInput(cmd));
@@ -73,8 +77,14 @@ describe('dangerous-command-blocker', () => {
     });
 
     it('allows rm -rf on /private/tmp (tmpdir cleanup is sometimes legit)', () => {
-      const result = dangerousCommandBlocker(createBashInput('rm -rf /private/tmp/stale'));
-      expect(result.continue).toBe(true);
+      const safe = [
+        'rm -rf /private/tmp/stale',
+        'rm -rf /private/tmp',
+      ];
+      for (const cmd of safe) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should allow: ${cmd}`).toBe(true);
+      }
     });
 
     it('allows rm -rf on safe directories', () => {

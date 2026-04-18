@@ -119,6 +119,10 @@ describe('auto-approve-safe-bash', () => {
       'tail -f log.txt',
       'wc -l file.txt',
       'find . -name "*.ts"',
+      'find . -print',
+      'find . -print0',
+      'find . -name "*.log" -printf "%p\\n"',
+      'find . -type f',
       'which node',
       'type python',
       'env',
@@ -198,13 +202,17 @@ describe('auto-approve-safe-bash', () => {
       'npm publish',
       'git push origin main',
       'docker run --rm -v /:/host alpine cat /host/etc/shadow',
-      // CC 2.1.113: find with -delete/-fprint bypasses the compound-command check
-      // (no `;` separator) so must be rejected at the pattern layer.
+      // CC 2.1.113: find with -delete / -fprint* / -fls / -ok bypasses the
+      // compound check (no `;` separator) so must be rejected at the pattern
+      // layer. -print/-print0/-printf are stdout-only and NOT blocked (exfil
+      // requires piping, caught by isCompoundCommand).
       'find . -delete',
       'find . -name "*.log" -delete',
       'find /tmp -type f -delete',
       'find . -fprint /tmp/out',
+      'find . -fprint0 /tmp/out',
       'find . -fprintf /tmp/out "%p\\n"',
+      'find / -fls /tmp/inventory',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {

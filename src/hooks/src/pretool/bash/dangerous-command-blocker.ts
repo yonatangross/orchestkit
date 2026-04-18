@@ -129,7 +129,14 @@ export function dangerousCommandBlocker(input: HookInput, ctx: HookContext = NOO
   }
 
   // --- DENY tier: root-path regex patterns ---
-  const normalizedForRegex = normalizeSingle(command);
+  // Collapse `//` → `/` and `/./` → `/` on paths so that `rm -rf /private//etc`
+  // and `rm -rf /private/./etc` normalize to `/private/etc` before regex
+  // matching. normalizeSingle handles quotes/escapes/compound ops but does
+  // NOT canonicalize path-traversal artifacts. Without this, the /private
+  // regex was bypassable via trivial slash-doubling.
+  const normalizedForRegex = normalizeSingle(command)
+    .replace(/\/+/g, '/')
+    .replace(/\/\.\//g, '/');
   for (const { pattern, label } of DENY_REGEX_PATTERNS) {
     if (pattern.test(normalizedForRegex)) {
       ctx.log('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${label}`);

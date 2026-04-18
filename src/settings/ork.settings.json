@@ -49,22 +49,6 @@
       "Bash(:(){ :|:& };:)"
     ]
   },
-  "sandbox": {
-    "network": {
-      "deniedDomains": [
-        "*.evil.com",
-        "raw.githubusercontent.com/*/malicious/*",
-        "pastebin.com",
-        "paste.ee",
-        "hastebin.com",
-        "ix.io",
-        "transfer.sh",
-        "0x0.st",
-        "anonfile.com",
-        "bashupload.com"
-      ]
-    }
-  },
   "keybindings": [
     { "key": "ctrl+k ctrl+f", "skill": "fix-issue" },
     { "key": "ctrl+k ctrl+i", "skill": "implement" },
@@ -102,6 +86,27 @@
         "*.pypi.org",
         "registry.terraform.io",
         "api.anthropic.com"
+      ],
+      "deniedDomains": [
+        "pastebin.com",
+        "paste.ee",
+        "hastebin.com",
+        "ix.io",
+        "transfer.sh",
+        "0x0.st",
+        "anonfile.com",
+        "bashupload.com",
+        "termbin.com",
+        "dpaste.com",
+        "sprunge.us",
+        "webhook.site",
+        "*.ngrok.io",
+        "*.ngrok-free.app",
+        "*.ngrok.app",
+        "*.trycloudflare.com",
+        "*.serveo.net",
+        "requestbin.com",
+        "*.requestbin.com"
       ]
     }
   },

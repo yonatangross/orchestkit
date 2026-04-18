@@ -261,6 +261,25 @@ describe('cc-version-matrix', () => {
       expect(hasFeature('2.1.111', 'stream_json_plugin_errors')).toBe(true);
     });
 
+    test('sandbox_denied_domains boundary: absent at 2.1.112, present at 2.1.113', () => {
+      expect(hasFeature('2.1.112', 'sandbox_denied_domains')).toBe(false);
+      expect(hasFeature('2.1.113', 'sandbox_denied_domains')).toBe(true);
+    });
+
+    test('native_binary_spawn boundary: absent at 2.1.112, present at 2.1.113', () => {
+      expect(hasFeature('2.1.112', 'native_binary_spawn')).toBe(false);
+      expect(hasFeature('2.1.113', 'native_binary_spawn')).toBe(true);
+    });
+
+    test('bash_find_exec_no_approve available at 2.1.113', () => {
+      expect(hasFeature('2.1.113', 'bash_find_exec_no_approve')).toBe(true);
+    });
+
+    test('agent_team_permission_fix boundary: absent at 2.1.113, present at 2.1.114', () => {
+      expect(hasFeature('2.1.113', 'agent_team_permission_fix')).toBe(false);
+      expect(hasFeature('2.1.114', 'agent_team_permission_fix')).toBe(true);
+    });
+
     test('returns false for unknown feature', () => {
       expect(hasFeature('2.1.47', 'nonexistent_feature' as any)).toBe(false);
     });
