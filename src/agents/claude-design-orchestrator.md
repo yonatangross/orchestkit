@@ -1,6 +1,6 @@
 ---
 name: claude-design-orchestrator
-description: "Claude Design handoff orchestration: parses bundles exported from claude.ai/design, normalizes their schema, maps proposed components against the existing codebase via component-search before scaffolding, and tracks bundle-to-PR provenance so design intent stays linked to shipped code."
+description: "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code."
 model: sonnet
 category: frontend
 maxTurns: 25

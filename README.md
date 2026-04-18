@@ -213,7 +213,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
 - **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
 - **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
-- **103 skills**, **36 agents**, **173 hooks**, **23 invocable commands**
+- **105 skills**, **37 agents**, **180 hooks**, **25 invocable commands**
 
 **v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 
