@@ -283,7 +283,7 @@ export const AGENTS: Agent[] = [
     "model": "sonnet",
     "taskTypes": [
       "design",
-      "integration"
+      "build"
     ],
     "keywords": [
       "claude design",

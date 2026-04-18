@@ -34,7 +34,7 @@ hooks:
 mcpServers: [context7]
 taskTypes:
   - design
-  - integration
+  - build
 keywords:
   - "claude design"
   - "claude.ai/design"
@@ -45,7 +45,6 @@ keywords:
 examplePrompts:
   - "Import this Claude Design handoff bundle and scaffold the components"
   - "Parse the handoff URL and tell me which components already exist"
-  - "Track the provenance of this PR back to its Claude Design source"
 ---
 
 ## Directive
