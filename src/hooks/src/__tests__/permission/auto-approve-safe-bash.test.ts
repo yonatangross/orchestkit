@@ -198,6 +198,13 @@ describe('auto-approve-safe-bash', () => {
       'npm publish',
       'git push origin main',
       'docker run --rm -v /:/host alpine cat /host/etc/shadow',
+      // CC 2.1.113: find with -delete/-fprint bypasses the compound-command check
+      // (no `;` separator) so must be rejected at the pattern layer.
+      'find . -delete',
+      'find . -name "*.log" -delete',
+      'find /tmp -type f -delete',
+      'find . -fprint /tmp/out',
+      'find . -fprintf /tmp/out "%p\\n"',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {

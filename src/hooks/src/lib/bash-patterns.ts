@@ -24,6 +24,10 @@ export const REJECT_PATTERNS: RegExp[] = [
   /^git\s+clean/,
   /^rm\s/,
   /^chmod\s/,
+  // find(1) with destructive actions. -exec uses `;` (caught by isCompoundCommand),
+  // but -delete/-fprint* are single-token flags that bypass the compound check.
+  // CC 2.1.113 stopped auto-approving these under Bash(find:*); we mirror it.
+  /^find\b.*\s-(delete|fprint[0-9]*|fprintf)\b/,
 ];
 
 // Note: For compound command detection, use isCompoundCommand() from
