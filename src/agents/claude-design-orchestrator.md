@@ -4,7 +4,7 @@ description: "Parses claude.ai/design handoff bundles: validates schema, dedups 
 model: sonnet
 category: frontend
 maxTurns: 25
-effort: medium
+effort: high
 context: fork
 color: magenta
 memory: project

@@ -11,7 +11,7 @@ author: OrchestKit
 user-invocable: true
 complexity: medium
 persuasion-type: collaborative
-effort: medium
+effort: high
 model: sonnet
 agent: claude-design-orchestrator
 allowed-tools:
