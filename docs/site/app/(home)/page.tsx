@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
@@ -339,7 +339,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {RECIPES.map((r, i) => (
+            {RECIPES.map((r, idx) => (
               <Link
                 key={r.href}
                 href={r.href}
@@ -347,7 +347,7 @@ export default async function HomePage() {
               >
                 <div className="mb-3 flex items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
                   <span className="tabular-nums">
-                    {String(i + 1).padStart(2, "0")} / {String(RECIPES.length).padStart(2, "0")}
+                    {String(idx + 1).padStart(2, "0")} / {String(RECIPES.length).padStart(2, "0")}
                   </span>
                   {r.badge ? (
                     <span className="rounded border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-fd-primary">

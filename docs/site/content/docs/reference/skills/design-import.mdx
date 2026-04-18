@@ -154,7 +154,7 @@ The agent already ran component-search per component. Read decisions from the no
 
 For each component with decision `scaffold` or `adapt`, invoke design-to-code:
 
-```python
+````python
 for component in payload["components"]:
     if component["decision"] in ("scaffold", "adapt"):
         # Compose, don't reimplement — design-to-code owns the EXTRACT/MATCH/ADAPT/RENDER pipeline
@@ -177,7 +177,7 @@ for component in payload["components"]:
           Write the component, mirror existing project file structure, use project tokens.
           """
         )
-```
+````
 
 ## Phase 5 — Provenance
 
