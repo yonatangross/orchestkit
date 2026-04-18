@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
@@ -23,22 +23,35 @@ async function getStarCount(): Promise<number | null> {
 const PRIMITIVES = [
   {
     letter: "S",
+    tag: "/ork",
     title: "Skills",
     count: COUNTS.skills,
-    desc: `Reusable knowledge modules — auth patterns, migrations, API design. ${COUNTS.commands} commands + ${COUNTS.skills - COUNTS.commands} auto-injected references.`,
+    unit: "modules",
+    desc: (
+      <>
+        Reusable knowledge modules — auth patterns, migrations, API design.{" "}
+        <span className="font-mono text-fd-foreground">{COUNTS.commands} commands</span> +{" "}
+        <span className="font-mono text-fd-foreground">{COUNTS.skills - COUNTS.commands} auto-injected</span>{" "}
+        references.
+      </>
+    ),
     href: "/docs/reference/skills",
   },
   {
     letter: "A",
+    tag: "@agent",
     title: "Agents",
     count: COUNTS.agents,
+    unit: "personas",
     desc: "Specialized AI personas — security auditors, frontend devs, DB engineers. Curated tools and skills per agent.",
     href: "/docs/reference/agents",
   },
   {
     letter: "H",
+    tag: "lifecycle",
     title: "Hooks",
     count: COUNTS.hooks,
+    unit: "hooks",
     desc: "TypeScript lifecycle automation — block dangerous commands, inject context, enforce security. Non-blocking.",
     href: "/docs/reference/hooks",
   },
@@ -46,18 +59,21 @@ const PRIMITIVES = [
 
 const PERSONAS = [
   {
+    eyebrow: "01 / New here",
     title: "New to OrchestKit?",
     desc: "Install and ship your first feature in under 5 minutes.",
     cta: "Get started",
     href: "/docs/getting-started/installation",
   },
   {
+    eyebrow: "02 / Evaluating",
     title: "Evaluating for your team?",
     desc: `${COUNTS.hooks} hooks enforce security and quality automatically. Zero config.`,
     cta: "See the guardrails",
     href: "/docs/reference/hooks",
   },
   {
+    eyebrow: "03 / Existing user",
     title: "Already using Claude Code?",
     desc: `${COUNTS.agents} parallel specialist agents, 3-tier memory, keyword activation.`,
     cta: "What OrchestKit adds",
@@ -65,303 +81,384 @@ const PERSONAS = [
   },
 ] as const;
 
-const QUICK_PATHS = [
-  { title: "First 10 Minutes", desc: "Install to first AI-assisted commit", href: "/docs/getting-started/first-10-minutes" },
-  { title: "Find Your Path", desc: "Backend, Frontend, AI, or DevOps", href: "/docs/getting-started/navigating" },
-  { title: "Cookbook", desc: "Real workflow walkthroughs", href: "/docs/cookbook/implement-feature" },
-  { title: "How It Works", desc: "Skills, Agents, and Hooks in depth", href: "/docs/foundations/skills-agents-hooks" },
-] as const;
+type Recipe = {
+  title: string;
+  tag: string;
+  cmd: string;
+  href: string;
+  badge?: string;
+};
+
+const RECIPES: Recipe[] = [
+  { title: "Implement a feature", tag: "From idea to merged PR with parallel AI agents.", cmd: "/ork:implement", href: "/docs/cookbook/implement-feature" },
+  { title: "Claude Design → PR", tag: "Handoff URL in, reviewable PR out.", cmd: "/ork:design-ship", href: "/docs/cookbook/claude-design-handoff", badge: "NEW" },
+  { title: "Review a PR", tag: "Parallel specialized reviewers, synthesized comment.", cmd: "/ork:review-pr", href: "/docs/cookbook/review-pr" },
+  { title: "Fix a GitHub issue", tag: "Root-cause analysis, regression detection, linked PR.", cmd: "/ork:fix-issue", href: "/docs/cookbook/fix-github-issue" },
+  { title: "Task management", tag: "Multi-agent TaskCreate / TaskList / dependency chains.", cmd: "TaskCreate", href: "/docs/cookbook/task-management" },
+  { title: "Set up memory", tag: "3-tier knowledge graph that persists across sessions.", cmd: "/ork:memory", href: "/docs/cookbook/setup-memory" },
+  { title: "Create a demo video", tag: "VHS + Remotion pipeline, auto-generated voiceover.", cmd: "/ork:demo-producer", href: "/docs/cookbook/create-demo-video" },
+  { title: "Security audit", tag: "Parallel scan across auth, secrets, OWASP, dependencies.", cmd: "/ork:audit-full", href: "/docs/cookbook/security-audit" },
+];
+
+const formatStars = (n: number): string =>
+  n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : `${n}`;
 
 export default async function HomePage() {
   const stars = await getStarCount();
+  const primitiveTotal = COUNTS.skills + COUNTS.agents + COUNTS.hooks;
+
   return (
     <main>
-      {/* Hero — left-aligned, dot-grid background */}
-      <section aria-labelledby="hero-heading" className="relative min-h-[70vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 bg-dot-grid" aria-hidden="true" />
+      {/* ============ HERO ============ */}
+      <section
+        aria-labelledby="hero-heading"
+        className="relative overflow-hidden border-b border-fd-border"
+      >
+        {/* Radial emerald gradient top-center */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, var(--color-fd-primary-10) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 50% 10%, var(--color-fd-primary-5) 0%, transparent 70%)",
+          }}
+        />
+        {/* Dot grid motif */}
+        <div aria-hidden="true" className="absolute inset-0 bg-dot-grid opacity-60" />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1024px] px-6 py-20">
+        <div className="relative mx-auto max-w-[1200px] px-7 py-24 sm:py-28 text-center">
           <AnimateOnView>
-            <span className="overline">OrchestKit v{SITE.version}</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-primary">
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full bg-fd-primary"
+                style={{ boxShadow: "0 0 0 3px var(--color-fd-primary-20)" }}
+              />
+              The complete AI development toolkit for Claude Code
+            </span>
           </AnimateOnView>
 
-          <AnimateOnView delay={100} className="mt-4">
-            <h1 id="hero-heading" className="max-w-3xl text-fluid-h1 font-bold tracking-tight text-fd-foreground">
-              Stop explaining your stack.
+          <AnimateOnView delay={100} className="mt-5">
+            <h1
+              id="hero-heading"
+              className="text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
+            >
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(180deg, var(--color-fd-foreground) 0%, color-mix(in oklch, var(--color-fd-foreground) 70%, var(--color-fd-muted-foreground)) 100%)",
+                }}
+              >
+                Stop explaining your stack.
+              </span>
               <br />
-              <span className="text-fd-primary">Start shipping.</span>
+              Start shipping.
             </h1>
           </AnimateOnView>
 
-          <AnimateOnView delay={200} className="mt-6">
-            <p className="max-w-lg text-[15px] text-fd-muted-foreground leading-relaxed">
-              {COUNTS.skills} skills, {COUNTS.agents} agents, and {COUNTS.hooks} hooks that turn Claude Code into
-              a full development team.
+          <AnimateOnView delay={200} className="mt-5">
+            <p className="mx-auto max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground">
+              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
+                {COUNTS.skills} skills
+              </span>
+              <span className="mx-1.5 opacity-40">·</span>
+              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
+                {COUNTS.agents} agents
+              </span>
+              <span className="mx-1.5 opacity-40">·</span>
+              <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
+                {COUNTS.hooks} hooks
+              </span>
+              {" "}— loaded on demand, zero runtime cost.
             </p>
           </AnimateOnView>
 
-          <AnimateOnView delay={300} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <AnimateOnView delay={300} className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
             <Link
               href="/docs/getting-started/first-10-minutes"
-              className="hover-glow inline-flex h-10 items-center rounded-lg bg-fd-primary px-6 text-sm font-semibold text-fd-primary-foreground transition-colors hover:bg-[var(--color-fd-primary-50)]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-fd-primary px-[18px] text-sm font-medium text-fd-primary-foreground transition-all duration-150 hover:-translate-y-px hover:bg-[oklch(0.54_0.15_163)] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
             >
-              Get Started
+              Get started{" "}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>
             <CopyInstallButton />
+            <Link
+              href="#cookbook"
+              className="inline-flex h-10 items-center rounded-lg border border-fd-border bg-transparent px-[18px] text-sm font-medium text-fd-foreground transition-colors hover:border-[var(--color-fd-primary-30)] hover:bg-fd-muted"
+            >
+              See the cookbook
+            </Link>
+          </AnimateOnView>
+
+          <AnimateOnView delay={400} className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-fd-muted-foreground">
             <a
-              href={SITE.github}
+              href={`${SITE.github}/stargazers`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 text-sm font-medium text-fd-foreground transition-all hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
-              aria-label="Star OrchestKit on GitHub"
+              className="inline-flex items-center gap-1.5 px-3.5 transition-colors hover:text-fd-foreground"
             >
-              <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+              <svg className="h-3 w-3 opacity-70" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
-              Star on GitHub
+              {stars !== null ? (
+                <>
+                  <span className="font-medium text-fd-foreground tabular-nums">{formatStars(stars)}</span>
+                  <span>stars</span>
+                </>
+              ) : (
+                <span>Star on GitHub</span>
+              )}
             </a>
+            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+            <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
+            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+            <span className="inline-flex items-center gap-1.5 px-3.5">Claude Code ≥ {SITE.ccVersion}</span>
           </AnimateOnView>
-
-          {/* Circuit-trace stat bar — animated counters */}
-          <AnimateOnView delay={400} className="mt-16 hidden items-center justify-between border-t border-fd-border pt-8 max-w-2xl sm:flex" distance={16}>
-            <AnimateOnView delay={500} className="text-center" distance={20}>
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.skills}</dd>
-              <dt className="mt-1 overline-muted">Skills</dt>
-            </AnimateOnView>
-
-            <div className="flex-1 mx-6 relative">
-              <div className="circuit-line" />
-              <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
-              <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
-            </div>
-
-            <AnimateOnView delay={600} className="text-center" distance={20}>
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.agents}</dd>
-              <dt className="mt-1 overline-muted">Agents</dt>
-            </AnimateOnView>
-
-            <div className="flex-1 mx-6 relative">
-              <div className="circuit-line" />
-              <div className="circuit-dot absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2" />
-              <div className="circuit-dot absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2" />
-            </div>
-
-            <AnimateOnView delay={700} className="text-center" distance={20}>
-              <dd className="font-mono text-[40px] font-bold tabular-nums text-fd-foreground leading-none">{COUNTS.hooks}</dd>
-              <dt className="mt-1 overline-muted">Hooks</dt>
-            </AnimateOnView>
-          </AnimateOnView>
-
-          {/* Mobile stats — stacked, no connectors */}
-          <dl className="mt-10 grid grid-cols-3 gap-4 border-t border-fd-border pt-6 sm:hidden" aria-label="Quick statistics">
-            {([
-              [COUNTS.skills, "Skills"],
-              [COUNTS.agents, "Agents"],
-              [COUNTS.hooks, "Hooks"],
-            ] as const).map(([n, label]) => (
-              <div key={label} className="text-center">
-                <dd className="font-mono text-2xl font-bold tabular-nums text-fd-foreground">{n}</dd>
-                <dt className="mt-0.5 overline-muted">{label}</dt>
-              </div>
-            ))}
-          </dl>
         </div>
       </section>
 
-      {/* Social proof */}
-      <section aria-label="Community traction" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
-        <div className="mx-auto flex max-w-[1024px] items-center justify-center gap-6 px-6 py-4 text-[13px] text-fd-muted-foreground sm:gap-8">
-          <a
-            href={`${SITE.github}/stargazers`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 transition-colors hover:text-fd-foreground"
-          >
-            <svg className="h-3.5 w-3.5 text-fd-primary" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-              <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
-            </svg>
-            {stars !== null && <span className="font-mono font-medium tabular-nums">{stars}</span>}{" "}stars on GitHub
-          </a>
-          <span className="h-3 w-px bg-fd-border" aria-hidden="true" />
-          <span className="flex items-center gap-1.5">
-            Open source · MIT-style license
-          </span>
-          <span className="hidden h-3 w-px bg-fd-border sm:block" aria-hidden="true" />
-          <a
-            href={`${SITE.github}/network/members`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 transition-colors hover:text-fd-foreground sm:flex"
-          >
-            Community-driven
-          </a>
-        </div>
-      </section>
-
-      {/* Coverage areas */}
-      <section aria-label="Coverage areas" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
-        <div className="mx-auto max-w-[1024px] px-6 py-5">
-          <div className="flex flex-wrap justify-center gap-3">
-            {["Backend", "Frontend", "AI / LLM", "Security", "DevOps", "Testing", "Product", "Data"].map((label) => (
-              <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-fd-primary-30)]" />
-                <span>{label}</span>
-              </div>
-            ))}
+      {/* ============ VALUE-PROP STRIP ============ */}
+      <section
+        aria-labelledby="personas-heading"
+        className="border-b border-fd-border bg-[var(--color-fd-surface-sunken)] py-11"
+      >
+        <div className="mx-auto max-w-[1200px] px-7">
+          <div className="mb-6 flex items-baseline justify-between gap-4">
+            <span className="inline-flex items-center gap-2.5 font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
+              <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
+              Paths / 03
+            </span>
+            <span id="personas-heading" className="font-mono text-[13px] text-fd-muted-foreground">
+              Pick your entry point
+            </span>
           </div>
-        </div>
-      </section>
-
-      {/* Primitives — accent-border cards */}
-      <section aria-labelledby="primitives-heading" className="border-t border-fd-border">
-        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
-          <span className="overline">Building Blocks</span>
-          <h2 id="primitives-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
-            Three primitives, infinite workflows
-          </h2>
-          <p className="mt-2 max-w-lg text-[15px] text-fd-muted-foreground">
-            Everything in OrchestKit composes from these building blocks.
-          </p>
-
-          <div className="mt-8 grid gap-px sm:grid-cols-3">
-            {PRIMITIVES.map((item) => (
+          <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] md:grid-cols-3">
+            {PERSONAS.map((p, i) => (
               <Link
-                key={item.letter}
-                href={item.href}
-                className="group border border-fd-border border-l-2 border-l-fd-primary bg-fd-card p-5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-l-fd-primary sm:rounded-r-lg hover:shadow-[0_0_12px_var(--color-fd-glow)]"
+                key={p.href}
+                href={p.href}
+                className="group relative border-fd-border p-[26px_28px] transition-colors hover:bg-[color-mix(in_oklch,var(--color-fd-primary)_3%,var(--color-fd-surface-raised))] md:border-l md:first:border-l-0 border-t md:border-t-0 first:border-t-0 border-l-[3px] border-l-transparent hover:border-l-fd-primary"
               >
-                <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded border border-fd-border font-mono text-xs font-bold text-fd-primary" aria-hidden="true">
-                  {item.letter}
+                <div className="mb-2.5 font-mono text-[11px] uppercase tracking-[0.04em] text-fd-muted-foreground">
+                  {p.eyebrow}
                 </div>
-                <h3 className="font-semibold text-fd-foreground">
-                  {item.count} {item.title}
-                </h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-fd-muted-foreground">
-                  {item.desc}
-                </p>
-                <span className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] font-medium text-fd-primary opacity-0 transition-all duration-200 group-hover:opacity-100" aria-hidden="true">
-                  Browse all
-                  <ChevronRight className="h-3 w-3" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Choose Your Path — persona-based entry points */}
-      <section aria-labelledby="personas-heading" className="border-t border-fd-border bg-[var(--color-fd-surface-sunken)]">
-        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
-          <span className="overline">Choose Your Path</span>
-          <h2 id="personas-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
-            Where do you want to start?
-          </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {PERSONAS.map((persona) => (
-              <Link
-                key={persona.href}
-                href={persona.href}
-                className="group flex flex-col justify-between border border-fd-border bg-fd-card p-5 rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)] hover:shadow-[0_0_12px_var(--color-fd-glow)]"
-              >
-                <div>
-                  <h3 className="font-semibold text-fd-foreground">{persona.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-fd-muted-foreground">{persona.desc}</p>
+                <div className="mb-1.5 text-base font-semibold tracking-[-0.01em] text-fd-foreground">
+                  {p.title}
                 </div>
-                <span className="mt-4 inline-flex items-center gap-1 font-mono text-[12px] font-medium text-fd-primary transition-all group-hover:gap-2">
-                  {persona.cta}
-                  <ChevronRight className="h-3 w-3" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Demo Showcase */}
-      <section aria-labelledby="demos-heading" className="border-t border-fd-border">
-        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
-          <span className="overline">Demos</span>
-          <h2 id="demos-heading" className="mt-2 text-fluid-h2 font-semibold tracking-tight text-fd-foreground">
-            See it in action
-          </h2>
-          <p className="mt-2 max-w-md text-[15px] text-fd-muted-foreground">
-            Every command skill comes with a demo composition.
-          </p>
-          <div className="mt-6 flex gap-3 overflow-x-auto pb-4">
-            {COMPOSITIONS.filter(c => c.format === "landscape" && c.videoCdn).slice(0, 6).map((comp) => (
-              <Link
-                key={comp.id}
-                href="/docs/reference"
-                className="group flex-none w-[260px] border border-fd-border bg-fd-card overflow-hidden rounded-lg transition-all duration-200 hover:bg-[var(--color-fd-primary-5)] hover:border-[var(--color-fd-primary-30)]"
-              >
-                <div className="aspect-video bg-fd-background relative">
-                  <OptimizedThumbnail
-                    src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
-                    alt={`${comp.id.replace(/([A-Z])/g, ' $1').trim()} — ${comp.durationSeconds}s demo`}
+                <p className="mb-3.5 min-h-10 text-[13.5px] leading-[1.5] text-fd-muted-foreground">{p.desc}</p>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[12.5px] font-medium text-fd-primary">
+                  {p.cta}
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="h-3 w-3 transition-transform duration-150 group-hover:translate-x-[3px]"
                   />
-                  <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
-                    {comp.durationSeconds}s
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ COOKBOOK (primitives + recipes) ============ */}
+      <section aria-labelledby="cookbook-heading" className="border-b border-fd-border" id="cookbook">
+        <div className="mx-auto max-w-[1200px] px-7 py-[72px]">
+          {/* Primitives */}
+          <div className="mb-[18px] flex items-baseline justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-2.5 font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
+                <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
+                Primitives / 03
+              </span>
+              <h2
+                id="cookbook-heading"
+                className="mt-2 text-2xl font-semibold tracking-[-0.015em] text-fd-foreground"
+              >
+                The building blocks
+              </h2>
+            </div>
+            <span className="font-mono text-[13px] text-fd-muted-foreground">
+              <span className="tabular-nums">{primitiveTotal}</span> total
+            </span>
+          </div>
+
+          <div className="mb-11 grid grid-cols-1 gap-[14px] md:grid-cols-3">
+            {PRIMITIVES.map((p) => (
+              <Link
+                key={p.letter}
+                href={p.href}
+                className="group relative overflow-hidden rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5 transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
+              >
+                {/* Top-accent shimmer on hover */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-px opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent 0%, color-mix(in oklch, var(--color-fd-primary) 40%, transparent) 50%, transparent 100%)",
+                  }}
+                />
+                <div className="mb-5 flex items-start justify-between">
+                  <div
+                    aria-hidden="true"
+                    className="grid h-[38px] w-[38px] place-items-center rounded-lg border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] font-mono text-[17px] font-semibold text-fd-primary"
+                  >
+                    {p.letter}
+                  </div>
+                  <div className="pt-2.5 font-mono text-[11px] uppercase tracking-[0.06em] text-fd-muted-foreground">
+                    {p.tag}
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-1.5 font-mono text-[clamp(2rem,2vw+1.2rem,2.75rem)] font-medium leading-none tracking-[-0.03em] text-fd-foreground">
+                  <span className="tabular-nums">{p.count}</span>
+                  <span className="text-[0.5em] font-normal tracking-normal text-fd-muted-foreground">
+                    {p.unit}
                   </span>
                 </div>
-                <div className="p-3">
-                  <h3 className="text-sm font-medium text-fd-foreground">{comp.id.replace(/([A-Z])/g, ' $1').trim()}</h3>
-                  <p className="mt-0.5 font-mono text-[11px] text-fd-muted-foreground">{comp.command}</p>
-                </div>
+                <h3 className="mt-2.5 mb-2 text-base font-semibold text-fd-foreground">{p.title}</h3>
+                <p className="text-[13px] leading-[1.55] text-fd-muted-foreground">{p.desc}</p>
               </Link>
             ))}
           </div>
-          <div className="mt-3">
+
+          {/* Recipes */}
+          <div className="mb-[18px] flex items-baseline justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-2.5 font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
+                <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
+                Recipes / {String(RECIPES.length).padStart(2, "0")}
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.015em] text-fd-foreground">Cookbook</h2>
+            </div>
             <Link
-              href="/docs/reference"
-              className="font-mono text-[13px] text-fd-primary hover:text-[var(--color-fd-primary-50)] transition-colors"
+              href="/docs/cookbook/implement-feature"
+              className="font-mono text-[13px] text-fd-primary transition-colors hover:text-[var(--color-fd-primary-50)]"
             >
-              View all compositions &rarr;
+              View all recipes →
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Quick paths */}
-      <section aria-labelledby="quickpaths-heading" className="border-t border-fd-border">
-        <div className="mx-auto max-w-[1024px] px-6 py-12 sm:py-16">
-          <span className="overline">Quick Start</span>
-          <h2 id="quickpaths-heading" className="mt-2 mb-6 text-2xl font-semibold tracking-tight text-fd-foreground">
-            Jump right in
-          </h2>
-          <div className="grid gap-px sm:grid-cols-2">
-            {QUICK_PATHS.map((item) => (
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {RECIPES.map((r, i) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className="group flex items-center justify-between border border-fd-border bg-fd-card px-4 py-3.5 transition-all duration-200 hover:bg-[var(--color-fd-primary-5)]"
+                key={r.href}
+                href={r.href}
+                className="group relative flex min-h-[148px] flex-col rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5 transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
               >
-                <div>
-                  <h3 className="text-sm font-medium text-fd-foreground">{item.title}</h3>
-                  <div className="text-[13px] text-fd-muted-foreground">{item.desc}</div>
+                <div className="mb-3 flex items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
+                  <span className="tabular-nums">
+                    {String(i + 1).padStart(2, "0")} / {String(RECIPES.length).padStart(2, "0")}
+                  </span>
+                  {r.badge ? (
+                    <span className="rounded border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-fd-primary">
+                      {r.badge}
+                    </span>
+                  ) : null}
                 </div>
-                <ChevronRight
-                  className="h-4 w-4 shrink-0 text-fd-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-fd-primary"
-                  aria-hidden="true"
-                />
+                <div className="mb-2 text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-fd-foreground">
+                  {r.title}
+                </div>
+                <div className="flex-1 text-[13px] leading-[1.5] text-fd-muted-foreground">{r.tag}</div>
+                <div className="mt-3.5 flex items-center justify-between border-t border-dashed border-fd-border pt-3 font-mono text-[11.5px] text-fd-muted-foreground">
+                  <span className="text-fd-foreground">{r.cmd}</span>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="h-3 w-3 text-fd-primary transition-transform duration-150 group-hover:translate-x-[3px]"
+                  />
+                </div>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-fd-border">
-        <div className="mx-auto flex max-w-[1024px] items-center justify-between px-6 py-5 text-[13px] text-fd-muted-foreground">
+      {/* ============ DEMO SHOWCASE (kept from prior landing) ============ */}
+      <section aria-labelledby="demos-heading" className="border-b border-fd-border">
+        <div className="mx-auto max-w-[1200px] px-7 py-16">
+          <div className="mb-[18px] flex items-baseline justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-2.5 font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
+                <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
+                Demos
+              </span>
+              <h2
+                id="demos-heading"
+                className="mt-2 text-2xl font-semibold tracking-[-0.015em] text-fd-foreground"
+              >
+                See it in action
+              </h2>
+            </div>
+            <Link
+              href="/docs/reference"
+              className="font-mono text-[13px] text-fd-primary transition-colors hover:text-[var(--color-fd-primary-50)]"
+            >
+              View all →
+            </Link>
+          </div>
+          <div className="flex gap-[14px] overflow-x-auto pb-4">
+            {COMPOSITIONS.filter((c) => c.format === "landscape" && c.videoCdn)
+              .slice(0, 6)
+              .map((comp) => (
+                <Link
+                  key={comp.id}
+                  href="/docs/reference"
+                  className="group w-[260px] flex-none overflow-hidden rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
+                >
+                  <div className="relative aspect-video bg-fd-background">
+                    <OptimizedThumbnail
+                      src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
+                      alt={`${comp.id.replace(/([A-Z])/g, " $1").trim()} — ${comp.durationSeconds}s demo`}
+                    />
+                    <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
+                      {comp.durationSeconds}s
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-medium text-fd-foreground">
+                      {comp.id.replace(/([A-Z])/g, " $1").trim()}
+                    </h3>
+                    <p className="mt-0.5 font-mono text-[11px] text-fd-muted-foreground">{comp.command}</p>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FOOTER ============ */}
+      <footer>
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-7 py-5 text-[13px] text-fd-muted-foreground">
           <span>
             Built with{" "}
-            <a href="https://fumadocs.dev" target="_blank" rel="noopener noreferrer" className="text-fd-muted-foreground underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+            <a
+              href="https://fumadocs.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary"
+            >
               Fumadocs
+            </a>
+            {" · "}
+            Designed with{" "}
+            <a
+              href="https://claude.ai/design"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary"
+            >
+              Claude Design
             </a>
           </span>
           <nav aria-label="Footer" className="flex gap-5">
-            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-muted-foreground">GitHub</a>
-            <Link href="/docs/getting-started/installation" className="hover:text-fd-muted-foreground">Docs</Link>
-            <Link href="/docs/cookbook/implement-feature" className="hover:text-fd-muted-foreground">Cookbook</Link>
+            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-foreground">
+              GitHub
+            </a>
+            <Link href="/docs/getting-started/installation" className="hover:text-fd-foreground">
+              Docs
+            </Link>
+            <Link href="#cookbook" className="hover:text-fd-foreground">
+              Cookbook
+            </Link>
           </nav>
         </div>
       </footer>
