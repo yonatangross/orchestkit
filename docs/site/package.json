@@ -9,7 +9,8 @@
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "test": "vitest run -c vitest.site.config.ts",
-    "test:watch": "vitest -c vitest.site.config.ts"
+    "test:watch": "vitest -c vitest.site.config.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@mdx-js/mdx": "^3.1.1",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
