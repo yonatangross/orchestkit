@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR-T2 — sync_versions round-trip test</title>
+<style>
+  :root {
+    --bg: #0c0f14;
+    --panel: #1a2030;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #94a3b8;
+    --faint: #64748b;
+    --primary: #10b981;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --mono: ui-monospace,Menlo,Consolas,monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.55 system-ui,sans-serif;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 8px 8px;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 99px;
+    background: rgba(16,185,129,0.18);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    font: 11px var(--mono);
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+  h1 .accent { color: var(--primary); }
+  .subtitle { color: var(--dim); font: 12px var(--mono); margin-bottom: 24px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    font: 12px var(--mono);
+  }
+  .phase {
+    background: #0f131a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    min-height: 120px;
+  }
+  .phase h3 { font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .phase ul { list-style: none; padding: 0; color: var(--dim); font-size: 11.5px; line-height: 1.5; }
+  .arrow { color: var(--faint); font-size: 20px; text-align: center; }
+  pre {
+    background: #0f131a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font: 11.5px/1.5 var(--mono);
+    overflow-x: auto;
+    color: var(--dim);
+  }
+  pre .pass { color: var(--green); }
+  pre .section { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="pill">Road to 10 — Wave 2 · PR-T2</span>
+  <h1><span class="accent">sync_versions</span> round-trip test</h1>
+  <div class="subtitle">14 assertions · bash · locks in #1407 behavior</div>
+
+  <div class="card">
+    <h2>What it locks</h2>
+    <p style="color: var(--dim); font-size: 12.5px;">
+      Lane 2 #1407 added a function to <code>scripts/stamp-counts.sh</code> that reads <code>package.json</code> and propagates the version to 6 sibling files. No test existed for it. If someone later refactors and breaks the propagation, the next release would silently drift across files (exactly the bug Lane 2 was designed to prevent).
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Round-trip flow</h2>
+    <div class="flow">
+      <div class="phase">
+        <h3>1 — Pre-flight</h3>
+        <ul>
+          <li>Capture all 7 file versions</li>
+          <li>Refuse to run if any mismatch</li>
+          <li>Arm EXIT trap to restore</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="phase">
+        <h3>2 — Bump + sync</h3>
+        <ul>
+          <li>pkg.json → 999.888.777</li>
+          <li>Run stamp-counts.sh</li>
+          <li>Assert all 6 siblings match</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="phase">
+        <h3>3 — Restore</h3>
+        <ul>
+          <li>pkg.json → original</li>
+          <li>Run stamp-counts.sh again</li>
+          <li>Assert all restored</li>
+          <li>validate-counts agrees</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Local run output</h2>
+<pre><span class="section">▶ Test 1: sync propagates a bump</span>
+  <span class="pass">✓ pyproject synced to 999.888.777</span>
+  <span class="pass">✓ manifest synced to 999.888.777</span>
+  <span class="pass">✓ market-top synced to 999.888.777</span>
+  <span class="pass">✓ market-plugin synced to 999.888.777</span>
+  <span class="pass">✓ release-please synced to 999.888.777</span>
+  <span class="pass">✓ CLAUDE synced to 999.888.777</span>
+
+<span class="section">▶ Test 2: sync propagates the restoration back</span>
+  <span class="pass">✓ pyproject restored to 7.56.0</span>
+  <span class="pass">✓ manifest restored to 7.56.0</span>
+  ...
+
+<span class="section">▶ Test 3: validate-counts.sh accepts the final state</span>
+  <span class="pass">✓ validate-counts passes after round-trip</span>
+
+════════════════════════════════════════════════════════════════
+  Total: <span class="pass">14  |  Passed: 14  |  Failed: 0</span>
+════════════════════════════════════════════════════════════════</pre>
+  </div>
+
+  <div class="card">
+    <h2>Safety</h2>
+    <ul style="color: var(--dim); font-size: 12.5px; padding-left: 18px;">
+      <li>Trap on EXIT + INT + TERM restores the original version regardless of how the test exits (including Ctrl-C). No wedged states.</li>
+      <li>Pre-flight guard aborts if any file is already mismatched — the test refuses to run on a dirty baseline.</li>
+      <li>Wired into <code>tests/run-all-tests.sh</code> under UNIT TESTS, so <code>npm test</code> runs it.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

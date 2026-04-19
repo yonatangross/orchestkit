@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
+import { formatStars } from "@/lib/format-stars";
 import { COMPOSITIONS } from "@/lib/generated/compositions-data";
 import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 import { AnimateOnView } from "@/components/animate-on-view";
@@ -99,9 +100,6 @@ const RECIPES: Recipe[] = [
   { title: "Create a demo video", tag: "VHS + Remotion pipeline, auto-generated voiceover.", cmd: "/ork:demo-producer", href: "/docs/cookbook/create-demo-video" },
   { title: "Security audit", tag: "Parallel scan across auth, secrets, OWASP, dependencies.", cmd: "/ork:audit-full", href: "/docs/cookbook/security-audit" },
 ];
-
-const formatStars = (n: number): string =>
-  n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : `${n}`;
 
 export default async function HomePage() {
   const stars = await getStarCount();
