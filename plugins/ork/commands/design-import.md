@@ -89,27 +89,44 @@ else:
 
 ## Phase 1 — Parse + validate
 
-Delegate to the orchestrator agent. The agent fetches, parses, and produces a normalized payload. Do NOT reimplement parsing here — the agent owns the schema.
+Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here — the agent owns the (real, tarball-based) schema.
 
-```python
+````python
 Agent(
   subagent_type="claude-design-orchestrator",
   description="Parse and normalize handoff bundle",
   prompt=f"""Parse the Claude Design handoff bundle at {bundle_input}.
 
-  Tasks:
-  1. Fetch the bundle (WebFetch if URL, Read if file)
-  2. Validate against the expected schema (see your agent definition)
-  3. Compute bundle_id = sha256(canonical bundle URL or absolute path)
-  4. Produce the normalized output payload as specified
-  5. Write provenance file at .claude/design-handoffs/{{bundle_id}}.json with:
-     - bundle_url, bundle_id, fetched_at, components: [], pr: null
-  6. Return the normalized payload as JSON
+  This is a gzipped tarball (NOT a JSON manifest). Layout:
+    <project>/README.md          ← read first
+    <project>/chats/*.md         ← read all (load-bearing)
+    <project>/project/*.html     ← prototypes (may be absent if incomplete)
 
-  Surface any schema deviations explicitly — do not silently coerce.
+  Tasks:
+  1. Fetch the bundle (WebFetch if URL → saved .bin path; Read if local file)
+  2. Extract: `tar -xzf <bin> -C /tmp/<scratch>/`
+  3. Read README.md, then every chats/*.md (intent + clarifications live here)
+  4. Compute bundle_id = sha256(canonical bundle URL or absolute path)
+  5. If project/ is MISSING → return status="incomplete" with the assistant's
+     last unanswered question; do NOT crash. Surface "what user should do".
+  6. If project/ exists → pick primary HTML:
+     - Prefer the file matching the URL's ?open_file= query param
+     - Else first alphabetical
+  7. From the primary HTML, extract:
+     - Inline `:root { --... }` CSS custom properties as design tokens
+     - Component sections (named via class/id/data-screen-label)
+     - Asset references (<link>, <img>) — keep as URLs, do not download
+     - EDITMODE JSON block (design-time state — capture as ANNOTATION only)
+  8. Produce normalized output payload (see agent spec)
+  9. Write provenance to .claude/design-handoffs/<bundle_id>.json:
+     - bundle_url, bundle_id, fetched_at, status, components: [], pr: null
+  10. Return the normalized payload as JSON
+
+  Surface any deviations from the expected tarball layout explicitly.
+  Never expect a JSON `components[]` field — that was the old (wrong) shape.
   """
 )
-```
+````
 
 ## Phase 2 — Reconcile tokens
 

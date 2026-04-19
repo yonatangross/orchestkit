@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "7.53.0",
+  "version": "7.54.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
@@ -21,6 +21,7 @@
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:hooks": "cd src/hooks && npx vitest run",
+    "test:mdx": "bash tests/unit/test-mdx-compile.sh",
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
     "eval:skill": "bash tests/evals/scripts/run-skill-eval.sh",
     "eval:optimize-desc": "bash tests/evals/scripts/optimize-description.sh",
@@ -52,6 +53,8 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "agentation-mcp": "^1.2.0"
+    "@mdx-js/mdx": "^3.1.1",
+    "agentation-mcp": "^1.2.0",
+    "remark-gfm": "^4.0.1"
   }
 }
