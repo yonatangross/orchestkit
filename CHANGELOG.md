@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.55.1](https://github.com/yonatangross/orchestkit/compare/v7.55.0...v7.55.1) (2026-04-19)
+
+**Lane 2 — CI/Tooling de-noise.** Patch release. No user-facing changes; pure infra hygiene that pays back on every future PR.
+
+### Changed
+
+- `.github/workflows/claude-review.yml`: gated on `needs-claude-review` label so the workflow no longer auto-cancels on every PR and pollutes the rollup state. (#1403)
+- `.github/workflows/docs.yml`: lowercase `build` job display name changed to `Docs Site Build` to disambiguate from the required `Build` check. (#1404)
+- `scripts/build-plugins.sh`: invokes `stamp-counts.sh` before the final summary instead of in `postbuild`, so `npm run build` shows accurate counts on a single run. (#1405)
+- `scripts/stamp-counts.sh`: new `sync_versions` function reads `package.json` and propagates the version to `pyproject.toml`, `manifests/ork.json`, `marketplace.json` (top + plugins[0]), `.release-please-manifest.json`, and `CLAUDE.md`. (#1407)
+- `bin/validate-counts.sh`: extended with a version drift check that fails on any mismatch with `package.json`. (#1407)
+- `tests/unit/test-mdx-compile.sh`: added the same NPM 401 → analytics-stub fallback as `docs.yml` so the guard works on PR builds without the private GitHub Packages token. (#1406)
+
+### Moved
+
+- `scripts/test-mdx-compile.mjs` → `docs/site/scripts/test-mdx-compile.mjs`
+- `tests/fixtures/nested-fence.mdx` → `docs/site/tests/fixtures/nested-fence.mdx`
+- `@mdx-js/mdx` and `remark-gfm` removed from root `devDependencies`; added directly to `docs/site/package.json` where they belong. Removes 128 transitive packages from root `npm install`. (#1406)
+
 ## [7.55.0](https://github.com/yonatangross/orchestkit/compare/v7.54.0...v7.55.0) (2026-04-19)
 
 
