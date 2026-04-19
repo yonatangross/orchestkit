@@ -201,6 +201,8 @@ The AI generates a spec like this -- flat element map, no nesting beyond 2 level
 | Component count | 3-5 component types per catalog covers most dashboards |
 | Visual vs text | Use visual output for multi-metric views; plain text for single values |
 
+> **CC 2.1.113** fixed MCP concurrent-call timeout handling — hanging tool calls now error cleanly instead of blocking the queue. Parallel tool invocation from dashboards is safer; no workarounds needed.
+
 ## When to Use Visual Output vs Plain Text
 
 | Scenario | Use Visual Output | Use Plain Text |

@@ -320,6 +320,109 @@ else
   echo "SKIP (not found)"
 fi
 
+# ===== MDX Compile Guard (#1401 — catches nested-fence + other mdx bugs) =====
+echo -n "  Running mdx-compile guard... "
+
+if [[ -x "tests/unit/test-mdx-compile.sh" ]]; then
+  if ! run_with_timeout 120 ./tests/unit/test-mdx-compile.sh >/dev/null 2>&1; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  MDX compile guard failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: npm run test:mdx"
+    echo "║  Fix likely needs a 4-backtick outer fence in a SKILL.md"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+else
+  echo "SKIP (not found)"
+fi
+
+# ===== Agent frontmatter validation =====
+echo -n "  Validating agent frontmatter... "
+
+if ! run_with_timeout 60 bash tests/agents/test-agent-frontmatter.sh >/dev/null 2>&1; then
+  echo "FAILED"
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Agent frontmatter validation failed!"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run: npm run test:agents"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Skill structure validation =====
+echo -n "  Validating skill structure... "
+
+if ! run_with_timeout 180 bash tests/skills/structure/test-skill-md.sh >/dev/null 2>&1; then
+  echo "FAILED"
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Skill structure validation failed!"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run: npm run test:skills"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Manifest consistency =====
+echo -n "  Checking manifests... "
+
+MANIFEST_FAILED=0
+for check in tests/manifests/test-skill-uniqueness.sh \
+             tests/manifests/test-manifest-dependencies.sh \
+             tests/manifests/test-plugin-orphan-skills.sh; do
+  if [[ -f "$check" ]]; then
+    if ! run_with_timeout 30 bash "$check" >/dev/null 2>&1; then
+      MANIFEST_FAILED=1
+      break
+    fi
+  fi
+done
+
+if [[ $MANIFEST_FAILED -eq 1 ]]; then
+  echo "FAILED"
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Manifest consistency failed!"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run: npm run test:manifests"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Token overhead budget (blocking + warn tier) =====
+echo -n "  Checking token overhead budget... "
+
+TOKEN_LOG=$(mktemp)
+trap 'rm -f "$TOKEN_LOG"' EXIT
+
+if ! run_with_timeout 30 bash tests/performance/test-token-overhead.sh >"$TOKEN_LOG" 2>&1; then
+  echo "FAILED"
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Token overhead exceeds budget!"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  tail -6 "$TOKEN_LOG" | sed 's/^/║  /'
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+
+# Surface any 90%+ warnings even when the hard check passed
+WARN_LINES=$(grep -E '⚠|WARN:' "$TOKEN_LOG" || true)
+if [[ -n "$WARN_LINES" ]]; then
+  echo "OK (with warnings)"
+  echo "$WARN_LINES" | sed 's/^/    /'
+else
+  echo "OK"
+fi
+
 echo ""
 echo "Pre-push validation passed"
 exit 0

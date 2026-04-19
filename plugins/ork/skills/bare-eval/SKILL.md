@@ -49,6 +49,7 @@ claude --version  # Must be >= 2.1.81
 | Streaming grade | `claude -p "$prompt" --bare --max-turns 1 --output-format stream-json` |
 | Optimize | `echo "$prompt" \| claude -p --bare --max-turns 1 --output-format text` |
 | Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
+| @-file in prompt | `claude -p "grade @fixtures/case-1.md against rubric" --bare` (CC 2.1.113 Remote Control autocomplete) |
 
 ### `--output-format stream-json`
 

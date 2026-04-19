@@ -73,8 +73,8 @@ function findStaleReferences(
   if (!pathHint) return [];
 
   // Pattern choice per language:
-  //  - TS/JS: match `from '...pathHint...'` or `require('...pathHint...')`
-  //  - Python: match `from .pathHint.` or `import .pathHint.`
+  //  - TS/JS: match from or require calls referencing the derived module id
+  //  - Python: match from/import statements referencing the dotted module id
   let pattern: string;
   if (lang === 'ts') {
     // The meaningful fragment is the last 2 path segments (survives prefix differences).

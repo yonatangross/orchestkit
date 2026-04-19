@@ -57,6 +57,36 @@ describe('dangerous-command-blocker', () => {
       expect(result.continue).toBe(false);
     });
 
+    it('denies rm -rf on macOS /private/{etc,var,home} symlink targets', () => {
+      const privatePaths = [
+        'rm -rf /private/etc',
+        'rm -rf /private/var',
+        'rm -rf /private/home',
+        'rm -rf /private/etc/passwd',
+        'rm -fr /private/var',
+        'rm -R /private/etc',           // uppercase -R (valid GNU flag)
+        'rm -rf /private//etc',         // double-slash normalization bypass
+        'rm -rf /private/./etc',        // /./ normalization bypass
+        'rm -rf /private///var',        // triple-slash
+      ];
+      for (const cmd of privatePaths) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should deny: ${cmd}`).toBe(false);
+        expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
+      }
+    });
+
+    it('allows rm -rf on /private/tmp (tmpdir cleanup is sometimes legit)', () => {
+      const safe = [
+        'rm -rf /private/tmp/stale',
+        'rm -rf /private/tmp',
+      ];
+      for (const cmd of safe) {
+        const result = dangerousCommandBlocker(createBashInput(cmd));
+        expect(result.continue, `should allow: ${cmd}`).toBe(true);
+      }
+    });
+
     it('allows rm -rf on safe directories', () => {
       const safeCommands = [
         'rm -rf ./dist',

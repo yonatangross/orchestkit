@@ -30,6 +30,44 @@ The entrypoint. Claude loads this when the skill is triggered. Keep it focused a
 - **Under 400 lines** preferred — leave room for inline examples
 - Target: ~100-200 lines for index-style skills, ~300-400 for workflow skills
 
+### Nesting code fences
+
+When a code example contains its own ` ``` ` fence (e.g. a Python prompt that
+embeds a TSX scaffold), the outer fence MUST use **more backticks than the
+inner**, not the same count. CommonMark closes a fenced block at the next
+sequence of the same length — same-length fences don't nest. The generated
+mdx then leaks code into prose, MDX parses prose `{...}` as JSX, and acorn
+chokes deep inside `next build`.
+
+❌ **Wrong** — both 3 backticks; inner closes the outer:
+
+````markdown
+```python
+prompt = f"""...
+```tsx
+{component['scaffold']}
+```
+{f"Adapt: {x}" if cond else ''}
+"""
+```
+````
+
+✅ **Right** — 4 backticks outside, 3 inside:
+
+`````markdown
+````python
+prompt = f"""...
+```tsx
+{component['scaffold']}
+```
+{f"Adapt: {x}" if cond else ''}
+"""
+````
+`````
+
+The mdx-compile guard (`tests/unit/test-mdx-compile.sh`, runs on `npm test`)
+catches this regression. See PR #1399 for the original incident.
+
 ### Required Frontmatter
 
 ```yaml

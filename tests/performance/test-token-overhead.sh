@@ -39,7 +39,26 @@ FAIL_COUNT=0
 
 pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
 fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
+warn() { echo -e "  ${YELLOW}⚠${NC} WARN: $1"; }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
+
+# Warn tier — fires at 90% of budget, doesn't fail. Gives notice BEFORE we
+# blow the budget on a later edit. Used by check_budget_with_warn below.
+check_budget_with_warn() {
+    local label="$1"
+    local actual="$2"
+    local limit="$3"
+    local threshold_90=$((limit * 9 / 10))
+    if [[ "$actual" -le "$limit" ]]; then
+        if [[ "$actual" -gt "$threshold_90" ]]; then
+            warn "$label at $(( actual * 100 / limit ))% of budget ($actual / $limit bytes)"
+        fi
+        pass "$label: ${actual} bytes (~$(estimate_tokens "$actual")t) ≤ ${limit}"
+        return 0
+    fi
+    fail "$label: ${actual} bytes (~$(estimate_tokens "$actual")t) exceeds ${limit} limit"
+    return 1
+}
 
 # Token estimation: ~4 chars per token for English text
 estimate_tokens() {
@@ -59,7 +78,7 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=23   # Each adds ~50-100 tokens to system prompt
+MAX_USER_INVOCABLE_SKILLS=25   # Each adds ~50-100 tokens to system prompt (23→25: +design-import, +design-ship, Bet A #113)
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 TOTAL_SESSION_MAX_TOKENS=5200  # Combined session overhead budget (bumped for CC 2.1.90 version matrix growth)
 
@@ -82,12 +101,7 @@ echo "────────────────────────�
 claude_md="$PROJECT_ROOT/CLAUDE.md"
 if [[ -f "$claude_md" ]]; then
     claude_md_bytes=$(wc -c < "$claude_md" | tr -d ' ')
-    claude_md_tokens=$(estimate_tokens "$claude_md_bytes")
-    if [[ "$claude_md_bytes" -le "$CLAUDE_MD_MAX_BYTES" ]]; then
-        pass "CLAUDE.md: ${claude_md_bytes} bytes (~${claude_md_tokens}t) ≤ ${CLAUDE_MD_MAX_BYTES}"
-    else
-        fail "CLAUDE.md: ${claude_md_bytes} bytes (~${claude_md_tokens}t) exceeds ${CLAUDE_MD_MAX_BYTES} limit"
-    fi
+    check_budget_with_warn "CLAUDE.md" "$claude_md_bytes" "$CLAUDE_MD_MAX_BYTES" || true
 else
     fail "CLAUDE.md not found"
 fi

@@ -83,7 +83,10 @@ If the ledger doesn't exist or is empty, skip this step — commit normally.
 
 ### Phase 4: Stage and Commit
 
+> **CC 2.1.113 idiom:** Multi-line Bash with leading `# intent:` comments now shows the full command in the transcript — prefix complex scripts with a one-line intent comment so future readers (and `/recap` scans) can grep the transcript for what happened without re-reading the diff.
+
 ```bash
+# intent: stage the hook change + its test + built artifacts
 # Stage files
 git add <files>
 # Or all: git add .

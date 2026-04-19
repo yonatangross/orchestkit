@@ -276,6 +276,29 @@ export const AGENTS: Agent[] = [
     ]
   },
   {
+    "id": "claude-design-orchestrator",
+    "name": "Claude Design Orchestrator",
+    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code.",
+    "category": "frontend",
+    "model": "sonnet",
+    "taskTypes": [
+      "design",
+      "build"
+    ],
+    "keywords": [
+      "claude design",
+      "claude.ai/design",
+      "handoff bundle",
+      "design handoff",
+      "design import",
+      "design-to-pr"
+    ],
+    "examplePrompts": [
+      "Import this Claude Design handoff bundle and scaffold the components",
+      "Parse the handoff URL and tell me which components already exist"
+    ]
+  },
+  {
     "id": "code-quality-reviewer",
     "name": "Code Quality Reviewer",
     "description": "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage.",

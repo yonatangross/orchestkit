@@ -118,6 +118,20 @@ Multi-layer security architecture with no single point of failure.
 
 **Key Decisions:** Immutable dataclass context | Query-level tenant filtering | No IDs in LLM prompts
 
+### `sandbox.network.deniedDomains` (CC 2.1.113+)
+
+Network-layer blocklist enforced before Bash/WebFetch egress — pair with the hook-layer `DENY_PATTERNS` for defense in depth. Settings example:
+
+```json
+"sandbox": {
+  "network": {
+    "deniedDomains": ["*.evil.com", "pastebin.com", "transfer.sh"]
+  }
+}
+```
+
+Wildcards supported (`*.example.com`, `evil.com/*/malicious/*`). Plugins ship a baseline list in `src/settings/ork.settings.json`; project settings can extend it. Use for: prompt-injection exfil sinks, known-bad registries, paste services that bypass audit.
+
 ## Input Validation
 
 Validate and sanitize all untrusted input using Zod v4 and Pydantic.

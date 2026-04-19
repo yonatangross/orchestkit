@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.111';
+export const MIN_CC_VERSION = '2.1.113';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -365,6 +365,21 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'transcript_view_footer_keys', minVersion: '2.1.111', description: 'Transcript view footer adds `[` (dump to scrollback) and `v` (open in editor) shortcuts' },
   { feature: 'stream_json_plugin_errors',   minVersion: '2.1.111', description: 'Headless --output-format stream-json includes plugin_errors array on init event for CI/eval observability' },
   { feature: 'otel_raw_api_bodies_env',     minVersion: '2.1.111', description: 'OTEL_LOG_RAW_API_BODIES env var logs raw API request/response bodies for debugging (secret leakage risk)' },
+  // 2.1.112 (2026-04-16)
+  { feature: 'opus_47_auto_mode_fix',       minVersion: '2.1.112', description: 'Fix: Opus 4.7 auto mode availability for Max subscribers' },
+  // 2.1.113 (2026-04-17) — native binary + security hardening
+  { feature: 'native_binary_spawn',         minVersion: '2.1.113', description: 'CLI spawns native platform binary instead of bundled JS — affects hooks that inspect process.argv0 / __dirname / node_modules paths' },
+  { feature: 'sandbox_denied_domains',      minVersion: '2.1.113', description: 'sandbox.network.deniedDomains setting blocklists outbound domains (wildcards supported) for Bash/WebFetch' },
+  { feature: 'loop_wakeup_esc_cancel',      minVersion: '2.1.113', description: '/loop pending wakeups cancellable via Esc; resumption transcript marker "Claude resuming /loop wakeup" enables analytics' },
+  { feature: 'bash_multiline_comments',     minVersion: '2.1.113', description: 'Multi-line Bash commands with leading # comments now show full command in transcript — improves transcript self-documentation' },
+  { feature: 'remote_control_extra_usage',  minVersion: '2.1.113', description: 'Remote Control: /extra-usage command and @-file autocomplete work from mobile/web clients' },
+  { feature: 'bash_rm_private_paths',       minVersion: '2.1.113', description: 'macOS /private/{etc,var,tmp,home} treated as dangerous under Bash(rm:*) deny rules (symlink targets of /etc, /var, /tmp, /home)' },
+  { feature: 'bash_deny_wrappers',          minVersion: '2.1.113', description: 'Bash deny rules now match commands wrapped in env/sudo/watch/ionice/setsid — previous bypasses closed' },
+  { feature: 'bash_find_exec_no_approve',   minVersion: '2.1.113', description: 'Bash(find:*) auto-approve no longer covers -exec/-delete — these now require explicit allowlist or manual approval' },
+  { feature: 'mcp_concurrent_timeout_fix',  minVersion: '2.1.113', description: 'MCP concurrent-call timeout handling fixed — hanging calls error cleanly instead of blocking queue' },
+  { feature: 'subagent_timeout_error',      minVersion: '2.1.113', description: 'Subagent timeouts produce clear error after 10 min instead of hanging indefinitely — affects long-running Agent spawns' },
+  // 2.1.114 (2026-04-18)
+  { feature: 'agent_team_permission_fix',   minVersion: '2.1.114', description: 'Fix: permission dialog crash when agent teams request tool approval' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

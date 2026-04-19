@@ -58,6 +58,7 @@ jobs:
           fi
 
   build:
+    name: Docs Site Build
     permissions:
       contents: read
     needs: validate
@@ -76,7 +77,37 @@ jobs:
       - run: npm run build
       - name: Install docs dependencies
         working-directory: docs/site
-        run: npm ci
+        shell: bash
+        # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages. On
+        # push to main/dev the token has full scope. On pull_request from
+        # other branches the secret is substituted but with reduced scope —
+        # npm ci hits 401 Unauthorized. Detect that specific failure and fall
+        # back to the local stub under docs/stubs/analytics-stub/. Production
+        # builds on main still use the real package (npm ci succeeds there).
+        #
+        # Use PIPESTATUS to capture npm's real exit code — `npm ci | tee`
+        # would otherwise return tee's exit (always 0), masking npm failures
+        # and leaving an incomplete node_modules that breaks the build step.
+        run: |
+          set +e
+          npm ci 2>&1 | tee /tmp/npm-ci.log
+          npm_exit=${PIPESTATUS[0]}
+          set -e
+
+          if [[ $npm_exit -eq 0 ]]; then
+            echo "::notice::@yonatan-hq/analytics installed from private registry"
+            exit 0
+          fi
+
+          if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
+            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub"
+            npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
+            rm -f package-lock.json
+            npm install --no-audit --no-fund
+          else
+            echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
+            exit $npm_exit
+          fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build docs site

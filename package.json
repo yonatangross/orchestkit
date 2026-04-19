@@ -1,11 +1,11 @@
 {
   "name": "orchestkit",
-  "version": "7.52.0",
+  "version": "7.55.2",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
     "prebuild": "echo '🔨 Building plugins from source...'",
-    "postbuild": "bash scripts/stamp-counts.sh && echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
@@ -21,6 +21,7 @@
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:hooks": "cd src/hooks && npx vitest run",
+    "test:mdx": "bash tests/unit/test-mdx-compile.sh",
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
     "eval:skill": "bash tests/evals/scripts/run-skill-eval.sh",
     "eval:optimize-desc": "bash tests/evals/scripts/optimize-description.sh",
@@ -33,7 +34,7 @@
     "generate:http-hooks": "npx tsx src/hooks/src/cli/generate-http-hooks.ts",
     "typecheck": "cd src/hooks && npx tsc --noEmit",
     "verify:imports": "node scripts/verify-imports.js",
-    "prepush": "./bin/git-hooks/pre-push"
+    "prepare": "git config --local core.hooksPath bin/git-hooks 2>/dev/null || true"
   },
   "repository": {
     "type": "git",

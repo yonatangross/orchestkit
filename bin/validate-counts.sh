@@ -85,12 +85,62 @@ else
 fi
 
 echo ""
+
+# =============================================================================
+# VERSION DRIFT CHECK (package.json = source of truth)
+# =============================================================================
+# Ensures all sibling files stay synchronized with package.json version.
+# The version is propagated by scripts/stamp-counts.sh during `npm run build`.
+check_version() {
+    local label="$1"
+    local file="$2"
+    local actual="$3"
+    if [[ "$actual" != "$EXPECTED_VERSION" ]]; then
+        echo "Version drift detected: package.json says $EXPECTED_VERSION but $file has $actual"
+        ERRORS=$((ERRORS + 1))
+    else
+        echo "✓ Version $label: $actual"
+    fi
+}
+
+echo "Validating version sync..."
+EXPECTED_VERSION=$(jq -r '.version' "$PROJECT_ROOT/package.json")
+
+if [[ -f "$PROJECT_ROOT/pyproject.toml" ]]; then
+    PY_VERSION=$(grep -E '^version = ' "$PROJECT_ROOT/pyproject.toml" | head -1 | sed -E 's/^version = "([^"]+)".*/\1/')
+    check_version "pyproject.toml" "pyproject.toml" "$PY_VERSION"
+fi
+
+if [[ -f "$PROJECT_ROOT/manifests/ork.json" ]]; then
+    ORK_VERSION=$(jq -r '.version' "$PROJECT_ROOT/manifests/ork.json")
+    check_version "manifests/ork.json" "manifests/ork.json" "$ORK_VERSION"
+fi
+
+if [[ -f "$PROJECT_ROOT/.claude-plugin/marketplace.json" ]]; then
+    MKT_TOP=$(jq -r '.version' "$PROJECT_ROOT/.claude-plugin/marketplace.json")
+    check_version "marketplace.json (top)" ".claude-plugin/marketplace.json" "$MKT_TOP"
+    MKT_PLUGIN=$(jq -r '.plugins[0].version' "$PROJECT_ROOT/.claude-plugin/marketplace.json")
+    check_version "marketplace.json (plugins[0])" ".claude-plugin/marketplace.json (plugins[0])" "$MKT_PLUGIN"
+fi
+
+if [[ -f "$PROJECT_ROOT/.release-please-manifest.json" ]]; then
+    RP_VERSION=$(jq -r '."."' "$PROJECT_ROOT/.release-please-manifest.json")
+    check_version ".release-please-manifest.json" ".release-please-manifest.json" "$RP_VERSION"
+fi
+
+if [[ -f "$PROJECT_ROOT/CLAUDE.md" ]]; then
+    CM_VERSION=$(grep -E '\*\*Current\*\*: [0-9]+\.[0-9]+\.[0-9]+' "$PROJECT_ROOT/CLAUDE.md" | head -1 | sed -E 's/.*\*\*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+    check_version "CLAUDE.md" "CLAUDE.md" "$CM_VERSION"
+fi
+
+echo ""
 if [[ $ERRORS -gt 0 ]]; then
     echo "Validation FAILED: $ERRORS mismatches found"
     echo ""
-    echo "To fix: Update .claude-plugin/plugin.json description to match actual counts"
+    echo "To fix: Update .claude-plugin/plugin.json description to match actual counts,"
+    echo "        or run 'npm run build' to re-propagate the version from package.json."
     exit 1
 else
-    echo "Validation PASSED: All counts match"
+    echo "Validation PASSED: All counts and versions match"
     exit 0
 fi

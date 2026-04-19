@@ -31,6 +31,8 @@
     "database-patterns",
     "demo-producer",
     "design-context-extract",
+    "design-import",
+    "design-ship",
     "design-system-tokens",
     "design-to-code",
     "devops-deployment",

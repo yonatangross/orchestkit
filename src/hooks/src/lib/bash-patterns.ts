@@ -24,6 +24,17 @@ export const REJECT_PATTERNS: RegExp[] = [
   /^git\s+clean/,
   /^rm\s/,
   /^chmod\s/,
+  // find(1) with destructive / file-writing actions. -exec uses `;` (caught
+  // by isCompoundCommand), but -delete, -fprint*, -fls, and -ok are
+  // single-token flags that bypass the compound check:
+  //   -delete       — unlinks matches
+  //   -fprint*      — writes matches to arbitrary file (fprint/fprint0/fprintf)
+  //   -fls          — writes ls-style listing to arbitrary file
+  //   -ok           — interactive confirm (no stdin in hook context → hangs)
+  // Not blocked: -print, -print0, -printf (stdout-only; exfil via pipe is
+  // caught by isCompoundCommand). CC 2.1.113 stopped auto-approving these
+  // under Bash(find:*); we mirror it.
+  /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok)\b/,
 ];
 
 // Note: For compound command detection, use isCompoundCommand() from

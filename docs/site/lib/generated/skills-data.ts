@@ -1113,6 +1113,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
+      "claude-design-orchestrator",
       "component-curator",
       "design-system-architect",
       "frontend-ui-developer",
@@ -1424,10 +1425,103 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
+      "claude-design-orchestrator",
       "design-context-extractor",
       "design-system-architect",
       "frontend-ui-developer"
     ]
+  },
+  "design-import": {
+    "name": "design-import",
+    "description": "Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Accepts a bundle URL or local file, parses and validates the schema, deduplicates components against the existing codebase via component-search, then pipes the survivors through the design-to-code pipeline. Writes provenance metadata so future imports can detect drift between design versions. Use after exporting a handoff bundle from claude.ai/design — this is the entry point that turns a design into code.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "claude-design",
+      "handoff",
+      "design-import",
+      "design-to-code",
+      "bundle",
+      "scaffold",
+      "frontend"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash",
+      "WebFetch",
+      "AskUserQuestion",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [
+      "design-to-code",
+      "component-search",
+      "design-context-extract",
+      "design-system-tokens",
+      "remember",
+      "memory"
+    ],
+    "agent": "claude-design-orchestrator",
+    "complexity": "medium",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "design-ship": {
+    "name": "design-ship",
+    "description": "End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body. The one-shot 'design URL in, reviewable PR out' workflow. Use when a designer or PM hands you a Claude Design URL and you want a PR back without intermediate steps.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "claude-design",
+      "design-ship",
+      "end-to-end",
+      "pr",
+      "handoff",
+      "ship-it",
+      "frontend"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash",
+      "WebFetch",
+      "AskUserQuestion",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList"
+    ],
+    "skills": [
+      "design-import",
+      "cover",
+      "expect",
+      "create-pr",
+      "remember",
+      "memory"
+    ],
+    "agent": "claude-design-orchestrator",
+    "complexity": "complex",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
   },
   "design-system-tokens": {
     "name": "design-system-tokens",
@@ -1524,6 +1618,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
+      "claude-design-orchestrator",
       "frontend-ui-developer"
     ]
   },
@@ -2843,6 +2938,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ai-safety-auditor",
       "backend-system-architect",
       "ci-cd-engineer",
+      "claude-design-orchestrator",
       "code-quality-reviewer",
       "component-curator",
       "data-pipeline-engineer",
@@ -3865,6 +3961,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ai-safety-auditor",
       "backend-system-architect",
       "ci-cd-engineer",
+      "claude-design-orchestrator",
       "code-quality-reviewer",
       "component-curator",
       "data-pipeline-engineer",

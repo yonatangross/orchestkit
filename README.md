@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**<!--ork:skills-->103<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->178<!--/ork--> hooks**
+**<!--ork:skills-->105<!--/ork--> skills · <!--ork:agents-->37<!--/ork--> agents · <!--ork:hooks-->180<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.111-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.113-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 [![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)
@@ -62,9 +62,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->103<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
-| **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
-| **<!--ork:hooks-->178<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
+| **<!--ork:skills-->105<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:agents-->37<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
+| **<!--ork:hooks-->180<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
@@ -161,7 +161,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.111** (Opus 4.7 + `xhigh` effort + `/ultrareview`). Check with `claude --version`.
+Requires **≥2.1.113** (Opus 4.7, `xhigh` effort, `sandbox.network.deniedDomains`, native binary, hardened `Bash(rm:*)`/`Bash(find:*)` rules). Check with `claude --version`.
 </details>
 
 ---
@@ -213,7 +213,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
 - **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
 - **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
-- **103 skills**, **36 agents**, **173 hooks**, **23 invocable commands**
+- **105 skills**, **37 agents**, **180 hooks**, **25 invocable commands**
 
 **v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 
