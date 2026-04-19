@@ -41,3 +41,8 @@ next-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
