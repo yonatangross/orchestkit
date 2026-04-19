@@ -170,6 +170,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Graph Utils Unit Tests" "$SCRIPT_DIR/unit/test-graph-utils.sh" || true
     run_test "MDX Compile Guard" "$SCRIPT_DIR/unit/test-mdx-compile.sh" || true
     run_test "Version Sync Round-Trip" "$SCRIPT_DIR/unit/test-sync-versions.sh" || true
+    run_test "Stub Fallback Integration" "$SCRIPT_DIR/unit/test-stub-fallback.sh" || true
 
     # TypeScript hook tests (vitest)
     if [[ -n "${CI:-}" ]]; then
