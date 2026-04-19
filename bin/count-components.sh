@@ -23,10 +23,14 @@ count_skills() {
     fi
 }
 
-# Count agents (markdown files in src/agents dir)
+# Count agents (markdown files in src/agents dir, excluding non-agent docs
+# like README.md, INDEX.md, CONTRIBUTING.md — anything that doesn't carry
+# agent frontmatter)
 count_agents() {
     if [[ -d "$PROJECT_ROOT/src/agents" ]]; then
-        find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+        find "$PROJECT_ROOT/src/agents" -maxdepth 1 -name "*.md" -type f 2>/dev/null \
+            | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' \
+            | wc -l | tr -d ' '
     else
         echo "0"
     fi

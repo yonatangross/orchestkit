@@ -200,6 +200,12 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Copy agents
     if [[ "$AGENTS_MODE" == "all" ]]; then
         cp -R "$SRC_DIR/agents" "$PLUGIN_DIR/"
+        # README / INDEX / CONTRIBUTING under src/agents/ are registry docs,
+        # not agents. Drop them from the plugin output so every downstream
+        # counter agrees on the number of agents.
+        for non_agent in README.md INDEX.md CONTRIBUTING.md; do
+            rm -f "$PLUGIN_DIR/agents/$non_agent"
+        done
         agent_count=$(find "$PLUGIN_DIR/agents" -mindepth 1 -maxdepth 1 -name "*.md" | wc -l | tr -d ' ')
     elif [[ "$AGENTS_MODE" == "array" ]]; then
         mkdir -p "$PLUGIN_DIR/agents"

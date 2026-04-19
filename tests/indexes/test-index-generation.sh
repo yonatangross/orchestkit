@@ -84,6 +84,12 @@ MISSING_AGENTS=0
 for agent_md in "$SRC_DIR/agents"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
     agent_name=$(basename "$agent_md" .md)
+
+    # Skip non-agent docs in src/agents/ (registry README, CONTRIBUTING, INDEX)
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     TOTAL_AGENTS=$((TOTAL_AGENTS + 1))
 
     # Check if agent appears in the ork mega-plugin section of the composite index

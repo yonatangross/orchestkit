@@ -1,0 +1,8 @@
+{
+  "_schema": {
+    "description": "npm audit gate allowlist. Add advisory IDs with a reason and an optional expiry date (YYYY-MM-DD). An expired entry fails the test so exceptions get revisited.",
+    "example": {
+      "GHSA-xxxx-yyyy-zzzz": { "reason": "no upstream fix yet", "until": "2026-07-01" }
+    }
+  }
+}

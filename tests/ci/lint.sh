@@ -163,6 +163,12 @@ agent_count=0
 for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
     if [ -f "$agent_file" ]; then
         agent_name=$(basename "$agent_file" .md)
+
+        # Skip non-agent docs in src/agents/
+        case "$agent_name" in
+            README|INDEX|CONTRIBUTING) continue ;;
+        esac
+
         ((agent_count++)) || true
 
         # Check for CC 2.1.6 required fields
@@ -206,6 +212,12 @@ hook_checked=0
 for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
     if [ -f "$agent_file" ]; then
         agent_name=$(basename "$agent_file" .md)
+
+        # Skip non-agent docs
+        case "$agent_name" in
+            README|INDEX|CONTRIBUTING) continue ;;
+        esac
+
         # Extract YAML frontmatter (between first pair of --- markers)
         frontmatter=$(awk '/^---$/{if(++c==2) exit; next} c==1{print}' "$agent_file")
 
