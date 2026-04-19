@@ -6,6 +6,10 @@ Essential context for Claude Code when working on OrchestKit.
 
 Always respond in English. Never Hebrew. No exceptions.
 
+## Tone
+
+No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycophancy.md`.
+
 ## Project Overview
 
 **OrchestKit** — Claude Code plugin: **<!--ork:skills-->105<!--/ork--> skills**, **<!--ork:agents-->37<!--/ork--> agents**, **<!--ork:hooks-->180<!--/ork--> hooks** (<!--ork:hooks-global-->112<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped).
@@ -66,10 +70,6 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 ## Session Resilience
 
 Commit after each logical unit of work — never batch all commits to end of session. Rate limits can kill a session at any time. If build/test fails mid-session, commit the passing work first, then fix the failure separately.
-
-## Long Chains (CC 2.1.111+ / Opus 4.7 / Max)
-
-Auto mode (no flag), `--resume` resurrects scheduled tasks, task budgets (public beta) via `budget_remaining_pct` in `.claude/chain/state.json`. See `src/skills/implement/SKILL.md` and `src/skills/loop/SKILL.md` for details.
 
 ## GitHub CLI
 

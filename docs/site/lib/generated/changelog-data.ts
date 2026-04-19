@@ -17,6 +17,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.55.1",
+    "date": "2026-04-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "`.github/workflows/claude-review.yml`: gated on `needs-claude-review` label so the workflow no longer auto-cancels on every PR and pollutes the rollup state. (#1403)",
+          "`.github/workflows/docs.yml`: lowercase `build` job display name changed to `Docs Site Build` to disambiguate from the required `Build` check. (#1404)",
+          "`scripts/build-plugins.sh`: invokes `stamp-counts.sh` before the final summary instead of in `postbuild`, so `npm run build` shows accurate counts on a single run. (#1405)",
+          "`scripts/stamp-counts.sh`: new `sync_versions` function reads `package.json` and propagates the version to `pyproject.toml`, `manifests/ork.json`, `marketplace.json` (top + plugins[0]), `.release-please-manifest.json`, and `CLAUDE.md`. (#1407)",
+          "`bin/validate-counts.sh`: extended with a version drift check that fails on any mismatch with `package.json`. (#1407)",
+          "`tests/unit/test-mdx-compile.sh`: added the same NPM 401 → analytics-stub fallback as `docs.yml` so the guard works on PR builds without the private GitHub Packages token. (#1406)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.55.0",
     "date": "2026-04-19",
     "compareUrl": "",
