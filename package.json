@@ -5,7 +5,7 @@
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
     "prebuild": "echo '🔨 Building plugins from source...'",
-    "postbuild": "bash scripts/stamp-counts.sh && echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
@@ -53,8 +53,6 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@mdx-js/mdx": "^3.1.1",
-    "agentation-mcp": "^1.2.0",
-    "remark-gfm": "^4.0.1"
+    "agentation-mcp": "^1.2.0"
   }
 }

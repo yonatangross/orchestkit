@@ -10,9 +10,11 @@
 // fences in skill SKILL.md sources produce mdx where prose looks like JSX
 // expressions, and acorn chokes deep inside `next build --webpack`.
 //
-// Usage:
-//   node scripts/test-mdx-compile.mjs                     # check all
-//   node scripts/test-mdx-compile.mjs path/to/one.mdx     # check one
+// Usage (run from docs/site/ — its node_modules has @mdx-js/mdx via fumadocs-mdx):
+//   cd docs/site && node scripts/test-mdx-compile.mjs                  # check all
+//   cd docs/site && node scripts/test-mdx-compile.mjs path/to/one.mdx  # check one
+//
+// The repo wrapper at tests/unit/test-mdx-compile.sh handles the cd for you.
 //
 // Exit codes: 0 = all pass, 1 = at least one parse error.
 
@@ -22,8 +24,11 @@ import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = join(__dirname, '..');
-const DEFAULT_ROOT = join(PROJECT_ROOT, 'docs/site/content/docs');
+// This script lives in docs/site/scripts/ — the docs site root is one level up,
+// the project root is three levels up.
+const DOCS_SITE_ROOT = join(__dirname, '..');
+const PROJECT_ROOT = join(__dirname, '..', '..', '..');
+const DEFAULT_ROOT = join(DOCS_SITE_ROOT, 'content/docs');
 
 // ANSI colors — only when stdout is a TTY
 const useColor = process.stdout.isTTY;

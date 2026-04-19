@@ -18,8 +18,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SCRIPT="$PROJECT_ROOT/scripts/test-mdx-compile.mjs"
-FIXTURE="$PROJECT_ROOT/tests/fixtures/nested-fence.mdx"
+DOCS_SITE="$PROJECT_ROOT/docs/site"
+SCRIPT="$DOCS_SITE/scripts/test-mdx-compile.mjs"
+FIXTURE="$DOCS_SITE/tests/fixtures/nested-fence.mdx"
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
@@ -47,11 +48,12 @@ if [[ ! -f "$FIXTURE" ]]; then
   exit 1
 fi
 
-# Pre-flight: ensure devDeps are installed (root-level)
-if [[ ! -d "$PROJECT_ROOT/node_modules/@mdx-js/mdx" ]]; then
-  echo "  ${YELLOW}⚠${NC} @mdx-js/mdx not in root node_modules — running npm install"
-  (cd "$PROJECT_ROOT" && npm install --no-audit --no-fund 2>&1 | tail -3) || {
-    fail "npm install failed"
+# Pre-flight: ensure docs/site has node_modules (the script needs @mdx-js/mdx
+# from there — provided directly via devDeps, with fumadocs-mdx as a backstop)
+if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
+  echo "  ${YELLOW}⚠${NC} @mdx-js/mdx not in docs/site/node_modules — running npm install there"
+  (cd "$DOCS_SITE" && npm install --no-audit --no-fund 2>&1 | tail -3) || {
+    fail "npm install failed in docs/site"
     exit 1
   }
 fi
@@ -59,7 +61,7 @@ fi
 # ─── Test 1: every published mdx must compile ───────────────────────
 echo "▶ Test 1: docs/site/content/docs/**/*.mdx all compile cleanly"
 echo "────────────────────────────────────────────────────────────────"
-if (cd "$PROJECT_ROOT" && node "$SCRIPT" 2>&1); then
+if (cd "$DOCS_SITE" && node "$SCRIPT" 2>&1); then
   pass "All published mdx files compile"
 else
   fail "At least one published mdx file failed to compile"
@@ -69,7 +71,7 @@ echo ""
 # ─── Test 2: counter-example MUST fail ──────────────────────────────
 echo "▶ Test 2: counter-example fixture is rejected"
 echo "────────────────────────────────────────────────────────────────"
-if (cd "$PROJECT_ROOT" && node "$SCRIPT" "$FIXTURE" >/dev/null 2>&1); then
+if (cd "$DOCS_SITE" && node "$SCRIPT" "$FIXTURE" >/dev/null 2>&1); then
   fail "Counter-example $(basename "$FIXTURE") was NOT rejected — guard is broken"
   echo "    The fixture is supposed to fail. If it now compiles, either"
   echo "    @mdx-js/mdx changed its parser behavior, or someone 'fixed' the fixture."

@@ -58,6 +58,7 @@ jobs:
           fi
 
   build:
+    name: Docs Site Build
     permissions:
       contents: read
     needs: validate

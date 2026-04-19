@@ -4,7 +4,7 @@
 name: Claude PR Review
 on:
   pull_request:
-    types: [opened, ready_for_review]
+    types: [labeled, synchronize]
   issue_comment:
     types: [created]
   workflow_dispatch:
@@ -27,7 +27,8 @@ concurrency:
 jobs:
   review:
     if: |
-      github.event_name == 'pull_request' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'needs-claude-review')) ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '@claude') &&
