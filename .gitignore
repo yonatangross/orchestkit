@@ -12,6 +12,8 @@ overcut/
 docs/feat--*/
 docs/fix--*/
 docs/refactor--*/
+docs/chore--*/
+docs/docs--*/
 docs/design/
 docs/research/
 docs/migrations/

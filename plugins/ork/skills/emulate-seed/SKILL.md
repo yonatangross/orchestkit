@@ -2,13 +2,14 @@
 name: emulate-seed
 description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 tags: [emulate, testing, api-emulation, github, vercel, google, stripe, resend, okta, mongodb, seed, ci, stateful-testing]
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
 complexity: medium
 context: inherit
 persuasion-type: guidance
+agent: emulate-engineer
 metadata:
   category: testing
   upstream-package: emulate
@@ -18,6 +19,8 @@ metadata:
 # Emulate Seed Configs
 
 Generate and manage seed configs for [emulate](https://github.com/vercel-labs/emulate) (Apache-2.0) — Vercel Labs' stateful API emulation tool. Each category has individual rule files in `rules/` loaded on-demand.
+
+> **Paired agent:** This skill pairs with the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent (`subagent_type: "emulate-engineer"`). When a task involves generating a full emulate config from scratch, webhook HMAC setup, CI pipeline integration, or parallel-worker port isolation, spawn the agent rather than handling it inline — it has the full 12-emulator service-port matrix and seed-rules in context.
 
 **Not mocks.** Emulate provides full state machines with cascading deletes, cursor pagination, webhook delivery, and HMAC signature verification. Create a PR via the API and it appears in `GET /repos/:owner/:repo/pulls`. Delete a repo and its issues, PRs, and webhooks cascade-delete.
 

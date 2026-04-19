@@ -283,6 +283,13 @@ if "unit" in TIERS:
 # - subagent_type="test-generator", isolation="worktree", run_in_background=True
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
+#
+# Special case — emulate (Vercel Labs stateful API emulation):
+# When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
+# (HMAC webhooks, parallel port isolation, full config from scratch),
+# spawn emulate-engineer instead of test-generator for that tier:
+# - subagent_type="emulate-engineer", isolation="worktree"
+# - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
 Output each agent's results **as soon as it returns** — don't wait for all agents.
