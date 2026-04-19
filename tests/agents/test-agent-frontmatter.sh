@@ -29,6 +29,12 @@ echo ""
 
 for agent_file in "$AGENTS_DIR"/*.md; do
   agent_name=$(basename "$agent_file" .md)
+
+  # Skip non-agent docs (registry README, INDEX, CONTRIBUTING)
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+
   agent_failed=0
 
   # Check required fields
