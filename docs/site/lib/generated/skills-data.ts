@@ -1926,7 +1926,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "emulate-seed": {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -1947,7 +1947,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": null,
+    "agent": "emulate-engineer",
     "complexity": "medium",
     "structure": {
       "references": [

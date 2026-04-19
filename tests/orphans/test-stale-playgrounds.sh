@@ -39,12 +39,15 @@ orphan=()
 
 cd "$REPO_ROOT"
 shopt -s nullglob
-for d in docs/feat--*; do
+for d in docs/feat--* docs/chore--* docs/fix--* docs/refactor--* docs/docs--*; do
     [[ -d "$d" ]] || continue
-    branch_slug="${d#docs/feat--}"
-    # docs/feat--foo-bar-baz corresponds to feat/foo-bar-baz by convention
+    # Extract prefix (feat, chore, fix, refactor, docs) from dir name
+    basename_d="$(basename "$d")"
+    prefix="${basename_d%%--*}"
+    branch_slug="${basename_d#*--}"
+    # docs/{prefix}--foo-bar-baz corresponds to {prefix}/foo-bar-baz by convention
     # (the `--` separator stands in for `/` in dir names)
-    branch="feat/${branch_slug//--/\/}"
+    branch="${prefix}/${branch_slug//--/\/}"
 
     state=$(gh pr list --search "head:$branch" --state all --json state --jq '.[0].state // "no-pr"' 2>/dev/null || echo "no-pr")
 

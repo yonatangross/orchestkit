@@ -34,6 +34,8 @@ Focused patterns for testing API boundaries, cross-service contracts, component 
 
 ## Quick Reference
 
+> For complex emulate setups (full config generation, webhook HMAC, CI per-worker port isolation), delegate to the [`emulate-engineer`](../../agents/emulate-engineer.md) subagent. Pairs with the `emulate-seed` skill.
+
 | Area | Rule / Reference | Impact |
 |------|-----------------|--------|
 | **Stateful API testing (emulate)** | `rules/emulate-stateful-testing.md` | **HIGH** |
