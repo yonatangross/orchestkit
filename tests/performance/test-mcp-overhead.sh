@@ -113,6 +113,10 @@ echo "=== MCP Overhead Regression Gate (#945) ==="
 echo "Scanning ${#agent_files[@]} agents..."
 
 for agent_file in "${agent_files[@]}"; do
+  agent_name="$(basename "$agent_file" .md)"
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
   check_agent "$agent_file"
 done
 

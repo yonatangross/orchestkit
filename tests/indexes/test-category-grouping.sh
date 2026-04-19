@@ -93,6 +93,10 @@ for agent_md in "$SRC_AGENTS"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
     agent_name=$(basename "$agent_md" .md)
 
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     # Count occurrences in index
     count=$(grep -c "^|${agent_name}:" "$INDEX_FILE" || true)
 
@@ -242,6 +246,10 @@ ORPHANS=0
 for agent_md in "$SRC_AGENTS"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
     agent_name=$(basename "$agent_md" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
 
     category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
 
