@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR-T3 — Landing E2E (Playwright)</title>
+<style>
+  :root {
+    --bg: #0c0f14;
+    --panel: #1a2030;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #94a3b8;
+    --faint: #64748b;
+    --primary: #10b981;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --mono: ui-monospace,Menlo,Consolas,monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.55 system-ui,sans-serif;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 8px 8px;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 99px;
+    background: rgba(16,185,129,0.18);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    font: 11px var(--mono);
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+  h1 .accent { color: var(--primary); }
+  .subtitle { color: var(--dim); font: 12px var(--mono); margin-bottom: 24px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font: 12.5px var(--mono); }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px dashed var(--border); }
+  th { color: var(--faint); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+  td.proj { color: var(--primary); }
+  pre {
+    background: #0f131a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font: 11.5px/1.5 var(--mono);
+    overflow-x: auto;
+    color: var(--dim);
+  }
+  pre .pass { color: var(--green); }
+  pre .skip { color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="pill">Road to 10 — Wave 2 · PR-T3</span>
+  <h1>Landing page <span class="accent">Playwright E2E</span></h1>
+  <div class="subtitle">8 specs · chromium desktop + mobile · catches what vitest cannot</div>
+
+  <div class="card">
+    <h2>Why E2E now</h2>
+    <p style="color: var(--dim); font-size: 12.5px;">
+      The landing redesign (#1399) ships JSX with custom CSS variables, dark-mode tokens, and responsive layout. vitest validates units; nothing validated that the <em>rendered</em> page works. PR-T3 fills that gap.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Coverage matrix</h2>
+    <table>
+      <thead><tr><th>Spec</th><th>Project</th><th>Asserts</th></tr></thead>
+      <tbody>
+        <tr><td>hero renders with brand headline + CTAs</td><td class="proj">desktop</td><td>headline split, eyebrow, both CTAs</td></tr>
+        <tr><td>proof strip shows GitHub stars</td><td class="proj">desktop</td><td>real "Nk stars" or graceful "Star on GitHub"</td></tr>
+        <tr><td>three primitive cards render with counts</td><td class="proj">desktop</td><td>building-blocks heading + 3 h3s + tabular-nums</td></tr>
+        <tr><td>all 8 recipe cards + NEW badge</td><td class="proj">desktop</td><td>each cookbook title + /ork:design-ship</td></tr>
+        <tr><td>three persona value-prop cards</td><td class="proj">desktop</td><td>01/02/03 eyebrows + titles</td></tr>
+        <tr><td>hero foreground resolves to a real color</td><td class="proj">desktop</td><td>computed color is rgb/oklch/lab/etc, not transparent</td></tr>
+        <tr><td>primary button uses emerald token</td><td class="proj">desktop</td><td>computed background is a real color</td></tr>
+        <tr><td>layout stacks without horizontal overflow</td><td class="proj">mobile</td><td>scrollWidth ≤ clientWidth + CTAs visible</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Local run output</h2>
+<pre>$ cd docs/site && npx playwright test --project=chromium-desktop
+
+  <span class="pass">✓ 1</span> Landing — hero › hero renders with brand headline + CTAs
+  <span class="pass">✓ 2</span> Landing — hero › proof strip shows GitHub stars
+  <span class="pass">✓ 3</span> Landing — primitives › three primitive cards render with counts
+  <span class="pass">✓ 4</span> Landing — cookbook recipes › all 8 recipe cards render
+  <span class="pass">✓ 5</span> Landing — value-prop strip › three persona cards
+  <span class="pass">✓ 6</span> Landing — design tokens › hero foreground resolves
+  <span class="pass">✓ 7</span> Landing — design tokens › primary button uses emerald token
+  <span class="skip">- 8</span> Landing — mobile viewport (skipped on desktop project)
+
+  <span class="pass">7 passed</span>, 1 skipped (8.3s)</pre>
+  </div>
+
+  <div class="card">
+    <h2>Wired in</h2>
+    <ul style="color: var(--dim); font-size: 12.5px; padding-left: 18px;">
+      <li><code>docs/site/playwright.config.ts</code> — auto-spawns dev server, 2 projects (desktop + mobile)</li>
+      <li><code>docs/site/e2e/landing.spec.ts</code> — 8 specs across 6 describe blocks</li>
+      <li><code>docs/site/package.json</code> → <code>test:e2e</code> script + <code>@playwright/test</code> devDep</li>
+      <li><code>docs/site/.gitignore</code> — <code>test-results/</code>, <code>playwright-report/</code>, <code>playwright/.cache/</code></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Wave 2 progress (3 of 5)</h2>
+<pre>PR-T1   formatStars unit test                ✓ merged (#1412)
+PR-T2   sync_versions round-trip             ✓ merged (#1414)
+PR-T3   Playwright E2E for landing           ← THIS PR
+PR-T4   handoff bundle schema validator      next
+PR-T5   stub-fallback integration test</pre>
+  </div>
+</div>
+</body>
+</html>
