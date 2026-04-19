@@ -17,6 +17,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.55.2",
+    "date": "2026-04-19",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "`bin/git-hooks/commit-msg`: blocks commits with banned celebratory phrases (\"shipped cleanly\", \"all green!\", 🎉, etc.) and commit titles > 72 chars. Soft-warns when commit body > 50 lines. See `CLAUDE.md` § Tone.",
+          "`scripts/prepare` (via `package.json`): sets `core.hooksPath bin/git-hooks` automatically on `npm install`, so the repo's git hooks activate for every contributor without a manual step.",
+          "Warn tier in `tests/performance/test-token-overhead.sh`: emits a yellow `WARN:` line when any section crosses 90% of its budget but hasn't exceeded it. Gives notice BEFORE the budget blows."
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "`bin/git-hooks/pre-push`: extended to run the `mdx-compile guard`, `test:agents`, `test:skills`, `test:manifests`, and the `token-overhead` budget check. Previous gaps let this session push code that CI then rejected — these gates close the loop locally."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.55.1",
     "date": "2026-04-19",
     "compareUrl": "",

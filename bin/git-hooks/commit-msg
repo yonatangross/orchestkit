@@ -1,0 +1,94 @@
+#!/bin/bash
+# Git Commit-Message Hook for OrchestKit
+# Enforces the Tone rule from CLAUDE.md: no sugarcoating in commit messages.
+#
+# Checks:
+#   1. Title ≤ 72 characters
+#   2. No banned celebratory phrases anywhere in the message
+#
+# Banned phrases are the ones that drift into commits when the author narrates
+# the experience rather than stating the change. See anti-sycophancy.md.
+#
+# To bypass (use sparingly — with good reason): git commit --no-verify
+
+set -uo pipefail
+
+COMMIT_MSG_FILE="$1"
+[[ -z "${COMMIT_MSG_FILE:-}" ]] && exit 0
+[[ ! -f "$COMMIT_MSG_FILE" ]] && exit 0
+
+# Skip merge / fixup / revert commits — they're mechanical
+FIRST_LINE=$(head -n1 "$COMMIT_MSG_FILE")
+if [[ "$FIRST_LINE" =~ ^(Merge|Revert|fixup!|squash!|amend!) ]]; then
+    exit 0
+fi
+
+RED=$'\033[0;31m'
+YELLOW=$'\033[1;33m'
+NC=$'\033[0m'
+
+ERRORS=0
+
+# ───── Check 1: Title length ≤ 72 chars ─────────────────────────────
+TITLE_LEN=${#FIRST_LINE}
+if [[ $TITLE_LEN -gt 72 ]]; then
+    echo "${RED}✗${NC} Commit title is ${TITLE_LEN} chars (max 72)"
+    echo "  Title: $FIRST_LINE"
+    echo "  Trim to the verb + object. Move detail to the body."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# ───── Check 2: Banned celebratory phrases ──────────────────────────
+# State the change, don't narrate the feeling.
+MSG_BODY=$(cat "$COMMIT_MSG_FILE")
+
+# Strip comment lines (git includes guidance in the editor) before scanning
+MSG_SCAN=$(printf '%s\n' "$MSG_BODY" | sed '/^#/d')
+
+# Banned patterns (case-insensitive). Match whole phrases/words.
+BANNED_PATTERNS=(
+    'shipped cleanly'
+    'all green!'
+    'all green 🎯'
+    'fully closed'
+    'closed cleanly'
+    'ready to ship!'
+    'works beautifully'
+    'thoroughly green'
+    'pays back handsomely'
+    '🎉'
+    '🚀'
+    '🎯'
+    '✨'
+)
+
+FOUND=()
+for pat in "${BANNED_PATTERNS[@]}"; do
+    if grep -qiF "$pat" <<<"$MSG_SCAN" 2>/dev/null; then
+        FOUND+=("$pat")
+    fi
+done
+
+if [[ ${#FOUND[@]} -gt 0 ]]; then
+    echo "${RED}✗${NC} Banned celebratory phrases in commit message:"
+    for f in "${FOUND[@]}"; do
+        echo "    → \"$f\""
+    done
+    echo "  Rewrite as a factual statement. See CLAUDE.md § Tone."
+    ERRORS=$((ERRORS + 1))
+fi
+
+# ───── Soft signal: body > 50 lines (warning, not failure) ──────────
+BODY_LINES=$(wc -l <"$COMMIT_MSG_FILE" | tr -d ' ')
+if [[ $BODY_LINES -gt 50 ]]; then
+    echo "${YELLOW}⚠${NC}  Commit body is $BODY_LINES lines. Consider trimming narrative."
+fi
+
+if [[ $ERRORS -gt 0 ]]; then
+    echo ""
+    echo "Commit blocked. Fix the above and try again."
+    echo "(Bypass with --no-verify only for good reason.)"
+    exit 1
+fi
+
+exit 0

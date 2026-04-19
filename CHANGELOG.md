@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.55.2](https://github.com/yonatangross/orchestkit/compare/v7.55.1...v7.55.2) (2026-04-19)
+
+**Road to 10 — Wave 1: session quality gates.** Patch release. No user-facing changes.
+
+### Added
+
+- `bin/git-hooks/commit-msg`: blocks commits with banned celebratory phrases ("shipped cleanly", "all green!", 🎉, etc.) and commit titles > 72 chars. Soft-warns when commit body > 50 lines. See `CLAUDE.md` § Tone.
+- `scripts/prepare` (via `package.json`): sets `core.hooksPath bin/git-hooks` automatically on `npm install`, so the repo's git hooks activate for every contributor without a manual step.
+- Warn tier in `tests/performance/test-token-overhead.sh`: emits a yellow `WARN:` line when any section crosses 90% of its budget but hasn't exceeded it. Gives notice BEFORE the budget blows.
+
+### Changed
+
+- `bin/git-hooks/pre-push`: extended to run the `mdx-compile guard`, `test:agents`, `test:skills`, `test:manifests`, and the `token-overhead` budget check. Previous gaps let this session push code that CI then rejected — these gates close the loop locally.
+
+### Why
+
+During the session that closed milestones #113 and #116 we pushed code that CI caught as broken three times (nested-fence mdx bug, version-sync drift on pyproject.toml, 401 stub-fallback missing from the relocated guard). Each failure traced to a gate that existed but wasn't wired into the pre-push path. Wave 1 closes that gap.
+
 ## [7.55.1](https://github.com/yonatangross/orchestkit/compare/v7.55.0...v7.55.1) (2026-04-19)
 
 **Lane 2 — CI/Tooling de-noise.** Patch release. No user-facing changes; pure infra hygiene that pays back on every future PR.
