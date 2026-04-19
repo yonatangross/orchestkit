@@ -16,6 +16,10 @@ echo ""
 for agent_file in "$AGENTS_DIR"/*.md; do
   agent_name=$(basename "$agent_file" .md)
 
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+
   if ! grep -q "^context:" "$agent_file"; then
     echo "FAIL: $agent_name missing explicit context: declaration"
     FAILED=1

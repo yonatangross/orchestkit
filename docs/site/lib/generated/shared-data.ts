@@ -6,7 +6,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 export const TOTALS: Totals = {
   "plugins": 1,
   "skills": 106,
-  "agents": 38,
+  "agents": 37,
   "hooks": 180,
   "commands": 25,
   "compositions": 14
@@ -276,15 +276,6 @@ export const AGENTS: AgentSummary[] = [
     ],
     "model": "inherit",
     "category": "backend"
-  },
-  {
-    "name": "README",
-    "description": "",
-    "plugins": [
-      "ork"
-    ],
-    "model": "inherit",
-    "category": "other"
   },
   {
     "name": "release-engineer",

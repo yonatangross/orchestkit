@@ -44,6 +44,11 @@ TOTAL_AGENTS=0
 for agent_md in "$SRC_AGENTS"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
     agent_name=$(basename "$agent_md" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     TOTAL_AGENTS=$((TOTAL_AGENTS + 1))
 
     # Check if category exists in frontmatter
@@ -72,6 +77,10 @@ INVALID_CATEGORIES=0
 for agent_md in "$SRC_AGENTS"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
     agent_name=$(basename "$agent_md" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
 
     # Extract category value
     category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
@@ -105,6 +114,11 @@ declare -A CATEGORY_COUNTS
 
 for agent_md in "$SRC_AGENTS"/*.md; do
     [[ ! -f "$agent_md" ]] && continue
+    agent_name=$(basename "$agent_md" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
 
     category=$(sed -n '/^---$/,/^---$/p' "$agent_md" | grep "^category:" | head -1 | sed 's/^category:[[:space:]]*//')
 

@@ -202,6 +202,10 @@ test_all_real_agents_valid() {
     local agent_name
     agent_name=$(basename "$agent_file" .md)
 
+    case "$agent_name" in
+      README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     local input="{\"tool_input\":{\"subagent_type\":\"$agent_name\",\"description\":\"Test\"},\"session_id\":\"test-123\"}"
     local output
 

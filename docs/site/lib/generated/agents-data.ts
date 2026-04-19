@@ -865,16 +865,6 @@ export const AGENTS: Agent[] = [
     ]
   },
   {
-    "id": "README",
-    "name": "README",
-    "description": "",
-    "category": "other",
-    "model": "inherit",
-    "taskTypes": [],
-    "keywords": [],
-    "examplePrompts": []
-  },
-  {
     "id": "release-engineer",
     "name": "Release Engineer",
     "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",

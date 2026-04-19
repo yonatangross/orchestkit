@@ -61,6 +61,11 @@ echo "B. Checking agent content drift..."
 for src_agent in "$PROJECT_ROOT"/src/agents/*.md; do
     [[ -f "$src_agent" ]] || continue
     agent_name=$(basename "$src_agent")
+
+    case "$agent_name" in
+        README.md|INDEX.md|CONTRIBUTING.md) continue ;;
+    esac
+
     dest_agent="$PLUGIN_DIR/agents/$agent_name"
     CHECKED=$((CHECKED + 1))
     if [[ ! -f "$dest_agent" ]]; then
