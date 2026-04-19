@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR-T1 — formatStars unit tests</title>
+<style>
+  :root {
+    --bg: #0c0f14;
+    --panel: #1a2030;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #94a3b8;
+    --faint: #64748b;
+    --primary: #10b981;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --mono: ui-monospace,Menlo,Consolas,monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.55 system-ui,sans-serif;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 8px 8px;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 99px;
+    background: rgba(16,185,129,0.18);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    font: 11px var(--mono);
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+  h1 .accent { color: var(--primary); }
+  .subtitle { color: var(--dim); font: 12px var(--mono); margin-bottom: 24px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 12.5px var(--mono);
+  }
+  th, td {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  th { color: var(--faint); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+  td.in { color: var(--text); }
+  td.out { color: var(--primary); }
+  td.note { color: var(--dim); font-size: 11px; }
+  .quirk { color: var(--amber); }
+  pre {
+    background: #0f131a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font: 11.5px/1.5 var(--mono);
+    overflow-x: auto;
+    color: var(--dim);
+  }
+  pre .hl { color: var(--primary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="pill">Road to 10 — Wave 2 · PR-T1</span>
+  <h1><span class="accent">formatStars</span> unit tests</h1>
+  <div class="subtitle">20 cases · vitest · test debt paydown from #1399</div>
+
+  <div class="card">
+    <h2>Function under test</h2>
+<pre>export const <span class="hl">formatStars</span> = (n: number): string =&gt;
+  n &gt;= 1000 ? `${(n / 1000).toFixed(n &gt;= 10_000 ? 0 : 1)}k` : `${n}`;</pre>
+  </div>
+
+  <div class="card">
+    <h2>Coverage</h2>
+    <table>
+      <thead><tr><th>Input</th><th>Expected</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="in">0</td><td class="out">'0'</td><td class="note">small range</td></tr>
+        <tr><td class="in">1</td><td class="out">'1'</td><td class="note">small range</td></tr>
+        <tr><td class="in">42</td><td class="out">'42'</td><td class="note">small range</td></tr>
+        <tr><td class="in">100</td><td class="out">'100'</td><td class="note">small range</td></tr>
+        <tr><td class="in">999</td><td class="out">'999'</td><td class="note">just under "k"</td></tr>
+        <tr><td class="in">1000</td><td class="out">'1.0k'</td><td class="note">enters one-decimal k tier</td></tr>
+        <tr><td class="in">1500</td><td class="out">'1.5k'</td><td class="note">thousands</td></tr>
+        <tr><td class="in">2400</td><td class="out">'2.4k'</td><td class="note">thousands (repo today)</td></tr>
+        <tr><td class="in">9900</td><td class="out">'9.9k'</td><td class="note">near tier boundary</td></tr>
+        <tr><td class="in">9999</td><td class="out">'10.0k' <span class="quirk">⚠ quirk</span></td><td class="note">9.999 toFixed(1) = "10.0"</td></tr>
+        <tr><td class="in">10000</td><td class="out">'10k'</td><td class="note">enters integer-k tier</td></tr>
+        <tr><td class="in">10500</td><td class="out">'11k'</td><td class="note">half-to-even rounding</td></tr>
+        <tr><td class="in">12345</td><td class="out">'12k'</td><td class="note">ten-thousands</td></tr>
+        <tr><td class="in">99999</td><td class="out">'100k'</td><td class="note">upper edge</td></tr>
+        <tr><td class="in">100000</td><td class="out">'100k'</td><td class="note">hundred-thousands</td></tr>
+        <tr><td class="in">999000</td><td class="out">'999k'</td><td class="note">just under million</td></tr>
+        <tr><td class="in">1,000,000</td><td class="out">'1000k' <span class="quirk">⚠ no-M-tier</span></td><td class="note">revisit at 1M stars</td></tr>
+        <tr><td class="in">123,456,789</td><td class="out">'123457k'</td><td class="note">does not crash on large n</td></tr>
+        <tr><td class="in">9000</td><td class="out">'9.0k'</td><td class="note">tier-boundary test</td></tr>
+        <tr><td class="in">10000</td><td class="out">'10k'</td><td class="note">tier-boundary test</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why extract?</h2>
+    <p style="color: var(--dim); font-size: 12.5px;">
+      The function was inline in <code>docs/site/app/(home)/page.tsx</code> — untestable without either importing the whole page or duplicating the logic. Moving it to <code>docs/site/lib/format-stars.ts</code> gives it a stable import path and makes tests a one-liner.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Local run</h2>
+<pre>$ cd docs/site &amp;&amp; npm test -- format-stars
+ <span class="hl">RUN</span>  v4.1.4 /.../docs/site
+
+ Test Files  <span class="hl">1 passed (1)</span>
+      Tests  <span class="hl">20 passed (20)</span>
+   Duration  2.05s</pre>
+  </div>
+</div>
+</body>
+</html>
