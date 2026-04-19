@@ -1,0 +1,30 @@
+---
+title: "Counter-example: nested same-length fences"
+description: "DO NOT FIX THIS FILE. It is intentionally broken to assert the mdx-compile guard rejects this exact pattern. See tests/unit/test-mdx-compile.sh."
+---
+
+# Counter-example: nested same-length code fences
+
+This file is **intentionally broken**. It exists so the mdx-compile guard
+in `scripts/test-mdx-compile.mjs` has a known-bad input to reject. Do not
+"fix" it — fix the underlying guard if it ever stops failing this file.
+
+The bug: an outer ```` ``` ```` python fence with an inner ```` ``` ```` tsx fence
+at the same backtick count. CommonMark closes the outer block at the inner
+fence, leaving the rest of the prose to be parsed as MDX → JSX → acorn.
+
+```python
+prompt = f"""Use this scaffold:
+```tsx
+{component['tsx_scaffold']}
+```
+{f"Adapt: {component['existing']}" if component['decision'] == 'adapt' else ''}
+"""
+```
+
+The line above with `{f"Adapt: ..." if ... else ''}` becomes prose after
+the inner ```` ``` ```` tsx fence closes the outer python block, and acorn
+chokes on the Python f-string syntax.
+
+The fix is to use a 4-backtick outer fence in the source SKILL.md so the
+inner 3-backtick fence nests cleanly. See PR #1399 for the full history.

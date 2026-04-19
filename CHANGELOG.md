@@ -5,7 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [7.53.0](https://github.com/yonatangross/orchestkit/compare/v7.52.0...v7.53.0) (2026-04-18)
+## [7.54.0](https://github.com/yonatangross/orchestkit/compare/v7.53.0...v7.54.0) (2026-04-19)
+
+**Bet A polish — milestone #113 close-out.** Two follow-ups from the first real `/ork:design-ship` dogfood (#1399):
+
+### Added
+
+- **`tests/unit/test-mdx-compile.sh` + `scripts/test-mdx-compile.mjs`** — pre-build mdx-compile guard. Walks every `docs/site/content/docs/**/*.mdx`, compiles each via `@mdx-js/mdx` + `remark-gfm`, fails on parse errors with exact filename + line:col. Runs on `npm test`. Wired into `tests/run-all-tests.sh` under UNIT TESTS. (#1401)
+- **`tests/fixtures/nested-fence.mdx`** — counter-example fixture intentionally broken with a same-length nested fence. The guard wrapper asserts the checker REJECTS this file (TDD safety net so the guard never silently weakens). (#1401)
+- **`@mdx-js/mdx@^3` and `remark-gfm@^4`** as root devDependencies (previously only present transitively in `docs/site/node_modules`).
+- **`src/skills/CONTRIBUTING-SKILLS.md` → "Nesting code fences"** — new authoring rule with ❌/✅ examples. Pairs with the guard.
+
+### Changed
+
+- **`src/agents/claude-design-orchestrator.md`** — schema rewritten to match the *actual* Claude Design handoff format (gzipped tarball with `README.md` + `chats/*.md` + optional `project/*.html`), discovered during the #1399 dogfood. The first-iteration spec assumed a JSON manifest with `components[]`/`design_tokens{}`/`asset_manifest[]` — none of which exist in real bundles. Adds explicit "How to parse" section, fallback for missing `project/` (incomplete bundle), and `?open_file=` query-param handling. (#1400)
+- **`src/skills/design-import/SKILL.md`** — Phase 1 delegation prompt rewritten to match the new schema. Tells the orchestrator to `tar -xzf` first, read README + chats, then look for `project/*.html`. Switched outer fence to 4-backticks per the new authoring rule. (#1400)
+
+### Why
+
+The #1399 dogfood proved the Bet A pipeline works end-to-end on a real handoff URL, but exposed two regressions: (1) a same-length nested-fence bug in the original `design-import.mdx` that broke every PR's docs build, and (2) the agent's expected schema diverged from reality. This release closes both gaps so the next `/ork:design-ship` invocation runs against a guard-protected pipeline with an accurate agent spec.
+
+
 
 **Claude Design Integration — Bet A (Closed-Loop Pipeline)** — Milestone #113 complete. First-class integration with [claude.ai/design](https://claude.ai/design): handoff bundle URL → reviewable GitHub PR in one command.
 

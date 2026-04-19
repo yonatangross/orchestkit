@@ -168,6 +168,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true
     run_test "Graph Utils Unit Tests" "$SCRIPT_DIR/unit/test-graph-utils.sh" || true
+    run_test "MDX Compile Guard" "$SCRIPT_DIR/unit/test-mdx-compile.sh" || true
 
     # TypeScript hook tests (vitest)
     if [[ -n "${CI:-}" ]]; then

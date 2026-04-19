@@ -82,32 +82,91 @@ When running as a teammate:
 - Send component-match results to `component-curator` to update the registry
 - Use `SendMessage` to coordinate with `design-context-extractor` if the bundle is missing token metadata
 
-## Handoff Bundle Schema (expected shape)
+## Handoff Bundle Schema (observed format)
 
-Claude Design has not published a stable schema yet. Treat the following as the *expected* structure and adapt as it evolves:
+> **Updated 2026-04-19 from real-world dogfood (#1399).** The first iteration of Bet A assumed a JSON manifest with `components[]`. Reality is different — Claude Design ships an HTML-prototype tarball, not a structured manifest. The agent MUST work with the real format below; the prior JSON shape is obsolete.
 
-```json
-{
-  "bundle_version": "1.0",
-  "claude_design_url": "https://claude.ai/design/<id>",
-  "created_at": "2026-04-18T12:00:00Z",
-  "design_system_source": "github:owner/repo@sha-or-branch",
-  "components": [
-    {
-      "name": "PricingCard",
-      "intent": "Three-tier SaaS pricing card, highlight middle tier",
-      "tsx_scaffold": "...",
-      "tokens_used": ["color.brand.500", "spacing.md", "radius.lg"],
-      "asset_urls": [],
-      "preferred_path": "src/components/pricing/PricingCard.tsx"
+### Wire format
+
+The URL `https://api.anthropic.com/v1/design/h/<hash>?open_file=<Name>.html` returns:
+
+- **Content-Type:** `application/gzip`
+- **Body:** a `.tar.gz` archive, typically 2–20 KB
+- **Layout:**
+
+  ```
+  <project-name>/
+  ├── README.md              ← addressed to "CODING AGENTS: READ THIS FIRST"
+  ├── chats/
+  │   └── chat<N>.md         ← user ↔ assistant transcripts (load-bearing!)
+  └── project/               ← only present once the assistant produced designs
+      └── <Name>.html        ← self-contained HTML/CSS/JS prototypes
+  ```
+
+### Key facts
+
+1. **Prototypes are HTML**, not a JSON `components[]` manifest. The README explicitly tells the coding agent to recreate them in whatever technology fits the target codebase, and **not** to copy the prototype's internal structure.
+2. **Tokens are inline `:root { --var: ... }` CSS custom properties**, not a separate JSON file. Extract from the HTML's `<style>` block.
+3. Each HTML file may carry an `EDITMODE` JSON block in a comment (`/*EDITMODE-BEGIN*/{...}/*EDITMODE-END*/`) for design-time state (slider defaults). **Design-time only — discard during scaffolding.**
+4. **Chat transcripts are load-bearing.** They contain the user's intent, clarifying questions, and the iteration history. Read them before parsing the HTML — the README explicitly says so.
+5. **Empty bundles are valid.** If the assistant was waiting for clarification, `project/` is absent. The orchestrator MUST detect this and surface "bundle incomplete — assistant was waiting for X/Y/Z" rather than crashing.
+6. **The `open_file` query param** hints which HTML is the primary one when there are multiple.
+7. **No public Claude Design API yet** — bundles are one-shot exports. To iterate, the user re-exports from claude.ai/design and re-imports.
+
+### How to parse
+
+```python
+# 1. Fetch
+WebFetch(url=bundle_url)  # returns saved .bin path
+
+# 2. Extract
+Bash(f"tar -xzf {bin_path} -C /tmp/<scratch>/")
+
+# 3. Read README first (always) and chats (always)
+readme = Read("/tmp/<scratch>/<project>/README.md")
+chats = [Read(f) for f in glob("/tmp/<scratch>/<project>/chats/*.md")]
+
+# 4. Detect incomplete bundle
+project_dir = "/tmp/<scratch>/<project>/project/"
+if not exists(project_dir):
+    # Don't crash — the bundle is valid but incomplete. Surface why:
+    return {
+      "status": "incomplete",
+      "reason": "assistant was waiting for clarification",
+      "chat_summary": last_assistant_message_from(chats),
+      "what_user_should_do": "answer in claude.ai/design, then re-export",
     }
-  ],
-  "design_tokens": { "colors": {}, "typography": {}, "spacing": {} },
-  "asset_manifest": []
-}
+
+# 5. Find primary HTML (prefer ?open_file= hint, else first alphabetical)
+htmls = sorted(glob(f"{project_dir}*.html"))
+primary = pick_open_file(bundle_url) or htmls[0]
+
+# 6. Extract from HTML
+#    - tokens: parse `:root { --... }` from <style>
+#    - components: identify named sections via class/id/data-screen-label
+#    - assets: collect <link href>, <img src>
+#    - asset embeds: inline base64 if any
 ```
 
-If the actual export differs, the orchestrator MUST adapt without crashing — log the schema deviation, normalize what it can, and surface unknown fields to the user before scaffolding.
+### Inline `EDITMODE` block (skip during scaffold)
+
+```html
+<script>
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "dotOpacity": 0.055,
+    "heroGradient": 0.55,
+    "accentHue": 163,
+    "density": "comfortable",
+    "theme": "dark"
+  }/*EDITMODE-END*/;
+</script>
+```
+
+These defaults are the design-time state from the assistant's last refinement. Capture them as **annotation** on the prototype's intent (e.g., "user landed on dark theme, comfortable density"), not as runtime config in the scaffolded code.
+
+### Prior JSON shape — DO NOT EXPECT
+
+The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens{}`, `bundle.asset_manifest[]`. **None of these exist in real bundles.** Components are HTML files; tokens are inline CSS; assets are inline `<link>`/`<img>` references. If a future Claude Design API ships structured manifests, this section can grow — until then, expect the tarball.
 
 ## Concrete Objectives
 1. **Fetch + parse** the handoff bundle (URL via WebFetch, file via Read)
