@@ -202,7 +202,7 @@ test_count_accuracy() {
     fi
 
     # Count agents manually
-    local actual_agents=$(find "${PROJECT_ROOT}/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+    local actual_agents=$(find "${PROJECT_ROOT}/src/agents" -maxdepth 1 -name "*.md" -type f 2>/dev/null | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' | wc -l | tr -d ' ')
     if [[ "$actual_agents" -eq "$reported_agents" ]]; then
         log_pass "Agents count matches directory: $actual_agents"
     else

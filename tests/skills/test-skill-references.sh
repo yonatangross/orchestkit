@@ -18,6 +18,10 @@ echo ""
 for agent_file in "$AGENTS_DIR"/*.md; do
   agent_name=$(basename "$agent_file" .md)
 
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+
   # Extract skills from frontmatter (between --- delimiters)
   # Look for lines starting with "  - " after "skills:"
   in_skills=0

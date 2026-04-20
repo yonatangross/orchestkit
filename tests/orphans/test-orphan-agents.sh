@@ -33,8 +33,13 @@ total=0
 
 for agent_md in "$AGENTS_DIR"/*.md; do
     [[ -f "$agent_md" ]] || continue
-    total=$((total + 1))
     agent_name="$(basename "$agent_md" .md)"
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
+    total=$((total + 1))
 
     # Look for any mention of the agent name outside the agent's own file.
     # Count non-self matches — if any exist, the agent is referenced.

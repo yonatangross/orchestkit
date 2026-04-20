@@ -74,6 +74,11 @@ validate_run_hook_command() {
 
 for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     agent_errors=0
 
     # Extract hook commands from frontmatter (between --- markers)

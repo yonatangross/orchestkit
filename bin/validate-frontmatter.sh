@@ -44,6 +44,11 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   [[ ! -f "$agent_file" ]] && continue
   agent_name=$(basename "$agent_file" .md)
 
+  # Skip non-agent docs in src/agents/
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+
   for field in $AGENT_REQUIRED_FIELDS; do
     if ! get_field "$agent_file" "$field" >/dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Agent '$agent_name': missing required field '$field'"

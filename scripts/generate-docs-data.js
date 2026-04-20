@@ -885,7 +885,8 @@ function generate() {
   console.log(`${CYAN}[3/6] Reading agents...${NC}`);
   const agentsData = {};
   const agentFiles = fs.readdirSync(AGENTS_DIR)
-    .filter(f => f.endsWith('.md'));
+    .filter(f => f.endsWith('.md'))
+    .filter(f => !['README.md', 'INDEX.md', 'CONTRIBUTING.md'].includes(f));
 
   for (const file of agentFiles) {
     const agentPath = path.join(AGENTS_DIR, file);

@@ -62,6 +62,7 @@ run_test "Line Continuation Bypass Tests" "$SCRIPT_DIR/test-line-continuation-by
 run_test "SQLite Injection Tests" "$SCRIPT_DIR/test-sqlite-injection.sh"
 run_test "Secret Scanning Tests" "$SCRIPT_DIR/test-secret-scanning.sh"
 run_test "Packaging Leak Prevention" "$SCRIPT_DIR/test-packaging-leaks.sh"
+run_test "npm audit gate" "$SCRIPT_DIR/test-npm-audit.sh"
 
 echo ""
 echo "============================================================================"

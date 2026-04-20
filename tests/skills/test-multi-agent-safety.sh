@@ -162,6 +162,9 @@ MISSING_AGENTS=()
 declare -A KNOWN_AGENTS
 for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
     KNOWN_AGENTS["$agent_name"]=1
 done
 

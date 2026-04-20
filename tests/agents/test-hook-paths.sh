@@ -146,6 +146,10 @@ AGENT_VALID=0
 for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
 
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     # Extract hook commands from frontmatter
     in_frontmatter=false
     in_hooks=false

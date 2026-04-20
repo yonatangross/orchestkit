@@ -22,6 +22,11 @@ echo ""
 
 for agent_file in "$AGENTS_DIR"/*.md; do
   agent_name=$(basename "$agent_file" .md)
+
+  case "$agent_name" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+
   AGENTS_CHECKED=$((AGENTS_CHECKED + 1))
 
   # Extract YAML frontmatter between first and second --- delimiters

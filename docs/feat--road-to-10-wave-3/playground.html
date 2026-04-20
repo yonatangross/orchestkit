@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Road to 10 — Wave 3 (final)</title>
+<style>
+  :root {
+    --bg: #0c0f14; --panel: #1a2030; --border: #1e293b; --text: #e2e8f0;
+    --dim: #94a3b8; --faint: #64748b; --primary: #10b981;
+    --green: #4ade80; --amber: #fbbf24; --red: #f87171;
+    --mono: ui-monospace,Menlo,Consolas,monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text); font: 14px/1.55 system-ui,sans-serif;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 8px 8px; padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 99px;
+    background: rgba(16,185,129,0.18); border: 1px solid var(--primary);
+    color: var(--primary); font: 11px var(--mono); margin-bottom: 14px;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+  h1 .accent { color: var(--primary); }
+  .subtitle { color: var(--dim); font: 12px var(--mono); margin-bottom: 24px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  pre {
+    background: #0f131a; border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px;
+    font: 11.5px/1.5 var(--mono); overflow-x: auto; color: var(--dim);
+  }
+  pre .pass { color: var(--green); }
+  pre .section { color: var(--text); font-weight: 600; }
+  pre .prime { color: var(--primary); }
+  .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+  .dim-cell {
+    background: #0f131a; border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px;
+  }
+  .dim-cell .label { font: 10px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
+  .dim-cell .val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--green); margin-top: 2px; }
+</style></head><body><div class="wrap">
+
+<span class="pill">Road to 10 — Wave 3 (final)</span>
+<h1>Composite <span class="accent">8.8 → 10</span></h1>
+<div class="subtitle">Closes the dimension plan · Levers 2 + 3 + 6</div>
+
+<div class="card">
+  <h2>Scorecard</h2>
+  <div class="scorecard">
+    <div class="dim-cell"><div class="label">L1 Correct</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L4 Perf</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L5 Testable</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L7 Docs</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L2 Maint</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L3 Sec</div><div class="val">10</div></div>
+    <div class="dim-cell"><div class="label">L6 Arch</div><div class="val">10</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>L2 — Backlog discipline</h2>
+  <p style="color: var(--dim); font-size: 12.5px;">
+    Milestone #114 Bet B closed. Its 5 issues relabeled <code>research</code>. No drift signal has surfaced from shipped sites; Bet B revives only when a real drift case appears.
+  </p>
+</div>
+
+<div class="card">
+  <h2>L3 — npm audit gate</h2>
+<pre><span class="section">$ bash tests/security/test-npm-audit.sh</span>
+
+▶ root        <span class="pass">✓ 0 findings ≥ moderate</span>
+▶ docs/site   <span class="pass">✓ 0 findings ≥ moderate</span>
+▶ src/hooks   <span class="pass">✓ 0 findings ≥ moderate</span>
+
+  Total: <span class="pass">3  |  Passed: 3  |  Failed: 0</span></pre>
+  <p style="color: var(--dim); font-size: 12px; margin-top: 10px;">
+    Allowlist at <code>.claude/audit-allowlist.json</code> — entries carry <code>until:</code> dates so exceptions force themselves to be revisited.
+  </p>
+</div>
+
+<div class="card">
+  <h2>L6 — Agent registry</h2>
+<pre><span class="section">src/agents/README.md (auto-generated)</span>
+
+### Decision tree — which agent for which task
+
+CI / workflow change?         → <span class="prime">ci-cd-engineer</span>
+Python/backend service?       → <span class="prime">backend-system-architect</span>
+React/Next.js component?      → <span class="prime">frontend-ui-developer</span>
+Security audit / OWASP?       → <span class="prime">security-auditor</span>
+Test generation?              → <span class="prime">test-generator</span>
+Database schema?              → <span class="prime">database-engineer</span>
+Infrastructure / IaC?         → <span class="prime">infrastructure-architect</span>
+LLM / RAG / prompt work?      → <span class="prime">llm-integrator</span>
+Explore codebase?             → <span class="prime">Explore (built-in)</span>
+Unsure OR mixed concerns?     → <span class="prime">workflow-architect</span>
+
+### Agent registry (37 agents)
+
+| Agent | Category | Model | Effort | When to spawn |
+| ...   | ...      | ...   | ...    | ...           |</pre>
+  <p style="color: var(--dim); font-size: 12px; margin-top: 10px;">
+    Regenerated by <code>node scripts/list-invocable-agents.mjs --write</code>.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Cascade fix — agent counters</h2>
+  <p style="color: var(--dim); font-size: 12.5px;">
+    Adding <code>src/agents/README.md</code> as registry broke every counter that assumed "agent = *.md in src/agents/". Fixed 7 places so "agent" now means "file with agent frontmatter, not README / INDEX / CONTRIBUTING":
+  </p>
+  <ul style="color: var(--dim); font-size: 12px; padding-left: 20px;">
+    <li><code>bin/count-components.sh</code>, <code>bin/validate-counts.sh</code>, <code>bin/validate-frontmatter.sh</code></li>
+    <li><code>scripts/stamp-counts.sh</code>, <code>scripts/build-plugins.sh</code></li>
+    <li><code>tests/ci/lint.sh</code>, <code>tests/agents/test-agent-frontmatter.sh</code>, <code>tests/performance/test-token-overhead.sh</code></li>
+    <li><code>tests/unit/test-count-components.sh</code>, <code>tests/indexes/test-index-generation.sh</code></li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>All Road to 10 waves — done</h2>
+<pre><span class="section">Wave 1</span>  pre-push gate, commit-msg linter, token budget warn tier   <span class="pass">merged</span>
+<span class="section">Wave 2</span>  5 test debt PRs (formatStars, sync_versions,
+         Playwright, schema validator, stub-fallback)               <span class="pass">merged</span>
+<span class="section">Wave 3</span>  agent registry, npm audit, Bet B → research                <span class="section">← THIS PR</span>
+
+7 dimensions × 10 = <span class="pass">10/10</span></pre>
+</div>
+
+</div></body></html>

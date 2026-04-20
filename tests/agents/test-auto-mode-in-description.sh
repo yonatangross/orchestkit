@@ -29,6 +29,10 @@ echo ""
 for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
 
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     # Check if file contains "## Auto Mode" (indicating keywords are in body, not description)
     if grep -q "^## Auto Mode" "$agent_file"; then
         echo "FAIL: $agent_name has '## Auto Mode' section in body"
@@ -54,6 +58,10 @@ TRIGGER_PATTERNS=(
 
 for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
+
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
 
     # Extract description from frontmatter
     description=$(awk '/^---$/{p++} p==1 && /^description:/{gsub(/^description:[[:space:]]*/, ""); print; exit}' "$agent_file")

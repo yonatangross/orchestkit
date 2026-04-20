@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.56.2](https://github.com/yonatangross/orchestkit/compare/v7.56.1...v7.56.2) (2026-04-19)
+
+**Road to 10 — Wave 3.** Backlog discipline + architecture clarity + supply chain. Patch release, no user-facing changes.
+
+### Added
+
+- `scripts/list-invocable-agents.mjs` — scans `src/agents/*.md`, extracts YAML frontmatter, writes a table to `src/agents/README.md` between BEGIN/END markers. Answers the "which specific ork agent do I spawn" question that cost cycles during Lane 2.
+- `src/agents/README.md` — agent registry with decision tree + auto-generated table (37 agents).
+- `tests/security/test-npm-audit.sh` — npm audit gate across root, docs/site, src/hooks. Fails on moderate+ CVEs not in the allowlist.
+- `.claude/audit-allowlist.json` — empty-by-default, schema-documented. Entries carry `until:` dates so exceptions get revisited.
+
+### Changed
+
+- `tests/security/run-security-tests.sh` — registers the npm audit gate.
+- `bin/count-components.sh`, `bin/validate-counts.sh`, `scripts/stamp-counts.sh` — exclude `README.md` / `INDEX.md` / `CONTRIBUTING.md` when counting agents.
+
+### Project admin
+
+- Milestone #114 Bet B closed. Its 5 issues relabeled `research`. No drift signal has surfaced from shipped sites; revisit if a real case appears.
+
 ## [7.56.1](https://github.com/yonatangross/orchestkit/compare/v7.56.0...v7.56.1) (2026-04-19)
 
 

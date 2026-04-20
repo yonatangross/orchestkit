@@ -2,6 +2,7 @@
   "title": "Agents",
   "pages": [
     "index",
+    "README",
     "accessibility-specialist",
     "ai-safety-auditor",
     "backend-system-architect",

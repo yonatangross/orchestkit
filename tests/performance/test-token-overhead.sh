@@ -153,6 +153,12 @@ agent_count=0
 for agent_file in "$AGENTS_DIR"/*.md; do
     [[ ! -f "$agent_file" ]] && continue
     agent_name=$(basename "$agent_file" .md)
+
+    # Skip non-agent docs (registry README, INDEX, CONTRIBUTING)
+    case "$agent_name" in
+        README|INDEX|CONTRIBUTING) continue ;;
+    esac
+
     ((agent_count++)) || true
 
     # Extract description from YAML frontmatter
