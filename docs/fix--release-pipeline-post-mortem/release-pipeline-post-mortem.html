@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Release pipeline post-mortem — v7.58.0</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-2: #161b22;
+    --bg-3: #1f2937;
+    --fg: #e6edf3;
+    --fg-dim: #8b949e;
+    --fg-muted: #6e7681;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --ok: #3fb950;
+    --danger: #f85149;
+    --warn: #f0883e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  pre, code { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
+
+  header { border-bottom: 1px solid var(--border); padding: 18px 24px; background: var(--bg-2); }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .meta { margin-top: 6px; display: flex; gap: 18px; color: var(--fg-dim); font-size: 12px; }
+  header .meta b { color: var(--fg); }
+  header .meta a { color: var(--accent); text-decoration: none; }
+  header .meta a:hover { text-decoration: underline; }
+
+  main { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 82px); }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  aside { background: var(--bg-2); border-right: 1px solid var(--border); padding: 20px; }
+  aside h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin: 0 0 10px; font-weight: 600; }
+  aside button.bug {
+    display: block; width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    background: var(--bg-3);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font: 13px/1.3 inherit;
+  }
+  aside button.bug:hover { border-color: var(--accent); }
+  aside button.bug.on { border-left: 3px solid var(--accent); background: #243041; }
+  aside button.bug .num { color: var(--danger); font-weight: 600; margin-right: 6px; }
+  aside button.bug .sub { color: var(--fg-dim); font-size: 11px; margin-top: 4px; display: block; }
+
+  section.main { padding: 24px; overflow-y: auto; }
+  section.main h2 { margin: 0 0 8px; font-size: 18px; }
+  section.main .impact { color: var(--fg-dim); font-size: 13px; margin: 0 0 20px; }
+  section.main h3 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin: 20px 0 10px; font-weight: 600; }
+
+  .diff { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pane { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .pane.before { border-left: 3px solid var(--danger); }
+  .pane.after { border-left: 3px solid var(--ok); }
+  .pane h4 { margin: 0 0 10px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+  .pane h4 .tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px; }
+  .pane.before .tag { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+  .pane.after .tag { background: rgba(63, 185, 80, 0.15); color: var(--ok); }
+  .pane pre { margin: 0; font-size: 12px; line-height: 1.55; white-space: pre; overflow-x: auto; }
+
+  .k-mute { color: var(--fg-muted); }
+  .rem { color: var(--danger); }
+  .add { color: var(--ok); }
+  .k-warn { color: var(--warn); }
+
+  .evidence {
+    margin-top: 24px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .evidence dt { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
+  .evidence dt:first-child { margin-top: 0; }
+  .evidence dd { margin: 4px 0 0; color: var(--fg); font-size: 13px; }
+  .evidence dd code { background: var(--bg-3); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Release pipeline post-mortem — v7.58.0</h1>
+  <div class="meta">
+    <span>Branch <b>fix/release-pipeline-post-mortem</b></span>
+    <span>Fixes <b>2 pre-existing bugs</b> surfaced by PR <a href="https://github.com/yonatangross/orchestkit/pull/1426" target="_blank">#1426</a></span>
+    <span>Missing assets on <b><a href="https://github.com/yonatangross/orchestkit/releases/tag/v7.57.0" target="_blank">v7.57.0</a></b>, <b><a href="https://github.com/yonatangross/orchestkit/releases/tag/v7.58.0" target="_blank">v7.58.0</a></b></span>
+  </div>
+</header>
+<main>
+<aside>
+  <h2>Bugs in this PR</h2>
+  <button class="bug on" data-bug="sbom">
+    <span class="num">#1</span>SBOM / attestation skip
+    <span class="sub">release.yml over-gates on <code>exists == 'false'</code></span>
+  </button>
+  <button class="bug" data-bug="changelog">
+    <span class="num">#2</span>changelog-to-props parser
+    <span class="sub">can't read release-please header format</span>
+  </button>
+</aside>
+
+<section class="main">
+  <div id="sbom" class="bug-pane">
+    <h2>Bug #1 — SBOM + attestation silently skipped</h2>
+    <p class="impact">v7.57.0 and v7.58.0 both shipped with <strong>zero release assets</strong>. No SBOM, no Sigstore attestation, no supply-chain provenance — even though every step existed in <code>release.yml</code>. Cause: once release-please started creating the GitHub Release (which it does automatically), the <code>if: steps.check.outputs.exists == 'false'</code> guard on every downstream step turned the whole pipeline into a no-op.</p>
+
+    <h3>The over-gated pattern</h3>
+    <div class="diff">
+      <div class="pane before">
+        <h4>Before<span class="tag">v7.58.0</span></h4>
+<pre><span class="k-mute"># .github/workflows/release.yml</span>
+- name: Check if release exists
+  id: check
+  run: if gh release view "$TAG" ...
+
+<span class="rem">- name: Create GitHub Release
+  if: steps.check.outputs.exists == 'false'</span>
+<span class="rem">- name: Setup Node.js for SBOM
+  if: steps.check.outputs.exists == 'false'</span>    <span class="k-mute">&lt;-- silently skipped</span>
+<span class="rem">- name: Generate SBOM (CycloneDX)
+  if: steps.check.outputs.exists == 'false'</span>    <span class="k-mute">&lt;-- silently skipped</span>
+<span class="rem">- name: Upload SBOM to release
+  if: steps.check.outputs.exists == 'false'</span>    <span class="k-mute">&lt;-- silently skipped</span>
+<span class="rem">- name: Attest build provenance
+  if: steps.check.outputs.exists == 'false'</span>    <span class="k-mute">&lt;-- silently skipped</span>
+</pre>
+      </div>
+      <div class="pane after">
+        <h4>After<span class="tag">this PR</span></h4>
+<pre><span class="k-mute"># .github/workflows/release.yml</span>
+- name: Check if release exists
+  id: check
+  run: if gh release view "$TAG" ...
+
+<span class="add">- name: Create GitHub Release
+  if: steps.check.outputs.exists == 'false'</span>   <span class="k-mute">&lt;-- only this is gated</span>
+- name: Setup Node.js for SBOM
+- name: Generate SBOM (CycloneDX)
+- name: Upload SBOM to release
+  run: gh release upload "$TAG" <span class="add">--clobber</span>    <span class="k-mute">&lt;-- idempotent re-run</span>
+- name: Attest build provenance                <span class="k-mute">&lt;-- runs every time;</span>
+                                               <span class="k-mute">    attestations append-only</span>
+</pre>
+      </div>
+    </div>
+
+    <div class="evidence">
+      <dl>
+        <dt>Evidence for the bug</dt>
+        <dd>
+          <code>gh release view v7.57.0 --json assets</code> → <code>{"assets": []}</code><br>
+          <code>gh release view v7.58.0 --json assets</code> → <code>{"assets": []}</code>
+        </dd>
+        <dt>Why the SBOM step can safely re-run</dt>
+        <dd><code>gh release upload --clobber</code> overwrites existing assets with the same name. Sigstore attestations are append-only (each run adds a new attestation; old ones stay verifiable). So running SBOM + attestation on an already-existing release has no destructive effect.</dd>
+        <dt>Why not backfill v7.57.0 / v7.58.0</dt>
+        <dd>Backfill would require deleting + re-tagging, which re-triggers release-please and creates churn. The fix is forward-only — v7.58.1 onward will have SBOMs and attestations.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div id="changelog" class="bug-pane" style="display:none">
+    <h2>Bug #2 — changelog-to-props.mjs parser fails on release-please format</h2>
+    <p class="impact">The <code>Release Video</code> workflow red-X'd on every release-please release. Root cause: <code>scripts/changelog-to-props.mjs</code> only matched the Keep-a-Changelog header written by <code>bin/bump-version.sh</code>. release-please writes a different header format, so the parser exited with <code>Error: Version X.Y.Z not found in CHANGELOG.md</code>.</p>
+
+    <h3>The parse regex</h3>
+    <div class="diff">
+      <div class="pane before">
+        <h4>Before<span class="tag">regex only matches KAC</span></h4>
+<pre><span class="k-mute">// scripts/changelog-to-props.mjs</span>
+<span class="rem">const match = line.match(
+  /^## \[([^\]]+)\]\s*-\s*(\d{4}-\d{2}-\d{2})/
+);</span>
+
+<span class="k-mute">// bullets:     - Description</span>
+<span class="rem">line.match(/^- /)</span>
+
+<span class="k-mute">// section:     ### Added | Changed | Fixed</span>
+<span class="rem">/^### (Added|Changed|Fixed)/i</span>
+
+<span class="k-mute">// Fails on release-please:
+// ## [7.58.0](https://github.com/.../compare/...) (2026-04-20)
+// * Feature — text ([#N](url)) ([hash](url))
+// ### Features | ### Bug Fixes</span>
+</pre>
+      </div>
+      <div class="pane after">
+        <h4>After<span class="tag">handles both formats</span></h4>
+<pre><span class="k-mute">// scripts/changelog-to-props.mjs</span>
+<span class="add">const VERSION_HEADER_RE =
+  /^## \[([^\]]+)\](?:\([^)]*\))?\s*(?:-|\()\s*(\d{4}-\d{2}-\d{2})/;</span>
+
+<span class="k-mute">// bullets: both `- ` and `* `</span>
+<span class="add">line.match(/^[-*] /)</span>
+<span class="add">text.replace(/\s*\(\[[^\]]+\]\([^)]*\)\)/g, '');  <span class="k-mute">// strip link artifacts</span></span>
+
+<span class="k-mute">// section: map conventional-commit → KAC categories</span>
+<span class="add">const SECTION_CATEGORY = {
+  features: 'added',
+  'bug fixes': 'fixed',
+  'performance improvements': 'changed',
+  'miscellaneous chores': 'changed',
+  ...
+};</span>
+</pre>
+      </div>
+    </div>
+
+    <div class="evidence">
+      <dl>
+        <dt>Regression test (new in this PR)</dt>
+        <dd><code>tests/unit/test-changelog-parser.sh</code> — 8 assertions covering both header formats, both bullet prefixes, section mapping, link stripping, and missing-version exit behavior.</dd>
+        <dt>Evidence for the bug</dt>
+        <dd>Release Video workflow run <code>24684971611</code> on v7.58.0 failed with <code>Error: Version 7.58.0 not found in CHANGELOG.md</code> in the Parse Changelog job. Render Videos + Upload to Release jobs were then skipped.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+  const buttons = document.querySelectorAll("aside button.bug");
+  const panes = document.querySelectorAll(".bug-pane");
+  buttons.forEach(b => b.addEventListener("click", () => {
+    buttons.forEach(x => x.classList.toggle("on", x === b));
+    const target = b.dataset.bug;
+    panes.forEach(p => p.style.display = p.id === target ? "block" : "none");
+  }));
+</script>
+</body>
+</html>
