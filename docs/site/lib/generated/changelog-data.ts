@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.59.1",
+    "date": "2026-04-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**`orchestkit-demos` zod peer-dep conflict.** `@remotion/zod-types@4.0.447` added a `peer zod@\"4.3.6\"` requirement, which `npm ERESOLVE`'d against the pinned `zod@3.22.3`. The `Release Video` workflow had been failing `npm install` on every release since — including v7.58.0 and v7.59.0. Bumped to `zod@^4.3.6`; existing usage (`z.object`, `z.string`, `z.number`, `z.array`, `z.union`, `z.record`, `z.infer`) is API-compatible v3↔v4, `tsc --noEmit` passes clean."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.59.0",
     "date": "2026-04-20",
     "compareUrl": "",
