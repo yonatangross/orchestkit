@@ -21,6 +21,34 @@ const CHANGELOG_PATH = resolve(__dirname, "..", "CHANGELOG.md");
 
 // ---------- Parse ----------
 
+// release-please uses conventional-commit section headings; Keep a Changelog
+// uses Added / Changed / Fixed. Normalize both to the KAC categories the
+// Remotion composition expects.
+const SECTION_CATEGORY = {
+  added: "added",
+  features: "added",
+  changed: "changed",
+  "performance improvements": "changed",
+  reverts: "changed",
+  "miscellaneous chores": "changed",
+  documentation: "changed",
+  "code refactoring": "changed",
+  fixed: "fixed",
+  "bug fixes": "fixed",
+};
+const SECTION_RE = new RegExp(
+  `^### (${Object.keys(SECTION_CATEGORY).join("|")})\\b`,
+  "i",
+);
+
+// Version headers in this repo appear in two formats:
+//   ## [7.57.1] - 2026-04-20                                (bump-version.sh)
+//   ## [7.58.0](https://github.com/.../compare/...) (2026-04-20)   (release-please)
+// Match both by making the optional (link) non-capturing and accepting ` - `
+// or ` (` as the date delimiter.
+const VERSION_HEADER_RE =
+  /^## \[([^\]]+)\](?:\([^)]*\))?\s*(?:-|\()\s*(\d{4}-\d{2}-\d{2})/;
+
 function parseChangelog(content, targetVersion) {
   const lines = content.split("\n");
 
@@ -32,10 +60,7 @@ function parseChangelog(content, targetVersion) {
   const rawLines = [];
 
   for (const line of lines) {
-    // Match version header: ## [6.0.2] - 2026-02-06
-    const versionMatch = line.match(
-      /^## \[([^\]]+)\]\s*-\s*(\d{4}-\d{2}-\d{2})/,
-    );
+    const versionMatch = line.match(VERSION_HEADER_RE);
     if (versionMatch) {
       if (inTargetVersion) break; // We've passed our target version
 
@@ -51,23 +76,23 @@ function parseChangelog(content, targetVersion) {
     if (!inTargetVersion) continue;
     rawLines.push(line);
 
-    // Match section: ### Added / ### Changed / ### Fixed
-    const sectionMatch = line.match(/^### (Added|Changed|Fixed)/i);
+    const sectionMatch = line.match(SECTION_RE);
     if (sectionMatch) {
-      const section = sectionMatch[1].toLowerCase();
-      if (section === "added" || section === "changed" || section === "fixed") {
-        currentCategory = section;
-      }
+      currentCategory = SECTION_CATEGORY[sectionMatch[1].toLowerCase()];
       continue;
     }
 
     // Match section separator
     if (line.trim() === "---") break;
 
-    // Match bullet entries: - **#NNN (label)**: Description
-    //                    or: - Description
-    if (currentCategory && line.match(/^- /)) {
-      const text = line.replace(/^- /, "").trim();
+    // Match bullet entries — KAC uses "- ", release-please uses "* ".
+    if (currentCategory && line.match(/^[-*] /)) {
+      let text = line.replace(/^[-*] /, "").trim();
+
+      // Strip release-please's trailing issue/commit link artifacts:
+      //   ... ([#1183](url)) ([7b88cb7](url))
+      // They add noise without carrying information video viewers care about.
+      text = text.replace(/\s*\(\[[^\]]+\]\([^)]*\)\)/g, "").trim();
       if (!text) continue;
 
       // Strip optional issue reference prefix: **#NNN (label):**
