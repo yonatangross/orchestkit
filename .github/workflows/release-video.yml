@@ -139,23 +139,17 @@ jobs:
         env:
           PROPS: ${{ needs.parse-changelog.outputs.landscape-props }}
         run: |
-          VERSION="${{ needs.parse-changelog.outputs.version }}"
           mkdir -p ../out
 
           # Write props to temp file (avoids shell escaping issues)
           echo "$PROPS" > /tmp/landscape-props.json
 
-          # Try version-specific composition first, fallback to template
-          SAFE_VERSION=$(echo "$VERSION" | tr -d '.')
-          COMP_ID="Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}"
-
-          npx remotion render "$COMP_ID" \
-            --props="/tmp/landscape-props.json" \
-            --output="../out/landscape-raw.mp4" \
-            --codec=h264 \
-            --image-format=jpeg \
-            --jpeg-quality=90 \
-          || npx remotion render "Templates/TPL-ReleaseNotes" \
+          # Render against the reusable template composition. The older
+          # "Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}" path
+          # was fictional — Remotion Studio's folder tree is cosmetic, and no
+          # one registers per-version compositions. Bare id is what the CLI
+          # actually resolves. See PR fixing this bug.
+          npx remotion render "TPL-ReleaseNotes" \
             --props="/tmp/landscape-props.json" \
             --output="../out/landscape-raw.mp4" \
             --codec=h264 \
@@ -167,23 +161,13 @@ jobs:
         env:
           PROPS: ${{ needs.parse-changelog.outputs.square-props }}
         run: |
-          VERSION="${{ needs.parse-changelog.outputs.version }}"
-
           echo "$PROPS" > /tmp/square-props.json
 
-          SAFE_VERSION=$(echo "$VERSION" | tr -d '.')
-          COMP_ID="Production/Square-1x1/ReleaseNotes/SQ-RN-v${SAFE_VERSION}"
-
-          npx remotion render "$COMP_ID" \
+          # Square reuses the new TPL-ReleaseNotesSquare template registered
+          # in orchestkit-demos/src/Root.tsx.
+          npx remotion render "TPL-ReleaseNotesSquare" \
             --props="/tmp/square-props.json" \
             --output="../out/square-raw.mp4" \
-            --codec=h264 \
-            --image-format=jpeg \
-            --jpeg-quality=90 \
-          || npx remotion render "Templates/TPL-ReleaseNotes" \
-            --props="/tmp/square-props.json" \
-            --output="../out/square-raw.mp4" \
-            --width=1080 --height=1080 \
             --codec=h264 \
             --image-format=jpeg \
             --jpeg-quality=90

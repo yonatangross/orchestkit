@@ -314,6 +314,7 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="TPL-HybridVHS" component={HybridDemo} durationInFrames={FPS * 13} fps={FPS} width={WIDTH} height={HEIGHT} schema={hybridDemoSchema} defaultProps={{ skillName: "explore", hook: "Understand any codebase instantly", terminalVideo: "explore-demo.mp4", ccVersion: "CC 2.1.16", primaryColor: "#8b5cf6", showHook: true, showCTA: true, hookDuration: 45, ctaDuration: 75, ...AUDIO_DEFAULTS }} />
         <Composition id="TPL-Scrapbook" component={ScrapbookDemo} durationInFrames={FPS * 17} fps={FPS} width={WIDTH} height={HEIGHT} schema={scrapbookDemoSchema} defaultProps={scrapbookShowcaseConfig} />
         <Composition id="TPL-ReleaseNotes" component={ReleaseNotes} durationInFrames={FPS * 14} fps={FPS} width={WIDTH} height={HEIGHT} schema={releaseNotesSchema} defaultProps={releaseNotesV602Config} />
+        <Composition id="TPL-ReleaseNotesSquare" component={ReleaseNotesSquare} durationInFrames={FPS * 12} fps={FPS} width={1080} height={1080} schema={releaseNotesSquareSchema} defaultProps={releaseNotesV602SquareConfig} />
       </Folder>
 
       {/* ╔══════════════════════════════════════════════════════════════════════════════╗

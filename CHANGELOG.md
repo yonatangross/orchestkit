@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.60.1] - 2026-04-21
+
+### Fixed
+
+- **Release Video composition paths.** `release-video.yml` constructed composition IDs like `Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}` with a fictional folder prefix — Remotion Studio's folder tree is cosmetic and the CLI resolves bare `id` attributes only. Additionally no per-version `RN-v*` comps get registered (the only one, `RN-v602`, is from v6.0.2). Both the bespoke path and the `Templates/TPL-ReleaseNotes` fallback had this bug, so the workflow has silently failed every release since its creation. Simplified to bare `TPL-ReleaseNotes` (already registered) for landscape and registered a new `TPL-ReleaseNotesSquare` template in `orchestkit-demos/src/Root.tsx` for the square render. Verified locally against v7.60.0 CHANGELOG props — both render cleanly (1.7 MB landscape, 1.1 MB square for 30-frame smoke render).
+
+---
+
+
 ## [7.60.0](https://github.com/yonatangross/orchestkit/compare/v7.59.1...v7.60.0) (2026-04-20)
 
 

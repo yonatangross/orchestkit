@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>release-video.yml composition paths — the fictional-folder bug</title>
+<style>
+  :root { --bg:#0d1117; --bg-2:#161b22; --fg:#e6edf3; --fg-dim:#8b949e; --fg-muted:#6e7681; --border:#30363d; --ok:#3fb950; --danger:#f85149; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 -apple-system,BlinkMacSystemFont,sans-serif; }
+  pre,code { font-family:"SF Mono",ui-monospace,Menlo,monospace; }
+  header { padding:18px 24px; border-bottom:1px solid var(--border); background:var(--bg-2); }
+  header h1 { margin:0; font-size:16px; }
+  header .meta { margin-top:6px; color:var(--fg-dim); font-size:12px; }
+  main { padding:24px; max-width:1100px; margin:0 auto; }
+  h2 { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); margin:24px 0 10px; }
+  .card { background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:12px; }
+  .card.err { border-left:3px solid var(--danger); }
+  .card.ok { border-left:3px solid var(--ok); }
+  pre { margin:8px 0 0; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; overflow-x:auto; }
+  .rem { color:var(--danger); }
+  .add { color:var(--ok); }
+  .k-mute { color:var(--fg-muted); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td,th { padding:6px 10px; border-bottom:1px solid var(--border); text-align:left; }
+  th { color:var(--fg-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  td code { font-size:12px; color:var(--accent); }
+</style></head><body>
+<header>
+  <h1>Release Video composition-paths fix</h1>
+  <div class="meta">
+    The pipeline has silently failed every release since its creation because the YAML used composition IDs that don't exist in Remotion's registry. This PR untangles the three levels of the onion.
+  </div>
+</header>
+<main>
+
+<h2>The bug, layer by layer</h2>
+
+<div class="card err">
+<h3>Layer 1 — the "folder" prefix is fiction</h3>
+<pre>COMP_ID="<span class="rem">Production/Landscape-16x9/ReleaseNotes/</span>RN-v${SAFE_VERSION}"
+fallback="<span class="rem">Templates/</span>TPL-ReleaseNotes"</pre>
+<p>Remotion Studio's left-panel folder tree is cosmetic only. The CLI's <code>render &lt;id&gt;</code> resolves the bare <code>id</code> attribute — the <code>&lt;Folder name="..."&gt;</code> wrappers are never part of it. Every path-with-slashes has always been a typo.</p>
+</div>
+
+<div class="card err">
+<h3>Layer 2 — no per-version composition ever gets registered</h3>
+<p>The workflow first tries <code>RN-v${SAFE_VERSION}</code> (e.g. <code>RN-v7600</code>) before falling back to the template. The only per-version registration in <code>Root.tsx</code> is <code>RN-v602</code>, hand-rolled for v6.0.2. Nobody's added new ones. Every release since has cold-started into the fallback.</p>
+</div>
+
+<div class="card err">
+<h3>Layer 3 — the fallback was also wrong AND no square template existed</h3>
+<p>The landscape fallback said <code>Templates/TPL-ReleaseNotes</code> (still with the fictional prefix). Even worse, the <em>square</em> render fell back to the same landscape ID, relying on <code>--width 1080 --height 1080</code> overrides to reshape a 1920×1080 composition — that doesn't actually work; Remotion renders at the composition's declared dimensions.</p>
+</div>
+
+<h2>The fix</h2>
+
+<div class="card ok">
+<h3>release-video.yml — use bare composition IDs</h3>
+<pre><span class="k-mute"># landscape</span>
+<span class="rem">-  SAFE_VERSION=$(echo "$VERSION" | tr -d '.')</span>
+<span class="rem">-  COMP_ID="Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}"</span>
+<span class="rem">-  npx remotion render "$COMP_ID" ... || npx remotion render "Templates/TPL-ReleaseNotes" ...</span>
+<span class="add">+  npx remotion render "TPL-ReleaseNotes" \
++    --props=/tmp/landscape-props.json --output=../out/landscape-raw.mp4 ...</span>
+
+<span class="k-mute"># square — same simplification</span>
+<span class="add">+  npx remotion render "TPL-ReleaseNotesSquare" \
++    --props=/tmp/square-props.json --output=../out/square-raw.mp4 ...</span></pre>
+</div>
+
+<div class="card ok">
+<h3>orchestkit-demos/src/Root.tsx — register the missing square template</h3>
+<pre>&lt;Folder name="Templates"&gt;
+  ...
+  &lt;Composition id="TPL-ReleaseNotes" component={ReleaseNotes} ... /&gt;
+<span class="add">+ &lt;Composition id="TPL-ReleaseNotesSquare" component={ReleaseNotesSquare}
++   durationInFrames={FPS * 12} fps={FPS} width={1080} height={1080}
++   schema={releaseNotesSquareSchema} defaultProps={releaseNotesV602SquareConfig} /&gt;</span>
+&lt;/Folder&gt;</pre>
+</div>
+
+<h2>Local verification (before commit)</h2>
+<div class="card ok">
+<table>
+<thead><tr><th>Step</th><th>Command</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>npx remotion compositions</code></td><td>confirms <code>TPL-ReleaseNotes</code> + new <code>TPL-ReleaseNotesSquare</code> both registered</td></tr>
+<tr><td>2</td><td><code>node scripts/changelog-to-props.mjs 7.60.0 --landscape</code></td><td>generates valid JSON, 5 highlights from release-please CHANGELOG</td></tr>
+<tr><td>3</td><td><code>remotion render TPL-ReleaseNotes --props=... --frames=0-29</code></td><td>1.7 MB MP4 @ 1920×1080, exit 0</td></tr>
+<tr><td>4</td><td><code>remotion render TPL-ReleaseNotesSquare --props=... --frames=0-29</code></td><td>1.1 MB MP4 @ 1080×1080, exit 0</td></tr>
+</tbody>
+</table>
+<p>So the workflow is one git push away from going green for the first time. Previous releases (v7.58.0, v7.59.0, v7.60.0) will remain video-less — fix is forward-only.</p>
+</div>
+
+</main></body></html>
