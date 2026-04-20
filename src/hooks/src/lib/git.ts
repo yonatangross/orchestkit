@@ -65,9 +65,16 @@ export function getProtectedBranches(): string[] {
  * Check if the given branch (or current branch) is protected.
  * Protected branches block direct commits/pushes.
  * Configurable via ORCHESTKIT_PROTECTED_BRANCHES env var.
+ *
+ * Branch resolution:
+ *   undefined → fall back to getCurrentBranch() (production default)
+ *   ''        → treat as "unknown branch, don't protect" (NOOP_CTX in tests;
+ *               also a safe default when git detection fails)
+ *   <string>  → check directly
  */
 export function isProtectedBranch(branch?: string): boolean {
-  const currentBranch = branch || getCurrentBranch();
+  const currentBranch = branch === undefined ? getCurrentBranch() : branch;
+  if (!currentBranch) return false;
   return getProtectedBranches().includes(currentBranch);
 }
 
