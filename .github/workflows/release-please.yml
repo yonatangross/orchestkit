@@ -34,8 +34,9 @@ permissions: read-all
 
 jobs:
   release-please:
-    # GITHUB_TOKEN stays read-only — the action uses RELEASE_PLEASE_TOKEN (PAT)
-    # for all writes, so the default token never needs contents/PR write.
+    # GITHUB_TOKEN stays read-only — all writes (release PR commits, tags,
+    # GitHub Releases) go through a short-lived OrchestKit Release Bot
+    # installation token. This retires the long-lived RELEASE_PLEASE_TOKEN PAT.
     permissions:
       contents: read
       pull-requests: read
@@ -45,12 +46,19 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
     steps:
+      - name: Mint Release Bot token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3  # v3.1.1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - id: release
         uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071  # v4
         with:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled
   # by release-please extra-files in .release-please-config.json.
