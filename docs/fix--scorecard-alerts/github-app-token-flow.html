@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OrchestKit Release Bot — token-flow explorer (PR #1426)</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-2: #161b22;
+    --bg-3: #1f2937;
+    --fg: #e6edf3;
+    --fg-dim: #8b949e;
+    --fg-muted: #6e7681;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent-2: #7ee787;
+    --warn: #f0883e;
+    --danger: #f85149;
+    --ok: #3fb950;
+    --purple: #d2a8ff;
+    --yellow: #e3b341;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  pre, code, .mono { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; }
+
+  header { border-bottom: 1px solid var(--border); padding: 18px 24px; background: var(--bg-2); }
+  header h1 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  header h1 code { color: var(--accent-2); }
+  header .meta { display: flex; flex-wrap: wrap; gap: 18px; color: var(--fg-dim); font-size: 12px; margin-top: 6px; }
+  header .meta span b { color: var(--fg); font-weight: 600; }
+  header .meta a { color: var(--accent); text-decoration: none; }
+  header .meta a:hover { text-decoration: underline; }
+
+  main { display: grid; grid-template-columns: 320px 1fr; gap: 0; min-height: calc(100vh - 82px); }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+
+  aside {
+    background: var(--bg-2);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+  }
+  aside h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin: 24px 0 10px; font-weight: 600; }
+  aside h2:first-child { margin-top: 0; }
+  aside .group { margin-bottom: 14px; }
+  aside label { display: block; font-size: 12px; color: var(--fg-dim); margin-bottom: 6px; }
+  aside select, aside button {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-3);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: 13px/1 inherit;
+    cursor: pointer;
+  }
+  aside select:hover, aside button:hover { border-color: var(--accent); }
+  aside button.preset {
+    text-align: left;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--bg-3);
+  }
+  aside button.preset:hover { background: #243041; }
+  aside button.preset .name { font-weight: 600; color: var(--fg); display: block; font-size: 13px; }
+  aside button.preset .desc { color: var(--fg-dim); font-size: 11px; margin-top: 2px; }
+
+  .toggle { display: flex; gap: 2px; background: var(--bg-3); padding: 3px; border-radius: 6px; border: 1px solid var(--border); }
+  .toggle button {
+    flex: 1; padding: 6px 8px; background: transparent; border: 0; color: var(--fg-dim); font-size: 12px; border-radius: 4px; cursor: pointer;
+  }
+  .toggle button.on { background: var(--bg); color: var(--fg); box-shadow: inset 0 0 0 1px var(--border); }
+  .toggle button:hover:not(.on) { color: var(--fg); }
+
+  section.main { padding: 24px; overflow-y: auto; }
+  section.main h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin: 0 0 12px; font-weight: 600; }
+  section.main h2:not(:first-child) { margin-top: 28px; }
+
+  .diagram {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    overflow-x: auto;
+  }
+  .diagram pre { margin: 0; font-size: 12.5px; line-height: 1.55; white-space: pre; }
+
+  .diff {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .diff .pane {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .diff .pane.before { border-left: 3px solid var(--danger); }
+  .diff .pane.after  { border-left: 3px solid var(--ok); }
+  .diff .pane h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+  .diff .pane h3 .tag { padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px; }
+  .diff .pane.before .tag { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+  .diff .pane.after  .tag { background: rgba(63, 185, 80, 0.15); color: var(--ok); }
+  .diff .pane pre { margin: 0; font-size: 12px; line-height: 1.55; }
+  .diff .add { color: var(--ok); }
+  .diff .rem { color: var(--danger); text-decoration: line-through; text-decoration-color: rgba(248, 81, 73, 0.5); }
+  .diff .comment { color: var(--fg-muted); font-style: italic; }
+
+  .runbook {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .runbook ol { margin: 0; padding-left: 22px; }
+  .runbook li { margin-bottom: 18px; color: var(--fg); }
+  .runbook li:last-child { margin-bottom: 0; }
+  .runbook p { margin: 4px 0 6px; color: var(--fg-dim); font-size: 13px; }
+  .runbook .cmd {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 4px;
+  }
+  .runbook .cmd code { font-size: 12px; color: var(--accent-2); flex: 1; white-space: pre; overflow-x: auto; }
+  .runbook .cmd button {
+    background: var(--bg-3); color: var(--fg-dim); border: 1px solid var(--border);
+    font: 11px/1 inherit; padding: 4px 8px; border-radius: 4px; cursor: pointer;
+  }
+  .runbook .cmd button:hover { color: var(--fg); border-color: var(--accent); }
+  .runbook .cmd button.copied { color: var(--ok); border-color: var(--ok); }
+
+  .summary {
+    margin-top: 28px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .summary header-inner { display: flex; align-items: center; justify-content: space-between; }
+  .summary .row { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+  .summary p { margin: 0; color: var(--fg); font-size: 13px; line-height: 1.6; max-width: 78ch; }
+  .summary button {
+    flex-shrink: 0; background: var(--bg-3); color: var(--fg-dim); border: 1px solid var(--border);
+    font: 11px/1 inherit; padding: 6px 10px; border-radius: 4px; cursor: pointer;
+  }
+  .summary button:hover { color: var(--fg); border-color: var(--accent); }
+  .summary button.copied { color: var(--ok); border-color: var(--ok); }
+
+  .k-app { color: var(--accent-2); }
+  .k-token { color: var(--purple); }
+  .k-env { color: var(--yellow); }
+  .k-label { color: var(--accent); }
+  .k-warn { color: var(--warn); }
+  .k-danger { color: var(--danger); }
+  .k-ok { color: var(--ok); }
+  .k-mute { color: var(--fg-muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>OrchestKit Release Bot — token-flow explorer <code>fix/scorecard-alerts</code></h1>
+  <div class="meta">
+    <span>PR <b><a href="https://github.com/yonatangross/orchestkit/pull/1426" target="_blank">#1426</a></b></span>
+    <span>Scorecard alerts closed <b>11</b></span>
+    <span>App ID <b>3440696</b></span>
+    <span>Bot user ID <b>277719826</b></span>
+    <span>App settings <b><a href="https://github.com/settings/apps/orchestkit-release-bot" target="_blank">orchestkit-release-bot</a></b></span>
+  </div>
+</header>
+<main>
+<aside>
+  <h2>Workflow</h2>
+  <div class="group">
+    <label for="wf">Select workflow to inspect</label>
+    <select id="wf">
+      <option value="release">release.yml  — tag-triggered GitHub Release</option>
+      <option value="prerelease">prerelease.yml  — beta/alpha channels</option>
+      <option value="release-video">release-video.yml  — asset upload</option>
+      <option value="channel-sync">channel-sync.yml  — branch sync PRs</option>
+      <option value="release-please">release-please.yml  — automated versioning</option>
+    </select>
+  </div>
+
+  <h2>View</h2>
+  <div class="group">
+    <label>Perspective</label>
+    <div class="toggle" id="view">
+      <button data-view="flow" class="on">Runtime flow</button>
+      <button data-view="diff">Before / after</button>
+    </div>
+  </div>
+
+  <h2>Presets</h2>
+  <button class="preset" data-preset="release-tag">
+    <span class="name">Tag a release</span>
+    <span class="desc">release.yml — runtime flow (what runs when you push v*)</span>
+  </button>
+  <button class="preset" data-preset="weekly-pr">
+    <span class="name">Weekly release PR</span>
+    <span class="desc">release-please.yml — runtime flow (runs on every push to main)</span>
+  </button>
+  <button class="preset" data-preset="diff-release">
+    <span class="name">See the migration diff</span>
+    <span class="desc">release.yml — before / after permissions</span>
+  </button>
+  <button class="preset" data-preset="rotate">
+    <span class="name">Rotate the App key</span>
+    <span class="desc">scrolls to the rotation runbook</span>
+  </button>
+</aside>
+
+<section class="main">
+  <h2 id="diagramTitle">Runtime token flow — release.yml</h2>
+  <div class="diagram" id="diagramPane">
+    <pre id="diagramBody"></pre>
+  </div>
+
+  <h2 id="rotateTitle">Rotation runbook — 5 steps, ~5 minutes</h2>
+  <div class="runbook">
+    <ol>
+      <li>
+        <strong>Generate new key.</strong>
+        <p>Open the App settings. Scroll to <em>Private keys</em> → <em>Generate a private key</em>. New <code>.pem</code> downloads.</p>
+        <div class="cmd"><code>open https://github.com/settings/apps/orchestkit-release-bot</code><button onclick="copyCmd(this)">copy</button></div>
+      </li>
+      <li>
+        <strong>Update the 1Password backup.</strong>
+        <p>Item UUID is stable: <code>ickhsiw7etwfuym4i4poldeyxi</code> in the <code>HQ-Dev</code> vault. Replace the file attachment with the new <code>.pem</code>.</p>
+        <div class="cmd"><code>op item edit ickhsiw7etwfuym4i4poldeyxi --vault HQ-Dev</code><button onclick="copyCmd(this)">copy</button></div>
+      </li>
+      <li>
+        <strong>Push new key to GitHub Actions secret.</strong>
+        <p>Adjust the <code>.pem</code> filename in the command below. The file is read from stdin so its contents never appear in shell history or tool output.</p>
+        <div class="cmd"><code>gh secret set RELEASE_BOT_PRIVATE_KEY --repo yonatangross/orchestkit &lt; ~/Downloads/orchestkit-release-bot.*.private-key.pem</code><button onclick="copyCmd(this)">copy</button></div>
+      </li>
+      <li>
+        <strong>Revoke the old key.</strong>
+        <p>Back on the App settings page → <em>Private keys</em> section → delete the old fingerprint. Do this AFTER step 3, so a rollback is possible if the new key fails to mint.</p>
+        <div class="cmd"><code>open https://github.com/settings/apps/orchestkit-release-bot</code><button onclick="copyCmd(this)">copy</button></div>
+      </li>
+      <li>
+        <strong>Delete the local <code>.pem</code>.</strong>
+        <p>Key is now in two protected stores (GitHub secret + 1Password). A disk copy is a leak vector.</p>
+        <div class="cmd"><code>rm ~/Downloads/orchestkit-release-bot.*.private-key.pem</code><button onclick="copyCmd(this)">copy</button></div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="summary">
+    <div class="row">
+      <p id="summary"></p>
+      <button id="copyBtn" onclick="copySummary(this)">copy summary</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+const WORKFLOWS = {
+  "release": {
+    label: "release.yml",
+    trigger: "on: push: tags: ['v*']",
+    purpose: "Create GitHub Release on tag push + upload SBOM + attest build provenance",
+    ghToken: { scope: "contents:read + id-token:write + attestations:write", note: "id-token/attestations stay on GITHUB_TOKEN — attest-build-provenance binds to workflow OIDC identity, not the App." },
+    appUses: [
+      "gh release create <tag> --notes-file /tmp/release-notes.md",
+      "gh release upload <tag> bom.json#sbom-cyclonedx.json",
+      "(checkout uses GITHUB_TOKEN — read is enough)"
+    ],
+    beforeYaml: `permissions:
+  contents: write       <-- Scorecard alert #3
+  id-token: write
+  attestations: write
+steps:
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+  - run: gh release create ...
+    env:
+      GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}`,
+    afterYaml: `permissions:
+  contents: read        <-- closed
+  id-token: write
+  attestations: write
+steps:
+  - name: Mint Release Bot token
+    id: app-token
+    uses: actions/create-github-app-token@1b10c78...  # v3.1.1
+    with:
+      app-id: \${{ secrets.RELEASE_BOT_APP_ID }}
+      private-key: \${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+  - run: gh release create ...
+    env:
+      GH_TOKEN: \${{ steps.app-token.outputs.token }}`
+  },
+  "prerelease": {
+    label: "prerelease.yml",
+    trigger: "on: workflow_dispatch (branch + bump inputs)",
+    purpose: "Cut a beta/alpha prerelease from a feature branch — stamp version, tag, create GitHub Release",
+    ghToken: { scope: "contents:read", note: "Nothing else on GITHUB_TOKEN — no OIDC needed here." },
+    appUses: [
+      "checkout with token: steps.app-token.outputs.token",
+      "git config user.name 'orchestkit-release-bot[bot]'",
+      "git push origin HEAD",
+      "git tag -a <tag> && git push origin <tag>",
+      "gh release create <tag> --prerelease"
+    ],
+    beforeYaml: `permissions:
+  contents: write       <-- Scorecard alert #148
+steps:
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+  - run: |
+      git config user.name "github-actions[bot]"
+      git config user.email "github-actions[bot]@users.noreply.github.com"
+      git push origin HEAD
+      gh release create "$TAG" --prerelease ...
+    env:
+      GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}`,
+    afterYaml: `permissions:
+  contents: read        <-- closed
+steps:
+  - name: Mint Release Bot token
+    id: app-token
+    uses: actions/create-github-app-token@1b10c78...
+    with:
+      app-id: \${{ secrets.RELEASE_BOT_APP_ID }}
+      private-key: \${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+      token: \${{ steps.app-token.outputs.token }}
+  - run: |
+      # Identity matches the pushing token — verified commits
+      git config user.name "orchestkit-release-bot[bot]"
+      git config user.email "277719826+orchestkit-release-bot[bot]@users.noreply.github.com"
+      git push origin HEAD
+      gh release create "$TAG" --prerelease ...
+    env:
+      GH_TOKEN: \${{ steps.app-token.outputs.token }}`
+  },
+  "release-video": {
+    label: "release-video.yml",
+    trigger: "on: release: types: [published] (also manual dispatch)",
+    purpose: "Render 16:9 + 1:1 release videos with Remotion and upload them as Release assets",
+    ghToken: { scope: "contents:read (only on the upload job)", note: "Earlier jobs in the workflow need only contents:read for checkout." },
+    appUses: [
+      "gh release upload <tag> out/release-*.mp4 --clobber",
+      "gh release upload <tag> out/release-*.gif --clobber"
+    ],
+    beforeYaml: `upload-to-release:
+  permissions:
+    contents: write     <-- Scorecard alert #149
+  steps:
+    - uses: actions/download-artifact@...
+    - run: |
+        for file in out/release-*; do
+          gh release upload "$RELEASE_TAG" "$file" --clobber
+        done
+      env:
+        GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}`,
+    afterYaml: `upload-to-release:
+  permissions:
+    contents: read      <-- closed
+  steps:
+    - name: Mint Release Bot token
+      id: app-token
+      uses: actions/create-github-app-token@1b10c78...
+      with:
+        app-id: \${{ secrets.RELEASE_BOT_APP_ID }}
+        private-key: \${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+    - uses: actions/download-artifact@...
+    - run: |
+        for file in out/release-*; do
+          gh release upload "$RELEASE_TAG" "$file" --clobber
+        done
+      env:
+        GH_TOKEN: \${{ steps.app-token.outputs.token }}`
+  },
+  "channel-sync": {
+    label: "channel-sync.yml",
+    trigger: "on: workflow_dispatch (direction: beta-to-main, main-to-beta, etc.)",
+    purpose: "Merge main<->alpha<->beta channel branches and open sync PRs",
+    ghToken: { scope: "contents:read", note: "Top-level workflow is read-all; sync job now reads only." },
+    appUses: [
+      "checkout with token: steps.app-token.outputs.token",
+      "git merge origin/<source> --no-edit --allow-unrelated-histories",
+      "git push origin <sync-branch>",
+      "gh pr create --base <target> --head <sync-branch>"
+    ],
+    beforeYaml: `permissions:
+  contents: write       <-- Scorecard alert #147
+  pull-requests: write  <-- also write
+steps:
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+      token: \${{ secrets.GITHUB_TOKEN }}
+  - run: |
+      git config user.name "github-actions[bot]"
+      git merge origin/$SOURCE --no-edit
+      git push origin "$BRANCH_NAME"
+      gh pr create --base $TARGET --head $BRANCH_NAME ...`,
+    afterYaml: `permissions:
+  contents: read        <-- closed (PRs no longer writable via GITHUB_TOKEN)
+steps:
+  - name: Mint Release Bot token
+    id: app-token
+    uses: actions/create-github-app-token@1b10c78...
+    with:
+      app-id: \${{ secrets.RELEASE_BOT_APP_ID }}
+      private-key: \${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+  - uses: actions/checkout@...
+    with:
+      fetch-depth: 0
+      token: \${{ steps.app-token.outputs.token }}
+  - run: |
+      git config user.name "orchestkit-release-bot[bot]"
+      git config user.email "277719826+orchestkit-release-bot[bot]@users.noreply.github.com"
+      git merge origin/$SOURCE --no-edit
+      git push origin "$BRANCH_NAME"
+      gh pr create --base $TARGET --head $BRANCH_NAME ...
+    env:
+      GH_TOKEN: \${{ steps.app-token.outputs.token }}`
+  },
+  "release-please": {
+    label: "release-please.yml",
+    trigger: "on: push: branches: [main] (plus workflow_dispatch)",
+    purpose: "Analyze conventional commits → create/update the rolling Release PR + tag releases",
+    ghToken: { scope: "{} (empty)", note: "release-please-action uses the App token for ALL API calls; GITHUB_TOKEN is never touched." },
+    appUses: [
+      "release-please-action internally: create/update Release PR",
+      "release-please-action internally: tag + GitHub Release on merge"
+    ],
+    beforeYaml: `permissions:
+  contents: write       <-- Scorecard alert #111
+  pull-requests: write
+steps:
+  - id: release
+    uses: googleapis/release-please-action@...
+    with:
+      config-file: .release-please-config.json
+      manifest-file: .release-please-manifest.json
+      token: \${{ secrets.RELEASE_PLEASE_TOKEN }}  <-- long-lived PAT`,
+    afterYaml: `permissions: {}       <-- nothing on GITHUB_TOKEN
+steps:
+  - name: Mint Release Bot token
+    id: app-token
+    uses: actions/create-github-app-token@1b10c78...
+    with:
+      app-id: \${{ secrets.RELEASE_BOT_APP_ID }}
+      private-key: \${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+  - id: release
+    uses: googleapis/release-please-action@...
+    with:
+      config-file: .release-please-config.json
+      manifest-file: .release-please-manifest.json
+      token: \${{ steps.app-token.outputs.token }}  <-- short-lived App token
+# RELEASE_PLEASE_TOKEN secret is no longer referenced anywhere.
+# Delete with: gh secret delete RELEASE_PLEASE_TOKEN`
+  }
+};
+
+const state = { wf: "release", view: "flow" };
+
+function render() {
+  const wf = WORKFLOWS[state.wf];
+  const title = document.getElementById("diagramTitle");
+  const body = document.getElementById("diagramBody");
+
+  if (state.view === "flow") {
+    title.textContent = "Runtime token flow — " + wf.label;
+    body.innerHTML = renderFlow(wf);
+  } else {
+    title.textContent = "Before / after permissions — " + wf.label;
+    body.innerHTML = "";
+    const pane = document.getElementById("diagramPane");
+    pane.innerHTML = renderDiff(wf);
+  }
+
+  // summary always reflects current selection
+  renderSummary(wf);
+
+  // toggle buttons
+  document.querySelectorAll("#view button").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+}
+
+function renderFlow(wf) {
+  const ops = wf.appUses.map(x => `  │  • ${escapeHtml(x)}`).join("\n");
+  return (
+`<span class="k-mute"># Trigger</span>
+<span class="k-label">${escapeHtml(wf.trigger)}</span>
+
+<span class="k-mute"># Purpose</span>
+${escapeHtml(wf.purpose)}
+
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ Job starts. Ambient GITHUB_TOKEN is issued by GitHub.            │
+   │                                                                  │
+   │   <span class="k-env">GITHUB_TOKEN</span>  scope: <span class="k-ok">${escapeHtml(wf.ghToken.scope)}</span>
+   │                  lifetime: ≤1 hour, auto-rotated                 │
+   │                                                                  │
+   │   <span class="k-mute">${escapeHtml(wf.ghToken.note)}</span>
+   └─────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ STEP 1 — <span class="k-app">actions/create-github-app-token@1b10c78...  # v3.1.1</span>   │
+   │                                                                  │
+   │   inputs:                                                        │
+   │     app-id      = secrets.<span class="k-env">RELEASE_BOT_APP_ID</span>   (= 3440696)      │
+   │     private-key = secrets.<span class="k-env">RELEASE_BOT_PRIVATE_KEY</span> (RSA .pem)    │
+   │                                                                  │
+   │   inside the action:                                             │
+   │     1. sign a JWT with the .pem (RS256, 10-min expiry)           │
+   │     2. POST /app/installations/{id}/access_tokens                │
+   │     3. receive installation token (~1h, scoped to THIS repo)     │
+   │     4. expose as  <span class="k-token">steps.app-token.outputs.token</span>             │
+   └─────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ STEP 2..N — job uses the App token for all GitHub writes:        │
+   │                                                                  │
+${ops}
+   │                                                                  │
+   │   Nothing writes with GITHUB_TOKEN. If a future edit adds one,   │
+   │   Scorecard re-flags the job and CI blocks the PR.               │
+   └─────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ Job ends → both tokens expire. App token is discarded by GitHub. │
+   │ Next run → fresh mint. No long-lived credential at rest.         │
+   └──────────────────────────────────────────────────────────────────┘`
+  );
+}
+
+function renderDiff(wf) {
+  return (
+`<div class="diff">
+  <div class="pane before">
+    <h3>Before<span class="tag">main @ merge base</span></h3>
+    <pre>${highlightYaml(wf.beforeYaml, "before")}</pre>
+  </div>
+  <div class="pane after">
+    <h3>After<span class="tag">PR #1426</span></h3>
+    <pre>${highlightYaml(wf.afterYaml, "after")}</pre>
+  </div>
+</div>`
+  );
+}
+
+function highlightYaml(src, mode) {
+  // Lightweight, no library.
+  return escapeHtml(src)
+    .replace(/(#[^\n]*)/g, '<span class="k-mute">$1</span>')
+    .replace(/(contents: write)/g, '<span class="rem">$1</span>')
+    .replace(/(contents: read|permissions: \{\})/g, '<span class="add">$1</span>')
+    .replace(/(&lt;-- [^\n]+)/g, '<span class="k-mute">$1</span>')
+    .replace(/(secrets\.RELEASE_BOT_APP_ID|secrets\.RELEASE_BOT_PRIVATE_KEY|RELEASE_PLEASE_TOKEN)/g, '<span class="k-env">$1</span>')
+    .replace(/(steps\.app-token\.outputs\.token)/g, '<span class="k-token">$1</span>')
+    .replace(/(actions\/create-github-app-token@\S+)/g, '<span class="k-app">$1</span>')
+    .replace(/(orchestkit-release-bot\[bot\])/g, '<span class="k-app">$1</span>');
+}
+
+function renderSummary(wf) {
+  const el = document.getElementById("summary");
+  const perspective = state.view === "flow"
+    ? `${wf.label} mints a short-lived installation token via actions/create-github-app-token@v3.1.1 and uses steps.app-token.outputs.token for: ${wf.appUses.join("; ")}. GITHUB_TOKEN scope on this job is ${wf.ghToken.scope}.`
+    : `For ${wf.label}, PR #1426 drops GITHUB_TOKEN from contents:write to ${wf.ghToken.scope} and routes every write through an App-token step. The long-lived credential that used to exist for this path is retired.`;
+  el.textContent = perspective;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function copyCmd(btn) {
+  const code = btn.parentElement.querySelector("code").textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1200);
+  });
+}
+
+function copySummary(btn) {
+  navigator.clipboard.writeText(document.getElementById("summary").textContent).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = "copied";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1200);
+  });
+}
+
+document.getElementById("wf").addEventListener("change", e => { state.wf = e.target.value; render(); });
+document.querySelectorAll("#view button").forEach(b => {
+  b.addEventListener("click", () => { state.view = b.dataset.view; render(); });
+});
+document.querySelectorAll(".preset").forEach(b => {
+  b.addEventListener("click", () => {
+    const p = b.dataset.preset;
+    if (p === "release-tag") { state.wf = "release"; state.view = "flow"; }
+    else if (p === "weekly-pr") { state.wf = "release-please"; state.view = "flow"; }
+    else if (p === "diff-release") { state.wf = "release"; state.view = "diff"; }
+    else if (p === "rotate") { document.getElementById("rotateTitle").scrollIntoView({ behavior: "smooth" }); return; }
+    document.getElementById("wf").value = state.wf;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
