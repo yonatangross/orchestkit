@@ -29,19 +29,26 @@ env:
 jobs:
   sync:
     name: Sync Channels
+    # GITHUB_TOKEN stays read-only — all writes (push, PR) use the App token.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       pr_url: ${{ steps.create-pr.outputs.pr_url }}
       branch_name: ${{ steps.prepare-sync.outputs.branch_name }}
     steps:
+      - name: Mint Release Bot token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3  # v3.1.1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Determine sync branches
         id: branches
@@ -147,6 +154,8 @@ jobs:
             --json url --jq '.url')
 
           echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Direct push
         if: github.event.inputs.create-pr == 'false'

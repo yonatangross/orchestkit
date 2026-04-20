@@ -103,7 +103,10 @@ jobs:
             echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub"
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
             rm -f package-lock.json
-            npm install --no-audit --no-fund
+            # Regenerate lockfile first, then install from it with `npm ci` so
+            # dependency resolution stays reproducible (Scorecard pinned-deps).
+            npm install --package-lock-only --no-audit --no-fund
+            npm ci --no-audit --no-fund
           else
             echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
             exit $npm_exit

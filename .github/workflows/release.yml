@@ -20,14 +20,25 @@ permissions: {}
 
 jobs:
   create-release:
+    # contents stays `read` on GITHUB_TOKEN — all release writes go through a
+    # short-lived OrchestKit Release Bot installation token (see app-token step).
+    # id-token + attestations must stay on GITHUB_TOKEN: the attest-build-
+    # provenance action uses the workflow's OIDC identity, not the App.
     permissions:
-      contents: write
+      contents: read
       id-token: write
       attestations: write
     name: GitHub Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Mint Release Bot token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3  # v3.1.1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
@@ -79,7 +90,7 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
@@ -88,7 +99,7 @@ jobs:
             --title "${{ steps.version.outputs.tag }}" \
             --notes-file /tmp/release-notes.md
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js for SBOM generation
         if: steps.check.outputs.exists == 'false'
@@ -111,7 +122,7 @@ jobs:
         run: |
           gh release upload "${{ steps.version.outputs.tag }}" bom.json#sbom-cyclonedx.json
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Attest build provenance
         if: steps.check.outputs.exists == 'false'

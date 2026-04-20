@@ -61,17 +61,19 @@ if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
   trap 'rm -f "$INSTALL_LOG"' EXIT
 
   set +e
-  (cd "$DOCS_SITE" && npm install --no-audit --no-fund 2>&1) >"$INSTALL_LOG"
+  (cd "$DOCS_SITE" && npm ci --no-audit --no-fund 2>&1) >"$INSTALL_LOG"
   npm_exit=$?
   set -e
 
   if [[ $npm_exit -ne 0 ]]; then
     if grep -qE "401 Unauthorized|E401|unauthenticated" "$INSTALL_LOG"; then
-      echo "  ${YELLOW}⚠${NC} npm install hit 401 on @yonatan-hq/analytics — swapping to local stub and retrying"
+      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub and retrying"
       (cd "$DOCS_SITE" && npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub' >/dev/null)
       rm -f "$DOCS_SITE/package-lock.json"
-      (cd "$DOCS_SITE" && npm install --no-audit --no-fund 2>&1 | tail -3) || {
-        fail "npm install retried with stub still failed in docs/site"
+      # Regenerate lockfile after the stub swap, then install from it with `npm
+      # ci` so resolution stays reproducible (Scorecard pinned-deps).
+      (cd "$DOCS_SITE" && npm install --package-lock-only --no-audit --no-fund >/dev/null 2>&1 && npm ci --no-audit --no-fund 2>&1 | tail -3) || {
+        fail "npm ci retried with stub still failed in docs/site"
         exit 1
       }
     else

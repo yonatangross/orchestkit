@@ -34,9 +34,11 @@ permissions: read-all
 
 jobs:
   release-please:
+    # GITHUB_TOKEN stays read-only — the action uses RELEASE_PLEASE_TOKEN (PAT)
+    # for all writes, so the default token never needs contents/PR write.
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
