@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.60.1",
+    "date": "2026-04-21",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**Release Video composition paths.** `release-video.yml` constructed composition IDs like `Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}` with a fictional folder prefix — Remotion Studio's folder tree is cosmetic and the CLI resolves bare `id` attributes only. Additionally no per-version `RN-v*` comps get registered (the only one, `RN-v602`, is from v6.0.2). Both the bespoke path and the `Templates/TPL-ReleaseNotes` fallback had this bug, so the workflow has silently failed every release since its creation. Simplified to bare `TPL-ReleaseNotes` (already registered) for landscape and registered a new `TPL-ReleaseNotesSquare` template in `orchestkit-demos/src/Root.tsx` for the square render. Verified locally against v7.60.0 CHANGELOG props — both render cleanly (1.7 MB landscape, 1.1 MB square for 30-frame smoke render)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.60.0",
     "date": "2026-04-20",
     "compareUrl": "",
