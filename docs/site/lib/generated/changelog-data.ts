@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.58.1",
+    "date": "2026-04-20",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**`release.yml` SBOM + attestation skip.** The tag-triggered release workflow was wrapped in `if: steps.check.outputs.exists == 'false'` on every step, so whenever release-please created the GitHub Release first (which it always does now that both workflows use the App token), SBOM generation, upload, and provenance attestation were silently skipped. v7.57.0 and v7.58.0 both shipped with zero release assets. Only `gh release create` is now gated on existence; SBOM generation, upload (`--clobber` for idempotency), and attestation run every time.",
+          "**`scripts/changelog-to-props.mjs` parses release-please CHANGELOG format.** The script only recognized `## [X.Y.Z] - YYYY-MM-DD` (bump-version.sh output) and failed on every release-please release with `Error: Version X.Y.Z not found in CHANGELOG.md`, breaking the `Release Video` workflow. Now accepts both formats plus the conventional-commit section headings (`Features`, `Bug Fixes`, etc.) and strips trailing link artifacts. Added `tests/unit/test-changelog-parser.sh` to lock both formats in."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.58.0",
     "date": "2026-04-20",
     "compareUrl": "",
