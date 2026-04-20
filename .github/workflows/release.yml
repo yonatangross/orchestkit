@@ -80,6 +80,11 @@ jobs:
           # Write to file for multiline support
           echo "$BODY" > /tmp/release-notes.md
 
+      # Only `gh release create` needs to be gated on "does the release already
+      # exist" — you can't create a release twice. Everything else (SBOM, upload,
+      # provenance) is idempotent (--clobber on upload, attestations are
+      # append-only) and MUST run every time so the asset set is complete even
+      # when release-please creates the GitHub Release first.
       - name: Check if release exists
         id: check
         run: |
@@ -102,30 +107,27 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js for SBOM generation
-        if: steps.check.outputs.exists == 'false'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
         with:
           node-version: '20'
 
       - name: Install production dependencies
-        if: steps.check.outputs.exists == 'false'
         run: npm ci --ignore-scripts --production
 
       - name: Generate SBOM (CycloneDX)
-        if: steps.check.outputs.exists == 'false'
         uses: CycloneDX/gh-node-module-generatebom@27e13c2bf0fae78d66387b35ca9749d8cc853060  # v1
         with:
           output: bom.json
 
       - name: Upload SBOM to release
-        if: steps.check.outputs.exists == 'false'
         run: |
-          gh release upload "${{ steps.version.outputs.tag }}" bom.json#sbom-cyclonedx.json
+          gh release upload "${{ steps.version.outputs.tag }}" \
+            bom.json#sbom-cyclonedx.json \
+            --clobber
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Attest build provenance
-        if: steps.check.outputs.exists == 'false'
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
         with:
           subject-path: bom.json
