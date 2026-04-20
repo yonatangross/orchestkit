@@ -100,12 +100,13 @@ jobs:
           fi
 
           if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
-            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub"
+            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to committed stub lockfile"
+            # Deterministic fallback: swap the dep, copy the precomputed stub
+            # lockfile (package-lock.stub.json) over the main lockfile, and
+            # rerun `npm ci`. No registry round-trip — works without NPM_TOKEN
+            # on feature-branch CI.
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-            rm -f package-lock.json
-            # Regenerate lockfile first, then install from it with `npm ci` so
-            # dependency resolution stays reproducible (Scorecard pinned-deps).
-            npm install --package-lock-only --no-audit --no-fund
+            cp package-lock.stub.json package-lock.json
             npm ci --no-audit --no-fund
           else
             echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."

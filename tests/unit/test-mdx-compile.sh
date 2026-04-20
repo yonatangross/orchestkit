@@ -67,13 +67,20 @@ if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
 
   if [[ $npm_exit -ne 0 ]]; then
     if grep -qE "401 Unauthorized|E401|unauthenticated" "$INSTALL_LOG"; then
-      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub and retrying"
-      (cd "$DOCS_SITE" && npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub' >/dev/null)
-      rm -f "$DOCS_SITE/package-lock.json"
-      # Regenerate lockfile after the stub swap, then install from it with `npm
-      # ci` so resolution stays reproducible (Scorecard pinned-deps).
-      (cd "$DOCS_SITE" && npm install --package-lock-only --no-audit --no-fund >/dev/null 2>&1 && npm ci --no-audit --no-fund 2>&1 | tail -3) || {
-        fail "npm ci retried with stub still failed in docs/site"
+      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to committed stub lockfile and retrying"
+      # Deterministic fallback: swap the dep to the local stub, copy the
+      # precomputed stub lockfile (checked in as package-lock.stub.json) over
+      # the main lockfile, and re-run `npm ci`. No registry round-trip, so
+      # this works even without NPM_TOKEN on feature-branch CI. Regenerating
+      # the lockfile inline (`npm install --package-lock-only`) was tried
+      # and fails — this repo's .npmrc routes @yonatan-hq to a private
+      # registry that still 401s during resolution. See PR #1426 for the
+      # full rationale.
+      (cd "$DOCS_SITE" \
+        && npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub' >/dev/null \
+        && cp package-lock.stub.json package-lock.json \
+        && npm ci --no-audit --no-fund 2>&1 | tail -3) || {
+        fail "npm ci with committed stub lockfile failed in docs/site"
         exit 1
       }
     else
