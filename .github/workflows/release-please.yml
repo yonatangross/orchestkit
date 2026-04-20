@@ -34,12 +34,10 @@ permissions: read-all
 
 jobs:
   release-please:
-    # GITHUB_TOKEN stays read-only — all writes (release PR commits, tags,
-    # GitHub Releases) go through a short-lived OrchestKit Release Bot
-    # installation token. This retires the long-lived RELEASE_PLEASE_TOKEN PAT.
-    permissions:
-      contents: read
-      pull-requests: read
+    # GITHUB_TOKEN is never used by this job — release-please-action authenticates
+    # via the OrchestKit Release Bot App installation token (see app-token step).
+    # An empty permissions block is the honest declaration of that.
+    permissions: {}
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}

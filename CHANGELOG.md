@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.57.1] - 2026-04-20
+
+### Fixed
+
+- **Scorecard supply-chain alerts — closed all 11 open code-scanning findings.**
+  - **Pinned-Dependencies**: `windows-smoke.yml` pins `actions/checkout@v6.0.2` and `actions/setup-node@v6` to SHA; `docs.yml` and `tests/unit/test-mdx-compile.sh` replace bare `npm install` fallbacks with lockfile regen + `npm ci`.
+  - **Token-Permissions**: `release.yml`, `prerelease.yml`, `release-video.yml`, `channel-sync.yml`, and `release-please.yml` now mint short-lived installation tokens from the **OrchestKit Release Bot** GitHub App via `actions/create-github-app-token` (pinned to v3.1.1 SHA). `GITHUB_TOKEN` stays read-only (or `{}` where unused). `release.yml` keeps `id-token: write` + `attestations: write` for `attest-build-provenance` (OIDC-bound, not App-bound).
+  - **PAT retirement**: `RELEASE_PLEASE_TOKEN` is no longer referenced. Delete the repo secret after merge: `gh secret delete RELEASE_PLEASE_TOKEN --repo yonatangross/orchestkit`.
+  - **Commit identity alignment**: `prerelease.yml` and `channel-sync.yml` configure git user as `orchestkit-release-bot[bot]` so commits match the token that pushes them (yields "verified" on GitHub).
+
+---
+
+
 ## [7.57.0](https://github.com/yonatangross/orchestkit/compare/v7.56.3...v7.57.0) (2026-04-20)
 
 

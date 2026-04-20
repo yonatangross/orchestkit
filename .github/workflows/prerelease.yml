@@ -176,8 +176,10 @@ jobs:
 
       - name: Commit version stamp
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Attribute commits to the OrchestKit Release Bot App (matches the
+          # token that pushes them). 277719826 is the App's bot user id.
+          git config user.name "orchestkit-release-bot[bot]"
+          git config user.email "277719826+orchestkit-release-bot[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --quiet || git commit -m "chore: stamp pre-release version ${{ steps.stamp.outputs.prerelease }}"
 
@@ -251,8 +253,10 @@ jobs:
           TAG="v${VERSION}"
 
           # Create and push tag (includes version-stamped commit)
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Attribute commits to the OrchestKit Release Bot App (matches the
+          # token that pushes them). 277719826 is the App's bot user id.
+          git config user.name "orchestkit-release-bot[bot]"
+          git config user.email "277719826+orchestkit-release-bot[bot]@users.noreply.github.com"
           git push origin HEAD
           git tag -a "$TAG" -m "Prerelease: ${{ steps.branch.outputs.name }} channel" HEAD
           git push origin "$TAG"

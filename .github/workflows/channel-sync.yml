@@ -92,8 +92,11 @@ jobs:
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Attribute commits to the OrchestKit Release Bot App (matches the
+          # token that pushes them). 277719826 is the App's bot user id —
+          # stable for the life of the App, yields "verified" on GitHub.
+          git config user.name "orchestkit-release-bot[bot]"
+          git config user.email "277719826+orchestkit-release-bot[bot]@users.noreply.github.com"
 
           # Fetch all branches
           git fetch origin
