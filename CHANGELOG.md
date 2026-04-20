@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.59.1] - 2026-04-21
+
+### Fixed
+
+- **`orchestkit-demos` zod peer-dep conflict.** `@remotion/zod-types@4.0.447` added a `peer zod@"4.3.6"` requirement, which `npm ERESOLVE`'d against the pinned `zod@3.22.3`. The `Release Video` workflow had been failing `npm install` on every release since — including v7.58.0 and v7.59.0. Bumped to `zod@^4.3.6`; existing usage (`z.object`, `z.string`, `z.number`, `z.array`, `z.union`, `z.record`, `z.infer`) is API-compatible v3↔v4, `tsc --noEmit` passes clean.
+
+---
+
+
 ## [7.59.0](https://github.com/yonatangross/orchestkit/compare/v7.58.1...v7.59.0) (2026-04-20)
 
 
