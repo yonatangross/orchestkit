@@ -50,6 +50,8 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 - After running `npm run build`
 
 > **Tip (CC 2.1.69+):** After fixing issues found by doctor, run `/reload-plugins` to activate plugin changes without restarting your session.
+>
+> **Tip (CC 2.1.116+):** `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If a plugin fails to load because of a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
 
 ## Quick Start
 
