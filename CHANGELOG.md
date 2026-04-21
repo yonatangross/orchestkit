@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.62.0] - 2026-04-21
+
+### Added
+
+- **`gh` rate-limit PostToolUse hook** (`posttool/bash/gh-rate-limit-tracker`). When a `gh` invocation hits a GitHub API rate limit (primary hourly, secondary burst, or HTTP 403 with rate-limit phrasing), the hook injects `additionalContext` telling the model to stop the loop and wait for reset. Belt-and-suspenders enforcement on top of the CC 2.1.116 skill-level guidance. Async (5s timeout), 19 unit tests including a false-positive guard for plain 403 permission errors. Closes #1435.
+- **5 skill eval files** covering the CC 2.1.116 behavioral knowledge wired into skills by the adoption PR: `github-operations-rate-limit`, `create-pr-rate-limit`, `review-pr-rate-limit`, `doctor-reload-plugins-auto-deps` (pos + neg for pre/post-2.1.116 distinction), `agent-hooks-main-thread` (9 eval cases total). Closes #1436.
+
+### Changed
+
+- Hook count 180 → 181 (global 112 → 113). `manifests/ork.json`, `CLAUDE.md`, `hooks.json.description`, and 4 count-assertion test files synced.
+
+---
+
+
 ## [7.61.0](https://github.com/yonatangross/orchestkit/compare/v7.60.1...v7.61.0) (2026-04-20)
 
 

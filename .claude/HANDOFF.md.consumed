@@ -1,36 +1,34 @@
 # Session Handoff
 
-**Branch**: chore/wire-up-emulate-engineer
-**When**: 2026-04-17 20:25:26 UTC
-**Session**: b859c36a-1b56-4d09-95eb-7b70b05a3e2b
+**Branch**: chore/cc-2.1.116-adoption
+**When**: 2026-04-21 08:31:58 UTC
+**Session**: 6ea006af-14bf-42a9-ac1a-556ab5b77ddf
 
 ## Summary
-Found it. Direct answer:
+Now the honest assessment you actually asked for:
 
-**The `NPM_TOKEN` secret is configured with branch-scoped access** (almost certainly restricted to `main` and `dev` in repo Settings → Secrets → Actions). PRs from feature branches like `chore/wire-up-emulate-engineer` don't receive it.
+## `/ork:assess` — CC 2.1.116 adoption PR #1434 (no sugarcoat)
 
-### The evidence chain
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  Overall: B-  (was C+ before fix-up commit, now B-)              ║
+╚══════════════════════════════════════════════════════════════════╝
+```
 
-1. **`docs/site/.npmrc` uses env-var expansion:**
-   ```
-   //npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-   ```
-2. **Workflow passes the secret:** `NPM_TOKEN: ${{ secrets.NPM_TOKEN }}`
-3. **When the secret isn't available, `${NPM_TOKEN}` expands to empty string.** npm then sends `_authToken=` (empty) to GitHub Packages.
-4.
+**Correctness — 8/10.** Matrix constants and tests are internally consistent. Boundary tests exist for the load-bearing entries (`agent_hooks_main_thread`, `sandbox_rm_dangerous_path_fix`). `npm run build` + full local suites clean. The agent-hooks main-thread audit is real — I inspected 14 hook source files, not just a description skim.
+
+**Completeness — 6/10.** Two unforced gaps, both my fault:
+1.
 
 ## Modified Files
 - .claude/HANDOFF.md.consumed
 
-## Patterns Noted
-- Works from any branch because `GITHUB_TOKEN` is always available.
-
 ## Recent Tasks
-- Update SKILL.md main file for v0.5.25 [completed]
-- Update rule files with stale tool references [completed]
-- Build, test, commit, PR [completed]
-- Create 23 GitHub issues under milestone #112 [completed]
-- Land P0 commits (matrix + xhigh + budgets + review-pr + eval + vision + retries + doctor) [completed]
 - untitled [completed]
-- Land final expansion (model IDs + TRACEPARENT + budgets + version bumps + CHANGELOG + cyber note + uncertainty field) [completed]
-- Build + test + open PR [completed]
+- Register 2.1.116 features in cc-version-matrix.ts [completed]
+- Bump MIN_CC_VERSION 2.1.113 → 2.1.116 [completed]
+- Add boundary tests for new 2.1.116 features [completed]
+- Add CC 2.1.116 section to cc-version-settings.md [completed]
+- Note sandbox hardening in security-patterns skill [completed]
+- Audit agent hooks for main-thread firing safety [completed]
+- Build, test, commit, push, PR [completed]
