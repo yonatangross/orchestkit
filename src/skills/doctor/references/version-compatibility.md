@@ -319,6 +319,7 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | `sandbox.network.deniedDomains` | 2.1.113 | Block specific domains even when broader `allowedDomains` wildcard would permit them | Wildcard allow has no exceptions |
 | `/loop` Esc cancels wakeup | 2.1.113 | Pending `/loop` wakeups cancellable via Esc; transcript marker `"Claude resuming /loop wakeup"` enables analytics | Wakeup uninterruptible |
 | Bash deny wrappers match | 2.1.113 | Deny rules match commands wrapped in `env`/`sudo`/`watch`/`ionice`/`setsid` | Previous wrapper bypass |
+| Bash multiline comments in transcript | 2.1.113 | Multi-line Bash commands with leading `#` comments now show full command in transcript — enables `/recap` grep on intent comments | Heredocs/pipe chains opaque in transcript |
 | `Bash(find:*)` tightened | 2.1.113 | Auto-approve no longer covers `-exec`/`-delete` — explicit allowlist or manual approval required | `find -delete` auto-approved |
 | macOS `/private/*` dangerous | 2.1.113 | `/private/{etc,var,tmp,home}` treated as dangerous under `Bash(rm:*)` deny rules (symlink targets) | Symlink escape via `/private/etc` |
 | MCP concurrent timeout fix | 2.1.113 | Hanging MCP calls error cleanly instead of blocking queue | MCP calls could silently hang siblings |
