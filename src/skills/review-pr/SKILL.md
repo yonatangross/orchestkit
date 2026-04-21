@@ -140,6 +140,8 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 ## Phase 1: Gather PR Information
 
+> **CC ≥ 2.1.116 note:** the `gh` calls below can hit GitHub's API rate limit on very active repos. When the Bash tool surfaces a rate-limit hint, **stop and wait for reset** — do not retry in a loop. See `ork:github-operations` for the full guidance.
+
 ```bash
 # Get PR details
 gh pr view $PR_NUMBER --json title,body,files,additions,deletions,commits,author
