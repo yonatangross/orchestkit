@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.113';
+export const MIN_CC_VERSION = '2.1.116';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -380,6 +380,17 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'subagent_timeout_error',      minVersion: '2.1.113', description: 'Subagent timeouts produce clear error after 10 min instead of hanging indefinitely — affects long-running Agent spawns' },
   // 2.1.114 (2026-04-18)
   { feature: 'agent_team_permission_fix',   minVersion: '2.1.114', description: 'Fix: permission dialog crash when agent teams request tool approval' },
+  // 2.1.116 (2026-04-21) — perf, UX, agent main-thread hooks, sandbox hardening
+  { feature: 'agent_hooks_main_thread',        minVersion: '2.1.116', description: 'Agent frontmatter `hooks:` now fires when running as --agent main thread (previously subagent-only) — expands reach of PreToolUse/PostToolUse blockers' },
+  { feature: 'reload_plugins_auto_deps',       minVersion: '2.1.116', description: '/reload-plugins and background auto-update auto-install missing plugin dependencies from known marketplaces' },
+  { feature: 'doctor_while_responding',        minVersion: '2.1.116', description: '/doctor can run while Claude is responding (was queued until turn end) — enables mid-session diagnostics' },
+  { feature: 'config_search_option_values',    minVersion: '2.1.116', description: '/config search matches option values, not just keys (e.g. search "vim" finds Editor mode)' },
+  { feature: 'slash_no_match_empty_state',     minVersion: '2.1.116', description: 'Slash command menu shows explicit "No commands match" when filter has zero results (was disappearing)' },
+  { feature: 'bash_gh_rate_limit_hint',        minVersion: '2.1.116', description: 'Bash tool surfaces a hint when `gh` commands hit GitHub API rate limit — helps agents back off instead of retrying' },
+  { feature: 'usage_tab_immediate',            minVersion: '2.1.116', description: 'Settings Usage tab shows 5-hour and weekly usage immediately, with fallback when /usage endpoint is rate-limited' },
+  { feature: 'terminal_setup_scroll_tuning',   minVersion: '2.1.116', description: '/terminal-setup configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen-mode scrolling' },
+  { feature: 'sandbox_rm_dangerous_path_fix',  minVersion: '2.1.116', description: 'Security: sandbox auto-allow no longer bypasses dangerous-path check for rm/rmdir targeting /, $HOME, or critical system dirs — closes prior escape' },
+  { feature: 'resume_large_sessions_fast',     minVersion: '2.1.116', description: '/resume on 40 MB+ sessions up to 67% faster; MCP stdio startup parallelized with resources/templates/list deferred to first @-mention' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

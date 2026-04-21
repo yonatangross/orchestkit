@@ -315,6 +315,26 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | Plan filename after prompt | 2.1.111 | Plan-mode files named after the prompt (was: random words) | Generic plan filenames |
 | Readonly bash+glob no prompt | 2.1.111 | Read-only Bash with glob patterns no longer prompts | Permission prompt per read-only command |
 | `/skills` menu token sort | 2.1.111 | Press `t` to toggle sort by token count | Alpha only |
+| Native binary spawn | 2.1.113 | CLI spawns per-platform native binary via optional dep instead of bundled JS — affects hooks that inspect `process.argv0`, `__dirname`, `node_modules` paths | Hooks assume bundled-JS layout |
+| `sandbox.network.deniedDomains` | 2.1.113 | Block specific domains even when broader `allowedDomains` wildcard would permit them | Wildcard allow has no exceptions |
+| `/loop` Esc cancels wakeup | 2.1.113 | Pending `/loop` wakeups cancellable via Esc; transcript marker `"Claude resuming /loop wakeup"` enables analytics | Wakeup uninterruptible |
+| Bash deny wrappers match | 2.1.113 | Deny rules match commands wrapped in `env`/`sudo`/`watch`/`ionice`/`setsid` | Previous wrapper bypass |
+| `Bash(find:*)` tightened | 2.1.113 | Auto-approve no longer covers `-exec`/`-delete` — explicit allowlist or manual approval required | `find -delete` auto-approved |
+| macOS `/private/*` dangerous | 2.1.113 | `/private/{etc,var,tmp,home}` treated as dangerous under `Bash(rm:*)` deny rules (symlink targets) | Symlink escape via `/private/etc` |
+| MCP concurrent timeout fix | 2.1.113 | Hanging MCP calls error cleanly instead of blocking queue | MCP calls could silently hang siblings |
+| Subagent stall error | 2.1.113 | Subagent timeouts produce clear error after 10 min instead of hanging indefinitely | Silent hang on stalled subagent |
+| Remote Control `/extra-usage` | 2.1.113 | `/extra-usage` and `@`-file autocomplete work from mobile/web Remote Control clients | Desktop-only `/extra-usage` |
+| Agent teams permission fix | 2.1.114 | Fixed permission dialog crash when agent-teams teammate requests tool approval | Dialog crash on teammate approval |
+| Agent hooks main-thread | 2.1.116 | Agent frontmatter `hooks:` fire when agent runs as `--agent` main thread — previously subagent-only | Main-thread agent has no PreToolUse/PostToolUse blockers |
+| `/reload-plugins` auto-deps | 2.1.116 | Auto-installs missing plugin dependencies from known marketplaces | Plugin silently fails to load |
+| `/doctor` mid-turn | 2.1.116 | `/doctor` runs while Claude is responding (was queued) — enables mid-session diagnostics | Must wait for turn to finish |
+| Sandbox `rm` dangerous-path | 2.1.116 | Sandbox auto-allow no longer bypasses dangerous-path check for `rm`/`rmdir` targeting `/`, `$HOME`, critical system dirs | Prior auto-allow escape hatch |
+| `/config` search option values | 2.1.116 | Search matches option values, not just keys (e.g. `vim` finds Editor mode) | Keys-only search |
+| Slash empty-state | 2.1.116 | Slash command menu shows "No commands match" when filter has zero results | Menu disappeared |
+| Bash `gh` rate-limit hint | 2.1.116 | Bash surfaces a hint when `gh` hits GitHub API rate limit — helps agents back off | Blind retry on 403 |
+| Usage tab immediate | 2.1.116 | Settings Usage tab renders 5-hour/weekly usage immediately, with fallback when `/usage` endpoint is rate-limited | Blank Usage tab during rate-limit |
+| `/terminal-setup` scroll | 2.1.116 | Configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen scrolling | Default terminal scroll feels stuttery in IDE terminals |
+| `/resume` fast on large sessions | 2.1.116 | Up to 67% faster on 40 MB+ sessions; MCP stdio startup parallelized, `resources/templates/list` deferred to first `@`-mention | Long `/resume` wait on big sessions |
 
 ## Prompt Caching Recommendation
 

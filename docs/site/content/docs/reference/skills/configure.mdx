@@ -817,6 +817,39 @@ claude --remote-control-session-name-prefix "my-prefix"
 - `/tag` — removed. No replacement needed.
 - `/vim` — removed. Toggle vim mode via `/config` → Editor mode instead.
 
+## CC 2.1.116 Settings
+
+### Sandbox `rm`/`rmdir` Dangerous-Path Hardening
+
+CC 2.1.116 closes a prior escape where sandbox auto-allow could bypass the dangerous-path safety check for `rm`/`rmdir` targeting `/`, `$HOME`, or critical system directories. No configuration change required — existing `sandbox.enabled: true` configs are now safer by default.
+
+**What changed**: Previously, commands the sandbox classified as auto-allowable could still slip past the dangerous-path check. Now the safety check runs regardless of auto-allow classification. If OrchestKit's `security-layer-auditor` agent flagged this as a residual risk in prior reviews, the gap is closed.
+
+**Action**: None. This is a pure hardening — no settings to add. `ork:doctor` reports CC version; if ≥ 2.1.116 the check is active.
+
+### `/reload-plugins` Auto-Installs Missing Dependencies
+
+`/reload-plugins` and the background plugin auto-update now auto-install missing plugin dependencies from marketplaces you've already added. Previously, a plugin whose declared dependency wasn't yet installed would fail silently on reload.
+
+**Impact for OrchestKit**: `ork` declares no external plugin deps, so no behavior change. Users who layer additional plugins on top of `ork` get cleaner reloads — no more "plugin not found in marketplace" on first startup after install.
+
+### Agent Frontmatter `hooks:` Fire in `--agent` Main-Thread Mode
+
+Before 2.1.116, agent-scoped hooks (defined in `src/agents/&lt;name&gt;.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent &lt;name&gt;`.
+
+**Impact for OrchestKit**: All 14 agent hooks in OrchestKit are defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing is a **net positive** — users who pick an OrchestKit agent as their default get the same safety rails that subagent runs get.
+
+**No action required.** The audit in PR "chore(compat): CC 2.1.116 adoption" confirmed all existing agent hooks are main-thread safe.
+
+### Other Quality-of-Life Changes
+
+- `/doctor` now runs while Claude is responding (was queued to end of turn). Useful mid-session for diagnosing a hang or runaway tool loop.
+- `/config` search matches option values, not just keys (e.g. search `vim` finds the Editor mode setting).
+- Slash command menu shows explicit "No commands match" when filter has zero results (was disappearing).
+- Bash tool surfaces a GitHub API rate-limit hint when `gh` commands hit 403 — helps OrchestKit's commit/create-pr/review-pr skills back off instead of retrying.
+- Settings Usage tab renders 5-hour and weekly usage immediately with a fallback when `/usage` endpoint is rate-limited.
+- `/terminal-setup` configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen-mode scrolling.
+
 
 ### Http Hooks
 
