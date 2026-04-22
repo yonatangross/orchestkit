@@ -25,10 +25,11 @@ import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
 import { staleImportDetector } from '../posttool/write/stale-import-detector.js';
 import { editHistoryTracker } from '../posttool/write/edit-history-tracker.js';
-// PostTool/Bash hooks (3)
+// PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
 import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
+import { ghRateLimitTracker } from '../posttool/bash/gh-rate-limit-tracker.js';
 
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
@@ -84,10 +85,11 @@ export const hooks: Record<string, HookFn> = {
   'posttool/write/stale-import-detector': staleImportDetector,
   'posttool/write/edit-history-tracker': editHistoryTracker,
 
-  // PostTool/Bash hooks (3)
+  // PostTool/Bash hooks (4) — #1436 added gh-rate-limit-tracker
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,
   'posttool/bash/issue-subtask-updater': issueSubtaskUpdater,
   'posttool/bash/pattern-extractor': patternExtractor,
+  'posttool/bash/gh-rate-limit-tracker': ghRateLimitTracker,
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,

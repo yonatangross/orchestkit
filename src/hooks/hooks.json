@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 112 global + 46 agent-scoped + 22 skill-scoped = 180 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 113 global + 46 agent-scoped + 22 skill-scoped = 181 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -228,6 +228,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/commit-nudge",
             "async": true,
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/gh-rate-limit-tracker",
+            "async": true,
+            "timeout": 5
           }
         ]
       },

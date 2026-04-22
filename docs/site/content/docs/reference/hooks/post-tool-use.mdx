@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (17 hooks)."
+description: "Hooks triggered on PostToolUse events (18 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**17 hooks** registered for the `PostToolUse` lifecycle event.
+**18 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -21,6 +21,7 @@ description: "Hooks triggered on PostToolUse events (17 hooks)."
 | `commit-nudge` | `Write\|Edit` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
 | `redact-secrets` | `Bash` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
 | `commit-nudge` | `Bash` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
+| `gh-rate-limit-tracker` | `Bash` | 🔇 Silent | GitHub Rate-Limit Tracker |
 | `team-member-start` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | Links spawned teammates to the team activity log after successful spawn. |
 | `fingerprint-saver` | `Skill` | 🔇 Silent | Expect Fingerprint Auto-Saver (#1191) |
 | `auto-verify` | `Skill` | 🔇 Silent | Design-Import Auto-Verify (#1386) |

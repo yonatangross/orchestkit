@@ -349,7 +349,8 @@ describe('Cross-Bundle Consistency', () => {
     // 202 -> 207: v7.51.0 Usage-Driven Hardening bundle — stale-import-detector + edit-history-tracker (posttool/write), pre-commit-test-gate (pretool/bash dispatcher), subagent-scope-auditor (subagent-stop), thrash-detector (prompt)
     // 207 -> 209: v7.52.0 Usage-Driven Hardening completion — worktree-merge-verifier (pretool/bash dispatcher), metrics-bridge (posttool root)
     // 209 -> 210: v7.53.0 Claude Design Bet A — posttool/design-import/auto-verify (#1386)
-    expect(totalHooks).toBe(210);
+    // 210 -> 211: v7.62.0 CC 2.1.116 follow-up — posttool/bash/gh-rate-limit-tracker (#1435)
+    expect(totalHooks).toBe(211);
   });
 });
 
