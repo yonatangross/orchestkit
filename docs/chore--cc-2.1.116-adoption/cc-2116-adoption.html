@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>CC 2.1.116 adoption — matrix + agent-hooks audit</title>
+<style>
+  :root { --bg:#0d1117; --bg-2:#161b22; --fg:#e6edf3; --fg-dim:#8b949e; --fg-muted:#6e7681; --border:#30363d; --ok:#3fb950; --warn:#d29922; --danger:#f85149; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 -apple-system,BlinkMacSystemFont,sans-serif; }
+  pre,code { font-family:"SF Mono",ui-monospace,Menlo,monospace; }
+  header { padding:18px 24px; border-bottom:1px solid var(--border); background:var(--bg-2); }
+  header h1 { margin:0; font-size:16px; }
+  header .meta { margin-top:6px; color:var(--fg-dim); font-size:12px; }
+  main { padding:24px; max-width:1100px; margin:0 auto; }
+  h2 { font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); margin:24px 0 10px; }
+  h3 { font-size:13px; margin:0 0 6px; }
+  .card { background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:12px; }
+  .card.ok { border-left:3px solid var(--ok); }
+  .card.warn { border-left:3px solid var(--warn); }
+  .card.accent { border-left:3px solid var(--accent); }
+  pre { margin:8px 0 0; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; overflow-x:auto; }
+  .rem { color:var(--danger); }
+  .add { color:var(--ok); }
+  .k-mute { color:var(--fg-muted); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td,th { padding:6px 10px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+  th { color:var(--fg-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  td code { font-size:12px; color:var(--accent); }
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; background:var(--bg); border:1px solid var(--border); color:var(--fg-dim); }
+  .pill.ok { color:var(--ok); border-color:rgba(63,185,80,0.4); }
+  .pill.warn { color:var(--warn); border-color:rgba(210,153,34,0.4); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:10px; margin-top:10px; }
+  .grid .card { margin:0; }
+  ul { padding-left:20px; margin:8px 0 0; }
+  li { margin:2px 0; }
+</style></head><body>
+<header>
+  <h1>CC 2.1.116 adoption — version bump + matrix sync + agent-hooks audit</h1>
+  <div class="meta">
+    Bumps <code>MIN_CC_VERSION</code> 2.1.113 → 2.1.116. Registers 10 new features from the 2.1.116 block. Backfills 2.1.113/2.1.114 rows that never made it into the doc table. Audits all 14 OrchestKit agent hooks against the new main-thread firing behavior — all safe.
+  </div>
+</header>
+<main>
+
+<h2>The shape of the change</h2>
+<div class="card accent">
+<pre><span class="rem">-export const MIN_CC_VERSION = '2.1.113';</span>
+<span class="add">+export const MIN_CC_VERSION = '2.1.116';</span>
+
+<span class="k-mute">// cc-version-matrix.ts — 323 → 333 entries</span>
+<span class="add">+ agent_hooks_main_thread            2.1.116</span>
+<span class="add">+ sandbox_rm_dangerous_path_fix      2.1.116</span>
+<span class="add">+ reload_plugins_auto_deps           2.1.116</span>
+<span class="add">+ doctor_while_responding            2.1.116</span>
+<span class="add">+ config_search_option_values        2.1.116</span>
+<span class="add">+ slash_no_match_empty_state         2.1.116</span>
+<span class="add">+ bash_gh_rate_limit_hint            2.1.116</span>
+<span class="add">+ usage_tab_immediate                2.1.116</span>
+<span class="add">+ terminal_setup_scroll_tuning       2.1.116</span>
+<span class="add">+ resume_large_sessions_fast         2.1.116</span></pre>
+</div>
+
+<h2>The one behavior change worth thinking about</h2>
+<div class="card warn">
+<h3><code>agent_hooks_main_thread</code> — main-thread firing of agent hooks</h3>
+<p><strong>Before 2.1.116</strong>: agent-scoped <code>hooks:</code> frontmatter fired only when the agent ran as a subagent via the <code>Task</code> tool.<br>
+<strong>After 2.1.116</strong>: they also fire when a user invokes the agent as their main thread via <code>claude --agent &lt;name&gt;</code>.</p>
+<p>Every existing OrchestKit agent hook was written with subagent context in mind. The question the audit had to answer: <em>is any one of them broken or net-negative when it fires on the main thread too?</em></p>
+</div>
+
+<h2>Agent hooks audit — all 14 unique hook commands</h2>
+
+<table>
+  <thead><tr><th>Hook</th><th>Category</th><th>Agents using it</th><th>Main-thread verdict</th></tr></thead>
+  <tbody>
+    <tr><td><code>dangerous-command-blocker</code></td><td>pretool/bash</td><td>20 agents</td><td><span class="pill ok">NET POSITIVE</span> &mdash; tool-level deny/ask/allow, context-agnostic</td></tr>
+    <tr><td><code>restrict-bash</code></td><td>agent</td><td>7 read-only agents</td><td><span class="pill ok">INTENTIONAL</span> &mdash; read-only bash is the agent's design contract; main-thread should honor it</td></tr>
+    <tr><td><code>block-writes</code></td><td>agent</td><td>4 agents</td><td><span class="pill ok">NET POSITIVE</span> &mdash; Write tool block, same semantics in both contexts</td></tr>
+    <tr><td><code>security-command-audit</code></td><td>agent</td><td>3 security agents</td><td><span class="pill ok">NET POSITIVE</span> &mdash; logs only, uses <code>CLAUDE_AGENT_ID</code> for tagging</td></tr>
+    <tr><td><code>ci-safety-check</code></td><td>agent</td><td><code>ci-cd-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>deployment-safety-check</code></td><td>agent</td><td><code>deployment-manager</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>migration-safety-check</code></td><td>agent</td><td><code>database-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>git-validator</code></td><td>pretool/bash</td><td>3 agents</td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>changelog-generator</code></td><td>pretool/bash</td><td><code>release-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>ci-simulation</code></td><td>pretool/bash</td><td><code>ci-cd-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>conflict-predictor</code></td><td>pretool/bash</td><td><code>git-operations-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>pre-commit-simulation</code></td><td>pretool/bash</td><td><code>git-operations-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>version-sync</code></td><td>pretool/bash</td><td><code>release-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+    <tr><td><code>merge-readiness-checker</code></td><td>skill</td><td><code>git-operations-engineer</code></td><td><span class="pill ok">NET POSITIVE</span></td></tr>
+  </tbody>
+</table>
+
+<p class="k-mute" style="font-size:12px;margin-top:10px;">14 / 14 safe. No code changes required. Users who run <code>claude --agent &lt;ork-agent&gt;</code> now get the same defensive rails that subagent invocations always got.</p>
+
+<h2>Files touched</h2>
+<div class="grid">
+  <div class="card ok">
+    <h3><code>src/hooks/src/lib/cc-version-matrix.ts</code></h3>
+    <p class="k-mute">MIN_CC_VERSION bump + 10 new entries. 323 → 333.</p>
+  </div>
+  <div class="card ok">
+    <h3><code>src/hooks/src/__tests__/lib/cc-version-matrix.test.ts</code></h3>
+    <p class="k-mute">3 new boundary tests; missing-count assertions updated. 56/56 pass.</p>
+  </div>
+  <div class="card ok">
+    <h3><code>src/skills/configure/references/cc-version-settings.md</code></h3>
+    <p class="k-mute">New "CC 2.1.116 Settings" section covering sandbox hardening, <code>/reload-plugins</code> deps, agent hooks main-thread.</p>
+  </div>
+  <div class="card ok">
+    <h3><code>src/skills/doctor/references/version-compatibility.md</code></h3>
+    <p class="k-mute">Added 10 rows for 2.1.116, plus backfilled 10 rows for 2.1.113 and 1 for 2.1.114 that had been missing from the doc table.</p>
+  </div>
+  <div class="card ok">
+    <h3><code>CLAUDE.md</code></h3>
+    <p class="k-mute">Version line: <code>&gt;= 2.1.113</code> → <code>&gt;= 2.1.116</code>.</p>
+  </div>
+  <div class="card ok">
+    <h3><code>plugins/ork/**</code> + <code>src/hooks/dist/**</code> + <code>docs/site/lib/generated/**</code></h3>
+    <p class="k-mute">Auto-regenerated from <code>npm run build</code>. Expected as part of OrchestKit's source → plugins sync.</p>
+  </div>
+</div>
+
+<h2>What's explicitly NOT in this PR</h2>
+<div class="card">
+<ul>
+  <li><strong>OrchestKit-side usage</strong> of new 2.1.116 capabilities. The matrix now knows about <code>reload_plugins_auto_deps</code>, <code>bash_gh_rate_limit_hint</code> etc., but no OrchestKit skill/hook actively <em>uses</em> them. Wiring them in is follow-up work.</li>
+  <li><strong>Active <code>gh</code> rate-limit backoff</strong> in <code>ork:commit</code> / <code>ork:create-pr</code>. 2.1.116 surfaces the hint in the transcript; an OrchestKit hook could read it.</li>
+  <li><strong>Active use of <code>/doctor</code> mid-turn</strong>. Our <code>ork:doctor</code> skill is distinct from CC's <code>/doctor</code>; no change here.</li>
+</ul>
+</div>
+
+<h2>Test plan</h2>
+<div class="card ok">
+<pre><span class="k-mute">$</span> npm run build                <span class="add">✓</span>  plugins/ assembled, 338 KB unified bundle
+<span class="k-mute">$</span> npm run typecheck            <span class="add">✓</span>
+<span class="k-mute">$</span> npx vitest run cc-version-matrix  <span class="add">56/56</span>
+<span class="k-mute">$</span> npm run test:skills          <span class="add">✓</span>  98 skills pass
+<span class="k-mute">$</span> npm run test:agents          <span class="add">✓</span>  37 agents pass
+<span class="k-mute">$</span> npm run test:security        <span class="add">13/13</span>
+<span class="k-mute">$</span> npm run test:manifests       <span class="add">✓</span>  106/106 delivered</pre>
+</div>
+
+</main>
+</body></html>

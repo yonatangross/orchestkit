@@ -206,7 +206,7 @@ done
 
 1. **Always use `--json` for scripting** - Parse with `--jq` for reliability
 2. **Non-interactive mode for automation** - Use `--title`, `--body` flags
-3. **Check rate limits before bulk operations** - `gh api rate_limit`
+3. **Check rate limits before bulk operations** - `gh api rate_limit`. On CC ≥ 2.1.116, the Bash tool surfaces a rate-limit hint in the transcript when `gh` hits 403 — **treat that hint as authoritative and back off**, don't blind-retry. Before 2.1.116, agents had no signal and would burn all retry attempts in ~13 s.
 4. **Use heredocs for multi-line content** - `--body "$(cat <<'EOF'...EOF)"`
 5. **Link issues in PRs** - `Closes #123`, `Fixes #456` — GitHub auto-closes on merge
 6. **Use ISO 8601 dates** - `YYYY-MM-DDTHH:MM:SSZ` for milestone due_on

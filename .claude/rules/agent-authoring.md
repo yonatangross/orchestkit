@@ -20,6 +20,9 @@ paths:
 - `critical_system_reminder: "..."` — persistent guardrail injected at spawn via context-stager
 - `required_mcp_servers: [name1, name2]` — warns if MCP servers unavailable at spawn
 
+## Agent-scoped `hooks:` (CC ≥ 2.1.116)
+Hooks declared in agent frontmatter fire in both contexts: spawned-as-subagent (Task tool) AND main-thread (`claude --agent <name>`). Write hooks context-agnostic — validate `tool_input`, apply policy, log with `CLAUDE_AGENT_ID` (defaults to `'unknown'`). Do not branch on "am I a subagent?".
+
 ## Decision Guide
 - Heavy writes (build, refactor)? → `isolation: worktree`
 - Fire-and-forget (research, eval)? → `background: true`

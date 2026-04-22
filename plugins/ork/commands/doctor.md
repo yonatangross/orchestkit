@@ -44,8 +44,6 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 - When debugging coordination issues
 - After running `npm run build`
 
-> **Tip (CC 2.1.69+):** After fixing issues found by doctor, run `/reload-plugins` to activate plugin changes without restarting your session.
-
 ## Quick Start
 
 ```bash
@@ -133,6 +131,12 @@ WARNING: xhigh effort requires Opus 4.7.
 ## Interpreting Results & Troubleshooting
 
 > Load `Read("${CLAUDE_SKILL_DIR}/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
+
+### After you fix an issue
+
+> **CC 2.1.69+**: Run `/reload-plugins` to activate plugin changes in the current session without restarting.
+>
+> **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
 
 ## Related Skills
 

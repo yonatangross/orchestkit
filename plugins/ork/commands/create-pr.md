@@ -284,6 +284,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 2. **Run validation locally** — Don't spawn agents for lint/test
 3. **All content goes to GitHub** — PR body via `gh pr create --body`
 4. **Keep it simple** — One command to create PR
+5. **Respect the `gh` rate-limit hint (CC ≥ 2.1.116)** — when the Bash tool surfaces a GitHub rate-limit hint after a `gh` call (e.g. in a `/loop 5m gh pr checks …` watcher), **stop the loop and wait for reset** — do not blind-retry. See `ork:github-operations` for the full guidance.
 
 ## Next Steps (suggest to user after PR creation)
 

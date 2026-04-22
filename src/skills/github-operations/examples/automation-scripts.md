@@ -224,6 +224,10 @@ gh search issues --owner "$ORG" "$QUERY" --json repository,number,title --jq \
 
 ## Rate Limit Handling
 
+**CC ≥ 2.1.116 note:** Claude Code's Bash tool now surfaces a rate-limit hint in the transcript whenever a `gh` invocation hits a 403 rate-limit response. Treat that hint as the authoritative backoff signal — agents should **stop the loop and wait for reset**, not retry blindly. On older CC versions the hint didn't exist and agents would exhaust retry budget in ~13 s.
+
+Pre-flight check remains useful to avoid the first 403:
+
 ```bash
 #!/usr/bin/env bash
 # Check rate limits before bulk operations
