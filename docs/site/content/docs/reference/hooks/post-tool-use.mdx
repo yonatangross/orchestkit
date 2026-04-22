@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (18 hooks)."
+description: "Hooks triggered on PostToolUse events (20 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**18 hooks** registered for the `PostToolUse` lifecycle event.
+**20 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -27,3 +27,5 @@ description: "Hooks triggered on PostToolUse events (18 hooks)."
 | `auto-verify` | `Skill` | 🔇 Silent | Design-Import Auto-Verify (#1386) |
 | `webhook-forwarder` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `metrics-bridge` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | Metrics Bridge — PostToolUse hook (all matchers) |
+| `context-crossing-warn` | `Bash\|Write\|Edit\|Agent\|NotebookEdit\|Skill\|TaskUpdate\|TaskCreate` | 🔇 Silent | Context-Crossing Warn — Issue #1470 |
+| `context-crossing-warn` | `Read\|Grep\|Glob\|WebFetch\|WebSearch` | 🔇 Silent | Context-Crossing Warn — Issue #1470 |

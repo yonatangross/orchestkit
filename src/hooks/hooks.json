@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 113 global + 46 agent-scoped + 22 skill-scoped = 181 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 116 global + 46 agent-scoped + 22 skill-scoped = 184 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -278,6 +278,26 @@
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/metrics-bridge",
             "async": true,
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|Agent|NotebookEdit|Skill|TaskUpdate|TaskCreate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/context-crossing-warn",
+            "timeout": 3
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Grep|Glob|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/context-crossing-warn",
             "timeout": 3
           }
         ]
@@ -668,6 +688,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-guard",
             "timeout": 5,
             "statusMessage": "Checking compact safety..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-task-done-prompt",
+            "timeout": 5,
+            "statusMessage": "Checking for task-done breakpoint..."
           },
           {
             "type": "command",

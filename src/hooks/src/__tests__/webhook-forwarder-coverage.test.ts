@@ -34,7 +34,11 @@ const srcRoot = resolve(__dirname, '..');
 
 const INTENTIONAL_EXCLUSIONS = new Set<string>([
   // Format: 'EventName' or 'EventName:matcherString'
-  // Currently empty — all events should be forwarded
+  // M119 #1470: context-crossing-warn needs to run on read-only tools (Read/Grep/Glob
+  // outputs are a major source of context growth), but webhook-forwarder is async
+  // and async hooks are forbidden on read-only PostToolUse matchers. Telemetry for
+  // read-only tools is already captured by the SessionEnd and PreCompact forwarders.
+  'PostToolUse:Read|Grep|Glob|WebFetch|WebSearch',
 ]);
 
 // ---------------------------------------------------------------------------

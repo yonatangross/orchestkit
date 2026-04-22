@@ -24,6 +24,7 @@ import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js
 import { unifiedSessionStartDispatcher } from '../lifecycle/unified-dispatcher.js';
 import { preCompactSaver } from '../lifecycle/pre-compact-saver.js';
 import { preCompactGuard } from '../lifecycle/pre-compact-guard.js';
+import { preCompactTaskDonePrompt } from '../lifecycle/pre-compact-task-done-prompt.js';
 import { prefillGuard } from '../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../lifecycle/mcp-health-check.js';
 import { syncSessionDispatcher } from '../lifecycle/sync-session-dispatcher.js';
@@ -91,6 +92,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/unified-dispatcher': unifiedSessionStartDispatcher,
   'lifecycle/pre-compact-saver': preCompactSaver,
   'lifecycle/pre-compact-guard': preCompactGuard,
+  'lifecycle/pre-compact-task-done-prompt': preCompactTaskDonePrompt,
   'lifecycle/prefill-guard': prefillGuard,
   'lifecycle/mcp-health-check': mcpHealthCheck,
   'lifecycle/sync-session-dispatcher': syncSessionDispatcher,
