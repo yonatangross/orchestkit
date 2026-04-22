@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Fake `gh` stub — negative control.
+# Emits a plain HTTP 403 with NO rate-limit phrasing. The hook's false-positive
+# guard requires BOTH a 403 AND a "rate limit" phrase to fire on status-403
+# paths — this fake verifies that an unrelated permission error does not
+# trigger the hook.
+set -euo pipefail
+
+cat >&2 <<'EOF'
+HTTP 403: Resource not accessible by integration
+EOF
+
+exit 1

@@ -2026,7 +2026,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskList",
       "ToolSearch",
-      "WebFetch"
+      "WebFetch",
+      "Monitor",
+      "PushNotification"
     ],
     "skills": [
       "testing-e2e",

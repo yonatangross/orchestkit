@@ -324,6 +324,15 @@ if capabilities.memory:
 | rca-fishbone (load `${CLAUDE_SKILL_DIR}/rules/rca-fishbone.md`) | MEDIUM | Ishikawa diagram, multi-factor analysis |
 | rca-fault-tree (load `${CLAUDE_SKILL_DIR}/rules/rca-fault-tree.md`) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
+> **Push notifications (CC 2.1.110+):** Issue-fix flows can span 10–20 min with RCA → fix → test → PR. When the fix lands and tests pass, call `PushNotification` so the user knows the fix is ready for review. Requires Remote Control + "Push when Claude decides" config; fails silently if unavailable.
+>
+> ```python
+> PushNotification(
+>   title="ork:fix-issue complete",
+>   body=f"#{issue_number}: fix pushed, {tests_passing}/{tests_total} tests · PR #{pr_number}"
+> )
+> ```
+
 ## Agent Coordination
 
 ### SendMessage (Evidence Sharing)

@@ -290,6 +290,15 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 **[READY FOR MERGE | IMPROVEMENTS RECOMMENDED | BLOCKED]**
 ```
 
+> **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
+>
+> ```python
+> PushNotification(
+>   title="ork:verify complete",
+>   body=f"{verdict} · {score}/10 · {blockers_count} blockers"
+> )
+> ```
+
 
 ## References
 
