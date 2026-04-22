@@ -9,7 +9,7 @@ version: 1.1.0
 author: OrchestKit
 tags: [testing, browser, e2e, diff-aware, regression, visual, accessibility, ai-testing]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification]
 skills: [testing-e2e, chain-patterns, memory]
 complexity: high
 persuasion-type: guidance
@@ -254,7 +254,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 ### Run the test plan
 
 ```python
-Agent(
+expect_task = Agent(
   subagent_type="expect-agent",
   prompt=f"""Execute this test plan:
   {test_plan}
@@ -269,6 +269,20 @@ Agent(
   model="sonnet",
   max_turns=50
 )
+
+# Stream agent-browser progress line-by-line instead of polling (CC 2.1.98+)
+# Each stdout line from agent-browser arrives as a notification — useful for
+# catching a failing step early rather than waiting for the full plan.
+Monitor(pid=expect_task.agent_id)
+
+# For long test plans (>3 min typical), notify on completion — requires
+# Remote Control + "Push when Claude decides" config (CC 2.1.110+).
+# Skip silently if the user doesn't have Remote Control enabled.
+if test_plan_duration_estimate > 180:
+    PushNotification(
+        title="ork:expect complete",
+        body=f"{passed}/{total} steps passed on {len(affected_urls)} pages"
+    )
 ```
 
 Load: `Read("${CLAUDE_SKILL_DIR}/references/execution.md")`

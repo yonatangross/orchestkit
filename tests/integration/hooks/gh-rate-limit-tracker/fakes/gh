@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Fake `gh` stub — positive case.
+# Emits a primary rate-limit error to stderr and exits non-zero.
+# Used by test-session.sh to exercise the gh-rate-limit-tracker hook.
+set -euo pipefail
+
+cat >&2 <<'EOF'
+gh: API rate limit exceeded for user test-user.
+Will be reset at 2026-04-21 15:00:00 UTC
+EOF
+
+exit 1
