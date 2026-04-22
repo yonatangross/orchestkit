@@ -336,6 +336,20 @@ OrchestKit requires Claude Code >= 2.1.94. This matrix documents which CC featur
 | Usage tab immediate | 2.1.116 | Settings Usage tab renders 5-hour/weekly usage immediately, with fallback when `/usage` endpoint is rate-limited | Blank Usage tab during rate-limit |
 | `/terminal-setup` scroll | 2.1.116 | Configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen scrolling | Default terminal scroll feels stuttery in IDE terminals |
 | `/resume` fast on large sessions | 2.1.116 | Up to 67% faster on 40 MB+ sessions; MCP stdio startup parallelized, `resources/templates/list` deferred to first `@`-mention | Long `/resume` wait on big sessions |
+| Agent `mcpServers:` main-thread | 2.1.117 | Agent frontmatter `mcpServers:` loads for `--agent` main-thread sessions — parallels 2.1.116 agent hooks main-thread behavior | Main-thread agent missing its declared MCPs |
+| `CLAUDE_CODE_FORK_SUBAGENT=1` | 2.1.117 | External builds can opt into forked subagents via env var | Full subagent spawn on external builds |
+| `plugin install` auto-deps | 2.1.117 | Re-install on already-installed plugin fetches missing dependencies instead of short-circuiting | Manual dep fetch after partial install |
+| Marketplace auto-deps | 2.1.117 | `claude plugin marketplace add` auto-resolves missing dependencies from configured marketplaces | Manual resolution of marketplace deps |
+| Managed marketplace enforcement | 2.1.117 | `blockedMarketplaces`/`strictKnownMarketplaces` enforced on plugin install/update/refresh/autoupdate | Policy bypass on later operations |
+| `/model` persists across restarts | 2.1.117 | Selections persist even when project pins a different model; startup header shows pin source | Pin lost on restart |
+| `/resume` large-session summary | 2.1.117 | `/resume` offers to summarize stale large sessions before re-reading | Full re-read of stale sessions |
+| OTEL `command_name`/`command_source` | 2.1.117 | `user_prompt` OTEL events distinguish user-typed slash commands from model-invoked ones | No slash-command attribution in analytics |
+| OTEL `effort` attr | 2.1.117 | `cost.usage`, `token.usage`, `api_request`, `api_error` include effort attribute | No per-effort cost breakdown |
+| Opus/Sonnet 4.6 default effort | 2.1.117 | **Pro/Max subscribers on Opus 4.6 + Sonnet 4.6 now default to `high` (was `medium`)** — skills assuming medium-default get wrong cost expectations | Medium-default cost assumptions off by ~2-3× |
+| Advisor Tool (experimental) | 2.1.117 | New experimental tool; dialog has experimental label + learn-more link | Previous stuck-session errors on Advisor tool |
+| `cleanupPeriodDays` expansion | 2.1.117 | Retention sweep now covers `~/.claude/tasks/`, `~/.claude/shell-snapshots/`, `~/.claude/backups/` | Tasks/snapshots/backups retained indefinitely |
+| Native `bfs`/`ugrep` | 2.1.117 | Native builds replace Glob/Grep tools with embedded `bfs` and `ugrep` via Bash | Slower tree-traversal on native builds |
+| Opus 4.7 `/context` fix | 2.1.117 | `/context` correctly computes against 1M window (was showing inflated 200K percentage) | Early autocompact on Opus 4.7 1M sessions |
 
 ## Prompt Caching Recommendation
 

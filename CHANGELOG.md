@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.64.0] - 2026-04-22
+
+### Added
+
+- **CC 2.1.117 matrix entries** (14 features, ending at `opus_47_context_window_fix`). MIN_CC_VERSION bumped 2.1.116 → 2.1.117. Closes #1441.
+- Doc-table backfill in `version-compatibility.md` for all 14 new entries.
+
+### Changed
+
+- Agent `mcpServers:` audit for CC 2.1.117's main-thread firing behavior: 37 agents, 30 with non-empty `mcpServers:`, 8 unique MCP sets — all intentional. No agent changes required (same outcome as 2.1.116 hooks audit).
+- Effort-default messaging updated: on CC ≥ 2.1.117, Pro/Max Opus 4.6 + Sonnet 4.6 now default to `high` (was `medium`).
+
+### Fixed
+
+- CHANGELOG `[7.62.0]` ghost entry removed — no v7.62.0 tag was ever cut; content shipped as v7.63.0 via release-please. Closes #1440.
+
+### Verified / No-op
+
+- Issue #1444 (hook backfill for StopFailure/PostCompact/WorktreeCreate/WorktreeRemove): **no action** — all 4 hooks already registered in `hooks.json`. Brainstorm misread the matrix.
+- Issue #1449 (CwdChanged/FileChanged hooks): **no action** — both already registered.
+- Issue #1453 (Setup/SubagentStart/InstructionsLoaded/TaskCreated hooks): **no action** — all 4 already registered.
+- Issue #1445 (deprecated-ref sweep): **no action** — all apparent hits are either legitimate historical documentation or false positives (`node/tag` in LangGraph, GitHub release URLs).
+
+---
+
+
 ## [7.63.1](https://github.com/yonatangross/orchestkit/compare/v7.63.0...v7.63.1) (2026-04-22)
 
 
@@ -181,16 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * bump googleapis/release-please-action from 4.4.0 to 4.4.1 ([#1419](https://github.com/yonatangross/orchestkit/issues/1419)) ([ec12455](https://github.com/yonatangross/orchestkit/commit/ec12455da2682259a0fd5020228d3515ea1e33cd))
 * update anthropics/claude-code-action requirement to 26ec041249acb0a944c0a47b6c0c13f05dbc5b44 ([#1098](https://github.com/yonatangross/orchestkit/issues/1098)) ([8a7600e](https://github.com/yonatangross/orchestkit/commit/8a7600e2b9270547dcfc522d95dde26e9b8f3bc3))
 
-## [7.62.0] - 2026-04-21
-
-### Added
-
-- **`gh` rate-limit PostToolUse hook** (`posttool/bash/gh-rate-limit-tracker`). When a `gh` invocation hits a GitHub API rate limit (primary hourly, secondary burst, or HTTP 403 with rate-limit phrasing), the hook injects `additionalContext` telling the model to stop the loop and wait for reset. Belt-and-suspenders enforcement on top of the CC 2.1.116 skill-level guidance. Async (5s timeout), 19 unit tests including a false-positive guard for plain 403 permission errors. Closes #1435.
-- **5 skill eval files** covering the CC 2.1.116 behavioral knowledge wired into skills by the adoption PR: `github-operations-rate-limit`, `create-pr-rate-limit`, `review-pr-rate-limit`, `doctor-reload-plugins-auto-deps` (pos + neg for pre/post-2.1.116 distinction), `agent-hooks-main-thread` (9 eval cases total). Closes #1436.
-
-### Changed
-
-- Hook count 180 → 181 (global 112 → 113). `manifests/ork.json`, `CLAUDE.md`, `hooks.json.description`, and 4 count-assertion test files synced.
+<!-- Ghost entry removed: no v7.62.0 tag was ever cut. Content shipped as v7.63.0
+     via release-please (PRs #1434, #1437). See v7.63.0 section above. Issue #1440. -->
 
 ---
 

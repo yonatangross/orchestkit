@@ -199,3 +199,4 @@ cellebrite-tech-stack.html
 .claude/state/edit-history.jsonl
 .claude/state/ultrareview-usage.json
 .claude/state/ork-metrics-*.json
+.claude/scheduled_tasks.lock
