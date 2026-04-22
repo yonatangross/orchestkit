@@ -2842,6 +2842,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": null,
     "complexity": "high",
     "structure": {
+      "references": [
+        "mcp-version-matrix.md"
+      ],
       "checklists": [
         "mcp-server-checklist.md"
       ]
