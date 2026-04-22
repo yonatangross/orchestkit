@@ -347,6 +347,16 @@ bash -n hooks/your-hook.sh
 - **No secrets** in skill files
 - **No `--no-verify`** on git commands
 
+## Versioning
+
+**Do not manually run `./bin/bump-version.sh` on branches prefixed with `feat/`, `fix/`, `perf/`, `refactor/`, `docs/`, `chore/`, `ci/`, `style/`, or `test/`.** Release-please (`"release-type": "simple"`) owns version decisions on these branches — it computes the next version from conventional-commit types since the last tag and opens a `chore(main): release X.Y.Z` PR automatically.
+
+Manual bumps on these branches create **ghost versions** (see #1457): you bump to 7.62.0, release-please picks 7.63.0, v7.62.0 never gets tagged.
+
+Hotfix branches with bare names (e.g. `hotfix-auth-bug`) still trigger the pre-push version check — those are for legitimate manual version control, typically cherry-picks or out-of-band releases.
+
+If you need to override release-please's computed next version, use release-please's own [release-as footer](https://github.com/googleapis/release-please?tab=readme-ov-file#how-do-i-change-the-version-number) in the commit message.
+
 ## Testing
 
 ### Run All Tests
