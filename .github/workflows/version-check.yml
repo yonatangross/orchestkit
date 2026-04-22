@@ -34,13 +34,17 @@ jobs:
         env:
           BRANCH_NAME: ${{ github.head_ref }}
         run: |
-          # Skip version check for docs, chore, ci, style, test branches/commits
+          # Skip version check for branches handled by release-please.
+          # release-please (release-type: simple) computes next version from
+          # conventional-commit types since last tag — manual bumps on these
+          # branches create "ghost versions" when the two disagree (see #1457).
+          # Must stay in lock-step with bin/git-hooks/pre-push L23.
           # Note: BRANCH_NAME set via env to prevent shell injection from PR branch names
 
           # Check branch name prefix
-          if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test)/ ]]; then
+          if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor)/ ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "Skipping version check for $BRANCH_NAME (non-release branch)"
+            echo "Skipping version check for $BRANCH_NAME (release-please handles versioning)"
             exit 0
           fi
 

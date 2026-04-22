@@ -120,6 +120,53 @@ test_run_with_timeout_spaces() {
     fi
 }
 
+# Test 4: Branch-prefix skip regex stays in sync between pre-push hook and CI workflow
+# Prevents #1457 ghost-version regressions where one layer skips but the other enforces.
+test_skip_regex_parity() {
+    log_section "Test 4: Branch-prefix skip regex parity (hook ↔ CI workflow)"
+
+    local hook_file="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local ci_file="${PROJECT_ROOT}/.github/workflows/version-check.yml"
+
+    # Extract the alternation group from each file's skip-list regex.
+    local hook_regex ci_regex
+    hook_regex=$(grep -oE '\^\([a-z|]+\)/' "$hook_file" | head -1)
+    ci_regex=$(grep -oE '\^\([a-z|]+\)/' "$ci_file" | head -1)
+
+    if [[ -z "$hook_regex" ]]; then
+        log_fail "Could not extract skip regex from $hook_file"
+        return
+    fi
+    if [[ -z "$ci_regex" ]]; then
+        log_fail "Could not extract skip regex from $ci_file"
+        return
+    fi
+
+    if [[ "$hook_regex" == "$ci_regex" ]]; then
+        log_pass "Skip regex matches: $hook_regex"
+    else
+        log_fail "Skip regex drift! hook: $hook_regex vs CI: $ci_regex"
+    fi
+
+    # Subtest: required prefixes are all present (defensive for future edits)
+    local required=(docs chore ci style test feat fix perf refactor)
+    local missing=()
+    for prefix in "${required[@]}"; do
+        if [[ "$hook_regex" != *"$prefix"* ]]; then
+            missing+=("hook:$prefix")
+        fi
+        if [[ "$ci_regex" != *"$prefix"* ]]; then
+            missing+=("ci:$prefix")
+        fi
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        log_pass "All conventional-commit prefixes present in both regexes"
+    else
+        log_fail "Missing prefixes: ${missing[*]}"
+    fi
+}
+
 # Main
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -129,6 +176,7 @@ main() {
     test_run_with_timeout_exit_codes
     test_changelog_variable_capture
     test_run_with_timeout_spaces
+    test_skip_regex_parity
 
     # Summary
     echo ""
