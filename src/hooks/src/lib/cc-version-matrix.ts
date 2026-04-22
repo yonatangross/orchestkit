@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.116';
+export const MIN_CC_VERSION = '2.1.117';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -391,6 +391,21 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'terminal_setup_scroll_tuning',   minVersion: '2.1.116', description: '/terminal-setup configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen-mode scrolling' },
   { feature: 'sandbox_rm_dangerous_path_fix',  minVersion: '2.1.116', description: 'Security: sandbox auto-allow no longer bypasses dangerous-path check for rm/rmdir targeting /, $HOME, or critical system dirs — closes prior escape' },
   { feature: 'resume_large_sessions_fast',     minVersion: '2.1.116', description: '/resume on 40 MB+ sessions up to 67% faster; MCP stdio startup parallelized with resources/templates/list deferred to first @-mention' },
+  // 2.1.117 (2026-04-22) — agent mcpServers main-thread, forked subagents, managed settings enforcement, OTEL enrichments
+  { feature: 'agent_mcp_servers_main_thread',  minVersion: '2.1.117', description: 'Agent frontmatter `mcpServers:` now loads for --agent main-thread sessions (previously subagent-only) — parallels 2.1.116 agent_hooks_main_thread behavior' },
+  { feature: 'fork_subagent_env_var',          minVersion: '2.1.117', description: 'CLAUDE_CODE_FORK_SUBAGENT=1 enables forked subagents on external builds (was opt-in only via plan-level signals before)' },
+  { feature: 'plugin_install_auto_deps',       minVersion: '2.1.117', description: 'plugin install on already-installed plugins now fetches missing dependencies instead of short-circuiting at "already installed"' },
+  { feature: 'marketplace_install_auto_deps',  minVersion: '2.1.117', description: 'claude plugin marketplace add auto-resolves missing dependencies from configured marketplaces' },
+  { feature: 'managed_settings_marketplace_enforce', minVersion: '2.1.117', description: 'blockedMarketplaces and strictKnownMarketplaces managed settings now enforced on plugin install, update, refresh, and autoupdate (previously enforced only at add time)' },
+  { feature: 'model_pin_persists_restart',     minVersion: '2.1.117', description: '/model selections persist across restarts even when project pins a different model; startup header shows when the active model comes from a project or managed-settings pin' },
+  { feature: 'resume_large_session_summary',   minVersion: '2.1.117', description: '/resume command now offers to summarize stale large sessions before re-reading them, matching existing --resume behavior' },
+  { feature: 'otel_command_attrs',             minVersion: '2.1.117', description: 'OTEL user_prompt events include command_name and command_source attributes for slash commands (distinguish user-typed from model-invoked via SlashCommand tool)' },
+  { feature: 'otel_effort_attr',               minVersion: '2.1.117', description: 'OTEL cost.usage, token.usage, api_request, and api_error events include effort attribute when supported — enables per-effort-level cost breakdown' },
+  { feature: 'opus_46_sonnet_46_default_high', minVersion: '2.1.117', description: 'Pro/Max subscribers on Opus 4.6 and Sonnet 4.6 now default to high effort (was medium) — real prompt-cost change; skills assuming medium-as-default need rewording' },
+  { feature: 'advisor_tool_experimental',      minVersion: '2.1.117', description: 'Advisor Tool (experimental) dialog carries experimental label + learn-more link; sessions no longer get stuck with "Advisor tool result content could not be processed" errors' },
+  { feature: 'retention_expands_tasks_backups', minVersion: '2.1.117', description: 'cleanupPeriodDays now covers ~/.claude/tasks/, ~/.claude/shell-snapshots/, ~/.claude/backups/ (previously only transcripts)' },
+  { feature: 'native_bfs_ugrep',               minVersion: '2.1.117', description: 'Native builds replace Glob/Grep tools with embedded bfs and ugrep through Bash tool for faster searches (Windows and npm builds unchanged)' },
+  { feature: 'opus_47_context_window_fix',     minVersion: '2.1.117', description: 'Opus 4.7 sessions now correctly compute /context percentage against 1M context window instead of 200K (was causing inflated percentages and too-early autocompacts)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
