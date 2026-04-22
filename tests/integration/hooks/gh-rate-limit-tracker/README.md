@@ -24,10 +24,10 @@ model's next turn -> the model changes behavior.
 
 ```bash
 # Positive case: primary rate-limit stderr must trigger the hook.
-bash test-session.sh --positive && bash assertions/golden.sh
+bash run-session.sh --positive && bash assertions/golden.sh
 
 # Negative case: plain HTTP 403 must NOT trigger the hook.
-bash test-session.sh --negative && bash assertions/false-positive.sh
+bash run-session.sh --negative && bash assertions/false-positive.sh
 ```
 
 Output lands in `out/session.jsonl` (stream-json) and `out/session.err`.
@@ -45,7 +45,7 @@ matrix.
 |------|---------|
 | `fakes/gh` | Positive fake — primary rate-limit stderr, exits 1 |
 | `fakes/gh-permission-denied` | Negative fake — plain HTTP 403, exits 1 |
-| `test-session.sh` | Orchestrator — installs fake, runs `claude -p` |
+| `run-session.sh` | Orchestrator — installs fake, runs `claude -p` |
 | `assertions/golden.sh` | Positive-case assertions |
 | `assertions/false-positive.sh` | Negative-case assertions |
 | `out/` | Generated session output (gitignored) |
