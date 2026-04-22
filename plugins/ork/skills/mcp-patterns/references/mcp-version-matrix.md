@@ -54,19 +54,7 @@ Every remote MCP in `.mcp.json` resolves to `@latest` (or no version, which npm 
 
 ## How to Re-run This Audit
 
-```bash
-# From repo root
-for pkg in @upstash/context7-mcp @modelcontextprotocol/server-sequential-thinking \
-           @modelcontextprotocol/server-memory tavily-mcp agentation-mcp \
-           @21st-dev/magic fal-ai-mcp notebooklm-mcp; do
-  v=$(npm view "$pkg" version 2>/dev/null)
-  pub=$(npm view "$pkg" time.modified 2>/dev/null | head -1)
-  printf "%-50s %-15s %s\n" "$pkg" "$v" "$pub"
-done
-
-# Compare output against this file's "Upstream latest" column.
-# For each drift > 1 minor: read the package's CHANGELOG for breaking changes.
-```
+See `mcp-audit-runbook.md` (sibling reference) for the re-run script, interpretation rules, and when to escalate a drift.
 
 ## References
 
@@ -74,3 +62,4 @@ done
 - `~/.claude.json` — user-level MCP server config (not in repo)
 - Issue #1446 — the audit request that produced this matrix
 - `src/skills/mcp-patterns/SKILL.md` — skill that owns this reference
+- `mcp-audit-runbook.md` — the operational procedure
