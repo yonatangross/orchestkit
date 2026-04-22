@@ -61,6 +61,8 @@ import { commitNudge } from '../posttool/commit-nudge.js';
 import { autoLint } from '../posttool/auto-lint.js';
 // v7.52.0: metrics bridge — per-session ork-metrics-*.json (#1295)
 import { metricsBridge } from '../posttool/metrics-bridge.js';
+// #1470: one-shot context-crossing warn (usage hygiene M119)
+import { contextCrossingWarn } from '../posttool/context-crossing-warn.js';
 
 import type { HookFn } from '../types.js';
 
@@ -78,6 +80,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/dirty-file-tracker': dirtyFileTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
   'posttool/metrics-bridge': metricsBridge,
+  'posttool/context-crossing-warn': contextCrossingWarn,
 
   // PostTool/Write hooks (3) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector
   'posttool/write/code-style-learner': codeStyleLearner,

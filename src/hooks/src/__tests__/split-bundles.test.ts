@@ -350,7 +350,8 @@ describe('Cross-Bundle Consistency', () => {
     // 207 -> 209: v7.52.0 Usage-Driven Hardening completion — worktree-merge-verifier (pretool/bash dispatcher), metrics-bridge (posttool root)
     // 209 -> 210: v7.53.0 Claude Design Bet A — posttool/design-import/auto-verify (#1386)
     // 210 -> 211: v7.62.0 CC 2.1.116 follow-up — posttool/bash/gh-rate-limit-tracker (#1435)
-    expect(totalHooks).toBe(211);
+    // 211 -> 213: M119 usage hygiene — lifecycle/pre-compact-task-done-prompt (#1469), posttool/context-crossing-warn (#1470)
+    expect(totalHooks).toBe(213);
   });
 });
 
