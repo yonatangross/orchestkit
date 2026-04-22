@@ -181,9 +181,16 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
+**v7.63.0** — CC 2.1.116 Adoption + `gh` rate-limit enforcement
+
+- **`MIN_CC_VERSION` bumped 2.1.113 → 2.1.116**, 10 new matrix entries (333 total), including `agent_hooks_main_thread` (agent-scoped hooks fire in `--agent` main thread, not just subagent), `sandbox_rm_dangerous_path_fix`, `reload_plugins_auto_deps`, `bash_gh_rate_limit_hint`
+- **New PostToolUse hook `gh-rate-limit-tracker`** — detects primary/secondary/HTTP-403+rate-phrase signals in `gh` stdout, injects `additionalContext` telling the model to stop the loop and wait for reset
+- **5 new skill evals** covering the 2.1.116 behavioral knowledge in `github-operations`, `create-pr`, `review-pr`, `doctor`, and agent-hook authoring
+- **Hook count 180 → 181**; 14 agent hooks audited for main-thread firing safety (all defensive blockers — net positive)
+
 **v7.38.0** — CC 2.1.101 Full Adoption + Frontmatter Audit
 
-- **26 skill frontmatter fixes** — CC 2.1.101 enforces `context:fork` and `agent:` fields that were previously silently ignored; audited and corrected all 103 skills
+- **26 skill frontmatter fixes** — CC 2.1.101 enforces `context:fork` and `agent:` fields that were previously silently ignored; audited and corrected all 105 skills
 - **18 new CC features tracked** — 253 total in version matrix (deny-overrides-ask, dynamic MCP in subagents, worktree file access, focus mode, `/team-onboarding`)
 - **Wrong agent assignments fixed** — performance→frontend-performance-engineer, devops→ci-cd-engineer
 - **agent: removed from commit/create-pr** — prevents CC from delegating to agent instead of running skill workflow
@@ -196,7 +203,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **17 new CC features tracked** — 235 total in version matrix
 - **Anti-sycophancy protocol** — bans performative agreement in review skills (from Superpowers analysis)
 - **Verification gate** — cross-cutting 5-step evidence rule across 7 workflow skills
-- **Agent status protocol** — DONE/DONE_WITH_CONCERNS/BLOCKED/NEEDS_CONTEXT across all 36 agents
+- **Agent status protocol** — DONE/DONE_WITH_CONCERNS/BLOCKED/NEEDS_CONTEXT across all 39 agents
 - **Pressure-test framework** — RED-GREEN behavioral scenarios for 5 discipline skills
 
 **v7.36.0** — CORS Hardening + Release-Please Fix
@@ -213,7 +220,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **20 dead skill frontmatter hooks activated** — CC 2.1.94 fixed silent ignore; context loaders now fire across 15 workflow skills
 - **Dynamic session titles** — prompt bar shows `{branch} · {effort}` via `hookSpecificOutput.sessionTitle`
 - **Effort default aligned** — `high` default matches CC 2.1.94+ for API-key/Bedrock/Vertex/Team/Enterprise users
-- **105 skills**, **37 agents**, **180 hooks**, **25 invocable commands**
+- **105 skills**, **39 agents**, **1 hooks**, **25 invocable commands**
 
 **v7.27.0** — shadcn/ui v4 Style System + CC 2.1.90
 

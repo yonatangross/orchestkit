@@ -20,8 +20,8 @@ No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycop
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 103 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 36 agents (CC 2.1.78 format)
+├── skills/<name>/SKILL.md    # 105 skills (YAML frontmatter + Markdown)
+├── agents/<name>.md          # 39 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)
