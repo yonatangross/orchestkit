@@ -89,7 +89,7 @@ export function detectContentKind(toolName: string | undefined, sample: string |
   }
 
   // MCP tool name → JSON (MCP responses are JSON-shaped)
-  if (toolName && toolName.startsWith('mcp__')) return 'json';
+  if (toolName?.startsWith('mcp__')) return 'json';
 
   // Read/Grep/Glob → code (even when reading prose Markdown, the tokenizer
   // behavior is closer to code than to plain English because of symbol density)
@@ -107,7 +107,7 @@ export function detectContentKind(toolName: string | undefined, sample: string |
   // Threshold keeps prose narratives (0-1 hit) safely on the prose side.
   let hits = 0;
   for (const re of CODE_SIGNAL_PATTERNS) {
-    const globalRe = re.flags.includes('g') ? re : new RegExp(re.source, re.flags + 'g');
+    const globalRe = re.flags.includes('g') ? re : new RegExp(re.source, `${re.flags}g`);
     const matches = head.matchAll(globalRe);
     for (const _ of matches) {
       hits++;

@@ -191,7 +191,7 @@ describe('integration: detect + estimate', () => {
   });
 
   it('image payload counts 0 tokens but has known kind', () => {
-    const text = 'data:image/png;base64,' + 'x'.repeat(50_000);
+    const text = `data:image/png;base64,${'x'.repeat(50_000)}`;
     const kind = detectContentKind('Read', text);
     expect(kind).toBe('image');
     expect(estimateTokens(text, kind)).toBe(0);
