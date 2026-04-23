@@ -68,7 +68,7 @@ export function detectContentKind(toolName: string | undefined, sample: string |
   }
 
   // MCP tool name → JSON (MCP responses are JSON-shaped)
-  if (toolName && toolName.startsWith('mcp__')) return 'json';
+  if (toolName?.startsWith('mcp__')) return 'json';
 
   // Read/Grep/Glob → code (even when reading prose Markdown, the tokenizer
   // behavior is closer to code than to plain English because of symbol density)

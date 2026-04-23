@@ -108,11 +108,11 @@ function logImageEvent(projectDir: string, toolName: string | undefined, charLen
     mkdirSync(dirname(logPath), { recursive: true });
     appendFileSync(
       logPath,
-      JSON.stringify({
+      `${JSON.stringify({
         timestamp: new Date().toISOString(),
         tool: toolName ?? 'unknown',
         char_len: charLen,
-      }) + '\n',
+      })}\n`,
     );
   } catch {
     // telemetry is best-effort

@@ -83,7 +83,7 @@ describe('patternExtractor', () => {
   });
 
   it('extracts pattern from heredoc-style commit', () => {
-    const heredocCmd = `git commit -m "\$(cat <<'EOF'\nfeat: add user dashboard\n\nCo-Authored-By: Claude\nEOF\n)"`;
+    const heredocCmd = `git commit -m "$(cat <<'EOF'\nfeat: add user dashboard\n\nCo-Authored-By: Claude\nEOF\n)"`;
     patternExtractor(makeInput({
       tool_input: { command: heredocCmd },
     }), testCtx);

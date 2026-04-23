@@ -238,7 +238,7 @@ describe('contextCrossingWarn', () => {
 
       // MCP tool → json divisor 3.0 → 3000 tokens
       contextCrossingWarn(
-        { tool_name: 'mcp__context7__query-docs', session_id: 's', tool_input: {}, tool_result: '{"k":"' + payload + '"}' } as HookInput,
+        { tool_name: 'mcp__context7__query-docs', session_id: 's', tool_input: {}, tool_result: `{"k":"${payload}"}` } as HookInput,
         createTestContext({ projectDir: PROJECT_DIR, sessionId: 's' }),
       );
       const jsonTokens = JSON.parse(String(atomicWriteMock.mock.calls[0][1])).estimatedTokens;
@@ -258,7 +258,7 @@ describe('contextCrossingWarn', () => {
     it('image payload is not counted toward token accumulator', () => {
       vi.mocked(existsSync).mockReturnValue(false);
 
-      const imgPayload = 'data:image/png;base64,' + 'x'.repeat(100_000);
+      const imgPayload = `data:image/png;base64,${'x'.repeat(100_000)}`;
 
       contextCrossingWarn(
         { tool_name: 'Read', session_id: 'img', tool_input: {}, tool_result: imgPayload } as HookInput,
@@ -279,7 +279,7 @@ describe('contextCrossingWarn', () => {
           tool_name: 'Agent',
           session_id: 'img2',
           tool_input: {},
-          tool_result: 'data:image/jpeg;base64,/9j/4AAQSkZJ' + 'x'.repeat(500),
+          tool_result: `data:image/jpeg;base64,/9j/4AAQSkZJ${'x'.repeat(500)}`,
         } as HookInput,
         createTestContext({ projectDir: PROJECT_DIR, sessionId: 'img2' }),
       );
