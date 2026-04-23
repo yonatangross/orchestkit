@@ -147,7 +147,7 @@ function lastFireTimestamp(telemetryPath: string): number {
 function appendTelemetry(path: string, entry: TelemetryEntry): void {
   try {
     mkdirSync(dirname(path), { recursive: true });
-    appendFileSync(path, JSON.stringify(entry) + '\n');
+    appendFileSync(path, `${JSON.stringify(entry)}\n`);
   } catch {
     // telemetry is best-effort
   }
