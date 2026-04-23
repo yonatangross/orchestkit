@@ -39,6 +39,27 @@ const CODE_TOOLS = new Set(['Read', 'Grep', 'Glob']);
 const SAMPLE_LENGTH = 256;
 
 /**
+ * Signals that a text sample is code-heavy enough to use the code divisor
+ * instead of the prose divisor. Used when the tool itself (Agent, Bash,
+ * Skill) produces mixed output that could be either. Conservative: needs
+ * multiple symbol hits in the head sample to switch from prose → code.
+ *
+ * Calibration: an Agent response like "I read src/foo.ts at line 42 and
+ * found function bar() { return baz; }" should count as code. A narrative
+ * like "I completed the task successfully" should stay prose.
+ */
+const CODE_SIGNAL_PATTERNS: ReadonlyArray<RegExp> = [
+  /\bfunction\s+\w+\s*\(/,  // function decl
+  /\bconst\s+\w+\s*=/,       // const binding
+  /\bimport\s+.+\s+from\s+['"]/, // import statement
+  /\bclass\s+\w+\s*[{(]/,    // class decl
+  /[{};]{2,}/,                // clustered braces/semicolons (unlikely in prose)
+  /\b\w+\.\w+\([^)]*\)/,      // method chain calls
+  /\b[a-zA-Z_]\w*\.(ts|tsx|js|jsx|py|rs|go|java)\b/, // file path with code ext
+];
+const CODE_SIGNAL_THRESHOLD = 2; // need at least this many hits to flip to code
+
+/**
  * Estimate tokens from a text string and content kind. Returns 0 for
  * empty input and for image content (images are tokenized at a rate
  * we can't derive from the base64 character length — separate telemetry).
@@ -79,7 +100,22 @@ export function detectContentKind(toolName: string | undefined, sample: string |
     return 'json';
   }
 
-  // Agent / Bash / Skill and unknown tools default to prose
+  // Agent/Bash/Skill summaries can be prose OR code-heavy. Sniff the sample
+  // for code signals and count total matches (not distinct regexes). Two
+  // .ts file paths in a stack trace is strong code evidence even though
+  // only one regex fires; same applies to repeated `const x =` bindings.
+  // Threshold keeps prose narratives (0-1 hit) safely on the prose side.
+  let hits = 0;
+  for (const re of CODE_SIGNAL_PATTERNS) {
+    const globalRe = re.flags.includes('g') ? re : new RegExp(re.source, re.flags + 'g');
+    const matches = head.matchAll(globalRe);
+    for (const _ of matches) {
+      hits++;
+      if (hits >= CODE_SIGNAL_THRESHOLD) return 'code';
+    }
+  }
+
+  // Default: prose
   return 'prose';
 }
 

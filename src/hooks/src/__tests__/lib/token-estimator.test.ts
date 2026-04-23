@@ -212,3 +212,71 @@ describe('content-kind divisor table is exhaustive', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Coverage-hardening tests (P1.5, P2.1)
+// ---------------------------------------------------------------------------
+
+describe('Agent + code-heavy sample → code kind (P1.5)', () => {
+  it('Agent output containing code signals classifies as code', () => {
+    const codeHeavy = `I read src/foo.ts at line 42 and found:
+      function handleClick() { return true; }
+      const x = await fetch(url);
+      import { bar } from './baz.ts';`;
+    expect(detectContentKind('Agent', codeHeavy)).toBe('code');
+  });
+
+  it('Agent output with plain narrative stays prose', () => {
+    const narrative = 'I completed the task successfully. The user requested a refactor and I applied it.';
+    expect(detectContentKind('Agent', narrative)).toBe('prose');
+  });
+
+  it('Bash output with stack trace classifies as code', () => {
+    const stackTrace = `Error: foo failed
+      at handleClick (src/components/Button.tsx:42:10)
+      at dispatchEvent (src/lib/events.ts:15:5)`;
+    // 2 code-path hits in the sample → code
+    expect(detectContentKind('Bash', stackTrace)).toBe('code');
+  });
+
+  it('Skill output with 1 code signal stays prose (threshold is 2)', () => {
+    const oneSignal = 'The function foo() returns a number. All other operations are unrelated.';
+    // Only "function foo()" hits — 1 signal, below threshold
+    expect(detectContentKind('Skill', oneSignal)).toBe('prose');
+  });
+
+  it('Agent code-heavy output estimated closer to 3.5 divisor (fixes ~15% under-estimate)', () => {
+    const codeHeavy = 'function x() { return y; }\nimport { z } from "./a.ts";\nclass B {}\n'.repeat(50);
+    const kind = detectContentKind('Agent', codeHeavy);
+    expect(kind).toBe('code'); // not prose
+    const tokens = estimateTokens(codeHeavy, kind);
+    const proseTokens = estimateTokens(codeHeavy, 'prose');
+    // code divisor yields MORE tokens than prose divisor for the same text
+    // (closer to real tokenizer behavior for code)
+    expect(tokens).toBeGreaterThan(proseTokens);
+  });
+});
+
+describe('Markdown via Read (P2.1)', () => {
+  it('Markdown prose read via Read tool is classified as code (tool-name wins)', () => {
+    // Tool-name routing takes precedence. Acceptable bias: slightly
+    // over-estimates tokens (3.5 vs 4.0 divisor = ~14% higher count).
+    // This errs toward nudging EARLIER, which is the safe direction.
+    const markdownProse = '# Heading\n\nThis is a paragraph of plain prose without code fences.\nSecond sentence here.\n';
+    expect(detectContentKind('Read', markdownProse)).toBe('code');
+  });
+
+  it('Markdown with code fences read via Read is still code', () => {
+    const markdownWithCode = '# Title\n\n```ts\nfunction foo() {}\n```\n\nParagraph text.';
+    expect(detectContentKind('Read', markdownWithCode)).toBe('code');
+  });
+
+  it('over-estimate bias for markdown-via-Read is bounded (<20%)', () => {
+    const mdProse = 'This is paragraph text. '.repeat(200); // ~4600 chars
+    const asCode = estimateTokens(mdProse, 'code');     // /3.5
+    const asProse = estimateTokens(mdProse, 'prose');   // /4.0
+    const overshoot = (asCode - asProse) / asProse;
+    expect(overshoot).toBeLessThan(0.2); // <20% over-estimate — acceptable bias
+    expect(overshoot).toBeGreaterThan(0.1); // but noticeable (~14% expected)
+  });
+});
