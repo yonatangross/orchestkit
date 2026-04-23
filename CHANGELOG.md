@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.65.1](https://github.com/yonatangross/orchestkit/compare/v7.65.0...v7.65.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **ci:** skip pre-push version check on feat/fix/perf/refactor branches ([#1458](https://github.com/yonatangross/orchestkit/issues/1458)) ([065454d](https://github.com/yonatangross/orchestkit/commit/065454df238a44cc7a872a2c9800f2ee7c7f8855))
+
+
+### Miscellaneous
+
+* **#1446:** MCP version-pin audit matrix ([#1463](https://github.com/yonatangross/orchestkit/issues/1463)) ([ae69651](https://github.com/yonatangross/orchestkit/commit/ae696512f204940ea98bdd723dbadd7414f7884c))
+
 ## [7.65.0](https://github.com/yonatangross/orchestkit/compare/v7.64.0...v7.65.0) (2026-04-22)
 
 
