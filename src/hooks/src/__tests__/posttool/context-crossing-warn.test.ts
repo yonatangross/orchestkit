@@ -19,6 +19,8 @@ vi.mock('node:fs', () => ({
   appendFileSync: vi.fn(),
 }));
 
+import { mkdirSync } from 'node:fs';
+
 // Hoisted so it's available when vi.mock (which is itself hoisted) runs.
 const { atomicWriteMock } = vi.hoisted(() => ({ atomicWriteMock: vi.fn() }));
 vi.mock('../../lib/atomic-write.js', () => ({
@@ -317,6 +319,101 @@ describe('contextCrossingWarn', () => {
       expect(finalState.kindCounts).toBeDefined();
       expect(finalState.kindCounts.code).toBe(1);
       expect(finalState.kindCounts.json).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Coverage-hardening tests (P1.2, P2.2)
+  // ---------------------------------------------------------------------------
+
+  describe('multi-call accumulator correctness (P1.2)', () => {
+    /**
+     * Simulate a session of N tool calls in sequence, persisting state
+     * between calls via the mocked fs. Verifies cumulative sum matches
+     * the sum of per-call estimates and that only one fire happens when
+     * the threshold is crossed.
+     */
+    it('accumulates across 10 tool calls in sequence with single fire at crossing', () => {
+      process.env.ORK_CTX_WARN_THRESHOLD = '5000';
+      const sessionId = 'multi-call';
+      const testCtx = createTestContext({ projectDir: PROJECT_DIR, sessionId });
+
+      // Start empty
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      // Each call carries ~1000 char prose tool_result → ~250 tokens each
+      // After ~20 calls we cross 5000. We'll run 10 and then two bigger to cross.
+      const inputs: HookInput[] = [];
+      for (let i = 0; i < 8; i++) {
+        inputs.push({
+          tool_name: 'Bash',
+          session_id: sessionId,
+          tool_input: {},
+          tool_result: 'x'.repeat(1000), // 250 tokens prose
+        } as HookInput);
+      }
+      // Two big ones to cross 5000
+      inputs.push({
+        tool_name: 'Agent',
+        session_id: sessionId,
+        tool_input: {},
+        tool_result: 'x'.repeat(10_000), // 2500 tokens prose
+      } as HookInput);
+      inputs.push({
+        tool_name: 'Agent',
+        session_id: sessionId,
+        tool_input: {},
+        tool_result: 'x'.repeat(8_000), // 2000 tokens — pushes us over 5000
+      } as HookInput);
+
+      let fireCount = 0;
+      let lastState: { estimatedTokens: number; crossings: Record<string, boolean> } = { estimatedTokens: 0, crossings: {} };
+
+      for (const input of inputs) {
+        // After the first write, subsequent calls load the last state
+        if (atomicWriteMock.mock.calls.length > 0) {
+          vi.mocked(existsSync).mockReturnValue(true);
+          vi.mocked(readFileSync).mockReturnValue(String(atomicWriteMock.mock.calls[atomicWriteMock.mock.calls.length - 1][1]));
+        }
+        const result = contextCrossingWarn(input, testCtx);
+        if (result.hookSpecificOutput?.additionalContext) fireCount++;
+        lastState = JSON.parse(String(atomicWriteMock.mock.calls[atomicWriteMock.mock.calls.length - 1][1]));
+      }
+
+      // Sum of estimates: 8*250 + 2500 + 2000 = 6500
+      expect(lastState.estimatedTokens).toBe(6500);
+
+      // Exactly one fire on the call that crossed 5000
+      expect(fireCount).toBe(1);
+
+      // Crossing flag set for the 5000 threshold
+      expect(lastState.crossings['5000']).toBe(true);
+    });
+  });
+
+  describe('write-fail graceful degradation (P2.2)', () => {
+    it('returns silent success when mkdir throws (disk full / perm denied)', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(mkdirSync).mockImplementationOnce(() => {
+        throw new Error('ENOSPC: no space left on device');
+      });
+
+      const result = contextCrossingWarn(makeInput(), ctx);
+
+      // Hook MUST NOT propagate the error — silent success is the contract
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    it('returns silent success when atomicWrite throws', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      atomicWriteMock.mockImplementationOnce(() => {
+        throw new Error('EACCES: permission denied');
+      });
+
+      const result = contextCrossingWarn(makeInput(), ctx);
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
     });
   });
 });
