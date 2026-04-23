@@ -17,6 +17,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.66.0",
+    "date": "2026-04-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks,#1478:** content-aware token estimator — replace char/4 ([#1484](https://github.com/yonatangross/orchestkit/issues/1484)) ([782677c](https://github.com/yonatangross/orchestkit/commit/782677c22ec54e0b68dfc8f499d4e590af8c6410))",
+          "**hooks,#1478:** coverage hardening — close all P1 + P2 audit gaps ([#1485](https://github.com/yonatangross/orchestkit/issues/1485)) ([b1e7757](https://github.com/yonatangross/orchestkit/commit/b1e7757105d5b329cb765f9a10b48d0b7d9949d4))",
+          "**hooks:** M119 usage hygiene — pre-compact prompt + 150k context warn ([#1474](https://github.com/yonatangross/orchestkit/issues/1474)) ([39507eb](https://github.com/yonatangross/orchestkit/commit/39507eb6a2449270c84b5995a8c48c859f4f096b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.65.1",
     "date": "2026-04-22",
     "compareUrl": "",

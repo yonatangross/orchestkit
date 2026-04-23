@@ -63,6 +63,8 @@ import { autoLint } from '../posttool/auto-lint.js';
 import { metricsBridge } from '../posttool/metrics-bridge.js';
 // #1470: one-shot context-crossing warn (usage hygiene M119)
 import { contextCrossingWarn } from '../posttool/context-crossing-warn.js';
+// #1489 M121: posttool catchall dispatcher (webhook + metrics + ctx-warn)
+import { metricsDispatcher } from '../posttool/metrics-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -81,6 +83,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/unified-dispatcher': unifiedDispatcher,
   'posttool/metrics-bridge': metricsBridge,
   'posttool/context-crossing-warn': contextCrossingWarn,
+  'posttool/metrics-dispatcher': metricsDispatcher,
 
   // PostTool/Write hooks (3) — #922 removed coverage-predictor/readme-sync; #1280 added stale-import-detector
   'posttool/write/code-style-learner': codeStyleLearner,

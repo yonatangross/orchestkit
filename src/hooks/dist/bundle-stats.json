@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-04-23T07:37:31.894Z",
-  "buildTimeMs": 488,
+  "generatedAt": "2026-04-23T11:02:41.327Z",
+  "buildTimeMs": 2293,
   "mode": "split",
   "bundles": {
     "permission": {
@@ -14,8 +14,8 @@
       "exports": 80
     },
     "posttool": {
-      "size": 89394,
-      "sizeKB": "87.30",
+      "size": 97819,
+      "sizeKB": "95.53",
       "exports": 63
     },
     "prompt": {
@@ -65,8 +65,8 @@
       "unified": true
     }
   },
-  "totalSize": 641730,
-  "totalSizeKB": "626.69",
+  "totalSize": 650155,
+  "totalSizeKB": "634.92",
   "inputs": 81,
-  "avgBundleSizeKB": "56.97"
+  "avgBundleSizeKB": "57.72"
 }

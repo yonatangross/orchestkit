@@ -101,6 +101,186 @@ export function isValidPreCompactDecisionEntry(raw: unknown): raw is PreCompactD
 }
 
 // ---------------------------------------------------------------------------
+// DecisionLogEntry — .claude/logs/decisions.jsonl (M121 #1490)
+// Written by various hooks; read by pre-compact-task-done-prompt,
+// handoff-writer (stop/), decision-history, /ork:analytics.
+// Shape is permissive because multiple writers have contributed over time —
+// core invariant is that either `summary` or `decision` is a string readers
+// can display.
+// ---------------------------------------------------------------------------
+
+export interface DecisionLogEntry {
+  /** Human-readable one-line decision summary (preferred field for display) */
+  summary?: string;
+  /** Legacy field name for the same thing; readers fall back to this */
+  decision?: string;
+  /** ISO-8601 timestamp (not always present on legacy entries) */
+  timestamp?: string;
+  /** Optional categorisation: 'feat' | 'fix' | 'architecture' | ... */
+  kind?: string;
+  /** Free-form extra payload */
+  [key: string]: unknown;
+}
+
+export function isValidDecisionLogEntry(raw: unknown): raw is DecisionLogEntry {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  // Invariant: at least one of summary or decision must be a non-empty string
+  const hasSummary = typeof entry.summary === 'string' && entry.summary.length > 0;
+  const hasDecision = typeof entry.decision === 'string' && entry.decision.length > 0;
+  if (!hasSummary && !hasDecision) return false;
+  // If timestamp present, it must parse
+  if (entry.timestamp !== undefined) {
+    if (typeof entry.timestamp !== 'string') return false;
+    if (Number.isNaN(Date.parse(entry.timestamp))) return false;
+  }
+  if (entry.kind !== undefined && typeof entry.kind !== 'string') return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// SubagentSpawnEntry — .claude/logs/subagent-spawns.jsonl (M121 #1490)
+// Written by subagent-start hooks; read by pre-compact-guard, watchdog,
+// pre-compact-task-done-prompt (quiescence signal).
+// ---------------------------------------------------------------------------
+
+export interface SubagentSpawnEntry {
+  /** ISO-8601 timestamp of the spawn event */
+  timestamp: string;
+  /** Agent identifier (UUID or name) */
+  agent_id?: string;
+  /** Agent type (e.g., 'Explore', 'workflow-architect') */
+  subagent_type?: string;
+}
+
+export const SUBAGENT_SPAWN_REQUIRED_KEYS: ReadonlyArray<keyof SubagentSpawnEntry> = [
+  'timestamp',
+];
+
+export function isValidSubagentSpawnEntry(raw: unknown): raw is SubagentSpawnEntry {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  if (typeof entry.timestamp !== 'string') return false;
+  if (Number.isNaN(Date.parse(entry.timestamp))) return false;
+  if (entry.agent_id !== undefined && typeof entry.agent_id !== 'string') return false;
+  if (entry.subagent_type !== undefined && typeof entry.subagent_type !== 'string') return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// EditHistoryEntry — .claude/state/edit-history.jsonl (M121 #1490)
+// Written by posttool/write/edit-history-tracker.
+// Compact field names (`t`, `f`, `tool`) are intentional — this file grows
+// per Write/Edit and the compact shape keeps it manageable.
+// ---------------------------------------------------------------------------
+
+export interface EditHistoryEntry {
+  /** Epoch milliseconds (NOT ISO string — this file uses Date.now()) */
+  t: number;
+  /** Absolute file path that was edited */
+  f: string;
+  /** Tool that performed the edit: 'Write' | 'Edit' | 'MultiEdit' */
+  tool: string;
+}
+
+export const EDIT_HISTORY_REQUIRED_KEYS: ReadonlyArray<keyof EditHistoryEntry> = [
+  't',
+  'f',
+  'tool',
+];
+
+export function isValidEditHistoryEntry(raw: unknown): raw is EditHistoryEntry {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  if (typeof entry.t !== 'number' || !Number.isFinite(entry.t)) return false;
+  if (typeof entry.f !== 'string' || entry.f.length === 0) return false;
+  if (typeof entry.tool !== 'string' || entry.tool.length === 0) return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// OrkMetricsSnapshot — .claude/state/ork-metrics-{session}.json (M121 #1490)
+// Written by posttool/metrics-bridge. Single-object file (not JSONL).
+// Read by lifecycle/session-metrics-summary.
+// ---------------------------------------------------------------------------
+
+export interface OrkMetricsSnapshot {
+  session_id: string;
+  /** ISO-8601 timestamp of first event in this session */
+  started_at: string;
+  /** ISO-8601 timestamp of most recent event */
+  updated_at: string;
+  edits: number;
+  test_runs: number;
+  commits: number;
+  bash_calls: number;
+  agent_spawns: number;
+}
+
+export const ORK_METRICS_REQUIRED_KEYS: ReadonlyArray<keyof OrkMetricsSnapshot> = [
+  'session_id',
+  'started_at',
+  'updated_at',
+  'edits',
+  'test_runs',
+  'commits',
+  'bash_calls',
+  'agent_spawns',
+];
+
+export function isValidOrkMetricsSnapshot(raw: unknown): raw is OrkMetricsSnapshot {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  if (typeof entry.session_id !== 'string') return false;
+  if (typeof entry.started_at !== 'string' || Number.isNaN(Date.parse(entry.started_at))) return false;
+  if (typeof entry.updated_at !== 'string' || Number.isNaN(Date.parse(entry.updated_at))) return false;
+  for (const k of ['edits', 'test_runs', 'commits', 'bash_calls', 'agent_spawns'] as const) {
+    if (typeof entry[k] !== 'number' || !Number.isFinite(entry[k] as number)) return false;
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// SkillUsageFile — .claude/feedback/skill-usage.json (M121 #1490)
+// Written by posttool/skill/skill-usage-optimizer. Single-object file.
+// Read by same optimizer on next session for consolidation suggestions.
+// ---------------------------------------------------------------------------
+
+export interface SkillUsageFile {
+  /** Schema version — bump when breaking changes land */
+  version: string;
+  /** Skill name → total invocation count */
+  skills: Record<string, number>;
+  /** Session id → list of skill names used in that session */
+  sessions: Record<string, string[]>;
+  /** ISO-8601 timestamp of last update */
+  last_updated: string;
+}
+
+export const SKILL_USAGE_REQUIRED_KEYS: ReadonlyArray<keyof SkillUsageFile> = [
+  'version',
+  'skills',
+  'sessions',
+  'last_updated',
+];
+
+export function isValidSkillUsageFile(raw: unknown): raw is SkillUsageFile {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  if (typeof entry.version !== 'string') return false;
+  if (!entry.skills || typeof entry.skills !== 'object') return false;
+  for (const v of Object.values(entry.skills)) {
+    if (typeof v !== 'number' || !Number.isFinite(v)) return false;
+  }
+  if (!entry.sessions || typeof entry.sessions !== 'object') return false;
+  for (const v of Object.values(entry.sessions)) {
+    if (!Array.isArray(v) || !v.every(s => typeof s === 'string')) return false;
+  }
+  if (typeof entry.last_updated !== 'string' || Number.isNaN(Date.parse(entry.last_updated))) return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Canonical samples — used by tests as golden fixtures
 // ---------------------------------------------------------------------------
 
@@ -119,3 +299,59 @@ export const CANONICAL_PRE_COMPACT_DECISION_ENTRY: PreCompactDecisionEntry = {
     breakpointKeywords: true,
   },
 };
+
+export const CANONICAL_DECISION_LOG_ENTRY: DecisionLogEntry = {
+  summary: 'Merged PR #1489 to main',
+  timestamp: '2026-04-23T12:34:56.000Z',
+  kind: 'feat',
+};
+
+export const CANONICAL_SUBAGENT_SPAWN_ENTRY: SubagentSpawnEntry = {
+  timestamp: '2026-04-23T12:34:56.000Z',
+  agent_id: 'a1b2c3d4',
+  subagent_type: 'Explore',
+};
+
+export const CANONICAL_EDIT_HISTORY_ENTRY: EditHistoryEntry = {
+  t: 1745411696000,
+  f: '/project/src/foo.ts',
+  tool: 'Edit',
+};
+
+export const CANONICAL_ORK_METRICS_SNAPSHOT: OrkMetricsSnapshot = {
+  session_id: 'sess-abc123',
+  started_at: '2026-04-23T12:00:00.000Z',
+  updated_at: '2026-04-23T12:34:56.000Z',
+  edits: 12,
+  test_runs: 3,
+  commits: 1,
+  bash_calls: 27,
+  agent_spawns: 2,
+};
+
+export const CANONICAL_SKILL_USAGE_FILE: SkillUsageFile = {
+  version: '1.0',
+  skills: { 'ork:brainstorm': 4, 'ork:assess': 2 },
+  sessions: { 'sess-abc123': ['ork:brainstorm', 'ork:assess'] },
+  last_updated: '2026-04-23T12:34:56.000Z',
+};
+
+// ---------------------------------------------------------------------------
+// Telemetry file inventory (M121 #1490)
+// Single source of truth for which files have schema locks. Readers can
+// import SCHEMA_LOCKED to check if a file path has a validator.
+// ---------------------------------------------------------------------------
+
+export const SCHEMA_LOCKED: ReadonlyArray<{
+  path: string;
+  validator: string;
+  canonical: string;
+}> = [
+  { path: '.claude/telemetry/image-responses.jsonl',      validator: 'isValidImageResponseEntry',      canonical: 'CANONICAL_IMAGE_RESPONSE_ENTRY' },
+  { path: '.claude/telemetry/pre-compact-decisions.jsonl', validator: 'isValidPreCompactDecisionEntry', canonical: 'CANONICAL_PRE_COMPACT_DECISION_ENTRY' },
+  { path: '.claude/logs/decisions.jsonl',                  validator: 'isValidDecisionLogEntry',         canonical: 'CANONICAL_DECISION_LOG_ENTRY' },
+  { path: '.claude/logs/subagent-spawns.jsonl',            validator: 'isValidSubagentSpawnEntry',       canonical: 'CANONICAL_SUBAGENT_SPAWN_ENTRY' },
+  { path: '.claude/state/edit-history.jsonl',              validator: 'isValidEditHistoryEntry',         canonical: 'CANONICAL_EDIT_HISTORY_ENTRY' },
+  { path: '.claude/state/ork-metrics-*.json',              validator: 'isValidOrkMetricsSnapshot',       canonical: 'CANONICAL_ORK_METRICS_SNAPSHOT' },
+  { path: '.claude/feedback/skill-usage.json',             validator: 'isValidSkillUsageFile',           canonical: 'CANONICAL_SKILL_USAGE_FILE' },
+];

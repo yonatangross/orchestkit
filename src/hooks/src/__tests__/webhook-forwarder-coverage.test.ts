@@ -72,17 +72,37 @@ function extractHookPath(command: string): string | undefined {
 }
 
 /**
+ * Intentional fan-out dispatchers (M121 #1489) — these explicitly compose
+ * webhookForwarder as one of several handlers inside the dispatcher,
+ * which is a DIFFERENT role from the accidental inlining v7.29.0 decoupled.
+ * Listed here so the "no inlined forwarder" check allowlists them.
+ */
+const INTENTIONAL_FAN_OUT_DISPATCHERS = new Set<string>([
+  'posttool/metrics-dispatcher',
+]);
+
+/**
  * Check if a dispatcher source file contains an inlined webhookForwarder call.
  */
 function hasInlinedForwarder(hookPath: string): boolean {
   // Skip the webhook-forwarder itself
   if (hookPath === 'lifecycle/webhook-forwarder') return false;
+  // Skip intentional fan-out dispatchers — they COMPOSE the forwarder by design
+  if (INTENTIONAL_FAN_OUT_DISPATCHERS.has(hookPath)) return false;
 
   const sourceFile = join(srcRoot, `${hookPath}.ts`);
   if (!existsSync(sourceFile)) return false;
 
   const content = readFileSync(sourceFile, 'utf8');
   return content.includes('webhookForwarder');
+}
+
+/**
+ * Treat a dispatcher as providing webhook-forwarder coverage if it is an
+ * explicit fan-out dispatcher (M121 #1489).
+ */
+function isFanOutDispatcher(hookPath: string): boolean {
+  return INTENTIONAL_FAN_OUT_DISPATCHERS.has(hookPath);
 }
 
 // ---------------------------------------------------------------------------
@@ -106,7 +126,12 @@ function buildCoverageMap(): CoverageEntry[] {
           const hookPath = extractHookPath(hook.command);
           if (hookPath && hookPath !== 'lifecycle/webhook-forwarder') {
             dispatcherPath = hookPath;
-            if (hasInlinedForwarder(hookPath)) {
+            // M121 #1489: fan-out dispatchers provide coverage by calling
+            // webhookForwarder internally. Treat them as "inlined" for
+            // coverage purposes (they give the same signal).
+            if (isFanOutDispatcher(hookPath)) {
+              inlined = true;
+            } else if (hasInlinedForwarder(hookPath)) {
               inlined = true;
             }
           }
@@ -140,10 +165,18 @@ describe('Webhook Forwarder Coverage Validator', () => {
     expect(standaloneEvents.length).toBeGreaterThanOrEqual(20);
   });
 
-  test('no inlined webhookForwarder in dispatchers (decoupled in v7.29.0)', () => {
-    const inlinedEntries = coverageMap.filter((e) => e.inlined);
-    // v7.29.0: all inline forwarder calls removed — standalone hooks.json entries handle telemetry
-    expect(inlinedEntries.length).toBe(0);
+  test('no accidental inlined webhookForwarder in dispatchers (v7.29.0 decoupling preserved)', () => {
+    // v7.29.0: all incidental inline forwarder calls removed — standalone
+    // hooks.json entries handle telemetry.
+    // M121 #1489: explicit fan-out dispatchers (e.g., posttool/metrics-dispatcher)
+    // intentionally compose webhookForwarder as one of several handlers.
+    // Those are allowlisted; everything else must stay decoupled.
+    const accidentalInlined = coverageMap.filter(
+      (e) =>
+        e.inlined &&
+        !(e.dispatcherPath && INTENTIONAL_FAN_OUT_DISPATCHERS.has(e.dispatcherPath)),
+    );
+    expect(accidentalInlined.length).toBe(0);
   });
 
   test('every event type and matcher group has webhook forwarder coverage', () => {
@@ -154,7 +187,15 @@ describe('Webhook Forwarder Coverage Validator', () => {
     // that covers the same tools. Check cross-group coverage within the same event.
     function isCoveredByCatchAll(event: string, matcher: string): boolean {
       const tools = matcher.split('|');
-      const eventEntries = coverageMap.filter(e => e.event === event && e.standalone);
+      // M121 #1489: a group is "covered" when a broader-matcher group either
+      // has standalone webhook-forwarder OR calls a fan-out dispatcher that
+      // internally invokes webhookForwarder (same telemetry semantics).
+      const eventEntries = coverageMap.filter(
+        e =>
+          e.event === event &&
+          (e.standalone ||
+            (e.dispatcherPath && INTENTIONAL_FAN_OUT_DISPATCHERS.has(e.dispatcherPath))),
+      );
       for (const entry of eventEntries) {
         if (entry.matcher === matcher) continue; // skip self
         const entryTools = entry.matcher.split('|');

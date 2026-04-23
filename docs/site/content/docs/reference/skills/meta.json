@@ -91,6 +91,7 @@
     "storybook-mcp-integration",
     "storybook-testing",
     "task-dependency-patterns",
+    "telemetry-inspect",
     "testing-e2e",
     "testing-integration",
     "testing-llm",

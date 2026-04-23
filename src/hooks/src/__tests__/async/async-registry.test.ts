@@ -99,7 +99,10 @@ describe('Async Hooks Registry', () => {
       // 74 -> 75: v7.52.0 completion — metrics-bridge (async on catchall matcher)
       // 75 -> 76: v7.53.0 — posttool/design-import/auto-verify (Claude Design Bet A, #1386)
       // 76 -> 77: v7.62.0 — posttool/bash/gh-rate-limit-tracker (CC 2.1.116 follow-up, #1435)
-      expect(asyncHooks.length, 'Should have exactly 77 async hooks').toBe(77);
+      // 77 -> 75: M121 #1489 — metrics-dispatcher collapses webhook-forwarder+metrics-bridge on catchall
+      //           from 2 async hooks.json entries into 1 sync dispatcher (context-crossing-warn
+      //           was already sync; it's now inside the dispatcher too)
+      expect(asyncHooks.length, 'Should have exactly 75 async hooks').toBe(75);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
@@ -201,14 +204,18 @@ describe('Async Hooks Registry', () => {
       const skillGroup = postToolGroups.find(g => g.matcher === 'Skill');
       expect(skillGroup, 'Skill group should exist').toBeDefined();
 
-      // Catch-all webhook-forwarder group
+      // Catch-all group — M121 #1489: now a single dispatcher that fans out
+      // webhook-forwarder + metrics-bridge + context-crossing-warn in-process.
       const catchAllGroup = postToolGroups.find(g =>
         g.matcher === 'Bash|Write|Edit|Agent|TaskUpdate|TaskCreate|Skill|NotebookEdit'
       );
-      expect(catchAllGroup, 'catch-all webhook-forwarder group should exist').toBeDefined();
-      const forwarder = catchAllGroup!.hooks.find(h => h.command?.includes('lifecycle/webhook-forwarder'));
-      expect(forwarder, 'catch-all should have webhook-forwarder').toBeDefined();
-      expect(forwarder!.async, 'webhook-forwarder should be async').toBe(true);
+      expect(catchAllGroup, 'catch-all dispatcher group should exist').toBeDefined();
+      const dispatcher = catchAllGroup!.hooks.find(h =>
+        h.command?.includes('posttool/metrics-dispatcher'),
+      );
+      expect(dispatcher, 'catch-all should route to metrics-dispatcher').toBeDefined();
+      // Dispatcher is sync — async fan-out happens inside via Promise.allSettled
+      expect(dispatcher!.async, 'dispatcher is sync (inner handlers race async)').not.toBe(true);
     });
   });
 

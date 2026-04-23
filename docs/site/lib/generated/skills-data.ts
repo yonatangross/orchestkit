@@ -4463,6 +4463,42 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "telemetry-inspect": {
+    "name": "telemetry-inspect",
+    "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "telemetry",
+      "observability",
+      "diagnostics",
+      "metrics",
+      "session",
+      "health",
+      "schema",
+      "inspection"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "references": [
+        "telemetry-inventory.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "testing-e2e": {
     "name": "testing-e2e",
     "description": "End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility.",

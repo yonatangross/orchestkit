@@ -17,11 +17,26 @@ import { describe, it, expect } from 'vitest';
 import {
   isValidImageResponseEntry,
   isValidPreCompactDecisionEntry,
+  isValidDecisionLogEntry,
+  isValidSubagentSpawnEntry,
+  isValidEditHistoryEntry,
+  isValidOrkMetricsSnapshot,
+  isValidSkillUsageFile,
   CANONICAL_IMAGE_RESPONSE_ENTRY,
   CANONICAL_PRE_COMPACT_DECISION_ENTRY,
+  CANONICAL_DECISION_LOG_ENTRY,
+  CANONICAL_SUBAGENT_SPAWN_ENTRY,
+  CANONICAL_EDIT_HISTORY_ENTRY,
+  CANONICAL_ORK_METRICS_SNAPSHOT,
+  CANONICAL_SKILL_USAGE_FILE,
   IMAGE_RESPONSE_REQUIRED_KEYS,
   PRE_COMPACT_DECISION_REQUIRED_KEYS,
   PRE_COMPACT_SIGNAL_KEYS,
+  SUBAGENT_SPAWN_REQUIRED_KEYS,
+  EDIT_HISTORY_REQUIRED_KEYS,
+  ORK_METRICS_REQUIRED_KEYS,
+  SKILL_USAGE_REQUIRED_KEYS,
+  SCHEMA_LOCKED,
 } from '../../lib/telemetry-schemas.js';
 
 describe('ImageResponseEntry shape lock', () => {
@@ -150,5 +165,170 @@ describe('PreCompactDecisionEntry shape lock', () => {
     expect(JSON.stringify(CANONICAL_PRE_COMPACT_DECISION_ENTRY)).toBe(
       '{"timestamp":"2026-04-23T12:34:56.000Z","fired":true,"signals":{"gitQuiet":true,"quiescent":true,"breakpointKeywords":true}}',
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M121 #1490 — schema locks for 5 more telemetry files
+// ---------------------------------------------------------------------------
+
+describe('DecisionLogEntry shape lock (.claude/logs/decisions.jsonl)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidDecisionLogEntry(CANONICAL_DECISION_LOG_ENTRY)).toBe(true);
+  });
+
+  it('accepts legacy form with `decision` instead of `summary`', () => {
+    expect(isValidDecisionLogEntry({ decision: 'Picked Postgres over Mongo' })).toBe(true);
+  });
+
+  it('rejects entry missing both summary and decision', () => {
+    expect(isValidDecisionLogEntry({ timestamp: '2026-04-23T12:00:00.000Z' })).toBe(false);
+  });
+
+  it('rejects invalid timestamp format', () => {
+    expect(isValidDecisionLogEntry({ summary: 'hi', timestamp: 'not a date' })).toBe(false);
+  });
+
+  it('rejects non-string kind', () => {
+    expect(isValidDecisionLogEntry({ summary: 'hi', kind: 123 })).toBe(false);
+  });
+
+  it('rejects null / non-object', () => {
+    expect(isValidDecisionLogEntry(null)).toBe(false);
+    expect(isValidDecisionLogEntry('string')).toBe(false);
+  });
+});
+
+describe('SubagentSpawnEntry shape lock (.claude/logs/subagent-spawns.jsonl)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidSubagentSpawnEntry(CANONICAL_SUBAGENT_SPAWN_ENTRY)).toBe(true);
+  });
+
+  it('accepts entry with only required timestamp (agent_id/subagent_type optional)', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z' })).toBe(true);
+  });
+
+  it('required keys list is {timestamp} only', () => {
+    expect([...SUBAGENT_SPAWN_REQUIRED_KEYS]).toEqual(['timestamp']);
+  });
+
+  it('rejects missing timestamp', () => {
+    expect(isValidSubagentSpawnEntry({ agent_id: 'abc' })).toBe(false);
+  });
+
+  it('rejects non-string agent_id when present', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', agent_id: 42 })).toBe(false);
+  });
+});
+
+describe('EditHistoryEntry shape lock (.claude/state/edit-history.jsonl)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidEditHistoryEntry(CANONICAL_EDIT_HISTORY_ENTRY)).toBe(true);
+  });
+
+  it('uses compact field names (t, f, tool)', () => {
+    expect([...EDIT_HISTORY_REQUIRED_KEYS].sort()).toEqual(['f', 't', 'tool']);
+  });
+
+  it('rejects when t is string (must be epoch number)', () => {
+    expect(isValidEditHistoryEntry({ t: '2026-04-23', f: '/foo.ts', tool: 'Edit' })).toBe(false);
+  });
+
+  it('rejects empty file path', () => {
+    expect(isValidEditHistoryEntry({ t: 1745411696000, f: '', tool: 'Edit' })).toBe(false);
+  });
+
+  it('rejects missing tool', () => {
+    expect(isValidEditHistoryEntry({ t: 1745411696000, f: '/foo.ts' })).toBe(false);
+  });
+});
+
+describe('OrkMetricsSnapshot shape lock (.claude/state/ork-metrics-*.json)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidOrkMetricsSnapshot(CANONICAL_ORK_METRICS_SNAPSHOT)).toBe(true);
+  });
+
+  it('required keys include all 8 fields', () => {
+    expect(ORK_METRICS_REQUIRED_KEYS.length).toBe(8);
+    expect([...ORK_METRICS_REQUIRED_KEYS]).toContain('agent_spawns');
+  });
+
+  it('rejects non-numeric metric field', () => {
+    const bad = { ...CANONICAL_ORK_METRICS_SNAPSHOT, edits: 'twelve' };
+    expect(isValidOrkMetricsSnapshot(bad)).toBe(false);
+  });
+
+  it('rejects invalid started_at', () => {
+    const bad = { ...CANONICAL_ORK_METRICS_SNAPSHOT, started_at: 'yesterday' };
+    expect(isValidOrkMetricsSnapshot(bad)).toBe(false);
+  });
+
+  it('rejects NaN in metric fields', () => {
+    const bad = { ...CANONICAL_ORK_METRICS_SNAPSHOT, bash_calls: Number.NaN };
+    expect(isValidOrkMetricsSnapshot(bad)).toBe(false);
+  });
+});
+
+describe('SkillUsageFile shape lock (.claude/feedback/skill-usage.json)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidSkillUsageFile(CANONICAL_SKILL_USAGE_FILE)).toBe(true);
+  });
+
+  it('required keys include version + skills + sessions + last_updated', () => {
+    expect([...SKILL_USAGE_REQUIRED_KEYS].sort()).toEqual([
+      'last_updated',
+      'sessions',
+      'skills',
+      'version',
+    ]);
+  });
+
+  it('rejects non-number in skills count map', () => {
+    const bad = { ...CANONICAL_SKILL_USAGE_FILE, skills: { foo: 'many' } };
+    expect(isValidSkillUsageFile(bad)).toBe(false);
+  });
+
+  it('rejects non-array in sessions map', () => {
+    const bad = { ...CANONICAL_SKILL_USAGE_FILE, sessions: { 's1': 'not an array' } };
+    expect(isValidSkillUsageFile(bad)).toBe(false);
+  });
+
+  it('rejects array of non-strings in sessions', () => {
+    const bad = { ...CANONICAL_SKILL_USAGE_FILE, sessions: { 's1': [1, 2, 3] } };
+    expect(isValidSkillUsageFile(bad)).toBe(false);
+  });
+
+  it('rejects missing version', () => {
+    const bad = { skills: {}, sessions: {}, last_updated: '2026-04-23T12:00:00.000Z' };
+    expect(isValidSkillUsageFile(bad)).toBe(false);
+  });
+});
+
+describe('SCHEMA_LOCKED inventory (M121 #1490)', () => {
+  it('contains all 7 schema-locked file paths', () => {
+    expect(SCHEMA_LOCKED.length).toBe(7);
+  });
+
+  it('every entry has non-empty path + validator + canonical fields', () => {
+    for (const entry of SCHEMA_LOCKED) {
+      expect(entry.path).toBeTruthy();
+      expect(entry.validator).toMatch(/^isValid/);
+      expect(entry.canonical).toMatch(/^CANONICAL_/);
+    }
+  });
+
+  it('includes the 2 original (M119) files', () => {
+    const paths = SCHEMA_LOCKED.map(e => e.path);
+    expect(paths).toContain('.claude/telemetry/image-responses.jsonl');
+    expect(paths).toContain('.claude/telemetry/pre-compact-decisions.jsonl');
+  });
+
+  it('includes the 5 new (M121) files', () => {
+    const paths = SCHEMA_LOCKED.map(e => e.path);
+    expect(paths).toContain('.claude/logs/decisions.jsonl');
+    expect(paths).toContain('.claude/logs/subagent-spawns.jsonl');
+    expect(paths).toContain('.claude/state/edit-history.jsonl');
+    expect(paths).toContain('.claude/state/ork-metrics-*.json');
+    expect(paths).toContain('.claude/feedback/skill-usage.json');
   });
 });

@@ -295,7 +295,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 74 -> 75: v7.52.0 completion — metrics-bridge
       // 75 -> 76: v7.53.0 — posttool/design-import/auto-verify (Claude Design Bet A, #1386)
       // 76 -> 77: v7.62.0 — posttool/bash/gh-rate-limit-tracker (CC 2.1.116 follow-up, #1435)
-      expect(asyncHooks.length, 'Should have exactly 77 async hooks').toBe(77);
+      // 77 -> 75: M121 #1489 — metrics-dispatcher collapses webhook-forwarder+metrics-bridge on catchall
+      expect(asyncHooks.length, 'Should have exactly 75 async hooks').toBe(75);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -389,7 +390,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 74 -> 75: v7.52.0 completion — metrics-bridge
       // 75 -> 76: v7.53.0 — posttool/design-import/auto-verify (Claude Design Bet A, #1386)
       // 76 -> 77: v7.62.0 — posttool/bash/gh-rate-limit-tracker (CC 2.1.116 follow-up, #1435)
-      expect(asyncCount).toBe(77);
+      // 77 -> 75: M121 #1489 — metrics-dispatcher collapses webhook-forwarder+metrics-bridge on catchall
+      expect(asyncCount).toBe(75);
     });
 
     it('should have hooks for all critical security operations', () => {

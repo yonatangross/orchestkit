@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 116 global + 46 agent-scoped + 22 skill-scoped = 184 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 114 global + 46 agent-scoped + 22 skill-scoped = 182 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -270,25 +270,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
-            "async": true,
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/metrics-dispatcher",
             "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/metrics-bridge",
-            "async": true,
-            "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|Write|Edit|Agent|NotebookEdit|Skill|TaskUpdate|TaskCreate",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/context-crossing-warn",
-            "timeout": 3
           }
         ]
       },

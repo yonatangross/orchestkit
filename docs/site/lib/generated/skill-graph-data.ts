@@ -895,6 +895,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "telemetry-inspect",
+    "label": "Telemetry Inspect",
+    "type": "command",
+    "complexity": "low",
+    "category": "devops",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "testing-e2e",
     "label": "Testing E2e",
     "type": "reference",

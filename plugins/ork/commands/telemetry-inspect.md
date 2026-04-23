@@ -1,0 +1,91 @@
+---
+description: "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files."
+allowed-tools: [Bash, Read, Grep, Glob]
+---
+
+# Auto-generated from skills/telemetry-inspect/SKILL.md
+# Source: https://github.com/yonatangross/orchestkit
+
+
+# /ork:telemetry-inspect
+
+One-shot health check for OrchestKit's telemetry pipeline. Reports writer activity, file sizes, schema lock coverage, orphan files, and growth warnings. Use when verifying the pipeline is flowing correctly or debugging a missing writer.
+
+## When to use
+
+- Before or after a risky hook refactor, to prove telemetry still writes as expected
+- Weekly health check on a long-running project
+- When `/ork:analytics` output looks suspicious — inspect the underlying data first
+- When adding a new telemetry file and wanting to confirm it's picked up
+- Auditing which files are schema-locked vs. drift-vulnerable
+
+## What it checks
+
+1. **Writer activity** — for each registered telemetry file, recent write count (from mtime scan) and last-write delta
+2. **File health** — size (warn at 256 KB, critical at 1 MB), line count, mtime
+3. **Schema lock status** — which files have validators in `lib/telemetry-schemas.ts`
+4. **Orphan detection** — files on disk under `.claude/{telemetry,logs,state,feedback}/` that aren't in the registry (possible stale writer or new file needing schema)
+5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
+
+## Usage
+
+```bash
+/ork:telemetry-inspect
+/ork:telemetry-inspect --session sess-abc123
+/ork:telemetry-inspect --json
+```
+
+Default mode: terminal-friendly ASCII report. `--json` emits a structured result suitable for piping into another tool or uploading.
+
+## Output shape (ASCII mode)
+
+```
+Telemetry Health — 2026-04-23 13:45
+────────────────────────────────────
+
+Schema-locked files (7)
+  .claude/telemetry/pre-compact-decisions.jsonl  ◆ 3 lines  1.1 KB  ✓ healthy
+  .claude/telemetry/image-responses.jsonl        ◆ 0 lines  —       ✗ no writes
+  .claude/logs/decisions.jsonl                   ◆ 18 lines 12 KB   ✓ healthy
+  .claude/logs/subagent-spawns.jsonl             ◆ 6 lines  3 KB    ✓ healthy
+  .claude/state/edit-history.jsonl               ◆ 94 lines 412 KB  ⚠ rotate
+  .claude/state/ork-metrics-*.json               ◆ (N/A)    2.1 KB  ✓ healthy
+  .claude/feedback/skill-usage.json              ◆ (N/A)    1.2 KB  ✓ healthy
+
+Unlocked telemetry files (14)
+  .claude/feedback/changelog-decisions.json      ○ 4 KB    ✗ no schema
+  .claude/feedback/code-style-profile.json       ○ 8 KB    ✗ no schema
+  (...14 more...)
+
+Orphan files (0)
+  (none detected)
+
+Summary
+  Pipeline health:  GREEN  (21/21 expected writers active)
+  Schema coverage:  7/21 (33%)
+  Largest file:     edit-history.jsonl (412 KB)
+  Hotspot:          edit-history.jsonl  +40 KB/hr
+```
+
+## Implementation plan (for an agent/LLM running this skill)
+
+1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with a hardcoded inventory of the other 14 unlocked paths (copy from the skill-local `references/telemetry-inventory.md`).
+2. **For each file**:
+   - Use `Glob` to resolve `.claude/state/ork-metrics-*.json` pattern → may be multiple
+   - Use `Read` with `limit: 10` to see shape and `Bash wc -l` for line count
+   - Use `Bash stat` for mtime + size
+3. **Classify health**:
+   - size > 1 MB → critical
+   - size > 256 KB → warn
+   - mtime > 7 days → "no recent writes"
+   - line count 0 → "no writes"
+4. **Orphan scan** — `Bash find .claude/{telemetry,logs,state,feedback} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan.
+5. **Render report** — ASCII table by default, JSON if `--json` argument passed.
+
+Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
+
+## Related
+
+- `lib/telemetry-schemas.ts` — source of truth for schema-locked paths
+- `/ork:analytics` — aggregates data across sessions (different use case)
+- M121 "Observability Consolidation" milestone
