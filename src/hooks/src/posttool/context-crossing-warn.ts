@@ -23,8 +23,8 @@
  * percentage passively; this hook interrupts at threshold crossing.
  */
 
-import { existsSync, readFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import {
   outputSilentSuccess,
@@ -34,16 +34,25 @@ import {
 } from '../lib/common.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { NOOP_CTX } from '../lib/context.js';
+import {
+  estimateTokens,
+  detectContentKind,
+  extractToolOutputText,
+  type ContentKind,
+} from '../lib/token-estimator.js';
 
 const HOOK_NAME = 'posttool/context-crossing-warn';
 const DEFAULT_THRESHOLD = 150_000;
-const TOKENS_PER_CHAR = 1 / 4;
 
 interface AccumState {
   estimatedTokens: number;
   crossings: Record<string, boolean>;
   updatedAt: string;
   lastToolName?: string;
+  /** Counts of observed content kinds — useful for debugging estimator accuracy (#1478). */
+  kindCounts?: Partial<Record<ContentKind, number>>;
+  /** Number of image responses seen (not counted toward tokens — tokenized separately by the model). */
+  imageResponses?: number;
 }
 
 function getStateFile(projectDir: string, sessionId: string): string {
@@ -64,6 +73,8 @@ function loadState(path: string): AccumState {
         crossings: parsed.crossings && typeof parsed.crossings === 'object' ? parsed.crossings : {},
         updatedAt: parsed.updatedAt || new Date().toISOString(),
         lastToolName: parsed.lastToolName,
+        kindCounts: parsed.kindCounts && typeof parsed.kindCounts === 'object' ? parsed.kindCounts : {},
+        imageResponses: Number(parsed.imageResponses) || 0,
       };
     } catch {
       // corrupt — start fresh
@@ -73,32 +84,39 @@ function loadState(path: string): AccumState {
     estimatedTokens: 0,
     crossings: {},
     updatedAt: new Date().toISOString(),
+    kindCounts: {},
+    imageResponses: 0,
   };
 }
 
-function estimateAddedTokens(input: HookInput): number {
-  let text = '';
-  const { tool_result, tool_output, output } = input;
-  if (typeof tool_result === 'string') {
-    text = tool_result;
-  } else if (
-    tool_result &&
-    typeof tool_result === 'object' &&
-    'content' in tool_result &&
-    typeof tool_result.content === 'string'
-  ) {
-    text = tool_result.content;
-  } else if (typeof output === 'string') {
-    text = output;
-  } else if (tool_output !== undefined) {
-    try {
-      text = JSON.stringify(tool_output) ?? '';
-    } catch {
-      text = '';
-    }
+interface EstimateResult {
+  tokens: number;
+  kind: ContentKind;
+}
+
+function estimateAddedTokens(input: HookInput): EstimateResult {
+  const text = extractToolOutputText(input);
+  if (!text) return { tokens: 0, kind: 'unknown' };
+  const kind = detectContentKind(input.tool_name, text);
+  const tokens = estimateTokens(text, kind);
+  return { tokens, kind };
+}
+
+function logImageEvent(projectDir: string, toolName: string | undefined, charLen: number): void {
+  try {
+    const logPath = join(projectDir, '.claude', 'telemetry', 'image-responses.jsonl');
+    mkdirSync(dirname(logPath), { recursive: true });
+    appendFileSync(
+      logPath,
+      `${JSON.stringify({
+        timestamp: new Date().toISOString(),
+        tool: toolName ?? 'unknown',
+        char_len: charLen,
+      })}\n`,
+    );
+  } catch {
+    // telemetry is best-effort
   }
-  if (!text) return 0;
-  return Math.ceil(text.length * TOKENS_PER_CHAR);
 }
 
 function getThreshold(): number {
@@ -128,10 +146,23 @@ export function contextCrossingWarn(
     const state = loadState(statePath);
     const threshold = getThreshold();
 
-    const added = estimateAddedTokens(input);
+    const { tokens: added, kind } = estimateAddedTokens(input);
     state.estimatedTokens += added;
     state.updatedAt = new Date().toISOString();
     if (input.tool_name) state.lastToolName = input.tool_name;
+
+    // Track content-kind distribution for estimator-accuracy debugging.
+    state.kindCounts = state.kindCounts ?? {};
+    state.kindCounts[kind] = (state.kindCounts[kind] ?? 0) + 1;
+
+    // Image responses are tokenized at rates we can't derive from char length
+    // (model-side vision tokenization is separate). Log them for visibility so
+    // that "total tokens" estimates can be corrected downstream if needed.
+    if (kind === 'image') {
+      state.imageResponses = (state.imageResponses ?? 0) + 1;
+      const sampleText = extractToolOutputText(input);
+      logImageEvent(projectDir, input.tool_name, sampleText.length);
+    }
 
     const key = String(threshold);
     const alreadyCrossed = state.crossings?.[key] === true;
