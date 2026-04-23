@@ -16,6 +16,7 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => '{}'),
   mkdirSync: vi.fn(),
+  appendFileSync: vi.fn(),
 }));
 
 // Hoisted so it's available when vi.mock (which is itself hoisted) runs.
@@ -27,7 +28,7 @@ vi.mock('../../lib/atomic-write.js', () => ({
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { contextCrossingWarn } from '../../posttool/context-crossing-warn.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync } from 'node:fs';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -226,6 +227,96 @@ describe('contextCrossingWarn', () => {
       const result = contextCrossingWarn(makeInput(), ctx);
       expect(result.continue).toBe(true);
       expect(lastWrittenState().estimatedTokens).toBeGreaterThan(0);
+    });
+  });
+
+  describe('#1478 content-aware estimator', () => {
+    it('json content (MCP) counts more tokens than same-length prose', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      const payload = 'x'.repeat(9000);
+
+      // MCP tool → json divisor 3.0 → 3000 tokens
+      contextCrossingWarn(
+        { tool_name: 'mcp__context7__query-docs', session_id: 's', tool_input: {}, tool_result: '{"k":"' + payload + '"}' } as HookInput,
+        createTestContext({ projectDir: PROJECT_DIR, sessionId: 's' }),
+      );
+      const jsonTokens = JSON.parse(String(atomicWriteMock.mock.calls[0][1])).estimatedTokens;
+
+      atomicWriteMock.mockClear();
+
+      // Generic tool + plain prose → prose divisor 4.0 → 2250 tokens
+      contextCrossingWarn(
+        { tool_name: 'Bash', session_id: 't', tool_input: {}, tool_result: payload } as HookInput,
+        createTestContext({ projectDir: PROJECT_DIR, sessionId: 't' }),
+      );
+      const proseTokens = JSON.parse(String(atomicWriteMock.mock.calls[0][1])).estimatedTokens;
+
+      expect(jsonTokens).toBeGreaterThan(proseTokens);
+    });
+
+    it('image payload is not counted toward token accumulator', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      const imgPayload = 'data:image/png;base64,' + 'x'.repeat(100_000);
+
+      contextCrossingWarn(
+        { tool_name: 'Read', session_id: 'img', tool_input: {}, tool_result: imgPayload } as HookInput,
+        createTestContext({ projectDir: PROJECT_DIR, sessionId: 'img' }),
+      );
+
+      const state = JSON.parse(String(atomicWriteMock.mock.calls[0][1]));
+      expect(state.estimatedTokens).toBe(0);
+      expect(state.imageResponses).toBe(1);
+    });
+
+    it('image payload writes to telemetry log', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(appendFileSync).mockClear();
+
+      contextCrossingWarn(
+        {
+          tool_name: 'Agent',
+          session_id: 'img2',
+          tool_input: {},
+          tool_result: 'data:image/jpeg;base64,/9j/4AAQSkZJ' + 'x'.repeat(500),
+        } as HookInput,
+        createTestContext({ projectDir: PROJECT_DIR, sessionId: 'img2' }),
+      );
+
+      expect(appendFileSync).toHaveBeenCalled();
+      const [logPath, body] = vi.mocked(appendFileSync).mock.calls[0];
+      expect(String(logPath)).toContain('image-responses.jsonl');
+      const entry = JSON.parse(String(body).trim());
+      expect(entry.tool).toBe('Agent');
+      expect(entry.char_len).toBeGreaterThan(0);
+    });
+
+    it('tracks content-kind counts in state', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      const ctx2 = createTestContext({ projectDir: PROJECT_DIR, sessionId: 'kinds' });
+
+      // Read → code
+      contextCrossingWarn(
+        { tool_name: 'Read', session_id: 'kinds', tool_input: {}, tool_result: 'function x() {}' } as HookInput,
+        ctx2,
+      );
+      // Second call: simulate state persisted from prior write
+      const prevState = JSON.parse(String(atomicWriteMock.mock.calls[atomicWriteMock.mock.calls.length - 1][1]));
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify(prevState));
+
+      // MCP tool → json
+      contextCrossingWarn(
+        { tool_name: 'mcp__context7__query-docs', session_id: 'kinds', tool_input: {}, tool_result: '{"a":1}' } as HookInput,
+        ctx2,
+      );
+
+      const finalState = JSON.parse(String(atomicWriteMock.mock.calls[atomicWriteMock.mock.calls.length - 1][1]));
+      expect(finalState.kindCounts).toBeDefined();
+      expect(finalState.kindCounts.code).toBe(1);
+      expect(finalState.kindCounts.json).toBe(1);
     });
   });
 });
