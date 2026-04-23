@@ -107,7 +107,7 @@ export function detectContentKind(toolName: string | undefined, sample: string |
   // Threshold keeps prose narratives (0-1 hit) safely on the prose side.
   let hits = 0;
   for (const re of CODE_SIGNAL_PATTERNS) {
-    const globalRe = re.flags.includes('g') ? re : new RegExp(re.source, re.flags + 'g');
+    const globalRe = re.flags.includes('g') ? re : new RegExp(re.source, `${re.flags}g`);
     const matches = head.matchAll(globalRe);
     for (const _ of matches) {
       hits++;
