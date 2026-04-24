@@ -357,6 +357,15 @@ Hotfix branches with bare names (e.g. `hotfix-auth-bug`) still trigger the pre-p
 
 If you need to override release-please's computed next version, use release-please's own [release-as footer](https://github.com/googleapis/release-please?tab=readme-ov-file#how-do-i-change-the-version-number) in the commit message.
 
+### Release Cadence
+
+Release PRs are driven by two triggers:
+
+1. **On every push to `main`** — release-please analyzes new conventional-commit types since the last tag. A `feat:` or `fix:` opens / updates the `chore(main): release X.Y.Z` PR.
+2. **Weekly cron (Mondays 09:00 UTC)** — forces a release-please run even if no push has landed since the last tag. Prevents "release drought" when feat commits sit on `main` without triggering an update.
+
+Release-please skips creating a PR when there's nothing to release, so the cron never produces empty or noisy release PRs. The cron is a *floor*, not a ceiling — bursty feat cadence (multiple releases per day) is still supported and expected.
+
 ## Testing
 
 ### Run All Tests
