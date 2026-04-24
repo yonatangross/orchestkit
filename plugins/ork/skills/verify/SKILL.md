@@ -249,6 +249,8 @@ Bash(command="npm test 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
+
 **Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
 
 ```python

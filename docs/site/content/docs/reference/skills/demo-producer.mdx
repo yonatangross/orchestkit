@@ -158,6 +158,19 @@ Compositions organized under `Production/` by format (Landscape, Vertical, Squar
 - **Corporate**: Professional, clean
 - **Energetic**: Upbeat, fast-paced
 
+## PushNotification on Completion (CC 2.1.110+)
+
+VHS recording and Remotion rendering commonly take 10–45 min per video, and full multi-variant productions (landscape + vertical + square) can exceed an hour. **After all output files are written and verified, call `PushNotification`** so the user knows the video is ready for review.
+
+```python
+PushNotification(
+  title="ork:demo-producer complete",
+  body=f"{topic}: {variants_count} variants rendered · output at {output_dir}"
+)
+```
+
+Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+
 ## Best Practices
 
 1. **Keep it focused** - One feature/concept per video

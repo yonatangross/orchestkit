@@ -23,9 +23,7 @@ export const COMPOSITIONS: Composition[] = [
       "core",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/ac596921e6535c7f52c0d6177b50803d5cbebecd-639x360.png",
-    "videoCdn": "https://cdn.sanity.io/files/8cv388wg/production/ebd9b9be8a68c1b174b30476a939282a26e76b4c.mp4"
+    ]
   },
   {
     "id": "Verify",
@@ -46,8 +44,7 @@ export const COMPOSITIONS: Composition[] = [
       "core",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/43bf6882afcd73f8f5ae8e35d312b32ded656eeb-639x360.png"
+    ]
   },
   {
     "id": "Commit",
@@ -68,8 +65,7 @@ export const COMPOSITIONS: Composition[] = [
       "core",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/66f43642b59e09d058ab03cfdd0d10073a2f3eba-639x360.png"
+    ]
   },
   {
     "id": "Explore",
@@ -90,8 +86,7 @@ export const COMPOSITIONS: Composition[] = [
       "core",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/d0741c09b66f877401ccfc27f956578e3ce47e2c-639x360.png"
+    ]
   },
   {
     "id": "Remember",
@@ -112,8 +107,7 @@ export const COMPOSITIONS: Composition[] = [
       "memory",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/7f4b1fcaf5783671e1cd06cc078206f85442dbf8-639x360.png"
+    ]
   },
   {
     "id": "Memory",
@@ -155,8 +149,7 @@ export const COMPOSITIONS: Composition[] = [
       "review",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/b187e003ab94d1e9b3eae5aae5e7d47a1fa7fc3d-639x360.png"
+    ]
   },
   {
     "id": "CreatePR",
@@ -177,8 +170,7 @@ export const COMPOSITIONS: Composition[] = [
       "review",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/a43efa564e0cb78e7edbf4d97bf919373ac9198e-639x360.png"
+    ]
   },
   {
     "id": "FixIssue",
@@ -199,8 +191,7 @@ export const COMPOSITIONS: Composition[] = [
       "review",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/43b1dc8b4b09894e4b81bdb54e46087e9b7b1246-639x360.png"
+    ]
   },
   {
     "id": "Doctor",
@@ -221,8 +212,7 @@ export const COMPOSITIONS: Composition[] = [
       "devops",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/5d0342006116a8ece0678441c5fe5a392d7b6c10-639x360.png"
+    ]
   },
   {
     "id": "Configure",
@@ -243,8 +233,7 @@ export const COMPOSITIONS: Composition[] = [
       "devops",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/daef6693e325ab9e6b5cd7df2c3bdb5252b7aeac-639x360.png"
+    ]
   },
   {
     "id": "Brainstorm",
@@ -286,8 +275,7 @@ export const COMPOSITIONS: Composition[] = [
       "ai",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/8c69c775078b8d410530eeda745c7b84cef3d7bb-639x360.png"
+    ]
   },
   {
     "id": "DemoProducer",
@@ -308,7 +296,6 @@ export const COMPOSITIONS: Composition[] = [
       "advanced",
       "landscape",
       "tri-terminal"
-    ],
-    "thumbnailCdn": "https://cdn.sanity.io/images/8cv388wg/production/5c6414c0d1a2024c1b7b2316becb78ca7f06eb7f-639x360.png"
+    ]
   }
 ];

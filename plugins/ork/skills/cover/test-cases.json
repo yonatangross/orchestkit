@@ -55,6 +55,17 @@
         "Should redirect to the verify skill for grading existing tests",
         "Does not run the 6-phase cover workflow for verification tasks"
       ]
+    },
+    {
+      "id": "monitor-test-execution-streaming",
+      "rule": null,
+      "query": "Run the full test suite with coverage and show me progress as it goes",
+      "expectedBehavior": [
+        "Runs npm test (or equivalent) with run_in_background=true",
+        "Uses Monitor(pid=...) to stream each line as a notification",
+        "Does NOT wait synchronously and dump the full output at the end",
+        "Does NOT poll TaskOutput in a loop"
+      ]
     }
   ]
 }

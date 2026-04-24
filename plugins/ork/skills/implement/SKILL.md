@@ -311,6 +311,8 @@ Agent(subagent_type="test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
+
 **Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning:
 
 ```python
@@ -415,14 +417,18 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 /loop 30m /ork:verify {FEATURE}    # Periodic quality gate
 ```
 
-> **Push notifications (CC 2.1.110+):** `/ork:implement` runs commonly take 10–30 min with parallel agents. Fire a `PushNotification` when the final synthesis step completes — the user has almost certainly context-switched. Requires Remote Control + "Push when Claude decides" config; fails silently if unavailable.
->
-> ```python
-> PushNotification(
->   title="ork:implement complete",
->   body=f"{FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify"
-> )
-> ```
+### PushNotification on Completion (CC 2.1.110+)
+
+`/ork:implement` runs commonly take 10–30 min with parallel agents. **At the final synthesis step, after the PR is opened and tests are green, call `PushNotification`** — the user has almost certainly context-switched.
+
+```python
+PushNotification(
+  title="ork:implement complete",
+  body=f"{FEATURE}: {tests_passing}/{tests_total} tests · PR #{pr_num} opened · ready for /ork:verify"
+)
+```
+
+Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Agent Coordination
 

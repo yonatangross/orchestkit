@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+."
 description: "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings."
 argument-hint: "[topic-or-feature]"
 user-invocable: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, PushNotification]
 context: inherit
 version: 1.1.0
 author: OrchestKit
@@ -170,6 +170,19 @@ Compositions organized under `Production/` by format (Landscape, Vertical, Squar
 - **Tech**: Electronic beats, UI sounds
 - **Corporate**: Professional, clean
 - **Energetic**: Upbeat, fast-paced
+
+## PushNotification on Completion (CC 2.1.110+)
+
+VHS recording and Remotion rendering commonly take 10–45 min per video, and full multi-variant productions (landscape + vertical + square) can exceed an hour. **After all output files are written and verified, call `PushNotification`** so the user knows the video is ready for review.
+
+```python
+PushNotification(
+  title="ork:demo-producer complete",
+  body=f"{topic}: {variants_count} variants rendered · output at {output_dir}"
+)
+```
+
+Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Best Practices
 

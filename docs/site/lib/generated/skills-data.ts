@@ -202,6 +202,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "cost-estimation.md",
         "data-locations.md",
         "jq-queries.md",
+        "otel-fields.md",
         "session-replay.md",
         "trends-analysis.md"
       ]
@@ -605,6 +606,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskCreate",
       "TaskUpdate",
       "TaskList",
+      "PushNotification",
       "mcp__memory__search_nodes"
     ],
     "skills": [
@@ -900,6 +902,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "fork-pattern.md",
         "handoff-schema.md",
         "mcp-detection.md",
+        "monitor-patterns.md",
         "schedule-wakeup.md",
         "tier-fallbacks.md",
         "worktree-agent-pattern.md"
@@ -1356,7 +1359,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Glob",
       "Task",
       "TaskCreate",
-      "TaskUpdate"
+      "TaskUpdate",
+      "PushNotification"
     ],
     "skills": [],
     "agent": null,
@@ -1611,9 +1615,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": null,
     "complexity": "complex",
-    "structure": {
-      "references": []
-    },
+    "structure": {},
     "plugins": [
       "ork"
     ],
