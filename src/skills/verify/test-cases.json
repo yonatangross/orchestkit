@@ -109,6 +109,17 @@
         "Re-screenshots affected routes and shows before/after diffs in gallery",
         "Limits annotation-fix cycles to max 3 rounds by default"
       ]
+    },
+    {
+      "id": "monitor-background-verification-scripts",
+      "rule": null,
+      "query": "Run type-check + lint + tests in parallel and report failures as they surface",
+      "expectedBehavior": [
+        "Launches each check with run_in_background=true",
+        "Uses Monitor(pid=...) on each background task to stream results",
+        "Reports the first failure as soon as it appears rather than waiting for all to finish",
+        "References chain-patterns/references/monitor-patterns.md for the pattern"
+      ]
     }
   ]
 }

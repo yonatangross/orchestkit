@@ -433,6 +433,8 @@ Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
+Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
+
 **Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
 
 ```python
