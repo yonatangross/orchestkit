@@ -32,7 +32,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 9. **Memory System** - Graph memory health
 10. **Claude Code Version & Channel** - Validates CC >= 2.1.111, detects release channel (stable/beta/alpha), recommends 2.1.111+ for `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
-12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes
+12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.7 (silent fallback otherwise)
 
@@ -99,7 +99,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 |----------|---------------|-----------|
 | **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `${CLAUDE_SKILL_DIR}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **12. MCP Status** | Enabled/disabled state, credential checks | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` |
+| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.7 — see below | inline |
 
@@ -161,3 +161,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")` or `Read("${
 | `references/schema-validation.md` | JSON schema compliance |
 | `references/report-format.md` | ASCII report templates and JSON CI output |
 | `references/version-compatibility.md` | CC version and channel validation |
+| `references/mcp-pinning-check.md` | HIGH-tier MCP `@latest` warning logic + tier source-of-truth |

@@ -18,6 +18,8 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 # - For memory: check MEMORY_FILE path is writable
 # - For agentation: check agentation-mcp package is installed (npx --yes dry-run)
 # - Flag any enabled MCP whose process would likely fail at startup
+# - HIGH-tier @latest pinning: see references/mcp-pinning-check.md
+#   (script: scripts/check-mcp-pinning.sh — exit 1 on HIGH-tier @latest)
 ```
 
 **Incorrect:**

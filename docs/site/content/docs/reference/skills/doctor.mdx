@@ -37,7 +37,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 9. **Memory System** - Graph memory health
 10. **Claude Code Version & Channel** - Validates CC >= 2.1.111, detects release channel (stable/beta/alpha), recommends 2.1.111+ for `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
-12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes
+12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.7 (silent fallback otherwise)
 
@@ -104,7 +104,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 |----------|---------------|-----------|
 | **10. CC Version & Channel** | Runtime version against minimum required, release channel (stable/beta/alpha) | load `$\{CLAUDE_SKILL_DIR\}/references/version-compatibility.md` |
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
-| **12. MCP Status** | Enabled/disabled state, credential checks | load `$\{CLAUDE_SKILL_DIR\}/rules/mcp-status-checks.md` |
+| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `$\{CLAUDE_SKILL_DIR\}/rules/mcp-status-checks.md` + `$\{CLAUDE_SKILL_DIR\}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.7 — see below | inline |
 
@@ -166,6 +166,7 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")` or `
 | `references/schema-validation.md` | JSON schema compliance |
 | `references/report-format.md` | ASCII report templates and JSON CI output |
 | `references/version-compatibility.md` | CC version and channel validation |
+| `references/mcp-pinning-check.md` | HIGH-tier MCP `@latest` warning logic + tier source-of-truth |
 
 
 ---
@@ -366,6 +367,8 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 # - For memory: check MEMORY_FILE path is writable
 # - For agentation: check agentation-mcp package is installed (npx --yes dry-run)
 # - Flag any enabled MCP whose process would likely fail at startup
+# - HIGH-tier @latest pinning: see references/mcp-pinning-check.md
+#   (script: scripts/check-mcp-pinning.sh — exit 1 on HIGH-tier @latest)
 ```
 
 **Incorrect:**
@@ -412,7 +415,7 @@ MCP Servers:
 
 ---
 
-## References (10)
+## References (11)
 
 ### Agents Validation
 
@@ -923,6 +926,91 @@ Default timeout: 120s (bash), 600s (CC 2.1.3+)
 | 0 | Success / Allow |
 | 1 | Error (logged, continues) |
 | 2 | Block (stops execution) |
+
+
+### Mcp Pinning Check
+
+# MCP Pinning Check (Category 12 sub-check)
+
+Warns when `.mcp.json` resolves HIGH-tier MCP servers to `@latest`. HIGH-tier
+upstream packages are pre-1.0 or beta-surface — a breaking change can land on
+any `npx -y` fetch with no signal.
+
+**Closes:** #1462. Split from #1446 (MCP audit).
+
+## Tier Source-of-Truth
+
+`src/skills/mcp-patterns/references/mcp-version-matrix.md`
+
+| Tier | Criteria | Packages |
+|---|---|---|
+| **HIGH** | Pre-1.0 upstream, API may change without notice | `@21st-dev/magic`, `agentation-mcp` |
+| **MEDIUM** | Active upstream, semver, used in many skills | `@upstash/context7-mcp`, `tavily-mcp`, `fal-ai-mcp` |
+| **LOW** | Stable API, calendar-versioned | `@modelcontextprotocol/server-sequential-thinking`, `@modelcontextprotocol/server-memory` |
+
+## Detection
+
+The check parses `.mcp.json` and for each non-disabled entry extracts the npm
+package + version specifier from `args` (handles both `npx -y pkg@x` and
+`sh -c "... npx -y pkg@x"` shapes). Local servers (e.g., `node ./server.mjs`)
+are skipped.
+
+For each enabled remote server:
+
+| Spec | Tier | Behavior |
+|---|---|---|
+| `pkg@&lt;concrete&gt;` | any | OK |
+| `pkg` or `pkg@latest` | HIGH | **WARN** (exit 1) |
+| `pkg` or `pkg@latest` | MEDIUM | informational only (exit 0) |
+| `pkg` or `pkg@latest` | LOW | silent (exit 0) |
+
+## Output
+
+**HIGH-tier @latest detected:**
+```
+MCP pinning: 2 HIGH-tier server(s) resolve to @latest
+    ⚠ 21st-dev-magic (@21st-dev/magic)
+    ⚠ agentation (agentation-mcp)
+    → Consider pinning to concrete versions in .mcp.json
+    → See src/skills/mcp-patterns/references/mcp-version-matrix.md
+```
+
+**MEDIUM-tier only:**
+```
+MCP pinning: 3 MEDIUM-tier server(s) at @latest (informational)
+    ℹ context7 (@upstash/context7-mcp)
+    ℹ tavily (tavily-mcp)
+    ℹ fal (fal-ai-mcp)
+```
+
+**OK:**
+```
+MCP pinning: OK (no HIGH-tier @latest entries)
+```
+
+## Script
+
+`src/skills/doctor/scripts/check-mcp-pinning.sh` — invokable standalone or via
+`/ork:doctor` Category 12.
+
+```bash
+# Standalone
+src/skills/doctor/scripts/check-mcp-pinning.sh
+
+# JSON for CI
+src/skills/doctor/scripts/check-mcp-pinning.sh --json
+
+# Test fixture
+src/skills/doctor/scripts/check-mcp-pinning.sh --mcp-json /tmp/test.json
+```
+
+Exit codes: `0` = OK or absent, `1` = HIGH-tier @latest found, `2` = usage error.
+
+## Tests
+
+`tests/skills/test-mcp-pinning-check.sh` — 18 assertions across 7 fixtures
+covering HIGH/MEDIUM/LOW tier classification, disabled entries, local servers,
+JSON output shape, and missing-file handling.
 
 
 ### Memory Health

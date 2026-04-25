@@ -7,7 +7,8 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/__tests__/**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**'],
+    // Property tests run via vitest.property.config.ts in their own CI job — see #1452.
+    exclude: ['**/node_modules/**', '**/dist/**', 'src/__tests__/property/**'],
     // Allow importing .mjs files from bin/
     alias: {
       '@bin': resolve(__dirname, 'bin'),
