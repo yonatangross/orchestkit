@@ -39,7 +39,7 @@ const PATTERNS: ReadonlyArray<{
   // github.com (public)
   {
     family: 'github',
-    re: /^https?:\/\/(github\.com)\/([^/\s]+)\/([^/\s]+)\/pull\/(\d+)(?:[\/?#].*)?$/i,
+    re: /^https?:\/\/(github\.com)\/([^/\s]+)\/([^/\s]+)\/pull\/(\d+)(?:[/?#].*)?$/i,
   },
   // GitHub Enterprise — host containing ".github." (e.g. "github.acme.com",
   // "ghe.acme.com" — note: GHE typically uses internal hostnames; we match the
@@ -47,22 +47,22 @@ const PATTERNS: ReadonlyArray<{
   // is best handled via prUrlTemplate (see configure skill).
   {
     family: 'github-enterprise',
-    re: /^https?:\/\/([a-z0-9.-]+\.github\.[a-z]+)\/([^/\s]+)\/([^/\s]+)\/pull\/(\d+)(?:[\/?#].*)?$/i,
+    re: /^https?:\/\/([a-z0-9.-]+\.github\.[a-z]+)\/([^/\s]+)\/([^/\s]+)\/pull\/(\d+)(?:[/?#].*)?$/i,
   },
   // GitLab.com (public)
   {
     family: 'gitlab',
-    re: /^https?:\/\/(gitlab\.com)\/((?:[^/\s]+\/)*[^/\s]+?)\/([^/\s]+)\/-\/merge_requests\/(\d+)(?:[\/?#].*)?$/i,
+    re: /^https?:\/\/(gitlab\.com)\/((?:[^/\s]+\/)*[^/\s]+?)\/([^/\s]+)\/-\/merge_requests\/(\d+)(?:[/?#].*)?$/i,
   },
   // Self-hosted GitLab — host starts with "gitlab." or contains "/gitlab/"
   {
     family: 'gitlab-self',
-    re: /^https?:\/\/(gitlab\.[a-z0-9.-]+)\/((?:[^/\s]+\/)*[^/\s]+?)\/([^/\s]+)\/-\/merge_requests\/(\d+)(?:[\/?#].*)?$/i,
+    re: /^https?:\/\/(gitlab\.[a-z0-9.-]+)\/((?:[^/\s]+\/)*[^/\s]+?)\/([^/\s]+)\/-\/merge_requests\/(\d+)(?:[/?#].*)?$/i,
   },
   // Bitbucket Cloud
   {
     family: 'bitbucket',
-    re: /^https?:\/\/(bitbucket\.org)\/([^/\s]+)\/([^/\s]+)\/pull-requests\/(\d+)(?:[\/?#].*)?$/i,
+    re: /^https?:\/\/(bitbucket\.org)\/([^/\s]+)\/([^/\s]+)\/pull-requests\/(\d+)(?:[/?#].*)?$/i,
   },
 ];
 
