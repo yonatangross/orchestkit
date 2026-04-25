@@ -1800,6 +1800,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agents-validation.md",
         "health-check-outputs.md",
         "hook-validation.md",
+        "mcp-pinning-check.md",
         "memory-health.md",
         "permission-rules.md",
         "remediation-guide.md",
@@ -1809,6 +1810,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "version-compatibility.md"
       ],
       "scripts": [
+        "check-mcp-pinning.sh",
         "check-plugin-health.sh"
       ]
     },

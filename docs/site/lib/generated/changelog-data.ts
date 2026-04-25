@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.68.0",
+    "date": "2026-04-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills,#117:** M117 adoption closeout — Monitor + Push + OTEL + cron ([#1494](https://github.com/yonatangross/orchestkit/issues/1494)) ([24cf12d](https://github.com/yonatangross/orchestkit/commit/24cf12d63b0ea4dc36c16c4c1d1fe7009b41398a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.67.0",
     "date": "2026-04-23",
     "compareUrl": "",

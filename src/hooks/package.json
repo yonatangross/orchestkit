@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:property": "vitest run --config vitest.property.config.ts",
     "lint:biome": "biome check src/",
     "lint:biome:fix": "biome check --write src/",
     "clean": "rm -rf dist coverage",
@@ -24,10 +25,11 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.2",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.18",
     "esbuild": "^0.27.2",
-    "@biomejs/biome": "^2.4.2",
+    "fast-check": "^4.7.0",
     "typescript": "^5.6.0",
     "vitest": "^4.0.18"
   },
