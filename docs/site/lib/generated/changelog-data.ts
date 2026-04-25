@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.67.0",
+    "date": "2026-04-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**#1489:** M121 observability consolidation ([#1492](https://github.com/yonatangross/orchestkit/issues/1492)) ([d5ea635](https://github.com/yonatangross/orchestkit/commit/d5ea6356290d720778e2cd76dfd2414ebedf5e34))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.66.0",
     "date": "2026-04-23",
     "compareUrl": "",

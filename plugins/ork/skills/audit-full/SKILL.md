@@ -9,7 +9,7 @@ version: 1.2.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: false
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, PushNotification, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 persuasion-type: discipline
@@ -156,6 +156,19 @@ Severity matrix: `Read("${CLAUDE_SKILL_DIR}/assets/severity-matrix.md")` for cla
 ### Completion Checklist
 
 Before finalizing the report, verify with `Read("${CLAUDE_SKILL_DIR}/checklists/audit-completion.md")`.
+
+### PushNotification on Completion (CC 2.1.110+)
+
+A full-codebase 1M-context audit typically runs 15–60 minutes on medium projects and can exceed that on large ones. **After the report file is written and the completion checklist passes, call `PushNotification`** so the finding counts are visible even if the user walked away.
+
+```python
+PushNotification(
+  title="ork:audit-full complete",
+  body=f"{SCOPE}: {critical}C/{high}H/{medium}M/{low}L findings · report at {report_path}"
+)
+```
+
+Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ---
 

@@ -28,6 +28,12 @@ on:
   push:
     branches:
       - main
+  # Weekly cron floor — prevents release drought when feat commits sit on main
+  # without triggering a release-please PR update. Runs Mondays 09:00 UTC.
+  # Release-please skips when there's nothing to release, so no empty PRs.
+  # See #1451 / CONTRIBUTING.md "Release Cadence".
+  schedule:
+    - cron: '0 9 * * 1'
   workflow_dispatch:
 
 permissions: read-all

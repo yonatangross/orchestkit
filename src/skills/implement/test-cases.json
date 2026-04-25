@@ -57,6 +57,18 @@
         "Researches current best practices with WebSearch and context7",
         "Uses Phase 1 discovery to identify existing patterns"
       ]
+    },
+    {
+      "id": "monitor-over-taskoutput-polling",
+      "rule": null,
+      "query": "Implement a feature with a 20-minute background test suite; watch progress as it runs",
+      "expectedBehavior": [
+        "Uses Monitor(pid=...) to stream test output line-by-line as notifications",
+        "Does NOT poll TaskOutput in a sleep-loop to check progress",
+        "Does NOT use the deprecated TaskOutput(block=true) variant",
+        "Still uses TaskOutput(task_id) — no block — for one-shot final-result reads after completion",
+        "References the chain-patterns/references/monitor-patterns.md canonical doc"
+      ]
     }
   ]
 }

@@ -37,6 +37,7 @@ Parse the user's argument to determine which report to show. If no argument prov
 | `cost` | Token cost estimation with cache savings | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/cost-estimation.md` |
 | `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/trends-analysis.md` |
 | `summary` | Unified view of all categories | All files | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
+| `otel` | CC 2.1.117 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation | `~/.claude/otel/*.jsonl` | `${CLAUDE_SKILL_DIR}/references/otel-fields.md` |
 
 ### Quick Start Example
 
@@ -58,7 +59,9 @@ jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, outp
 
 **`trends`** — Follow the 4-step process in `Read("${CLAUDE_SKILL_DIR}/references/trends-analysis.md")`: daily activity, model delegation, peak hours, all-time stats.
 
-**`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects.
+**`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects. If `~/.claude/otel/*.jsonl` exists with non-empty content, append the three OTEL panels from `otel-fields.md`; otherwise omit them (do not render empty panels).
+
+**`otel`** — Render the three CC 2.1.117 OTEL panels (top slash commands user-vs-model, per-effort cost breakdown, effort-vs-success correlation). See `Read("${CLAUDE_SKILL_DIR}/references/otel-fields.md")` for queries, graceful-fallback rules, and panel semantics. Falls back cleanly to "no OTEL data available (upgrade to CC ≥ 2.1.117)" when the files are absent or empty.
 
 ## Data Files
 
@@ -96,6 +99,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | `${CLAUDE_SKILL_DIR}/references/cost-estimation.md` | Pricing table, cost formula, daily cost queries |
 | `${CLAUDE_SKILL_DIR}/references/trends-analysis.md` | Daily activity, model delegation, peak hours queries |
 | `${CLAUDE_SKILL_DIR}/references/data-locations.md` | All data sources, file formats, CC session structure |
+| `${CLAUDE_SKILL_DIR}/references/otel-fields.md` | CC 2.1.117 OTEL fields (command_name, command_source, effort), queries, and dashboard panels |
 
 ## Important Notes
 

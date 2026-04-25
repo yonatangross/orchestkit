@@ -122,6 +122,18 @@
         "Updates task status progressively through each phase",
         "Shows activeForm spinner during execution"
       ]
+    },
+    {
+      "id": "monitor-agent-browser-streaming",
+      "rule": null,
+      "query": "Run a long agent-browser plan against staging; surface step failures early",
+      "expectedBehavior": [
+        "Spawns agent-browser with run_in_background=true",
+        "Uses Monitor(pid=expect_task.agent_id) to stream step output",
+        "Catches a failing step as it happens rather than waiting for full plan completion",
+        "Does NOT use the deprecated TaskOutput(block=true) variant",
+        "References chain-patterns/references/monitor-patterns.md"
+      ]
     }
   ]
 }

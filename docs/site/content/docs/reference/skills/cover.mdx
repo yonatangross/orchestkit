@@ -360,6 +360,10 @@ Next Steps
   /loop 10m npm test -- --coverage  # Watch coverage while coding
 ```
 
+### PushNotification on Completion (CC 2.1.110+)
+
+Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(title="ork:cover complete", body=f"\{SCOPE\}: \{coverage_pct\}% coverage · \{tests_generated\} tests · \{heal_loops\} heal iters")`. Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+
 ### Coverage Drift Monitor (CC 2.1.71)
 
 Optionally schedule weekly coverage drift detection:
@@ -405,6 +409,8 @@ Use `Monitor` for streaming test execution output from background agents:
 Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
+
+Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
 
