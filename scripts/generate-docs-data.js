@@ -1024,8 +1024,37 @@ function generate() {
     { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "ork", tags: ["advanced","landscape","tri-terminal"] }
   ];
 
-  // Merge CDN URLs from orchestkit-demos/out/cdn-urls.json (if it exists)
+  // Merge CDN URLs. Source priority:
+  //   1. orchestkit-demos/out/cdn-urls.json (when the demos repo is cloned alongside)
+  //   2. existing values in the previous compositions-data.ts (idempotency fallback)
+  //
+  // The fallback keeps the build idempotent: rebuilding without the demos repo
+  // present (CI, fresh clones, contributors without media access) preserves CDN
+  // values that were committed by previous runs that DID have the demos repo.
+  // Without this, every re-build strips CDN URLs and the CDN-pipeline test fails.
   const cdnUrlsPath = path.join(PROJECT_ROOT, 'orchestkit-demos', 'out', 'cdn-urls.json');
+  const existingCompPath = path.join(PROJECT_ROOT, 'docs', 'site', 'lib', 'generated', 'compositions-data.ts');
+
+  function loadExistingCdnValues() {
+    if (!fs.existsSync(existingCompPath)) return {};
+    try {
+      const text = fs.readFileSync(existingCompPath, 'utf-8');
+      const m = text.match(/export const COMPOSITIONS[\s\S]*?= (\[[\s\S]*?\]);/);
+      if (!m) return {};
+      // eslint-disable-next-line no-eval
+      const arr = eval(m[1]);
+      const map = {};
+      for (const c of arr) {
+        if (c && c.id && (c.thumbnailCdn || c.videoCdn)) {
+          map[c.id] = { thumbnailCdn: c.thumbnailCdn, videoCdn: c.videoCdn };
+        }
+      }
+      return map;
+    } catch {
+      return {};
+    }
+  }
+
   if (fs.existsSync(cdnUrlsPath)) {
     try {
       const cdnUrls = JSON.parse(fs.readFileSync(cdnUrlsPath, 'utf-8'));
@@ -1038,12 +1067,27 @@ function generate() {
       }
       const videoCount = compositions.filter(c => c.videoCdn).length;
       const thumbCount = compositions.filter(c => c.thumbnailCdn).length;
-      console.log(`${GREEN}  CDN URLs merged: ${thumbCount} thumbnails, ${videoCount} videos${NC}`);
+      console.log(`${GREEN}  CDN URLs merged from cdn-urls.json: ${thumbCount} thumbnails, ${videoCount} videos${NC}`);
     } catch (err) {
       console.log(`${YELLOW}  Warning: Could not parse cdn-urls.json: ${err.message}${NC}`);
     }
   } else {
-    console.log(`${YELLOW}  Note: cdn-urls.json not found — CDN fields omitted${NC}`);
+    const existing = loadExistingCdnValues();
+    let preserved = 0;
+    for (const comp of compositions) {
+      const prior = existing[comp.id];
+      if (prior) {
+        if (prior.thumbnailCdn) { comp.thumbnailCdn = prior.thumbnailCdn; preserved++; }
+        if (prior.videoCdn) comp.videoCdn = prior.videoCdn;
+      }
+    }
+    if (preserved > 0) {
+      const videoCount = compositions.filter(c => c.videoCdn).length;
+      console.log(`${GREEN}  CDN URLs preserved from previous build: ${preserved} thumbnails, ${videoCount} videos${NC}`);
+      console.log(`${YELLOW}  Note: cdn-urls.json not found — to refresh, clone orchestkit-demos beside this repo${NC}`);
+    } else {
+      console.log(`${YELLOW}  Note: cdn-urls.json not found and no prior CDN values to preserve — CDN fields omitted${NC}`);
+    }
   }
 
   // Generate split modules for tree-shaking (docs/site/lib/generated/)
