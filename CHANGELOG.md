@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.69.0](https://github.com/yonatangross/orchestkit/compare/v7.68.0...v7.69.0) (2026-04-25)
+
+
+### Features
+
+* **#117:** close M117 — doctor MCP pinning + hook property tests ([#1496](https://github.com/yonatangross/orchestkit/issues/1496)) ([6adc493](https://github.com/yonatangross/orchestkit/commit/6adc4933977a2760c6868e746fed827c6a5fbf2d))
+
 ## [7.68.0](https://github.com/yonatangross/orchestkit/compare/v7.67.0...v7.68.0) (2026-04-25)
 
 
