@@ -100,13 +100,18 @@ export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // Get error information from the input
   const errorMessage = input.tool_error || '';
   const toolName = input.tool_name || 'unknown';
+  // CC 2.1.119: duration_ms is set server-side on PostToolUse + PostToolUseFailure
+  // — accurate for streaming/async tools where local Date.now() would miss
+  // dispatch/queue overhead. Falls back to undefined for older CC versions.
+  const durationMs = typeof input.duration_ms === 'number' ? input.duration_ms : undefined;
 
   // Skip if no error info
   if (!errorMessage) {
     return outputSilentSuccess();
   }
 
-  ctx.log('failure-handler', `Tool ${toolName} failed: ${errorMessage.slice(0, 200)}`);
+  const durationStr = durationMs !== undefined ? ` (${durationMs}ms)` : '';
+  ctx.log('failure-handler', `Tool ${toolName} failed${durationStr}: ${errorMessage.slice(0, 200)}`);
 
   // Track failures — auto-enable debug after threshold
   trackFailureAndMaybeEnableDebug();
@@ -126,6 +131,9 @@ export function failureHandler(input: HookInput, ctx: HookContext = NOOP_CTX): H
       parts.push(`- Retryable: wait ${structured.retry_after}s before retrying`);
     } else if (!structured.retryable) {
       parts.push(`- Not retryable${structured.owner_action_required ? ' — owner action required' : ''}`);
+    }
+    if (durationMs !== undefined) {
+      parts.push(`- Failed after ${durationMs}ms`);
     }
     return outputWithContext(parts.join('\n'));
   }

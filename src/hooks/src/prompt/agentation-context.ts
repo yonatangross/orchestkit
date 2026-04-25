@@ -9,10 +9,30 @@
  *
  * Issue #638: Add prompt hook for annotation context injection.
  *
- * Hooks cannot call MCP tools directly, so this simply injects a context
- * block that prompts Claude to call agentation_get_all_pending itself.
+ * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext.
  *
- * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
+ * MIGRATION NOTE (CC 2.1.118+, M122 #1501):
+ * The `type: "mcp_tool"` hook dispatch type lets a hook invoke an MCP tool
+ * directly without spawning a subprocess. When the user base is fully on
+ * CC ≥ 2.1.118, the reminder-injection here can be replaced with a direct
+ * dispatch in hooks.json:
+ *
+ *   {
+ *     "UserPromptSubmit": [{
+ *       "type": "mcp_tool",
+ *       "tool": "mcp__agentation__agentation_get_all_pending",
+ *       "input": {},
+ *       "outputMapping": "additionalContext",
+ *       "condition": "agentation_enabled"
+ *     }]
+ *   }
+ *
+ * This eliminates the round-trip: hook injects reminder → model reads it →
+ * model calls MCP. With direct dispatch, the MCP result is injected once.
+ *
+ * See `src/skills/chain-patterns/references/mcp-tool-hooks.md` for the full
+ * pattern and tier compatibility notes. Migration is deferred to a follow-up
+ * once the floor reliably gates 2.1.118.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';

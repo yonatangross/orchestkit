@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.69.0",
+    "date": "2026-04-25",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**#117:** close M117 — doctor MCP pinning + hook property tests ([#1496](https://github.com/yonatangross/orchestkit/issues/1496)) ([6adc493](https://github.com/yonatangross/orchestkit/commit/6adc4933977a2760c6868e746fed827c6a5fbf2d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.68.0",
     "date": "2026-04-25",
     "compareUrl": "",

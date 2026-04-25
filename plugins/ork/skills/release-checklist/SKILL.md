@@ -23,6 +23,8 @@ Sequential release gate for OrchestKit. Each step reports `[PASS]` or `[FAIL]`. 
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/release-flow.md")` for why the order matters and hotfix guidance.
 
+> **CC ≥ 2.1.118 (M122):** Pre-release gate now includes `claude plugin tag <version> --dry-run` to validate the manifest hierarchy. Add to the gate sequence after manifest count checks. See `src/skills/chain-patterns/references/plugin-tag.md`.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |

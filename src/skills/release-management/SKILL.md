@@ -31,6 +31,8 @@ allowed-tools:
 
 Automate releases with `gh release`, semantic versioning, and changelog generation.
 
+> **CC ≥ 2.1.118 (M122):** `claude plugin tag <version>` validates the plugin manifest hierarchy (marketplace.json, plugin.json, package.json, version.txt) before tagging. Runs `--dry-run` in CI before release-please opens its release PR; catches manifest drift early. See `src/skills/chain-patterns/references/plugin-tag.md`.
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**

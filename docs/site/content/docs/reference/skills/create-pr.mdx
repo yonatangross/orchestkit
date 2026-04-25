@@ -23,6 +23,16 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 /ork:create-pr "Add user authentication"
 ```
 
+> **CC ≥ 2.1.119 multi-host note (M122):** PR creation works against GitHub, GitLab, Bitbucket, and GitHub Enterprise. Detect the target host from the configured remote (`git remote -v`) and branch on the host family for the right CLI:
+>
+> | Host family | CLI |
+> |---|---|
+> | github / github-enterprise | `gh pr create` (with `GH_HOST=&lt;host&gt;` for GHE) |
+> | gitlab / gitlab-self | `glab mr create` |
+> | bitbucket | `bb pr create` |
+>
+> Custom enterprise URLs: `prUrlTemplate` setting (see `src/skills/configure/` and `src/skills/chain-patterns/references/pr-from-platform.md`).
+
 ## Argument Resolution
 
 ```python

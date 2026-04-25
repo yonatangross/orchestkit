@@ -64,6 +64,24 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ steps.app-token.outputs.token }}
 
+      # CC 2.1.118 (M122 #1505): validate the plugin manifest hierarchy after
+      # release-please opens its release PR. Catches drift between
+      # marketplace.json / plugin.json / package.json / version.txt before
+      # the release ships. --dry-run runs validation only — the actual tag
+      # is created by release-please's GitHub Release step.
+      #
+      # Skipped if the runner doesn't have the `claude` CLI installed
+      # (avoids hard-failing CI for older runner images).
+      - name: Validate plugin tag (CC 2.1.118+)
+        if: ${{ steps.release.outputs.release_created == 'true' }}
+        continue-on-error: true
+        run: |
+          if command -v claude >/dev/null 2>&1; then
+            claude plugin tag "${{ steps.release.outputs.version }}" --dry-run
+          else
+            echo "::notice::claude CLI not present on runner — skipping plugin tag validation"
+          fi
+
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled
   # by release-please extra-files in .release-please-config.json.
   # The previous post-release job was removed because it failed on protected

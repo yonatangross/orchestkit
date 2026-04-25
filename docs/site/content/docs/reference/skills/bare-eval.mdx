@@ -95,6 +95,29 @@ OrchestKit's eval scripts (`npm run eval:skill`) auto-detect bare mode:
 **Bare calls:** Trigger classification, force-skill, baseline, all grading.
 **Never bare:** `run_with_skill` (needs plugin context for routing tests).
 
+### CC 2.1.119: `--print` honors agent `tools:` / `disallowedTools:` (M122)
+
+Before CC 2.1.119, `--print` mode ran with the full default tool set regardless of the agent's frontmatter `tools:` and `disallowedTools:`. Bare-eval grading was effectively ungated — graders could call any tool they wanted, even if the agent definition restricted them.
+
+**As of 2.1.119, `--print` enforces the agent's declared tool surface.** Implications for eval design:
+
+| Consequence | Action |
+|---|---|
+| Eval graders that relied on unrestricted tool access may now fail | Audit grader prompts for tools they actually need; whitelist explicitly via the agent's `tools:` frontmatter |
+| Eval results match interactive runs | Reproducibility improves — grading what the model can actually do, not what it could do in an unsandboxed `--print` |
+| `--agent &lt;name&gt;` also honors `permissionMode` in `--print` | Permission-gated tools (Bash, Edit) require either `permissionMode: acceptEdits` or explicit allowlists in the agent definition |
+
+Migration test:
+
+```bash
+# Run an eval against an agent with a deliberately tight tools: list.
+# Graders that previously called Read/Bash freely will now fail unless those
+# tools are declared on the agent.
+claude -p "$prompt" --bare --print --agent grader-test
+```
+
+If the grader fails with a "tool not permitted" error, add the required tool to the agent's `tools:` frontmatter and re-run.
+
 ## Performance
 
 | Scenario | Without --bare | With --bare | Savings |

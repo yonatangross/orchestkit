@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.117';
+export const MIN_CC_VERSION = '2.1.118';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -406,6 +406,26 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'retention_expands_tasks_backups', minVersion: '2.1.117', description: 'cleanupPeriodDays now covers ~/.claude/tasks/, ~/.claude/shell-snapshots/, ~/.claude/backups/ (previously only transcripts)' },
   { feature: 'native_bfs_ugrep',               minVersion: '2.1.117', description: 'Native builds replace Glob/Grep tools with embedded bfs and ugrep through Bash tool for faster searches (Windows and npm builds unchanged)' },
   { feature: 'opus_47_context_window_fix',     minVersion: '2.1.117', description: 'Opus 4.7 sessions now correctly compute /context percentage against 1M context window instead of 200K (was causing inflated percentages and too-early autocompacts)' },
+  // 2.1.118 (2026-04-23) — mcp_tool hook type, plugin tag, autoMode $defaults, named themes
+  { feature: 'mcp_tool_hook_type',             minVersion: '2.1.118', description: 'Hooks can invoke MCP tools directly via type:"mcp_tool" instead of spawning a subagent — see src/skills/chain-patterns/references/mcp-tool-hooks.md' },
+  { feature: 'claude_plugin_tag',              minVersion: '2.1.118', description: 'claude plugin tag command for plugin release tagging with version validation — see src/skills/chain-patterns/references/plugin-tag.md' },
+  { feature: 'auto_mode_defaults_extension',   minVersion: '2.1.118', description: 'autoMode.allow/soft_deny/environment accept "$defaults" sentinel to extend (instead of replace) base policy' },
+  { feature: 'named_themes_directory',         minVersion: '2.1.118', description: 'Named/custom themes via ~/.claude/themes/ + plugin themes/ directory — plugins can ship themes' },
+  { feature: 'disable_updates_env',            minVersion: '2.1.118', description: 'DISABLE_UPDATES env var (stricter than DISABLE_AUTOUPDATER) — blocks all update channels' },
+  { feature: 'usage_command_merge',            minVersion: '2.1.118', description: '/cost + /stats merged into /usage — skill copy referencing the old commands should migrate' },
+  // 2.1.119 (2026-04-24) — duration_ms, OTEL tool_use_id + input_size, --from-pr multi-host, --print agent tools enforcement
+  { feature: 'posttool_duration_ms',           minVersion: '2.1.119', description: 'PostToolUse + PostToolUseFailure inputs include duration_ms — server-measured per-tool latency, accurate for streaming/async tools' },
+  { feature: 'otel_tool_use_id_attr',          minVersion: '2.1.119', description: 'OTEL tool_result and tool_decision events carry tool_use_id — enables PreToolUse/PostToolUse correlation in tracing' },
+  { feature: 'otel_tool_input_size_bytes',     minVersion: '2.1.119', description: 'OTEL tool_result events include tool_input_size_bytes — surfaces over-sized tool inputs that bloat context' },
+  { feature: 'from_pr_multi_host',             minVersion: '2.1.119', description: '--from-pr accepts GitLab MR, Bitbucket PR, and GitHub Enterprise URLs — see src/skills/chain-patterns/references/pr-from-platform.md' },
+  { feature: 'print_agent_tools_enforced',     minVersion: '2.1.119', description: '--print mode honors agent tools: and disallowedTools: — eval reproducibility matches interactive mode' },
+  { feature: 'agent_permission_mode_print',    minVersion: '2.1.119', description: '--agent <name> honors permissionMode in --print mode — was previously ignored' },
+  { feature: 'pr_url_template_setting',        minVersion: '2.1.119', description: 'prUrlTemplate setting for custom code-review URL formatting (e.g., enterprise GitLab/Bitbucket)' },
+  { feature: 'config_persists_settings',       minVersion: '2.1.119', description: '/config settings persist to ~/.claude/settings.json with override precedence' },
+  { feature: 'powershell_auto_approve',        minVersion: '2.1.119', description: 'PowerShell tool auto-approves in permission mode (parity with Bash on POSIX)' },
+  { feature: 'statusline_effort_thinking',     minVersion: '2.1.119', description: 'Status line stdin includes effort.level + thinking.enabled — exposes runtime mode for custom statuslines' },
+  { feature: 'blocked_marketplaces_pattern',   minVersion: '2.1.119', description: 'blockedMarketplaces enforces hostPattern/pathPattern — plus 2.1.117 enforcement points fix' },
+  { feature: 'claude_code_hide_cwd_env',       minVersion: '2.1.119', description: 'CLAUDE_CODE_HIDE_CWD env var hides cwd from statusline (privacy/screenshare)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

@@ -110,6 +110,16 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 > **CC ≥ 2.1.116 note:** the `gh` calls below can hit GitHub's API rate limit on very active repos. When the Bash tool surfaces a rate-limit hint, **stop and wait for reset** — do not retry in a loop. See `ork:github-operations` for the full guidance.
 
+> **CC ≥ 2.1.119 multi-host note (M122):** `--from-pr` now accepts GitLab MR, Bitbucket PR, and GitHub Enterprise URLs. Detect the host with `parsePrUrl` from `src/hooks/src/lib/pr-host-parser.ts` and branch on `family` for the right CLI:
+>
+> | Family | CLI |
+> |---|---|
+> | `github` / `github-enterprise` | `gh pr view/diff/checks` (with `GH_HOST=<enterprise-host>` for GHE) |
+> | `gitlab` / `gitlab-self` | `glab mr view/diff/ci` (or REST `/projects/:id/merge_requests/:iid`) |
+> | `bitbucket` | `bb pr` (or REST `/repositories/:ws/:repo/pullrequests/:id`) |
+>
+> Falls back to `github.com` when the URL doesn't match any pattern. Custom enterprise hosts: configure `prUrlTemplate` (see `src/skills/configure/`). Full pattern: `src/skills/chain-patterns/references/pr-from-platform.md`.
+
 ```bash
 # Get PR details
 gh pr view $PR_NUMBER --json title,body,files,additions,deletions,commits,author

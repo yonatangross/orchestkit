@@ -152,6 +152,18 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/cc-version-settings.md")` fo
 
 Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
 
+### CC 2.1.119: `prUrlTemplate` (M122)
+
+For enterprise GitLab / GitHub Enterprise / Bitbucket installations with non-standard URL shapes, set `prUrlTemplate` in `~/.claude/settings.json` (or project-level) to override URL construction in `review-pr` / `create-pr` / `fix-issue`:
+
+```json
+{
+  "prUrlTemplate": "https://gitlab.acme.com/{owner}/{repo}/-/merge_requests/{n}"
+}
+```
+
+Tokens: `{host}`, `{owner}`, `{repo}`, `{n}`. See `src/skills/chain-patterns/references/pr-from-platform.md` for the full host-family table and skill-side branching pattern.
+
 ## Step 10: Webhook & Telemetry Configuration
 
 Configure dual-channel telemetry for streaming session data to HQ or your own API.

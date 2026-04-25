@@ -11,6 +11,8 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 
 Sync the latest OrchestKit release to external knowledge systems.
 
+> **CC ≥ 2.1.118 (M122):** Sync triggers on the new `claude plugin tag` annotated tag (in addition to plain `git tag`). The tag's annotation embeds the plugin manifest version, which release-sync uses as the canonical source-of-truth for the version being synced. See `src/skills/chain-patterns/references/plugin-tag.md`.
+
 ## What This Does
 
 1. Reads the latest CHANGELOG entry, CLAUDE.md, and hook README
