@@ -95,6 +95,80 @@ stamp_marketplace_json() {
   fi
 }
 
+# ── docs/site MDX (pattern-based, no markers) ───────────────────────────────
+# MDX renders HTML comments literally, so the marker approach used for
+# README/CLAUDE.md doesn't work here. Instead we replace explicit, safe
+# phrasings. Add new patterns as new phrasings appear; keep them tight to
+# avoid hitting unrelated numbers (file sizes, percentages, code samples).
+apply_docs_mdx_patterns() {
+  local file="$1"
+  local sed_in
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed_in=(sed -i '' -E)
+  else
+    sed_in=(sed -i -E)
+  fi
+
+  # Three-tuple "X skills, Y agents, Z hooks" (with or without "and")
+  "${sed_in[@]}" "s/[0-9]+ skills, [0-9]+ agents, and [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, and ${HOOKS} hooks/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ skills and [0-9]+ agents/${SKILLS} skills and ${AGENTS} agents/g" "$file"
+
+  # All patterns below MUST be unambiguous about referring to the OrchestKit total.
+  # Generic phrasings like "All N skills", "Agents (N)", "Hooks (N)", "[Category] Hooks (N)",
+  # "Total | **N**" are intentionally NOT included — they catch workflow sub-counts,
+  # category breakdowns, and unrelated table totals (analytics tables, sample JSON specs).
+  # When a new total-count phrasing appears in a doc, add it here EXPLICITLY.
+
+  # Skills-specific
+  "${sed_in[@]}" "s/OrchestKit's [0-9]+ skills/OrchestKit's ${SKILLS} skills/g" "$file"
+  "${sed_in[@]}" "s/title=\"[0-9]+ Skills\"/title=\"${SKILLS} Skills\"/g" "$file"
+  "${sed_in[@]}" "s/All [0-9]+ command skills/All ${INVOCABLE} command skills/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ command skills \\(user-invocable/${INVOCABLE} command skills (user-invocable/g" "$file"
+  "${sed_in[@]}" "s/dependency edges across connected skills \\(out of [0-9]+ total\\)/dependency edges across connected skills (out of ${SKILLS} total)/g" "$file"
+  "${sed_in[@]}" "s/### Skills \\([0-9]+\\) inject/### Skills (${SKILLS}) inject/g" "$file"
+
+  # Agents-specific
+  "${sed_in[@]}" "s/OrchestKit includes \\*\\*[0-9]+ specialized agents/OrchestKit includes **${AGENTS} specialized agents/g" "$file"
+  "${sed_in[@]}" "s/^# [0-9]+ Specialists,/# ${AGENTS} Specialists,/g" "$file"
+  "${sed_in[@]}" "s/all [0-9]+ existing agents/all ${AGENTS} existing agents/g" "$file"
+  "${sed_in[@]}" "s/^## The [0-9]+ Agents by Category/## The ${AGENTS} Agents by Category/g" "$file"
+  "${sed_in[@]}" "s/### Agents \\([0-9]+\\) activate/### Agents (${AGENTS}) activate/g" "$file"
+  "${sed_in[@]}" "s/OrchestKit's [0-9]+ agents/OrchestKit's ${AGENTS} agents/g" "$file"
+  "${sed_in[@]}" "s/^Agents:[[:space:]]+[0-9]+ registered/Agents:     ${AGENTS} registered/g" "$file"
+  "${sed_in[@]}" "s/title=\"[0-9]+ Agents\"/title=\"${AGENTS} Agents\"/g" "$file"
+  "${sed_in[@]}" "s/Complete reference for all [0-9]+ OrchestKit agents/Complete reference for all ${AGENTS} OrchestKit agents/g" "$file"
+
+  # Hooks-specific
+  "${sed_in[@]}" "s/[0-9]+ Hooks: What Fires When/${HOOKS} Hooks: What Fires When/g" "$file"
+  "${sed_in[@]}" "s/OrchestKit's [0-9]+ hooks/OrchestKit's ${HOOKS} hooks/g" "$file"
+  "${sed_in[@]}" "s/consolidates [0-9]+ hooks/consolidates ${HOOKS} hooks/g" "$file"
+  "${sed_in[@]}" "s/compiles [0-9]+ hooks/compiles ${HOOKS} hooks/g" "$file"
+  "${sed_in[@]}" "s/With [0-9]+ hooks,/With ${HOOKS} hooks,/g" "$file"
+  "${sed_in[@]}" "s/All [0-9]+ hooks are written in TypeScript/All ${HOOKS} hooks are written in TypeScript/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ hooks across [0-9]+ categories/${HOOKS} hooks across 12 categories/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ hooks active/${HOOKS} hooks active/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ global hook entries/${HOOKS_GLOBAL} global hook entries/g" "$file"
+  "${sed_in[@]}" "s/### Hooks \\([0-9]+\\) fire/### Hooks (${HOOKS}) fire/g" "$file"
+  "${sed_in[@]}" "s/title=\"[0-9]+ Hooks\" href/title=\"${HOOKS} Hooks\" href/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ total: [0-9]+ global hooks, [0-9]+ agent-scoped hooks/${HOOKS} total: ${HOOKS_GLOBAL} global hooks, ${HOOKS_AGENT} agent-scoped hooks/g" "$file"
+  "${sed_in[@]}" "s/[0-9]+ active \\([0-9]+ global, [0-9]+ agent,/${HOOKS} active (${HOOKS_GLOBAL} global, ${HOOKS_AGENT} agent,/g" "$file"
+  # By-the-numbers table in hooks/overview.mdx — anchor on adjacent rows so we don't hit
+  # arbitrary "**Total** | **N**" rows in unrelated tables (analytics, etc.)
+  "${sed_in[@]}" "s/\\| \\*\\*Global hooks\\*\\* \\| [0-9]+ \\|/| **Global hooks** | ${HOOKS_GLOBAL} |/g" "$file"
+  "${sed_in[@]}" "s/\\| \\*\\*Agent-scoped hooks\\*\\* \\| [0-9]+ \\|/| **Agent-scoped hooks** | ${HOOKS_AGENT} |/g" "$file"
+  "${sed_in[@]}" "s/\\| \\*\\*Total\\*\\* \\| \\*\\*[0-9]+\\*\\* \\| Registered in/| **Total** | **${HOOKS}** | Registered in/g" "$file"
+}
+
+stamp_docs_mdx() {
+  local docs_dir="$PROJECT_ROOT/docs/site/content"
+  if [[ ! -d "$docs_dir" ]]; then return; fi
+
+  while IFS= read -r -d '' file; do
+    apply_docs_mdx_patterns "$file"
+  done < <(find "$docs_dir" -type f -name '*.mdx' -print0)
+}
+
 # ── Version sync ────────────────────────────────────────────────────────────
 # package.json is the source of truth; propagate to 6 sibling files so a single
 # bump stays authoritative. plugins/ork/.claude-plugin/plugin.json is NOT
@@ -195,6 +269,21 @@ if [[ "${1:-}" == "--check" ]]; then
     rm "$TMP"
   fi
 
+  # Check docs/site MDX
+  DOCS_DIR="$PROJECT_ROOT/docs/site/content"
+  if [[ -d "$DOCS_DIR" ]]; then
+    while IFS= read -r -d '' file; do
+      TMP=$(mktemp)
+      cp "$file" "$TMP"
+      apply_docs_mdx_patterns "$TMP"
+      if ! diff -q "$file" "$TMP" >/dev/null 2>&1; then
+        echo "STALE: $file"
+        STALE=1
+      fi
+      rm "$TMP"
+    done < <(find "$DOCS_DIR" -type f -name '*.mdx' -print0)
+  fi
+
   if [[ $STALE -eq 1 ]]; then
     echo "Run 'bash scripts/stamp-counts.sh' to fix."
     exit 1
@@ -211,6 +300,8 @@ for file in "${MARKER_FILES[@]}"; do
 done
 
 stamp_marketplace_json
+
+stamp_docs_mdx
 
 sync_versions
 
