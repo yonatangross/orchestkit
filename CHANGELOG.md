@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.71.1](https://github.com/yonatangross/orchestkit/compare/v7.71.0...v7.71.1) (2026-04-26)
+
+
+### Miscellaneous
+
+* **design:** align Bet B refs to M124 + close-ref M118 trail ([#1512](https://github.com/yonatangross/orchestkit/issues/1512)) ([ebb1c77](https://github.com/yonatangross/orchestkit/commit/ebb1c77db89c996bfe24a1cc853d3ccee5b5f363)), closes [#1465](https://github.com/yonatangross/orchestkit/issues/1465) [#1466](https://github.com/yonatangross/orchestkit/issues/1466) [#1467](https://github.com/yonatangross/orchestkit/issues/1467)
+
 ## [7.71.0](https://github.com/yonatangross/orchestkit/compare/v7.70.0...v7.71.0) (2026-04-26)
 
 
