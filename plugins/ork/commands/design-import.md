@@ -253,6 +253,6 @@ Next: /ork:design-ship <bundle_id>   # to open PR
 
 ## Limitations
 
-- **No public Claude Design API yet**: bundles are one-shot exports. To iterate, re-export from claude.ai/design and re-import. (See Bet B for the future drift-sync workflow.)
+- **No public Claude Design API yet**: bundles are one-shot exports. To iterate, re-export from claude.ai/design and re-import. The reverse-path (drift detection + refinement prompt) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391, #1393, #1394, #1395, #1397.
 - **Schema is provisional**: Claude Design has not published a stable bundle schema. The orchestrator agent adapts to deviations but may need updates as the format stabilizes.
 - **Asset URLs are referenced, not downloaded**: bundle `asset_urls` are kept as-is. If you need them in-repo, run a separate sync step.

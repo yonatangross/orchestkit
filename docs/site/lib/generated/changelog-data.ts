@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.71.0",
+    "date": "2026-04-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**M118:** elicitation retrofit (5 issues) ([#1510](https://github.com/yonatangross/orchestkit/issues/1510)) ([b2577df](https://github.com/yonatangross/orchestkit/commit/b2577df5aec0cd5164d514af8b362b13f9a9ce46))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.70.0",
     "date": "2026-04-26",
     "compareUrl": "",
