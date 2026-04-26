@@ -51,7 +51,7 @@ OrchestKit supports 10 MCP servers for web search, component registries, design 
 See the full **[MCP Servers guide](/docs/foundations/mcp-servers)** for:
 - All 10 MCPs organized by tier (bundled, API key required, user-installable)
 - Recommended MCPs by project type (React, backend, design system, AI/LLM)
-- Complete agent-to-MCP mapping (all 36 agents)
+- Complete agent-to-MCP mapping (all 37 agents)
 - Setup instructions, token overhead, and graceful degradation
 
 **Quick start**: context7, memory, and sequential-thinking work with zero config. Tavily needs a free API key from [app.tavily.com](https://app.tavily.com).
@@ -84,6 +84,24 @@ OrchestKit ships with 8 chord keybindings for the most-used skills. Press the fi
 | `ctrl+k ctrl+h` | `/ork:help` | Skill directory |
 
 These are defined in `settings.json` and can be customized via `/ork:configure` or by editing `src/settings/ork.settings.json`.
+
+## Fullscreen Rendering
+
+Claude Code v2.1.89+ ships an alternate rendering path that eliminates flicker, keeps memory flat in long conversations, and adds mouse support. Helpful in VS Code's integrated terminal, tmux, and iTerm2 where rendering throughput is the bottleneck.
+
+Enable it once and it persists:
+
+```bash
+/tui fullscreen
+```
+
+Or set it directly in `~/.claude/settings.json`:
+
+```json
+{ "tui": "fullscreen" }
+```
+
+To disable: `/tui default`. Trade-offs (native `Cmd+f`, terminal selection) and tmux/iTerm caveats are covered in the official docs: [Fullscreen rendering](https://code.claude.com/docs/en/fullscreen).
 
 ## Status Line
 
