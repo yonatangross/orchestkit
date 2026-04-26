@@ -192,7 +192,7 @@ This makes design intent traceable backward from any merged PR — the answer to
 
 ## Limitations (current preview)
 
-- **No public Claude Design API yet** — bundles are a one-shot export. To iterate on a design, re-export from claude.ai/design and re-run `/ork:design-ship`. A future bidirectional sync (Bet B in our roadmap) will close this loop programmatically.
+- **No public Claude Design API yet** — bundles are a one-shot export. To iterate on a design, re-export from claude.ai/design and re-run `/ork:design-ship`. The reverse path (detect that the live UI has drifted from the imported design and emit a refinement prompt for claude.ai/design) is tracked as **M124 — Claude Design Drift Sync (Bet B)** with 5 issues: design-drift-detector agent (#1395), `/ork:design-iterate` skill (#1393), design-review PR hook (#1391), drift-sync cookbook (#1394), monthly dogfood report (#1397).
 - **No auto-merge** — the skill opens the PR; humans review and merge.
 - **Schema is provisional** — the orchestrator agent adapts to schema changes but may need updates as the Claude Design bundle format stabilizes.
 
