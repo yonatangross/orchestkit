@@ -225,5 +225,5 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 ## Limitations
 
 - **No auto-merge**: this skill opens the PR; humans review and merge.
-- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `/ork:design-ship`. (See Bet B for the future drift-sync workflow.)
+- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `/ork:design-ship`. The reverse-path (live UI drift → refinement prompt for claude.ai/design) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391 (PR hook), #1393 (`/ork:design-iterate`), #1395 (design-drift-detector agent).
 - **Single-bundle scope**: one invocation, one bundle, one PR. Multi-bundle batches are not supported.
