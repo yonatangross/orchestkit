@@ -3,6 +3,11 @@
  *
  * Form schema for `ork:release-sync` target selection (M118 #1468).
  * Replaces 3 sequential AskUserQuestion calls with one checkbox form.
+ *
+ * IMPORTANT — all targets default to `false`. OrchestKit is an open-source
+ * plugin; the targets (NotebookLM notebook IDs, HQ KB, Slack channels) are
+ * USER-PRIVATE infrastructure that the plugin cannot assume is configured.
+ * Users explicitly opt in per release; the form pre-checks nothing.
  */
 
 export const releaseSyncTargetsSchema = {
@@ -11,18 +16,19 @@ export const releaseSyncTargetsSchema = {
     notebooklm: {
       type: 'boolean' as const,
       description:
-        'Push the release digest to NotebookLM (updates the OrchestKit notebook sources).',
-      default: true,
+        'Push the release digest to NotebookLM (requires user-configured notebook ID in .claude/release-sync-config.json).',
+      default: false,
     },
     hq_kb: {
       type: 'boolean' as const,
       description:
-        'Ingest into the HQ knowledge base (assumes HQ MCP is configured).',
-      default: true,
+        'Ingest into a private HQ knowledge base (requires HQ MCP — user-private infra, off by default).',
+      default: false,
     },
     slack: {
       type: 'boolean' as const,
-      description: 'Announce the release in the configured Slack channel.',
+      description:
+        'Announce the release in a configured Slack channel (off by default).',
       default: false,
     },
     notes: {
