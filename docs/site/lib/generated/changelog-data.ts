@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.70.0",
+    "date": "2026-04-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**M122:** adopt CC 2.1.118 + 2.1.119 across stack ([#1507](https://github.com/yonatangross/orchestkit/issues/1507)) ([9fad64a](https://github.com/yonatangross/orchestkit/commit/9fad64a552f5528d55e71ae4eda3236156a9e21c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**mcp:** re-audit MCP version matrix (2026-04-26 refresh) ([#1509](https://github.com/yonatangross/orchestkit/issues/1509)) ([d241758](https://github.com/yonatangross/orchestkit/commit/d24175877364407c8448cf81eae1d1a558228096))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.69.0",
     "date": "2026-04-25",
     "compareUrl": "",

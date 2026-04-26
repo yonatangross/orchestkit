@@ -65,6 +65,45 @@ AskUserQuestion(questions=[{
 }])
 ```
 
+## Step 2b: Choose Sync Targets via ork-elicit (M118 #1468)
+
+Replace the historical 3-question sequential ask with one form using the `release-sync-targets` ork-elicit preset (registered in `src/mcp-server/src/presets/release-sync-targets.ts`). Form fields: `notebooklm`, `hq_kb`, `slack`, `notes`.
+
+```python
+# Skip the form when targets are explicit:
+#   /ork:release-sync --targets=notebooklm,slack  → skip, use those
+#
+# Otherwise, prefer ork-elicit; fall back to AskUserQuestion if MCP unavailable:
+
+elicit_available = ToolSearch(query="select:mcp__ork-elicit__ork_elicit").found
+
+if elicit_available:
+    raw = mcp__ork-elicit__ork_elicit(preset="release-sync-targets")
+    parsed = json.loads(raw)
+    # parsed = {
+    #   "action": "accept" | "decline" | "cancel",
+    #   "values": {"notebooklm": bool, "hq_kb": bool, "slack": bool, "notes": str}
+    # }
+    if parsed["action"] != "accept":
+        return  # user cancelled
+    targets = parsed["values"]
+else:
+    # Fallback: 3 sequential AskUserQuestion calls (one per boolean target).
+    # ALL targets default to False — OrchestKit is open-source and these
+    # targets (notebook IDs, HQ KB, Slack) are user-private infrastructure
+    # that the plugin cannot assume is configured. User explicitly opts in.
+    targets = {
+      "notebooklm": ask_yn("Push to NotebookLM?", default=False),
+      "hq_kb":      ask_yn("Push to HQ KB?",       default=False),
+      "slack":      ask_yn("Announce in Slack?",   default=False),
+      "notes":      ""
+    }
+```
+
+The form path is ~1 round-trip; the AskUserQuestion fallback is 3. Behavior at the dispatch layer is identical — the rest of this skill reads `targets["notebooklm"]`, `targets["hq_kb"]`, `targets["slack"]`, `targets["notes"]` regardless of source.
+
+**Privacy note:** all targets are opt-in (default false). NotebookLM notebook IDs and HQ knowledge bases are user-private — the open-source plugin must not assume they exist or push to them implicitly.
+
 ## Step 3: Update NotebookLM Sources
 
 ```python
