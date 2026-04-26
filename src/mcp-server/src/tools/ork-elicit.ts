@@ -16,6 +16,8 @@ import {
   projectConfigMessage,
   mapProjectConfigToEnv,
   type ProjectConfigValues,
+  releaseSyncTargetsSchema,
+  releaseSyncTargetsMessage,
 } from '../presets/index.js';
 
 /** Secrets that must never appear in elicitation fields */
@@ -52,6 +54,10 @@ const PRESETS: Record<string, PresetDef> = {
     schema: projectConfigSchema,
     message: projectConfigMessage,
   },
+  'release-sync-targets': {
+    schema: releaseSyncTargetsSchema,
+    message: releaseSyncTargetsMessage,
+  },
 };
 
 function jsonResult(data: Record<string, unknown>) {
@@ -69,7 +75,9 @@ export function registerElicitTool(mcpServer: McpServer): void {
       preset: z
         .string()
         .optional()
-        .describe('Named preset: "project-config". Overrides message and fields.'),
+        .describe(
+          'Named preset: "project-config" | "release-sync-targets". Overrides message and fields.',
+        ),
       fields: z
         .record(z.string(), z.unknown())
         .optional()

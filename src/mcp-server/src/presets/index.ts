@@ -7,3 +7,9 @@ export {
   mapProjectConfigToEnv,
   type ProjectConfigValues,
 } from './project-config.js';
+
+export {
+  releaseSyncTargetsSchema,
+  releaseSyncTargetsMessage,
+  type ReleaseSyncTargetsValues,
+} from './release-sync-targets.js';

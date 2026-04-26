@@ -33,6 +33,36 @@ COMMIT_MSG = "$ARGUMENTS"  # Optional commit message, e.g., "fix typo in auth mo
 # $ARGUMENTS[0] is the first token (CC 2.1.59 indexed access)
 ```
 
+## STEP 0: Choose Commit Mode (AskUserQuestion — M118 #1465)
+
+Default is "new commit", but voice-flow needs explicit choice when amend / push / stash is wanted:
+
+```python
+# Skip when a flag in the invocation makes the mode unambiguous:
+#   /ork:commit --amend  → skip, mode=amend
+#   /ork:commit --push   → skip, mode=new+push
+#   /ork:commit --stash  → skip, mode=stash-first
+#   ORK_COMMIT_DEFAULT_MODE=new (or amend|push|stash) → skip, use env value
+#
+# Otherwise, ask:
+AskUserQuestion(questions=[{
+  "question": "How should this commit land?",
+  "header": "Commit mode",
+  "options": [
+    {"label": "New commit (default)", "description": "Create a new commit, leave HEAD intact"},
+    {"label": "Amend HEAD", "description": "Fold staged changes into the last commit (LOCAL ONLY — refuses if HEAD is published)"},
+    {"label": "New commit + push", "description": "Commit then `git push` (refuses on protected branches)"},
+    {"label": "Stash first", "description": "Stash unrelated working-tree changes, then commit only what was already staged"}
+  ]
+}])
+```
+
+**Mode-specific guards:**
+
+- **Amend HEAD** — verify HEAD is not on origin (`git rev-list HEAD..origin/&lt;branch&gt;` empty); if it is published, refuse and recommend "New commit" instead.
+- **New commit + push** — re-check the protected-branch rule from Phase 1 before pushing; if HEAD's branch is `main`/`master`/`dev`, abort.
+- **Stash first** — `git stash push -k -m "ork:commit autostash"` (keep-index), commit, then `git stash pop` after push success.
+
 ## Workflow
 
 ### Phase 1: Pre-Commit Safety Check

@@ -138,6 +138,42 @@ If outcome is "failed", look for:
 
 Extract entities (Technology, Agent, Pattern, Project, AntiPattern) from the text, detect relationship patterns ("X uses Y", "chose X over Y", etc.), then create entities and relations in the knowledge graph.
 
+### 7. Confirm Type + Scope (AskUserQuestion — M118 #1466)
+
+Auto-classification is best-effort. Before writing, ask the user to confirm both the memory type and the persistence scope. Pre-select the auto-detected type as the default option when the classifier is confident (≥0.9):
+
+```python
+# Skip when the invocation already specifies type and scope:
+#   /ork:remember --type=preference --global  → skip, use those values
+#   /ork:remember --session  → skip, no persistence
+#
+# Otherwise, ask both:
+AskUserQuestion(questions=[
+  {"question": "What type of memory?",
+   "header": "Type",
+   "options": [
+     {"label": "Preference", "description": "How I like to work (style, format, tooling)"},
+     {"label": "Project fact", "description": "State of THIS codebase (decisions, constraints)"},
+     {"label": "Reference", "description": "External system pointer (URL, doc, dashboard)"},
+     {"label": "Feedback", "description": "Correction to future behavior — applied as a rule"}
+   ]},
+  {"question": "Apply to?",
+   "header": "Scope",
+   "options": [
+     {"label": "This project (default)", "description": "Scoped to .claude/projects/<this-project>/memory/"},
+     {"label": "All projects (global)", "description": "User-level memory at ~/.claude/memory/"},
+     {"label": "This session only", "description": "Print to context but don't persist"}
+   ]}
+])
+```
+
+**Default selection rules:**
+- If auto-detected category maps to one of the 4 type options with confidence ≥0.9, that option is pre-selected (the user can still override).
+- "This project" is always the scope default.
+- "This session only" returns immediately without writing — useful when the user wants to surface a fact for the conversation but not commit it.
+
+**Global memory writes** route to `~/.claude/memory/&lt;filename&gt;.md` instead of the project-local memory directory. The MEMORY.md index is updated in whichever scope was selected (project- or user-level).
+
 Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("$\{CLAUDE_SKILL_DIR\}/references/graph-operations.md")`
 
 ### 7. Confirm Storage

@@ -135,6 +135,31 @@ AskUserQuestion(
 - **Investigate first**: Enter plan mode for read-only analysis, then decide
 - **Hotfix**: Phases 1, 6, 11 only — emergency path
 
+### Sub-question: Local-CI Strategy (AskUserQuestion — M118 #1467)
+
+Once the approach is chosen, ask whether to run CI locally before pushing — orthogonal to fix depth:
+
+```python
+# Skip when invocation flag is explicit:
+#   /ork:fix-issue 123 --local-ci          → skip, run full suite locally
+#   /ork:fix-issue 123 --security-only     → skip, security tests only
+#   /ork:fix-issue 123 --push-and-let-ci   → skip, no local run
+#
+# Force local-CI when issue has security or data-loss labels (warns user it overrode their choice).
+
+AskUserQuestion(questions=[{
+  "question": "Before push?",
+  "header": "Local CI",
+  "options": [
+    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures"},
+    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push"},
+    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns"}
+  ]
+}])
+```
+
+**Override rule:** if the issue's GitHub labels include `security` or `data-loss`, override the user's selection with **"Run full suite locally first"** and surface a one-line notification: *"Security/data-loss label detected — running full local suite as a precaution."* The user can still bypass with the `--push-and-let-ci` arg, which logs the bypass for audit.
+
 **If 'Investigate first' selected:**
 
 ```python

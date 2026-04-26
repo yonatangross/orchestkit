@@ -22,6 +22,32 @@ FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
 # $ARGUMENTS[0], $ARGUMENTS[1] for indexed access (CC 2.1.59)
 ```
 
+## STEP 0: Choose Scope (AskUserQuestion — M118 #1464)
+
+A full doctor run takes ~20s. Most invocations only need one slice. Ask the user up-front so voice-flow shortcuts ("just the MCPs") map cleanly:
+
+```python
+# Skip the prompt when an explicit scope arg or env override is present:
+#   /ork:doctor cc      → skip, use cc-only
+#   /ork:doctor mcp     → skip, use mcp-only
+#   /ork:doctor plugin  → skip, use plugin-only
+#   ORK_DOCTOR_SCOPE=all (or any of the above) → skip, use the env value
+#
+# Otherwise, ask:
+AskUserQuestion(questions=[{
+  "question": "What should doctor check?",
+  "header": "Scope",
+  "options": [
+    {"label": "Everything (default)", "description": "Full system health — ~20s; runs all 14 categories"},
+    {"label": "CC version & features only", "description": "Categories 10 + 13 + 14; ~3s — for 'is my CC up to date?'"},
+    {"label": "MCP servers only", "description": "Category 12 (incl. pinning sub-check); ~5s — for 'are MCPs working?'"},
+    {"label": "Plugin health only", "description": "Categories 0-3 + 5 (skills, agents, hooks, build); ~8s — for 'after npm run build'"}
+  ]
+}])
+```
+
+Skip the prompt entirely when the scope is unambiguous from the invocation. The fast scopes (3-8s) are 3-7× faster than the full run — voice users say "just the MCPs" and get a 5s answer.
+
 ## Overview
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 14 categories:

@@ -79,6 +79,40 @@ AskUserQuestion(questions=[{
 }])
 ```
 
+## Step 2b: Choose Sync Targets via ork-elicit (M118 #1468)
+
+Replace the historical 3-question sequential ask with one form using the `release-sync-targets` ork-elicit preset (registered in `src/mcp-server/src/presets/release-sync-targets.ts`). Form fields: `notebooklm`, `hq_kb`, `slack`, `notes`.
+
+```python
+# Skip the form when targets are explicit:
+#   /ork:release-sync --targets=notebooklm,slack  → skip, use those
+#
+# Otherwise, prefer ork-elicit; fall back to AskUserQuestion if MCP unavailable:
+
+elicit_available = ToolSearch(query="select:mcp__ork-elicit__ork_elicit").found
+
+if elicit_available:
+    raw = mcp__ork-elicit__ork_elicit(preset="release-sync-targets")
+    parsed = json.loads(raw)
+    # parsed = {
+    #   "action": "accept" | "decline" | "cancel",
+    #   "values": {"notebooklm": bool, "hq_kb": bool, "slack": bool, "notes": str}
+    # }
+    if parsed["action"] != "accept":
+        return  # user cancelled
+    targets = parsed["values"]
+else:
+    # Fallback: 3 sequential AskUserQuestion calls (one per boolean target)
+    targets = {
+      "notebooklm": ask_yn("Push to NotebookLM?", default=True),
+      "hq_kb":      ask_yn("Push to HQ KB?",       default=True),
+      "slack":      ask_yn("Announce in Slack?",   default=False),
+      "notes":      ""
+    }
+```
+
+The form path is ~1 round-trip; the AskUserQuestion fallback is 3. Behavior at the dispatch layer is identical — the rest of this skill reads `targets["notebooklm"]`, `targets["hq_kb"]`, `targets["slack"]`, `targets["notes"]` regardless of source.
+
 ## Step 3: Update NotebookLM Sources
 
 ```python
