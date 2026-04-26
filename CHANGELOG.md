@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.71.2](https://github.com/yonatangross/orchestkit/compare/v7.71.1...v7.71.2) (2026-04-26)
+
+
+### Bug Fixes
+
+* **docs:** sync stale skill/agent/hook counts in fumadocs site ([#1516](https://github.com/yonatangross/orchestkit/issues/1516)) ([f4fb5ad](https://github.com/yonatangross/orchestkit/commit/f4fb5ad846c84d2b981ccd7dd85833d4e8b72044))
+
 ## [7.71.1](https://github.com/yonatangross/orchestkit/compare/v7.71.0...v7.71.1) (2026-04-26)
 
 
