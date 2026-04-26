@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 114 global + 46 agent-scoped + 22 skill-scoped = 182 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 115 global + 46 agent-scoped + 22 skill-scoped = 183 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -373,6 +373,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-pull",
             "async": true,
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/nudge-outcome-resolver",
+            "async": true,
+            "timeout": 5
           },
           {
             "type": "command",
