@@ -1618,7 +1618,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": null,
     "complexity": "complex",
-    "structure": {},
+    "structure": {
+      "references": []
+    },
     "plugins": [
       "ork"
     ],

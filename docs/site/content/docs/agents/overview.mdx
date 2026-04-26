@@ -1,12 +1,12 @@
 ---
 title: Agents Overview
-description: "33 specialized agents -- how they activate, what they know, and when to use each."
+description: "37 specialized agents -- how they activate, what they know, and when to use each."
 full: true
 ---
 
 import { LazyAgentSelector as AgentSelector } from '@/components/lazy';
 
-# 33 Specialists, One Prompt Away
+# 37 Specialists, One Prompt Away
 
 An OrchestKit **agent** is a specialized AI persona built from four components:
 
@@ -103,9 +103,10 @@ Use the interactive selector to find the right specialist for your task.
 
 The `model` field controls which LLM powers the agent:
 
-- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 9 agents use Opus.
-- **`sonnet`** -- Used for focused production tasks: demo video production. 1 agent uses Sonnet.
-- **`inherit`** -- Uses whatever model the parent session is running. 20 agents inherit. This is the most flexible option and is recommended for most agents.
+- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 6 agents use Opus.
+- **`sonnet`** -- Used for focused production tasks (debug, db, llm, perf, video, web research). 11 agents use Sonnet.
+- **`haiku`** -- Used for low-stakes, fast tasks. 7 agents use Haiku.
+- **`inherit`** -- Uses whatever model the parent session is running. 13 agents inherit. This is the most flexible option and is recommended for most agents.
 
 ### Context Isolation
 
@@ -159,7 +160,7 @@ hooks:
 
 This pattern is used by read-only agents like `security-auditor`, `debug-investigator`, `code-quality-reviewer`, and `system-design-reviewer` to prevent them from modifying code. The `deployment-manager` uses a different hook (`deployment-safety-check`) to validate commands before execution.
 
-## The 33 Agents by Category
+## The 37 Agents by Category
 
 ### Backend (4 agents)
 | Agent | Model | Purpose |
