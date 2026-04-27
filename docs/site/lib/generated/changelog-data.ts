@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.73.0",
+    "date": "2026-04-27",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**M125:** Lane A — labs version watcher + emulate auto-discovery ([#1532](https://github.com/yonatangross/orchestkit/issues/1532)) ([a53f342](https://github.com/yonatangross/orchestkit/commit/a53f3428d4ab33bfab3a16892faa425fd25e7c46))",
+          "**M125:** Lane B — /ork:dev lab-stack + auto-expect + ARIA snapshots ([#1534](https://github.com/yonatangross/orchestkit/issues/1534)) ([1e626fd](https://github.com/yonatangross/orchestkit/commit/1e626fdf03c88e1914f957e99f8c931ac41eeddf))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**#1525:** bump invocable caps + dev argument-hint ([#1535](https://github.com/yonatangross/orchestkit/issues/1535)) ([9709025](https://github.com/yonatangross/orchestkit/commit/9709025d82446273c2b8217d6edf4d1e8a98f3f7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.72.1",
     "date": "2026-04-27",
     "compareUrl": "",

@@ -160,12 +160,31 @@ If the dev stack isn't live, auto-expect skips silently — `/ork:dev` is the pr
 - **Non-Vercel-Labs stacks** — falls back to install hints; you can still run the underlying tools manually.
 - **Inside a `tmux -CC` session** — agent-browser dashboard incompatible with iTerm2 tmux integration.
 
+## Scripts
+
+| Script | What it does |
+|---|---|
+| `scripts/boot.sh` | All-or-nothing prereq check, then 9-step boot. Idempotent (no-ops if already live). Honors `CI=1` to skip in CI. |
+| `scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
+| `scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
+
+`/ork:dev` invokes `scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
+
 ## References
 
 | File | Purpose |
 |---|---|
 | `references/boot-sequence.md` | Step-by-step boot annotated with commands |
 | `references/state-schema.md` | Full JSON shape + field semantics |
+
+## Rules
+
+| Rule | Impact | When it applies |
+|---|---|---|
+| `rules/lab-stack-prerequisites.md` | CRITICAL | Every boot |
+| `rules/branch-named-subdomain.md` | HIGH | Subdomain resolution |
+| `rules/idempotent-boot.md` | HIGH | Re-running while live |
+| `rules/teardown-order.md` | MEDIUM | `stop` invocations |
 
 ## Related skills
 
