@@ -1,15 +1,16 @@
 ---
 title: "SessionStart"
-description: "Hooks triggered on SessionStart events (8 hooks)."
+description: "Hooks triggered on SessionStart events (9 hooks)."
 ---
 
 # SessionStart Hooks
 
-**8 hooks** registered for the `SessionStart` lifecycle event.
+**9 hooks** registered for the `SessionStart` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | `pattern-sync-pull` | `*` | 🔇 Silent | Pulls global patterns into project on session start |
+| `nudge-outcome-resolver` | `*` | 🔇 Silent | SessionStart Nudge-Outcome Resolver — Issue #1476 |
 | `session-env-setup` | `*` | 🔇 Silent | Initializes session environment |
 | `stale-team-cleanup` | `*` | 🔇 Silent | — |
 | `stale-cache-cleanup` | `*` | 🔇 Silent | Prunes old plugin cache versions, keeping only current + previous. |

@@ -175,6 +175,9 @@ import { teamMemberStart } from './posttool/task/team-member-start.js';
 // PostCompact hooks (CC 2.1.76)
 import { postCompactRecovery } from './lifecycle/post-compact-recovery.js';
 
+// SessionStart hooks (M119 #1476)
+import { nudgeOutcomeResolver } from './lifecycle/nudge-outcome-resolver.js';
+
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from './elicitation/elicitation-guard.js';
 import { elicitationResultLogger } from './elicitation/elicitation-result-logger.js';
@@ -419,6 +422,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,
+
+  // SessionStart hooks (M119 #1476)
+  'lifecycle/nudge-outcome-resolver': nudgeOutcomeResolver,
 
   // Elicitation hooks (CC 2.1.76)
   'elicitation/elicitation-guard': elicitationGuard,

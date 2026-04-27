@@ -102,7 +102,8 @@ describe('Async Hooks Registry', () => {
       // 77 -> 75: M121 #1489 — metrics-dispatcher collapses webhook-forwarder+metrics-bridge on catchall
       //           from 2 async hooks.json entries into 1 sync dispatcher (context-crossing-warn
       //           was already sync; it's now inside the dispatcher too)
-      expect(asyncHooks.length, 'Should have exactly 75 async hooks').toBe(75);
+      // 75 -> 76: M119 #1476 — nudge-outcome-resolver added on SessionStart (async, 5s)
+      expect(asyncHooks.length, 'Should have exactly 76 async hooks').toBe(76);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

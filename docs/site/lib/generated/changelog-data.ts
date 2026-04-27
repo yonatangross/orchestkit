@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.71.2",
+    "date": "2026-04-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs:** sync stale skill/agent/hook counts in fumadocs site ([#1516](https://github.com/yonatangross/orchestkit/issues/1516)) ([f4fb5ad](https://github.com/yonatangross/orchestkit/commit/f4fb5ad846c84d2b981ccd7dd85833d4e8b72044))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.71.1",
+    "date": "2026-04-26",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**design:** align Bet B refs to M124 + close-ref M118 trail ([#1512](https://github.com/yonatangross/orchestkit/issues/1512)) ([ebb1c77](https://github.com/yonatangross/orchestkit/commit/ebb1c77db89c996bfe24a1cc853d3ccee5b5f363)), closes [#1465](https://github.com/yonatangross/orchestkit/issues/1465) [#1466](https://github.com/yonatangross/orchestkit/issues/1466) [#1467](https://github.com/yonatangross/orchestkit/issues/1467)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.71.0",
     "date": "2026-04-26",
     "compareUrl": "",

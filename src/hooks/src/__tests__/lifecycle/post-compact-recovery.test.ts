@@ -12,12 +12,17 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => '{}'),
+  mkdirSync: vi.fn(),
+  appendFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
+  readdirSync: vi.fn(() => []),
+  unlinkSync: vi.fn(),
 }));
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
 import { postCompactRecovery } from '../../lifecycle/post-compact-recovery.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync, unlinkSync } from 'node:fs';
 import { outputWithContext } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -255,6 +260,60 @@ describe('lifecycle/post-compact-recovery', () => {
       expect(outputWithContext).toHaveBeenCalledWith(
         expect.stringContaining('150k tokens'),
       );
+    });
+  });
+
+  describe('M119 #1476 nudge outcome recording', () => {
+    test('records outcome=compact when current-session marker exists + unresolved', () => {
+      const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+      vi.mocked(existsSync).mockImplementation(((p: unknown) => {
+        const path = String(p);
+        // marker for current session exists; preserved-context state file does NOT
+        if (path.includes('nudge-outcome-')) return true;
+        return false;
+      }) as unknown as typeof existsSync);
+      vi.mocked(readFileSync).mockImplementation(((p: unknown) => {
+        if (String(p).includes('nudge-outcome-')) {
+          return JSON.stringify({
+            sessionId: 'test-session-123',
+            firedAt: tenMinAgo,
+            resolved: false,
+          });
+        }
+        return '{}';
+      }) as unknown as typeof readFileSync);
+
+      postCompactRecovery(createInput(), testCtx);
+
+      expect(appendFileSync).toHaveBeenCalled();
+      const [path, body] = vi.mocked(appendFileSync).mock.calls[0];
+      expect(String(path)).toContain('pre-compact-decisions.jsonl');
+      const entry = JSON.parse(String(body).trim());
+      expect(entry.type).toBe('outcome');
+      expect(entry.user_action).toBe('compact');
+      expect(entry.nudge_session_id).toBe('test-session-123');
+      expect(unlinkSync).toHaveBeenCalled();
+    });
+
+    test('does nothing when no marker exists', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      postCompactRecovery(createInput(), testCtx);
+      expect(appendFileSync).not.toHaveBeenCalled();
+    });
+
+    test('skips already-resolved markers', () => {
+      vi.mocked(existsSync).mockImplementation(((p: unknown) => {
+        return String(p).includes('nudge-outcome-');
+      }) as unknown as typeof existsSync);
+      vi.mocked(readFileSync).mockReturnValue(
+        JSON.stringify({
+          sessionId: 'test-session-123',
+          firedAt: '2026-04-26T00:00:00.000Z',
+          resolved: true,
+        }),
+      );
+      postCompactRecovery(createInput(), testCtx);
+      expect(appendFileSync).not.toHaveBeenCalled();
     });
   });
 });

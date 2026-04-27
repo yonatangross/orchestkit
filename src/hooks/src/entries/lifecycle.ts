@@ -68,6 +68,7 @@ import { staleCacheCleanup } from '../lifecycle/stale-cache-cleanup.js';
 // SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
 import { staleTeamCleanup } from '../lifecycle/stale-team-cleanup.js';
 import { typeErrorIndexer } from '../lifecycle/type-error-indexer.js';
+import { nudgeOutcomeResolver } from '../lifecycle/nudge-outcome-resolver.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -135,6 +136,7 @@ export const hooks: Record<string, HookFn> = {
   // SessionStart async hooks (v7.30.0: flattened from unified-dispatcher #1264)
   'lifecycle/stale-team-cleanup': staleTeamCleanup,
   'lifecycle/type-error-indexer': typeErrorIndexer,
+  'lifecycle/nudge-outcome-resolver': nudgeOutcomeResolver,
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,

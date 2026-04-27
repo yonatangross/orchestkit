@@ -17,8 +17,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputWithContext, getLogDir, getSessionId } from '../lib/common.js';
+import { outputWithContext, getLogDir, getProjectDir, getSessionId } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import {
+  readMarker,
+  deleteMarker,
+  appendOutcome,
+} from '../lib/nudge-outcome-state.js';
 
 interface PreservedContext {
   branch?: string;
@@ -69,7 +74,39 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 60_000)}m`;
 }
 
+/**
+ * M119 #1476 — if a recent pre-compact nudge fired and now we're running
+ * PostCompact in the same session, the user chose /compact (after the block).
+ * Append an outcome entry and clear the marker so the SessionStart resolver
+ * doesn't double-record it as "clear".
+ */
+function recordCompactOutcome(hookCtx: HookContext): void {
+  try {
+    const projectDir = hookCtx.projectDir || getProjectDir();
+    const sessionId = hookCtx.sessionId || getSessionId();
+    const marker = readMarker(projectDir, sessionId);
+    if (!marker || marker.resolved) return;
+    const firedMs = new Date(marker.firedAt).getTime();
+    const ageMs = Number.isFinite(firedMs) ? Date.now() - firedMs : 0;
+    appendOutcome(projectDir, {
+      timestamp: new Date().toISOString(),
+      type: 'outcome',
+      user_action: 'compact',
+      nudge_fired_at: marker.firedAt,
+      nudge_session_id: marker.sessionId,
+      age_ms: ageMs,
+    });
+    deleteMarker(projectDir, sessionId);
+    hookCtx.log('post-compact-recovery', `recorded nudge outcome=compact (age ${Math.round(ageMs / 1000)}s)`);
+  } catch {
+    // best-effort
+  }
+}
+
 export function postCompactRecovery(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+  // Always check for nudge outcome first — independent of preserved context
+  recordCompactOutcome(hookCtx);
+
   const stateFile = getSessionStateFile();
   const state = loadSessionState(stateFile);
 
