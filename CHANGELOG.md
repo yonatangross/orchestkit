@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.72.1](https://github.com/yonatangross/orchestkit/compare/v7.72.0...v7.72.1) (2026-04-27)
+
+
+### Documentation
+
+* **agents:** recategorize all 37 agents — 7 readable categories ([#1523](https://github.com/yonatangross/orchestkit/issues/1523)) ([ae9c650](https://github.com/yonatangross/orchestkit/commit/ae9c6505aa080dbe03b79239faf22b35c5fa398d))
+
+
+### CI/CD
+
+* bump actions/setup-node from 4.4.0 to 6.4.0 ([#1521](https://github.com/yonatangross/orchestkit/issues/1521)) ([08140ff](https://github.com/yonatangross/orchestkit/commit/08140ff94f8553341ebd18a041b5efbb23fb64a5))
+* bump anthropics/claude-code-action from 1.0.101 to 1.0.107 ([#1519](https://github.com/yonatangross/orchestkit/issues/1519)) ([23d2a7c](https://github.com/yonatangross/orchestkit/commit/23d2a7c52a1bfe39d77caa86f62db5590e0d1959))
+* bump github/codeql-action from 4.35.1 to 4.35.2 ([#1522](https://github.com/yonatangross/orchestkit/issues/1522)) ([f5fdc20](https://github.com/yonatangross/orchestkit/commit/f5fdc200c58fa19a9adead962a7828ca61f2fa16))
+* bump googleapis/release-please-action from 4.4.1 to 5.0.0 ([#1520](https://github.com/yonatangross/orchestkit/issues/1520)) ([7005750](https://github.com/yonatangross/orchestkit/commit/700575026c8791d6d1bc35c106de6d3f10c3dce8))
+
 ## [7.72.0](https://github.com/yonatangross/orchestkit/compare/v7.71.2...v7.72.0) (2026-04-27)
 
 
