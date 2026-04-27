@@ -1653,6 +1653,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "boot-sequence.md",
         "state-schema.md"
+      ],
+      "scripts": [
+        "boot.sh",
+        "status.sh",
+        "stop.sh"
       ]
     },
     "plugins": [
