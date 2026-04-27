@@ -95,6 +95,7 @@ Generate complete component families (components + hooks + schemas + tests + sto
 With 128K output, build entire feature pages without splitting across responses.
 
 ## Browser Automation
+- **Default-on auto-expect (M125 #2):** when `/ork:dev` is live, saving a `.tsx`/`.css` file emits a one-line nudge to run `/ork:expect &lt;route&gt;`. Honor it for any non-trivial UI change. Skip it for typo fixes or commented-out code by writing `SKIP` to `.claude/state/expect-skip.&lt;sessionId&gt;` for the session, or set `ORK_EXPECT_AUTO=0` to disable globally.
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
 - Screenshots: `agent-browser screenshot &lt;path&gt;` for visual verification

@@ -1629,6 +1629,37 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-ui-developer"
     ]
   },
+  "dev": {
+    "name": "dev",
+    "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "dev-loop",
+      "portless",
+      "emulate",
+      "agent-browser",
+      "vercel-labs",
+      "lab-stack",
+      "m125"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "medium",
+    "structure": {
+      "references": [
+        "boot-sequence.md",
+        "state-schema.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "devops-deployment": {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
