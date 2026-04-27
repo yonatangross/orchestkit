@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.72.0",
+    "date": "2026-04-27",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks,M119:** dogfood cluster — zones, cache-aware, outcome ([#1515](https://github.com/yonatangross/orchestkit/issues/1515)) ([8641214](https://github.com/yonatangross/orchestkit/commit/8641214efdcbcb2911e1a72158564bd8a89a8c98))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.71.2",
     "date": "2026-04-26",
     "compareUrl": "",
