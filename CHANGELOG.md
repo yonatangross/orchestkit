@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.74.0](https://github.com/yonatangross/orchestkit/compare/v7.73.0...v7.74.0) (2026-04-27)
+
+
+### Features
+
+* **#1525:** /ork:dev gains scripts, rules, test-cases ([#1536](https://github.com/yonatangross/orchestkit/issues/1536)) ([cb30501](https://github.com/yonatangross/orchestkit/commit/cb3050173ad94ed9e18b6a3f9cc9cb582123ce69))
+
+
+### Bug Fixes
+
+* **#1525:** finish real implementations — close 4 vapor gaps ([#1538](https://github.com/yonatangross/orchestkit/issues/1538)) ([f48821f](https://github.com/yonatangross/orchestkit/commit/f48821fa4aba90fcdeddf0ca5fb0f31d2160d776))
+
 ## [7.73.0](https://github.com/yonatangross/orchestkit/compare/v7.72.1...v7.73.0) (2026-04-27)
 
 
