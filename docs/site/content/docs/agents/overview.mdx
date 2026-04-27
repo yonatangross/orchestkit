@@ -162,20 +162,51 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 
 ## The 37 Agents by Category
 
-### Backend (4 agents)
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `backend-system-architect` | opus | REST/GraphQL APIs, database schemas, microservice boundaries |
-| `database-engineer` | inherit | PostgreSQL schemas, migrations, pgvector, query optimization |
-| `event-driven-architect` | opus | Event sourcing, Kafka, RabbitMQ, CQRS, saga patterns |
-| `python-performance-engineer` | opus | Python profiling, memory optimization, async performance |
+Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
 
-### Frontend (3 agents)
+### Frontend & Design (11 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `frontend-ui-developer` | inherit | React 19 components, TypeScript, Zod validation |
-| `accessibility-specialist` | inherit | WCAG 2.2 compliance, screen readers, keyboard navigation |
-| `frontend-performance-engineer` | inherit | Core Web Vitals, bundle analysis, render optimization |
+| `accessibility-specialist` | sonnet | WCAG 2.2 compliance, screen readers, keyboard navigation |
+| `frontend-performance-engineer` | sonnet | Core Web Vitals, bundle analysis, render optimization |
+| `design-system-architect` | inherit | Token hierarchies, theming strategies, Figma-to-code pipelines |
+| `design-context-extractor` | inherit | Extracts design tokens (colors, typography, spacing) from screenshots / live URLs |
+| `component-curator` | inherit | Audits project component usage, searches 21st.dev, recommends upgrades |
+| `claude-design-orchestrator` | sonnet | Parses claude.ai/design handoff bundles, dedups components, reconciles tokens |
+| `genui-architect` | inherit | Generative UI / json-render catalog design with Zod-typed schemas |
+| `ui-feedback` | sonnet | Processes UI annotations, maps element paths to source code, implements fixes |
+| `demo-producer` | sonnet | Marketing videos, VHS terminal recording, Remotion |
+| `system-design-reviewer` | opus | 5-dimension architecture review (Scale, Data, Security, UX, Coherence) |
+
+### Testing & QA (6 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `code-quality-reviewer` | inherit | Code review, linting, type checking, test coverage |
+| `debug-investigator` | sonnet | Root cause analysis, hypothesis testing, execution tracing |
+| `test-generator` | inherit | Unit/integration test generation, MSW, VCR.py, fixtures |
+| `eval-runner` | haiku | LLM evaluation, structured eval datasets, quality metrics |
+| `emulate-engineer` | inherit | Stateful API emulation via Vercel emulate (GitHub, Slack, Stripe, etc.) |
+| `expect-agent` | sonnet | Browser test execution via agent-browser, ARIA selectors, diff-aware tests |
+
+### DevOps & Release (6 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `ci-cd-engineer` | inherit | GitHub Actions, GitLab CI, build optimization |
+| `deployment-manager` | haiku | Blue-green deployments, rollback, feature flags |
+| `infrastructure-architect` | inherit | Terraform, Kubernetes, AWS/GCP/Azure, IaC |
+| `monitoring-engineer` | haiku | Prometheus, Grafana, alerting, OpenTelemetry |
+| `release-engineer` | haiku | GitHub releases, milestones, changelogs, semver |
+| `git-operations-engineer` | haiku | Branches, rebases, stacked PRs, recovery |
+
+### Backend & Data (5 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `backend-system-architect` | inherit | REST/GraphQL APIs, database schemas, microservice boundaries |
+| `database-engineer` | sonnet | PostgreSQL schemas, migrations, pgvector, query optimization |
+| `event-driven-architect` | opus | Event sourcing, Kafka, RabbitMQ, CQRS, saga patterns |
+| `python-performance-engineer` | inherit | Python profiling, memory optimization, async performance |
+| `data-pipeline-engineer` | haiku | Embeddings, chunking, vector indexes, ETL |
 
 ### Security (3 agents)
 | Agent | Model | Purpose |
@@ -184,49 +215,19 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 | `ai-safety-auditor` | opus | LLM red teaming, prompt injection, guardrail validation |
 | `security-layer-auditor` | opus | Defense-in-depth verification across 8 security layers |
 
-### Quality & Testing (4 agents)
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `code-quality-reviewer` | inherit | Code review, linting, type checking, test coverage |
-| `debug-investigator` | inherit | Root cause analysis, hypothesis testing, execution tracing |
-| `eval-runner` | inherit | LLM evaluation, structured eval datasets, quality metrics |
-| `test-generator` | inherit | Unit/integration test generation, MSW, VCR.py, fixtures |
-
-### DevOps (5 agents)
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `ci-cd-engineer` | inherit | GitHub Actions, GitLab CI, build optimization |
-| `deployment-manager` | inherit | Blue-green deployments, rollback, feature flags |
-| `infrastructure-architect` | opus | Terraform, Kubernetes, AWS/GCP/Azure, IaC |
-| `monitoring-engineer` | inherit | Prometheus, Grafana, alerting, OpenTelemetry |
-| `release-engineer` | inherit | GitHub releases, milestones, changelogs, semver |
-
-### LLM / AI (4 agents)
+### LLM & AI (3 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `workflow-architect` | opus | LangGraph pipelines, supervisor-worker, RAG orchestration |
-| `llm-integrator` | inherit | OpenAI/Anthropic APIs, prompt templates, function calling |
-| `multimodal-specialist` | inherit | Vision, audio, video, transcription, OCR |
-| `data-pipeline-engineer` | inherit | Embeddings, chunking, vector indexes, ETL |
+| `llm-integrator` | sonnet | OpenAI/Anthropic APIs, prompt templates, function calling |
+| `multimodal-specialist` | sonnet | Vision, audio, video, transcription, OCR |
 
-### Product (1 agent)
+### Product & Research (3 agents)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `product-strategist` | inherit | Value propositions, build/buy/partner, go/no-go |
-
-### Design & Research (5 agents)
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `system-design-reviewer` | opus | 5-dimension architecture review (Scale, Data, Security, UX, Coherence) |
-| `ui-feedback` | inherit | Processes UI annotations, maps element paths to source code |
-| `demo-producer` | sonnet | Marketing videos, VHS terminal recording, Remotion |
-| `market-intelligence` | inherit | Competitive analysis, TAM/SAM/SOM, market sizing |
-| `web-research-analyst` | inherit | Browser automation, Tavily API, content extraction |
-
-### Git (1 agent)
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `git-operations-engineer` | inherit | Branches, rebases, stacked PRs, recovery |
+| `market-intelligence` | haiku | Competitive landscapes, TAM/SAM/SOM, market trends |
+| `web-research-analyst` | sonnet | Browser automation, Tavily API, content extraction |
 
 ## Skills Per Agent
 
