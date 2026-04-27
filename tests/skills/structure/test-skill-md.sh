@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=26
+EXPECTED_USER_INVOCABLE=27  # M125 Lane B added /ork:dev (#1525)
 EXPECTED_INTERNAL=80
 
 missing_user_invocable=()
