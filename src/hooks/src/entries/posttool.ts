@@ -65,6 +65,10 @@ import { metricsBridge } from '../posttool/metrics-bridge.js';
 import { contextCrossingWarn } from '../posttool/context-crossing-warn.js';
 // #1489 M121: posttool catchall dispatcher (webhook + metrics + ctx-warn)
 import { metricsDispatcher } from '../posttool/metrics-dispatcher.js';
+// M125 #2: auto-expect on UI file edits
+import { uiChangeDetector } from '../posttool/ui-change-detector.js';
+// M125 #6: ARIA snapshot recorder after /ork:expect
+import { expectSnapshotRecorder } from '../posttool/expect/snapshot-recorder.js';
 
 import type { HookFn } from '../types.js';
 
@@ -125,6 +129,12 @@ export const hooks: Record<string, HookFn> = {
   // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
   'posttool/commit-nudge': commitNudge,
   'posttool/auto-lint': autoLint,
+
+  // M125 #2: auto-expect after UI file edits
+  'posttool/ui-change-detector': uiChangeDetector,
+
+  // M125 #6: ARIA snapshot recorder after /ork:expect runs
+  'posttool/expect/snapshot-recorder': expectSnapshotRecorder,
 };
 
 export function getHook(name: string): HookFn | undefined {

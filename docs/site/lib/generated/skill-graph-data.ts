@@ -335,6 +335,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 2
   },
   {
+    "id": "dev",
+    "label": "Dev",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "devops-deployment",
     "label": "Devops Deployment",
     "type": "reference",

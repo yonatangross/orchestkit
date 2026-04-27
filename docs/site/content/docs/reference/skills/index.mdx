@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 107 OrchestKit skills."
+description: "Complete reference for all 108 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **107 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **108 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -42,6 +42,7 @@ OrchestKit includes **107 skills** — reusable knowledge modules that provide p
 | [Design Ship](/docs/reference/skills/design-ship) | Command | complex | End-to-end Claude Design handoff to pull request: imports a handoff bundle from claude.ai/design, generates Storybook stories and Playwright tests, runs diff-aware browser verification, and opens a PR with the bundle URL, before/after screenshots, and coverage delta embedded in the body. The one-shot 'design URL in, reviewable PR out' workflow. Use when a designer or PM hands you a Claude Design URL and you want a PR back without intermediate steps. |
 | [Design System Tokens](/docs/reference/skills/design-system-tokens) | Reference | medium | Design token management with W3C Design Token Community Group specification, three-tier token hierarchy (global/alias/component), OKLCH color spaces, Style Dictionary transformation, and dark mode theming. Use when creating design token files, implementing theme systems, managing token versioning, or building design-to-code pipelines. |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots. |
+| [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints. |
 | [Devops Deployment](/docs/reference/skills/devops-deployment) | Reference | medium | Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns. |
 | [Distributed Systems](/docs/reference/skills/distributed-systems) | Reference | medium | Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns. |
 | [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks. |

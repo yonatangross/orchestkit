@@ -353,7 +353,8 @@ describe('Cross-Bundle Consistency', () => {
     // 211 -> 213: M119 usage hygiene — lifecycle/pre-compact-task-done-prompt (#1469), posttool/context-crossing-warn (#1470)
     // 213 -> 214: M121 observability consolidation — posttool/metrics-dispatcher (#1489)
     // 214 -> 215: M119 #1476 — lifecycle/nudge-outcome-resolver (SessionStart resolver)
-    expect(totalHooks).toBe(215);
+    // 215 -> 217: M125 Lane B — posttool/ui-change-detector + posttool/expect/snapshot-recorder
+    expect(totalHooks).toBe(217);
   });
 });
 

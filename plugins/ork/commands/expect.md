@@ -307,6 +307,24 @@ steps:
 Run with: `/ork:expect --flow login`
 
 
+## Auto-trigger after UI edits (M125 #2)
+
+When the dev stack is live (`/ork:dev`), saving any `.tsx`, `.jsx`, `.css`, or `.scss` file (and Next.js route files like `app/**/page.tsx`, `pages/**/*.tsx`) emits a nudge to run `/ork:expect <route>`. The hook (`posttool/ui-change-detector`) is **default-on** and:
+
+- skips silently if `/ork:dev` hasn't booted (no agent-browser session to attach to);
+- enforces a 30-second cooldown per route to prevent spam on rapid saves;
+- honors `.claude/state/expect-skip.<sessionId>` as a per-session opt-out (write any content);
+- honors `ORK_EXPECT_AUTO=0` for an env-level kill switch.
+
+Route resolution: `app/dashboard/page.tsx` → `/dashboard`, `pages/settings.tsx` → `/settings`, component / global-style edits → `/` (home as proxy). Route groups like `app/(marketing)/pricing/page.tsx` strip to `/pricing`.
+
+## ARIA snapshot recording (M125 #6)
+
+After a passing run, the `posttool/expect/snapshot-recorder` hook persists the captured ARIA tree to `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`. Subsequent `/ork:expect <route> --diff` runs compare against the most recent prior snapshot for that route — surfaces structural regressions (added/removed buttons, label changes, hierarchy shifts) without needing a baseline screenshot.
+
+For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|<route>`, and `ARIA|<json-summary>` tags. The agent-browser-driven flow already emits these.
+
+
 ## When NOT to Use
 
 - **Unit tests** — use `/ork:cover` instead

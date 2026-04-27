@@ -184,6 +184,12 @@
           },
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/ui-change-detector",
+            "async": true,
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets",
             "async": true,
             "timeout": 10
@@ -254,6 +260,12 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/expect/fingerprint-saver",
+            "async": true,
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/expect/snapshot-recorder",
             "async": true,
             "timeout": 5
           },
