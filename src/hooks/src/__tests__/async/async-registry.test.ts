@@ -103,7 +103,9 @@ describe('Async Hooks Registry', () => {
       //           from 2 async hooks.json entries into 1 sync dispatcher (context-crossing-warn
       //           was already sync; it's now inside the dispatcher too)
       // 75 -> 76: M119 #1476 — nudge-outcome-resolver added on SessionStart (async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 76 async hooks').toBe(76);
+      // 76 -> 78: M125 Lane B — ui-change-detector (PostToolUse Write|Edit, async)
+      //           + expect/snapshot-recorder (PostToolUse Skill, async)
+      expect(asyncHooks.length, 'Should have exactly 78 async hooks').toBe(78);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

@@ -95,7 +95,7 @@ export async function expectSnapshotRecorder(
     capturedAt: new Date().toISOString(),
     ariaSummary,
   };
-  writeFileSync(filePath, JSON.stringify(envelope, null, 2) + '\n');
+  writeFileSync(filePath, `${JSON.stringify(envelope, null, 2)}\n`);
 
   // Compare against the most recent prior snapshot for this route (if any).
   let prior: { commit: string; size: number } | null = null;

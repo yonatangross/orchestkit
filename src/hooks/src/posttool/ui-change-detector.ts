@@ -18,8 +18,8 @@
  *   - dev stack not live          (graceful no-op)
  */
 
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputAllowWithContext, getField } from '../lib/common.js';
 import { getProjectDir, getSessionId } from './../lib/env.js';
@@ -36,18 +36,16 @@ function readFires(projectDir: string): FireRecord {
   const path = join(projectDir, FIRE_RECORD);
   if (!existsSync(path)) return {};
   try {
-    return JSON.parse(require('node:fs').readFileSync(path, 'utf8')) as FireRecord;
+    return JSON.parse(readFileSync(path, 'utf8')) as FireRecord;
   } catch {
     return {};
   }
 }
 
 function writeFires(projectDir: string, fires: FireRecord): void {
-  const fs = require('node:fs');
-  const path = require('node:path');
-  const filePath = path.join(projectDir, FIRE_RECORD);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(fires));
+  const filePath = join(projectDir, FIRE_RECORD);
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(fires));
 }
 
 /**
@@ -70,7 +68,7 @@ export function fileToRoute(filePath: string): string | null {
     const segments = appMatch[1]
       .split('/')
       .filter((s) => !s.startsWith('(') || !s.endsWith(')')); // strip route groups
-    return '/' + segments.join('/').replace(/^\/$/, '');
+    return `/${segments.join('/').replace(/^\/$/, '')}`;
   }
 
   // Next.js Pages Router (pages/.../foo.tsx, exclude pages/api/*)
@@ -79,7 +77,7 @@ export function fileToRoute(filePath: string): string | null {
     let route = pagesMatch[1];
     if (route === 'index') return '/';
     if (route.endsWith('/index')) route = route.slice(0, -'/index'.length);
-    return '/' + route;
+    return `/${route}`;
   }
 
   // Component / global style — test homepage as proxy

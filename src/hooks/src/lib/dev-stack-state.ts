@@ -62,7 +62,7 @@ export function readDevStackState(): DevStackState | null {
 export function writeDevStackState(state: DevStackState): void {
   const path = statePath();
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(state, null, 2) + '\n');
+  writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
 }
 
 export function clearDevStackState(): void {
@@ -84,7 +84,6 @@ export function isDevStackLive(): boolean {
         process.kill(pid, 0); // signal 0 = liveness probe
         return true;
       } catch {
-        continue;
       }
     }
   }
