@@ -1618,7 +1618,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": null,
     "complexity": "complex",
-    "structure": {},
+    "structure": {
+      "references": []
+    },
     "plugins": [
       "ork"
     ],
@@ -1960,6 +1962,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "api-coverage.md",
         "cli-reference.md",
+        "dep-to-emulator-map.json",
         "sdk-patterns.md",
         "upstream-github.md",
         "upstream-google.md",

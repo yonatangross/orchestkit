@@ -35,6 +35,30 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 - **Entra / Apple / Slack expansions (v0.4.0)** — PKCE + refresh rotation (Entra), RS256 JWKS (Apple), OAuth v2 consent UI (Slack).
 - **`@emulators/adapter-next`** — catch-all Next.js route handler runs emulators on the same origin as the app; fixes OAuth callback URL drift on Vercel preview deploys.
 
+## Auto-Discovery (M125 #4)
+
+When invoked with `--auto`, scan the project's `package.json` and suggest emulators based on installed dependencies. The mapping lives in `references/dep-to-emulator-map.json` (npm package → emulator service).
+
+```bash
+$ /ork:emulate-seed --auto
+Detected from package.json:
+  next-auth@5            → google-oauth, apple-auth, microsoft-entra
+  stripe@17              → stripe (hosted checkout + webhook delivery)
+  @vercel/blob@1         → aws (S3-compatible)
+  @octokit/rest@22       → github
+Generate emulate.config.yaml with these 6 services? [Y/n/edit]
+```
+
+Implementation:
+
+1. Read `package.json` (`dependencies` + `devDependencies`).
+2. Match each dep against `references/dep-to-emulator-map.json` mappings.
+3. De-duplicate the union of emulator names.
+4. Render `emulate.config.yaml` from the matched service templates.
+5. Prompt the user to trim multi-emulator suggestions (e.g., next-auth maps to all 3 OAuth providers by default — most projects use 1-2).
+
+Multi-emulator deps default to all reasonable providers; the user prunes. Unmapped deps are silently skipped — extending the map is a docs PR, not a code change.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
