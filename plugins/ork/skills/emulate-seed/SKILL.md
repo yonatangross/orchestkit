@@ -37,27 +37,34 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 
 ## Auto-Discovery (M125 #4)
 
-When invoked with `--auto`, scan the project's `package.json` and suggest emulators based on installed dependencies. The mapping lives in `references/dep-to-emulator-map.json` (npm package → emulator service).
+`scripts/auto-discover.sh` scans the project's `package.json`, matches deps against `references/dep-to-emulator-map.json`, and either reports the matches or writes `emulate.config.yaml`. Three modes:
+
+| Mode | Behavior |
+|---|---|
+| (default) | Report matched deps + emulator union on stderr; do not write |
+| `--json` | Emit machine-readable JSON instead of human report |
+| `--apply` | Write `emulate.config.yaml` (refuses to overwrite without `--force`) |
 
 ```bash
-$ /ork:emulate-seed --auto
-Detected from package.json:
-  next-auth@5            → google-oauth, apple-auth, microsoft-entra
-  stripe@17              → stripe (hosted checkout + webhook delivery)
-  @vercel/blob@1         → aws (S3-compatible)
-  @octokit/rest@22       → github
-Generate emulate.config.yaml with these 6 services? [Y/n/edit]
+$ bash scripts/auto-discover.sh
+/ork:emulate-seed --auto — scanning /path/to/package.json
+
+Detected:
+  @octokit/rest  →  github · Any GitHub API client
+  next-auth  →  google-oauth, apple-auth, microsoft-entra · Default OAuth providers
+  stripe  →  stripe
+  @vercel/blob  →  aws · @vercel/blob is S3-compatible
+
+Union: apple-auth, aws, github, google-oauth, microsoft-entra, stripe
+
+$ bash scripts/auto-discover.sh --apply
+…
+✓ Wrote /path/to/emulate.config.yaml with 6 service(s)
 ```
 
-Implementation:
+Multi-emulator deps default to all reasonable providers; the user prunes the YAML afterwards. Unmapped deps are silently skipped — extending coverage is a docs PR (edit `references/dep-to-emulator-map.json`), not a code change.
 
-1. Read `package.json` (`dependencies` + `devDependencies`).
-2. Match each dep against `references/dep-to-emulator-map.json` mappings.
-3. De-duplicate the union of emulator names.
-4. Render `emulate.config.yaml` from the matched service templates.
-5. Prompt the user to trim multi-emulator suggestions (e.g., next-auth maps to all 3 OAuth providers by default — most projects use 1-2).
-
-Multi-emulator deps default to all reasonable providers; the user prunes. Unmapped deps are silently skipped — extending the map is a docs PR, not a code change.
+`/ork:dev` reads the resulting `emulate.config.yaml` at boot — see `src/skills/dev/scripts/boot.sh`.
 
 ## Quick Reference
 

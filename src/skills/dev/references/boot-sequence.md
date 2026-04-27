@@ -1,105 +1,154 @@
 # /ork:dev boot sequence — annotated walkthrough
 
-Each step below has a precondition and a post-condition. If a precondition fails, the skill exits 0 with a hint and does NOT proceed to the next step.
+Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4.x`, `agent-browser 0.25.x+`. The actual implementation lives at `scripts/boot.sh` — this doc explains *why* each step does what it does.
+
+## Architecture
+
+`portless` is a **wrapper**, not a sidecar: `portless <name> <cmd>` spawns `<cmd>` with `PORT=<auto>`, registers `https://<name>.localhost` against the portless proxy, and tears down the route when `<cmd>` exits. The `boot.sh` script runs `portless <slug> <pkg-mgr> run dev` as a single fused process and tracks the portless wrapper PID.
+
+```
+   ┌──────────────── shared, long-lived ───────────────┐
+   │                                                    │
+   │   portless proxy daemon  (HTTPS, port 443 or       │
+   │                           custom -p, may already   │
+   │                           be running for other     │
+   │                           apps — never killed by   │
+   │                           this script)             │
+   │                                                    │
+   └──────────────────┬─────────────────────────────────┘
+                      │ TCP
+                      ▼
+        ┌─────────────────────────────────┐
+        │  portless <slug> <pkg> run dev  │  ← wrap_pid (we track this)
+        │  (forks the dev server with     │
+        │   PORT=auto, registers route    │
+        │   <slug>.localhost in the       │
+        │   proxy)                        │
+        └─────────────┬───────────────────┘
+                      │ fork
+                      ▼
+              ┌───────────────┐
+              │  next dev /    │  ← child of portless,
+              │  vite / etc.   │    auto-killed by stop.sh's
+              │  (random port  │    pgrep -P walk
+              │   in 4000-4999)│
+              └────────────────┘
+
+   sidecars (independent, optional):
+   ┌────────────────────────────────────────┐
+   │  emulate --seed emulate.config.yaml    │  ← only if config present
+   │  (sidecar, NOT wrapped in portless)    │
+   └────────────────────────────────────────┘
+```
 
 ## Step 0 — detect package manager
 
 | Signal | Manager |
 |---|---|
-| `packageManager` field in `package.json` | use that |
 | `pnpm-lock.yaml` | pnpm |
 | `yarn.lock` | yarn |
 | `bun.lockb` | bun |
-| `package-lock.json` (or none of the above) | npm |
+| (else) | npm |
 
-## Step 1 — resolve subdomain
+## Step 1 — resolve subdomain slug
 
 ```
-git rev-parse --abbrev-ref HEAD                     # feat/m125-lane-b
-| sed 's|/|-|g'                                      # feat-m125-lane-b
+git rev-parse --abbrev-ref HEAD                # feat/m125-lane-b
 | tr '[:upper:]' '[:lower:]'
-| sed 's/[^a-z0-9-]//g'                              # strip anything not URL-safe
-+ ".localhost"                                       # feat-m125-lane-b.localhost
+| tr '/' '-'                                    # feat-m125-lane-b
+| tr -cd 'a-z0-9-'
+| cut -c1-63                                    # DNS label limit
 ```
 
-Cap at 63 chars (DNS label limit). Falsy result (detached HEAD, no git) → fall back to `dev.localhost`.
+Detached HEAD → falls back to `dev`. No git repo → also `dev`.
 
-## Step 2 — portless
+## Step 2 — `portless proxy start`
 
 ```bash
-portless start --domain "$SUBDOMAIN" --tls --lan --background
+portless list >/dev/null 2>&1 || portless proxy start
 ```
 
-Flags rationale:
-- `--tls` (default since 0.10) — agent-browser sessions trust portless CA via auto-injected `NODE_EXTRA_CA_CERTS`.
-- `--lan` — phone/tablet on same wifi can hit the same URL via mDNS, useful for responsive testing.
-- `--background` — daemonize; we track the PID via `portless ls --json`.
+The proxy daemon is shared. If it's already running, leave it alone — don't pass `--lan` or `--no-tls` flags that would conflict with the existing settings (`portless` rejects starts with mismatched flags). Only start it if `portless list` fails.
 
-Wait condition: `portless ls --json | jq ".[] | select(.domain==\"$SUBDOMAIN\")"` returns a row.
+The user is responsible for the proxy's flavor (TLS on/off, LAN mode, custom port). `boot.sh` only ensures it's *running*.
 
-## Step 3 — emulate-seed (if needed)
+### Why no `portless start --domain`?
+
+That syntax doesn't exist. The proxy doesn't take a domain — domains come from the wrapped commands.
+
+## Step 3 — emulate (sidecar, optional)
 
 ```bash
-test -f emulate.config.yaml || /ork:emulate-seed --auto
+[[ -f emulate.config.yaml ]] && ( exec emulate --seed emulate.config.yaml ) &
 ```
 
-Reuses M125 #4. Skipped silently if `emulate.config.yaml` already exists.
+`emulate` runs in foreground by default; we shell-background. Real flags (verified):
+- `emulate` — start all services
+- `emulate --service vercel,github` — selective
+- `emulate --seed config.yaml` — load seed config
+- `emulate init` — generate starter
+- `emulate list` — list available services
 
-## Step 4 — emulate up
+The `emulate up` subcommand from earlier docs **does not exist**.
+
+## Step 4 — wrap the dev server in portless
 
 ```bash
-emulate up --config emulate.config.yaml --port-base 4000 &
+( cd "${PROJECT_DIR}" && exec portless "${slug}" "${pkg_mgr}" run dev >>"${LOG_FILE}" 2>&1 ) &
+wrap_pid=$!
 ```
 
-Wait condition: each declared service responds to `GET /healthz` on its assigned port (matrix in emulate-seed/SKILL.md).
+**Critical**: the `exec` matters. Without it, `$!` captures the subshell PID, not portless's. When stop.sh later kills `wrap_pid`, it kills a dead subshell while portless + dev keep running orphaned. With `exec`, the subshell is replaced by portless and `$!` is the real wrapper.
 
-## Step 5 — dev server
+portless gives the child:
+- `PORT` — random port in 4000-4999
+- `HOST` — usually 127.0.0.1
+- `PORTLESS_URL` — public URL (`https://<slug>.localhost[:proxyport]`)
+- `NODE_EXTRA_CA_CERTS` — path to portless CA (so node child trusts the local TLS)
+
+## Step 5 — wait for portless to register the route, then wait-on the dev server
+
+Two-stage wait:
+
+1. Poll `portless get <slug>` for up to 30s — returns the canonical URL (with the proxy's actual port) once portless registers the route.
+2. `npx wait-on <url>` for another 30s — confirms the dev server is responding through the proxy.
+
+Skipping stage 1 risks racing portless's registration; skipping stage 2 races the dev server's startup.
+
+## Step 6 — agent-browser session
 
 ```bash
-$PKG_MGR dev > .claude/state/dev.log 2>&1 &
+AGENT_BROWSER_SESSION="${slug}" agent-browser open "${base_url}" >>"${LOG_FILE}" 2>&1 || true
 ```
 
-`@emulators/adapter-next` (Next.js projects) routes `/api/_emulators/*` to the emulators on the same origin so OAuth callback URLs match production.
+Sessions in agent-browser 0.25.x are **lazy** — they don't have daemons, they're just isolation namespaces. Setting `AGENT_BROWSER_SESSION=<name>` is equivalent to `--session <name>` flag. The browser actually starts on first navigation. Pre-warming with `open <base_url>` registers the session as active, so subsequent `/ork:expect` runs reuse the same session by name.
 
-## Step 6 — wait-on
+## Step 7 — atomic state write
 
-```bash
-npx wait-on --httpTimeout 30000 --tlsCheck false "https://$SUBDOMAIN/healthz" || \
-npx wait-on --httpTimeout 30000 --tlsCheck false "https://$SUBDOMAIN/"
-```
+`jq -n` builds the JSON in one pass; we write to `<file>.tmp` and `mv` to the final path. If the script is killed mid-write, we don't leave a half-written state file.
 
-`/healthz` first (most apps that have it return 200 fast); fall back to root.
+State shape: see `references/state-schema.md`.
 
-## Step 7 — agent-browser session
+## Step 8 — summary
 
-```bash
-agent-browser session start --name "$SUBDOMAIN" --keep-alive
-agent-browser open "https://$SUBDOMAIN/"     # warm the connection
-```
+Plain stderr text — never JSON. The summary is consumed by humans only; the state file is the machine-readable record.
 
-`--keep-alive` — session survives the parent shell exiting; `/ork:expect` reattaches by name.
-
-## Step 8 — write state
-
-JSON shape: see `references/state-schema.md`. Atomic: write `.claude/state/dev-stack.json.tmp` then rename — no half-written state if the skill is killed mid-write.
-
-## Step 9 — print summary
+## Teardown order (`scripts/stop.sh`)
 
 ```
-ork:dev — feat/m125-lane-b
-  ✓ portless     https://feat-m125-lane-b.localhost
-  ✓ emulate      3 services (github, stripe, google-oauth)
-  ✓ pnpm dev     port 3000
-  ✓ agent-browser  session "feat-m125-lane-b"
-Booted in 4.2s. Open https://feat-m125-lane-b.localhost or run /ork:expect.
+agent-browser session close (via AGENT_BROWSER_SESSION env)
+                ↓
+portless wrapper descendants  (pgrep -P walk, leaves-first SIGTERM)
+                ↓
+portless wrapper itself       (SIGTERM, then SIGKILL after 5s)
+                ↓
+emulate sidecar (SIGTERM)
+                ↓
+remove .claude/state/dev-stack.json
 ```
 
-## Teardown order (reverse of boot)
+**The shared portless proxy daemon is intentionally left running.** It serves other projects on the same machine; `stop.sh` only tears down *this* branch's stack. Use `portless proxy stop` separately if you really want to kill the daemon.
 
-1. agent-browser session stop
-2. dev server (SIGTERM, fall back to SIGKILL after 5s)
-3. emulate (SIGTERM)
-4. portless stop --domain $SUBDOMAIN
-5. clear `.claude/state/dev-stack.json`
+### Why walk the process tree?
 
-The reverse order matters: killing portless before agent-browser leaves agent-browser holding a TLS connection to nothing, which logs noise but isn't fatal.
+`portless` doesn't always propagate SIGTERM cleanly to its child. Tested on macOS: killing only the wrapper PID leaves the wrapped Next.js process orphaned, holding its port. `pgrep -P <wrap_pid>` enumerates immediate children; we recurse to grand-descendants and SIGTERM leaves-first so each parent sees its children gone before being killed itself.

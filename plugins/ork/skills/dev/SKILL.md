@@ -40,22 +40,22 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` read
 
 ## Boot sequence
 
-The skill executes the steps below in strict order. Each step is a precondition for the next.
+`portless` is a **wrapper**, not a sidecar — `portless <slug> <pkg-mgr> run dev` is one fused command that owns the dev server's lifecycle. `boot.sh` tracks the wrapper PID; `stop.sh` walks its process tree to clean up children.
 
 ```
-0. Detect package manager      pnpm > npm > yarn > bun  (read packageManager field, fall back to lockfile)
-1. Resolve subdomain            <git branch slug>.localhost  (replace / with -, lowercase)
-2. portless start --domain $SUBDOMAIN --tls --lan
-3. emulate-seed --auto          (M125 #4 — only if emulators absent)
-4. emulate up                   (services from auto-seed config)
-5. <pkg-mgr> dev                (background; logs to .claude/state/dev.log)
-6. wait-on https://$SUBDOMAIN   (TLS handshake confirms portless reachable)
-7. agent-browser session start --name $SUBDOMAIN
-8. write .claude/state/dev-stack.json with PIDs + subdomain
-9. print summary table
+0. Detect package manager      pnpm > yarn > bun > npm   (lockfile-based)
+1. Resolve subdomain slug      <branch> → lower → / to - → DNS-safe → ≤63 chars
+2. portless proxy start         (idempotent — skipped if `portless list` already responds)
+3. emulate --seed <yaml>        (sidecar, optional — only if emulate.config.yaml exists)
+4. portless <slug> <pkg-mgr> run dev   (FUSED — wrapper owns dev server's lifecycle)
+5. portless get <slug>          (poll up to 30s for the route to register)
+6. wait-on <baseUrl>            (poll up to 30s for the dev server through the proxy)
+7. AGENT_BROWSER_SESSION=<slug> agent-browser open <baseUrl>   (warm + register session)
+8. atomic state write           (.claude/state/dev-stack.json via jq + temp + mv)
+9. print summary
 ```
 
-For a worked example walking through each step on this repo, load `references/boot-sequence.md`.
+The full annotated walkthrough: `references/boot-sequence.md`.
 
 ## State file shape
 
@@ -64,55 +64,62 @@ For a worked example walking through each step on this repo, load `references/bo
   "bootedAt": "2026-04-27T12:34:56Z",
   "branch": "feat/m125-lane-b",
   "subdomain": "feat-m125-lane-b.localhost",
-  "baseUrl": "https://feat-m125-lane-b.localhost",
+  "baseUrl": "https://feat-m125-lane-b.localhost:1355",
   "processes": {
-    "portless":     { "pid": 12345, "command": "portless start --domain ..." },
-    "emulate":      { "pid": 12346, "command": "emulate up" },
-    "devServer":    { "pid": 12347, "command": "pnpm dev" },
-    "agentBrowser": { "sessionName": "feat-m125-lane-b" }
+    "portlessWrapper": {
+      "pid": 86104,
+      "command": "portless feat-m125-lane-b pnpm run dev"
+    },
+    "agentBrowser": { "sessionName": "feat-m125-lane-b" },
+    "emulate":      { "pid": 86200, "command": "emulate --seed emulate.config.yaml" }
   },
-  "emulators": ["github", "stripe", "google-oauth"]
+  "emulators": ["github", "stripe"],
+  "notes": "portless proxy daemon is shared and not tracked here — stop.sh leaves it running."
 }
 ```
 
-Full schema: `references/state-schema.md`.
+Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `references/state-schema.md`.
 
 ## Prerequisites + graceful no-op
 
 ```
 $ /ork:dev
+✓ portless     found
+✓ agent-browser     found
+✓ jq     found
+[1] slug       feat-m125-lane-b
+
+# OR with a missing prereq:
 ✗ portless not found.   Install: npm i -g portless
-✗ emulate not found.    Install: npm i -g emulate
-✓ agent-browser  found  v0.26.0
-✗ dev server     no `dev` script in package.json
 
 Skipping boot — install missing tools and re-run.
 ```
 
-The skill does **not** boot a partial stack. Either all 4 components are present or it exits 0 and prints install hints. Half-stacks confuse more than they help.
+`portless`, `agent-browser`, and `jq` are required. `emulate` is **optional** — required only if `emulate.config.yaml` exists. The boot is all-or-nothing on the required set; with no emulate config the boot proceeds without emulators.
 
-For non-Vercel projects (no portless/emulate), the skill suggests the closest analogues (e.g. `caddy` for HTTPS proxy) but does not auto-install them.
+`CI=1` short-circuits the boot (exits 0 immediately).
 
 ## Status + teardown
 
 ```
 $ /ork:dev status
 ork:dev — feat/m125-lane-b
-  portless      pid 12345  https://feat-m125-lane-b.localhost   ✓ live
-  emulate       pid 12346  3 services (github, stripe, google-oauth)  ✓ live
-  dev server    pid 12347  next dev (port 3000)  ✓ live
-  agent-browser session "feat-m125-lane-b"  ✓ connected
-  Uptime: 2h 14m
-  Booted from commit: ca73a6411
+  ✓ portlessWrapper    portless feat-m125-lane-b pnpm run dev
+  ✓ agentBrowser       feat-m125-lane-b
+  base url:  https://feat-m125-lane-b.localhost:1355
+  booted:    2026-04-27T19:36:54Z
+  portless:  route registered ✓
 
 $ /ork:dev stop
-Sending SIGTERM in reverse boot order…
-  ✓ agent-browser session stopped
-  ✓ next dev (pid 12347) stopped
-  ✓ emulate (pid 12346) stopped
-  ✓ portless (pid 12345) stopped
+ork:dev — sending SIGTERM in reverse boot order…
+  ✓ agent-browser session "feat-m125-lane-b" closed
+  ✓ portless wrapper (pid 86104) + 21 descendant(s) stopped
 Cleared .claude/state/dev-stack.json
+
+Note: portless proxy daemon left running (shared). Run `portless proxy stop` if you really mean to stop the daemon.
 ```
+
+Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs descendants leaves-first because portless doesn't always propagate signals cleanly. The portless proxy daemon itself is shared infrastructure and is **never killed** by `/ork:dev stop`.
 
 ## Worktree behavior
 

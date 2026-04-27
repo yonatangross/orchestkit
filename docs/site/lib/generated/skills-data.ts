@@ -2004,6 +2004,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "upstream-google.md",
         "upstream-vercel.md",
         "upstream.md"
+      ],
+      "scripts": [
+        "auto-discover.sh"
       ]
     },
     "plugins": [

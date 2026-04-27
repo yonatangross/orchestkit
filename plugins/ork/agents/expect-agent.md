@@ -123,9 +123,10 @@ When testing forms:
 
 ## Status Protocol
 
-Report EVERY step using this exact format. The lead agent parses these lines.
+Report EVERY step using this exact format. The lead agent parses these lines, and PostToolUse hooks (M125 #6 — `posttool/expect/snapshot-recorder`) match on the `ROUTE|` and `ARIA|` tags.
 
 ```
+ROUTE|/login                          # ← required at the start of each route
 STEP_START|login-1|Navigate to /login
 STEP_DONE|login-1|Page loaded, login form visible
 
@@ -138,10 +139,21 @@ STEP_DONE|login-3|Redirected to /dashboard
 STEP_START|login-4|Verify dashboard content
 ASSERTION_FAILED|login-4|Expected "Welcome back" text, found "Session expired"
 
+ARIA|<one-line capped JSON of agent-browser snapshot, max 8KB>   # ← required at end of route
 RUN_COMPLETED|failed|3 passed, 1 failed — dashboard shows session expired after login
 ```
 
-Format: `EVENT|step-id|description`
+Format: `EVENT|payload`. Six events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAILED`, `RUN_COMPLETED`, `ROUTE`, `ARIA`.
+
+### ROUTE / ARIA emission rules
+
+- **`ROUTE|<path>`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
+- **`ARIA|<json-or-text>`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
+- For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`.
+
+### Why these tags exist
+
+Without `ROUTE|` and `ARIA|` in `tool_output`, the snapshot-recorder hook silently skips. With them, each successful run leaves a per-route snapshot keyed by parent commit, and `/ork:expect <route> --diff` (future) can diff against the last green.
 - Step IDs: `{page}-{number}` (e.g., `login-1`, `dashboard-3`)
 - Keep descriptions concise (under 80 chars)
 

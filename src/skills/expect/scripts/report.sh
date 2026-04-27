@@ -4,6 +4,10 @@ set -euo pipefail
 # Status Protocol Parser for /ork:expect (#1189)
 # Usage: ... | bash report.sh [--json] [--save]
 # Protocol: STEP_START|id|title, STEP_DONE|id|summary, ASSERTION_FAILED|id|reason, RUN_COMPLETED|result|summary
+#           ROUTE|url           — current route under test (echoed verbatim into output)
+#           ARIA|<json|text>    — capped ARIA snapshot (echoed verbatim, max 8KB)
+# ROUTE/ARIA are passed through unchanged so PostToolUse hooks
+# (posttool/expect/snapshot-recorder, M125 #6) can match on them in tool_output.
 
 # ── Parse flags ────────────────────────────────────────────
 JSON_MODE=false; SAVE_MODE=false
@@ -58,6 +62,11 @@ while IFS= read -r line; do
           [[ "${f1}" == "failed" ]] && printf "\n${R}✗ RUN FAILED: %s${N}\n" "${f2}" || printf "\n${G}✓ RUN PASSED: %s${N}\n" "${f2}"
         fi
       fi
+      ;;
+    ROUTE|ARIA)
+      # Pass-through tags for PostToolUse hooks (M125 #6 — expect/snapshot-recorder).
+      # Always emitted on stdout so they survive into the Skill's tool_output.
+      printf '%s|%s\n' "${cmd}" "${f1}"
       ;;
   esac
 done
