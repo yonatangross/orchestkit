@@ -156,6 +156,10 @@ Present skill categories using `AskUserQuestion` with 4 focus options (Full-stac
 
 Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settings.json`. Load `Read("${CLAUDE_SKILL_DIR}/references/stack-skill-mapping.md")` for the MCP recommendation matrix. Present as toggles with install commands.
 
+**CC 2.1.121+ tip (#1541):** for the universally-needed T2 trio (memory, context7, sequential-thinking), recommend setting `"alwaysLoad": true` in their `.mcp.json` entries. This skips per-skill `ToolSearch` probes and shaves ~150ms off cold starts. The key is silently ignored on older CC, so it's safe to add eagerly.
+
+**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall <name> --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `/ork:dream` runs it weekly.
+
 ## Phase 6: Readiness Score
 
 Compute a composite score (0-10) from 6 dimensions. Load `Read("${CLAUDE_SKILL_DIR}/references/readiness-scoring.md")` for dimension weights, score presentation template, memory integration, and improvement plan template.

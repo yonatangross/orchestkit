@@ -36,3 +36,13 @@ else:
 - Once at skill start (not before every call)
 - Store results in `.claude/chain/capabilities.json`
 - All subsequent phases read the capability map
+
+## Exception: alwaysLoad (CC 2.1.121+)
+
+If the project's `.mcp.json` sets `"alwaysLoad": true` on a server, **skip the probe**. The server is in the tool registry from session start; the probe is wasted work. OrchestKit ships `alwaysLoad: true` for `memory`, `context7`, and `sequential-thinking` (the universally-needed T2 trio). On older CC, `alwaysLoad` is an unknown key and is silently ignored — the on-demand probe path still works as a fallback if the skill keeps it.
+
+```python
+# CC 2.1.121+ with alwaysLoad on the T2 trio: probe-free
+mcp__memory__search_nodes(query="past auth fixes")     # always loaded
+mcp__context7__resolve-library-id(libraryName="zod")    # always loaded
+```

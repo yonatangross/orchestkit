@@ -395,6 +395,12 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 # - Flag any enabled MCP whose process would likely fail at startup
 # - HIGH-tier @latest pinning: see references/mcp-pinning-check.md
 #   (script: scripts/check-mcp-pinning.sh — exit 1 on HIGH-tier @latest)
+# - alwaysLoad audit (CC 2.1.121+, #1541): warn when memory, context7, or
+#   sequential-thinking lack `"alwaysLoad": true` — these are universally
+#   used and per-skill ToolSearch probes are wasted work without it.
+#   Skip the warning on CC < 2.1.121 (key would be silently ignored).
+# - claude plugin orphans (CC 2.1.121+, #1544): suggest `claude plugin prune`
+#   when `claude plugin list --json` shows orphaned auto-installed deps.
 ```
 
 **Incorrect:**
