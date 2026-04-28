@@ -71,6 +71,56 @@ check_fails "rejects unknown component type" node "$SCRIPT" "$TMP" --check
 echo '{ "root": "x", "elements": { "x": { "type": "Card", "props": {}, "children": ["missing"] } } }' > "$TMP"
 check_fails "rejects dangling child reference" node "$SCRIPT" "$TMP" --check
 
+# Priority gap fills (coverage audit follow-up)
+echo '{ "root": "x", "elements": { "x": { "type": "StatusBadge", "props": { "label": "Bad", "status": "magenta" } } } }' > "$TMP"
+check_fails "rejects StatusBadge invalid status" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatGrid", "props": { "items": [{"label":"a","value":"1","color":"chartreuse"}] } } } }' > "$TMP"
+check_fails "rejects StatGrid item invalid color" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatGrid", "props": { "items": [{"label":"a","value":"1","trend":"sideways"}] } } } }' > "$TMP"
+check_fails "rejects StatGrid item invalid trend" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "DataTable", "props": { "columns": [{"key":"a","label":"A"}], "rows": [{"a":"1","b":"oops"}] } } } }' > "$TMP"
+check_fails "rejects DataTable row with unknown key" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "BarMeter", "props": { "label": "Bad", "value": 5, "color": "chartreuse" } } } }' > "$TMP"
+check_fails "rejects BarMeter invalid color" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "BarMeter", "props": { "label": "Missing value" } } } }' > "$TMP"
+check_fails "rejects BarMeter missing required value" node "$SCRIPT" "$TMP" --check
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatGrid", "props": { "items": [] }, "children": ["y"] }, "y": { "type": "BarMeter", "props": { "label": "v", "value": 5 } } } }' > "$TMP"
+check_fails "rejects children on forbidden type (StatGrid)" node "$SCRIPT" "$TMP" --check
+
+echo
+echo "[render branches]"
+SPEC_OK="$PROJECT_ROOT/src/skills/explore/references/dashboard-example.json"
+check "render-spec --json flag emits JSON" bash -c "node '$SCRIPT' '$SPEC_OK' --json | head -1 | grep -q '^{'"
+
+echo '{ "root": "h", "elements": { "h": { "type": "Heatmap", "props": { "xLabels": ["A","B"], "yLabels": ["X","Y"], "cells": [[1.0,2.0],[3.0,4.0]] } } } }' > "$TMP"
+check "renders Heatmap to markdown table" bash -c "node '$SCRIPT' '$TMP' | grep -q '| A | B |'"
+
+echo '{ "root": "m", "elements": { "m": { "type": "Markdown", "props": { "content": "**bold**" } } } }' > "$TMP"
+check "renders Markdown component content" bash -c "node '$SCRIPT' '$TMP' | grep -qF '**bold**'"
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatGrid", "props": { "items": [{"label":"Up","value":"1","trend":"up"},{"label":"Down","value":"1","trend":"down"}] } } } }' > "$TMP"
+check "renders StatGrid trend up arrow"   bash -c "node '$SCRIPT' '$TMP' | grep -q '↑'"
+check "renders StatGrid trend down arrow" bash -c "node '$SCRIPT' '$TMP' | grep -q '↓'"
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatusBadge", "props": { "label": "Warn", "status": "warning" } } } }' > "$TMP"
+check "renders StatusBadge warning glyph" bash -c "node '$SCRIPT' '$TMP' | grep -q '⚠'"
+
+echo '{ "root": "x", "elements": { "x": { "type": "StatusBadge", "props": { "label": "Err", "status": "error" } } } }' > "$TMP"
+check "renders StatusBadge error glyph" bash -c "node '$SCRIPT' '$TMP' | grep -q '✗'"
+
+echo "[main flag handling]"
+check_fails "no path arg fails cleanly"            node "$SCRIPT"
+check_fails "non-existent file fails cleanly"      node "$SCRIPT" "/tmp/does-not-exist-$$.json" --check
+TMPNOJSON=$(mktemp); echo 'not json content' > "$TMPNOJSON"
+check_fails "invalid JSON content fails cleanly"   node "$SCRIPT" "$TMPNOJSON" --check
+rm -f "$TMPNOJSON"
+
 echo
 echo "─── Results ───"
 echo "  PASS: $PASS"
