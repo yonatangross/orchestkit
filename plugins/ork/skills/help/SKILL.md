@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.76+."
 description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
 argument-hint: "[category]"
 context: inherit
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
@@ -28,6 +28,8 @@ triggers:
 # OrchestKit Skill Directory
 
 Dynamic skill discovery — reads from source at runtime so listings are never stale.
+
+> **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter — open it and start typing the skill name. Use `/ork:help` when you want categorized browsing or rationale for *why* a skill applies.
 
 ## Quick Start
 
@@ -138,12 +140,13 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/clear` | Clear conversation (preserves background agents) | CC 2.1.72 |
 | `/fast` | Toggle fast mode (same model, faster output) | CC 2.1.59+ |
 | `/loop` | Recurring interval (e.g. `/loop 5m /foo`) | CC 2.1.71 |
-| `/effort` | Reasoning effort: low/medium/high/auto | CC 2.1.72 |
 | `/plan` | Enter plan mode | CC 2.1.72 |
 | `/team-onboarding` | Generate teammate ramp-up guide | CC 2.1.101 |
 | `/ultraplan` | Remote-session deep planning | CC 2.1.101 |
 | `/recap` | Session context restoration after idle | CC 2.1.108 |
 | `/undo` | Alias for `/rewind` | CC 2.1.108 |
+| `/skills` | Native skill picker — type to filter | CC 2.1.121 |
+| `/effort` | Reasoning effort — sets `${CLAUDE_EFFORT}` env for skills | CC 2.1.72 (env var since 2.1.120) |
 
 ## Performance Tips
 

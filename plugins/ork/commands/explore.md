@@ -20,6 +20,29 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 > **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
 
 
+## STEP -0.5: Effort-Aware Agent Scaling (CC 2.1.120+)
+
+Read `${CLAUDE_EFFORT}` to scale exploration depth before any other decision.
+
+```python
+# CC 2.1.120+ env var; explicit --effort= overrides
+EFFORT = os.environ.get("CLAUDE_EFFORT")
+for token in "$ARGUMENTS".split():
+    if token.startswith("--effort="):
+        EFFORT = token.split("=", 1)[1]
+EFFORT = EFFORT or "high"  # default
+```
+
+| Effort | Agent count | Phases | Time |
+|--------|-------------|--------|------|
+| `low` | 1 (structure-only) | 1, 2, 8 | ~1 min |
+| `medium` | 2 (structure + data flow) | 1, 2, 3 (subset), 8 | ~3 min |
+| `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
+| `xhigh` (Opus 4.7 only) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
+
+**Override gate:** if the user passes `--effort=high` explicitly while `${CLAUDE_EFFORT}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
+
+
 ## STEP 0: Verify User Intent with AskUserQuestion
 
 **BEFORE creating tasks**, clarify what the user wants to explore:
@@ -240,4 +263,4 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 ## Related Skills
 - `ork:implement`: Implement after exploration
 
-**Version:** 2.5.0 (April 2026) — json-render dashboard emission via `--render=` (#1527)
+**Version:** 2.6.0 (April 2026) — `${CLAUDE_EFFORT}` env var scales agent count (CC 2.1.120, #1540)

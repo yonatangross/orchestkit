@@ -471,7 +471,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -1171,7 +1171,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "cover": {
     "name": "cover",
     "description": "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly).",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2125,7 +2125,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "explore": {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
-    "version": "2.5.0",
+    "version": "2.6.0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2447,7 +2447,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "help": {
     "name": "help",
     "description": "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "help",

@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.75.0",
+    "date": "2026-04-28",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**M125 Lane C:** json-render dashboards ([#1527](https://github.com/yonatangross/orchestkit/issues/1527)) + Storybook → genui catalog ([#1529](https://github.com/yonatangross/orchestkit/issues/1529)) ([#1539](https://github.com/yonatangross/orchestkit/issues/1539)) ([afb19e0](https://github.com/yonatangross/orchestkit/commit/afb19e057bff05b9837a4735e371befe215261d7))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.74.0",
+    "date": "2026-04-27",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**#1525:** /ork:dev gains scripts, rules, test-cases ([#1536](https://github.com/yonatangross/orchestkit/issues/1536)) ([cb30501](https://github.com/yonatangross/orchestkit/commit/cb3050173ad94ed9e18b6a3f9cc9cb582123ce69))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**#1525:** finish real implementations — close 4 vapor gaps ([#1538](https://github.com/yonatangross/orchestkit/issues/1538)) ([f48821f](https://github.com/yonatangross/orchestkit/commit/f48821fa4aba90fcdeddf0ca5fb0f31d2160d776))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.73.0",
     "date": "2026-04-27",
     "compareUrl": "",

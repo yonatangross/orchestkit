@@ -4,13 +4,13 @@ license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
 context: fork
-version: 1.6.0
+version: 1.7.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
-argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both]"
+argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
 complexity: high
 persuasion-type: guidance
 effort: high
@@ -72,6 +72,22 @@ for token in "$ARGUMENTS".split():
 ```
 
 Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
+
+### Effort detection (CC 2.1.120+)
+
+`${CLAUDE_EFFORT}` is the primary signal. CC 2.1.120 sets this env var from `/effort` or the model picker. `--effort=` token in `$ARGUMENTS` is the explicit override fallback (also covers older CC).
+
+```python
+# Read env first (CC 2.1.120+), then check explicit override
+EFFORT = os.environ.get("CLAUDE_EFFORT")  # "low" | "medium" | "high" | "xhigh" | None
+for token in "$ARGUMENTS".split():
+    if token.startswith("--effort="):
+        EFFORT = token.split("=", 1)[1]   # explicit override wins
+        TARGET = TARGET.replace(token, "").strip()
+EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
+```
+
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
 
 ---
 
@@ -353,4 +369,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ---
 
-**Version:** 1.6.0 (April 2026) — json-render dashboard emission via `--render=` (#1527)
+**Version:** 1.7.0 (April 2026) — `${CLAUDE_EFFORT}` env var as primary effort signal (CC 2.1.120, #1540)

@@ -5,7 +5,7 @@ compatibility: "Claude Code 2.1.98+. Requires network access."
 description: "Generate and run comprehensive test suites — unit tests, integration tests with real services (testcontainers/docker-compose), and Playwright E2E tests. Analyzes coverage gaps, spawns parallel test-generator agents per tier, runs tests, and heals failures (max 3 iterations). Use when generating tests for existing code, improving coverage after implementation, or creating a full test suite from scratch. Chains naturally after /ork:implement. Do NOT use for verifying/grading existing tests (use /ork:verify) or running tests without generation (use npm test directly)."
 argument-hint: "[scope-or-feature]"
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [testing, coverage, unit, integration, e2e, test-generation, real-services, testcontainers]
 user-invocable: true
@@ -74,9 +74,20 @@ for token in "$ARGUMENTS".split():
 
 ---
 
-## Step -0.5: Effort-Aware Coverage Scaling (CC 2.1.76)
+## Step -0.5: Effort-Aware Coverage Scaling (CC 2.1.76, env var since 2.1.120)
 
-Scale test generation depth based on `/effort` level:
+Read `${CLAUDE_EFFORT}` (CC 2.1.120+) as the primary signal; `--effort=` token in `$ARGUMENTS` is the explicit override fallback.
+
+```python
+EFFORT = os.environ.get("CLAUDE_EFFORT")
+for token in "$ARGUMENTS".split():
+    if token.startswith("--effort="):
+        EFFORT = token.split("=", 1)[1]  # explicit override
+        SCOPE = SCOPE.replace(token, "").strip()
+EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
+```
+
+Scale test generation depth based on `EFFORT`:
 
 | Effort Level | Tiers Generated | Agents | Heal Iterations |
 |-------------|----------------|--------|-----------------|
@@ -491,4 +502,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 ---
 
-**Version:** 1.0.0 (March 2026) — Initial release
+**Version:** 1.2.0 (April 2026) — `${CLAUDE_EFFORT}` env var as primary effort signal (CC 2.1.120, #1540)
