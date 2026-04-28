@@ -1,0 +1,66 @@
+{
+  "root": "report",
+  "version": "1.0.0",
+  "skill": "explore",
+  "topic": "authentication",
+  "elements": {
+    "report": {
+      "type": "Card",
+      "props": { "title": "Exploration Report — authentication" },
+      "children": ["summary", "health", "deps", "files"]
+    },
+    "summary": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Files matched", "value": "23" },
+          { "label": "Health score", "value": "7.4/10", "color": "green" },
+          { "label": "Coupling", "value": "Medium", "color": "yellow" },
+          { "label": "Patterns", "value": "service-layer, repository" }
+        ]
+      }
+    },
+    "health": {
+      "type": "Card",
+      "props": { "title": "Code Health" },
+      "children": ["health-readability", "health-maintainability", "health-testability"]
+    },
+    "health-readability": { "type": "BarMeter", "props": { "label": "Readability", "value": 8.0, "color": "green" } },
+    "health-maintainability": { "type": "BarMeter", "props": { "label": "Maintainability", "value": 7.0, "color": "green" } },
+    "health-testability": { "type": "BarMeter", "props": { "label": "Testability", "value": 6.5, "color": "yellow" } },
+    "deps": {
+      "type": "Card",
+      "props": { "title": "Dependency Hotspots" },
+      "children": ["deps-table"]
+    },
+    "deps-table": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "file", "label": "File" },
+          { "key": "fanin", "label": "Fan-in" },
+          { "key": "fanout", "label": "Fan-out" },
+          { "key": "score", "label": "Coupling" }
+        ],
+        "rows": [
+          { "file": "src/auth/session.ts", "fanin": "12", "fanout": "4", "score": "high" },
+          { "file": "src/auth/jwt.ts", "fanin": "8", "fanout": "2", "score": "med" }
+        ]
+      }
+    },
+    "files": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "file", "label": "File" },
+          { "key": "purpose", "label": "Purpose" },
+          { "key": "score", "label": "Health" }
+        ],
+        "rows": [
+          { "file": "src/auth/session.ts", "purpose": "Session tokens + refresh", "score": "8.0" },
+          { "file": "src/auth/jwt.ts", "purpose": "JWT sign/verify wrapper", "score": "7.5" }
+        ]
+      }
+    }
+  }
+}

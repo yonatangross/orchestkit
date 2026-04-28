@@ -4,13 +4,13 @@ license: MIT
 compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
 context: fork
-version: 1.5.0
+version: 1.6.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
-argument-hint: "[code-path-or-topic]"
+argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both]"
 complexity: high
 persuasion-type: guidance
 effort: high
@@ -255,6 +255,44 @@ See also: `Read("${CLAUDE_SKILL_DIR}/references/alternative-analysis.md")` | `Re
 
 ---
 
+## Phase 7b: Emit Dashboard Spec (json-render)
+
+Parse `--render=` from `$ARGUMENTS`. Default is `both`.
+
+| Mode | Behavior |
+|------|----------|
+| `markdown` | Current behavior — markdown assessment report only. No spec emitted. |
+| `json-render` | Emit `.claude/chain/assess-dashboard.json` only. Skip markdown report. |
+| `both` | Emit spec **and** markdown. Default — human reads the report, downstream skills parse the spec. |
+
+When emitting a spec:
+
+1. Load format and catalog: `Read("${CLAUDE_SKILL_DIR}/references/dashboard-spec.md")`. Example: `references/dashboard-example.json`.
+2. Build the spec using only catalog types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Markdown`. Top-level fields `composite` (number) and `grade` (string) are required for assess specs.
+3. One `BarMeter` per dimension scored. The `verdict` element is a `StatusBadge` with status `success`/`warning`/`error` mapped from grade (A/B → success, C → warning, D/F → error).
+4. Write to `.claude/chain/assess-dashboard.json` with compact JSON.
+5. Validate before declaring success:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
+```
+
+If validation fails, fall back to markdown-only and surface the error. Never write a partial spec.
+
+6. For `--render=both`, render the markdown view from the spec:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
+```
+
+This guarantees JSON spec and markdown report stay in sync.
+
+**xhigh effort:** when `effort=xhigh` is active, add a sibling `Markdown` element per dimension containing `confidence` and `caveats` from the uncertainty pass. Reference list it in the `dimensions` Card's children alongside the `BarMeter`. See `references/dashboard-spec.md` for the exact pattern.
+
+**Downstream consumption:** `/ork:implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
+
+---
+
 ## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
 
 Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
@@ -315,4 +353,4 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 ---
 
-**Version:** 1.4.0 (March 2026) — Added progressive output for incremental evaluation results
+**Version:** 1.6.0 (April 2026) — json-render dashboard emission via `--render=` (#1527)

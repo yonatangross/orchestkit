@@ -1,0 +1,74 @@
+{
+  "root": "report",
+  "version": "1.0.0",
+  "skill": "assess",
+  "target": "backend/app/services/auth.py",
+  "grade": "B+",
+  "composite": 7.4,
+  "elements": {
+    "report": {
+      "type": "Card",
+      "props": { "title": "Assessment — backend/app/services/auth.py" },
+      "children": ["headline", "verdict", "dimensions", "pros-cons", "improvements"]
+    },
+    "headline": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Composite", "value": "7.4/10", "color": "green" },
+          { "label": "Grade", "value": "B+", "color": "green" },
+          { "label": "Effort to A", "value": "1 day" },
+          { "label": "Lowest", "value": "Testability 5.5", "color": "yellow" }
+        ]
+      }
+    },
+    "verdict": {
+      "type": "StatusBadge",
+      "props": { "label": "GOOD — ship with two follow-ups", "status": "success" }
+    },
+    "dimensions": {
+      "type": "Card",
+      "props": { "title": "Per-Dimension Scores" },
+      "children": ["dim-correctness", "dim-maintainability", "dim-security", "dim-performance", "dim-testability", "dim-architecture", "dim-documentation"]
+    },
+    "dim-correctness": { "type": "BarMeter", "props": { "label": "Correctness", "value": 8.5, "color": "green" } },
+    "dim-maintainability": { "type": "BarMeter", "props": { "label": "Maintainability", "value": 7.0, "color": "green" } },
+    "dim-security": { "type": "BarMeter", "props": { "label": "Security", "value": 8.0, "color": "green" } },
+    "dim-performance": { "type": "BarMeter", "props": { "label": "Performance", "value": 7.5, "color": "green" } },
+    "dim-testability": { "type": "BarMeter", "props": { "label": "Testability", "value": 5.5, "color": "yellow" } },
+    "dim-architecture": { "type": "BarMeter", "props": { "label": "Architecture", "value": 8.0, "color": "green" } },
+    "dim-documentation": { "type": "BarMeter", "props": { "label": "Documentation", "value": 6.0, "color": "yellow" } },
+    "pros-cons": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "side", "label": "" },
+          { "key": "item", "label": "Item" },
+          { "key": "weight", "label": "Weight" }
+        ],
+        "rows": [
+          { "side": "Pro", "item": "Token rotation correctly invalidates old refresh", "weight": "High" },
+          { "side": "Pro", "item": "Pure functions for JWT verify — easy to test in isolation", "weight": "Med" },
+          { "side": "Con", "item": "No tests for the rotation grace window", "weight": "High" },
+          { "side": "Con", "item": "Session.refresh logs raw token on debug=True", "weight": "High" }
+        ]
+      }
+    },
+    "improvements": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "action", "label": "Action" },
+          { "key": "effort", "label": "Effort" },
+          { "key": "impact", "label": "Impact" },
+          { "key": "priority", "label": "Priority" }
+        ],
+        "rows": [
+          { "action": "Add rotation grace-window test", "effort": "1", "impact": "5", "priority": "5.0" },
+          { "action": "Strip token from debug log line", "effort": "1", "impact": "4", "priority": "4.0" },
+          { "action": "Document refresh contract", "effort": "2", "impact": "3", "priority": "1.5" }
+        ]
+      }
+    }
+  }
+}

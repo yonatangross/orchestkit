@@ -235,6 +235,44 @@ See also: `Read("$\{CLAUDE_SKILL_DIR\}/references/alternative-analysis.md")` | `
 
 ---
 
+## Phase 7b: Emit Dashboard Spec (json-render)
+
+Parse `--render=` from `$ARGUMENTS`. Default is `both`.
+
+| Mode | Behavior |
+|------|----------|
+| `markdown` | Current behavior — markdown assessment report only. No spec emitted. |
+| `json-render` | Emit `.claude/chain/assess-dashboard.json` only. Skip markdown report. |
+| `both` | Emit spec **and** markdown. Default — human reads the report, downstream skills parse the spec. |
+
+When emitting a spec:
+
+1. Load format and catalog: `Read("$\{CLAUDE_SKILL_DIR\}/references/dashboard-spec.md")`. Example: `references/dashboard-example.json`.
+2. Build the spec using only catalog types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Markdown`. Top-level fields `composite` (number) and `grade` (string) are required for assess specs.
+3. One `BarMeter` per dimension scored. The `verdict` element is a `StatusBadge` with status `success`/`warning`/`error` mapped from grade (A/B → success, C → warning, D/F → error).
+4. Write to `.claude/chain/assess-dashboard.json` with compact JSON.
+5. Validate before declaring success:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
+```
+
+If validation fails, fall back to markdown-only and surface the error. Never write a partial spec.
+
+6. For `--render=both`, render the markdown view from the spec:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
+```
+
+This guarantees JSON spec and markdown report stay in sync.
+
+**xhigh effort:** when `effort=xhigh` is active, add a sibling `Markdown` element per dimension containing `confidence` and `caveats` from the uncertainty pass. Reference list it in the `dimensions` Card's children alongside the `BarMeter`. See `references/dashboard-spec.md` for the exact pattern.
+
+**Downstream consumption:** `/ork:implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
+
+---
+
 ## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
 
 Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
@@ -295,7 +333,7 @@ Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scor
 
 ---
 
-**Version:** 1.4.0 (March 2026) — Added progressive output for incremental evaluation results
+**Version:** 1.6.0 (April 2026) — json-render dashboard emission via `--render=` (#1527)
 
 
 ---
@@ -470,7 +508,7 @@ Action: Decompose into subtasks before starting
 
 ---
 
-## References (9)
+## References (10)
 
 ### Agent Spawn Definitions
 
@@ -653,6 +691,143 @@ How to identify, evaluate, and compare alternatives to the current approach.
 
 ### Verdict: [Adopt/Defer/Reject]
 ```
+
+
+### Assessment Dashboard Spec (json-render) — HIGH
+
+
+# Assessment Dashboard Spec
+
+When `--render=json-render` or `--render=both` is passed to `/ork:assess`, Phase 7 emits a json-render-compatible JSON spec to `.claude/chain/assess-dashboard.json` instead of (or in addition to) the markdown report.
+
+The spec follows the **flat element-map format** documented in `ork:mcp-visual-output` — `\{ root, elements \}` with each element keyed by id and referencing children by id. This matches what `@json-render/mcp` 0.17+ consumes and what downstream skills can parse for structured handoff.
+
+## Catalog
+
+These are the only component types the spec is allowed to use. They map to `@json-render/shadcn` registry entries when rendered visually.
+
+| Type | Purpose | Required Props |
+|------|---------|----------------|
+| `Card` | Section wrapper with optional title | `title?: string` |
+| `StatGrid` | Composite score + grade at a glance | `items: \{ label, value, trend?, color? \}[]` |
+| `DataTable` | Per-dimension scores, pros/cons, alternatives | `columns: \{ key, label \}[]`, `rows: Record&lt;string,string&gt;[]` |
+| `StatusBadge` | Verdict (EXCELLENT, GOOD, ADEQUATE, NEEDS WORK, CRITICAL) | `label: string`, `status: success|warning|error|info|pending` |
+| `BarMeter` | Per-dimension score 0-10 | `label: string`, `value: number` (0-10), `color?: string` |
+| `Markdown` | Free-text reasoning, caveats | `content: string` |
+
+`color` enum: `green | red | yellow | blue | gray`. Use `green` for ≥8, `yellow` for 5–7.9, `red` for &lt;5.
+
+## Example
+
+A complete spec for `/ork:assess backend/app/services/auth.py`:
+
+```json
+{
+  "root": "report",
+  "version": "1.0.0",
+  "skill": "assess",
+  "target": "backend/app/services/auth.py",
+  "grade": "B+",
+  "composite": 7.4,
+  "elements": {
+    "report": {
+      "type": "Card",
+      "props": { "title": "Assessment — backend/app/services/auth.py" },
+      "children": ["headline", "verdict", "dimensions", "pros-cons", "improvements"]
+    },
+    "headline": {
+      "type": "StatGrid",
+      "props": {
+        "items": [
+          { "label": "Composite", "value": "7.4/10", "color": "green" },
+          { "label": "Grade", "value": "B+", "color": "green" },
+          { "label": "Effort to A", "value": "1 day" },
+          { "label": "Lowest", "value": "Testability 5.5", "color": "yellow" }
+        ]
+      }
+    },
+    "verdict": {
+      "type": "StatusBadge",
+      "props": { "label": "GOOD — ship with two follow-ups", "status": "success" }
+    },
+    "dimensions": {
+      "type": "Card",
+      "props": { "title": "Per-Dimension Scores" },
+      "children": ["dim-correctness", "dim-maintainability", "dim-security", "dim-performance", "dim-testability", "dim-architecture", "dim-documentation"]
+    },
+    "dim-correctness": { "type": "BarMeter", "props": { "label": "Correctness", "value": 8.5, "color": "green" } },
+    "dim-maintainability": { "type": "BarMeter", "props": { "label": "Maintainability", "value": 7.0, "color": "green" } },
+    "dim-security": { "type": "BarMeter", "props": { "label": "Security", "value": 8.0, "color": "green" } },
+    "dim-performance": { "type": "BarMeter", "props": { "label": "Performance", "value": 7.5, "color": "green" } },
+    "dim-testability": { "type": "BarMeter", "props": { "label": "Testability", "value": 5.5, "color": "yellow" } },
+    "dim-architecture": { "type": "BarMeter", "props": { "label": "Architecture", "value": 8.0, "color": "green" } },
+    "dim-documentation": { "type": "BarMeter", "props": { "label": "Documentation", "value": 6.0, "color": "yellow" } },
+    "pros-cons": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "side", "label": "" },
+          { "key": "item", "label": "Item" },
+          { "key": "weight", "label": "Weight" }
+        ],
+        "rows": [
+          { "side": "Pro", "item": "Token rotation correctly invalidates old refresh", "weight": "High" },
+          { "side": "Pro", "item": "Pure functions for JWT verify — easy to test in isolation", "weight": "Med" },
+          { "side": "Con", "item": "No tests for the rotation grace window", "weight": "High" },
+          { "side": "Con", "item": "Session.refresh logs raw token on debug=True", "weight": "High" }
+        ]
+      }
+    },
+    "improvements": {
+      "type": "DataTable",
+      "props": {
+        "columns": [
+          { "key": "action", "label": "Action" },
+          { "key": "effort", "label": "Effort" },
+          { "key": "impact", "label": "Impact" },
+          { "key": "priority", "label": "Priority" }
+        ],
+        "rows": [
+          { "action": "Add rotation grace-window test", "effort": "1", "impact": "5", "priority": "5.0" },
+          { "action": "Strip token from debug log line", "effort": "1", "impact": "4", "priority": "4.0" },
+          { "action": "Document refresh contract", "effort": "2", "impact": "3", "priority": "1.5" }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Token cost (measured)
+
+The example above serializes to **~900 tokens** of compact JSON. The equivalent markdown report (using `references/phase-templates.md` + `references/scoring-rubric.md`) for the same content is **~3500 tokens**.
+
+The downstream win: `/ork:implement` reading this spec from `.claude/chain/assess-dashboard.json` knows the lowest-scoring dimension, the high-priority improvements, and the verdict — without re-parsing markdown tables.
+
+## xhigh effort additions
+
+When `effort=xhigh` is active, each `BarMeter` element gains a sibling `Markdown` element with caveats:
+
+```json
+"dim-security-caveats": {
+  "type": "Markdown",
+  "props": { "content": "**Confidence:** medium\n\n- Didn't execute SQL against a real DB to confirm parameterization\n- Reviewed 12 of 15 handlers; 3 deferred by scope filter" }
+}
+```
+
+The `dimensions` Card lists both `dim-security` and `dim-security-caveats` as children. This is opt-in via `--render=json-render --effort=xhigh`.
+
+## Validation
+
+`scripts/render-spec.mjs` validates the spec on emission:
+
+- All children ids resolve in `elements`
+- Component types are in the catalog
+- BarMeter values in [0, 10]
+- DataTable rows match column keys
+- Composite is in [0, 10]; grade matches grade interpretation thresholds
+
+Invalid spec → fallback to markdown, never emit a partial spec.
 
 
 ### Improvement Prioritization

@@ -197,6 +197,39 @@ Load `Read("${CLAUDE_SKILL_DIR}/rules/product-perspective.md")` for agent prompt
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
 
+### Phase 8b: Emit Dashboard Spec (json-render)
+
+Parse `--render=` from `$ARGUMENTS`. Default is `both`.
+
+| Mode | Behavior |
+|------|----------|
+| `markdown` | Current behavior — markdown report only. No spec emitted. |
+| `json-render` | Emit `.claude/chain/explore-dashboard.json` only. Skip markdown report. |
+| `both` | Emit spec **and** markdown. Default — gives the human a report and downstream skills a structured handoff. |
+
+When emitting a spec:
+
+1. Load the format and catalog: `Read("${CLAUDE_SKILL_DIR}/references/dashboard-spec.md")`. Reference example: `references/dashboard-example.json`.
+2. Build the spec object using only catalog component types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Heatmap`, `Markdown`.
+3. Write to `.claude/chain/explore-dashboard.json` with compact JSON (no indentation) — minimizes token cost for downstream consumers.
+4. Validate before declaring success:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
+```
+
+If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only and surface the error to the user. Never write a partial or invalid spec.
+
+5. For `--render=both`, render the markdown view from the spec for consistency:
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
+```
+
+Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync — a single source of truth.
+
+**Why this matters:** Downstream skills (`/ork:fix-issue`, `/ork:implement`, `/ork:create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
+
 ## Common Exploration Queries
 
 - "How does authentication work?"
@@ -207,4 +240,4 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/exploration-report-template.md")`.
 ## Related Skills
 - `ork:implement`: Implement after exploration
 
-**Version:** 2.4.0 (April 2026) — Fork-eligible agents for 30-50% cost reduction (#1227)
+**Version:** 2.5.0 (April 2026) — json-render dashboard emission via `--render=` (#1527)

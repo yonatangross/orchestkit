@@ -471,7 +471,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "assess": {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -510,6 +510,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "agent-spawn-definitions.md",
         "agent-teams-mode.md",
         "alternative-analysis.md",
+        "dashboard-example.json",
+        "dashboard-spec.md",
         "improvement-prioritization.md",
         "orchestration-mode.md",
         "phase-templates.md",
@@ -520,6 +522,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "assets": [
         "assessment-report.md",
         "comparison-table.md"
+      ],
+      "scripts": [
+        "render-spec.mjs"
       ],
       "checklists": [
         "assessment-checklist.md"
@@ -2122,7 +2127,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "explore": {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
-    "version": "2.3.0",
+    "version": "2.5.0",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2158,6 +2163,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "code-health-rubric.md",
+        "dashboard-example.json",
+        "dashboard-spec.md",
         "dependency-analysis.md",
         "exploration-report-template.md",
         "findability-patterns.md"
@@ -2167,7 +2174,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "hotspot-diagram.md"
       ],
       "scripts": [
-        "dependency-mapper.sh"
+        "dependency-mapper.sh",
+        "render-spec.mjs"
       ]
     },
     "plugins": [
