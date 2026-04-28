@@ -355,6 +355,16 @@ else:
 - Store results in `.claude/chain/capabilities.json`
 - All subsequent phases read the capability map
 
+## Exception: alwaysLoad (CC 2.1.121+)
+
+If the project's `.mcp.json` sets `"alwaysLoad": true` on a server, **skip the probe**. The server is in the tool registry from session start; the probe is wasted work. OrchestKit ships `alwaysLoad: true` for `memory`, `context7`, and `sequential-thinking` (the universally-needed T2 trio). On older CC, `alwaysLoad` is an unknown key and is silently ignored — the on-demand probe path still works as a fallback if the skill keeps it.
+
+```python
+# CC 2.1.121+ with alwaysLoad on the T2 trio: probe-free
+mcp__memory__search_nodes(query="past auth fixes")     # always loaded
+mcp__context7__resolve-library-id(libraryName="zod")    # always loaded
+```
+
 
 ### PushNotification on Long-Skill Completion — MEDIUM
 
@@ -923,7 +933,18 @@ Keep handoff files under 50KB. For large outputs (full file contents, long diffs
 
 Probe MCP server availability before using any MCP tool. This prevents hard crashes when a user doesn't have a specific MCP server configured.
 
-## Probe Pattern
+## Skip the probe when alwaysLoad is set (CC 2.1.121+)
+
+`@2.1.121` introduced `"alwaysLoad": true` in `.mcp.json` — flagged servers stay in the tool registry from session start, so the probe is redundant. OrchestKit's project-level `.mcp.json` sets `alwaysLoad: true` on `memory`, `context7`, and `sequential-thinking` (the T2 trio). On those servers, **skip the probe and call the MCP tool directly** — the fallback for downgraded users is already encoded in the schema (CC &lt; 2.1.121 silently ignores unknown keys, so the server still loads but on-demand; the existing probe path remains valid).
+
+```python
+# CC 2.1.121+ with alwaysLoad: skip probe entirely
+mcp__memory__search_nodes(query="past auth fixes")  # always available
+```
+
+If a downstream skill is unsure whether the user adopted `alwaysLoad`, it MAY still probe — the cost is one ToolSearch call and the result is the same. The recommendation: project skills assume `alwaysLoad` for the T2 trio; user-facing one-off scripts probe defensively.
+
+## Probe Pattern (CC &lt; 2.1.121, or non-alwaysLoad servers)
 
 ```python
 # Run ALL probes in ONE message (parallel, ~50ms each):

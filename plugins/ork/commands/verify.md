@@ -91,6 +91,7 @@ Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star
 ### MCP Probe + Resume
 
 ```python
+# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
 ToolSearch(query="select:mcp__memory__search_nodes")
 Write(".claude/chain/capabilities.json", { memory, timestamp })
 

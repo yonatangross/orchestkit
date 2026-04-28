@@ -2,7 +2,18 @@
 
 Probe MCP server availability before using any MCP tool. This prevents hard crashes when a user doesn't have a specific MCP server configured.
 
-## Probe Pattern
+## Skip the probe when alwaysLoad is set (CC 2.1.121+)
+
+`@2.1.121` introduced `"alwaysLoad": true` in `.mcp.json` — flagged servers stay in the tool registry from session start, so the probe is redundant. OrchestKit's project-level `.mcp.json` sets `alwaysLoad: true` on `memory`, `context7`, and `sequential-thinking` (the T2 trio). On those servers, **skip the probe and call the MCP tool directly** — the fallback for downgraded users is already encoded in the schema (CC < 2.1.121 silently ignores unknown keys, so the server still loads but on-demand; the existing probe path remains valid).
+
+```python
+# CC 2.1.121+ with alwaysLoad: skip probe entirely
+mcp__memory__search_nodes(query="past auth fixes")  # always available
+```
+
+If a downstream skill is unsure whether the user adopted `alwaysLoad`, it MAY still probe — the cost is one ToolSearch call and the result is the same. The recommendation: project skills assume `alwaysLoad` for the T2 trio; user-facing one-off scripts probe defensively.
+
+## Probe Pattern (CC < 2.1.121, or non-alwaysLoad servers)
 
 ```python
 # Run ALL probes in ONE message (parallel, ~50ms each):

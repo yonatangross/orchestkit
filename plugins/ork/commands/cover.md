@@ -62,6 +62,7 @@ Read `${CLAUDE_EFFORT}` (CC 2.1.120+) first; explicit `--effort=` token wins as 
 
 ```python
 # Probe MCPs (parallel):
+# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
 ToolSearch(query="select:mcp__memory__search_nodes")
 ToolSearch(query="select:mcp__context7__resolve-library-id")
 

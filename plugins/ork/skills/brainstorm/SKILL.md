@@ -55,7 +55,7 @@ TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
 
 ```python
 # 1. Probe MCP servers (once at skill start)
-ToolSearch(query="select:mcp__memory__search_nodes")
+ToolSearch(query="select:mcp__memory__search_nodes")  # CC < 2.1.121 fallback (alwaysLoad in .mcp.json otherwise)
 ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
 
 # 2. Store capabilities

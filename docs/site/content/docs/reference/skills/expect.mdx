@@ -67,6 +67,7 @@ if '-y' in raw.split():
 ## STEP 0: MCP Probe + Prerequisite Check
 
 ```python
+# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
 ToolSearch(query="select:mcp__memory__search_nodes")
 
 # Verify agent-browser is available (Rust-native, no Playwright)

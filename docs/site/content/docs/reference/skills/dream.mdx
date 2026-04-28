@@ -280,6 +280,22 @@ If `--dry-run`, prefix the entire report with:
 
 ---
 
+## STEP 7: Plugin Housekeeping (CC 2.1.121+, #1544)
+
+After memory consolidation, check for orphaned auto-installed plugin dependencies and offer to prune them:
+
+```bash
+# Detect orphans
+claude plugin list --json | jq '[.[] | select(.auto_installed == true and .reason_kept == "orphaned")] | length'
+
+# If > 0 and last prune > 7 days ago (track in .claude/state/last-prune.txt):
+claude plugin prune  # interactive — confirms before removing
+```
+
+Skip this step on CC &lt; 2.1.121. The state file `.claude/state/last-prune.txt` records the last successful prune date so we don't run it on every dream invocation.
+
+---
+
 ## When NOT to Use
 
 - To **store** new decisions -- use `/ork:remember`
