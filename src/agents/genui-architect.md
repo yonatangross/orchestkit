@@ -56,8 +56,36 @@ Do not assume component availability or prop shapes you haven't inspected.
 
 ## Reference Packages
 - `@json-render/core` — catalog schema, renderer, validation
-- `@json-render/shadcn` — 29 pre-built shadcn/ui component adapters
+- `@json-render/shadcn` — 36 pre-built shadcn/ui component adapters
 - `@json-render/mcp` — MCP tool integration for AI-rendered UI
+- `@storybook/addon-mcp` — exposes the project's Storybook stories as an MCP server (see Storybook Import below)
+
+## Storybook Import (single source of truth)
+
+When the project ships a Storybook setup, **prefer importing the catalog from Storybook** over hand-writing one. Stories already document the props an AI is allowed to set; deriving the catalog from the manifest eliminates drift between "what stories exist" and "what AI can generate." This is the implementation of issue #1529.
+
+**Decision flow:**
+1. Probe for Storybook MCP: `ToolSearch(query="+storybook list-all-documentation")`
+2. **If available:** capture the manifest and run the importer
+   ```bash
+   curl -s http://localhost:6006/mcp -X POST -H 'Content-Type: application/json' \
+     -d '{"method":"tools/call","params":{"name":"list-all-documentation"}}' \
+     > /tmp/storybook-manifest.json
+   node "${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/scripts/storybook-to-catalog.mjs" \
+     /tmp/storybook-manifest.json \
+     --out src/genui/catalog.ts \
+     --components src/genui/components.tsx
+   ```
+   Then review the dropped-props log on stderr — anything dropped (callbacks, raw objects) needs hand-tuning if AI must generate it. Reference: `${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/references/storybook-import.md`.
+3. **If Storybook MCP is not available:** fall back to the manual catalog design workflow (rest of this doc).
+
+**Safety the importer enforces automatically:**
+- `text` → `z.string().max(500)` (prompt-injection cap)
+- `select`/`radio` → `z.enum([...])` (the safest case)
+- `color` → hex regex; `date` → ISO datetime
+- callbacks/functions → **dropped** (AI cannot generate executables)
+- `object` controls → **dropped** (too unconstrained — add manually with explicit shape)
+- `z.any()` / `z.unknown()` are blocked by validator and would fail emission
 
 ## Rules
 **ALWAYS:**
@@ -113,12 +141,13 @@ Return structured catalog design report:
 ## Example
 Task: "Design a catalog for an AI dashboard builder"
 Action:
-1. Read existing shadcn component list from @json-render/shadcn
-2. Select minimal set: Card, Table, Chart, Badge, Button, Alert, Stat
-3. Define Zod schemas with constrained props for each
-4. Calculate token savings in YAML vs JSON
-5. Validate catalog against @json-render/core schema
-6. Generate per-platform registries (web + MCP)
+1. Probe for Storybook MCP — if found, run the importer and start from the auto-generated catalog (see "Storybook Import" above)
+2. Otherwise: read existing shadcn component list from @json-render/shadcn
+3. Select minimal set: Card, Table, Chart, Badge, Button, Alert, Stat
+4. Define Zod schemas with constrained props for each
+5. Calculate token savings in YAML vs JSON
+6. Validate catalog against @json-render/core schema
+7. Generate per-platform registries (web + MCP)
 
 
 ## Status Protocol

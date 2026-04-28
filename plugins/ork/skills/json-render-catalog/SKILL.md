@@ -2,7 +2,7 @@
 name: json-render-catalog
 description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects."
 tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -19,6 +19,19 @@ metadata:
 # json-render Component Catalogs
 
 json-render (Vercel Labs, 12.9K stars, Apache-2.0) is a framework for AI-safe generative UI. AI generates flat-tree JSON (or YAML) specs constrained to a developer-defined catalog — the catalog is the contract between your design system and AI output. If a component or prop is not in the catalog, AI cannot generate it.
+
+## Storybook → catalog import (#1529, 2026-04)
+
+When the project ships a Storybook setup, **import the catalog from Storybook stories** instead of hand-writing one. The bundled importer at `scripts/storybook-to-catalog.mjs` reads a `@storybook/addon-mcp` `list-all-documentation` manifest and emits a Zod-typed `catalog.ts` plus a `components.tsx` registry.
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.json \
+  --out src/genui/catalog.ts \
+  --components src/genui/components.tsx \
+  --project-root .
+```
+
+Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
 ## New in 2026-04 (json-render 0.14 → 0.17)
 

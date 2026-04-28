@@ -1623,9 +1623,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "agent": null,
     "complexity": "complex",
-    "structure": {
-      "references": []
-    },
+    "structure": {},
     "plugins": [
       "ork"
     ],
@@ -2682,7 +2680,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "json-render-catalog": {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2705,6 +2703,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "migration-from-genui.md",
         "package-ecosystem.md",
         "spec-format.md",
+        "storybook-fixture.json",
+        "storybook-import.md",
         "upstream-core.md",
         "upstream-email.md",
         "upstream-image.md",
@@ -2726,6 +2726,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "upstream-xstate.md",
         "upstream-yaml.md",
         "upstream-zustand.md"
+      ],
+      "scripts": [
+        "storybook-to-catalog.mjs"
       ]
     },
     "plugins": [

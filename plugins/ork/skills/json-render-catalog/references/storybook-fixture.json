@@ -1,0 +1,65 @@
+{
+  "components": [
+    {
+      "id": "components-card",
+      "name": "Card",
+      "description": "Card component with optional title and elevation",
+      "filePath": "src/components/Card/Card.stories.tsx",
+      "argTypes": {
+        "title": { "control": "text", "description": "Card title", "required": false },
+        "elevation": { "control": "select", "options": ["flat", "low", "high"], "required": true },
+        "children": { "control": "object", "description": "ReactNode children", "tsType": "ReactNode" }
+      },
+      "stories": ["Default", "Elevated", "WithTitle"]
+    },
+    {
+      "id": "components-button",
+      "name": "Button",
+      "description": "Button with size and variant",
+      "filePath": "src/components/Button/Button.stories.tsx",
+      "argTypes": {
+        "label": { "control": "text", "required": true, "max": 500 },
+        "size": { "control": "select", "options": ["sm", "md", "lg"], "required": true },
+        "variant": { "control": "radio", "options": ["primary", "secondary", "ghost"], "required": true },
+        "disabled": { "control": "boolean", "required": false },
+        "onClick": { "control": null, "tsType": "() => void" }
+      },
+      "stories": ["Primary", "Secondary", "Ghost", "Disabled"]
+    },
+    {
+      "id": "components-badge",
+      "name": "Badge",
+      "description": "Status badge",
+      "filePath": "src/components/Badge/Badge.stories.tsx",
+      "argTypes": {
+        "label": { "control": "text", "required": true },
+        "status": { "control": "select", "options": ["success", "warning", "error", "info"], "required": true },
+        "color": { "control": "color", "required": false }
+      },
+      "stories": ["Success", "Warning", "Error", "Info"]
+    },
+    {
+      "id": "components-stat",
+      "name": "Stat",
+      "description": "Stat display",
+      "filePath": "src/components/Stat/Stat.stories.tsx",
+      "argTypes": {
+        "label": { "control": "text", "required": true },
+        "value": { "control": "number", "required": true, "min": 0, "max": 1000000 },
+        "trend": { "control": "select", "options": ["up", "down", "flat"], "required": false }
+      },
+      "stories": ["Up", "Down", "Flat"]
+    },
+    {
+      "id": "components-rawjson",
+      "name": "RawJson",
+      "description": "DEMO: an unsafe component with object args — the importer should drop unsafe props",
+      "filePath": "src/components/RawJson/RawJson.stories.tsx",
+      "argTypes": {
+        "label": { "control": "text", "required": true },
+        "data": { "control": "object", "tsType": "Record<string, unknown>" }
+      },
+      "stories": ["Default"]
+    }
+  ]
+}
