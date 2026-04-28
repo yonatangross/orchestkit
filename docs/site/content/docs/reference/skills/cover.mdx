@@ -53,18 +53,7 @@ for token in "$ARGUMENTS".split():
 
 ## Step -0.5: Effort-Aware Coverage Scaling (CC 2.1.76, env var since 2.1.120)
 
-Read `$\{CLAUDE_EFFORT\}` (CC 2.1.120+) as the primary signal; `--effort=` token in `$ARGUMENTS` is the explicit override fallback.
-
-```python
-EFFORT = os.environ.get("CLAUDE_EFFORT")
-for token in "$ARGUMENTS".split():
-    if token.startswith("--effort="):
-        EFFORT = token.split("=", 1)[1]  # explicit override
-        SCOPE = SCOPE.replace(token, "").strip()
-EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
-```
-
-Scale test generation depth based on `EFFORT`:
+Read `$\{CLAUDE_EFFORT\}` (CC 2.1.120+) first; explicit `--effort=` token wins as override. Default `high` when CC &lt; 2.1.120 and no flag. Pattern matches assess + explore (#1540). Scale test generation depth:
 
 | Effort Level | Tiers Generated | Agents | Heal Iterations |
 |-------------|----------------|--------|-----------------|
