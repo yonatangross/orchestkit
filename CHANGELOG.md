@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.75.0](https://github.com/yonatangross/orchestkit/compare/v7.74.0...v7.75.0) (2026-04-28)
+
+
+### Features
+
+* **M125 Lane C:** json-render dashboards ([#1527](https://github.com/yonatangross/orchestkit/issues/1527)) + Storybook → genui catalog ([#1529](https://github.com/yonatangross/orchestkit/issues/1529)) ([#1539](https://github.com/yonatangross/orchestkit/issues/1539)) ([afb19e0](https://github.com/yonatangross/orchestkit/commit/afb19e057bff05b9837a4735e371befe215261d7))
+
 ## [7.74.0](https://github.com/yonatangross/orchestkit/compare/v7.73.0...v7.74.0) (2026-04-27)
 
 
