@@ -102,6 +102,65 @@ echo '{"components":[{"name":"badname-with-dash","argTypes":{}}]}' > "$TMP/bad-n
 check_fails "rejects non-PascalCase name"           node "$SCRIPT" "$TMP/bad-name.json" --check
 echo
 
+# Priority gap fills (coverage audit follow-up)
+echo "[control type coverage — beyond text/select]"
+cat > "$TMP/extra.json" <<'EOF'
+{
+  "components": [
+    {
+      "name": "Calendar",
+      "filePath": "src/components/Calendar/Calendar.stories.tsx",
+      "argTypes": {
+        "from": { "control": "date", "required": true },
+        "tags": { "control": "array", "required": false },
+        "active": { "control": "boolean", "required": true }
+      }
+    }
+  ]
+}
+EOF
+node "$SCRIPT" "$TMP/extra.json" --out "$TMP/cal.ts" --project-root "$PROJ" 2>/dev/null
+check "date control -> z.string().datetime()"           grep -q "z.string().datetime()" "$TMP/cal.ts"
+check "array control -> z.array(z.string()).max(20)"    grep -q "z.array(z.string()).max(20)" "$TMP/cal.ts"
+check "boolean control -> z.boolean()"                  grep -q "z.boolean()" "$TMP/cal.ts"
+echo
+
+echo "[manifest hygiene drops]"
+cat > "$TMP/dup.json" <<'EOF'
+{
+  "components": [
+    { "argTypes": { "label": { "control": "text", "required": true } } },
+    { "name": "Dup", "filePath": "src/Dup.stories.tsx", "argTypes": { "label": { "control": "text", "required": true } } },
+    { "name": "Dup", "argTypes": {} }
+  ]
+}
+EOF
+node "$SCRIPT" "$TMP/dup.json" --out "$TMP/dup.ts" --project-root "$PROJ" 2>"$TMP/dup.err"
+check "drops missing-name component"      grep -qF "missing name" "$TMP/dup.err"
+check "drops duplicate-name component"    grep -qF "duplicate name" "$TMP/dup.err"
+check "surviving Dup ends up in catalog"  grep -q "Dup:" "$TMP/dup.ts"
+echo
+
+echo "[components.tsx with missing filePath]"
+cat > "$TMP/no-fp.json" <<'EOF'
+{
+  "components": [
+    { "name": "Lone", "argTypes": { "label": { "control": "text", "required": true } } }
+  ]
+}
+EOF
+node "$SCRIPT" "$TMP/no-fp.json" --out "$TMP/lone.ts" --components "$TMP/lone.tsx" --project-root "$PROJ" 2>/dev/null
+check "missing filePath emits manual-wire marker" grep -qE "^// Lone: no filePath" "$TMP/lone.tsx"
+echo
+
+echo "[parse + arg errors]"
+echo 'not json' > "$TMP/notjson.txt"
+check_fails "parse error fails cleanly"           node "$SCRIPT" "$TMP/notjson.txt" --check
+check_fails "no input arg fails cleanly"          node "$SCRIPT" --check
+check_fails "unknown flag fails cleanly"          node "$SCRIPT" "$FIXTURE" --bogus
+check_fails "no out without check/json fails"     node "$SCRIPT" "$FIXTURE"
+echo
+
 echo "─── Results ───"
 echo "  PASS: $PASS"
 echo "  FAIL: $FAIL"
