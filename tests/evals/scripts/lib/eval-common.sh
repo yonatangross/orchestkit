@@ -54,6 +54,16 @@ SKILL_NAME_RE='^[a-z0-9][a-z0-9-]*$'
 unset CLAUDECODE 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
+# Fresh subagent context per `claude -p` call (CC 2.1.121+, #1545).
+# Each generation + grading invocation gets a forked session so harness state
+# (memory MCP cache, .claude/chain/*.json on disk, ToolSearch deferred-tool
+# cache, model picker prefs) does NOT leak across eval runs. This eliminates
+# the cross-eval state-leak class that produced ~5-10% flaky retries and
+# non-reproducible scores. Older CC silently ignores the env var (no-op).
+# ---------------------------------------------------------------------------
+export CLAUDE_CODE_FORK_SUBAGENT="${CLAUDE_CODE_FORK_SUBAGENT:-1}"
+
+# ---------------------------------------------------------------------------
 # Bare mode (CC 2.1.81+): skip hooks/LSP/plugin sync for faster -p calls.
 # Requires ANTHROPIC_API_KEY (OAuth/keychain disabled in bare mode).
 # ---------------------------------------------------------------------------

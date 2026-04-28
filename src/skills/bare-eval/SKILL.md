@@ -119,6 +119,27 @@ claude -p "$prompt" --bare --print --agent grader-test
 
 If the grader fails with a "tool not permitted" error, add the required tool to the agent's `tools:` frontmatter and re-run.
 
+### CC 2.1.121: `CLAUDE_CODE_FORK_SUBAGENT=1` for grader determinism (#1545)
+
+Before CC 2.1.121, the env var only worked in interactive sessions. As of 2.1.121, **non-interactive paths (`claude -p`, SDK) honor it too** — each grader invocation gets a fresh forked subagent context.
+
+**The cross-eval state-leak problem this fixes:**
+
+Without forking, sequential `claude -p --bare` graders inherit harness state:
+
+| Inherited | Symptom |
+|---|---|
+| memory MCP query cache | grader sees stale hit from previous run; same fixture grades differently |
+| `.claude/chain/*.json` on disk | grader for "implement" thinks "explore" already ran (file is from previous test) |
+| ToolSearch deferred-tool cache | first grader's MCP loads bleed into next grader's tool registry |
+| model picker pref | grader N inherits `--model=opus` from grader N-1 |
+
+This produced ~5–10% retry rate and non-reproducible scores — the eval baseline drifted between runs, engineers chased phantom regressions.
+
+**Fix:** `tests/evals/scripts/lib/eval-common.sh` exports `CLAUDE_CODE_FORK_SUBAGENT=1`, so every script that sources it (run-trigger-eval, run-quality-eval, run-agent-eval, optimize-description, etc.) gets forked graders automatically. The CI workflow `.github/workflows/orchestkit-eval.yml` also sets it at the workflow level. Older CC silently ignores the env var (no-op).
+
+**Determinism contract:** running the same grader on the same fixture twice in a row produces the **same score**. Verified by `tests/evals/scripts/test-grader-determinism.sh`.
+
 ## Performance
 
 | Scenario | Without --bare | With --bare | Savings |

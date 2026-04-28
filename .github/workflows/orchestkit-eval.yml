@@ -14,6 +14,13 @@ permissions:
   contents: read
   actions: read
 
+# Fork each subagent invocation per #1545 (CC 2.1.121+).
+# Eliminates cross-eval state leak (memory cache, .claude/chain, ToolSearch)
+# that previously produced flaky scores and ~5-10% retry rate.
+# Older CC silently ignores the env var.
+env:
+  CLAUDE_CODE_FORK_SUBAGENT: 1
+
 jobs:
   eval:
     name: Run OrchestKit Evaluation

@@ -63,6 +63,19 @@ AskUserQuestion(
 - **Refactor**: Phase 2 with code-quality-reviewer only + local tests
 - **Quick**: Skip Phase 2, jump to Phase 3
 
+### Optional pre-flight: `claude ultrareview` (CC 2.1.120+, #1542)
+
+If `claude ultrareview --help` succeeds, optionally run it before opening the PR and surface findings in the PR body's `## Pre-flight` section. The CLI subcommand returns structured `--json` output that can be filtered to high/medium severity for the body and full results posted as a follow-up comment.
+
+```bash
+if claude ultrareview --help >/dev/null 2>&1; then
+  claude ultrareview "origin/$BASE..HEAD" --json > /tmp/ultra.json
+  # Bucket by severity, put HIGH in PR body, MEDIUM/LOW as comment
+fi
+```
+
+Skip on CC < 2.1.120 (the subcommand doesn't exist there). The `.github/workflows/ultrareview.yml` workflow runs the same command on PR open as a backstop, so this pre-flight is purely a feedback-loop accelerant.
+
 ### Progressive Output (CC 2.1.76)
 
 Output results **incrementally** during PR creation:

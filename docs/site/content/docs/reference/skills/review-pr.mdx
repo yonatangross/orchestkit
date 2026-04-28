@@ -73,6 +73,18 @@ AskUserQuestion(
 - **Performance focus**: Add frontend-performance-engineer agent
 - **Quick review**: Single code-quality-reviewer agent only
 
+### "Ultra" mode → defer to `claude ultrareview` (CC 2.1.120+, #1542)
+
+If the user asks for an "ultra" / "deep" / "thorough" review and the host is on CC ≥ 2.1.120, **defer to the native subcommand** instead of re-implementing the multi-agent loop in skill instructions:
+
+```bash
+claude ultrareview "$PR_REF" --json
+```
+
+The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `test-coverage`, `architecture`) with structured output and a determinate verdict (`approve` | `comment` | `request-changes`). On CC &lt; 2.1.120 the subcommand doesn't exist — fall back to the parallel-agents path below.
+
+This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
+
 ---
 
 ## STEP 0b: Select Orchestration Mode
