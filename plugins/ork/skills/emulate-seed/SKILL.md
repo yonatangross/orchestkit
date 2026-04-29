@@ -13,7 +13,7 @@ agent: emulate-engineer
 metadata:
   category: testing
   upstream-package: emulate
-  upstream-version-tested: "0.4.1"
+  upstream-version-tested: "0.5.0"
 ---
 
 # Emulate Seed Configs
@@ -94,7 +94,9 @@ npx emulate --service github,stripe --seed ./emulate.config.yaml
 npx emulate init --service github
 ```
 
-## Services (0.4.1 — 12 emulators)
+## Services (0.5.0 — 13 emulators)
+
+> **New in 0.5.0 (Apr 2026):** Clerk emulator (auth/sessions), portless integration (embedded emulators without dedicated ports), Google OAuth `hd` claim support, Stripe Checkout + Resend magic link examples, AWS S3 emulator now matches the official SDK wire format. Backwards-compatible.
 
 | Service | Default Port | Coverage |
 |---------|-------------|----------|

@@ -17,7 +17,7 @@ context: inherit
 persuasion-type: guidance
 metadata:
   upstream-package: portless
-  upstream-version-tested: "0.10.2"
+  upstream-version-tested: "0.12.0"
 ---
 
 # Portless Integration
@@ -26,8 +26,14 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 > **Full CLI reference**: Load `Read("${CLAUDE_SKILL_DIR}/references/upstream.md")` for complete command docs.
 
-## New in 2026-04 (portless 0.10.x)
+## New in 2026-04 (portless 0.10.x → 0.12.x)
 
+- **Tailscale integration (0.12.0)** — `--tailscale` shares your app over your tailnet with automatic HTTPS on port 443; `--funnel` exposes it publicly via Tailscale Funnel. Apps receive `PORTLESS_TAILSCALE_URL` so they can reference their own public address. `portless list` now shows tailnet URLs.
+- **Zero-config mode (0.11.0)** — bare `portless` auto-discovers dev scripts from `package.json`. Multi-app monorepos get automatic subdomain assignment; Turborepo task-graph integration is wired in. `portless.json` config file supported. `--script` overrides the default "dev" script.
+- **`portless prune`** — removes orphaned dev servers and stale Tailscale registrations.
+- **`portless clean` (extended)** — now also tears down Tailscale registrations alongside CA + hosts cleanup.
+- **Rsbuild + VitePlus auto-port injection** — same auto-wiring as Vite/Next.
+- **State directory** moved to `~/.portless` (was scattered).
 - **HTTPS on 443 by default** (breaking from 0.9.x http:1355). Valid cert, no setup. `--no-tls` reverts.
 - **`NODE_EXTRA_CA_CERTS` auto-injected (0.10.2)** into child processes — node HTTPS calls trust portless CA with zero setup.
 - **`--wildcard` subdomains** — `https://*.myapp.localhost` for multi-tenant / preview routing.
