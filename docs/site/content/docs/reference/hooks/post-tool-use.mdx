@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (20 hooks)."
+description: "Hooks triggered on PostToolUse events (21 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**20 hooks** registered for the `PostToolUse` lifecycle event.
+**21 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -13,6 +13,7 @@ description: "Hooks triggered on PostToolUse events (20 hooks)."
 | `webhook-forwarder` | `Agent` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `mcp-output-transform` | `mcp__*` | 🔇 Silent | MCP Output Transform — PostToolUse hook for MCP tool results |
 | `webhook-forwarder` | `mcp__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
+| `secret-handler` | `Read\|Bash\|Grep\|Glob` | 🔇 Silent | Secret Handler — PostToolUse hook for Read/Bash/Grep/Glob outputs. |
 | `auto-lint` | `Write\|Edit` | 🔇 Silent | PostToolUse format-on-save for Write/Edit |
 | `ui-change-detector` | `Write\|Edit` | 💡 Injects | UI Change Detector — PostToolUse hook (M125 #2) |
 | `redact-secrets` | `Write\|Edit` | 🔇 Silent | Runs after Bash commands in security-scanning skill |

@@ -4,7 +4,7 @@
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
-    "prebuild": "echo '🔨 Building plugins from source...'",
+    "prebuild": "echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",

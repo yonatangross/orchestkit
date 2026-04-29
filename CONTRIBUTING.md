@@ -28,6 +28,21 @@ Welcome to the OrchestKit plugin for Claude Code! We're excited that you're inte
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
 
+### Issue close-out (`Closes #N`)
+
+If your PR ships work for a tracked issue, include `Closes #NNN` in the
+PR body so GitHub auto-closes the issue on merge. **We never run
+`gh issue close` manually** — issues should only close when the work
+that resolves them lands on `main` via CI. The `.github/PULL_REQUEST_TEMPLATE.md`
+includes a placeholder; replace `Closes #` with the issue number(s) when
+opening the PR.
+
+If the work spans multiple issues, list each on its own `Closes #` line
+or use `Closes #1, #2, #3` on a single line — both forms are recognized.
+
+This convention prevents the "open issues that are silently done" drift
+class documented in #1554.
+
 ## Project Structure
 
 OrchestKit uses a **build system** to assemble modular plugins from source files.
@@ -36,7 +51,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # <!--ork:skills-->107<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
+├── skills/               # <!--ork:skills-->108<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -44,10 +59,10 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # <!--ork:agents-->37<!--/ork--> specialized AI personas
-└── hooks/                # <!--ork:hooks-->185<!--/ork--> TypeScript hooks in 12 split bundles
+└── hooks/                # <!--ork:hooks-->186<!--/ork--> TypeScript hooks in 12 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->185<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->108<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->186<!--/ork--> hooks)
 ```
 
 ### Generated Files (Do Not Edit)

@@ -9,11 +9,9 @@
 playgrounds/
 !docs/playgrounds/
 overcut/
-docs/feat--*/
-docs/fix--*/
-docs/refactor--*/
-docs/chore--*/
-docs/docs--*/
+# CI playground-check (PR Playground job) requires HTML at docs/<branch-slug>/.
+# Closes #1461 — previously we had to use `git add -f` on every PR.
+# These dirs ARE tracked now; remove the broad exclusions.
 docs/design/
 docs/research/
 docs/migrations/
