@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.76.0](https://github.com/yonatangross/orchestkit/compare/v7.75.0...v7.76.0) (2026-04-28)
+
+
+### Features
+
+* **M126:** ${CLAUDE_EFFORT} env ([#1540](https://github.com/yonatangross/orchestkit/issues/1540)) + /skills filter tip ([#1546](https://github.com/yonatangross/orchestkit/issues/1546)) ([#1549](https://github.com/yonatangross/orchestkit/issues/1549)) ([d5ce5f6](https://github.com/yonatangross/orchestkit/commit/d5ce5f6232ef40bab5240c42e7c646f790fa339f))
+* **M126:** alwaysLoad MCP ([#1541](https://github.com/yonatangross/orchestkit/issues/1541)) + claude plugin prune ([#1544](https://github.com/yonatangross/orchestkit/issues/1544)) ([#1551](https://github.com/yonatangross/orchestkit/issues/1551)) ([dedc53e](https://github.com/yonatangross/orchestkit/commit/dedc53e7695d41c1399b38f1198bf3d5ab8dc271))
+* **M126:** claude ultrareview CI ([#1542](https://github.com/yonatangross/orchestkit/issues/1542)) + CLAUDE_CODE_FORK_SUBAGENT eval ([#1545](https://github.com/yonatangross/orchestkit/issues/1545)) ([#1552](https://github.com/yonatangross/orchestkit/issues/1552)) ([4849d01](https://github.com/yonatangross/orchestkit/commit/4849d01b622563c6992d7487dde6b90712d055a2))
+
 ## [7.75.0](https://github.com/yonatangross/orchestkit/compare/v7.74.0...v7.75.0) (2026-04-28)
 
 
