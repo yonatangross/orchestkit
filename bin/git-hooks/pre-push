@@ -428,6 +428,31 @@ else
   echo "OK"
 fi
 
+
+# ===== Hooks vitest suite (catches Bundle-C-style fix-up cycles) =====
+# Project lesson from M126 #1543: changes to src/hooks/ trigger a 30+ test
+# surface in CI (cross-reference, split-bundles, webhook-forwarder-coverage,
+# hooks-json-wiring, dispatcher-registry-wiring). Running the hook unit
+# suite locally catches these BEFORE push instead of after a failed CI run.
+HOOK_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/hooks/' || true)
+if [[ -n "$HOOK_CHANGES" ]]; then
+  echo -n "  Running hook vitest suite... "
+  HOOK_LOG="$(mktemp)"
+  trap 'rm -f "$HOOK_LOG"' EXIT
+  if ! (cd src/hooks && npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Hooks vitest suite failed locally."
+    echo "║  CI runs the same suite — fix before push to avoid round-trips."
+    echo "╠════════════════════════════════════════════════════════════╣"
+    tail -20 "$HOOK_LOG" | sed 's/^/║  /'
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+fi
+
 echo ""
 echo "Pre-push validation passed"
 exit 0
