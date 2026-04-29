@@ -39,7 +39,14 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 (agent-browser 0.23 → 0.25.4)
+## New in 2026-04 (agent-browser 0.23 → 0.26.0)
+
+**Diagnostic tooling + stable IDs (0.26):**
+- `agent-browser doctor` — one-shot environment + Chrome + daemon + config + security + provider + network check. Flags: `--offline`, `--quick`, `--fix`, `--json`. Run before opening an issue to attach a structured snapshot.
+- **Stable tab identifiers** — tabs now use stable string IDs (`t1`, `t2`, ...) with optional memorable labels via `--label`. Survives daemon restart; replaces brittle index-based references.
+- **`core` skill expanded** — comprehensive built-in usage guide covering snapshot-ref-act loops, reading, interaction, waiting, and troubleshooting.
+- **Config JSON Schema** — `$schema` reference enables IDE auto-completion and validation against `https://agent-browser.dev/schema.json`.
+- Fixed `--state` flag not loading saved cookies/localStorage at launch; `--help` now leads with the skills section.
 
 **Skill discovery & chat (0.25):**
 - `agent-browser skills list/get &lt;name&gt;` — discover and install capability packs on-demand. Hook treats first-party skills as trusted; warns on arbitrary third-party skill fetches.
