@@ -147,7 +147,7 @@ import { deploymentSafetyCheck } from './agent/deployment-safety-check.js';
 import { migrationSafetyCheck } from './agent/migration-safety-check.js';
 import { securityCommandAudit } from './agent/security-command-audit.js';
 
-// PostTool hooks - Root (12)
+// PostTool hooks - Root (13)
 import { auditLogger } from './posttool/audit-logger.js';
 import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
@@ -155,6 +155,7 @@ import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
 import { skillEditTracker } from './posttool/skill-edit-tracker.js';
+import { secretHandler } from './posttool/secret-handler.js';
 
 // PostTool/Write hooks (5)
 import { codeStyleLearner } from './posttool/write/code-style-learner.js';
@@ -359,7 +360,7 @@ export const hooks: Record<string, HookFn> = {
   'agent/migration-safety-check': migrationSafetyCheck,
   'agent/security-command-audit': securityCommandAudit,
 
-  // PostTool hooks - Root (11)
+  // PostTool hooks - Root (12)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
@@ -367,6 +368,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
+  'posttool/secret-handler': secretHandler,
 
   // PostTool/Write hooks (4)
   'posttool/write/code-style-learner': codeStyleLearner,

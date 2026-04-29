@@ -231,6 +231,8 @@ export interface HookSpecificOutput {
   updatedInput?: Record<string, unknown>;
   /** Replace MCP tool output (PostToolUse, CC 2.1.69) */
   updatedMCPToolOutput?: unknown;
+  /** Replace tool output for ANY tool (PostToolUse, CC 2.1.121 — extends 2.1.69's MCP-only path to all tools, #1543) */
+  updatedToolOutput?: unknown;
   /** Apply permission rules (PermissionRequest, CC 2.1.69) */
   updatedPermissions?: Record<string, unknown>;
   /** Worktree path returned by HTTP-type WorktreeCreate hooks (CC 2.1.84) */

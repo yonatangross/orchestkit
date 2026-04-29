@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 115 global + 46 agent-scoped + 22 skill-scoped = 183 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 116 global + 46 agent-scoped + 22 skill-scoped = 184 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. M126 #1543: posttool/secret-handler scans Read/Bash/Grep/Glob for API keys + private blocks via CC 2.1.121 updatedToolOutput; OFF by default, ORK_SECRET_HOOK=AUDIT|REDACT to enable. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -170,6 +170,17 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
             "async": true,
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/secret-handler",
+            "timeout": 5,
+            "statusMessage": "Scanning for secrets..."
           }
         ]
       },
