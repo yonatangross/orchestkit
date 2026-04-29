@@ -354,7 +354,8 @@ describe('Cross-Bundle Consistency', () => {
     // 213 -> 214: M121 observability consolidation — posttool/metrics-dispatcher (#1489)
     // 214 -> 215: M119 #1476 — lifecycle/nudge-outcome-resolver (SessionStart resolver)
     // 215 -> 217: M125 Lane B — posttool/ui-change-detector + posttool/expect/snapshot-recorder
-    expect(totalHooks).toBe(217);
+    // 217 -> 218: M126 #1543 Bundle C — posttool/secret-handler (CC 2.1.121 updatedToolOutput)
+    expect(totalHooks).toBe(218);
   });
 });
 
