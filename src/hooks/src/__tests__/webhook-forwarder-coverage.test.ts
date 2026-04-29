@@ -39,6 +39,11 @@ const INTENTIONAL_EXCLUSIONS = new Set<string>([
   // and async hooks are forbidden on read-only PostToolUse matchers. Telemetry for
   // read-only tools is already captured by the SessionEnd and PreCompact forwarders.
   'PostToolUse:Read|Grep|Glob|WebFetch|WebSearch',
+  // M126 #1543: secret-handler scans Read/Bash/Grep/Glob output for API keys.
+  // Read/Grep/Glob are read-only (same rationale as #1470 above — async forwarder
+  // forbidden); Bash is already covered by the Bash|Write|Edit|... metrics-dispatcher
+  // catch-all below. So this matcher group correctly has no own forwarder.
+  'PostToolUse:Read|Bash|Grep|Glob',
 ]);
 
 // ---------------------------------------------------------------------------
