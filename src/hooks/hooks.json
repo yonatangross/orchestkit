@@ -181,6 +181,12 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/secret-handler",
             "timeout": 5,
             "statusMessage": "Scanning for secrets..."
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "async": true,
+            "timeout": 5
           }
         ]
       },
