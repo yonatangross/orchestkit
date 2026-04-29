@@ -53,6 +53,9 @@ import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
 // MCP output transformation (CC 2.1.89)
 import { mcpOutputTransform } from '../posttool/mcp-output-transform.js';
 
+// M126 #1543: secret detection on Read/Bash/Grep/Glob (CC 2.1.121 updatedToolOutput)
+import { secretHandler } from '../posttool/secret-handler.js';
+
 // Issue #772: Config change security auditor
 import { configChangeAuditor } from '../posttool/config-change/security-auditor.js';
 
@@ -122,6 +125,9 @@ export const hooks: Record<string, HookFn> = {
 
   // MCP output transformation (CC 2.1.89)
   'posttool/mcp-output-transform': mcpOutputTransform,
+
+  // M126 #1543: secret detection on Read/Bash/Grep/Glob (CC 2.1.121)
+  'posttool/secret-handler': secretHandler,
 
   // Issue #772: Config change security auditor
   'posttool/config-change/security-auditor': configChangeAuditor,

@@ -13,6 +13,7 @@ export { realtimeSync } from './realtime-sync.js';
 export { sessionMetrics } from './session-metrics.js';
 export { skillEditTracker } from './skill-edit-tracker.js';
 export { mcpOutputTransform } from './mcp-output-transform.js';
+export { secretHandler } from './secret-handler.js';
 export { unifiedDispatcher } from './unified-dispatcher.js';
 
 // Write-specific hooks
