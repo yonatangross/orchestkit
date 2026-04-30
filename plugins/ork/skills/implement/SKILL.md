@@ -6,6 +6,7 @@ description: "Full-power feature implementation using parallel subagents for bac
 argument-hint: "[feature-description]"
 context: fork
 version: 2.7.0
+disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:implement only
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
