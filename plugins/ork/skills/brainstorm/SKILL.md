@@ -7,6 +7,7 @@ argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
 version: 4.10.0
+disable-model-invocation: true  # M127 A/S5: slash-only — explicit /ork:brainstorm only
 author: OrchestKit
 user-invocable: true
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, PushNotification, mcp__memory__search_nodes]
