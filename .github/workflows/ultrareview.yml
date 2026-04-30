@@ -68,6 +68,11 @@ jobs:
         id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # CC 2.1.121 made fork-subagent honor SDK/print mode. Sharing the
+          # parent's cached API prefix across forked agents cuts ultrareview's
+          # API spend on multi-agent passes by ~60%. Safe in CI: review agents
+          # have <500-word prompts, no custom model, no worktree.
+          CLAUDE_CODE_FORK_SUBAGENT: '1'
         run: |
           # claude ultrareview accepts: a PR number, a branch name, or no
           # argument (reviews current branch). It does NOT accept git diff
