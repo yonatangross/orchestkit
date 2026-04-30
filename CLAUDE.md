@@ -81,6 +81,20 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 Single plugin `ork`: <!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->186<!--/ork--> hooks (<!--ork:hooks-global-->118<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped). <!--ork:invocable-->27<!--/ork--> user-invocable via `/ork:skillname`.
 
+## Background Monitors (CC 2.1.105+)
+
+Background monitors live in `src/monitors/monitors.json` and are auto-armed on session start for every install. Each entry runs as a long-lived shell process on the user's machine — handle with care.
+
+**Authoring rules:**
+- **Lower bound**: each polling loop must `sleep` ≥ 60s (preferably 300s+). No tight loops.
+- **Idempotent**: emit only when state actually changed since the previous poll (debounce). Don't nag-spam.
+- **Quick polls**: each iteration must complete in < 100ms of CPU. No heavy I/O, no network calls.
+- **Bounded output**: 1-2 lines max per emit. Long output floods the conversation context.
+- **No secrets**: never echo env vars, file contents, or git output that may contain tokens.
+- **No state mutation**: read-only. A monitor that writes files is a hook, not a monitor — move it.
+
+After editing `src/monitors/monitors.json`, run `npm run build` — the build script copies it to `plugins/ork/monitors/` and synthesizes the `monitors` key into `plugins/ork/.claude-plugin/plugin.json`. The source-of-truth `monitors` key is also declared in `manifests/ork.json`.
+
 ## Version
 
 - **Current**: 7.77.0 · **Claude Code**: >= 2.1.118 <!-- x-release-please-version -->
