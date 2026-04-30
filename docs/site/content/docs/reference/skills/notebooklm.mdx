@@ -12,22 +12,24 @@ description: "NotebookLM integration patterns for external RAG, research synthes
 
 # NotebookLM
 
-NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI, v0.5.25+) to create notebooks, manage sources, generate content, and query with grounded AI responses. Supports batch operations across notebooks, pipelines, and multilingual content generation.
+NotebookLM = external RAG engine that offloads reading from your context window. Uses the `notebooklm-mcp-cli` MCP server (PyPI, v0.6.1+) to create notebooks, manage sources, generate content, label sources thematically, and query with grounded AI responses. Supports batch operations across notebooks, pipelines, and multilingual content generation.
 
 > **Disclaimer**: Uses internal undocumented Google APIs via browser authentication. Sessions last ~20 minutes. API may change without notice.
 
-### What's New (April 2026 — v0.5.25)
+### What's New (April 2026 — v0.6.1)
 
-- **Video formats** — 3 formats (explainer, brief, cinematic) + 9 visual styles (classic, whiteboard, kawaii, anime, watercolor, retro_print, heritage, paper_craft, auto_select)
-- **Audio length** — `audio_length` param: short, default, long (in addition to 4 audio formats)
+- **Source labels (NEW in v0.6.0)** — Organize sources into thematic categories. New `label` MCP tool + `nlm label` CLI: `auto` (AI generates from sources, requires 5+), `list`, `create`, `rename`, `delete`, `assign`, `unassign`. Surfaces in NotebookLM web UI's source filter.
+- **Label reorganize (NEW in v0.6.1)** — `nlm label reorganize` (or `label` MCP with `action="reorganize"`) forces AI re-categorization when labels already exist. Two modes: all-sources (replace, requires `--confirm`) or unlabeled-only (preserve existing).
+- **Video formats** — 3 formats (explainer, brief, cinematic) + 9 visual styles
+- **Audio length** — `audio_length` param: short, default, long
 - **PPTX export** — `download_artifact(slide_deck_format="pptx")` alongside PDF
-- **Bulk source ops** — `source_add(urls=[...])` for multi-URL, `source_delete(source_ids=[...])` for bulk delete, `source_add(wait=True)` to await processing
+- **Bulk source ops** — `source_add(urls=[...])`, `source_delete(source_ids=[...])`, `source_add(wait=True)`
 - **Studio artifact rename** — `studio_status(action="rename", artifact_id="...", new_title="...")`
-- **Slide/report/quiz params** — `slide_format` (detailed_deck|presenter_slides), `report_format` (Briefing Doc|Study Guide|Blog Post|Create Your Own), `difficulty` + `question_count` for quiz/flashcards
-- **Infographic options** — `orientation` (landscape|portrait|square), `detail_level` (concise|standard|detailed), 11 `infographic_style` options
-- **Audio sources** — Upload m4a, wav, mp3, aac, ogg, opus as notebook sources
+- **Slide/report/quiz params** — `slide_format`, `report_format`, `difficulty` + `question_count`
+- **Infographic options** — `orientation`, `detail_level`, 11 `infographic_style` options
+- **Audio sources** — Upload m4a, wav, mp3, aac, ogg, opus
 - **Async large queries** — `notebook_query_start`/`notebook_query_status` for 50+ source notebooks
-- **Multi-browser auth** — Arc, Brave, Edge, Chromium, Vivaldi, Opera + WSL2 support (`nlm login --wsl`)
+- **Multi-browser auth** — Arc, Brave, Edge, Chromium, Vivaldi, Opera + WSL2 (`nlm login --wsl`)
 - **Enterprise** — `NOTEBOOKLM_BASE_URL` env var for Google Workspace deployments
 - **Security** — Download path traversal protection, `0o600` auth files, Chrome origins locked to localhost
 
@@ -152,7 +154,7 @@ What are you trying to do?
 | Tags | tag (action: add\|remove\|list\|select) | 1 |
 | Auth | save_auth_tokens, refresh_auth, server_info | 3 |
 
-**Total: 36 tools across 13 groups** (v0.5.25+)
+**Total: 36 tools across 13 groups** (v0.6.1+)
 
 ## Key Decisions
 
@@ -301,7 +303,7 @@ export NLM_BROWSER=arc
 
 ## Batch Operations & Pipelines
 
-v0.5.25 batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
+v0.6.1 batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
 
 **Incorrect — querying notebooks one at a time for synthesis:**
 ```

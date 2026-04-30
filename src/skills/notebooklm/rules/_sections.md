@@ -20,7 +20,7 @@ Patterns for using NotebookLM as an external knowledge tool.
 - `workflow-research-offload.md` — Research synthesis, codebase onboarding, token savings
 - `workflow-knowledge-base.md` — Debugging KB, security handbook, grounded queries
 - `workflow-studio-content.md` — All 10 studio artifact types, video formats/styles, multilingual generation, download, export
-- `workflow-batch-pipelines.md` — Cross-notebook queries, batch ops, pipeline, tag (v0.5.25+)
+- `workflow-batch-pipelines.md` — Cross-notebook queries, batch ops, pipeline, tag (v0.6.1+, label management v0.6.0+)
 
 ## 3. Research (research) — HIGH/MEDIUM — 2 rules
 

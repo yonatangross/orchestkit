@@ -7,7 +7,7 @@ tags: [batch, pipelines, cross-notebook, multi-project]
 
 ## Batch Operations & Pipelines
 
-v0.5.25 batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
+v0.6.1 batch operations across multiple notebooks, cross-notebook queries with aggregated answers, and multi-step pipelines. Use for multi-project synthesis — not single-notebook tasks.
 
 **Incorrect — querying notebooks one at a time for synthesis:**
 ```
