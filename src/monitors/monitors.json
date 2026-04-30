@@ -6,7 +6,7 @@
   },
   {
     "name": "uncommitted-work-reminder",
-    "description": "Periodic reminder when significant uncommitted changes accumulate",
-    "command": "sleep 600; while true; do changed=$(git diff --stat 2>/dev/null | tail -1 | grep -o '[0-9]* file' | grep -o '[0-9]*' || echo 0); if [ \"$changed\" -gt 10 ]; then echo \"$changed files with uncommitted changes — consider /ork:commit to save progress\"; fi; sleep 900; done"
+    "description": "Periodic reminder when significant uncommitted changes accumulate. Suppressed for 5 min after each commit and when the file count is unchanged from the previous poll (avoids nag-spam when user is actively editing the same set).",
+    "command": "sleep 600; prev_count=0; while true; do changed=$(git diff --stat 2>/dev/null | tail -1 | grep -o '[0-9]* file' | grep -o '[0-9]*' || echo 0); last_commit=$(git log -1 --format=%ct 2>/dev/null || echo 0); now=$(date +%s); since_commit=$((now - last_commit)); if [ \"$changed\" -gt 10 ] && [ \"$since_commit\" -gt 300 ] && [ \"$changed\" != \"$prev_count\" ]; then echo \"$changed files with uncommitted changes — consider /ork:commit to save progress\"; fi; prev_count=$changed; sleep 900; done"
   }
 ]

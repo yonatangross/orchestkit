@@ -81,6 +81,10 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 Single plugin `ork`: <!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->186<!--/ork--> hooks (<!--ork:hooks-global-->118<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped). <!--ork:invocable-->27<!--/ork--> user-invocable via `/ork:skillname`.
 
+## Monitors
+
+Live in `src/monitors/monitors.json`, registered via `manifests/ork.json`. See `docs/monitor-authoring.md` for rules.
+
 ## Version
 
 - **Current**: 7.77.0 · **Claude Code**: >= 2.1.118 <!-- x-release-please-version -->
