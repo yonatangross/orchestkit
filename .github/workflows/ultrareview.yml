@@ -4,14 +4,17 @@
 
 name: Ultra Review
 on:
+  # Opt-in only: tag a PR with the `ultrareview` label to trigger a review.
+  # Auto-running on every PR was wasting CI minutes + posting empty
+  # "verdict: skipped" comments because of a CLI argument bug (since fixed below).
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [labeled]
   workflow_dispatch:
     inputs:
       target:
-        description: "Review target (PR ref, commit SHA, path, or 'HEAD~1')"
+        description: "PR number or branch name (claude ultrareview accepts no diff ranges)"
         required: false
-        default: 'HEAD~1'
+        default: ''
 
 permissions:
   contents: read
@@ -23,9 +26,9 @@ concurrency:
 
 jobs:
   ultrareview:
-    # Run on every PR open/sync, OR on label add (so users can opt in mid-review)
+    # Label-gated: only run when the `ultrareview` label is added, OR on manual dispatch.
     if: |
-      github.event_name == 'pull_request' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'ultrareview') ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -66,23 +69,31 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          TARGET="${{ github.event.inputs.target }}"
-          if [[ -z "$TARGET" ]]; then
-            # PR context: review the diff against base
-            TARGET="origin/${{ github.event.pull_request.base.ref }}..HEAD"
-          fi
-          echo "Reviewing: $TARGET"
+          # claude ultrareview accepts: a PR number, a branch name, or no
+          # argument (reviews current branch). It does NOT accept git diff
+          # ranges like `origin/main..HEAD` — passing one fails fast with
+          # "is not a branch in this repo" before any API call. In PR
+          # context, pass the PR number; the CLI fetches the diff itself.
+          TARGET="${{ github.event.inputs.target || github.event.pull_request.number }}"
+          echo "Reviewing PR/branch: $TARGET"
           claude ultrareview "$TARGET" --json > review.json 2> review.err || true
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           if [[ ! -s review.json ]]; then
             echo "::warning::No JSON output. Stderr: $(cat review.err)"
             echo '{"findings":[],"verdict":"skipped"}' > review.json
           fi
+          # Emit verdict as a step output so the comment step can gate on it.
+          VERDICT=$(jq -r '.verdict // "unknown"' review.json)
+          echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
 
       - name: Format findings as PR comment
+        # Only post when we have a real review. Suppress comment if the CLI
+        # was missing OR returned an empty/skipped result (e.g. argument
+        # error, no-diff-found). Prevents PR-comment spam.
         if: |
           steps.verify.outputs.skip != 'true' &&
-          github.event_name == 'pull_request'
+          github.event_name == 'pull_request' &&
+          steps.review.outputs.verdict != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
