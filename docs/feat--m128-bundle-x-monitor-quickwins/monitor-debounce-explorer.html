@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Monitor Debounce Explorer — M128 Bundle X (#TBD)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:18px}
+  .panel h2{font-size:14px;color:var(--accent);margin-bottom:12px}
+  .panel p{font-size:13px;color:var(--text2);margin-bottom:10px}
+  .ctrl{display:flex;gap:14px;margin:12px 0;align-items:center;font-size:13px;flex-wrap:wrap}
+  .ctrl label{color:var(--text2);min-width:170px}
+  .ctrl input[type=range]{flex:1;min-width:140px;height:5px;-webkit-appearance:none;background:var(--bg3);border-radius:3px;outline:none}
+  .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+  .ctrl input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+  .ctrl .val{font-family:var(--mono);color:var(--accent);font-weight:600;min-width:60px;text-align:right}
+  .timeline{background:#000;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:var(--mono);font-size:12px;line-height:1.7;min-height:280px;max-height:360px;overflow-y:auto;margin:14px 0}
+  .timeline .t{color:var(--text2)}
+  .timeline .e{color:var(--text)}
+  .timeline .e.fire{color:var(--red);font-weight:600}
+  .timeline .e.skip{color:var(--green)}
+  .timeline .e.commit{color:var(--accent)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .stat{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);margin-bottom:4px}
+  .stat .v{font-size:22px;font-family:var(--mono);font-weight:600;color:var(--accent)}
+  .stat .v.r{color:var(--red)}
+  .stat .v.g{color:var(--green)}
+  .toggle{display:flex;gap:8px;margin:8px 0}
+  .toggle button{padding:6px 14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);font-size:12px;cursor:pointer}
+  .toggle button.on{background:var(--accent);color:white;border-color:var(--accent)}
+  pre{background:#000;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--green);overflow-x:auto;line-height:1.5;margin:10px 0}
+  pre .c{color:var(--text2)}
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Monitor debounce explorer — M128 Bundle X</h1>
+  <p>Simulate the <code>uncommitted-work-reminder</code> behavior before vs. after the I12 debounce fix. Drag the sliders to model an editing session and see how often the monitor would fire under each implementation.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <h2>Simulation controls</h2>
+    <div class="ctrl">
+      <label>Session length (minutes)</label>
+      <input type="range" id="dur" min="30" max="480" value="180" oninput="run()">
+      <span class="val" id="durv">180</span>
+    </div>
+    <div class="ctrl">
+      <label>Files at start</label>
+      <input type="range" id="start" min="0" max="50" value="15" oninput="run()">
+      <span class="val" id="startv">15</span>
+    </div>
+    <div class="ctrl">
+      <label>New files added per 15 min</label>
+      <input type="range" id="rate" min="0" max="10" value="2" oninput="run()">
+      <span class="val" id="ratev">2</span>
+    </div>
+    <div class="ctrl">
+      <label>Commit every (minutes)</label>
+      <input type="range" id="commit" min="15" max="240" value="60" oninput="run()">
+      <span class="val" id="commitv">60</span>
+    </div>
+    <div class="toggle">
+      <button id="oldBtn" class="on" onclick="setMode('old')">Show: Before (#1568 monitor)</button>
+      <button id="newBtn" onclick="setMode('new')">Show: After (M128 I12)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 id="modeTitle">Timeline — before debounce</h2>
+    <div class="timeline" id="timeline"></div>
+    <div class="stats">
+      <div class="stat"><div class="l">Total reminders fired</div><div class="v r" id="firedCount">0</div></div>
+      <div class="stat"><div class="l">After commit (false)</div><div class="v r" id="staleCount">0</div></div>
+      <div class="stat"><div class="l">Same-count nags</div><div class="v r" id="dupCount">0</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>The fix (src/monitors/monitors.json)</h2>
+    <pre><span class="c"># Before</span>
+sleep 600; while true; do
+  changed=$(git diff --stat | tail -1 | grep -o '[0-9]* file' | grep -o '[0-9]*')
+  if [ "$changed" -gt 10 ]; then
+    echo "$changed files with uncommitted changes — consider /ork:commit"
+  fi
+  sleep 900
+done
+
+<span class="c"># After (I12)</span>
+sleep 600; prev_count=0; while true; do
+  changed=$(git diff --stat | tail -1 | grep -o '[0-9]* file' | grep -o '[0-9]*')
+  last_commit=$(git log -1 --format=%ct)
+  now=$(date +%s)
+  since_commit=$((now - last_commit))
+  if [ "$changed" -gt 10 ] && [ "$since_commit" -gt 300 ] && [ "$changed" != "$prev_count" ]; then
+    echo "$changed files with uncommitted changes — consider /ork:commit"
+  fi
+  prev_count=$changed
+  sleep 900
+done</pre>
+  </div>
+</main>
+
+<footer>
+  Playground for M128 Bundle X · branch <code>feat/m128-bundle-x-monitor-quickwins</code> · OrchestKit
+</footer>
+
+<script>
+let mode = 'old';
+function v(id){return +document.getElementById(id).value}
+function setMode(m){
+  mode = m;
+  document.getElementById('oldBtn').classList.toggle('on', m === 'old');
+  document.getElementById('newBtn').classList.toggle('on', m === 'new');
+  document.getElementById('modeTitle').textContent = 'Timeline — ' + (m === 'old' ? 'before debounce' : 'after debounce (M128 I12)');
+  run();
+}
+function fmtTime(min){
+  const h = Math.floor(min/60), m = min%60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function run(){
+  const dur = v('dur'), start = v('start'), rate = v('rate'), commit = v('commit');
+  document.getElementById('durv').textContent = dur;
+  document.getElementById('startv').textContent = start;
+  document.getElementById('ratev').textContent = rate;
+  document.getElementById('commitv').textContent = commit;
+
+  const events = [];
+  let count = start;
+  let lastCommit = -10000;  // never committed (long ago)
+  let prevCount = 0;
+  let fired = 0, stale = 0, dup = 0;
+
+  // monitor first poll at t=10 (after sleep 600), then every 15min
+  for (let t = 10; t <= dur; t += 15) {
+    // accumulate files at the rate per 15 min
+    if (t > 10) count += rate;
+    // commit cycle
+    if (commit > 0 && t > 0 && t % commit < 15 && t > 0) {
+      events.push({t, kind: 'commit', msg: `git commit — file count → 0`});
+      lastCommit = t;
+      count = 0;
+      prevCount = 0;
+      continue;
+    }
+    // monitor decides whether to fire
+    const sinceCommit = t - lastCommit;
+    let willFire = count > 10;
+    let reason = '';
+    if (mode === 'new') {
+      if (sinceCommit < 5) { willFire = false; reason = 'within 5min of commit'; stale += (count > 10 ? 1 : 0); }
+      else if (count === prevCount && count > 10) { willFire = false; reason = 'same as last poll'; dup++; }
+    }
+    if (willFire) {
+      events.push({t, kind: 'fire', msg: `${count} files — fires reminder`});
+      fired++;
+    } else if (count > 10) {
+      events.push({t, kind: 'skip', msg: `${count} files — suppressed (${reason || 'old monitor would fire'})`});
+    }
+    prevCount = count;
+  }
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = events.map(e =>
+    `<div><span class="t">${fmtTime(e.t)}</span> <span class="e ${e.kind}">${e.msg}</span></div>`
+  ).join('');
+  document.getElementById('firedCount').textContent = fired;
+  document.getElementById('firedCount').className = 'v ' + (mode === 'new' && fired < 5 ? 'g' : 'r');
+  document.getElementById('staleCount').textContent = stale;
+  document.getElementById('dupCount').textContent = dup;
+}
+run();
+</script>
+</body>
+</html>
