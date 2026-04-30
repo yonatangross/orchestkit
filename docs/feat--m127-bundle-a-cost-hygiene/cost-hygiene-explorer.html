@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M127 Bundle A1 — Cost Hygiene Explorer (#1568)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+
+  .ctrl{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:18px}
+  .ctrl h2{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+  .row{display:flex;align-items:center;gap:12px;margin:10px 0;font-size:13px}
+  .row label{flex:0 0 200px;color:var(--text2)}
+  .row .val{font-family:var(--mono);color:var(--accent);font-weight:600;min-width:70px;text-align:right}
+  input[type=range]{flex:1;height:5px;-webkit-appearance:none;background:var(--bg3);border-radius:3px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  .pnl{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .pnl h3{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);margin-bottom:10px}
+  .pnl .big{font-size:32px;font-weight:600;font-family:var(--mono);color:var(--accent);margin-bottom:6px}
+  .pnl .delta{font-size:13px;color:var(--green);font-family:var(--mono)}
+  .pnl .delta.bad{color:var(--red)}
+  .pnl .sub{font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)}
+
+  .changes{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:18px}
+  .changes h2{font-size:15px;color:var(--accent);margin-bottom:14px}
+  .change-row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;align-items:center}
+  .change-row:last-child{border-bottom:none}
+  .tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--text2);min-width:50px;text-align:center}
+  .tag.a7{background:rgba(63,185,80,0.15);color:var(--green)}
+  .tag.s5{background:rgba(188,140,255,0.15);color:var(--purple)}
+  .change-row .desc{color:var(--text)}
+  .change-row .file{font-family:var(--mono);font-size:11px;color:var(--text2)}
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>M127 Bundle A1 — cost-hygiene explorer (PR <a href="https://github.com/yonatangross/orchestkit/pull/1568">#1568</a>)</h1>
+  <p>Two changes that reduce token + API spend without changing behavior. Drag the sliders to estimate cost savings against your typical CI volume and session count.</p>
+</header>
+
+<main>
+  <div class="ctrl">
+    <h2>Your usage estimate</h2>
+    <div class="row">
+      <label>PRs per month (CI runs ultrareview)</label>
+      <input type="range" min="1" max="200" value="40" id="prs" oninput="render()">
+      <div class="val" id="prsv">40</div>
+    </div>
+    <div class="row">
+      <label>Avg agents per ultrareview run</label>
+      <input type="range" min="1" max="8" value="4" id="agents" oninput="render()">
+      <div class="val" id="agentsv">4</div>
+    </div>
+    <div class="row">
+      <label>Sessions per day (any /ork:&lt;skill&gt;)</label>
+      <input type="range" min="1" max="100" value="20" id="sess" oninput="render()">
+      <div class="val" id="sessv">20</div>
+    </div>
+    <div class="row">
+      <label>brainstorm + implement weight (%)</label>
+      <input type="range" min="0" max="100" value="15" id="wt" oninput="render()">
+      <div class="val" id="wtv">15</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="pnl">
+      <h3>A7: CI fork-subagent — cached prefix sharing</h3>
+      <div class="big" id="a7save">$0</div>
+      <div class="delta" id="a7delta">~60% reduction on agent-heavy CI runs</div>
+      <div class="sub" id="a7detail">CC 2.1.121 fork-subagent in SDK/print mode</div>
+    </div>
+    <div class="pnl">
+      <h3>S5: slash-only — description tokens reclaimed</h3>
+      <div class="big" id="s5save">$0</div>
+      <div class="delta" id="s5delta">~1KB description / session × N sessions</div>
+      <div class="sub" id="s5detail">brainstorm + implement removed from auto-routing list</div>
+    </div>
+  </div>
+
+  <div class="changes">
+    <h2>What this PR changes (5 files, +9 lines)</h2>
+    <div class="change-row">
+      <span class="tag a7">A7</span>
+      <div>
+        <div class="desc">Add <code>CLAUDE_CODE_FORK_SUBAGENT: '1'</code> to ultrareview review step env</div>
+        <div class="file">.github/workflows/ultrareview.yml</div>
+      </div>
+      <span class="tag">+5</span>
+    </div>
+    <div class="change-row">
+      <span class="tag s5">S5</span>
+      <div>
+        <div class="desc">Add <code>disable-model-invocation: true</code> to brainstorm frontmatter</div>
+        <div class="file">src/skills/brainstorm/SKILL.md · plugins/ork/skills/brainstorm/SKILL.md</div>
+      </div>
+      <span class="tag">+2</span>
+    </div>
+    <div class="change-row">
+      <span class="tag s5">S5</span>
+      <div>
+        <div class="desc">Add <code>disable-model-invocation: true</code> to implement frontmatter</div>
+        <div class="file">src/skills/implement/SKILL.md · plugins/ork/skills/implement/SKILL.md</div>
+      </div>
+      <span class="tag">+2</span>
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <h2>Bundle A roadmap</h2>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8">
+      <div>✅ <strong style="color:var(--green)">A1 — this PR</strong> (#1568) · A7 + S5 config changes</div>
+      <div>⬜ A2 — H6 <code>ENABLE_PROMPT_CACHING_1H</code> SessionStart hook (~130 LOC + test)</div>
+      <div>⬜ A3 — S1 description budget audit (15 skills &gt; 250 chars)</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Playground for PR #1568 · branch <code>feat/m127-bundle-a-cost-hygiene</code> · OrchestKit
+</footer>
+
+<script>
+function v(id){return +document.getElementById(id).value}
+function render(){
+  const prs = v('prs'), agents = v('agents'), sess = v('sess'), wt = v('wt');
+  document.getElementById('prsv').textContent = prs;
+  document.getElementById('agentsv').textContent = agents;
+  document.getElementById('sessv').textContent = sess;
+  document.getElementById('wtv').textContent = wt + '%';
+
+  // A7 estimate: assume each ultrareview agent burns ~$0.04 in cached-prefix
+  // tokens that are now shared across forks. ~60% saving on (agents-1) forks.
+  const a7Monthly = prs * (agents - 1) * 0.04 * 0.60;
+  document.getElementById('a7save').textContent = '$' + a7Monthly.toFixed(2) + '/mo';
+  document.getElementById('a7delta').textContent = `~60% off ${prs * agents} forked agent calls/mo`;
+
+  // S5 estimate: ~1KB description × ~250 tokens × $0.003/1K input × N sessions × 30 days
+  // brainstorm + implement weighted by usage %.
+  const sessPerMonth = sess * 30;
+  const heavySessions = sessPerMonth * (wt / 100);
+  const s5Monthly = heavySessions * 0.250 * 0.003;
+  document.getElementById('s5save').textContent = '$' + s5Monthly.toFixed(2) + '/mo';
+  document.getElementById('s5delta').textContent = `~250 description tokens × ${heavySessions.toFixed(0)} sessions/mo saved`;
+}
+render();
+</script>
+</body>
+</html>
