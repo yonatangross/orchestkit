@@ -1,34 +1,35 @@
-# Session Handoff
+# Session Handoff (Emergency — API Failure)
 
-**Branch**: chore/cc-2.1.116-adoption
-**When**: 2026-04-21 08:31:58 UTC
-**Session**: 6ea006af-14bf-42a9-ac1a-556ab5b77ddf
+**Branch**: main
+**When**: 2026-04-30 05:29:38 UTC
+**Session**: b3367ab3-8f16-48d8-8488-375a42f8d4ec
+**Failure**: unknown
 
 ## Summary
-Now the honest assessment you actually asked for:
-
-## `/ork:assess` — CC 2.1.116 adoption PR #1434 (no sugarcoat)
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  Overall: B-  (was C+ before fix-up commit, now B-)              ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
-**Correctness — 8/10.** Matrix constants and tests are internally consistent. Boundary tests exist for the load-bearing entries (`agent_hooks_main_thread`, `sandbox_rm_dangerous_path_fix`). `npm run build` + full local suites clean. The agent-hooks main-thread audit is real — I inspected 14 hook source files, not just a description skim.
-
-**Completeness — 6/10.** Two unforced gaps, both my fault:
-1.
+Session terminated by API error: unknown. Work may be incomplete.
+Review git status and recent changes before continuing.
 
 ## Modified Files
-- .claude/HANDOFF.md.consumed
+- M .claude/HANDOFF.md.consumed
+- M CLAUDE.md
+- M CONTRIBUTING.md
+- M README.md
+- M docs/site/content/docs/foundations/choosing-a-plugin.mdx
+- M docs/site/content/docs/foundations/overview.mdx
+- M docs/site/content/docs/getting-started/first-10-minutes.mdx
+- M docs/site/content/docs/getting-started/installation.mdx
+- M docs/site/content/docs/getting-started/navigating.mdx
+- M docs/site/content/docs/reference/index.mdx
+- M docs/site/content/docs/reference/skills/index.mdx
+- M docs/site/content/docs/reference/skills/validate-counts.mdx
+- M docs/site/content/docs/skills/dependency-graph.mdx
+- M docs/site/content/docs/skills/overview.mdx
+- M docs/site/content/docs/troubleshooting/faq.mdx
+- M plugins/ork/hooks/README.md
+- M src/hooks/README.md
+- ?? .claude/chain/
+- ?? .claude/state/
+- ?? docs/feat--cc-release-watch/
 
-## Recent Tasks
-- untitled [completed]
-- Register 2.1.116 features in cc-version-matrix.ts [completed]
-- Bump MIN_CC_VERSION 2.1.113 → 2.1.116 [completed]
-- Add boundary tests for new 2.1.116 features [completed]
-- Add CC 2.1.116 section to cc-version-settings.md [completed]
-- Note sandbox hardening in security-patterns skill [completed]
-- Audit agent hooks for main-thread firing safety [completed]
-- Build, test, commit, push, PR [completed]
+## Last Assistant Message (truncated)
+API Error: Server is temporarily limiting requests (not your usage limit) · Rate limited
