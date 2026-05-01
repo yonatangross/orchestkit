@@ -29,6 +29,7 @@ import { autoLint } from '../auto-lint.js';
 import { readmeSync } from './readme-sync.js';
 import { mergeConflictPredictor } from '../../skill/merge-conflict-predictor.js';
 import { coveragePredictor } from './coverage-predictor.js';
+import { claudeMdByteBudget } from './claude-md-byte-budget.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -60,6 +61,7 @@ const WRITE_HOOKS: WriteHookConfig[] = [
   { name: 'readme-sync', fn: readmeSync },
   { name: 'merge-conflict-predictor', fn: mergeConflictPredictor },
   { name: 'coverage-predictor', fn: coveragePredictor },
+  { name: 'claude-md-byte-budget', fn: claudeMdByteBudget },
 ];
 
 /** Exposed for testing */

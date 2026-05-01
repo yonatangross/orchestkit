@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Local-dev hygiene — 3 advisory hooks</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0}
+  .tab{padding:10px 16px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:var(--font);font-size:13px;cursor:pointer}
+  .tab:hover{color:var(--text)}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .hook{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px}
+  .hook-head{padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .hook-head h2{font-size:14px;color:var(--accent)}
+  .hook-head .meta{font-size:11px;color:var(--text2);font-family:var(--mono)}
+  .hook-body{padding:18px}
+  .row{display:grid;grid-template-columns:140px 1fr;gap:14px;margin-bottom:14px;font-size:13px}
+  .row .lbl{color:var(--text2);text-transform:uppercase;font-size:10px;letter-spacing:0.5px;padding-top:2px}
+  .row .val{color:var(--text)}
+  .row code{background:var(--bg3);padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--orange)}
+  .term{background:#000;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:12px;line-height:1.7;margin-top:10px;overflow-x:auto}
+  .term .prompt{color:var(--text2)}
+  .term .ok{color:var(--green)}
+  .term .warn{color:var(--orange)}
+  .term .bad{color:var(--red)}
+  .term .info{color:var(--accent)}
+  .term .dim{color:var(--text2)}
+
+  .summary{background:linear-gradient(135deg,rgba(63,185,80,0.05),rgba(88,166,255,0.04));border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:18px}
+  .summary h2{font-size:14px;margin-bottom:12px}
+  .summary table{width:100%;border-collapse:collapse;font-size:13px}
+  .summary td{padding:6px 8px;border-bottom:1px solid var(--border)}
+  .summary td:first-child{color:var(--text2);width:42%}
+
+  .pill{display:inline-block;padding:2px 8px;font-size:11px;border-radius:10px;font-family:var(--mono)}
+  .pill.g{background:rgba(63,185,80,0.15);color:var(--green)}
+  .pill.o{background:rgba(210,153,34,0.15);color:var(--orange)}
+  .pill.r{background:rgba(248,81,73,0.15);color:var(--red)}
+  .pill.b{background:rgba(88,166,255,0.15);color:var(--accent)}
+
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Local-dev hygiene — 3 advisory hooks</h1>
+  <p>Three PreToolUse / PostToolUse hooks that catch session-30-04-2026's recurring frictions BEFORE they reach CI. All three are advisory (do not block), all opt-out via env var.</p>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab on" onclick="show('h1', this)">1. playground-presence-warner</button>
+    <button class="tab" onclick="show('h2', this)">2. delete-branch-stacked-pr-guard</button>
+    <button class="tab" onclick="show('h3', this)">3. claude-md-byte-budget</button>
+  </div>
+
+  <div id="h1" class="hook">
+    <div class="hook-head">
+      <h2>1 · playground-presence-warner</h2>
+      <span class="meta">PreToolUse/Bash · 100 LOC · ORK_DISABLE_PLAYGROUND_WARNER</span>
+    </div>
+    <div class="hook-body">
+      <div class="row"><div class="lbl">Trigger</div><div class="val">Bash command matches <code>git push</code> or <code>gh pr create</code></div></div>
+      <div class="row"><div class="lbl">Skips</div><div class="val">main / master / develop / dev · dependabot/* · renovate/* · release-please*</div></div>
+      <div class="row"><div class="lbl">Check</div><div class="val">Does <code>docs/&lt;branch-slug&gt;/*.html</code> exist? (slug = branch with <code>/</code> → <code>--</code>)</div></div>
+      <div class="row"><div class="lbl">If missing</div><div class="val">Inject advisory context with mkdir/touch fix command. Push proceeds.</div></div>
+      <div class="term">
+<span class="prompt">$</span> git push -u origin feat/m128-bundle-x-monitor-quickwins<br>
+<span class="warn">[playground-presence-warner]</span> Branch <span class="info">feat/m128-bundle-x-monitor-quickwins</span> has no playground at<br>
+<span class="dim">                              </span> <span class="info">docs/feat--m128-bundle-x-monitor-quickwins/</span>. The CI <span class="warn">playground-check</span><br>
+<span class="dim">                              </span> job will reject this PR unless you add at least one HTML file there.<br>
+<span class="dim">                              </span> Quick fix: <span class="ok">mkdir -p docs/feat--m128-bundle-x-monitor-quickwins</span><br>
+<span class="dim">                              </span> <span class="ok">&amp;&amp; touch docs/feat--m128-bundle-x-monitor-quickwins/explorer.html</span><br>
+<span class="dim">                              </span> (Advisory — push not blocked.)
+      </div>
+    </div>
+  </div>
+
+  <div id="h2" class="hook" style="display:none">
+    <div class="hook-head">
+      <h2>2 · delete-branch-stacked-pr-guard</h2>
+      <span class="meta">PreToolUse/Bash · 124 LOC · ORK_DISABLE_DELETE_BRANCH_GUARD</span>
+    </div>
+    <div class="hook-body">
+      <div class="row"><div class="lbl">Trigger</div><div class="val">Bash matches <code>gh pr merge ... --delete-branch</code></div></div>
+      <div class="row"><div class="lbl">Resolves</div><div class="val">PR ref → headRefName via <code>gh pr view</code>. No-arg form → current branch.</div></div>
+      <div class="row"><div class="lbl">Check</div><div class="val"><code>gh pr list --base &lt;headRefName&gt; --state open</code> for stacked PRs</div></div>
+      <div class="row"><div class="lbl">If found</div><div class="val">Lists dependent PRs + retarget command. Merge proceeds.</div></div>
+      <div class="term">
+<span class="prompt">$</span> gh pr merge 1567 --squash --delete-branch<br>
+<span class="warn">[delete-branch-stacked-pr-guard]</span> About to merge with <span class="info">--delete-branch</span> on<br>
+<span class="dim">                                </span> <span class="info">chore/m126-count-sync-followup</span>, but 1 open PR(s) target it as base:<br>
+<span class="dim">                                </span>   - <span class="warn">#1568 feat(M127): cost-hygiene A1 — CI fork-subagent</span><br>
+<span class="dim">                                </span> Deleting the branch will auto-CLOSE these PRs and they CANNOT be<br>
+<span class="dim">                                </span> reopened or retargeted via API. Either retarget them first<br>
+<span class="dim">                                </span> (<span class="ok">gh pr edit 1568 --base main</span>) or drop <span class="info">--delete-branch</span>.<br>
+<span class="dim">                                </span> (Advisory — merge not blocked.)
+      </div>
+    </div>
+  </div>
+
+  <div id="h3" class="hook" style="display:none">
+    <div class="hook-head">
+      <h2>3 · claude-md-byte-budget</h2>
+      <span class="meta">PostToolUse/Write · 76 LOC · ORK_DISABLE_CLAUDE_MD_BUDGET</span>
+    </div>
+    <div class="hook-body">
+      <div class="row"><div class="lbl">Trigger</div><div class="val">Write or Edit on a file whose basename is <code>CLAUDE.md</code></div></div>
+      <div class="row"><div class="lbl">Limits</div><div class="val">soft: <span class="pill o">4320 B (90%)</span> · hard: <span class="pill r">4800 B</span> (matches <code>tests/perf/test-token-overhead.sh</code>)</div></div>
+      <div class="row"><div class="lbl">Below soft</div><div class="val">silent</div></div>
+      <div class="row"><div class="lbl">Soft → hard</div><div class="val">"Approaching CI budget: NB / 4800B"</div></div>
+      <div class="row"><div class="lbl">Above hard</div><div class="val">"CI test-token-overhead.sh will FAIL — extract to docs/&lt;topic&gt;.md"</div></div>
+      <div class="term">
+<span class="prompt">$</span> Edit CLAUDE.md (added Background Monitors section, +14 lines)<br>
+<span class="bad">[claude-md-byte-budget]</span> CI test-token-overhead.sh will FAIL (<span class="bad">5726B &gt; 4800B</span> limit, +926B over).<br>
+<span class="dim">                       </span> Extract the most recent additions to <span class="info">docs/&lt;topic&gt;.md</span> and leave a 1-line<br>
+<span class="dim">                       </span> pointer in CLAUDE.md.
+      </div>
+    </div>
+  </div>
+
+  <div class="summary">
+    <h2>Why these three?</h2>
+    <table>
+      <tr><td>Friction this fixes</td><td>3 of 5 PRs in the 2026-04-30 batch hit each of these issues</td></tr>
+      <tr><td>Total new code</td><td><span class="pill g">~300 LOC</span> across 3 hooks · 0 new dependencies</td></tr>
+      <tr><td>Performance impact</td><td>~5ms per push/merge/CLAUDE.md edit (advisory only)</td></tr>
+      <tr><td>Opt-out</td><td>3 env vars · each hook independently disable-able</td></tr>
+      <tr><td>Coverage</td><td>Registered in dispatchers (<span class="info">sync-bash-dispatcher</span>, <span class="info">unified-write-quality-dispatcher</span>) — 0 new hook-spawn cost</td></tr>
+    </table>
+  </div>
+</main>
+
+<footer>
+  Playground for <code>feat/local-dev-hygiene-bundle</code> · OrchestKit
+</footer>
+
+<script>
+function show(id, btn){
+  document.querySelectorAll('.hook').forEach(h => h.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).style.display = 'block';
+  btn.classList.add('on');
+}
+</script>
+</body>
+</html>

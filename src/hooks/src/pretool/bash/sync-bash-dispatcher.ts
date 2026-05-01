@@ -38,6 +38,9 @@ import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
 import { preCommitTestGate } from './pre-commit-test-gate.js';
 // Phase 6: Worktree merge verifier — advisory warn on unmerged worktree removal (#1278)
 import { worktreeMergeVerifier } from './worktree-merge-verifier.js';
+// Phase 7: Local-dev hygiene bundle (this PR)
+import { playgroundPresenceWarner } from './playground-presence-warner.js';
+import { deleteBranchStackedPRGuard } from './delete-branch-stacked-pr-guard.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-bash-dispatcher';
@@ -75,6 +78,9 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'pre-commit-test-gate', fn: preCommitTestGate },
   // Phase 6: Worktree merge verifier (advisory — warn on unmerged worktree removal)
   { name: 'worktree-merge-verifier', fn: worktreeMergeVerifier },
+  // Phase 7: Local-dev hygiene bundle (advisory — warn before push/merge missteps)
+  { name: 'playground-presence-warner', fn: playgroundPresenceWarner },
+  { name: 'delete-branch-stacked-pr-guard', fn: deleteBranchStackedPRGuard },
 ];
 
 /**
