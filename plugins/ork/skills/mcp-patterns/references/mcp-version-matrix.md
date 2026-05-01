@@ -27,7 +27,7 @@ Tracks OrchestKit's integrated MCP servers against upstream latest. Sourced from
 
 | MCP server | Package | Referenced by | Note |
 |---|---|---|---|
-| **notebooklm-mcp** | `notebooklm-mcp` (upstream **1.2.1**, 2025-12-27, unchanged) | `src/skills/release-sync/SKILL.md` | Configured user-level in `~/.claude.json`; `release-sync` assumes availability |
+| **notebooklm-mcp** | `notebooklm-mcp-cli` (PyPI, **0.6.1**, 2026-04-28) — installed via `uv tool install notebooklm-mcp-cli`; ships both `nlm` CLI and `notebooklm-mcp` MCP server. NOTE: the npm `notebooklm-mcp@1.2.1` (2025-12-27) is a separate, stale package — do NOT use it. | `src/skills/release-sync/SKILL.md`, `src/skills/notebooklm/SKILL.md` | Configured user-level in `~/.claude.json`; `release-sync` assumes availability |
 
 ## Status: One HIGH-Tier Server Pinned, Rest on `@latest`
 
