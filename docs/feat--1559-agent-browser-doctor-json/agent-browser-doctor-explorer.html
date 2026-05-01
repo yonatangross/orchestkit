@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>agent-browser doctor — before / after (#1559)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'SF Mono','Fira Code','Consolas',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  header h1{font-size:20px;font-weight:600}
+  header p{font-size:13px;color:var(--text2);margin-top:6px;max-width:760px}
+  header a{color:var(--accent);text-decoration:none}
+  main{padding:24px 32px;max-width:1100px;margin:0 auto}
+  .controls{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .ctrl-btn{padding:9px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:13px;cursor:pointer}
+  .ctrl-btn:hover{border-color:var(--accent)}
+  .ctrl-btn.on{background:var(--accent);color:white;border-color:var(--accent)}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .panel.before{border-left:3px solid var(--red)}
+  .panel.after{border-left:3px solid var(--green)}
+  .panel h3{padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;background:var(--bg3);border-bottom:1px solid var(--border)}
+  .panel h3.r{color:var(--red)}
+  .panel h3.g{color:var(--green)}
+  .panel .body{padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.6;min-height:160px}
+  .panel .ok{color:var(--green)}
+  .panel .bad{color:var(--red)}
+  .panel .warn{color:var(--orange)}
+  .panel .dim{color:var(--text2)}
+  pre{background:#000;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--green);overflow-x:auto;line-height:1.6;margin:12px 0}
+  pre .c{color:var(--text2)}
+  pre .k{color:var(--accent)}
+  pre .v{color:var(--orange)}
+  .summary{background:linear-gradient(135deg,rgba(63,185,80,0.05),rgba(88,166,255,0.04));border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-top:18px}
+  .summary h2{font-size:14px;margin-bottom:12px}
+  .summary table{width:100%;border-collapse:collapse;font-size:13px}
+  .summary td{padding:6px 8px;border-bottom:1px solid var(--border)}
+  .summary td:first-child{color:var(--text2);width:38%}
+  .pill{display:inline-block;padding:2px 8px;font-size:11px;border-radius:10px;font-family:var(--mono)}
+  .pill.r{background:rgba(248,81,73,0.15);color:var(--red)}
+  .pill.g{background:rgba(63,185,80,0.15);color:var(--green)}
+  .pill.b{background:rgba(88,166,255,0.15);color:var(--accent)}
+  footer{padding:24px 32px;color:var(--text2);font-size:12px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>agent-browser doctor — before vs. after (issue <a href="https://github.com/yonatangross/orchestkit/issues/1559">#1559</a>)</h1>
+  <p>Replaces /ork:doctor's fuzzy "is binary on PATH + symlink present" probe with the structured <code>agent-browser doctor --json</code> from agent-browser 0.26+. Pick a scenario to see how doctor responds in each.</p>
+</header>
+
+<main>
+  <div class="controls">
+    <button class="ctrl-btn on" onclick="show('s1', this)">1. Healthy install (0.26+)</button>
+    <button class="ctrl-btn" onclick="show('s2', this)">2. Daemon down</button>
+    <button class="ctrl-btn" onclick="show('s3', this)">3. Older version (legacy fallback)</button>
+    <button class="ctrl-btn" onclick="show('s4', this)">4. Not installed</button>
+  </div>
+
+  <div id="s1" class="scenario">
+    <div class="panels">
+      <div class="panel before">
+        <h3 class="r">Before #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="ok">- agent-browser: installed (OK)</span><br>
+          <span class="dim"># 1 line, no version, no daemon, no chrome, no net</span>
+        </div>
+      </div>
+      <div class="panel after">
+        <h3 class="g">After #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="ok">agent-browser: OK (chrome=128.0.6613.137, net=✓)</span><br>
+          <span class="dim"># Daemon running · network reachable · no high-sev issues</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s2" class="scenario" style="display:none">
+    <div class="panels">
+      <div class="panel before">
+        <h3 class="r">Before #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="bad">- agent-browser: BROKEN</span><br>
+          <span class="dim"># That's all you get. Now what?</span>
+        </div>
+      </div>
+      <div class="panel after">
+        <h3 class="g">After #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="warn">agent-browser: DEGRADED (chrome=128.0.6613.137, net=✗)</span><br>
+          <span class="bad">  ↳ HIGH: daemon not reachable on port 9222 — try `agent-browser daemon restart`</span><br>
+          <span class="dim"># Operator knows: chrome fine, network broken, fix command provided</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s3" class="scenario" style="display:none">
+    <div class="panels">
+      <div class="panel before">
+        <h3 class="r">Before #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="ok">- agent-browser: installed (OK)</span><br>
+          <span class="dim"># Same one-liner regardless of version</span>
+        </div>
+      </div>
+      <div class="panel after">
+        <h3 class="g">After #1559 (graceful fallback)</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="ok">agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)</span><br>
+          <span class="dim"># Doctor falls back AND nudges the upgrade path</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s4" class="scenario" style="display:none">
+    <div class="panels">
+      <div class="panel before">
+        <h3 class="r">Before #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="warn">- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)</span>
+        </div>
+      </div>
+      <div class="panel after">
+        <h3 class="g">After #1559</h3>
+        <div class="body">
+          <span class="dim">$ /ork:doctor --category=external</span><br>
+          External Dependencies:<br>
+          <span class="warn">agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px">
+    <h2 style="font-size:14px;color:var(--accent);margin-bottom:8px">Diagnostic check (rules/diagnostic-checks.md)</h2>
+    <pre><span class="c"># agent-browser (vercel-labs/agent-browser)</span>
+<span class="c"># Prefer the structured `agent-browser doctor --json` from 0.26.0+.</span>
+<span class="c"># Falls back to the legacy probe on older versions.</span>
+<span class="k">if</span> command -v agent-browser >/dev/null 2>&1; <span class="k">then</span>
+  <span class="k">if</span> agent-browser doctor --json >/tmp/ab-doctor.json 2>/dev/null; <span class="k">then</span>
+    jq -r <span class="v">'
+      "agent-browser: " +
+      (if (.daemon.status // "unknown") == "running" then "OK" else "DEGRADED" end) +
+      " (chrome=" + (.chrome.version // "?") +
+      ", net=" + (if .network.reachable then "✓" else "✗" end) + ")"
+    '</span> /tmp/ab-doctor.json
+    jq -r <span class="v">'.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message'</span> /tmp/ab-doctor.json
+  <span class="k">else</span>
+    <span class="c"># Fallback for agent-browser &lt; 0.26</span>
+    test -L <span class="v">"$HOME/.claude/skills/agent-browser"</span> \
+      && echo <span class="v">"agent-browser: installed (legacy probe — upgrade to 0.26+)"</span> \
+      || echo <span class="v">"agent-browser: SYMLINK MISSING at ~/.claude/skills/agent-browser"</span>
+  <span class="k">fi</span>
+<span class="k">else</span>
+  echo <span class="v">"agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)"</span>
+<span class="k">fi</span></pre>
+  </div>
+
+  <div class="summary">
+    <h2>Net impact</h2>
+    <table>
+      <tr><td>Diagnostic detail per failure</td><td>1 line (opaque) → <span class="pill g">structured per-subsystem</span></td></tr>
+      <tr><td>Operator action when broken</td><td>"agent-browser broken — what now?" → <span class="pill g">named subsystem + fix hint</span></td></tr>
+      <tr><td>Backwards compat</td><td><span class="pill b">automatic fallback</span> when 0.26 subcommand missing</td></tr>
+      <tr><td>New dependencies</td><td><span class="pill g">none</span> (uses jq, already required by other doctor checks)</td></tr>
+      <tr><td>Test coverage</td><td><span class="pill g">+2 test cases</span> (structured path + fallback path)</td></tr>
+    </table>
+  </div>
+</main>
+
+<footer>
+  Playground for issue #1559 · branch <code>feat/1559-agent-browser-doctor-json</code> · OrchestKit
+</footer>
+
+<script>
+function show(id, btn){
+  document.querySelectorAll('.scenario').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById(id).style.display = 'block';
+  btn.classList.add('on');
+}
+</script>
+</body>
+</html>
