@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.79.1](https://github.com/yonatangross/orchestkit/compare/v7.79.0...v7.79.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **brainstorm:** restore 81 lines of headroom under cap ([#1578](https://github.com/yonatangross/orchestkit/issues/1578)) ([75ba909](https://github.com/yonatangross/orchestkit/commit/75ba909d7bc234f11f2fb018ddd9d3a06918ad23))
+
 ## [7.79.0](https://github.com/yonatangross/orchestkit/compare/v7.78.0...v7.79.0) (2026-05-01)
 
 
