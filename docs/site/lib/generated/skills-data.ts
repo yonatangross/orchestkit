@@ -773,9 +773,12 @@ export const SKILLS: Record<string, SkillMeta> = {
         "common-pitfalls.md",
         "devils-advocate-prompts.md",
         "divergent-techniques.md",
+        "effort-scaling.md",
         "evaluation-rubric.md",
         "example-session-auth.md",
         "example-session-dashboard.md",
+        "iterative-optimization-mode.md",
+        "mcp-probe-resume.md",
         "phase-workflow.md",
         "socratic-questions.md"
       ],
