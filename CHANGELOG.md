@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.79.0](https://github.com/yonatangross/orchestkit/compare/v7.78.0...v7.79.0) (2026-05-01)
+
+
+### Features
+
+* **hooks:** local-dev hygiene bundle — 3 advisory hooks ([#1574](https://github.com/yonatangross/orchestkit/issues/1574)) ([dc446a1](https://github.com/yonatangross/orchestkit/commit/dc446a106a17eef1161e052e2ac92245cb045351))
+
+
+### Miscellaneous
+
+* **deps:** bump notebooklm-mcp-cli 0.5.25 → 0.6.1 (2026-04-28) ([#1575](https://github.com/yonatangross/orchestkit/issues/1575)) ([3ba2cc5](https://github.com/yonatangross/orchestkit/commit/3ba2cc5cd6b8e5ba852b5fba3cae0793c2ad2378))
+
 ## [7.78.0](https://github.com/yonatangross/orchestkit/compare/v7.77.0...v7.78.0) (2026-05-01)
 
 
