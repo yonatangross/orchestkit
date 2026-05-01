@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.77.0",
+    "date": "2026-04-29",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**M126:** secret-handler PostToolUse hook ([#1543](https://github.com/yonatangross/orchestkit/issues/1543), Bundle C — last of M126) ([#1553](https://github.com/yonatangross/orchestkit/issues/1553)) ([8cf8448](https://github.com/yonatangross/orchestkit/commit/8cf844878292fb723da9f9f8ca778d0ad3a02579))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump Vercel Labs upstreams to 2026-04-29 latest ([#1558](https://github.com/yonatangross/orchestkit/issues/1558)) ([bc582e5](https://github.com/yonatangross/orchestkit/commit/bc582e5083110d35748e97005d4174cde8bd36d9))",
+          "M126 followups — close 5 audit-driven gaps from /ork:assess ([#1556](https://github.com/yonatangross/orchestkit/issues/1556)) ([fb5b563](https://github.com/yonatangross/orchestkit/commit/fb5b5636ee63a1d6aaad7ec9a9ead40ce0f3f235))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.76.0",
     "date": "2026-04-28",
     "compareUrl": "",
