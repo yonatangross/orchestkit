@@ -345,14 +345,37 @@ Validates runtime version against the [Version Compatibility Matrix](../referenc
 Checks optional tool availability:
 
 ```bash
-# Checks performed:
-# - agent-browser: installed globally via skills CLI
-# - Validates symlink exists at ~/.claude/skills/agent-browser
-# - portless: stable named localhost URLs for local dev
+# agent-browser (vercel-labs/agent-browser)
+# Prefer the structured `agent-browser doctor --json` from 0.26.0+ (CC 2.1.121+).
+# Falls back to the fuzzy "is the binary on PATH + symlink present?" probe on older versions.
+if command -v agent-browser >/dev/null 2>&1; then
+  if agent-browser doctor --json >/tmp/ab-doctor.json 2>/dev/null; then
+    # Structured snapshot: surface only high-severity issues + a one-line health summary.
+    jq -r '
+      "agent-browser: " +
+      (if (.daemon.status // "unknown") == "running" then "OK" else "DEGRADED" end) +
+      " (chrome=" + (.chrome.version // "?") +
+      ", net=" + (if .network.reachable then "✓" else "✗" end) + ")"
+    ' /tmp/ab-doctor.json
+    # Promote any high-severity issue into doctor's findings stream.
+    jq -r '.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message' /tmp/ab-doctor.json
+  else
+    # Fallback for agent-browser < 0.26 (no `doctor` subcommand)
+    test -L "$HOME/.claude/skills/agent-browser" \
+      && echo "agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)" \
+      || echo "agent-browser: SYMLINK MISSING at ~/.claude/skills/agent-browser"
+  fi
+else
+  echo "agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)"
+fi
+
+# portless: stable named localhost URLs for local dev
 #   which portless 2>/dev/null && portless list 2>/dev/null
 #   If missing: RECOMMEND "npm i -g portless" for stable local dev URLs
 #   If installed but not running: WARN "portless is installed but no services registered"
 ```
+
+**Why structured doctor**: agent-browser 0.26.0 added `doctor --json` returning a snapshot of `chrome`, `daemon`, `network`, `config`, `security`, and `providers`. Wiring it in turns the previous "agent-browser broken" failure into actionable per-subsystem findings (Chrome version, daemon status, network reachability, high-severity issues), unblocking debug sessions where the user can't tell us what's wrong.
 
 ---
 
@@ -702,16 +725,29 @@ Claude Code: 2.1.44 (DEGRADED)
 
 ## External Dependencies
 
-**Installed:**
+**Installed (agent-browser ≥ 0.26 — structured doctor):**
 ```
 External Dependencies:
-- agent-browser: installed (OK)
+agent-browser: OK (chrome=128.0.6613.137, net=✓)
+```
+
+**Installed but degraded:**
+```
+External Dependencies:
+agent-browser: DEGRADED (chrome=128.0.6613.137, net=✗)
+  ↳ HIGH: daemon not reachable on port 9222 — try `agent-browser daemon restart`
+```
+
+**Installed (agent-browser &lt; 0.26 — legacy fuzzy probe):**
+```
+External Dependencies:
+agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)
 ```
 
 **Not installed:**
 ```
 External Dependencies:
-- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
+agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)
 ```
 
 ## Plugin Validate
