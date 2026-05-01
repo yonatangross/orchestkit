@@ -17,6 +17,53 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.79.0",
+    "date": "2026-05-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** local-dev hygiene bundle — 3 advisory hooks ([#1574](https://github.com/yonatangross/orchestkit/issues/1574)) ([dc446a1](https://github.com/yonatangross/orchestkit/commit/dc446a106a17eef1161e052e2ac92245cb045351))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** bump notebooklm-mcp-cli 0.5.25 → 0.6.1 (2026-04-28) ([#1575](https://github.com/yonatangross/orchestkit/issues/1575)) ([3ba2cc5](https://github.com/yonatangross/orchestkit/commit/3ba2cc5cd6b8e5ba852b5fba3cae0793c2ad2378))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.78.0",
+    "date": "2026-05-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**doctor:** wire agent-browser doctor --json ([#1559](https://github.com/yonatangross/orchestkit/issues/1559)) ([#1573](https://github.com/yonatangross/orchestkit/issues/1573)) ([399b030](https://github.com/yonatangross/orchestkit/commit/399b030d9b165371de20243fb6cc71339bd31cd0))",
+          "**M127:** cost-hygiene A1 — CI fork-subagent + slash-only skills ([#1572](https://github.com/yonatangross/orchestkit/issues/1572)) ([1d947a9](https://github.com/yonatangross/orchestkit/commit/1d947a9e7ec41ee6b980c491d475971ab5b35097))",
+          "**M128:** monitor quickwins — manifest source, debounce, docs ([#1570](https://github.com/yonatangross/orchestkit/issues/1570)) ([fdc2166](https://github.com/yonatangross/orchestkit/commit/fdc2166da79f97fb410eb9d9b65e1f56c90992c4))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**brainstorm:** trim SKILL.md to 500-line cap (unblocks 4 PRs) ([#1576](https://github.com/yonatangross/orchestkit/issues/1576)) ([247943a](https://github.com/yonatangross/orchestkit/commit/247943aaa7bb7a0a97dbf586bc55191fbd937233))",
+          "**ultrareview:** label-gate + fix broken TARGET arg + suppress empty comment ([#1569](https://github.com/yonatangross/orchestkit/issues/1569)) ([c8097f5](https://github.com/yonatangross/orchestkit/commit/c8097f558f6aabfb27619ac61cf60e647c5a5f8d))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**M126:** re-stamp component counts across docs ([#1567](https://github.com/yonatangross/orchestkit/issues/1567)) ([4d9a7fd](https://github.com/yonatangross/orchestkit/commit/4d9a7fd5216de6ab7ec9224edfeeac54a74a0042))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.77.0",
     "date": "2026-04-29",
     "compareUrl": "",

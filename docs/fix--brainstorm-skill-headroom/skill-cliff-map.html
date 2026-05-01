@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SKILL.md cliff-edge map — playground</title>
+<style>
+  :root { color-scheme: light dark; --bg:#fff; --fg:#111; --muted:#666; --row:#f5f5f7; --row2:#fafafa; --line:#e5e7eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b0d10; --fg:#e5e7eb; --muted:#9ca3af; --row:#111418; --row2:#0d1015; --line:#1f2937; } }
+  body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 880px; margin: 2rem auto; padding: 0 1rem; background: var(--bg); color: var(--fg); }
+  h1 { font-size: 1.45rem; margin: 0 0 .25rem; }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; }
+  .meta { display:flex; gap:1rem; font-size:13px; color:var(--muted); margin-bottom:1.25rem; }
+  .meta b { color: var(--fg); font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: .55rem .8rem; text-align: left; }
+  th { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-bottom: 1px solid var(--line); }
+  tr:nth-child(odd) td { background: var(--row); }
+  tr:nth-child(even) td { background: var(--row2); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bar { display:inline-block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #10b981 0%, #f59e0b 80%, #ef4444 100%); vertical-align: middle; }
+  .bar-bg { display:inline-block; width: 220px; height: 8px; background: var(--line); border-radius: 4px; vertical-align: middle; margin-right: .5rem; overflow:hidden; }
+  .pill { display:inline-block; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .pill.ok { background: #d1fae5; color:#065f46; }
+  .pill.warn { background: #fef3c7; color:#92400e; }
+  .pill.danger { background: #fee2e2; color:#991b1b; }
+  .pill.cliff { background: #7f1d1d; color: #fff; }
+  details { margin-top: 1.5rem; padding: .75rem 1rem; background: var(--row); border-radius: 6px; border: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; }
+  code { background: var(--row); padding: 1px 5px; border-radius: 3px; font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; }
+  .legend { display:flex; gap: 1rem; font-size: 12px; color: var(--muted); margin: 1rem 0; flex-wrap:wrap; }
+  .legend span { display:inline-flex; align-items:center; gap:.4rem; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; }
+  .footer { margin-top: 2rem; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1>SKILL.md cliff-edge map</h1>
+<p class="lede">CI cap is 500 lines per <code>tests/skills/test-skill-length.sh</code>. This page shows where every &gt;300-line SKILL.md sits relative to the cliff, and what this PR moved.</p>
+
+<div class="meta">
+  <span>Cap: <b>500</b></span>
+  <span>Warn: <b>400</b></span>
+  <span>Skills: <b>107</b></span>
+  <span>This PR: <b>brainstorm 500 → 419</b> (81 lines of headroom recovered)</span>
+</div>
+
+<div class="legend">
+  <span><span class="swatch" style="background:#7f1d1d"></span> Cliff (≥495, &lt;6 lines from cap)</span>
+  <span><span class="swatch" style="background:#ef4444"></span> Danger (≥480)</span>
+  <span><span class="swatch" style="background:#f59e0b"></span> Warn (&gt;400)</span>
+  <span><span class="swatch" style="background:#10b981"></span> OK (≤400)</span>
+</div>
+
+<table id="t">
+  <thead>
+    <tr><th>Skill</th><th class="num">Lines</th><th>Headroom to cap</th><th>Status</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<details>
+  <summary>What this PR changed</summary>
+  <p>Three sections moved out of <code>src/skills/brainstorm/SKILL.md</code> into <code>references/</code> files:</p>
+  <ul>
+    <li><b>STEP -1 (MCP probe + resume + handoff table)</b> → <code>references/mcp-probe-resume.md</code> (~38 lines saved)</li>
+    <li><b>Iterative-optimization sub-flow</b> (1 of 6 STEP 0a modes) → <code>references/iterative-optimization-mode.md</code> (~45 lines saved)</li>
+    <li><b>STEP 0c effort-scaling table</b> → <code>references/effort-scaling.md</code> (~14 lines saved)</li>
+  </ul>
+  <p>Net: <b>500 → 419 lines</b>. The skill still functions identically — references load on demand via <code>Read("${CLAUDE_SKILL_DIR}/references/&lt;file&gt;")</code>.</p>
+  <p><b>Three other skills are still on the cliff:</b> <code>cover</code> (495), <code>review-pr</code> (490), <code>implement</code> (487). They follow the same bloat pattern (CC 2.1.108+ procedural compliance text) and should get the same treatment in follow-up PRs.</p>
+</details>
+
+<details>
+  <summary>Why this matters</summary>
+  <p>When a skill sits at the line cap, every commit that touches it can re-break CI. Before this PR, brainstorm had <b>0 lines of headroom</b> — it broke from a single trailing newline. The previous fix (#1576) trimmed exactly 1 line and merged because the queue was blocked, but it didn't move the cliff.</p>
+  <p>This PR moves the cliff: brainstorm now has 81 lines of headroom and stops being a single-keystroke risk.</p>
+</details>
+
+<div class="footer">Generated for PR (branch: <code>fix/brainstorm-skill-headroom</code>) · OrchestKit 7.79.0+</div>
+
+<script>
+  // Hard-coded snapshot at PR open. The static page doesn't fetch live values — those are tracked in CI.
+  const SKILLS = [
+    ["cover", 495], ["review-pr", 490], ["implement", 487],
+    ["brainstorm", 419], ["verify", 415], ["fix-issue", 415],
+    ["json-render-catalog", 394], ["expect", 393], ["assess", 373],
+    ["create-pr", 363], ["design-to-code", 358], ["security-patterns", 351],
+    ["multi-surface-render", 346], ["dream", 322], ["emulate-seed", 316]
+  ];
+  const tbody = document.querySelector("#t tbody");
+  const max = 500;
+  for (const [name, lines] of SKILLS) {
+    const headroom = max - lines;
+    let cls, label;
+    if (lines >= 495) { cls = "cliff"; label = "CLIFF"; }
+    else if (lines >= 480) { cls = "danger"; label = "danger"; }
+    else if (lines > 400) { cls = "warn"; label = "warn"; }
+    else { cls = "ok"; label = "ok"; }
+    const tr = document.createElement("tr");
+    const pct = Math.min(100, (lines / max) * 100);
+    tr.innerHTML = `
+      <td><code>${name}</code></td>
+      <td class="num">${lines}</td>
+      <td><span class="bar-bg"><span class="bar" style="width:${pct.toFixed(1)}%"></span></span><span class="num">${headroom}</span></td>
+      <td><span class="pill ${cls}">${label}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }
+</script>
+</body>
+</html>

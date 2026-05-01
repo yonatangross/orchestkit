@@ -23,38 +23,9 @@ TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
 
 ## STEP -1: MCP Probe + Resume Check
 
-> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+Probe MCP servers once at skill start, store capabilities, and resume from any prior crashed session. Each phase emits a JSON handoff file consumed by the next.
 
-```python
-# 1. Probe MCP servers (once at skill start)
-ToolSearch(query="select:mcp__memory__search_nodes")  # CC < 2.1.121 fallback (alwaysLoad in .mcp.json otherwise)
-ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
-
-# 2. Store capabilities
-Write(".claude/chain/capabilities.json", {
-  "memory": probe_memory.found,
-  "sequential_thinking": probe_st.found,
-  "skill": "brainstorm",
-  "timestamp": now()
-})
-
-# 3. Check for resume (prior session may have crashed)
-state = Read(".claude/chain/state.json")  # may not exist
-if state.skill == "brainstorm" and state.status == "in_progress":
-    # Skip completed phases, resume from state.current_phase
-    last_handoff = Read(f".claude/chain/{state.last_handoff}")
-```
-
-### Phase Handoffs
-
-| Phase | Handoff File | Contents |
-|-------|-------------|----------|
-| 0 | `00-topic-analysis.json` | Agent list, tier, topic classification |
-| 1 | `01-memory-context.json` | Prior patterns, codebase signals |
-| 2 | `02-divergent-ideas.json` | 10+ raw ideas |
-| 3 | `03-feasibility.json` | Filtered viable ideas |
-| 4 | `04-evaluation.json` | Rated + devil's advocate results |
-| 5 | `05-synthesis.json` | Top 2-3 approaches, trade-off table |
+Full procedure + handoff-file table: `Read("${CLAUDE_SKILL_DIR}/references/mcp-probe-resume.md")`
 
 
 ## STEP 0: Project Context Discovery
@@ -171,51 +142,9 @@ ExitPlanMode()
 - **Quick ideation**: Generate ideas, skip deep evaluation
 - **Iterative optimization**: Skip phases 2-6, enter autoresearch-style loop (see below)
 
-**If 'Iterative optimization' selected:**
+**If 'Iterative optimization' selected:** skip Phases 2-6 and enter the autoresearch-style metric-driven loop.
 
-```python
-# 1. Ask for metric definition
-AskUserQuestion(questions=[
-  {"question": "What command produces the metric?",
-   "header": "Metric command",
-   "options": [
-     {"label": "npm run benchmark", "description": "Node.js benchmark suite"},
-     {"label": "pytest --tb=short", "description": "Python test suite"},
-     {"label": "lighthouse --output=json", "description": "Web performance score"},
-     {"label": "I'll type my own", "description": "Custom command"}
-   ]},
-  {"question": "How to extract the metric number?",
-   "header": "Metric extraction",
-   "options": [
-     {"label": "grep from stdout", "description": "e.g. grep 'score:' output.log"},
-     {"label": "JSON field", "description": "e.g. jq '.score' result.json"},
-     {"label": "Exit code", "description": "0 = pass, non-zero = fail"},
-     {"label": "I'll specify", "description": "Custom extraction"}
-   ]},
-  {"question": "Direction?",
-   "header": "Optimization direction",
-   "options": [
-     {"label": "Lower is better", "description": "Latency, bundle size, error rate"},
-     {"label": "Higher is better", "description": "Score, throughput, coverage"}
-   ]}
-])
-
-# 2. Establish baseline
-Bash(command="{metric_command} > .claude/experiments/baseline.log 2>&1")
-baseline = extract_metric(".claude/experiments/baseline.log")
-append_to_journal(baseline, "keep", "-", current_commit, "baseline")
-
-# 3. Enter the optimization loop — see chain-patterns/references/experiment-journal.md
-# LOOP (until user interrupts or trajectory == "stuck" for 5+ iterations):
-#   a. Generate ONE idea (quick ideation, single agent)
-#   b. Implement in worktree: Agent(isolation="worktree", ...)
-#   c. Run metric command in worktree
-#   d. Compare to previous best
-#   e. If improved: merge worktree back, log "keep"
-#   f. If not: discard worktree, log "discard"
-#   g. Check trajectory — if "stuck" for 5+, try radical changes
-#   h. NEVER STOP — continue until user interrupts
-```
+Full sub-flow (metric question, baseline, loop body): `Read("${CLAUDE_SKILL_DIR}/references/iterative-optimization-mode.md")`
 
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
@@ -238,22 +167,9 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 
 ## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
 
-Read the `/effort` setting to scale brainstorm depth. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly:
+Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/5 only, `high` (default) runs all 7, `xhigh` adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.
 
-| Effort Level | Phases Run | Token Budget | Agents |
-|-------------|------------|--------------|--------|
-| **low** | Phase 0 → Phase 2 (quick ideation) → Phase 5 (light synthesis) | ~50K | 2 max |
-| **medium** | Phase 0 → Phase 2 → Phase 3 → Phase 5 → Phase 6 | ~150K | 3 max |
-| **high** (default) | All 7 phases | ~400K | 3-5 |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 7 phases + extra devil's-advocate round in Phase 4 + extra synthesis dimension in Phase 5 | ~550K | 3-5 |
-
-```python
-# Effort detection — the global hook injects effort level, but also check:
-# If user said "quick brainstorm" or "just ideas" → treat as low effort
-# If user selected "Quick ideation" in Step 0a → treat as low effort regardless of /effort
-```
-
-> **Override:** Explicit user selection in Step 0a (e.g., "Open exploration") overrides `/effort` downscaling.
+Full level table + detection rules: `Read("${CLAUDE_SKILL_DIR}/references/effort-scaling.md")`
 
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
@@ -459,3 +375,6 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `socratic-questions.md` | Requirements discovery |
 | `common-pitfalls.md` | Mistakes to avoid |
 | `example-session-dashboard.md` | Complete example |
+| `mcp-probe-resume.md` | STEP -1 probe + resume + handoff-file table |
+| `iterative-optimization-mode.md` | Autoresearch-style metric loop sub-flow |
+| `effort-scaling.md` | `/effort` levels and phase scaling rules |
