@@ -120,16 +120,29 @@ Claude Code: 2.1.44 (DEGRADED)
 
 ## External Dependencies
 
-**Installed:**
+**Installed (agent-browser ≥ 0.26 — structured doctor):**
 ```
 External Dependencies:
-- agent-browser: installed (OK)
+agent-browser: OK (chrome=128.0.6613.137, net=✓)
+```
+
+**Installed but degraded:**
+```
+External Dependencies:
+agent-browser: DEGRADED (chrome=128.0.6613.137, net=✗)
+  ↳ HIGH: daemon not reachable on port 9222 — try `agent-browser daemon restart`
+```
+
+**Installed (agent-browser < 0.26 — legacy fuzzy probe):**
+```
+External Dependencies:
+agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)
 ```
 
 **Not installed:**
 ```
 External Dependencies:
-- agent-browser: NOT INSTALLED (optional - install with: npx skills add vercel-labs/agent-browser)
+agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)
 ```
 
 ## Plugin Validate

@@ -61,6 +61,28 @@
         "Verifies tavily server has TAVILY_API_KEY available in environment or via op CLI",
         "Flags enabled MCP servers whose startup process would likely fail due to missing configuration"
       ]
+    },
+    {
+      "id": "agent-browser-doctor-structured",
+      "rule": "diagnostic-checks",
+      "query": "How does /ork:doctor check the agent-browser tool when version 0.26+ is installed?",
+      "expectedBehavior": [
+        "Detects agent-browser binary on PATH via `command -v agent-browser`",
+        "Invokes `agent-browser doctor --json` to get a structured snapshot",
+        "Parses chrome version, daemon status, and network reachability into a one-line health summary",
+        "Promotes any high-severity issue from the issues array into doctor's findings stream"
+      ]
+    },
+    {
+      "id": "agent-browser-doctor-fallback",
+      "rule": "diagnostic-checks",
+      "query": "What does /ork:doctor do for agent-browser versions older than 0.26?",
+      "expectedBehavior": [
+        "Falls back to the legacy fuzzy probe when `agent-browser doctor --json` exits non-zero or is missing",
+        "Checks for the symlink at ~/.claude/skills/agent-browser to confirm installation",
+        "Recommends upgrading to agent-browser 0.26+ for structured doctor output",
+        "Reports `agent-browser: NOT INSTALLED` only when the binary is genuinely absent from PATH"
+      ]
     }
   ]
 }
