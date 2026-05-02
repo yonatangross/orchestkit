@@ -23,6 +23,14 @@ jobs:
   watch:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Hoist auth secrets to JOB-LEVEL env so they're available in step-level
+    # `if:` expressions. The `secrets` context is NOT allowed in `if:` per
+    # GHA's context-availability rules — that was a bug in my prior M130
+    # hotfix. Step-level `env:` would also be wrong because it's applied
+    # AFTER `if:` evaluates. Job-level env is the only form that works.
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
@@ -38,30 +46,18 @@ jobs:
       # than missing one cycle.
       - name: Snapshot CC CHANGELOG and score gaps
         id: watch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/cc-release-watch.mjs
 
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
       # below still files something so the human triage step is visible.
-      #
-      # NOTE: gating on `secrets.CLAUDE_CODE_OAUTH_TOKEN != ''` directly. Earlier
-      # version used `env.CLAUDE_CODE_OAUTH_TOKEN`, but the `env` context inside
-      # `if:` only reads workflow/job-level env — step-level `env:` is applied
-      # AFTER `if:` evaluates. That made the step always-skipped regardless of
-      # secret presence. The `secrets` context IS available in `if:`.
+      # Auth env is hoisted to job-level (see top of `watch:` job).
       - name: LLM-assisted feature extraction (optional)
         id: triage
-        if: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ env.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: node scripts/cc-triage.mjs
 
       # Step 3 — file issues for gaps with score >= 10, dedup against open `cc-adoption` issues.
       - name: File adoption issues
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           GAPS=shared/cc-adoption-gaps.json
@@ -110,28 +106,33 @@ jobs:
                 fi
 
                 TITLE="adopt CC $VERSION feature: $SLUG ($CAT)"
-                BODY=$(cat <<BODY
-**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data.
-
-**Key:** \`${KEY}\`
-**Category:** \`${CAT}\` (gap_score=${SCORE})
-**Affected skills:** ${AFFECTED:-(none detected)}
-
-## Changelog reference
-
-> ${REF}
-
-## What to do
-
-${DESC}
-
-See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up.
-
-## Policy
-
-Per \`shared/rules/cc-support-policy.md\`, the support floor will auto-bump after this version's matrix entry lands in \`src/hooks/src/lib/cc-version-matrix.ts\`. The follow-up bump PR is opened by \`.github/workflows/cc-support-window-bump.yml\`.
-BODY
-)
+                # NOTE: do NOT use a `cat <<BODY` heredoc here. A heredoc
+                # body at column 1 breaks YAML's block-scalar indentation,
+                # which causes GHA to silently fail to register this
+                # workflow's `name:` and `workflow_dispatch` trigger
+                # (404/422 from gh workflow run). Use printf with each
+                # line as a separate quoted argument — that keeps every
+                # line indented inside the YAML block.
+                BODY=$(printf '%s\n' \
+                  "**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data." \
+                  "" \
+                  "**Key:** \`${KEY}\`" \
+                  "**Category:** \`${CAT}\` (gap_score=${SCORE})" \
+                  "**Affected skills:** ${AFFECTED:-(none detected)}" \
+                  "" \
+                  "## Changelog reference" \
+                  "" \
+                  "> ${REF}" \
+                  "" \
+                  "## What to do" \
+                  "" \
+                  "${DESC}" \
+                  "" \
+                  "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up." \
+                  "" \
+                  "## Policy" \
+                  "" \
+                  "Per \`shared/rules/cc-support-policy.md\`, the support floor will auto-bump after this version's matrix entry lands in \`src/hooks/src/lib/cc-version-matrix.ts\`. The follow-up bump PR is opened by \`.github/workflows/cc-support-window-bump.yml\`.")
                 gh issue create \
                   --title "$TITLE" \
                   --body "$BODY" \
@@ -148,8 +149,6 @@ BODY
       # issue every day forever once the LLM is skipped.
       - name: Fallback manual-triage issue
         if: ${{ steps.triage.outcome == 'skipped' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           GAPS=shared/cc-adoption-gaps.json
