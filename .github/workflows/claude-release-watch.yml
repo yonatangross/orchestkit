@@ -56,8 +56,12 @@ jobs:
       # Step 1 — fetch upstream CHANGELOG, diff, write new snapshots, emit gaps JSON.
       # Hard fail here aborts the run (no commit, no issues). Stale snapshots are worse
       # than missing one cycle.
+      # Needs GH_TOKEN because cc-release-watch.mjs calls
+      # `gh api repos/anthropics/claude-code/contents/CHANGELOG.md`.
       - name: Snapshot CC CHANGELOG and score gaps
         id: watch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/cc-release-watch.mjs
 
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
