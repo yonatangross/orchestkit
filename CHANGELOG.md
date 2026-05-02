@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.80.0](https://github.com/yonatangross/orchestkit/compare/v7.79.1...v7.80.0) (2026-05-02)
+
+
+### Features
+
+* **cc:** adopt CC 2.1.122 + 2.1.126 features (M128) ([#1585](https://github.com/yonatangross/orchestkit/issues/1585)) ([372b9d0](https://github.com/yonatangross/orchestkit/commit/372b9d05ec6c8e7359eb664a98a47665dc8ccafa))
+
+
+### Miscellaneous
+
+* **m129:** fix lossy path decode + add OTEL panel fixture tests ([#1588](https://github.com/yonatangross/orchestkit/issues/1588)) ([1f30144](https://github.com/yonatangross/orchestkit/commit/1f301449941451f3ed1e27b7c2b7c9581e55203e))
+
 ## [7.79.1](https://github.com/yonatangross/orchestkit/compare/v7.79.0...v7.79.1) (2026-05-01)
 
 
