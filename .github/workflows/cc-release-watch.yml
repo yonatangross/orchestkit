@@ -7,7 +7,13 @@ name: cc-release-watch
 on:
   schedule:
     - cron: '0 14 * * *'  # 14:00 UTC ≈ 09:00 PT, after most Anthropic releases land
-  workflow_dispatch:
+  # Explicit empty-inputs form. The original April-2026 file used
+  # `workflow_dispatch: {}`; M130 changed it to `workflow_dispatch:` (implicit
+  # form). GitHub Actions cached the old workflow metadata and silently
+  # refused dispatch requests with a 422 "no workflow_dispatch trigger"
+  # error even though both forms are valid YAML. Switching back to the
+  # explicit `{}` form forces a clean re-registration.
+  workflow_dispatch: {}
 
 # Serialize so two cron fires (or cron + manual) can't race on the snapshot commit.
 concurrency:
