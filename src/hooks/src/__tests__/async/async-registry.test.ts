@@ -105,7 +105,8 @@ describe('Async Hooks Registry', () => {
       // 75 -> 76: M119 #1476 — nudge-outcome-resolver added on SessionStart (async, 5s)
       // 76 -> 78: M125 Lane B — ui-change-detector (PostToolUse Write|Edit, async)
       //           + expect/snapshot-recorder (PostToolUse Skill, async)
-      expect(asyncHooks.length, 'Should have exactly 78 async hooks').toBe(78);
+      // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
+      expect(asyncHooks.length, 'Should have exactly 79 async hooks').toBe(79);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

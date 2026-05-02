@@ -17,8 +17,9 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.118', () => {
-      expect(MIN_CC_VERSION).toBe('2.1.118');
+    test('is 2.1.122', () => {
+      // M128 raised support floor to 2.1.122; M130 stamper auto-corrected stale 2.1.118 constant
+      expect(MIN_CC_VERSION).toBe('2.1.122');
     });
   });
 
