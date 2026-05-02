@@ -120,6 +120,37 @@ if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude
   fi
 fi
 
+# ===== 8. GitHub Actions Workflow Lint =====
+# Catches GHA-native bugs that regular YAML lint + CI miss:
+#   - `secrets` context used in step-level `if:` (not allowed)
+#   - `cat <<HEREDOC` with body at column 1 breaking `run: |` block scalar
+#   - deprecated action versions / event names / context fields
+#   - broken `uses:` references
+#
+# `-shellcheck=` (with empty value) disables shellcheck integration.
+# 12 of 25 existing workflows have shellcheck info/style findings (mostly
+# SC2086 unquoted vars in `${{ ... }}` GH expressions, harmless in practice).
+# Enabling shellcheck would block every PR until those are hand-fixed.
+# Re-enable later as a hardening step.
+# silent: known-noise (grep returns 1 when no workflows are staged; that's the no-op case)
+WORKFLOW_FILES=$(echo "$STAGED_FILES" | grep -E '^\.github/workflows/.*\.ya?ml$' || true)
+if [[ -n "$WORKFLOW_FILES" ]]; then
+  echo -n "  Linting GitHub Actions workflows... "
+  if command -v actionlint >/dev/null 2>&1; then
+    # shellcheck disable=SC2086
+    if ! actionlint -shellcheck= $WORKFLOW_FILES >/tmp/actionlint-precommit.log 2>&1; then
+      echo "FAILED"
+      head -20 /tmp/actionlint-precommit.log
+      echo "    Run 'actionlint -shellcheck= .github/workflows/*.yml' for full output"
+      ERRORS=$((ERRORS + 1))
+    else
+      echo "OK"
+    fi
+  else
+    echo "SKIP (actionlint not installed — install: brew install actionlint)"
+  fi
+fi
+
 # ===== Summary =====
 if [[ $ERRORS -gt 0 ]]; then
   echo ""
