@@ -2,7 +2,7 @@
 # Daily watcher for anthropics/claude-code CHANGELOG.md
 # Snapshots upstream changes, scores adoption gaps, files triage issues.
 
-name: cc-release-watch
+name: claude-release-watch
 
 on:
   schedule:
