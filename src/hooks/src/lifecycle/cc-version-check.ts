@@ -45,9 +45,17 @@ function latestMatrixVersion(): string {
   return latest;
 }
 
+function safeSessionId(raw: string): string {
+  // CC supplies UUIDs, but hook input is untrusted by convention. A
+  // session_id of `../../etc/passwd` would traverse outside .claude/state.
+  // Restrict to a safe character set; truncate to keep filenames short.
+  const cleaned = raw.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+  return cleaned || 'no-session';
+}
+
 function rateLimitOk(projectDir: string, sessionId: string): boolean {
   const dir = join(projectDir, STATE_DIR_REL);
-  const flag = join(dir, `cc-version-check-${sessionId}.flag`);
+  const flag = join(dir, `cc-version-check-${safeSessionId(sessionId)}.flag`);
   if (existsSync(flag)) return false;
   try {
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });

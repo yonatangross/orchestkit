@@ -23,6 +23,16 @@ jobs:
   recompute-floor:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Skip if the trigger was the bump workflow's own merge. Without this,
+    # peter-evans/create-pull-request → squash-merge → push fires this same
+    # workflow again. The compute step's `skip=true` branch usually ends it
+    # on the first iteration, but we don't want even one wasted run, and we
+    # don't want the support-window-bump.yml file edits (e.g. policy tweaks)
+    # to confuse triage with self-triggered noise. The bump PR commit
+    # message starts with `chore(cc): bump support floor`.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      !startsWith(github.event.head_commit.message, 'chore(cc): bump support floor')
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:

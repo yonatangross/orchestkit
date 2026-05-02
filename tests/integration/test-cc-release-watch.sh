@@ -61,6 +61,14 @@ trap restore EXIT
 # Reset to clean state for tests
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
+# Pre-populate 2.1.126.md to simulate the production steady state: the
+# version named in cc-support.json.latest has already been snapshotted on a
+# previous cron run. This isolates Test 1 to the "one new version" scenario
+# (2.1.127) without triggering the M130-hotfix recovery path that re-snapshots
+# equal-version-but-missing-on-disk entries (covered by a dedicated test below).
+mkdir -p shared/cc-snapshots
+echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
+
 # ============================================================================
 # Test 1: fixture with one new version → writes snapshot + gaps + args
 # ============================================================================
@@ -135,7 +143,27 @@ else
 fi
 
 # ============================================================================
-# Test 4: missing fixture path errors cleanly (exit 1)
+# Test 4: recovery path — equal-version + missing snapshot is re-included
+# (M130 hotfix). Removes 2.1.126.md from disk; cc-support.json.latest still
+# says 2.1.126; rerunning must re-snapshot it instead of silently skipping.
+# ============================================================================
+rm -f shared/cc-snapshots/2.1.126.md
+rm -f shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-recover.txt 2>&1
+
+if [ -f shared/cc-snapshots/2.1.126.md ]; then
+  log_pass "Recovery: missing equal-version snapshot re-created on next run"
+else
+  log_fail "Recovery snapshot" "expected 2.1.126.md to be re-written when missing on disk"
+fi
+
+# Restore 2.1.126.md so subsequent tests start from a steady state.
+echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
+
+# ============================================================================
+# Test 5: missing fixture path errors cleanly (exit 1)
 # ============================================================================
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE=/nonexistent/path.md node scripts/cc-release-watch.mjs > /tmp/watch-err.txt 2>&1 || EXIT=$?

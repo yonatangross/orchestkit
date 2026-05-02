@@ -46,16 +46,34 @@ function fetchChangelog() {
 }
 
 function parseVersions(changelog) {
-  // Each version block starts with `## X.Y.Z` and runs to the next `## X.Y.Z` heading or EOF.
-  // JavaScript regex has no \Z, so we use a positive lookahead with $ alternation that captures
-  // either "next heading on its own line" OR end-of-input via the negative-content trick.
-  const re = /^## (\d+\.\d+\.\d+)\s*$([\s\S]*?)(?=^## \d+\.\d+\.\d+\s*$|$(?![\s\S]))/gm;
+  // Split-based parser. Earlier regex `(?=^## ...|$(?![\s\S]))` had subtle
+  // end-of-input edge cases (last version body could capture short / wrong);
+  // splitting on the heading is straightforward and well-defined.
+  //
+  // Algorithm: split on lines that look like `## X.Y.Z`. Discard the preamble
+  // before the first heading. Each chunk's first line is the heading body
+  // (already version-only because we capture inside split), the rest is body.
+  // Walk forward through headings. For each heading found, the previous
+  // pending version's body runs from its start to this heading's start.
+  // The final pending version's body runs to end-of-input.
   const versions = [];
-  let m;
-  while ((m = re.exec(changelog)) !== null) {
-    const version = m[1];
-    const body = m[2].trim();
-    versions.push({ version, body });
+  const re = /^## (\d+\.\d+\.\d+)\s*$/gm;
+  let match;
+  let pendingVersion = null;
+  let pendingStart = -1;
+  while ((match = re.exec(changelog)) !== null) {
+    const version = match[1];
+    const headingEnd = match.index + match[0].length;
+    if (pendingVersion !== null) {
+      const body = changelog.slice(pendingStart, match.index).trim();
+      versions.push({ version: pendingVersion, body });
+    }
+    pendingVersion = version;
+    pendingStart = headingEnd;
+  }
+  if (pendingVersion !== null) {
+    const body = changelog.slice(pendingStart).trim();
+    versions.push({ version: pendingVersion, body });
   }
   return versions;
 }
@@ -93,8 +111,17 @@ function main() {
       .map((f) => f.replace(/\.md$/, '')),
   );
 
+  // Take any version (a) newer than the known floor OR (b) at-or-newer than
+  // the floor but NOT yet snapshotted on disk. The latter recovers from a
+  // race where `cc-support.json.latest` advanced (via the bump workflow)
+  // before its snapshot file landed — without this the watcher would silently
+  // never re-create the missing snapshot.
   const newVersions = versions
-    .filter((v) => !snapshotted.has(v.version) && compareSemver(v.version, knownLatest) > 0)
+    .filter((v) => {
+      if (snapshotted.has(v.version)) return false;
+      const cmp = compareSemver(v.version, knownLatest);
+      return cmp > 0 || cmp === 0;
+    })
     .sort((a, b) => compareSemver(a.version, b.version));
 
   if (newVersions.length === 0) {
