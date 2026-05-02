@@ -1,0 +1,4 @@
+{"event":"tool_result","timestamp":"2026-05-01T10:00:00Z","tool_name":"Read","tool_use_id":"tu_001","duration_ms":42,"tool_input_size_bytes":280}
+{"event":"tool_result","timestamp":"2026-05-01T10:00:30Z","tool_name":"Bash","tool_use_id":"tu_002","duration_ms":1240,"tool_input_size_bytes":120}
+{"event":"tool_result","timestamp":"2026-05-01T10:01:00Z","tool_name":"Read","tool_use_id":"tu_003","duration_ms":56,"tool_input_size_bytes":18000}
+{"event":"tool_result","timestamp":"2026-05-01T10:01:30Z","tool_name":"Grep","tool_use_id":"tu_004","duration_ms":92,"tool_input_size_bytes":15500}

@@ -1,0 +1,4 @@
+{"event":"cost.usage","timestamp":"2026-05-01T10:00:00Z","effort":"high","input_tokens":1200,"output_tokens":340,"cost_usd":0.045}
+{"event":"cost.usage","timestamp":"2026-05-01T10:01:00Z","effort":"high","input_tokens":2100,"output_tokens":520,"cost_usd":0.078}
+{"event":"cost.usage","timestamp":"2026-05-01T10:02:00Z","effort":"medium","input_tokens":800,"output_tokens":210,"cost_usd":0.018}
+{"event":"cost.usage","timestamp":"2026-05-01T10:03:00Z","effort":"low","input_tokens":300,"output_tokens":80,"cost_usd":0.005}

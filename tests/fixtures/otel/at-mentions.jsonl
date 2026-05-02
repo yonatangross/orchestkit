@@ -1,0 +1,7 @@
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:00:00Z","target":"CLAUDE.md"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:01:00Z","target":"CLAUDE.md"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:02:00Z","target":"CLAUDE.md"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:03:00Z","target":"src/skills/"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:04:00Z","target":"src/skills/"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:05:00Z","target":"https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"}
+{"event":"claude_code.at_mention","timestamp":"2026-05-01T10:06:00Z","target":"package.json"}

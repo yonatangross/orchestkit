@@ -246,6 +246,10 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     run_test "Context System Integration" "$SCRIPT_DIR/integration/test-context-system.sh" || true
     run_test "Plugin Installation Validation" "$SCRIPT_DIR/integration/test-plugin-installation.sh" || true
 
+    # OTEL fixture tests must fail CI on regression — exit-code suppression intentionally absent.
+    # Catches drift between the documented jq queries in otel-fields.md and fixture-expected output.
+    run_test "OTEL Panel Fixtures (M129)" "$SCRIPT_DIR/integration/test-otel-panels.sh"
+
     # Mem0 removed — integration tests deleted
 
     # External Installation Tests (v4.12.0)

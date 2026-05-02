@@ -401,27 +401,38 @@ claude plugin validate
 
 ---
 
-## 14. Stale Project State (CC >= 2.1.126, #1582)
+## 14. Stale Project State (CC >= 2.1.126, #1582, fixed in #1587)
 
-CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when state directories exist for projects no longer present on disk.
+CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when canonical project paths no longer exist on disk.
 
 ```bash
 # Check CC version supports project purge (>= 2.1.126)
 # If CC < 2.1.126, skip silently (suggestion would be unactionable)
 
-# Detect stale project state:
-#   - List ~/.claude/projects/* directories
-#   - For each, check if the encoded project path still exists on disk
-#   - If any are missing → emit info diagnostic
+# Detect stale project state via the authoritative source.
+# Use `claude project purge --dry-run --all` because the directory-name encoding
+# under ~/.claude/projects/ is lossy (both `/` and `.` collapse to `-`, so the
+# original path cannot be reconstructed deterministically — `my-project` is
+# indistinguishable from `my.project` or `my/project`). The CLI's dry-run
+# output emits canonical paths from ~/.claude.json which IS lossless.
+#
+#   claude project purge --dry-run --all 2>/dev/null \
+#     | grep -oE 'projects\["[^"]+"\]' \
+#     | sed -E 's/^projects\["//; s/"\]$//' \
+#     | while IFS= read -r p; do
+#         [ -n "$p" ] && [ ! -d "$p" ] && echo "$p"
+#       done
 #
 # Example output (info severity, never blocking):
-# ℹ Stale project state: 3 directories in ~/.claude/projects/ reference paths that no longer exist on disk.
+# ℹ Stale project state: 3 canonical paths reference directories that no longer exist on disk.
 #    Suggested cleanup (always preview first):
 #      claude project purge --dry-run --all
 #      claude project purge --interactive    # confirm each project
 ```
 
 **Why info, never warn or fail:** the user may have moved a project rather than deleted it; aggressive removal would lose transcript history. Always recommend `--dry-run` first. Mirrors the pattern from `claude plugin prune` (Category 13b).
+
+**Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results — `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
 
 
 ### MCP Status Checks — HIGH
