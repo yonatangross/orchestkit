@@ -250,6 +250,13 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     # Catches drift between the documented jq queries in otel-fields.md and fixture-expected output.
     run_test "OTEL Panel Fixtures (M129)" "$SCRIPT_DIR/integration/test-otel-panels.sh"
 
+    # M130 #1486 — CC release watch end-to-end against synthetic fixture.
+    # Must fail CI: regression here means the auto-adoption pipeline broke.
+    run_test "CC Release Watch (M130)" "$SCRIPT_DIR/integration/test-cc-release-watch.sh"
+
+    # M130 #1488 — CC support-window stamper idempotence and propagation.
+    run_test "CC Support Stamper (M130)" "$SCRIPT_DIR/integration/test-cc-support-stamper.sh"
+
     # Mem0 removed — integration tests deleted
 
     # External Installation Tests (v4.12.0)

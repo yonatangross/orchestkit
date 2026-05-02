@@ -12,7 +12,7 @@ No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycop
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **<!--ork:skills-->107<!--/ork--> skills**, **<!--ork:agents-->37<!--/ork--> agents**, **<!--ork:hooks-->186<!--/ork--> hooks** (<!--ork:hooks-global-->118<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped).
+**OrchestKit** — Claude Code plugin: **<!--ork:skills-->107<!--/ork--> skills**, **<!--ork:agents-->37<!--/ork--> agents**, **<!--ork:hooks-->187<!--/ork--> hooks** (<!--ork:hooks-global-->119<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -79,7 +79,7 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-Single plugin `ork`: <!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->186<!--/ork--> hooks (<!--ork:hooks-global-->118<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped). <!--ork:invocable-->27<!--/ork--> user-invocable via `/ork:skillname`.
+Single plugin `ork`: <!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->187<!--/ork--> hooks (<!--ork:hooks-global-->119<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped). <!--ork:invocable-->27<!--/ork--> user-invocable via `/ork:skillname`.
 
 ## Monitors
 

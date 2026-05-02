@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.80.0",
+    "date": "2026-05-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** adopt CC 2.1.122 + 2.1.126 features (M128) ([#1585](https://github.com/yonatangross/orchestkit/issues/1585)) ([372b9d0](https://github.com/yonatangross/orchestkit/commit/372b9d05ec6c8e7359eb664a98a47665dc8ccafa))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**m129:** fix lossy path decode + add OTEL panel fixture tests ([#1588](https://github.com/yonatangross/orchestkit/issues/1588)) ([1f30144](https://github.com/yonatangross/orchestkit/commit/1f301449941451f3ed1e27b7c2b7c9581e55203e))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.79.1",
+    "date": "2026-05-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**brainstorm:** restore 81 lines of headroom under cap ([#1578](https://github.com/yonatangross/orchestkit/issues/1578)) ([75ba909](https://github.com/yonatangross/orchestkit/commit/75ba909d7bc234f11f2fb018ddd9d3a06918ad23))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.79.0",
     "date": "2026-05-01",
     "compareUrl": "",
