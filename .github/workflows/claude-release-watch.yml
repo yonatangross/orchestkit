@@ -38,7 +38,15 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
-          persist-credentials: true
+          # `persist-credentials: false` is REQUIRED here. With true,
+          # checkout leaves an `http.https://github.com/.extraheader`
+          # AUTHORIZATION config behind for subsequent git operations.
+          # peter-evans/create-pull-request adds its OWN extraheader,
+          # producing a "Duplicate header: Authorization" 400 from
+          # GitHub. We don't need persisted creds — Step 1 uses `gh`
+          # (auth via per-step GH_TOKEN env), Step 7 is peter-evans
+          # (manages its own auth).
+          persist-credentials: false
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
         with:
