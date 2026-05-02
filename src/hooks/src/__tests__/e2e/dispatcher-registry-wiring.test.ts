@@ -299,7 +299,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 75 -> 76: M119 #1476 — nudge-outcome-resolver on SessionStart
       // 76 -> 78: M125 Lane B — ui-change-detector (PostToolUse Write|Edit, async) +
       //           expect/snapshot-recorder (PostToolUse Skill, async)
-      expect(asyncHooks.length, 'Should have exactly 78 async hooks').toBe(78);
+      // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
+      expect(asyncHooks.length, 'Should have exactly 79 async hooks').toBe(79);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -396,7 +397,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 77 -> 75: M121 #1489 — metrics-dispatcher collapses webhook-forwarder+metrics-bridge on catchall
       // 75 -> 76: M119 #1476 — nudge-outcome-resolver on SessionStart
       // 76 -> 78: M125 Lane B — ui-change-detector + expect/snapshot-recorder
-      expect(asyncCount).toBe(78);
+      // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
+      expect(asyncCount).toBe(79);
     });
 
     it('should have hooks for all critical security operations', () => {
