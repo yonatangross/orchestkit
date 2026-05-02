@@ -2,7 +2,7 @@
 /**
  * cc-release-watch.mjs — Pull CC CHANGELOG.md, snapshot new versions, emit gap report.
  *
- * Pure Node, no LLM. Run by .github/workflows/cc-release-watch.yml + manually for testing.
+ * Pure Node, no LLM. Run by .github/workflows/claude-release-watch.yml + manually for testing.
  *
  * Inputs:
  *   - upstream: anthropics/claude-code/CHANGELOG.md (via gh api)
