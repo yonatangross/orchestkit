@@ -307,6 +307,31 @@ Skip this step on CC < 2.1.121. The state file `.claude/state/last-prune.txt` re
 
 ---
 
+## STEP 8: Stale Project State Hint (CC 2.1.126+, #1582)
+
+After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge — only preview it.
+
+```bash
+# Skip on CC < 2.1.126 (no `claude project purge` available)
+
+# Detect stale project state directories
+stale_count=$(ls ~/.claude/projects/ 2>/dev/null \
+  | while read p; do
+      decoded=$(printf '%s' "$p" | sed 's|-|/|g')
+      [ ! -d "/$decoded" ] && echo "$p"
+    done | wc -l)
+
+# If > 0, surface the hint in the dream summary (never auto-execute)
+if [ "$stale_count" -gt 0 ]; then
+  echo "ℹ $stale_count stale project state directories detected."
+  echo "   Preview cleanup with: claude project purge --dry-run --all"
+fi
+```
+
+**Strict rules:** always `--dry-run`, never `--yes`. The path-encoding in `~/.claude/projects/` is `/` → `-`; users who moved (not deleted) a project need to keep the directory. Surface the suggestion, let the user decide.
+
+---
+
 ## When NOT to Use
 
 - To **store** new decisions -- use `/ork:remember`

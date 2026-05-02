@@ -201,3 +201,27 @@ claude plugin validate
 ```
 
 **Relationship to OrchestKit checks:** `claude plugin validate` performs structural/schema validation at the CC level. OrchestKit's categories 1-3 perform deeper semantic checks (token budgets, cross-references, async patterns) that CC does not cover. Both should pass for a fully healthy plugin.
+
+---
+
+## 14. Stale Project State (CC >= 2.1.126, #1582)
+
+CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when state directories exist for projects no longer present on disk.
+
+```bash
+# Check CC version supports project purge (>= 2.1.126)
+# If CC < 2.1.126, skip silently (suggestion would be unactionable)
+
+# Detect stale project state:
+#   - List ~/.claude/projects/* directories
+#   - For each, check if the encoded project path still exists on disk
+#   - If any are missing → emit info diagnostic
+#
+# Example output (info severity, never blocking):
+# ℹ Stale project state: 3 directories in ~/.claude/projects/ reference paths that no longer exist on disk.
+#    Suggested cleanup (always preview first):
+#      claude project purge --dry-run --all
+#      claude project purge --interactive    # confirm each project
+```
+
+**Why info, never warn or fail:** the user may have moved a project rather than deleted it; aggressive removal would lose transcript history. Always recommend `--dry-run` first. Mirrors the pattern from `claude plugin prune` (Category 13b).

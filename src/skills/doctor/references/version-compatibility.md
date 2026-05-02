@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.118. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.122. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -500,6 +500,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.80.x | 2.1.122 | **M128 — CC 2.1.122 + 2.1.126 adoption (5 issues, 1 PR): floor 2.1.118 → 2.1.122, OTEL `invocation_trigger` attribute on `claude_code.skill_activated` (CC 2.1.126) surfaced in `/ork:analytics` skill-trigger breakdown, `claude project purge --dry-run` wired into `/ork:doctor` stale-project diagnostic + `/ork:dream` summary hint, `--dangerously-skip-permissions` scope expansion (`.git/`, `.vscode/`, shell rcs) documented in security-patterns/setup/hooks-README, OTEL numeric-attr type-safe ingestion verified for CC 2.1.122+, `claude_code.at_mention` event ingestion decision recorded** |
 | v7.70.x | 2.1.118 | **M122 — CC 2.1.118 + 2.1.119 adoption (8 issues, 1 PR): floor 2.1.117 → 2.1.118, 17 new matrix entries, PostToolUse `duration_ms` threaded through posttool hooks, OTEL `tool_use_id` + `tool_input_size_bytes` documented, `--from-pr` multi-host (GitLab/Bitbucket/GHE) in review-pr/create-pr/fix-issue, `--print` honors agent `tools:`/`disallowedTools:` in bare-eval, pilot adoption of `type: "mcp_tool"` hook type, `claude plugin tag` wired into release-please workflow, three new chain-patterns refs (mcp-tool-hooks.md, pr-from-platform.md, plugin-tag.md)** |
 | v7.69.x | 2.1.117 | **M117 closeout (2 issues, 1 PR): `/ork:doctor` warns on HIGH-tier MCP `@latest` pinning (closes #1462), fast-check property tests for 9 hook handlers + input validator (closes #1452), defensive-input hardening tracked separately as #1497 in M119** |
 | v7.50.x | 2.1.111 | **CC 2.1.111 + Opus 4.7 adoption (23 issues, 1 PR): MIN_CC_VERSION 2.1.108 → 2.1.111, 17 new matrix entries (311 total), `xhigh` effort tier across 7 phase-based skills, token budgets converted to %-of-context via new `lib/context-window.ts`, `ork:review-pr` composes `/ultrareview` gated by sensitive-path/diff-size triggers via `AskUserQuestion`, eval preflight catches `plugin_errors` on stream-json init, 2,576px vision ceiling in design/UI skills, doctor Category 14 detects xhigh-without-Opus-4.7, retry-policy audit with rationale comments** |

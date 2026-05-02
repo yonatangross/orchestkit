@@ -87,6 +87,6 @@ Live in `src/monitors/monitors.json`, registered via `manifests/ork.json`. See `
 
 ## Version
 
-- **Current**: 7.79.1 · **Claude Code**: >= 2.1.118 <!-- x-release-please-version -->
+- **Current**: 7.79.1 · **Claude Code**: >= 2.1.122 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

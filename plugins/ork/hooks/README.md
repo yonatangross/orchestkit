@@ -125,6 +125,8 @@ Auto-approve or deny permission requests based on safety rules.
 - `permission/auto-approve-safe-bash` - Auto-approve safe bash commands
 - `permission/auto-approve-project-writes` - Auto-approve writes to project directory
 
+> **`--dangerously-skip-permissions` scope (CC 2.1.121 + 2.1.126):** the flag now bypasses prompts for writes to `.claude/skills/`, `.claude/agents/`, `.claude/commands/` (since 2.1.121) and `.claude/`, `.git/`, `.vscode/`, shell config files (since 2.1.126). Catastrophic removal commands (`rm -rf` on system paths, etc.) still prompt. Permission hooks above are the only line of defense in shared/CI environments — do NOT recommend `--dangerously-skip-permissions` for those contexts. See `src/skills/setup/SKILL.md` for the full policy.
+
 ### PreTool Hooks (PreToolUse)
 Execute BEFORE a tool runs, can inject context or block execution.
 

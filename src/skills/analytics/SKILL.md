@@ -37,7 +37,7 @@ Parse the user's argument to determine which report to show. If no argument prov
 | `cost` | Token cost estimation with cache savings | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/cost-estimation.md` |
 | `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `${CLAUDE_SKILL_DIR}/references/trends-analysis.md` |
 | `summary` | Unified view of all categories | All files | `${CLAUDE_SKILL_DIR}/references/jq-queries.md` |
-| `otel` | CC 2.1.117 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation | `~/.claude/otel/*.jsonl` | `${CLAUDE_SKILL_DIR}/references/otel-fields.md` |
+| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl` | `${CLAUDE_SKILL_DIR}/references/otel-fields.md` |
 
 ### Quick Start Example
 
@@ -61,7 +61,7 @@ jq '.modelUsage | to_entries | map({model: .key, input: .value.inputTokens, outp
 
 **`summary`** — Run all subcommands and present a unified view: total sessions, top 5 agents, top 5 skills, team activity, unique projects. If `~/.claude/otel/*.jsonl` exists with non-empty content, append the three OTEL panels from `otel-fields.md`; otherwise omit them (do not render empty panels).
 
-**`otel`** — Render the three CC 2.1.117 OTEL panels (top slash commands user-vs-model, per-effort cost breakdown, effort-vs-success correlation). See `Read("${CLAUDE_SKILL_DIR}/references/otel-fields.md")` for queries, graceful-fallback rules, and panel semantics. Falls back cleanly to "no OTEL data available (upgrade to CC ≥ 2.1.117)" when the files are absent or empty.
+**`otel`** — Render the OTEL panels: 3 from CC 2.1.117 (top slash commands user-vs-model, per-effort cost, effort-vs-success correlation), 3 from CC 2.1.119 (oversized inputs, pre/post latency, see `otel-fields.md`), 1 from CC 2.1.122 (most-mentioned `@` targets), and 1 from CC 2.1.126 (skill activation by trigger type). See `Read("${CLAUDE_SKILL_DIR}/references/otel-fields.md")` for queries, graceful-fallback rules, and panel semantics. Each panel falls back cleanly to "no OTEL data available (upgrade to CC ≥ X)" when its specific file is absent or empty — render only the panels with data.
 
 ## Data Files
 
