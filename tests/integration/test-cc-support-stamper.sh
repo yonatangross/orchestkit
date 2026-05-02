@@ -87,7 +87,60 @@ else
 fi
 
 # ============================================================================
-# Test 4: missing cc-support.json fails fast
+# Test 4: monotonic guard — refuse to LOWER MIN_CC_VERSION below current.
+# Restore originals first (Test 2 left matrix at 2.1.999), then attempt to
+# downgrade via SoT and verify stamper exits non-zero.
+# ============================================================================
+echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
+echo "$ORIG_CLAUDE_MD" > CLAUDE.md
+echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
+# Force SoT to a value strictly below the current MIN_CC_VERSION (2.1.122).
+jq '.supported_floor = "2.1.100"' shared/cc-support.json > shared/cc-support.json.tmp
+mv shared/cc-support.json.tmp shared/cc-support.json
+
+if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
+  log_fail "Monotonic guard" "stamper exited 0 when asked to lower floor 2.1.122 → 2.1.100"
+else
+  if grep -q "refusing to lower MIN_CC_VERSION" /tmp/stamp-out.txt; then
+    log_pass "Monotonic guard: stamper refuses to lower MIN_CC_VERSION"
+  else
+    log_fail "Monotonic guard error message" "expected 'refusing to lower MIN_CC_VERSION', got: $(cat /tmp/stamp-out.txt)"
+  fi
+fi
+
+# Verify nothing was written despite the failure.
+if grep -q "MIN_CC_VERSION = '2.1.122'" src/hooks/src/lib/cc-version-matrix.ts; then
+  log_pass "Monotonic guard: matrix.ts left untouched after refusal"
+else
+  log_fail "Monotonic guard atomicity" "matrix.ts was modified despite stamper rejection"
+fi
+
+# ============================================================================
+# Test 5: duplicate MIN_CC_VERSION assignment fails fast — defensive check
+# against future refactors that might split the constant in two.
+# ============================================================================
+# Inject a second assignment that matches the locator regex.
+echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
+printf "\nexport const MIN_CC_VERSION = '2.1.0';\n" >> src/hooks/src/lib/cc-version-matrix.ts
+# Restore the SoT to match current to avoid confusing the monotonic check.
+echo "$ORIG_SUPPORT" > shared/cc-support.json
+
+if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
+  log_fail "Duplicate assignment guard" "stamper exited 0 with two MIN_CC_VERSION assignments"
+else
+  if grep -qE "(refusing to stamp ambiguously|MIN_CC_VERSION assignments found)" /tmp/stamp-out.txt; then
+    log_pass "Duplicate assignment guard: stamper refuses ambiguous source"
+  else
+    log_fail "Duplicate assignment message" "expected ambiguity error, got: $(cat /tmp/stamp-out.txt)"
+  fi
+fi
+
+# Restore originals before next test.
+echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
+echo "$ORIG_SUPPORT" > shared/cc-support.json
+
+# ============================================================================
+# Test 6: missing cc-support.json fails fast
 # ============================================================================
 mv shared/cc-support.json /tmp/cc-support-backup.json
 if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then

@@ -257,6 +257,9 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     # M130 #1488 — CC support-window stamper idempotence and propagation.
     run_test "CC Support Stamper (M130)" "$SCRIPT_DIR/integration/test-cc-support-stamper.sh"
 
+    # M130 hotfix — cc-triage.mjs LLM extraction, sentinel, and slug sanitization.
+    run_test "CC Triage (M130 hotfix)" "$SCRIPT_DIR/integration/test-cc-triage.sh"
+
     # Mem0 removed — integration tests deleted
 
     # External Installation Tests (v4.12.0)

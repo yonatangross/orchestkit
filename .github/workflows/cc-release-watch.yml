@@ -45,9 +45,15 @@ jobs:
 
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
       # below still files something so the human triage step is visible.
+      #
+      # NOTE: gating on `secrets.CLAUDE_CODE_OAUTH_TOKEN != ''` directly. Earlier
+      # version used `env.CLAUDE_CODE_OAUTH_TOKEN`, but the `env` context inside
+      # `if:` only reads workflow/job-level env — step-level `env:` is applied
+      # AFTER `if:` evaluates. That made the step always-skipped regardless of
+      # secret presence. The `secrets` context IS available in `if:`.
       - name: LLM-assisted feature extraction (optional)
         id: triage
-        if: ${{ env.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        if: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -91,8 +97,13 @@ jobs:
                 AFFECTED=$(echo "$feat" | jq -r '.affected_skills | join(", ")')
                 KEY="${SLUG}+${VERSION}"
 
-                # Dedup: skip if any open issue with label cc-adoption already has this key.
-                EXISTING=$(gh issue list --label cc-adoption --state open --search "\"$KEY\"" \
+                # Dedup via exact body marker. The earlier full-text search
+                # `\"$KEY\"` was lossy — GH's `+` operator inside a quoted
+                # phrase can tokenize unpredictably and slug substrings collide.
+                # We embed `**Key:** \`<KEY>\`` in the body and grep that line
+                # in `in:body`, which is exact and label-scoped.
+                EXISTING=$(gh issue list --label cc-adoption --state open \
+                  --search "\"Key: \\\`$KEY\\\`\" in:body" \
                   --json number --jq 'length')
                 if [ "$EXISTING" -gt 0 ]; then
                   echo "Skip (exists): $KEY"
@@ -131,21 +142,36 @@ BODY
               done
 
       # Step 4 — fallback issue when LLM extraction was skipped AND there are unfiled gaps.
+      #
+      # NOTE: gate on `jq 'length > 0'` not `hashFiles != ''`. cc-release-watch.mjs
+      # always writes `[]\n` (or content) before exiting, so `hashFiles` is
+      # permanently truthy after the first run — that would file a fallback
+      # issue every day forever once the LLM is skipped.
       - name: Fallback manual-triage issue
-        if: ${{ steps.triage.outcome == 'skipped' && hashFiles('shared/cc-adoption-gaps.json') != '' }}
+        if: ${{ steps.triage.outcome == 'skipped' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          GAPS=shared/cc-adoption-gaps.json
+          if [ ! -s "$GAPS" ] || [ "$(jq 'length' "$GAPS")" = "0" ]; then
+            echo "No gaps to triage — skipping fallback issue."
+            exit 0
+          fi
           DATE=$(date -u +%Y-%m-%d)
           KEY="manual-triage+$DATE"
-          EXISTING=$(gh issue list --label cc-adoption --state open --search "\"$KEY\"" --json number --jq 'length')
+          # Dedup via exact body marker (label-scoped + in:body).
+          EXISTING=$(gh issue list --label cc-adoption --state open \
+            --search "\"Key: \\\`$KEY\\\`\" in:body" \
+            --json number --jq 'length')
           if [ "$EXISTING" -eq 0 ]; then
-            VERSIONS=$(jq -r 'map(.version) | join(", ")' shared/cc-adoption-gaps.json)
+            VERSIONS=$(jq -r 'map(.version) | join(", ")' "$GAPS")
             gh issue create \
-              --title "CC adoption: manual triage needed for $VERSIONS ($KEY)" \
-              --body "LLM extraction skipped (CLAUDE_CODE_OAUTH_TOKEN unset). See \`shared/cc-snapshots/\` and \`shared/cc-adoption-gaps.json\` on main for raw diff." \
+              --title "CC adoption: manual triage needed for $VERSIONS" \
+              --body "LLM extraction skipped (CLAUDE_CODE_OAUTH_TOKEN unset). Key: \`$KEY\`. See \`shared/cc-snapshots/\` and \`shared/cc-adoption-gaps.json\` on main for raw diff." \
               --label cc-adoption,automation
+          else
+            echo "Fallback issue already exists for $KEY."
           fi
 
       # Step 5 — commit snapshots ONLY if all prior steps succeeded.
