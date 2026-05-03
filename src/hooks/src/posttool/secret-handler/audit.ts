@@ -4,6 +4,7 @@
 
 import { join } from 'node:path';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
+import { safeProjectDir } from '../../lib/paths.js';
 
 export type Mode = 'OFF' | 'AUDIT' | 'REDACT';
 
@@ -34,7 +35,7 @@ export function getMode(): Mode {
  */
 export function logAudit(entry: AuditEntry): void {
   const home = process.env.HOME || process.env.USERPROFILE || '';
-  const cwd = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const cwd = safeProjectDir();
   const repoLocal = join(cwd, '.claude', 'state', 'secret-audit.jsonl');
   try {
     bufferWrite(repoLocal, `${JSON.stringify(entry)}\n`);

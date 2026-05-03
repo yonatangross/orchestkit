@@ -10,10 +10,12 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 
-import { readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { readFileSync, existsSync, appendFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess, outputBlock, outputWarning, outputPromptContext, getEnvFile } from '../lib/common.js';
+import { safeProjectDir } from '../lib/paths.js';
+import { safeMkdirSync } from '../lib/safe-fs.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /** Dangerous patterns that should BLOCK the change */
@@ -101,7 +103,7 @@ function checkHooksIntegrity(projectDir: string): string[] {
 function writeAuditEntry(projectDir: string, entry: { session: string; action: string; details: string[] }): void {
   try {
     const logsDir = join(projectDir, '.claude', 'logs');
-    mkdirSync(logsDir, { recursive: true });
+    safeMkdirSync(logsDir, { recursive: true });
     const line = `${JSON.stringify({ ...entry, timestamp: new Date().toISOString() })}\n`;
     appendFileSync(join(logsDir, 'config-changes.jsonl'), line);
   } catch {
@@ -136,7 +138,7 @@ function syncDebugMode(): void {
     }
 
     if (!existsSync(flagPath)) {
-      mkdirSync(flagDir, { recursive: true });
+      safeMkdirSync(flagDir, { recursive: true });
       writeFileSync(flagPath, `enabled=${new Date().toISOString()}\nsession=${process.env.CLAUDE_SESSION_ID || 'unknown'}\n`);
     }
     logHook('config-change', 'Debug mode enabled — OrchestKit hooks now logging at debug level', 'info');
@@ -158,7 +160,7 @@ function syncDebugMode(): void {
 
 export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const sessionId = input.session_id || 'unknown';
-  const projectDir = input.project_dir || process.cwd();
+  const projectDir = safeProjectDir(input.project_dir);
 
   ctx.log('config-change', `Settings changed mid-session (session: ${sessionId})`);
 

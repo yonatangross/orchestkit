@@ -15,6 +15,9 @@ import {
   getPluginDataDir,
   getSessionStorageDir,
   getAnalyticsStorageDir,
+  getProjectDir,
+  getPluginRoot,
+  safeProjectDir,
 } from '../../lib/paths.js';
 
 // Helpers ────────────────────────────────────────────────────────────────────
@@ -111,5 +114,70 @@ describe('getSessionStorageDir vs getAnalyticsStorageDir separation', () => {
     const { join } = require('node:path');
     expect(getSessionStorageDir()).toBe(join('/plugin/data', 'sessions'));
     expect(getAnalyticsStorageDir()).toBe(join('/plugin/data', 'analytics'));
+  });
+});
+
+// ============================================================================
+// JSON-leak guard (#1250 recurrence)
+// Hook stdout has historically leaked into CLAUDE_PROJECT_DIR / CLAUDE_PLUGIN_ROOT
+// and ended up as a literal mkdir argument. Every reader in paths.ts must reject
+// strings starting with '{' or '['.
+// ============================================================================
+
+const LEAKED_JSON = '{"continue":true,"suppressOutput":true}';
+const LEAKED_ARRAY = '[1,2,3]';
+
+describe('paths.ts JSON-leak guard (#1250)', () => {
+  const originalProjectDir = process.env.CLAUDE_PROJECT_DIR;
+  const originalPluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
+
+  afterEach(() => {
+    if (originalProjectDir === undefined) {
+      delete process.env.CLAUDE_PROJECT_DIR;
+    } else {
+      process.env.CLAUDE_PROJECT_DIR = originalProjectDir;
+    }
+    if (originalPluginRoot === undefined) {
+      delete process.env.CLAUDE_PLUGIN_ROOT;
+    } else {
+      process.env.CLAUDE_PLUGIN_ROOT = originalPluginRoot;
+    }
+  });
+
+  it('getProjectDir falls back to "." when env contains JSON object', () => {
+    process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+    expect(getProjectDir()).toBe('.');
+  });
+
+  it('getProjectDir falls back to "." when env contains JSON array', () => {
+    process.env.CLAUDE_PROJECT_DIR = LEAKED_ARRAY;
+    expect(getProjectDir()).toBe('.');
+  });
+
+  it('getPluginRoot falls back when CLAUDE_PLUGIN_ROOT contains JSON', () => {
+    process.env.CLAUDE_PLUGIN_ROOT = LEAKED_JSON;
+    process.env.CLAUDE_PROJECT_DIR = '/real/project';
+    expect(getPluginRoot()).toBe('/real/project');
+  });
+
+  it('getPluginRoot falls back when both env vars contain JSON', () => {
+    process.env.CLAUDE_PLUGIN_ROOT = LEAKED_JSON;
+    process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+    expect(getPluginRoot()).toBe('.');
+  });
+
+  it('safeProjectDir rejects JSON candidate and falls back to env', () => {
+    process.env.CLAUDE_PROJECT_DIR = '/real/project';
+    expect(safeProjectDir(LEAKED_JSON)).toBe('/real/project');
+  });
+
+  it('safeProjectDir rejects JSON candidate and JSON env, falls back to cwd', () => {
+    process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+    expect(safeProjectDir(LEAKED_JSON)).toBe(process.cwd());
+  });
+
+  it('safeProjectDir accepts a valid candidate', () => {
+    process.env.CLAUDE_PROJECT_DIR = '/env/project';
+    expect(safeProjectDir('/caller/project')).toBe('/caller/project');
   });
 });

@@ -14,8 +14,10 @@
  *   npx tsx src/hooks/src/cli/generate-http-hooks.ts https://hq.example.com/api/hooks --write
  */
 
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { safeProjectDir } from '../lib/paths.js';
+import { safeMkdirSync } from '../lib/safe-fs.js';
 
 // All CC hook event types (CC 2.1.71+)
 const CC_HOOK_EVENTS = [
@@ -112,8 +114,7 @@ function mergeIntoSettings(
  * Resolve the default path for settings.local.json.
  */
 function getDefaultSettingsPath(): string {
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-  return join(projectDir, '.claude', 'settings.local.json');
+  return join(safeProjectDir(), '.claude', 'settings.local.json');
 }
 
 // --- CLI entrypoint ---
@@ -186,7 +187,7 @@ Examples:
   // Write
   const dir = dirname(settingsPath);
   if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
+    safeMkdirSync(dir, { recursive: true });
   }
   writeFileSync(settingsPath, `${output}\n`, 'utf8');
 

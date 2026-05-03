@@ -18,6 +18,7 @@ import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { safeProjectDir } from '../../lib/paths.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 export async function postDesignImportAutoVerify(
@@ -42,7 +43,7 @@ export async function postDesignImportAutoVerify(
   }
 
   // Find the most recent provenance file to reference in the nudge
-  const projectDir = input.project_dir || process.cwd();
+  const projectDir = safeProjectDir(input.project_dir);
   const handoffsDir = path.join(projectDir, '.claude', 'design-handoffs');
 
   let bundleId: string | null = null;

@@ -24,7 +24,11 @@ async function main() {
     chunks.push(chunk);
   }
 
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  // Guard against JSON leaking from hook stdout into env (#1250).
+  const rawProjectDir = process.env.CLAUDE_PROJECT_DIR;
+  const projectDir = rawProjectDir && !rawProjectDir.startsWith('{') && !rawProjectDir.startsWith('[')
+    ? rawProjectDir
+    : process.cwd();
 
   try {
     // Check if we're in a git repo

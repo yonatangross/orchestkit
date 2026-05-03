@@ -5,6 +5,7 @@
 
 import type { HookContext, LogLevel } from '../types.js';
 import { getProjectDir, getLogDir, getPluginRoot, getPluginDataDir, getSessionId, getCachedBranch, isGitWorktree, getLogLevel, shouldLog } from './env.js';
+import { safeProjectDir } from './paths.js';
 import { logHook, logPermissionFeedback, writeRulesFile } from './log.js';
 
 /**
@@ -45,7 +46,7 @@ const _noop = (): void => {};
  * but the JS runtime won't crash if a test omits it.
  */
 export const NOOP_CTX: HookContext = {
-  projectDir: process.env.CLAUDE_PROJECT_DIR || process.cwd(),
+  projectDir: safeProjectDir(),
   logDir: '',
   pluginRoot: '',
   pluginDataDir: null,

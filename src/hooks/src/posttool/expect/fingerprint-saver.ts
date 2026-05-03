@@ -16,6 +16,7 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { safeProjectDir } from '../../lib/paths.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
@@ -44,7 +45,7 @@ export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP
     execFileSync('bash', [scriptPath, 'save'], {
       timeout: 5000,
       stdio: 'pipe',
-      cwd: input.project_dir || process.cwd(),
+      cwd: safeProjectDir(input.project_dir),
     });
     ctx.log('fingerprint-saver', 'Fingerprint saved after successful expect run');
     return outputWithContext('Fingerprint saved — next /ork:expect will skip if code unchanged.');

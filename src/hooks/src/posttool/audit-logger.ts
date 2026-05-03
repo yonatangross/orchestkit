@@ -4,12 +4,13 @@
  * CC 2.1.7 Compliant
  */
 
-import { existsSync, readFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
-import { getReadCountFile } from '../lib/paths.js';
+import { getReadCountFile, safeProjectDir } from '../lib/paths.js';
+import { safeMkdirSync } from '../lib/safe-fs.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // Track read count across invocations (per-session in memory)
@@ -41,14 +42,14 @@ export function auditLogger(input: HookInput, _ctx: HookContext = NOOP_CTX): Hoo
     }
   }
 
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || '.';
+  const projectDir = safeProjectDir();
   const auditLog = `${projectDir}/.claude/logs/audit.log`;
 
   try {
     // Ensure log directory exists
     const logDir = `${projectDir}/.claude/logs`;
     if (!existsSync(logDir)) {
-      mkdirSync(logDir, { recursive: true });
+      safeMkdirSync(logDir, { recursive: true });
     }
 
     // Rotate if needed (200KB limit)

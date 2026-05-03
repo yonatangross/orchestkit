@@ -394,4 +394,52 @@ describe('Smart Session ID Generator', () => {
       );
     });
   });
+
+  // ==========================================================================
+  // #1250 regression: when CLAUDE_PROJECT_DIR contains the literal hook-protocol
+  // JSON (`{"continue":true,"suppressOutput":true}`), nothing in the
+  // session-id-generator must mkdir or write a path beginning with `{`.
+  // Pre-fix, cacheSessionId() did `mkdirSync('{...}/.instance')` and produced
+  // a literal `{"continue":true,"suppressOutput":true}/` directory at cwd.
+  // ==========================================================================
+  describe('JSON-leak guard (#1250)', () => {
+    const LEAKED_JSON = '{"continue":true,"suppressOutput":true}';
+
+    it('cacheSessionId never mkdirs a JSON-prefixed path when env leaks', () => {
+      process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+      mockExistsSync.mockReturnValue(false); // force the mkdir branch
+
+      cacheSessionId('test-session-id');
+
+      // Inspect every mkdir call — none may start with '{' or '['
+      for (const call of mockMkdirSync.mock.calls) {
+        const path = call[0] as string;
+        expect(path.startsWith('{')).toBe(false);
+        expect(path.startsWith('[')).toBe(false);
+      }
+      // Same check on writes (atomic-write fan-out)
+      for (const call of mockWriteFileSync.mock.calls) {
+        const path = call[0] as string;
+        expect(path.startsWith('{')).toBe(false);
+        expect(path.startsWith('[')).toBe(false);
+      }
+    });
+
+    it('getCachedSessionId tolerates JSON-leaked env without throwing', () => {
+      process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+      mockExistsSync.mockReturnValue(false);
+
+      expect(() => getCachedSessionId()).not.toThrow();
+    });
+
+    it('getProjectName falls back to cwd basename when env is JSON', () => {
+      process.env.CLAUDE_PROJECT_DIR = LEAKED_JSON;
+
+      const name = getProjectName();
+
+      // Whatever name we get, it must not contain JSON syntax characters
+      expect(name).not.toContain('{');
+      expect(name).not.toContain('"');
+    });
+  });
 });

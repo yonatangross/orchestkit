@@ -17,6 +17,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { basename } from 'node:path';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
+import { safeProjectDir } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -80,7 +81,7 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
 
   // Check if file exists
   // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || '.';
+  const projectDir = safeProjectDir();
   const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
   if (!existsSync(fullPath)) {

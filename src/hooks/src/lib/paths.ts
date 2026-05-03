@@ -26,21 +26,48 @@ export function getTempDir(): string {
 }
 
 /**
+ * Strip JSON-shaped values that have historically leaked from hook stdout
+ * into env vars or input fields (#1250). Anything starting with `{` or `[`
+ * collapses to the supplied fallback (default: '.').
+ */
+function stripJsonLeak(value: string | undefined, fallback = '.'): string {
+  if (!value) return fallback;
+  if (value.startsWith('{') || value.startsWith('[')) return fallback;
+  return value;
+}
+
+/**
  * Get the project directory from environment.
  * Guards against JSON strings leaking from hook stdout (#1250).
  */
 export function getProjectDir(): string {
-  const dir = process.env.CLAUDE_PROJECT_DIR || '.';
-  // Reject JSON objects/arrays that may leak from hook stdout
-  if (dir.startsWith('{') || dir.startsWith('[')) return '.';
-  return dir;
+  return stripJsonLeak(process.env.CLAUDE_PROJECT_DIR);
 }
 
 /**
- * Get the plugin root directory from environment
+ * Resolve a project directory from a caller-supplied candidate, falling back
+ * through env then cwd. Every layer is guarded against JSON leaks (#1250).
+ *
+ * Use this anywhere a hook handler reaches for `process.env.CLAUDE_PROJECT_DIR`
+ * or accepts a `projectDir` argument from upstream code.
+ */
+export function safeProjectDir(candidate?: string | null): string {
+  if (candidate && !candidate.startsWith('{') && !candidate.startsWith('[')) {
+    return candidate;
+  }
+  const env = stripJsonLeak(process.env.CLAUDE_PROJECT_DIR, '');
+  if (env) return env;
+  return process.cwd();
+}
+
+/**
+ * Get the plugin root directory from environment.
+ * Guards against JSON strings leaking from hook stdout (#1250).
  */
 export function getPluginRoot(): string {
-  return process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
+  const pluginRoot = stripJsonLeak(process.env.CLAUDE_PLUGIN_ROOT, '');
+  if (pluginRoot) return pluginRoot;
+  return getProjectDir();
 }
 
 /**

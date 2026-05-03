@@ -32,8 +32,11 @@ function getTelemetryDir() {
   const pluginData = process.env.CLAUDE_PLUGIN_DATA;
   if (pluginData) return join(pluginData, 'telemetry');
 
-  // Fallback: project-local
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  // Fallback: project-local. Guard against JSON leaking from hook stdout (#1250).
+  const raw = process.env.CLAUDE_PROJECT_DIR;
+  const projectDir = raw && !raw.startsWith('{') && !raw.startsWith('[')
+    ? raw
+    : process.cwd();
   return join(projectDir, '.claude', 'telemetry');
 }
 

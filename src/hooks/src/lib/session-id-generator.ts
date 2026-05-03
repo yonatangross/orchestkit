@@ -16,9 +16,11 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
 import { join, basename } from 'node:path';
+import { safeProjectDir } from './paths.js';
+import { safeMkdirSync } from './safe-fs.js';
 
 // =============================================================================
 // CONSTANTS
@@ -42,7 +44,7 @@ const SAFE_CHARS = /[^a-z0-9-]/g;
  * Sanitizes to lowercase alphanumeric with dashes
  */
 export function getProjectName(projectDir?: string): string {
-  const dir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const dir = safeProjectDir(projectDir);
   const name = basename(dir);
   return sanitizeName(name, MAX_PROJECT_LENGTH);
 }
@@ -57,7 +59,7 @@ export function getGitBranchForSession(projectDir?: string): string {
     return process.env.ORCHESTKIT_SESSION_BRANCH;
   }
 
-  const dir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const dir = safeProjectDir(projectDir);
 
   try {
     const branch = execFileSync('git', ['branch', '--show-current'], {
@@ -152,7 +154,7 @@ export function generateSmartSessionId(projectDir?: string, date?: Date): string
  * Returns undefined if not cached
  */
 export function getCachedSessionId(projectDir?: string): string | undefined {
-  const dir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const dir = safeProjectDir(projectDir);
   const cachePath = join(dir, '.instance', 'session-id.json');
 
   if (!existsSync(cachePath)) {
@@ -180,13 +182,13 @@ export function getCachedSessionId(projectDir?: string): string | undefined {
  * Cache session ID to .instance directory
  */
 export function cacheSessionId(sessionId: string, projectDir?: string): void {
-  const dir = projectDir || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  const dir = safeProjectDir(projectDir);
   const instanceDir = join(dir, '.instance');
   const cachePath = join(instanceDir, 'session-id.json');
 
   try {
     if (!existsSync(instanceDir)) {
-      mkdirSync(instanceDir, { recursive: true });
+      safeMkdirSync(instanceDir, { recursive: true });
     }
 
     atomicWriteSync(cachePath, JSON.stringify({

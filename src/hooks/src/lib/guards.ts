@@ -9,6 +9,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess } from './common.js';
 import { isAgentTeamsActive } from './agent-teams.js';
+import { safeProjectDir } from './paths.js';
 
 /**
  * Simple glob matcher using indexOf with position tracking.
@@ -268,7 +269,7 @@ export function guardMultiInstance(input: HookInput): GuardResult {
     return outputSilentSuccess(); // Teams handles coordination natively
   }
 
-  const projectDir = input.project_dir || process.env.CLAUDE_PROJECT_DIR || '.';
+  const projectDir = safeProjectDir(input.project_dir);
   const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
 
   try {
