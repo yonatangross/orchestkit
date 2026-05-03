@@ -23,6 +23,15 @@ const TARGETS = [
   { skill: 'src/skills/json-render-catalog/SKILL.md',  pkg: '@json-render/core' },
 ];
 
+// Track-only tier (M127 #1557 wterm decision).
+// Packages we want to be notified about but haven't built a skill around yet.
+// Drift is reported but never auto-applied (no SKILL.md to update).
+// Pinned versions live inline; bump manually when adopting.
+const TRACK_ONLY = [
+  { pkg: '@wterm/dom',   pinned: '0.2.1', note: 'Terminal-emulator-for-web; see #1557 — track-only decision (2026-05-03).' },
+  { pkg: '@wterm/react', pinned: '0.2.1', note: 'React adapter for wterm; same decision as @wterm/dom.' },
+];
+
 const args = new Set(process.argv.slice(2));
 const mode = args.has('--apply') ? 'apply' : args.has('--check') ? 'check' : 'report';
 
@@ -73,8 +82,33 @@ for (const { skill, pkg } of TARGETS) {
   }
 }
 
-if (drift.length === 0) {
+// Track-only tier: report drift but don't enroll in --apply.
+const trackingDrift = [];
+if (TRACK_ONLY.length > 0) {
+  console.log('');
+  for (const { pkg, pinned, note } of TRACK_ONLY) {
+    const latest = fetchLatest(pkg);
+    if (!latest) {
+      console.error(`SKIP (track) ${pkg} — could not fetch from npm`);
+      continue;
+    }
+    if (pinned === latest) {
+      console.log(`OK    ${pkg.padEnd(22)} ${pinned} (track-only, current)`);
+    } else {
+      console.log(`TRACK ${pkg.padEnd(22)} ${pinned} → ${latest}   ${note}`);
+      trackingDrift.push({ pkg, from: pinned, to: latest, note });
+    }
+  }
+}
+
+if (drift.length === 0 && trackingDrift.length === 0) {
   console.log('\nAll Vercel Labs pins are current.');
+  process.exit(0);
+}
+
+if (drift.length === 0 && trackingDrift.length > 0) {
+  console.log(`\n${trackingDrift.length} track-only package(s) have new versions — review and decide whether to adopt.`);
+  // Track-only never fails --check; it's an information signal only.
   process.exit(0);
 }
 
