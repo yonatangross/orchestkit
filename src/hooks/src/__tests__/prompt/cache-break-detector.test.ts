@@ -28,9 +28,13 @@ vi.mock('../../lib/analytics.js', () => ({
   getTeamContext: vi.fn(() => ({})),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getSessionStorageDir: vi.fn(() => '/tmp/session-storage'),
-}));
+  };
+});
 
 import {
   extractPromptShape,

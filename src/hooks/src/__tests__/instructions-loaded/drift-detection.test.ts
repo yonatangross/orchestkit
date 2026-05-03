@@ -27,9 +27,13 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: (...args: unknown[]) => mockAtomicWriteSync(...args),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getProjectDir: () => mockGetProjectDir(),
-}));
+  };
+});
 
 const { fnv1aHash: realFnv1aHash } = vi.hoisted(() => {
   // Inline the real FNV-1a 32-bit implementation so the mock factory has a stable reference.

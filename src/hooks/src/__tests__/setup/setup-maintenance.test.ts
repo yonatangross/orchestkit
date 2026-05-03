@@ -15,10 +15,14 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getHomeDir: vi.fn(() => '/mock/home'),
   getTempDir: vi.fn(() => '/mock/tmp'),
-}));
+  };
+});
 
 vi.mock('../../lib/agent-teams.js', () => ({
   isAgentTeamsActive: vi.fn(() => false),

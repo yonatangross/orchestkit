@@ -64,11 +64,15 @@ vi.mock('../../lib/analytics.js', () => ({
   hashProject: vi.fn(() => 'abc123hash'),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getMetricsFile: vi.fn(() => '/tmp/metrics.json'),
   getHomeDir: vi.fn(() => '/home/test'),
   joinPath: (...args: string[]) => args.join('/'),
-}));
+  };
+});
 
 import { sessionHandoffGenerator } from '../../lifecycle/session-handoff-generator.js';
 import { createTestContext } from '../fixtures/test-context.js';

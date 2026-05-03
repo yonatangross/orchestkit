@@ -23,9 +23,13 @@ vi.mock('../../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
-vi.mock('../../../lib/paths.js', () => ({
+vi.mock('../../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../lib/paths.js')>();
+  return {
+    ...actual,
   getSessionTempDir: vi.fn((sid: string) => `/tmp/orchestkit-${sid}`),
-}));
+  };
+});
 
 import { issueSubtaskUpdater } from '../../../posttool/bash/issue-subtask-updater.js';
 import type { HookInput } from '../../../types.js';

@@ -10,10 +10,14 @@ import { mockCommonBasic } from '../fixtures/mock-common.js';
 // Mock paths module to control telemetry directory
 const testDir = join(tmpdir(), `ork-telemetry-test-${process.pid}`);
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getPluginDataDir: () => testDir,
   getProjectDir: () => testDir,
-}));
+  };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: () => {},

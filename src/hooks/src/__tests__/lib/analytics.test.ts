@@ -41,10 +41,14 @@ vi.mock('node:fs', async () => {
   };
 });
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getHomeDir: vi.fn(() => '/mock/home'),
   joinPath: (...args: string[]) => args.join('/'),
-}));
+  };
+});
 
 import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { hashProject, appendAnalytics, getTeamContext, rotateIfNeeded, isTestEnv } from '../../lib/analytics.js';

@@ -28,9 +28,13 @@ vi.mock('../../lib/atomic-write.js', () => ({
   atomicWriteSync: vi.fn(),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getLogDir: vi.fn(() => '/tmp/test-logs'),
-}));
+  };
+});
 
 import { taskProgressInitializer } from '../../task-created/task-progress-initializer.js';
 import { outputSilentSuccess } from '../../lib/common.js';

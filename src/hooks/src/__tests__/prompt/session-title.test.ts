@@ -24,9 +24,13 @@ vi.mock('node:fs', () => ({
 
 vi.mock('../../lib/common.js', async () => mockCommonReal());
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getSessionStorageDir: vi.fn(() => '/tmp/session-storage'),
-}));
+  };
+});
 
 import { outputPromptContextWithTitle } from '../../lib/output.js';
 import { unifiedPromptDispatcher } from '../../prompt/unified-dispatcher.js';

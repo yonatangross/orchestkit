@@ -19,9 +19,13 @@ vi.mock('node:fs', () => ({
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getProjectDir: () => mockGetProjectDir(),
-}));
+  };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 

@@ -18,9 +18,13 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getTempDir: vi.fn(() => '/tmp'),
-}));
+  };
+});
 
 vi.mock('../../lib/sanitize-shell.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/sanitize-shell.js')>();

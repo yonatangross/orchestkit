@@ -41,9 +41,13 @@ vi.mock('../../lib/token-tracker.js', () => ({
   getTokenState: vi.fn(() => ({ ...mockTokenState })),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getHomeDir: vi.fn(() => testBaseDir),
-}));
+  };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic());
 

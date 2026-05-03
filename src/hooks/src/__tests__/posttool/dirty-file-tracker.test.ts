@@ -24,9 +24,13 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
   getSessionId: vi.fn(() => 'test-session'),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getLogDir: vi.fn(() => '/tmp/test-logs'),
-}));
+  };
+});
 
 import type { HookInput } from '../../types.js';
 import {

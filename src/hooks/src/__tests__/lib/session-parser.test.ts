@@ -11,9 +11,13 @@ import { mkdirSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import os from 'node:os';
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getHomeDir: vi.fn(() => '/mock/home'),
-}));
+  };
+});
 
 import { findProjectDir, listSessions, parseSession, getStatsCache, resolveSessionPath } from '../../lib/session-parser.js';
 import { getHomeDir } from '../../lib/paths.js';

@@ -18,9 +18,13 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
   writeRulesFile: vi.fn(),
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getHomeDir: vi.fn(() => '/test/home'),
-}));
+  };
+});
 
 vi.mock('../../lib/user-profile.js', () => ({
   loadUserProfile: vi.fn(),

@@ -37,10 +37,14 @@ vi.mock('../../lib/orchestration-state.js', () => ({
   getWebhookUrl: () => mockWebhookUrl,
 }));
 
-vi.mock('../../lib/paths.js', () => ({
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return {
+    ...actual,
   getPluginDataDir: () => testDir,
   getProjectDir: () => testDir,
-}));
+  };
+});
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
   logHook: (_name: string, msg: string) => { logMessages.push(msg); },
