@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema",
   "description": "Map npm packages → emulate service names. Used by /ork:emulate-seed --auto to suggest emulators based on a project's package.json. Multi-emulator mappings (e.g. next-auth → 3 OAuth providers) include all reasonable defaults; the user can prune.",
-  "version": "1.0.0",
-  "generated": "2026-04-27 (M125 #4)",
+  "version": "1.1.0",
+  "generated": "2026-04-27 (M125 #4); 2026-05-03 (M127 #1563 — Clerk)",
   "mappings": [
     { "deps": ["@octokit/rest", "@octokit/core", "@octokit/graphql", "octokit", "@actions/github"], "emulators": ["github"], "note": "Any GitHub API client" },
     { "deps": ["next-auth", "@auth/core", "@auth/nextjs"], "emulators": ["google-oauth", "apple-auth", "microsoft-entra"], "note": "Default OAuth providers for next-auth; trim to whichever providers are actually configured" },
@@ -10,6 +10,7 @@
     { "deps": ["@auth/apple", "@auth/apple-provider"], "emulators": ["apple-auth"] },
     { "deps": ["@auth/microsoft-entra-id", "@azure/msal-node", "@azure/msal-browser"], "emulators": ["microsoft-entra"] },
     { "deps": ["@auth/okta-provider", "@okta/okta-sdk-nodejs", "@okta/okta-auth-js", "@okta/okta-react"], "emulators": ["okta"] },
+    { "deps": ["@clerk/nextjs", "@clerk/clerk-react", "@clerk/clerk-sdk-node", "@clerk/backend", "@clerk/clerk-js", "@clerk/express"], "emulators": ["clerk"], "note": "Requires emulate >= 0.5.0 (Clerk emulator added 2026-04-29)" },
     { "deps": ["@slack/web-api", "@slack/bolt", "@slack/oauth", "@slack/events-api"], "emulators": ["slack"] },
     { "deps": ["stripe", "@stripe/stripe-js", "@stripe/react-stripe-js"], "emulators": ["stripe"] },
     { "deps": ["resend", "@react-email/render"], "emulators": ["resend"] },

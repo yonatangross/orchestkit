@@ -28,7 +28,29 @@ Universal demo video creation for any content type.
 /ork:demo-producer skill explore      # Create demo for a skill
 /ork:demo-producer plugin ork     # Create demo for a plugin
 /ork:demo-producer tutorial "Building a REST API"  # Custom tutorial
+/ork:demo-producer --live 4           # Live preview via /ork:dev --live (4-hour public funnel)
 ```
+
+## --live mode (M127 #1565)
+
+`--live N` is a thin wrapper around `/ork:dev --live N`: it boots the dev stack
+behind `portless --funnel` (publicly exposed via Tailscale Funnel), records an
+expiry of `N` hours into `.claude/state/live-demos.jsonl`, and prints a public
+URL plus `&lt;iframe&gt;` snippet for embedding in customer emails or docs pages.
+
+```bash
+/ork:demo-producer --live 4
+
+# Internally runs:
+/ork:dev --live 4
+# → public URL: https://app.your-tailnet.ts.net
+#   iframe: <iframe src="..." />
+#   expires: 2026-05-03T20:00Z
+```
+
+`/ork:doctor` warns about live demos older than 24 hours so they don't sprawl.
+Tear down with `/ork:dev stop`. Tailscale CLI must be installed (only required
+behind `--live` — not for static demo recording modes).
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 

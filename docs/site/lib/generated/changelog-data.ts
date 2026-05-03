@@ -17,6 +17,59 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.81.1",
+    "date": "2026-05-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** enable auto-merge on cron-generated snapshot PRs ([#1603](https://github.com/yonatangross/orchestkit/issues/1603)) ([cfea028](https://github.com/yonatangross/orchestkit/commit/cfea028bde0ecf9eb19f931b630ea9734d9ed78f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG ([#1600](https://github.com/yonatangross/orchestkit/issues/1600)) ([37ddcdc](https://github.com/yonatangross/orchestkit/commit/37ddcdce4444703f56f1e59b3574bdf27d86e8a4))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.81.0",
+    "date": "2026-05-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** M130 auto-adoption pipeline ([#1486](https://github.com/yonatangross/orchestkit/issues/1486) [#1487](https://github.com/yonatangross/orchestkit/issues/1487) [#1488](https://github.com/yonatangross/orchestkit/issues/1488)) ([#1589](https://github.com/yonatangross/orchestkit/issues/1589)) ([ec14387](https://github.com/yonatangross/orchestkit/commit/ec14387503faed2a976ed7406fd24c1c096a3c4e))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "add the same step-level env block to Step 1 too. ([d79dbb5](https://github.com/yonatangross/orchestkit/commit/d79dbb5b913b2269c0a59cfceefa89261a602358))",
+          "**ci:** add GH_TOKEN to Snapshot step ([#1598](https://github.com/yonatangross/orchestkit/issues/1598)) ([d79dbb5](https://github.com/yonatangross/orchestkit/commit/d79dbb5b913b2269c0a59cfceefa89261a602358))",
+          "**ci:** clean up claude-release-watch on: block + Title Case name ([#1594](https://github.com/yonatangross/orchestkit/issues/1594)) ([d686e91](https://github.com/yonatangross/orchestkit/commit/d686e91be177e1b1c824ed6d75bd9fcef6f1b4b7))",
+          "**ci:** heredoc breaks YAML + secrets context not in if: ([#1595](https://github.com/yonatangross/orchestkit/issues/1595)) ([649d889](https://github.com/yonatangross/orchestkit/commit/649d8896ab1c7924383455480ac77153a09d18b9))",
+          "**ci:** install claude CLI + PR-based snapshot commit ([#1596](https://github.com/yonatangross/orchestkit/issues/1596)) ([dc19147](https://github.com/yonatangross/orchestkit/commit/dc1914758047bb353698b17aa9ca39933018d35a))",
+          "**ci:** persist-credentials=false on checkout ([#1599](https://github.com/yonatangross/orchestkit/issues/1599)) ([8d3b728](https://github.com/yonatangross/orchestkit/commit/8d3b728e0a8e1119c4053b9f20dee78e0cb19ca4))",
+          "**ci:** re-register cc-release-watch workflow_dispatch trigger ([#1592](https://github.com/yonatangross/orchestkit/issues/1592)) ([2ed4e7f](https://github.com/yonatangross/orchestkit/commit/2ed4e7f604e2bbb79140f5e6ad8a29c60bb366be))",
+          "**ci:** rename cc-release-watch.yml → claude-release-watch.yml ([#1593](https://github.com/yonatangross/orchestkit/issues/1593)) ([b89bd7e](https://github.com/yonatangross/orchestkit/commit/b89bd7e86d967ff1932bb20818fdc798fa632bd1))",
+          "**ci:** scope GH_TOKEN to per-step (peter-evans needs clean git env) ([#1597](https://github.com/yonatangross/orchestkit/issues/1597)) ([6eb594f](https://github.com/yonatangross/orchestkit/commit/6eb594f08645acca2ff94b350d6e2d342f028799))",
+          "**m130:** repair cron pipeline + harden stamper + fill triage test gap ([#1591](https://github.com/yonatangross/orchestkit/issues/1591)) ([99ab20d](https://github.com/yonatangross/orchestkit/commit/99ab20d17d268acf9946ce63e217dadf4e6d7ebf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "actionlint enforcement (pre-commit + CI workflow) ([#1601](https://github.com/yonatangross/orchestkit/issues/1601)) ([cf3bcaf](https://github.com/yonatangross/orchestkit/commit/cf3bcaf83303663d459421c87a8ec20b1209cf48))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.80.0",
     "date": "2026-05-02",
     "compareUrl": "",

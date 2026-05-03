@@ -1,9 +1,9 @@
 ---
 name: dev
 description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints."
-argument-hint: "[start|stop|status]"
-tags: [dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125]
-version: 1.0.0
+argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
+tags: [dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127]
+version: 1.1.0
 author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
@@ -12,8 +12,8 @@ context: inherit
 persuasion-type: guidance
 metadata:
   category: devops
-  milestone: M125
-  upstream-packages: ["portless", "emulate", "agent-browser"]
+  milestone: M127
+  upstream-packages: ["portless", "emulate", "agent-browser", "tailscale"]
 ---
 
 # /ork:dev — Lab-Stack Boot
@@ -37,6 +37,24 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` read
 | Resume after a session break | `/ork:dev` (idempotent — skips already-live processes) |
 | Tear down before deleting branch | `/ork:dev stop` |
 | Inspect state | `/ork:dev status` |
+| Share preview with stakeholder | `/ork:dev --share` (tailnet) or `/ork:dev --funnel` (public) |
+| Time-boxed live demo | `/ork:dev --live 4` (public funnel, 4-hour expiry) |
+
+## Modes (M127)
+
+| Flag | Wraps | Reach | Tailscale CLI |
+|---|---|---|---|
+| (none) | `portless <slug> <pkg-mgr> run dev` | `https://<branch>.localhost` only | not required |
+| `--share` | `portless --tailscale ...` | tailnet members on `https://*.ts.net` | required |
+| `--funnel` | `portless --funnel ...` | **public on the internet** | required |
+| `--live N` | `portless --funnel ...` + N-hour expiry | **public**, tracked in `live-demos.jsonl` | required |
+
+Tailscale is **optional** — required only behind `--share`/`--funnel`/`--live`. Default `/ork:dev` is unchanged for users who don't share.
+
+When `turbo.json` or `package.json` workspaces is detected (#1562), the boot uses
+**bare `portless`** (zero-config) which auto-discovers each workspace's dev
+script and assigns subdomains via the task graph. State file shows `mode: "monorepo"`;
+list subdomains via `portless list` or `/ork:dev status`.
 
 ## Boot sequence
 
@@ -65,6 +83,7 @@ The full annotated walkthrough: `references/boot-sequence.md`.
   "branch": "feat/m125-lane-b",
   "subdomain": "feat-m125-lane-b.localhost",
   "baseUrl": "https://feat-m125-lane-b.localhost:1355",
+  "mode": "single",
   "processes": {
     "portlessWrapper": {
       "pid": 86104,
@@ -74,11 +93,29 @@ The full annotated walkthrough: `references/boot-sequence.md`.
     "emulate":      { "pid": 86200, "command": "emulate --seed emulate.config.yaml" }
   },
   "emulators": ["github", "stripe"],
+  "share": null,
   "notes": "portless proxy daemon is shared and not tracked here — stop.sh leaves it running."
 }
 ```
 
-Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `references/state-schema.md`.
+When `--share` / `--funnel` / `--live` is used (M127 #1561 / #1565), `share` becomes:
+
+```json
+"share": {
+  "mode": "tailscale",
+  "tailscaleUrl": "https://app.your-tailnet.ts.net",
+  "expiresAt": "2026-05-03T20:00:00Z"
+}
+```
+
+`mode` is `"single"` (default) or `"monorepo"` (when `turbo.json`/workspaces detected). Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `references/state-schema.md`.
+
+## Auto-surfaced hints (M127)
+
+When `/ork:dev` boots, it inspects `package.json` and emits hints:
+
+- **`@json-render/*` detected** (#1560) → prints the devtools adapter import line so the inspector panel (Spec / State / Actions / Stream / Catalog / Pick) can be enabled in dev. Tree-shakes from production builds.
+- **`@clerk/*` detected** (#1563) → if `clerk` is in `emulate.config.yaml`, prints the mock login URL (`http://localhost:4012`); otherwise warns to run `/ork:emulate-seed --auto`.
 
 ## Prerequisites + graceful no-op
 

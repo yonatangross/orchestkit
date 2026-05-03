@@ -373,6 +373,30 @@ fi
 #   which portless 2>/dev/null && portless list 2>/dev/null
 #   If missing: RECOMMEND "npm i -g portless" for stable local dev URLs
 #   If installed but not running: WARN "portless is installed but no services registered"
+
+# tailscale (M127 #1561): only relevant if user has used /ork:dev --share / --funnel / --live.
+# Detected by inspecting .claude/state/dev-stack.json for share != null.
+#   if [[ -f .claude/state/dev-stack.json ]] && jq -e '.share != null' .claude/state/dev-stack.json >/dev/null 2>&1; then
+#     command -v tailscale >/dev/null 2>&1 \
+#       && echo "tailscale: OK (share mode in use: $(jq -r '.share.mode' .claude/state/dev-stack.json))" \
+#       || echo "tailscale: SHARE MODE ACTIVE BUT TAILSCALE CLI MISSING (Install: brew install tailscale)"
+#   fi
+
+# Live demos older than 24h (M127 #1565): warns about sprawl from /ork:dev --live.
+#   live_log=".claude/state/live-demos.jsonl"
+#   if [[ -f "$live_log" ]]; then
+#     now_ts=$(date -u +%s)
+#     while IFS= read -r line; do
+#       expires=$(printf '%s' "$line" | jq -r '.expiresAt // empty')
+#       [[ -z "$expires" ]] && continue
+#       expires_ts=$(date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$expires" +%s 2>/dev/null \
+#                  || date -u -d "$expires" +%s 2>/dev/null)
+#       if [[ -n "$expires_ts" && "$expires_ts" -lt "$now_ts" ]]; then
+#         age_h=$(( (now_ts - expires_ts) / 3600 ))
+#         echo "live demo: EXPIRED ${age_h}h ago — branch=$(printf '%s' "$line" | jq -r '.branch')"
+#       fi
+#     done < "$live_log"
+#   fi
 ```
 
 **Why structured doctor**: agent-browser 0.26.0 added `doctor --json` returning a snapshot of `chrome`, `daemon`, `network`, `config`, `security`, and `providers`. Wiring it in turns the previous "agent-browser broken" failure into actionable per-subsystem findings (Chrome version, daemon status, network reachability, high-severity issues), unblocking debug sessions where the user can't tell us what's wrong.

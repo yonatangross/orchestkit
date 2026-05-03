@@ -1638,7 +1638,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "dev": {
     "name": "dev",
     "description": "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session — all using the current git branch as the namespace key. Replaces the 4-terminal manual setup with a single `/ork:dev` invocation. Use when starting a new feature branch, switching worktrees, or returning to a project after a break. Skip silently when prerequisite binaries (portless, emulate, agent-browser) are missing — emits install hints.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -1647,7 +1647,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "agent-browser",
       "vercel-labs",
       "lab-stack",
-      "m125"
+      "m125",
+      "m127"
     ],
     "userInvocable": true,
     "context": "inherit",
@@ -1976,8 +1977,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "emulate-seed": {
     "name": "emulate-seed",
-    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
-    "version": "1.2.0",
+    "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
+    "version": "1.3.0",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -1989,6 +1990,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "stripe",
       "resend",
       "okta",
+      "clerk",
       "mongodb",
       "seed",
       "ci",

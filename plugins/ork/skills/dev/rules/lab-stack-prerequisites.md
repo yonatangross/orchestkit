@@ -36,4 +36,16 @@ require portless && require emulate && require agent-browser || {
 - Honor `CI=1` env var: skip boot entirely (CI doesn't need a dev server)
 - Don't auto-install — let the user decide
 
+## Optional prerequisites (M127 #1561)
+
+`tailscale` is checked **only when** `--share`, `--funnel`, or `--live` is passed.
+Default `/ork:dev` invocation does not require it. Adding it to the always-required
+set would create an install wall for existing users who never use sharing.
+
+```bash
+if [[ -n "${share_mode}" ]]; then
+  require tailscale "brew install tailscale (or https://tailscale.com/download)" || missing=1
+fi
+```
+
 Reference: `src/skills/dev/scripts/boot.sh` (prereq sweep at the top of `main()`)

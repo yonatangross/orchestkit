@@ -33,6 +33,40 @@ detect_pkg_mgr() {
   echo "npm"
 }
 
+# Detect Turborepo or pnpm/yarn/npm workspaces — triggers portless 0.11
+# zero-config bare invocation (auto-discovers dev scripts, assigns subdomains).
+is_monorepo() {
+  [[ -f "${PROJECT_DIR}/turbo.json" ]] && return 0
+  if [[ -f "${PROJECT_DIR}/package.json" ]] && command -v jq >/dev/null 2>&1; then
+    jq -e '.workspaces // empty | length > 0' "${PROJECT_DIR}/package.json" >/dev/null 2>&1 && return 0  # silent: gating-relaxed
+  fi
+  [[ -f "${PROJECT_DIR}/pnpm-workspace.yaml" ]] && return 0
+  return 1
+}
+
+# Detect json-render adapter family (#1560) — single answer or empty.
+# Output: react|vue|svelte|solid (or empty if none).
+json_render_adapter() {
+  [[ -f "${PROJECT_DIR}/package.json" ]] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  local q='
+    ((.dependencies // {}) + (.devDependencies // {})) | keys |
+    if   any(. == "@json-render/devtools-react")  then "react"
+    elif any(. == "@json-render/devtools-vue")    then "vue"
+    elif any(. == "@json-render/devtools-svelte") then "svelte"
+    elif any(. == "@json-render/devtools-solid")  then "solid"
+    elif any(startswith("@json-render/")) then "react"
+    else empty end'
+  jq -r "${q}" "${PROJECT_DIR}/package.json" 2>/dev/null  # silent: gating-relaxed
+}
+
+# Detect @clerk/* deps (#1563) — emit hint if found.
+has_clerk() {
+  [[ -f "${PROJECT_DIR}/package.json" ]] || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+  jq -e '((.dependencies // {}) + (.devDependencies // {})) | keys | any(startswith("@clerk/"))' "${PROJECT_DIR}/package.json" >/dev/null 2>&1  # silent: gating-relaxed
+}
+
 # ── 1. Resolve slug from branch (DNS-safe, ≤63 chars) ───────────────────────
 slug_branch() {
   local b
@@ -88,6 +122,22 @@ require() {
 main() {
   mkdir -p "${STATE_DIR}"
 
+  # ── Arg parsing (M127 #1561+#1565) ────────────────────────────────────────
+  # --share   : portless --tailscale (tailnet-only)
+  # --funnel  : portless --funnel    (publicly exposed via Tailscale Funnel)
+  # --live N  : equivalent to --funnel with N-hour expiry tracked in state file
+  local share_mode=""        # "" | "tailscale" | "funnel"
+  local live_duration_hours=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --share)         share_mode="tailscale"; shift ;;
+      --funnel)        share_mode="funnel";    shift ;;
+      --live)          share_mode="funnel"; live_duration_hours="${2:-4}"; shift 2 ;;
+      stop|status|start) shift ;;
+      *)               shift ;;
+    esac
+  done
+
   if [[ "${CI:-}" == "1" || "${CI:-}" == "true" ]]; then
     printf 'ork:dev — CI=1, skipping boot.\n' >&2
     exit 0
@@ -100,6 +150,10 @@ main() {
   require jq            "brew install jq"        || missing=1
   if [[ -f "${PROJECT_DIR}/emulate.config.yaml" ]]; then
     require emulate "npm i -g emulate" || missing=1
+  fi
+  # Tailscale is OPTIONAL — only required when --share / --funnel / --live used.
+  if [[ -n "${share_mode}" ]]; then
+    require tailscale "brew install tailscale (or https://tailscale.com/download)" || missing=1
   fi
   if [[ ${missing} -ne 0 ]]; then
     printf '\nSkipping boot — install missing tools and re-run.\n' >&2
@@ -154,34 +208,96 @@ main() {
   # CRITICAL: use `exec` inside the subshell so $! captures the portless PID directly.
   # Without exec, $! is the subshell PID (gone after its child exits) and stop.sh
   # would kill the wrong process, leaving portless + dev server orphaned.
-  printf '[4] portless %s %s run dev (background)\n' "${slug}" "${pkg_mgr}" >&2
-  ( cd "${PROJECT_DIR}" && exec portless "${slug}" "${pkg_mgr}" run dev >>"${LOG_FILE}" 2>&1 ) &
+  #
+  # Mode selection (M127):
+  #   share_mode=tailscale (#1561)  → portless --tailscale (tailnet-only, auto-HTTPS)
+  #   share_mode=funnel    (#1561)  → portless --funnel    (publicly exposed)
+  #   is_monorepo          (#1562)  → bare portless (auto-discovers workspace dev scripts)
+  #   default                       → portless <slug> <pkg-mgr> run dev (current behavior)
+  local mode_label="single"
+  local share_flag=""
+  case "${share_mode}" in
+    tailscale) share_flag="--tailscale" ;;
+    funnel)    share_flag="--funnel"    ;;
+  esac
+
+  local wrap_cmd=""
+  if is_monorepo; then
+    mode_label="monorepo"
+    if [[ -n "${share_flag}" ]]; then
+      wrap_cmd="portless ${share_flag}"
+      printf '[4] monorepo + %s — portless %s (background, zero-config)\n' "${share_mode}" "${share_flag}" >&2
+      ( cd "${PROJECT_DIR}" && exec portless "${share_flag}" >>"${LOG_FILE}" 2>&1 ) &
+    else
+      wrap_cmd="portless"
+      printf '[4] monorepo detected — portless (bare, zero-config)\n' >&2
+      ( cd "${PROJECT_DIR}" && exec portless >>"${LOG_FILE}" 2>&1 ) &
+    fi
+  else
+    if [[ -n "${share_flag}" ]]; then
+      wrap_cmd="portless ${share_flag} ${slug} ${pkg_mgr} run dev"
+      printf '[4] portless %s %s %s run dev (background)\n' "${share_flag}" "${slug}" "${pkg_mgr}" >&2
+      ( cd "${PROJECT_DIR}" && exec portless "${share_flag}" "${slug}" "${pkg_mgr}" run dev >>"${LOG_FILE}" 2>&1 ) &
+    else
+      wrap_cmd="portless ${slug} ${pkg_mgr} run dev"
+      printf '[4] portless %s %s run dev (background)\n' "${slug}" "${pkg_mgr}" >&2
+      ( cd "${PROJECT_DIR}" && exec portless "${slug}" "${pkg_mgr}" run dev >>"${LOG_FILE}" 2>&1 ) &
+    fi
+  fi
   local wrap_pid=$!
 
   # 5. Wait for portless to register the route, then wait-on the dev server.
+  # Monorepo mode skips slug-based polling (multiple subdomains auto-assigned).
   local base_url=""
-  for _ in $(seq 1 30); do
-    base_url=$(portless_url "${slug}" || true)
-    if [[ -n "${base_url}" ]]; then break; fi
-    sleep 1
-  done
-  if [[ -z "${base_url}" ]]; then
-    printf '✗ portless never registered route %s.localhost (see %s)\n' "${slug}" "${LOG_FILE}" >&2
-    kill "${wrap_pid}" 2>/dev/null || true
-    [[ "${e_pid}" != "0" ]] && kill "${e_pid}" 2>/dev/null || true
-    exit 1
-  fi
-  printf '[5] route registered: %s — waiting for dev server to respond\n' "${base_url}" >&2
-  if ! npx --yes wait-on --httpTimeout 30000 --tlsCheck false "${base_url}" 2>>"${LOG_FILE}"; then
-    printf '✗ %s did not respond in 30s (see %s)\n' "${base_url}" "${LOG_FILE}" >&2
-    kill "${wrap_pid}" 2>/dev/null || true
-    [[ "${e_pid}" != "0" ]] && kill "${e_pid}" 2>/dev/null || true
-    exit 1
+  if [[ "${mode_label}" == "monorepo" ]]; then
+    sleep 3  # give bare portless a moment to discover and register subdomains
+    base_url="$(portless list 2>/dev/null | head -1 | awk '{print $1}')"  # silent: best-effort
+    [[ -z "${base_url}" ]] && base_url="(see 'portless list')"
+    printf '[5] portless registered subdomain map (monorepo) — see /ork:dev status or `portless list`\n' >&2
+  else
+    for _ in $(seq 1 30); do
+      base_url=$(portless_url "${slug}" || true)  # silent: gating-relaxed
+      if [[ -n "${base_url}" ]]; then break; fi
+      sleep 1
+    done
+    if [[ -z "${base_url}" ]]; then
+      printf '✗ portless never registered route %s.localhost (see %s)\n' "${slug}" "${LOG_FILE}" >&2
+      kill "${wrap_pid}" 2>/dev/null || true  # silent: post-cleanup
+      [[ "${e_pid}" != "0" ]] && kill "${e_pid}" 2>/dev/null || true  # silent: post-cleanup
+      exit 1
+    fi
+    printf '[5] route registered: %s — waiting for dev server to respond\n' "${base_url}" >&2
+    if ! npx --yes wait-on --httpTimeout 30000 --tlsCheck false "${base_url}" 2>>"${LOG_FILE}"; then
+      printf '✗ %s did not respond in 30s (see %s)\n' "${base_url}" "${LOG_FILE}" >&2
+      kill "${wrap_pid}" 2>/dev/null || true  # silent: post-cleanup
+      [[ "${e_pid}" != "0" ]] && kill "${e_pid}" 2>/dev/null || true  # silent: post-cleanup
+      exit 1
+    fi
   fi
 
-  # 6. agent-browser session — lazy; first navigate registers it.
-  printf '[6] agent-browser session %s + warmup\n' "${slug}" >&2
-  AGENT_BROWSER_SESSION="${slug}" agent-browser open "${base_url}" >>"${LOG_FILE}" 2>&1 || true
+  # 5b. Tailscale URL capture (M127 #1561) — best-effort.
+  local tailscale_url=""
+  local expires_at=""
+  if [[ -n "${share_mode}" ]]; then
+    tailscale_url="$(tailscale status --json 2>/dev/null | jq -r '.Self.DNSName // empty' | sed 's:\.$::')"  # silent: best-effort
+    if [[ -n "${tailscale_url}" ]]; then
+      tailscale_url="https://${tailscale_url}"
+    fi
+    if [[ "${live_duration_hours}" != "0" ]]; then
+      # Cross-platform date arithmetic (BSD vs GNU).
+      if date -u -v+1H +%s >/dev/null 2>&1; then  # silent: gating-relaxed
+        expires_at="$(date -u -v+"${live_duration_hours}"H +%Y-%m-%dT%H:%M:%SZ)"
+      else
+        expires_at="$(date -u -d "+${live_duration_hours} hours" +%Y-%m-%dT%H:%M:%SZ)"
+      fi
+    fi
+  fi
+
+  # 6. agent-browser session — lazy; first navigate registers it. Skipped in monorepo.
+  if [[ "${mode_label}" != "monorepo" ]]; then
+    printf '[6] agent-browser session %s + warmup\n' "${slug}" >&2
+    AGENT_BROWSER_SESSION="${slug}" agent-browser open "${base_url}" >>"${LOG_FILE}" 2>&1 || true  # silent: best-effort
+  fi
 
   # 7. atomic state write — pure jq.
   local tmp="${STATE_FILE}.tmp"
@@ -194,34 +310,89 @@ main() {
     --arg     subdomain  "${slug}.localhost" \
     --arg     baseUrl    "${base_url}" \
     --argjson wrap_pid   "${wrap_pid}" \
-    --arg     wrap_cmd   "portless ${slug} ${pkg_mgr} run dev" \
+    --arg     wrap_cmd   "${wrap_cmd}" \
     --argjson e_pid      "${e_pid}" \
     --arg     e_cmd      "${e_cmd}" \
     --arg     session    "${slug}" \
     --argjson emu        "${emu_services_json}" \
+    --arg     mode       "${mode_label}" \
+    --arg     shareMode  "${share_mode}" \
+    --arg     tsUrl      "${tailscale_url}" \
+    --arg     expiresAt  "${expires_at}" \
     '{
        bootedAt:  $bootedAt,
        branch:    $branch,
        subdomain: $subdomain,
        baseUrl:   $baseUrl,
+       mode:      $mode,
        processes: ({
          portlessWrapper: {pid: $wrap_pid, command: $wrap_cmd},
          agentBrowser:    {sessionName: $session}
        } + (if $e_pid > 0 then {emulate: {pid: $e_pid, command: $e_cmd}} else {} end)),
        emulators: $emu,
+       share:     (if $shareMode == "" then null else
+                    {mode: $shareMode, tailscaleUrl: $tsUrl, expiresAt: (if $expiresAt == "" then null else $expiresAt end)}
+                  end),
        notes: "portless proxy daemon is shared and not tracked here — stop.sh leaves it running."
      }' > "${tmp}"
   mv "${tmp}" "${STATE_FILE}"
 
+  # Append a live-demo entry when --live is used (#1565). Doctor reads this jsonl
+  # to warn about demos older than 24h.
+  if [[ "${share_mode}" == "funnel" && "${live_duration_hours}" != "0" ]]; then
+    local live_log="${STATE_DIR}/live-demos.jsonl"
+    jq -nc \
+      --arg     branch    "${branch}" \
+      --arg     bootedAt  "${now}" \
+      --arg     expiresAt "${expires_at}" \
+      --arg     url       "${tailscale_url}" \
+      '{branch: $branch, bootedAt: $bootedAt, expiresAt: $expiresAt, url: $url}' \
+      >> "${live_log}"
+  fi
+
   # 8. summary
-  printf '\nork:dev — booted (branch %s)\n' "${branch}" >&2
+  printf '\nork:dev — booted (branch %s, mode %s)\n' "${branch}" "${mode_label}" >&2
   printf '  ✓ portless     %s\n' "${base_url}" >&2
   if [[ "${e_pid}" != "0" ]]; then
     local svc; svc=$(printf '%s' "${emu_services_json}" | jq -r 'if (length>0) then join(", ") else "(empty config)" end')
     printf '  ✓ emulate      %s (pid %s)\n' "${svc}" "${e_pid}" >&2
   fi
   printf '  ✓ %s dev    pid %s (wrapped by portless)\n' "${pkg_mgr}" "${wrap_pid}" >&2
-  printf '  ✓ agent-browser  session "%s"\n' "${slug}" >&2
+  if [[ "${mode_label}" != "monorepo" ]]; then
+    printf '  ✓ agent-browser  session "%s"\n' "${slug}" >&2
+  fi
+
+  # M127 #1561: share-mode banner with security note for --funnel.
+  if [[ -n "${share_mode}" ]]; then
+    if [[ -n "${tailscale_url}" ]]; then
+      printf '  ✓ public URL    %s   (mode: %s)\n' "${tailscale_url}" "${share_mode}" >&2
+      printf '    PORTLESS_TAILSCALE_URL=%s\n' "${tailscale_url}" >&2
+    else
+      printf '  ⚠ %s mode requested but Tailscale URL not yet available — check `tailscale status`\n' "${share_mode}" >&2
+    fi
+    if [[ "${share_mode}" == "funnel" ]]; then
+      printf '  ⚠ funnel mode is PUBLIC on the internet. Anyone with the URL can reach the dev server.\n' >&2
+    fi
+    if [[ -n "${expires_at}" ]]; then
+      printf '    expires at %s (%sh)\n' "${expires_at}" "${live_duration_hours}" >&2
+    fi
+  fi
+
+  # M127 #1560: surface json-render devtools URL hint when adapter detected.
+  local jr_adapter; jr_adapter=$(json_render_adapter)
+  if [[ -n "${jr_adapter}" ]]; then
+    printf '  → json-render devtools: import "@json-render/devtools-%s" in your dev entry to enable the Spec/State/Actions/Stream/Catalog/Pick inspector.\n' "${jr_adapter}" >&2
+  fi
+
+  # M127 #1563: surface Clerk emulator hint when @clerk/* detected.
+  if has_clerk && [[ "${e_pid}" != "0" ]]; then
+    if printf '%s' "${emu_services_json}" | jq -e 'index("clerk")' >/dev/null 2>&1; then  # silent: gating-relaxed
+      printf '  → clerk emulator    mock login at http://localhost:4012  (run /ork:emulate-seed --auto if missing)\n' >&2
+    else
+      printf '  ⚠ @clerk/* detected in deps but `clerk` not in emulate.config.yaml — run /ork:emulate-seed --auto.\n' >&2
+    fi
+  fi
+
   printf '\nOpen %s or run /ork:expect\n' "${base_url}" >&2
 }
 
