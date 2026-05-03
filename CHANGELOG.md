@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.81.1](https://github.com/yonatangross/orchestkit/compare/v7.81.0...v7.81.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **ci:** enable auto-merge on cron-generated snapshot PRs ([#1603](https://github.com/yonatangross/orchestkit/issues/1603)) ([cfea028](https://github.com/yonatangross/orchestkit/commit/cfea028bde0ecf9eb19f931b630ea9734d9ed78f))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG ([#1600](https://github.com/yonatangross/orchestkit/issues/1600)) ([37ddcdc](https://github.com/yonatangross/orchestkit/commit/37ddcdce4444703f56f1e59b3574bdf27d86e8a4))
+
 ## [7.81.0](https://github.com/yonatangross/orchestkit/compare/v7.80.0...v7.81.0) (2026-05-02)
 
 
