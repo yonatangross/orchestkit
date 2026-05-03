@@ -223,6 +223,7 @@ jobs:
           fi
 
       - name: Open snapshot PR
+        id: cpr
         if: success() && steps.changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f  # v7.0.5
         with:
@@ -250,3 +251,26 @@ jobs:
           labels: |
             automation
             cc-adoption
+
+      # Enable auto-merge on the snapshot PR so it doesn't get stuck behind
+      # a stale base. Branch protection has `strict: true` (PRs must be
+      # up-to-date), so a PR opened from a now-old main will be BEHIND once
+      # any other PR merges. `--auto` queues the merge for when required
+      # checks pass and triggers an automatic rebase if needed.
+      #
+      # The repo must have "Allow auto-merge" enabled in Settings → General
+      # (it is — used by cc-support-window-bump.yml's bump PRs already).
+      #
+      # NOTE: this step uses the gh CLI, which needs GH_TOKEN. Don't reuse
+      # peter-evans's auth context from the previous step (different env).
+      - name: Enable auto-merge on snapshot PR
+        if: success() && steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" \
+            --repo "${{ github.repository }}" \
+            --auto \
+            --squash \
+            --delete-branch
