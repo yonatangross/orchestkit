@@ -396,4 +396,8 @@ main() {
   printf '\nOpen %s or run /ork:expect\n' "${base_url}" >&2
 }
 
-main "$@"
+# Run main() only when executed directly. Sourcing the file (e.g. from tests)
+# exposes the helper functions without booting the lab stack.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
