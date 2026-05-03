@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.82.0](https://github.com/yonatangross/orchestkit/compare/v7.81.1...v7.82.0) (2026-05-03)
+
+
+### Features
+
+* **m127:** bundle Vercel Labs 2026-04-29 adoption (5 issues) ([#1604](https://github.com/yonatangross/orchestkit/issues/1604)) ([ac9ec5b](https://github.com/yonatangross/orchestkit/commit/ac9ec5b95477607aaf413ac61bcff1d5bc6e64f8))
+
+
+### Bug Fixes
+
+* **hooks:** close JSON-leak holes that mkdir literal {...} dirs ([#1606](https://github.com/yonatangross/orchestkit/issues/1606)) ([f93e88d](https://github.com/yonatangross/orchestkit/commit/f93e88d81cb6ea2e50a7871636ee4818bcfa77ed))
+
 ## [7.81.1](https://github.com/yonatangross/orchestkit/compare/v7.81.0...v7.81.1) (2026-05-03)
 
 
