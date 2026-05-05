@@ -13,7 +13,7 @@ export const TOTALS: Totals = {
 };
 
 // Extracted from src/hooks/src/lib/cc-version-matrix.ts
-export const MIN_CC_VERSION = "2.1.122";
+export const MIN_CC_VERSION = "2.1.125";
 
 export const AGENTS: AgentSummary[] = [
   {

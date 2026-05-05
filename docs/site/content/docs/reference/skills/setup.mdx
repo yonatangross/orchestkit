@@ -269,6 +269,10 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `integrations.md` | Phase 10: Agentation + CC version settings |
 | `presets.md` | Preset definitions and skill/agent matrices |
 
+## CC `--channels` + console auth (2.1.128+)
+
+`--channels` (per-org notification channel routing) now works under console (API key) authentication, not just OAuth — but the org must have `channelsEnabled: true` set via the admin API. If the user runs `claude --channels=...` with API-key auth and the org config lacks the flag, the channel selection is silently ignored. Setup wizard surfaces this when API-key auth is detected and any channel-routing skill or agent is selected for install.
+
 ## Related Skills
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)

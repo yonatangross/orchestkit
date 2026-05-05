@@ -225,7 +225,67 @@ else
 fi
 
 # ============================================================================
-# Test 6: empty gaps file → exit 0, no-op
+# Test 6: --retry-failed flag re-processes parse_failed entries
+# Recovery path for stuck sentinels (e.g. CC 2.1.126 double-dash bug).
+# ============================================================================
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {
+    "version": "2.1.999",
+    "parse_failed": true,
+    "failed_at": "2026-05-02T00:00:00.000Z",
+    "features": [],
+    "raw_bullets_count": 2
+  }
+]
+EOF
+
+FIXTURE=/tmp/cc-triage-fixture-ok.txt
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs --retry-failed > /tmp/cc-triage-out.txt 2>&1
+
+POST_FAILED=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
+POST_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$POST_FAILED" = "absent" ] && [ "$POST_COUNT" = "2" ]; then
+  log_pass "--retry-failed: sentinel cleared and features re-extracted ($POST_COUNT features)"
+else
+  log_fail "--retry-failed" "parse_failed=$POST_FAILED, features=$POST_COUNT (expected absent, 2)"
+fi
+
+if grep -qF "clearing sentinel on 2.1.999 for retry" /tmp/cc-triage-out.txt; then
+  log_pass "--retry-failed: explicit retry log emitted"
+else
+  log_fail "--retry-failed log" "expected 'clearing sentinel on 2.1.999 for retry'"
+fi
+
+# Same recovery via RETRY_FAILED=1 env var (cron-friendly).
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {
+    "version": "2.1.999",
+    "parse_failed": true,
+    "failed_at": "2026-05-02T00:00:00.000Z",
+    "features": [],
+    "raw_bullets_count": 2
+  }
+]
+EOF
+
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+RETRY_FAILED=1 \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+
+ENV_POST_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$ENV_POST_COUNT" = "2" ]; then
+  log_pass "RETRY_FAILED=1 env: sentinel re-attempted same as --retry-failed"
+else
+  log_fail "RETRY_FAILED env" "features=$ENV_POST_COUNT (expected 2)"
+fi
+
+# ============================================================================
+# Test 7: empty gaps file → exit 0, no-op
 # ============================================================================
 echo '[]' > shared/cc-adoption-gaps.json
 EXIT=0
