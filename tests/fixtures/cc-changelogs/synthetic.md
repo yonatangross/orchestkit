@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.128
+
+- `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped
+- `--plugin-dir` now accepts `.zip` plugin archives, enabling offline distribution alongside directory-based loads
+- MCP server name `workspace` is now reserved; conflicting `.mcp.json` entries are silently skipped with a warning
+- Fixed `/plugin update` not detecting new versions of npm-sourced plugins
+- Sub-agent summaries no longer fire repeatedly on idle sub-agents
+
 ## 2.1.127
 
 - Added `claude project list` command to enumerate all known projects with their canonical paths and last-touched timestamps

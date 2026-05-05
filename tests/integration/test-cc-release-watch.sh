@@ -61,13 +61,14 @@ trap restore EXIT
 # Reset to clean state for tests
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
-# Pre-populate 2.1.126.md to simulate the production steady state: the
-# version named in cc-support.json.latest has already been snapshotted on a
-# previous cron run. This isolates Test 1 to the "one new version" scenario
-# (2.1.127) without triggering the M130-hotfix recovery path that re-snapshots
-# equal-version-but-missing-on-disk entries (covered by a dedicated test below).
+# Pre-populate snapshots for every prior version that's <= cc-support.json.latest
+# to simulate the production steady state. This isolates Test 1 to the "one new
+# version" scenario (2.1.128 — the new latest) without triggering the M130-hotfix
+# recovery path that re-snapshots equal-version-but-missing-on-disk entries
+# (covered by a dedicated test below).
 mkdir -p shared/cc-snapshots
 echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
+echo '# Claude Code 2.1.127 (placeholder for test)' > shared/cc-snapshots/2.1.127.md
 
 # ============================================================================
 # Test 1: fixture with one new version → writes snapshot + gaps + args
@@ -75,16 +76,16 @@ echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.12
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
   node scripts/cc-release-watch.mjs > /tmp/watch-out.txt 2>&1
 
-if [ -f shared/cc-snapshots/2.1.127.md ]; then
-  log_pass "Snapshot written for new version 2.1.127"
+if [ -f shared/cc-snapshots/2.1.128.md ]; then
+  log_pass "Snapshot written for new version 2.1.128"
 else
-  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.127.md"
+  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.128.md"
 fi
 
-if [ -f shared/cc-snapshots/2.1.127.md ] && grep -qF "claude project list" shared/cc-snapshots/2.1.127.md; then
+if [ -f shared/cc-snapshots/2.1.128.md ] && grep -qF "EnterWorktree" shared/cc-snapshots/2.1.128.md; then
   log_pass "Snapshot body contains expected feature bullet"
 else
-  log_fail "Snapshot body" "missing 'claude project list' from fixture"
+  log_fail "Snapshot body" "missing 'EnterWorktree' from fixture"
 fi
 
 if [ -f shared/cc-adoption-gaps.json ]; then
@@ -92,10 +93,10 @@ if [ -f shared/cc-adoption-gaps.json ]; then
   if [ "$COUNT" = "1" ]; then
     log_pass "Gaps JSON has exactly 1 entry"
     GAP_VERSION=$(jq -r '.[0].version' shared/cc-adoption-gaps.json)
-    if [ "$GAP_VERSION" = "2.1.127" ]; then
-      log_pass "Gap entry version = 2.1.127"
+    if [ "$GAP_VERSION" = "2.1.128" ]; then
+      log_pass "Gap entry version = 2.1.128"
     else
-      log_fail "Gap entry version" "expected 2.1.127, got '$GAP_VERSION'"
+      log_fail "Gap entry version" "expected 2.1.128, got '$GAP_VERSION'"
     fi
   else
     log_fail "Gaps JSON entry count" "expected 1, got $COUNT"
@@ -106,10 +107,10 @@ fi
 
 if [ -f shared/gh-issue-args.json ]; then
   TITLE=$(jq -r '.milestone' shared/gh-issue-args.json)
-  if [ "$TITLE" = "CC 2.1.127 adoption" ]; then
-    log_pass "gh-issue-args milestone title = 'CC 2.1.127 adoption'"
+  if [ "$TITLE" = "CC 2.1.128 adoption" ]; then
+    log_pass "gh-issue-args milestone title = 'CC 2.1.128 adoption'"
   else
-    log_fail "milestone title" "expected 'CC 2.1.127 adoption', got '$TITLE'"
+    log_fail "milestone title" "expected 'CC 2.1.128 adoption', got '$TITLE'"
   fi
 else
   log_fail "gh-issue-args.json missing" "expected emitted by watch script"
@@ -136,31 +137,31 @@ fi
 # ============================================================================
 # Test 3: snapshot file persists across no-op runs
 # ============================================================================
-if [ -f shared/cc-snapshots/2.1.127.md ]; then
+if [ -f shared/cc-snapshots/2.1.128.md ]; then
   log_pass "Snapshot persists across no-op runs"
 else
-  log_fail "Snapshot persistence" "shared/cc-snapshots/2.1.127.md disappeared"
+  log_fail "Snapshot persistence" "shared/cc-snapshots/2.1.128.md disappeared"
 fi
 
 # ============================================================================
 # Test 4: recovery path — equal-version + missing snapshot is re-included
-# (M130 hotfix). Removes 2.1.126.md from disk; cc-support.json.latest still
-# says 2.1.126; rerunning must re-snapshot it instead of silently skipping.
+# (M130 hotfix). Removes 2.1.128.md from disk; cc-support.json.latest still
+# says 2.1.128; rerunning must re-snapshot it instead of silently skipping.
 # ============================================================================
-rm -f shared/cc-snapshots/2.1.126.md
+rm -f shared/cc-snapshots/2.1.128.md
 rm -f shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
   node scripts/cc-release-watch.mjs > /tmp/watch-recover.txt 2>&1
 
-if [ -f shared/cc-snapshots/2.1.126.md ]; then
+if [ -f shared/cc-snapshots/2.1.128.md ]; then
   log_pass "Recovery: missing equal-version snapshot re-created on next run"
 else
-  log_fail "Recovery snapshot" "expected 2.1.126.md to be re-written when missing on disk"
+  log_fail "Recovery snapshot" "expected 2.1.128.md to be re-written when missing on disk"
 fi
 
-# Restore 2.1.126.md so subsequent tests start from a steady state.
-echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
+# Restore 2.1.128.md so subsequent tests start from a steady state.
+echo '# Claude Code 2.1.128 (placeholder for test)' > shared/cc-snapshots/2.1.128.md
 
 # ============================================================================
 # Test 5: double-dash bullet normalization (regression for CC 2.1.126 parse fail)
