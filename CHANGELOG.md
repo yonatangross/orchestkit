@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.83.0](https://github.com/yonatangross/orchestkit/compare/v7.82.1...v7.83.0) (2026-05-05)
+
+
+### Features
+
+* **cc:** adopt CC 2.1.128 + bump floor to 2.1.125 ([#1616](https://github.com/yonatangross/orchestkit/issues/1616)) ([4686952](https://github.com/yonatangross/orchestkit/commit/468695234803c081a916bf2cf35af16bd54bd055))
+
+
+### Bug Fixes
+
+* **cc-watch:** normalize double-dash bullets + --retry-failed flag ([#1614](https://github.com/yonatangross/orchestkit/issues/1614)) ([4a9f52c](https://github.com/yonatangross/orchestkit/commit/4a9f52c5876b89ca64aaa9c1047a77f297cd07e4))
+
+
+### Miscellaneous
+
+* vercel preview tier 2 (no previews) ([#1613](https://github.com/yonatangross/orchestkit/issues/1613)) ([61b42d0](https://github.com/yonatangross/orchestkit/commit/61b42d0341de1677da9215e3f5c54e3d9cc1d474))
+
 ## [7.82.1](https://github.com/yonatangross/orchestkit/compare/v7.82.0...v7.82.1) (2026-05-03)
 
 

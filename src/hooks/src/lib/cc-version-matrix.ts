@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.122';
+export const MIN_CC_VERSION = '2.1.125';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -426,6 +426,14 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'statusline_effort_thinking',     minVersion: '2.1.119', description: 'Status line stdin includes effort.level + thinking.enabled — exposes runtime mode for custom statuslines' },
   { feature: 'blocked_marketplaces_pattern',   minVersion: '2.1.119', description: 'blockedMarketplaces enforces hostPattern/pathPattern — plus 2.1.117 enforcement points fix' },
   { feature: 'claude_code_hide_cwd_env',       minVersion: '2.1.119', description: 'CLAUDE_CODE_HIDE_CWD env var hides cwd from statusline (privacy/screenshare)' },
+  // 2.1.128 (2026-05-04) — worktree HEAD fix, MCP reserved name, .zip plugins, channels console-auth, eval init plugin_errors expansion
+  { feature: 'enter_worktree_branch_from_head', minVersion: '2.1.128', description: 'EnterWorktree creates branch from local HEAD (not origin/<default>) — unpushed commits no longer dropped; agent guidance no longer needs "commit before entering worktree" warning' },
+  { feature: 'workspace_reserved_mcp_name',     minVersion: '2.1.128', description: 'MCP server name "workspace" is reserved — any .mcp.json or example using it is silently skipped with a warning; doctor surfaces this' },
+  { feature: 'plugin_dir_zip_archives',         minVersion: '2.1.128', description: '--plugin-dir accepts .zip plugin archives — enables ork.zip distribution path for release-engineer agent' },
+  { feature: 'channels_console_auth',           minVersion: '2.1.128', description: '--channels works with console (API key) auth when org has channelsEnabled:true — setup skill documents the org config requirement' },
+  { feature: 'init_plugin_errors_plugin_dir',   minVersion: '2.1.128', description: 'init.plugin_errors in --output-format stream-json now includes --plugin-dir load failures — eval-runner preflight surfaces local-plugin breakage that 2.1.111 only detected for marketplace plugins' },
+  { feature: 'subagent_idle_summary_capped',    minVersion: '2.1.128', description: 'Sub-agent summaries no longer fire repeatedly on idle sub-agents — caps worst-case token cost for long-lived background agents' },
+  { feature: 'plugin_update_npm_detection_fix', minVersion: '2.1.128', description: '/plugin update now detects new versions of npm-sourced plugins (was a no-op before) — direct benefit to OrchestKit users on the npm channel' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

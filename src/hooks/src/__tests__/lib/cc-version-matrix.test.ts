@@ -17,16 +17,16 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.122', () => {
-      // M128 raised support floor to 2.1.122; M130 stamper auto-corrected stale 2.1.118 constant
-      expect(MIN_CC_VERSION).toBe('2.1.122');
+    test('is 2.1.125', () => {
+      // M131 raised support floor to 2.1.125; M128 had set 2.1.122; stamper propagates from cc-support.json
+      expect(MIN_CC_VERSION).toBe('2.1.125');
     });
   });
 
   describe('CC_FEATURE_MATRIX', () => {
     test('contains expected number of features', () => {
-      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) = 365
-      expect(CC_FEATURE_MATRIX.length).toBe(365);
+      // 253 (through 2.1.101) + 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 372
+      expect(CC_FEATURE_MATRIX.length).toBe(372);
     });
 
     test('is sorted by version ascending', () => {
@@ -74,7 +74,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.119');
+      const features = getAvailableFeatures('2.1.128');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -100,49 +100,58 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.119', () => {
-      const missing = getMissingFeatures('2.1.119');
+    test('no missing features at 2.1.128', () => {
+      const missing = getMissingFeatures('2.1.128');
       expect(missing.length).toBe(0);
     });
 
-    test('2.1.118 is missing only the 2.1.119 features', () => {
-      const missing = getMissingFeatures('2.1.118');
-      // 12 (2.1.119) = 12
-      expect(missing.length).toBe(12);
-      expect(missing.some(f => f.feature === 'posttool_duration_ms')).toBe(true);
-      expect(missing.some(f => f.feature === 'from_pr_multi_host')).toBe(true);
+    test('2.1.119 is missing only the 2.1.128 features', () => {
+      const missing = getMissingFeatures('2.1.119');
+      // 7 (2.1.128) = 7
+      expect(missing.length).toBe(7);
+      expect(missing.some(f => f.feature === 'enter_worktree_branch_from_head')).toBe(true);
+      expect(missing.some(f => f.feature === 'plugin_dir_zip_archives')).toBe(true);
     });
 
-    test('2.1.117 is missing 2.1.118 + 2.1.119 features', () => {
+    test('2.1.118 is missing 2.1.119 + 2.1.128 features', () => {
+      const missing = getMissingFeatures('2.1.118');
+      // 12 (2.1.119) + 7 (2.1.128) = 19
+      expect(missing.length).toBe(19);
+      expect(missing.some(f => f.feature === 'posttool_duration_ms')).toBe(true);
+      expect(missing.some(f => f.feature === 'from_pr_multi_host')).toBe(true);
+      expect(missing.some(f => f.feature === 'channels_console_auth')).toBe(true);
+    });
+
+    test('2.1.117 is missing 2.1.118 + 2.1.119 + 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.117');
-      // 6 (2.1.118) + 12 (2.1.119) = 18
-      expect(missing.length).toBe(18);
+      // 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 25
+      expect(missing.length).toBe(25);
       expect(missing.some(f => f.feature === 'mcp_tool_hook_type')).toBe(true);
       expect(missing.some(f => f.feature === 'claude_plugin_tag')).toBe(true);
       expect(missing.some(f => f.feature === 'posttool_duration_ms')).toBe(true);
     });
 
-    test('2.1.116 is missing 2.1.117 + 2.1.118 + 2.1.119 features', () => {
+    test('2.1.116 is missing 2.1.117 + 2.1.118 + 2.1.119 + 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.116');
-      // 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) = 32
-      expect(missing.length).toBe(32);
+      // 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 39
+      expect(missing.length).toBe(39);
       expect(missing.some(f => f.feature === 'agent_mcp_servers_main_thread')).toBe(true);
       expect(missing.some(f => f.feature === 'opus_46_sonnet_46_default_high')).toBe(true);
     });
 
-    test('2.1.114 is missing 2.1.116 through 2.1.119 features', () => {
+    test('2.1.114 is missing 2.1.116 through 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.114');
-      // 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) = 42
-      expect(missing.length).toBe(42);
+      // 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 49
+      expect(missing.length).toBe(49);
       expect(missing.some(f => f.feature === 'agent_hooks_main_thread')).toBe(true);
       expect(missing.some(f => f.feature === 'sandbox_rm_dangerous_path_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'agent_mcp_servers_main_thread')).toBe(true);
     });
 
-    test('2.1.110 is missing 2.1.111 through 2.1.119 features', () => {
+    test('2.1.110 is missing 2.1.111 through 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.110');
-      // 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) = 71
-      expect(missing.length).toBe(71);
+      // 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 78
+      expect(missing.length).toBe(78);
       expect(missing.some(f => f.feature === 'opus_4_7_xhigh')).toBe(true);
       expect(missing.some(f => f.feature === 'ultrareview_command')).toBe(true);
       expect(missing.some(f => f.feature === 'sandbox_denied_domains')).toBe(true);
@@ -150,28 +159,28 @@ describe('cc-version-matrix', () => {
       expect(missing.some(f => f.feature === 'agent_hooks_main_thread')).toBe(true);
     });
 
-    test('2.1.101 is missing 2.1.105 through 2.1.119 features', () => {
+    test('2.1.101 is missing 2.1.105 through 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.101');
-      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) = 112
-      expect(missing.length).toBe(112);
+      // 10 (2.1.105) + 1 (2.1.107) + 13 (2.1.108) + 1 (2.1.109) + 16 (2.1.110) + 17 (2.1.111) + 1 (2.1.112) + 10 (2.1.113) + 1 (2.1.114) + 10 (2.1.116) + 14 (2.1.117) + 6 (2.1.118) + 12 (2.1.119) + 7 (2.1.128) = 119
+      expect(missing.length).toBe(119);
       expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
       expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
     });
 
-    test('2.1.98 is missing 2.1.101 through 2.1.119 features', () => {
+    test('2.1.98 is missing 2.1.101 through 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.98');
-      // 18 (2.1.101) + 94 (2.1.105-2.1.117) + 18 (2.1.118-2.1.119) = 130
-      expect(missing.length).toBe(130);
+      // 18 (2.1.101) + 94 (2.1.105-2.1.117) + 18 (2.1.118-2.1.119) + 7 (2.1.128) = 137
+      expect(missing.length).toBe(137);
       expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
       expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
     });
 
-    test('2.1.92 is missing 2.1.94 through 2.1.119 features', () => {
+    test('2.1.92 is missing 2.1.94 through 2.1.128 features', () => {
       const missing = getMissingFeatures('2.1.92');
-      // 74 (through 2.1.101) + 94 (2.1.105-2.1.117) + 18 (2.1.118-2.1.119) = 186
-      expect(missing.length).toBe(186);
+      // 74 (through 2.1.101) + 94 (2.1.105-2.1.117) + 18 (2.1.118-2.1.119) + 7 (2.1.128) = 193
+      expect(missing.length).toBe(193);
       expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
       expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
       expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);

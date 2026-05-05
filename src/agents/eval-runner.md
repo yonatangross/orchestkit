@@ -276,6 +276,10 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 8. Report to Langfuse: 10 scores posted to trace
 9. Return: `{pass_rate: 0.89, regression_detected: true, metrics: ["context_recall"]}`
 
+## Eval Preflight
+
+Read `init.plugin_errors` from `--output-format stream-json` before running any eval batch. CC 2.1.128 expanded this field to include `--plugin-dir` load failures (it previously only covered marketplace plugin loads since 2.1.111). If `plugin_errors` is non-empty, surface the failures in the eval report and **stop** — a missing skill/agent caused by a silent plugin load error will produce false-negative regressions that look like model quality drops. This is the same preflight pattern used by `/ork:bare-eval`.
+
 ## Context Protocol
 
 - **Receives**: Dataset path, model version, threshold overrides from team lead or CI pipeline
