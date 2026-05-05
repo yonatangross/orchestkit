@@ -163,7 +163,51 @@ fi
 echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
 
 # ============================================================================
-# Test 5: missing fixture path errors cleanly (exit 1)
+# Test 5: double-dash bullet normalization (regression for CC 2.1.126 parse fail)
+# Upstream CHANGELOG sometimes has `- - Added foo` typos; the watcher must
+# collapse them to single-dash so cc-triage.mjs's LLM call sees clean input.
+# ============================================================================
+rm -f shared/cc-snapshots/2.1.998.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/double-dash.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-double-dash.txt 2>&1
+
+if [ -f shared/cc-snapshots/2.1.998.md ]; then
+  log_pass "Double-dash fixture: snapshot written for 2.1.998"
+else
+  log_fail "Double-dash snapshot" "expected shared/cc-snapshots/2.1.998.md"
+fi
+
+# Body must be normalized — no `- - ` lines should survive into the snapshot.
+if [ -f shared/cc-snapshots/2.1.998.md ]; then
+  if grep -qE '^- - ' shared/cc-snapshots/2.1.998.md; then
+    log_fail "Double-dash normalization" "snapshot still contains '- - ' prefix"
+  else
+    log_pass "Double-dash normalization: no '- - ' prefix in snapshot body"
+  fi
+  if grep -qF -- '- Added `claude project foo`' shared/cc-snapshots/2.1.998.md; then
+    log_pass "Double-dash normalization: collapsed to single '- ' prefix"
+  else
+    log_fail "Double-dash content" "expected single-dash bullet for collapsed line"
+  fi
+fi
+
+# raw_bullets_count must reflect actual bullet count after normalization (3, not skewed).
+if [ -f shared/cc-adoption-gaps.json ]; then
+  COUNT=$(jq -r '.[] | select(.version=="2.1.998") | .raw_bullets_count' shared/cc-adoption-gaps.json)
+  if [ "$COUNT" = "3" ]; then
+    log_pass "Double-dash raw_bullets_count = 3 (post-normalization)"
+  else
+    log_fail "raw_bullets_count" "expected 3, got '$COUNT'"
+  fi
+fi
+
+# Restore steady state for any subsequent test additions.
+rm -f shared/cc-snapshots/2.1.998.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
+
+# ============================================================================
+# Test 6: missing fixture path errors cleanly (exit 1)
 # ============================================================================
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE=/nonexistent/path.md node scripts/cc-release-watch.mjs > /tmp/watch-err.txt 2>&1 || EXIT=$?
