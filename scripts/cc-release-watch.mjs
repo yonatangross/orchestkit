@@ -45,6 +45,14 @@ function fetchChangelog() {
   return Buffer.from(b64, 'base64').toString('utf8');
 }
 
+function normalizeBullets(text) {
+  // Collapse repeated `- ` prefixes (e.g. `- - Added foo`) to a single `- `.
+  // Upstream CHANGELOG occasionally ships this typo (seen in CC 2.1.126);
+  // without normalization the bullet count is off and the LLM triage prompt
+  // can emit non-JSON when given malformed bullet lists.
+  return text.replace(/^(- )+/gm, '- ');
+}
+
 function parseVersions(changelog) {
   // Split-based parser. Earlier regex `(?=^## ...|$(?![\s\S]))` had subtle
   // end-of-input edge cases (last version body could capture short / wrong);
@@ -65,14 +73,14 @@ function parseVersions(changelog) {
     const version = match[1];
     const headingEnd = match.index + match[0].length;
     if (pendingVersion !== null) {
-      const body = changelog.slice(pendingStart, match.index).trim();
+      const body = normalizeBullets(changelog.slice(pendingStart, match.index).trim());
       versions.push({ version: pendingVersion, body });
     }
     pendingVersion = version;
     pendingStart = headingEnd;
   }
   if (pendingVersion !== null) {
-    const body = changelog.slice(pendingStart).trim();
+    const body = normalizeBullets(changelog.slice(pendingStart).trim());
     versions.push({ version: pendingVersion, body });
   }
   return versions;
