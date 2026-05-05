@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.83.1](https://github.com/yonatangross/orchestkit/compare/v7.83.0...v7.83.1) (2026-05-05)
+
+
+### CI/CD
+
+* bump github/codeql-action from 4.35.2 to 4.35.3 ([#1609](https://github.com/yonatangross/orchestkit/issues/1609)) ([fe98da4](https://github.com/yonatangross/orchestkit/commit/fe98da4416f6cd04e8844fdd057b82589faadde8))
+* bump peter-evans/create-pull-request from 7.0.5 to 8.1.1 ([#1610](https://github.com/yonatangross/orchestkit/issues/1610)) ([d172010](https://github.com/yonatangross/orchestkit/commit/d1720103eb785284771b42f02959e2aa21f399b1))
+
 ## [7.83.0](https://github.com/yonatangross/orchestkit/compare/v7.82.1...v7.83.0) (2026-05-05)
 
 
