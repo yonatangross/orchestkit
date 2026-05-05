@@ -1681,7 +1681,7 @@ Ensure file exists at `references/filename.md`.
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.122. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.125. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 
@@ -2179,6 +2179,7 @@ Claude Code: 2.1.56 (OK)
 
 | OrchestKit | Min CC | Key Changes |
 |-----------|--------|-------------|
+| v7.83.x | 2.1.125 | **M131 — CC 2.1.128 adoption (1 PR): floor 2.1.122 → 2.1.125, latest 2.1.126 → 2.1.128, 7 new matrix entries (`enter_worktree_branch_from_head`, `workspace_reserved_mcp_name`, `plugin_dir_zip_archives`, `channels_console_auth`, `init_plugin_errors_plugin_dir`, `subagent_idle_summary_capped`, `plugin_update_npm_detection_fix`); release-engineer agent documents `.zip` plugin distribution path; setup skill documents `channelsEnabled: true` for `--channels` + console auth; eval-runner agent picks up expanded `init.plugin_errors` covering `--plugin-dir` failures (was marketplace-only since 2.1.111); EnterWorktree branch-from-HEAD audit confirmed no stale "commit before worktree" guidance across 38 skill/agent mentions; M128 backfill of 2.1.122/2.1.126 matrix entries deferred (features adopted in skills/docs without runtime gates)** |
 | v7.80.x | 2.1.122 | **M128 — CC 2.1.122 + 2.1.126 adoption (5 issues, 1 PR): floor 2.1.118 → 2.1.122, OTEL `invocation_trigger` attribute on `claude_code.skill_activated` (CC 2.1.126) surfaced in `/ork:analytics` skill-trigger breakdown, `claude project purge --dry-run` wired into `/ork:doctor` stale-project diagnostic + `/ork:dream` summary hint, `--dangerously-skip-permissions` scope expansion (`.git/`, `.vscode/`, shell rcs) documented in security-patterns/setup/hooks-README, OTEL numeric-attr type-safe ingestion verified for CC 2.1.122+, `claude_code.at_mention` event ingestion decision recorded** |
 | v7.70.x | 2.1.118 | **M122 — CC 2.1.118 + 2.1.119 adoption (8 issues, 1 PR): floor 2.1.117 → 2.1.118, 17 new matrix entries, PostToolUse `duration_ms` threaded through posttool hooks, OTEL `tool_use_id` + `tool_input_size_bytes` documented, `--from-pr` multi-host (GitLab/Bitbucket/GHE) in review-pr/create-pr/fix-issue, `--print` honors agent `tools:`/`disallowedTools:` in bare-eval, pilot adoption of `type: "mcp_tool"` hook type, `claude plugin tag` wired into release-please workflow, three new chain-patterns refs (mcp-tool-hooks.md, pr-from-platform.md, plugin-tag.md)** |
 | v7.69.x | 2.1.117 | **M117 closeout (2 issues, 1 PR): `/ork:doctor` warns on HIGH-tier MCP `@latest` pinning (closes #1462), fast-check property tests for 9 hook handlers + input validator (closes #1452), defensive-input hardening tracked separately as #1497 in M119** |

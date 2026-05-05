@@ -228,6 +228,10 @@ Task: "Create release v1.5.0 and close Sprint 7 milestone"
    ```
 8. Return structured release report
 
+## Plugin Distribution
+
+CC 2.1.128+ accepts `.zip` plugin archives via `--plugin-dir path/to/ork.zip`, in addition to directory-based plugin loads. When packaging a release for external distribution outside the marketplace channel, prefer a single zip archive (`ork-$\{VERSION\}.zip` containing `manifests/`, `plugins/`, `src/`) over a tarball — it integrates with the native loader and travels well over web download. The marketplace channel still ships directory-based; this is an additive option for offline/air-gapped delivery.
+
 ## Context Protocol
 - Before: Read `.claude/context/session/state.json` and `.claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.release-engineer` with versioning decisions

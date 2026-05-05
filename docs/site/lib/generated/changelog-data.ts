@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.82.1",
+    "date": "2026-05-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG ([#1607](https://github.com/yonatangross/orchestkit/issues/1607)) ([fb85961](https://github.com/yonatangross/orchestkit/commit/fb859612804063dbee188a18abf0faf122ddb66a))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.82.0",
+    "date": "2026-05-03",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**m127:** bundle Vercel Labs 2026-04-29 adoption (5 issues) ([#1604](https://github.com/yonatangross/orchestkit/issues/1604)) ([ac9ec5b](https://github.com/yonatangross/orchestkit/commit/ac9ec5b95477607aaf413ac61bcff1d5bc6e64f8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** close JSON-leak holes that mkdir literal {...} dirs ([#1606](https://github.com/yonatangross/orchestkit/issues/1606)) ([f93e88d](https://github.com/yonatangross/orchestkit/commit/f93e88d81cb6ea2e50a7871636ee4818bcfa77ed))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.81.1",
     "date": "2026-05-03",
     "compareUrl": "",

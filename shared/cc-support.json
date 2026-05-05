@@ -1,8 +1,8 @@
 {
   "$schema": "./cc-support.schema.json",
-  "latest": "2.1.126",
-  "supported_floor": "2.1.122",
-  "drop_after": "2.1.121",
+  "latest": "2.1.128",
+  "supported_floor": "2.1.125",
+  "drop_after": "2.1.124",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. Updated by .github/workflows/cc-support-window-bump.yml when cc-version-matrix.ts gains a new entry."
