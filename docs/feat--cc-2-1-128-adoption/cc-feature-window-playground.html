@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC Feature Window Playground — M131</title>
+<style>
+  :root {
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+    --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;
+    --good:#3fb950;--bad:#f85149;--warn:#d29922;--new:#a371f7;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,sans-serif;}
+  h1{font-size:20px;margin:0 0 4px;color:var(--accent)}
+  h2{font-size:13px;margin:24px 0 8px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+  .sub{color:var(--text2);margin:0 0 24px;max-width:720px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  input[type=text]{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:13px;width:140px}
+  .preset{display:inline-block;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:12px;color:var(--text)}
+  .preset:hover{border-color:var(--accent);color:var(--accent)}
+  .preset.cur{border-color:var(--good);color:var(--good)}
+  .preset.target{border-color:var(--new);color:var(--new)}
+  .summary{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap}
+  .stat{padding:8px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;}
+  .stat .v{font-size:22px;font-weight:600;font-family:var(--mono)}
+  .stat .l{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+  .stat.good .v{color:var(--good)}
+  .stat.bad .v{color:var(--bad)}
+  .stat.new .v{color:var(--new)}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{background:var(--bg2);color:var(--text2);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+  td.v{font-family:var(--mono);white-space:nowrap;color:var(--text2)}
+  td.f{font-family:var(--mono);color:var(--accent)}
+  tr.miss td.v{color:var(--bad)}
+  tr.new-in td.v{color:var(--new);font-weight:600}
+  .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;margin-left:6px}
+  .badge.new{background:rgba(163,113,247,.15);color:var(--new);border:1px solid var(--new)}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);color:var(--text2);font-size:12px;max-width:720px}
+  details{margin:6px 0;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px}
+  summary{cursor:pointer;color:var(--text2);font-size:12px}
+</style>
+</head>
+<body>
+  <h1>CC Feature Window — M131 Adoption (CC 2.1.128)</h1>
+  <p class="sub">
+    Type a Claude Code version to see which OrchestKit feature gates pass at that version,
+    which are missing, and which were newly added in this PR. The matrix data is
+    extracted from <code>src/hooks/src/lib/cc-version-matrix.ts</code> at PR creation
+    time (snapshot below). Changes the user runs against the live matrix at runtime via
+    the Doctor skill; this playground is the offline preview.
+  </p>
+
+  <h2>Pick a version</h2>
+  <div class="row">
+    <input id="ver" type="text" value="2.1.128" />
+    <button class="preset cur" data-v="2.1.122">Old floor (2.1.122)</button>
+    <button class="preset" data-v="2.1.125">New floor (2.1.125)</button>
+    <button class="preset" data-v="2.1.127">2.1.127</button>
+    <button class="preset target" data-v="2.1.128">New latest (2.1.128)</button>
+    <button class="preset" data-v="2.1.119">Pre-2.1.122</button>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <h2>New in this PR (M131 — CC 2.1.128)</h2>
+  <table id="newTable"></table>
+
+  <h2>All gates against picked version</h2>
+  <details><summary id="allLabel">Show full matrix snapshot…</summary>
+    <table id="allTable"></table>
+  </details>
+
+  <div class="footer">
+    Branch: <code>feat/cc-2-1-128-adoption</code> &middot;
+    Floor bumped: <code>2.1.122 → 2.1.125</code> &middot;
+    Latest: <code>2.1.126 → 2.1.128</code> &middot;
+    Companion to PR #1614 (parser fix). M128 pre-adopted 2.1.122/2.1.126 features in
+    skills/docs without runtime gates — those entries deferred to a future hygiene PR.
+  </div>
+
+<script>
+  // Snapshot of the v2.1.128 entries added to cc-version-matrix.ts in this PR.
+  // The "all" tail (last 12 from origin/main) is included for context.
+  const NEW = [
+    ['enter_worktree_branch_from_head', '2.1.128', 'EnterWorktree creates branch from local HEAD (not origin/<default>) — unpushed commits no longer dropped'],
+    ['workspace_reserved_mcp_name',     '2.1.128', 'MCP server name "workspace" is reserved — silent skip + warning; doctor surfaces this'],
+    ['plugin_dir_zip_archives',         '2.1.128', '--plugin-dir accepts .zip plugin archives — release-engineer agent ships ork.zip'],
+    ['channels_console_auth',           '2.1.128', '--channels works with console (API key) auth when org has channelsEnabled:true'],
+    ['init_plugin_errors_plugin_dir',   '2.1.128', 'init.plugin_errors in stream-json now includes --plugin-dir failures (was marketplace-only)'],
+    ['subagent_idle_summary_capped',    '2.1.128', 'Sub-agent summaries no longer fire repeatedly on idle sub-agents'],
+    ['plugin_update_npm_detection_fix', '2.1.128', '/plugin update now detects new versions of npm-sourced plugins'],
+  ];
+  const TAIL = [
+    ['mcp_tool_hook_type', '2.1.118', 'Hooks invoke MCP tools directly via type:"mcp_tool"'],
+    ['claude_plugin_tag', '2.1.118', 'claude plugin tag for plugin release tagging'],
+    ['posttool_duration_ms', '2.1.119', 'PostToolUse inputs include duration_ms'],
+    ['otel_tool_use_id_attr', '2.1.119', 'OTEL tool_result/tool_decision events carry tool_use_id'],
+    ['from_pr_multi_host', '2.1.119', '--from-pr accepts GitLab/Bitbucket/GHE URLs'],
+    ['print_agent_tools_enforced', '2.1.119', '--print mode honors agent tools:/disallowedTools:'],
+    ['claude_code_hide_cwd_env', '2.1.119', 'CLAUDE_CODE_HIDE_CWD env var hides cwd from statusline'],
+  ];
+  const ALL = [...TAIL, ...NEW];
+
+  function cmp(a, b) {
+    const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+    for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] - pb[i];
+    return 0;
+  }
+  function valid(v) { return /^\d+\.\d+\.\d+$/.test(v); }
+
+  function render() {
+    const v = document.getElementById('ver').value.trim();
+    const ok = valid(v);
+    const FLOOR = '2.1.125';
+    const LATEST = '2.1.128';
+    let pass = 0, miss = 0, newPass = 0;
+    if (ok) {
+      ALL.forEach(([_, mv]) => { if (cmp(v, mv) >= 0) pass++; else miss++; });
+      NEW.forEach(([_, mv]) => { if (cmp(v, mv) >= 0) newPass++; });
+    }
+    const meetsFloor = ok && cmp(v, FLOOR) >= 0;
+    const isLatest = ok && cmp(v, LATEST) >= 0;
+    document.getElementById('summary').innerHTML = `
+      <div class="stat ${meetsFloor ? 'good' : 'bad'}"><div class="v">${ok ? (meetsFloor ? '✓' : '✗') : '?'}</div><div class="l">Meets floor (${FLOOR})</div></div>
+      <div class="stat ${isLatest ? 'good' : ''}"><div class="v">${ok ? (isLatest ? '✓ latest' : `${LATEST}↗`) : '?'}</div><div class="l">Vs new latest</div></div>
+      <div class="stat good"><div class="v">${pass}</div><div class="l">Gates pass</div></div>
+      <div class="stat bad"><div class="v">${miss}</div><div class="l">Gates miss</div></div>
+      <div class="stat new"><div class="v">${newPass}/${NEW.length}</div><div class="l">M131 gates</div></div>
+    `;
+    document.getElementById('newTable').innerHTML = `
+      <tr><th>Feature</th><th>Min CC</th><th>Description</th><th>At ${ok ? v : '—'}</th></tr>
+      ${NEW.map(([f, mv, d]) => {
+        const passes = ok && cmp(v, mv) >= 0;
+        return `<tr class="${passes ? 'new-in' : 'miss'}">
+          <td class="f">${f}<span class="badge new">new</span></td>
+          <td class="v">${mv}</td>
+          <td>${d}</td>
+          <td>${passes ? '<span style="color:var(--good)">✓</span>' : '<span style="color:var(--bad)">missing</span>'}</td>
+        </tr>`;
+      }).join('')}
+    `;
+    document.getElementById('allTable').innerHTML = `
+      <tr><th>Feature</th><th>Min CC</th><th>At ${ok ? v : '—'}</th></tr>
+      ${ALL.sort((a, b) => cmp(a[1], b[1])).map(([f, mv, d]) => {
+        const passes = ok && cmp(v, mv) >= 0;
+        const isNew = NEW.some(([nf]) => nf === f);
+        return `<tr class="${passes ? '' : 'miss'} ${isNew ? 'new-in' : ''}">
+          <td class="f">${f}${isNew ? '<span class="badge new">M131</span>' : ''}</td>
+          <td class="v">${mv}</td>
+          <td>${passes ? '✓' : '✗'}</td>
+        </tr>`;
+      }).join('')}
+    `;
+    document.getElementById('allLabel').textContent = `Show full matrix snapshot (${ALL.length} entries)…`;
+  }
+
+  document.querySelectorAll('.preset').forEach(b =>
+    b.addEventListener('click', () => { document.getElementById('ver').value = b.dataset.v; render(); })
+  );
+  document.getElementById('ver').addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

@@ -78,9 +78,11 @@ describe('cc-version-check', () => {
   });
 
   it('silent success when running CC is exactly the matrix latest', () => {
-    // Pick a version that exists in the current matrix snapshot;
-    // 2.1.122 is M128 floor and definitely <= matrix latest.
-    process.env.CLAUDE_CODE_VERSION = '2.1.122';
+    // Pick a version that exists in the current matrix snapshot and is
+    // >= the support floor; 2.1.128 is the M131 latest. Updating both
+    // values is required when floor or latest moves (M128: 2.1.122,
+    // M131: 2.1.125 floor / 2.1.128 latest).
+    process.env.CLAUDE_CODE_VERSION = '2.1.128';
     const result = ccVersionCheck(makeInput('in-range-test'), createTestContext());
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeUndefined();
