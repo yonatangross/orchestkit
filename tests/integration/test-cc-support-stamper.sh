@@ -26,6 +26,14 @@ ORIG_CLAUDE_MD=$(cat CLAUDE.md)
 ORIG_MATRIX=$(cat src/hooks/src/lib/cc-version-matrix.ts)
 ORIG_DOC=$(cat src/skills/doctor/references/version-compatibility.md)
 
+# Extract the current MIN_CC_VERSION value so monotonic-guard assertions stay
+# resilient to floor bumps (was hardcoded "2.1.122" pre-M131).
+ORIG_FLOOR=$(printf '%s' "$ORIG_MATRIX" | grep -oE "MIN_CC_VERSION = '[0-9]+\.[0-9]+\.[0-9]+'" | head -1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+if [ -z "$ORIG_FLOOR" ]; then
+  echo "FATAL: could not extract MIN_CC_VERSION from cc-version-matrix.ts" >&2
+  exit 1
+fi
+
 restore() {
   echo "$ORIG_SUPPORT" > shared/cc-support.json
   echo "$ORIG_CLAUDE_MD" > CLAUDE.md
@@ -94,12 +102,12 @@ fi
 echo "$ORIG_MATRIX" > src/hooks/src/lib/cc-version-matrix.ts
 echo "$ORIG_CLAUDE_MD" > CLAUDE.md
 echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
-# Force SoT to a value strictly below the current MIN_CC_VERSION (2.1.122).
+# Force SoT to a value strictly below the current MIN_CC_VERSION ($ORIG_FLOOR).
 jq '.supported_floor = "2.1.100"' shared/cc-support.json > shared/cc-support.json.tmp
 mv shared/cc-support.json.tmp shared/cc-support.json
 
 if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
-  log_fail "Monotonic guard" "stamper exited 0 when asked to lower floor 2.1.122 → 2.1.100"
+  log_fail "Monotonic guard" "stamper exited 0 when asked to lower floor $ORIG_FLOOR → 2.1.100"
 else
   if grep -q "refusing to lower MIN_CC_VERSION" /tmp/stamp-out.txt; then
     log_pass "Monotonic guard: stamper refuses to lower MIN_CC_VERSION"
@@ -109,10 +117,10 @@ else
 fi
 
 # Verify nothing was written despite the failure.
-if grep -q "MIN_CC_VERSION = '2.1.122'" src/hooks/src/lib/cc-version-matrix.ts; then
+if grep -q "MIN_CC_VERSION = '$ORIG_FLOOR'" src/hooks/src/lib/cc-version-matrix.ts; then
   log_pass "Monotonic guard: matrix.ts left untouched after refusal"
 else
-  log_fail "Monotonic guard atomicity" "matrix.ts was modified despite stamper rejection"
+  log_fail "Monotonic guard atomicity" "matrix.ts was modified despite stamper rejection (expected $ORIG_FLOOR)"
 fi
 
 # ============================================================================
