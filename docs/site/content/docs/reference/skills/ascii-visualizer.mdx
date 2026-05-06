@@ -19,23 +19,39 @@ Consistent, readable ASCII diagrams for architecture, workflows, file trees, and
 
 ## Box-Drawing Character Reference
 
+This block intentionally shows multiple sets together as a key. Authors
+should use ONE set per real diagram; the `single-set` lint rule enforces
+this on production diagrams.
+
+&lt;!-- ascii-lint-disable: single-set,single-arrow-style,density-min --&gt;
 ```
-Standard:  ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
-Heavy:     ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
-Double:    ╔═╗ ║ ╚═╝  ╠═╣ ╦ ╩ ╬
-Rounded:   ╭─╮ │ ╰─╯
+default:   ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
+emphasis:  ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
+title:     ╔═╗ ║ ╚═╝  ╠═╣ ╦ ╩ ╬
+soft:      ╭─╮ │ ╰─╯
+portable:  +-+ | +-+  +-+ + + +
 Arrows:    → ← ↑ ↓ ─> <─ ──> <──
 Blocks:    █ ▓ ░ ▏▎▍▌▋▊▉
-Checks:    ✓ ✗ ● ○ ◆ ◇ ★ ☆
+Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab — see rules)
 ```
 
-### Weight Conventions
+### Set Conventions (D8: intent-driven naming)
 
-| Weight | Characters | Use For |
-|--------|-----------|---------|
-| Standard `─│` | Normal boxes and connectors | Most diagrams |
-| Heavy `━┃` | Emphasis, borders, headers | Key components, outer frames |
-| Double `═║` | Separation, titles | Section dividers, title boxes |
+Tokens live in `tokens.json`. Names describe USE not APPEARANCE.
+
+| Set | Characters | Use For |
+|-----|-----------|---------|
+| `default` `─│` | Normal boxes and connectors | Most diagrams |
+| `emphasis` `━┃` | Headers, focus, draw the eye | Key components, outer frames |
+| `title` `═║` | Document titles | §0-style banners only |
+| `soft` `╭╮╰╯ ─│` | Status cards, ambient UI | Diff blocks |
+| `portable` `+-\|` | NO_COLOR / CI / bare TTY | Fallback |
+
+Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new names above. Old names accepted with warning for one minor release.
+
+### Status Glyph Vocabulary
+
+Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
 
 
 ## Diagram Patterns
@@ -163,7 +179,7 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ---
 
-## Rules (2)
+## Rules (3)
 
 ### Create structured ASCII architecture diagrams to communicate system design without external tools — MEDIUM
 
@@ -333,4 +349,74 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 | Arrows | Use ─>, ──>, or │ with v/^ for direction |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | Use !! for risk, ** for new, [A/M/D] for change type |
+
+
+### Use the closed-set status glyph vocabulary for semantic indicators — HIGH
+
+
+## Closed Status Glyph Vocabulary (v1)
+
+Eleven glyphs, frozen at v1.0.0. Adding a 12th is a MINOR bump via the
+process in `CONTRIBUTING.md`. Removing or repurposing any of the 11 is
+a MAJOR bump (rare).
+
+### Vocabulary
+
+```
+GLYPH   SEMANTIC                    DON'T USE FOR
+─────   ────────                    ─────────────
+●       active / on / current       generic bullet
+○       inactive / off / pending    decoration
+✓       passed / completed          decoration
+✗       failed / blocked            general "no"
+⚠       warning / attention         hard error
+◆       primary / focused           random emphasis
+◇       secondary / unfocused       decoration
+▶       running / in-progress       generic arrow
+▷       paused / awaiting input     generic arrow
+↑↓→     trend up/down/forward       random direction
+▓▒░     fill: high/med/low          decoration
+```
+
+### Incorrect — generic decoration
+
+```
+* Build passed
+> Tests running
+- Linter clean
+```
+
+### Correct — semantic glyphs
+
+```
+✓ Build passed
+▶ Tests running
+✓ Linter clean
+```
+
+### Anti-pattern — repurposing a semantic for decoration
+
+```
+✓ Item 1
+✓ Item 2
+✓ Item 3
+```
+
+A list of items isn't passing/failing — `✓` is reserved for pass/completed
+states. Use `●` for active items and `○` for inactive/pending ones, or
+plain `-` for an unmarked list.
+
+### Anti-pattern — mixing semantically-loaded glyphs with decoration
+
+```
+■  Phase 1   ✓  Phase 2   ◉  Phase 3
+```
+
+`■` and `◉` are not in the vocabulary — they read as decoration. Pick
+exactly one glyph from the table above per slot:
+
+```
+✓  Phase 1   ▶  Phase 2   ○  Phase 3
+   done       running       pending
+```
 

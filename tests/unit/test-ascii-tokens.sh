@@ -59,10 +59,16 @@ scan_file() {
   local block=""
   local startline=0
   local lineno=0
+  local pending_disable=""
   while IFS= read -r line; do
     lineno=$((lineno + 1))
     if [ "$in_block" = 0 ]; then
-      case "$line" in '```'*) in_block=1; block=""; startline=$((lineno + 1)) ;; esac
+      case "$line" in
+        *'<!-- ascii-lint-disable:'*)
+          pending_disable=$(printf '%s' "$line" | sed -E 's/.*ascii-lint-disable:[[:space:]]*([^[:space:]>-]+([,[:space:]-]+[^[:space:]>-]+)*).*/\1/')
+          ;;
+        '```'*) in_block=1; block=""; startline=$((lineno + 1)) ;;
+      esac
     else
       case "$line" in
         '```'*)
@@ -70,9 +76,13 @@ scan_file() {
           box_count=$(count_box "$block")
           if [ "${box_count:-0}" -ge 3 ]; then
             checked=$((checked + 1))
-            scan_block "$file" "$startline" "$block"
+            case ",$pending_disable," in
+              *,single-set,*) : ;;
+              *) scan_block "$file" "$startline" "$block" ;;
+            esac
           fi
           in_block=0
+          pending_disable=""
           ;;
         *) block+="$line"$'\n' ;;
       esac
