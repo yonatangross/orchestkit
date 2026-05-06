@@ -1,11 +1,11 @@
 ---
 title: "PostToolUse"
-description: "Hooks triggered on PostToolUse events (21 hooks)."
+description: "Hooks triggered on PostToolUse events (22 hooks)."
 ---
 
 # PostToolUse Hooks
 
-**21 hooks** registered for the `PostToolUse` lifecycle event.
+**22 hooks** registered for the `PostToolUse` lifecycle event.
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
@@ -15,6 +15,7 @@ description: "Hooks triggered on PostToolUse events (21 hooks)."
 | `webhook-forwarder` | `mcp__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
 | `secret-handler` | `Read\|Bash\|Grep\|Glob` | 🔇 Silent | Secret Handler — PostToolUse hook for Read/Bash/Grep/Glob outputs. |
 | `auto-lint` | `Write\|Edit` | 🔇 Silent | PostToolUse format-on-save for Write/Edit |
+| `ascii-lint` | `Write\|Edit` | 🔇 Silent | ASCII Lint — PostToolUse warn-only linter for fenced ASCII blocks in *.md. |
 | `ui-change-detector` | `Write\|Edit` | 💡 Injects | UI Change Detector — PostToolUse hook (M125 #2) |
 | `redact-secrets` | `Write\|Edit` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
 | `security-auditor` | `Write\|Edit` | 🔇 Silent | Audits Write\|Edit ops targeting .claude/ config files |
