@@ -173,6 +173,10 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Handoff Bundle Schema" "$SCRIPT_DIR/unit/test-handoff-bundle-schema.sh" || true
     run_test "Stub Fallback Integration" "$SCRIPT_DIR/unit/test-stub-fallback.sh" || true  # silent: known-noise
     run_test "M127 Boot Helpers + Clerk Mapping" "$SCRIPT_DIR/unit/test-m127-boot-helpers.sh" || true  # silent: known-noise
+    run_test "ASCII Snapshots (4 patterns x 5 sets)" "$SCRIPT_DIR/unit/test-ascii-snapshots.sh" || true  # silent: known-noise
+    run_test "ASCII Token-set Scan (advisory)" "$SCRIPT_DIR/unit/test-ascii-tokens.sh" || true  # silent: known-noise
+    run_test "ASCII Density Scan (advisory)" "$SCRIPT_DIR/unit/test-ascii-density.sh" || true  # silent: known-noise
+    run_test "ASCII i18n Alignment (CJK + Devanagari)" "$SCRIPT_DIR/unit/test-ascii-i18n.sh" || true  # silent: known-noise
 
     # TypeScript hook tests (vitest)
     if [[ -n "${CI:-}" ]]; then
