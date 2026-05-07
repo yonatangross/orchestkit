@@ -55,11 +55,23 @@ jobs:
       # Install the Claude Code CLI used by cc-triage.mjs (`claude -p --bare`).
       # Pinned to MIN_CC_VERSION from src/hooks/src/lib/cc-version-matrix.ts so
       # the cron is reproducible regardless of latest @anthropic-ai/claude-code.
-      # `--ignore-scripts` blocks postinstall hooks from running with elevated
-      # perms — matches the pattern used by claude-health.yml, ultrareview.yml,
-      # and orchestkit-eval.yml in this repo.
+      #
+      # `--ignore-scripts` blocks transitive postinstall hooks (security
+      # mitigation), but ALSO skips the package's own postinstall which
+      # fetches the native `claude` binary. Without the explicit install.cjs
+      # invocation below, every `claude` call exits with:
+      #   Error: claude native binary not installed.
+      # That silently broke cc-triage in run 25443026871 (PR #1620): all
+      # 3 versions logged `parse_failed=true` after 5ms-apart fast-fails.
+      # The official package's postinstall is `node install.cjs` — running
+      # that one trusted script after the install restores the binary
+      # without re-enabling arbitrary transitive scripts.
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code@2.1.122 --ignore-scripts
+        run: |
+          set -euo pipefail
+          npm install -g @anthropic-ai/claude-code@2.1.122 --ignore-scripts
+          node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          claude --version
 
       # Step 1 — fetch upstream CHANGELOG, diff, write new snapshots, emit gaps JSON.
       # Hard fail here aborts the run (no commit, no issues). Stale snapshots are worse

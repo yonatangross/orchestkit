@@ -24,7 +24,15 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code@2.1.90 --ignore-scripts
+        # `--ignore-scripts` skips the package's own postinstall which
+        # fetches the native `claude` binary. We re-run it explicitly so
+        # `claude -p` below doesn't fail with "claude native binary not
+        # installed." (See claude-release-watch.yml for the full incident.)
+        run: |
+          set -euo pipefail
+          npm install -g @anthropic-ai/claude-code@2.1.90 --ignore-scripts
+          node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          claude --version
 
       - name: Run health assessment
         env:

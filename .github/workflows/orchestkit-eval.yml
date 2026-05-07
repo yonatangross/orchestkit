@@ -81,7 +81,15 @@ jobs:
       - name: Install Claude Code CLI
         if: inputs.scope != 'hooks-only'
         # nosemgrep: pinned-dependencies (npm packages cannot be SHA-pinned; --ignore-scripts mitigates)
-        run: npm install -g @anthropic-ai/claude-code@2.1.105 --ignore-scripts
+        # `--ignore-scripts` skips the package's own postinstall which
+        # fetches the native `claude` binary; we re-run it explicitly so
+        # scripts/run-eval.sh (which calls `claude -p --bare`) doesn't
+        # fast-fail with "claude native binary not installed."
+        run: |
+          set -euo pipefail
+          npm install -g @anthropic-ai/claude-code@2.1.105 --ignore-scripts
+          node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          claude --version
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 

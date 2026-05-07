@@ -261,6 +261,10 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     # M130 hotfix — cc-triage.mjs LLM extraction, sentinel, and slug sanitization.
     run_test "CC Triage (M130 hotfix)" "$SCRIPT_DIR/integration/test-cc-triage.sh"
 
+    # Regression: workflows installing claude-code with --ignore-scripts must
+    # also run install.cjs to fetch the native binary. See run 25443026871.
+    run_test "CC CLI install pattern" "$SCRIPT_DIR/integration/test-cc-cli-install-pattern.sh"
+
     # Mem0 removed — integration tests deleted
 
     # External Installation Tests (v4.12.0)

@@ -291,7 +291,18 @@ jobs:
           # Pin to exact version + --ignore-scripts (supply chain mitigation — Scorecard #130, #132)
           # nosemgrep: pinned-dependencies (npm packages cannot be SHA-pinned; --ignore-scripts mitigates)
           npm install -g @anthropic-ai/claude-code@2.1.105 --ignore-scripts 2>/dev/null || true
-          if command -v claude &>/dev/null; then
+          # `--ignore-scripts` skips the package's own postinstall which
+          # fetches the native `claude` binary. Without this explicit
+          # invocation, the wrapper installs but `command -v claude` finds
+          # a script that fast-fails with "claude native binary not
+          # installed." — this step would log "CLI not available" and
+          # silently skip plugin validation. Run install.cjs to restore
+          # the binary.
+          INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          if [ -f "$INSTALL_CJS" ]; then
+            node "$INSTALL_CJS" 2>/dev/null || true
+          fi
+          if command -v claude &>/dev/null && claude --version &>/dev/null; then
             CC_VERSION=$(claude --version 2>/dev/null || echo "unknown")
             echo "cc_available=true" >> "$GITHUB_OUTPUT"
             echo "Claude Code CLI installed: ${CC_VERSION}"
