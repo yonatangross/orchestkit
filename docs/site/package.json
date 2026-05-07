@@ -42,7 +42,7 @@
     "agentation-mcp": "^1.2.0",
     "happy-dom": "^20.8.9",
     "magic-string": "^0.30.21",
-    "postcss": "^8.5.0",
+    "postcss": "^8.5.11",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.8.0",
