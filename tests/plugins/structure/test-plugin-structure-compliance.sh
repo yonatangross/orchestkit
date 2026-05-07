@@ -248,12 +248,16 @@ fi
 MANIFEST_AGENTS_TYPE=$(jq -r '.agents | type' "$PROJECT_ROOT/manifests/ork.json" 2>/dev/null)
 if [[ "$MANIFEST_AGENTS_TYPE" == "string" ]]; then
     # "all" mode — src/ count should match plugins/
-    EXPECTED_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+    # Exclude README.md / INDEX.md / CONTRIBUTING.md (mirror stamp-counts.sh agent-counting rule)
+    EXPECTED_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null \
+      | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' | wc -l | tr -d ' ')
 else
     # Array mode — manifest lists which agents ship
     EXPECTED_AGENTS=$(jq -r '.agents | length' "$PROJECT_ROOT/manifests/ork.json" 2>/dev/null)
 fi
-PLUGIN_AGENTS=$(find "$PROJECT_ROOT/plugins/ork/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+# Plug count: same exclusion to be symmetric (build doesn't copy these anyway, but be safe).
+PLUGIN_AGENTS=$(find "$PROJECT_ROOT/plugins/ork/agents" -name "*.md" -type f 2>/dev/null \
+  | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' | wc -l | tr -d ' ')
 
 if [[ "$EXPECTED_AGENTS" -eq "$PLUGIN_AGENTS" ]]; then
     pass "Agents in sync: manifest expects $EXPECTED_AGENTS, plugins/ork/ has $PLUGIN_AGENTS"

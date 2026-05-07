@@ -85,14 +85,26 @@ stamp_marketplace_json() {
   local file="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ ! -f "$file" ]]; then return; fi
 
-  local desc_pattern="[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks"
-  local desc_replace="${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks"
-
+  local sed_in
   if [[ "$(uname)" == "Darwin" ]]; then
-    sed -i '' -E "s/${desc_pattern}/${desc_replace}/g" "$file"
+    sed_in=(sed -i '' -E)
   else
-    sed -i -E "s/${desc_pattern}/${desc_replace}/g" "$file"
+    sed_in=(sed -i -E)
   fi
+
+  # Top-level description: "X skills, Y agents, Z commands, N hooks"
+  "${sed_in[@]}" \
+    "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ commands, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${INVOCABLE} commands, ${HOOKS} hooks/g" "$file"
+
+  # plugins[].description: "X skills covering ... Includes Y specialized agents, Z commands, and N lifecycle hooks."
+  "${sed_in[@]}" \
+    "s/[0-9]+ skills covering/${SKILLS} skills covering/g" "$file"
+  "${sed_in[@]}" \
+    "s/Includes [0-9]+ specialized agents, [0-9]+ commands, and [0-9]+ lifecycle hooks/Includes ${AGENTS} specialized agents, ${INVOCABLE} commands, and ${HOOKS} lifecycle hooks/g" "$file"
+
+  # Legacy variant (no commands count) — kept for backwards compat
+  "${sed_in[@]}" \
+    "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$file"
 }
 
 # ── docs/site MDX (pattern-based, no markers) ───────────────────────────────

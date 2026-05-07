@@ -27,23 +27,39 @@ Consistent, readable ASCII diagrams for architecture, workflows, file trees, and
 
 ## Box-Drawing Character Reference
 
+This block intentionally shows multiple sets together as a key. Authors
+should use ONE set per real diagram; the `single-set` lint rule enforces
+this on production diagrams.
+
+<!-- ascii-lint-disable: single-set,single-arrow-style,density-min -->
 ```
-Standard:  ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
-Heavy:     ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
-Double:    ╔═╗ ║ ╚═╝  ╠═╣ ╦ ╩ ╬
-Rounded:   ╭─╮ │ ╰─╯
+default:   ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
+emphasis:  ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
+title:     ╔═╗ ║ ╚═╝  ╠═╣ ╦ ╩ ╬
+soft:      ╭─╮ │ ╰─╯
+portable:  +-+ | +-+  +-+ + + +
 Arrows:    → ← ↑ ↓ ─> <─ ──> <──
 Blocks:    █ ▓ ░ ▏▎▍▌▋▊▉
-Checks:    ✓ ✗ ● ○ ◆ ◇ ★ ☆
+Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab — see rules)
 ```
 
-### Weight Conventions
+### Set Conventions (D8: intent-driven naming)
 
-| Weight | Characters | Use For |
-|--------|-----------|---------|
-| Standard `─│` | Normal boxes and connectors | Most diagrams |
-| Heavy `━┃` | Emphasis, borders, headers | Key components, outer frames |
-| Double `═║` | Separation, titles | Section dividers, title boxes |
+Tokens live in `tokens.json`. Names describe USE not APPEARANCE.
+
+| Set | Characters | Use For |
+|-----|-----------|---------|
+| `default` `─│` | Normal boxes and connectors | Most diagrams |
+| `emphasis` `━┃` | Headers, focus, draw the eye | Key components, outer frames |
+| `title` `═║` | Document titles | §0-style banners only |
+| `soft` `╭╮╰╯ ─│` | Status cards, ambient UI | Diff blocks |
+| `portable` `+-\|` | NO_COLOR / CI / bare TTY | Fallback |
+
+Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new names above. Old names accepted with warning for one minor release.
+
+### Status Glyph Vocabulary
+
+Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
 
 
 ## Diagram Patterns

@@ -151,6 +151,7 @@ import { securityCommandAudit } from './agent/security-command-audit.js';
 import { auditLogger } from './posttool/audit-logger.js';
 import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
+import { asciiLint } from './posttool/ascii-lint.js';
 import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
@@ -364,6 +365,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
+  'posttool/ascii-lint': asciiLint,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,

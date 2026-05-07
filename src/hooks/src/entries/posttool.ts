@@ -62,6 +62,7 @@ import { configChangeAuditor } from '../posttool/config-change/security-auditor.
 // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
 import { commitNudge } from '../posttool/commit-nudge.js';
 import { autoLint } from '../posttool/auto-lint.js';
+import { asciiLint } from '../posttool/ascii-lint.js';
 // v7.52.0: metrics bridge — per-session ork-metrics-*.json (#1295)
 import { metricsBridge } from '../posttool/metrics-bridge.js';
 // #1470: one-shot context-crossing warn (usage hygiene M119)
@@ -135,6 +136,7 @@ export const hooks: Record<string, HookFn> = {
   // v7.30.0: flattened from posttool/unified-dispatcher (#1284)
   'posttool/commit-nudge': commitNudge,
   'posttool/auto-lint': autoLint,
+  'posttool/ascii-lint': asciiLint,
 
   // M125 #2: auto-expect after UI file edits
   'posttool/ui-change-detector': uiChangeDetector,

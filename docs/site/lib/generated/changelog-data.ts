@@ -17,6 +17,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.84.0",
+    "date": "2026-05-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** bolder floor bump 2.1.125 → 2.1.132 ([#1623](https://github.com/yonatangross/orchestkit/issues/1623)) ([2292524](https://github.com/yonatangross/orchestkit/commit/2292524c836b3d7e0d57ba4d7be346bce14e0e23))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** cc-triage drops --bare so CLAUDE_CODE_OAUTH_TOKEN is honored ([#1629](https://github.com/yonatangross/orchestkit/issues/1629)) ([fbb3199](https://github.com/yonatangross/orchestkit/commit/fbb31994d2cdb1aa61e533738f1ac0f8c1b21d70))",
+          "**ci:** cc-triage uses opus alias + logs stdout on failure ([#1633](https://github.com/yonatangross/orchestkit/issues/1633)) ([311a514](https://github.com/yonatangross/orchestkit/commit/311a514bbe9c702aca773db90a5a288196b8b9f2))",
+          "**ci:** install CC native binary explicitly when --ignore-scripts ([#1622](https://github.com/yonatangross/orchestkit/issues/1622)) ([c6fb9c3](https://github.com/yonatangross/orchestkit/commit/c6fb9c38e6408f72c0e2c164188e236e948614cb))",
+          "**ci:** regenerate docs/site lockfile on-the-fly, delete committed stub ([#1631](https://github.com/yonatangross/orchestkit/issues/1631)) ([7f6f53b](https://github.com/yonatangross/orchestkit/commit/7f6f53b4dab88e6883b367f0f9daa406b1fa0cac))",
+          "**deps:** override hono / ip-address / express-rate-limit for CVEs ([#1624](https://github.com/yonatangross/orchestkit/issues/1624)) ([95acb78](https://github.com/yonatangross/orchestkit/commit/95acb78e4fe3d795c151f2d3d52c90c2677e182b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump the npm_and_yarn group across 2 directories with 3 updates ([#1630](https://github.com/yonatangross/orchestkit/issues/1630)) ([2e6010c](https://github.com/yonatangross/orchestkit/commit/2e6010c928a1b5da9f87470f16f47c36143cb770))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.83.2",
     "date": "2026-05-05",
     "compareUrl": "",

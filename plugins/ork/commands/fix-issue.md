@@ -152,9 +152,9 @@ AskUserQuestion(questions=[{
   "question": "Before push?",
   "header": "Local CI",
   "options": [
-    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures"},
-    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push"},
-    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns"}
+    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures", "markdown": "```\nPush + Remote CI\n────────────────\n  fix ──▶ commit ──▶ push ──▶ CI\n                                │\n                                v\n                            5-15 min\n  + fastest local turnaround\n  - failures discovered remotely\n  - rebase if CI red on main move\n```"},
+    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push", "markdown": "```\nLocal Full Suite + Push\n───────────────────────\n  fix ──▶ commit ──▶ npm test ──▶ push\n                       │\n                       v\n                   ~2-3 min\n  + catches all CI failures locally\n  - slower per-iteration\n  recommended when issue label =\n  security | data-loss\n```"},
+    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns", "markdown": "```\nSecurity-only + Push\n────────────────────\n  fix ──▶ commit ──▶ test:security ──▶ push\n                          │\n                          v\n                       ~30s\n  + catches secrets/deps/owasp\n  + faster than full suite\n  - misses lint/type/unit issues\n```"}
   ]
 }])
 ```

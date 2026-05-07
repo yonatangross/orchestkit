@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orchestkit.dev/schemas/ascii-visualizer/tokens.schema.json",
+  "title": "ASCII Design System Tokens",
+  "description": "Semantic char-set tier for OrchestKit ASCII design system. Validates structure; glyph membership in primitives.json is checked by scripts/validate-tokens.sh.",
+  "type": "object",
+  "required": ["version", "sets"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema":   { "type": "string" },
+    "version":   { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "_comment":  { "type": "string" },
+    "sets": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/charSet" },
+      "required": ["default", "emphasis", "title", "soft", "portable"]
+    },
+    "arrows": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["right", "left", "up", "down"],
+        "additionalProperties": false,
+        "properties": {
+          "right": { "type": "string", "minLength": 1, "maxLength": 4 },
+          "left":  { "type": "string", "minLength": 1, "maxLength": 4 },
+          "up":    { "type": "string", "minLength": 1, "maxLength": 4 },
+          "down":  { "type": "string", "minLength": 1, "maxLength": 4 }
+        }
+      }
+    },
+    "fills": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "high":  { "type": "string", "minLength": 1, "maxLength": 1 },
+        "med":   { "type": "string", "minLength": 1, "maxLength": 1 },
+        "low":   { "type": "string", "minLength": 1, "maxLength": 1 },
+        "full":  { "type": "string", "minLength": 1, "maxLength": 1 },
+        "empty": { "type": "string", "minLength": 1, "maxLength": 1 },
+        "bars":  {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1 }
+        }
+      }
+    },
+    "density_overrides": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          { "type": "string" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "charSet": {
+      "type": "object",
+      "required": ["intent", "corner", "edge"],
+      "additionalProperties": false,
+      "properties": {
+        "intent": { "type": "string", "minLength": 10 },
+        "corner": {
+          "type": "object",
+          "required": ["tl", "tr", "bl", "br"],
+          "additionalProperties": false,
+          "properties": {
+            "tl": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "tr": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "bl": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "br": { "type": "string", "minLength": 1, "maxLength": 1 }
+          }
+        },
+        "edge": {
+          "type": "object",
+          "required": ["h", "v"],
+          "additionalProperties": false,
+          "properties": {
+            "h": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "v": { "type": "string", "minLength": 1, "maxLength": 1 }
+          }
+        },
+        "junction": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tee_d": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "tee_u": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "tee_r": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "tee_l": { "type": "string", "minLength": 1, "maxLength": 1 },
+            "cross": { "type": "string", "minLength": 1, "maxLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

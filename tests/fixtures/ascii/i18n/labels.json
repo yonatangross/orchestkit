@@ -1,0 +1,18 @@
+{
+  "_comment": "i18n alignment fixtures. Each script lists 3 short labels exercising different glyph widths (East Asian Wide vs Halfwidth) for wcwidth column-alignment validation.",
+  "japanese": [
+    "ログイン",
+    "ユーザー",
+    "テスト"
+  ],
+  "chinese": [
+    "前端",
+    "后端服务",
+    "数据库"
+  ],
+  "devanagari": [
+    "हिंदी",
+    "नमस्ते",
+    "परीक्षण"
+  ]
+}
