@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.133
+
+- `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped (synthetic placeholder; the real upstream behaviour landed in 2.1.128 — kept here as the test fixture's "new version" detection target)
+- `--plugin-dir` now accepts `.zip` plugin archives, enabling offline distribution alongside directory-based loads
+- MCP server name `workspace` is now reserved; conflicting `.mcp.json` entries are silently skipped with a warning
+
+## 2.1.132
+
+- Added `CLAUDE_CODE_SESSION_ID` environment variable to the Bash tool subprocess environment, matching the `session_id` passed to hooks
+- Fixed external SIGINT not running graceful shutdown — terminal modes are now restored
+
 ## 2.1.128
 
 - `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped
