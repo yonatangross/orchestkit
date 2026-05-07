@@ -106,7 +106,8 @@ describe('Async Hooks Registry', () => {
       // 76 -> 78: M125 Lane B — ui-change-detector (PostToolUse Write|Edit, async)
       //           + expect/snapshot-recorder (PostToolUse Skill, async)
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
-      expect(asyncHooks.length, 'Should have exactly 79 async hooks').toBe(79);
+      // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
+      expect(asyncHooks.length, 'Should have exactly 80 async hooks').toBe(80);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

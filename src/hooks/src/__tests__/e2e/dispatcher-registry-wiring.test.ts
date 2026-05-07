@@ -300,7 +300,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 76 -> 78: M125 Lane B — ui-change-detector (PostToolUse Write|Edit, async) +
       //           expect/snapshot-recorder (PostToolUse Skill, async)
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
-      expect(asyncHooks.length, 'Should have exactly 79 async hooks').toBe(79);
+      // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
+      expect(asyncHooks.length, 'Should have exactly 80 async hooks').toBe(80);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -398,7 +399,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 75 -> 76: M119 #1476 — nudge-outcome-resolver on SessionStart
       // 76 -> 78: M125 Lane B — ui-change-detector + expect/snapshot-recorder
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
-      expect(asyncCount).toBe(79);
+      // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
+      expect(asyncCount).toBe(80);
     });
 
     it('should have hooks for all critical security operations', () => {

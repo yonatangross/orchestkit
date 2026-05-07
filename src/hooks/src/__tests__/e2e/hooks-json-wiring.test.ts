@@ -159,10 +159,11 @@ describe('hooks.json wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 187', () => {
+    it('description total matches 188', () => {
       // 184 -> 186: M126 #1543 — posttool/secret-handler + (intermediate bumps)
       // 186 -> 187: M130 #1487 — lifecycle/cc-version-check
-      expect(hooksConfig.description).toContain('187 total');
+      // 187 -> 188: ASCII Design System — posttool/ascii-lint
+      expect(hooksConfig.description).toContain('188 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
