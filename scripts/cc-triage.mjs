@@ -122,16 +122,19 @@ function callClaude(prompt) {
   //   - `-p` is non-interactive print mode (CC 2.1.81+)
   //   - `--max-turns 1` bounds execution; without it CC may agentically retry
   //   - `--output-format text` ensures raw stdout is the model response only
+  //   - `--model opus` is the canonical alias that resolves to whatever Opus
+  //     the installed CC version knows about. Earlier code passed the literal
+  //     `claude-opus-4-7` model ID, which a pinned older CC may not recognize
+  //     and reject silently (run 25498358709: 2-3s startup then `claude exit 1`
+  //     with empty stderr on every version). The alias side-steps that.
   //
-  // We DO NOT pass `--bare` here. Per `claude --help`, `--bare` enforces
+  // We DO NOT pass `--bare`. Per `claude --help`, `--bare` enforces
   // "Anthropic auth is strictly ANTHROPIC_API_KEY or apiKeyHelper via
   // --settings (OAuth and keychain are never read)". The cron uses
-  // CLAUDE_CODE_OAUTH_TOKEN, which `--bare` ignores — yielding silent
-  // `claude exit 1` with empty stderr on every call (~700ms per attempt;
-  // run 25487401956 had this exact symptom on all 4 versions). Dropping
-  // --bare lets OAuth auth flow normally. The "minimal mode" goodies
-  // (skip hooks/LSP/auto-memory/CLAUDE.md discovery) aren't needed for a
-  // one-shot text extraction call.
+  // CLAUDE_CODE_OAUTH_TOKEN, which `--bare` ignores. Dropping --bare lets
+  // OAuth auth flow normally; the "minimal mode" goodies (skip hooks/LSP/
+  // auto-memory/CLAUDE.md discovery) aren't needed for a one-shot
+  // extraction on a CI runner with no project state.
   //
   // Prompt is fed via stdin (no positional arg), which is the documented
   // streaming-input pattern for `-p`.
@@ -149,7 +152,7 @@ function callClaude(prompt) {
               '--output-format',
               'text',
               '--model',
-              'claude-opus-4-7',
+              'opus',
             ],
             {
               input: prompt,
@@ -158,7 +161,14 @@ function callClaude(prompt) {
             },
           );
       if (res.status !== 0) {
-        console.error(`claude exit ${res.status}: ${(res.stderr || '').slice(0, 500)}`);
+        // Log BOTH stdout and stderr — claude sometimes emits errors to stdout
+        // (e.g., model-not-found, auth issues), and stderr-only logging masked
+        // the real cause for hours of debugging across PR #1622/#1629/#1631.
+        const stderrSlice = (res.stderr || '').slice(0, 500).trim();
+        const stdoutSlice = (res.stdout || '').slice(0, 500).trim();
+        const detail = stderrSlice || stdoutSlice || '(no output captured)';
+        const channel = stderrSlice ? 'stderr' : (stdoutSlice ? 'stdout' : 'silent');
+        console.error(`claude exit ${res.status} [${channel}]: ${detail}`);
         if (attempt === 2) return null;
         continue;
       }
