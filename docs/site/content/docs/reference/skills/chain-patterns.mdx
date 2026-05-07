@@ -1636,6 +1636,16 @@ Agent(
 - `SubagentStart` → `unified-dispatcher` (logs agent spawn)
 - `SubagentStop` → `unified-dispatcher` (logs completion)
 
+## Branch base (CC 2.1.128+)
+
+`EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/&lt;default-branch&gt;`. This means:
+
+- Unpushed commits in the parent worktree are preserved in the new worktree
+- No need to `git push` before spawning isolated agents
+- Parent and child see the same uncommitted history
+
+CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. We floor at `2.1.132` so this concern is gone — your worktree starts from wherever your tree is now.
+
 ## Limitations
 
 - Worktree agents are slightly slower to start (~2-3s overhead)
