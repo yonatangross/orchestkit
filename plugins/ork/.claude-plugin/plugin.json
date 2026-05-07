@@ -21,5 +21,7 @@
   ],
   "skills": "./skills/",
   "commands": "./commands/",
-  "monitors": "./monitors/monitors.json"
+  "experimental": {
+    "monitors": "./monitors/monitors.json"
+  }
 }
