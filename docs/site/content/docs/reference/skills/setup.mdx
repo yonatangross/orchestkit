@@ -1166,6 +1166,10 @@ If **Yes**: write or merge into `~/.claude/keybindings.json`:
 
 If the file already exists, **merge** — read existing entries, add only keybindings whose `key` is not already bound, then write back. Never overwrite user-defined bindings.
 
+## CC built-in keys worth knowing (CC 2.1.129+)
+
+- **Ctrl+R** opens the reverse-search history picker. As of CC 2.1.129 it defaults to **all prompts across all projects** (matching pre-2.1.124 behavior). Press **Ctrl+S** while the picker is open to narrow to the current project / session. Avoid binding `Ctrl+R` or `Ctrl+S` in user keybindings — both are reserved.
+
 
 ### Presets
 

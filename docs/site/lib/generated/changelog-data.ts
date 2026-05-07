@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.85.0",
+    "date": "2026-05-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "ASCII Design System + status glyph vocab + preview audit + drift fixes ([#1619](https://github.com/yonatangross/orchestkit/issues/1619)) ([1770365](https://github.com/yonatangross/orchestkit/commit/17703656b7a4d4b5376569ebbd115fcbcd6fc16f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG ([#1670](https://github.com/yonatangross/orchestkit/issues/1670)) ([3eef0f6](https://github.com/yonatangross/orchestkit/commit/3eef0f63c23c09787e60cad280e2f0bbacc31d45))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.84.0",
     "date": "2026-05-07",
     "compareUrl": "",
