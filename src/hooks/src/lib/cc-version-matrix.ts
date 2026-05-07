@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.125';
+export const MIN_CC_VERSION = '2.1.132';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -434,6 +434,28 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'init_plugin_errors_plugin_dir',   minVersion: '2.1.128', description: 'init.plugin_errors in --output-format stream-json now includes --plugin-dir load failures — eval-runner preflight surfaces local-plugin breakage that 2.1.111 only detected for marketplace plugins' },
   { feature: 'subagent_idle_summary_capped',    minVersion: '2.1.128', description: 'Sub-agent summaries no longer fire repeatedly on idle sub-agents — caps worst-case token cost for long-lived background agents' },
   { feature: 'plugin_update_npm_detection_fix', minVersion: '2.1.128', description: '/plugin update now detects new versions of npm-sourced plugins (was a no-op before) — direct benefit to OrchestKit users on the npm channel' },
+  { feature: 'parallel_tool_failure_isolated',  minVersion: '2.1.128', description: 'Parallel shell tool calls: a failing read-only command (grep, git diff, ls) no longer cancels sibling calls — every fan-out skill (ork:explore, ork:cover, ork:review-pr) gets free reliability with no code change' },
+  { feature: 'subagent_progress_cache_hit',     minVersion: '2.1.128', description: 'Sub-agent progress summaries now hit the prompt cache (~3x cache_creation reduction) — applies to every multi-agent skill including ork:brainstorm, ork:implement, ork:review-pr' },
+  { feature: 'subprocess_no_otel_inherit',      minVersion: '2.1.128', description: 'Subprocesses (Bash, hooks, MCP, LSP) no longer inherit OTEL_* env vars from the CLI — OTEL-instrumented apps run via Bash no longer pick up the CLI OTLP endpoint' },
+  // 2.1.129 (2026-05-06) — plugin manifest experimental:, skillOverrides, gateway opt-in, /context no-dump, prompt cache TTL fix
+  { feature: 'experimental_themes_monitors',    minVersion: '2.1.129', description: 'Plugin manifests: themes and monitors should now be declared under experimental: { ... } — top-level still works but claude plugin validate warns. Direct hit on manifests/ork.json (we declare monitors top-level today)' },
+  { feature: 'skill_overrides_setting',         minVersion: '2.1.129', description: 'skillOverrides setting works: off hides from model and /, user-invocable-only hides from model only, name-only collapses description — pairs with our disable-model-invocation: true skills (e.g. ork:brainstorm) by exposing a user-side equivalent' },
+  { feature: 'gateway_model_discovery_optin',   minVersion: '2.1.129', description: 'Gateway /v1/models discovery for the /model picker is now opt-in via CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 (was automatic in 2.1.126-2.1.128)' },
+  { feature: 'plugin_url_flag',                 minVersion: '2.1.129', description: '--plugin-url <url> fetches a plugin .zip archive from a URL for the current session — enables hosted distribution beyond marketplace + --plugin-dir' },
+  { feature: 'pull_request_count_mcp_tools',    minVersion: '2.1.129', description: 'claude_code.pull_request.count OTel metric now counts PRs/MRs created via MCP tools (e.g., gh MCP), not just shell commands — analytics undercount fix' },
+  { feature: 'policy_refusal_request_id',       minVersion: '2.1.129', description: 'Policy refusal error messages now include the API Request ID — easier support debugging when org policy blocks a model' },
+  { feature: 'context_no_grid_dump',            minVersion: '2.1.129', description: '/context no longer dumps its rendered ASCII grid into the conversation — saves ~1.6k tokens per call. Free win for any skill that introspects context.' },
+  { feature: 'prompt_cache_1h_ttl_honored',     minVersion: '2.1.129', description: '1-hour prompt cache TTL is no longer silently downgraded to 5 minutes — long-running multi-agent skills can rely on the declared TTL' },
+  { feature: 'bash_glob_allow_rules_in_project', minVersion: '2.1.129', description: 'Bash(mkdir *), Bash(touch *) and similar glob allow rules are now honored for in-project paths (regression fix). Affects settings.json policies that allow file-creation commands.' },
+  // 2.1.132 (2026-05-06) — CLAUDE_CODE_SESSION_ID env var, statusline current-only, MCP retry, graceful SIGINT
+  { feature: 'claude_code_session_id_env',      minVersion: '2.1.132', description: 'CLAUDE_CODE_SESSION_ID env var is now set in Bash tool subprocesses, matching the session_id passed to hooks — hooks that shell out can correlate spawned commands to the parent session without minting their own UUID' },
+  { feature: 'mcp_tools_list_retry_once',       minVersion: '2.1.132', description: 'MCP servers that connect but fail tools/list now retry once and show "connected · tools fetch failed" in /mcp instead of silently appearing with 0 tools' },
+  { feature: 'statusline_context_window_current', minVersion: '2.1.132', description: 'Statusline context_window token counts now reflect current context usage instead of cumulative session totals — custom statuslines reading this field need to verify they handle the new semantics' },
+  { feature: 'mcp_unbounded_memory_fix',        minVersion: '2.1.132', description: 'Fixed unbounded memory growth (10GB+ RSS) when a stdio MCP server writes non-protocol data to stdout — stability fix for noisy MCP integrations' },
+  { feature: 'external_sigint_graceful',        minVersion: '2.1.132', description: 'External SIGINT (IDE stop button, kill -INT) now runs graceful shutdown — terminal modes restored, --resume hint printed instead of an abrupt exit' },
+  { feature: 'permission_mode_resume_plan',     minVersion: '2.1.132', description: '--permission-mode flag is honored when resuming a plan-mode session with -p --continue / --resume; plan mode is re-applied after ExitPlanMode within the same session' },
+  { feature: 'effort_env_picker_fix',           minVersion: '2.1.132', description: '/effort picker reflects the CLAUDE_CODE_EFFORT_LEVEL env var override (was previously ignored)' },
+  { feature: 'disable_alt_screen_env',          minVersion: '2.1.132', description: 'CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 opts out of the fullscreen alternate-screen renderer and keeps the conversation in the terminal native scrollback — useful for screen-recording and CI capture' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

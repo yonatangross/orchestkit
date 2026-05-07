@@ -17,6 +17,59 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.83.2",
+    "date": "2026-05-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump actions/setup-node from 4.4.0 to 6.4.0 ([#1612](https://github.com/yonatangross/orchestkit/issues/1612)) ([ce35dd9](https://github.com/yonatangross/orchestkit/commit/ce35dd93febb23d4009d930d81c6fe2b423b2d08))",
+          "bump anthropics/claude-code-action from 1.0.107 to 1.0.111 ([#1611](https://github.com/yonatangross/orchestkit/issues/1611)) ([6cfd862](https://github.com/yonatangross/orchestkit/commit/6cfd862fc107a388a978f0bcf22bbf8774e33c5c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.83.1",
+    "date": "2026-05-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump github/codeql-action from 4.35.2 to 4.35.3 ([#1609](https://github.com/yonatangross/orchestkit/issues/1609)) ([fe98da4](https://github.com/yonatangross/orchestkit/commit/fe98da4416f6cd04e8844fdd057b82589faadde8))",
+          "bump peter-evans/create-pull-request from 7.0.5 to 8.1.1 ([#1610](https://github.com/yonatangross/orchestkit/issues/1610)) ([d172010](https://github.com/yonatangross/orchestkit/commit/d1720103eb785284771b42f02959e2aa21f399b1))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.83.0",
+    "date": "2026-05-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** adopt CC 2.1.128 + bump floor to 2.1.125 ([#1616](https://github.com/yonatangross/orchestkit/issues/1616)) ([4686952](https://github.com/yonatangross/orchestkit/commit/468695234803c081a916bf2cf35af16bd54bd055))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** normalize double-dash bullets + --retry-failed flag ([#1614](https://github.com/yonatangross/orchestkit/issues/1614)) ([4a9f52c](https://github.com/yonatangross/orchestkit/commit/4a9f52c5876b89ca64aaa9c1047a77f297cd07e4))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "vercel preview tier 2 (no previews) ([#1613](https://github.com/yonatangross/orchestkit/issues/1613)) ([61b42d0](https://github.com/yonatangross/orchestkit/commit/61b42d0341de1677da9215e3f5c54e3d9cc1d474))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.82.1",
     "date": "2026-05-03",
     "compareUrl": "",
