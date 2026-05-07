@@ -1,1 +1,319 @@
-[]
+[
+  {
+    "version": "2.1.128",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "workspace_reserved_mcp_name",
+        "category": "breaking",
+        "description": "'workspace' is now a reserved MCP server name; existing servers with that name are skipped with a warning.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "MCP: `workspace` is now a reserved server name — existing servers with that name will be skipped with a warning"
+      },
+      {
+        "feature_slug": "enterworktree_branches_from_local_head",
+        "category": "breaking",
+        "description": "EnterWorktree now creates new branches from local HEAD instead of origin/<default-branch>, preserving unpushed commits.",
+        "gap_score": 20,
+        "affected_skills": [
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "`EnterWorktree` now creates the new branch from local HEAD as documented, instead of `origin/<default-branch>` — unpushed commits are no longer dropped"
+      },
+      {
+        "feature_slug": "subprocess_otel_env_isolation",
+        "category": "breaking",
+        "description": "Subprocesses (Bash, hooks, MCP, LSP) no longer inherit OTEL_* env vars, preventing CLI OTLP endpoint leakage.",
+        "gap_score": 20,
+        "affected_skills": [
+          "monitoring-observability",
+          "telemetry-inspect"
+        ],
+        "reference_changelog_line": "Subprocesses (Bash, hooks, MCP, LSP) no longer inherit `OTEL_*` environment variables, so OTEL-instrumented apps run via the Bash tool no longer pick up the CLI's own OTLP endpoint"
+      },
+      {
+        "feature_slug": "mcp_shell_prefix_arg_corruption_fix",
+        "category": "breaking",
+        "description": "MCP stdio servers no longer receive corrupted arguments when CLAUDE_CODE_SHELL_PREFIX is set with spaces/metacharacters.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Fixed MCP stdio servers receiving corrupted arguments when `CLAUDE_CODE_SHELL_PREFIX` is set and an argument contains spaces or shell metacharacters"
+      },
+      {
+        "feature_slug": "stale_installed_plugins_path_fix",
+        "category": "breaking",
+        "description": "Stale installed_plugins.json entries pointing at deleted cache dirs no longer pollute PATH.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed stale `installed_plugins.json` entries pointing at deleted cache directories polluting PATH"
+      },
+      {
+        "feature_slug": "plugin_dir_zip_archive",
+        "category": "new_command",
+        "description": "--plugin-dir now accepts .zip plugin archives in addition to directories.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "`--plugin-dir` now accepts `.zip` plugin archives in addition to directories"
+      },
+      {
+        "feature_slug": "channels_console_auth_support",
+        "category": "new_command",
+        "description": "--channels now works with console (API key) authentication; managed orgs must set channelsEnabled: true.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "`--channels` now works with console (API key) authentication — console orgs with managed settings must set `channelsEnabled: true` to enable"
+      },
+      {
+        "feature_slug": "channels_enabled_managed_setting",
+        "category": "new_perm",
+        "description": "channelsEnabled managed setting required for console orgs to use --channels with API key authentication.",
+        "gap_score": 12,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "`--channels` now works with console (API key) authentication — console orgs with managed settings must set `channelsEnabled: true` to enable"
+      },
+      {
+        "feature_slug": "sdk_local_settings_bash_suggestion",
+        "category": "new_perm",
+        "description": "SDK hosts receive persistent localSettings suggestion so 'Always allow' writes to .claude/settings.local.json.",
+        "gap_score": 12,
+        "affected_skills": [
+          "configure",
+          "fewer-permission-prompts"
+        ],
+        "reference_changelog_line": "SDK hosts now receive a persistent `localSettings` suggestion for Bash permission prompts, so \"Always allow\" writes to `.claude/settings.local.json`"
+      },
+      {
+        "feature_slug": "mcp_tool_count_display",
+        "category": "new_field",
+        "description": "/mcp now displays tool count for connected servers and flags zero-tool servers.",
+        "gap_score": 5,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "`/mcp` now shows the tool count for connected servers and flags servers that connected with 0 tools"
+      },
+      {
+        "feature_slug": "init_plugin_errors_dir_failures",
+        "category": "new_field",
+        "description": "Headless stream-json init.plugin_errors now includes --plugin-dir load failures alongside dependency demotions.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Headless `--output-format stream-json`: `init.plugin_errors` now includes `--plugin-dir` load failures in addition to dependency demotions"
+      },
+      {
+        "feature_slug": "auto_mode_classifier_error_hint",
+        "category": "new_field",
+        "description": "Auto mode classifier failure error now includes hints (retry, /compact, --debug).",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Auto mode: when the classifier can't evaluate an action, the error now includes a hint (retry, `/compact`, or run with `--debug`)"
+      }
+    ],
+    "raw_bullets_count": 37
+  },
+  {
+    "version": "2.1.129",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "plugin_manifest_experimental_block",
+        "category": "breaking",
+        "description": "Plugin manifests must declare themes and monitors under experimental; top-level still works but warns.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Plugin manifests: `themes` and `monitors` should now be declared under `\"experimental\": { ... }`. Top-level declarations still work but `claude plugin validate` will warn"
+      },
+      {
+        "feature_slug": "gateway_model_discovery_opt_in",
+        "category": "breaking",
+        "description": "Gateway /v1/models discovery for /model picker is now opt-in via env var, not automatic.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Gateway `/v1/models` discovery for the `/model` picker is now opt-in via `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` (was automatic in 2.1.126–2.1.128)"
+      },
+      {
+        "feature_slug": "ctrl_r_history_global_default",
+        "category": "breaking",
+        "description": "Ctrl+R history picker now defaults to all prompts across projects; Ctrl+S narrows to current.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Ctrl+R history picker now defaults to searching all prompts across all projects, matching pre-2.1.124 behavior. Press Ctrl+S to narrow to the current project or session"
+      },
+      {
+        "feature_slug": "server_settings_policy_oauth_scope",
+        "category": "breaking",
+        "description": "Server-managed settings policy now applies to enterprise users whose OAuth lacked user:inference scope.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed server-managed settings policy not applying for enterprise/team users whose stored OAuth credentials lacked the `user:inference` scope"
+      },
+      {
+        "feature_slug": "oauth_refresh_wake_race_fix",
+        "category": "breaking",
+        "description": "OAuth refresh race after wake-from-sleep no longer logs out all running sessions.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed OAuth refresh race after wake-from-sleep that could log out all running sessions"
+      },
+      {
+        "feature_slug": "bash_mkdir_touch_allow_rules_fix",
+        "category": "breaking",
+        "description": "Bash(mkdir *) and Bash(touch *) allow rules are now honored for in-project paths.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed `Bash(mkdir *)`, `Bash(touch *)` and similar allow rules not being honored for in-project paths"
+      },
+      {
+        "feature_slug": "denied_mcp_wildcard_case_fix",
+        "category": "breaking",
+        "description": "deniedMcpServers patterns with *:// scheme wildcard now match mixed-case hostnames.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed `deniedMcpServers` patterns with a `*://` scheme wildcard not matching mixed-case hostnames"
+      },
+      {
+        "feature_slug": "plugin_url_flag",
+        "category": "new_command",
+        "description": "Added --plugin-url <url> flag to fetch a plugin .zip archive from a URL for the current session.",
+        "gap_score": 15,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `--plugin-url <url>` flag to fetch a plugin `.zip` archive from a URL for the current session"
+      },
+      {
+        "feature_slug": "pr_count_metric_includes_mcp",
+        "category": "new_event",
+        "description": "claude_code.pull_request.count OTel metric now counts PRs/MRs created via MCP tools.",
+        "gap_score": 10,
+        "affected_skills": [
+          "monitoring-observability",
+          "telemetry-inspect"
+        ],
+        "reference_changelog_line": "The `claude_code.pull_request.count` OTel metric now counts PRs/MRs created via MCP tools, not just shell commands"
+      },
+      {
+        "feature_slug": "force_sync_output_env",
+        "category": "new_field",
+        "description": "CLAUDE_CODE_FORCE_SYNC_OUTPUT=1 env var force-enables synchronized output on missed terminals.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_FORCE_SYNC_OUTPUT=1` env var to force-enable synchronized output on terminals that auto-detection misses (e.g. Emacs `eat`)"
+      },
+      {
+        "feature_slug": "package_manager_auto_update_env",
+        "category": "new_field",
+        "description": "CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE runs Homebrew/WinGet upgrade in background and prompts restart.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`: when set on Homebrew or WinGet installations, Claude Code runs the upgrade command in the background and prompts to restart"
+      },
+      {
+        "feature_slug": "skill_overrides_setting_works",
+        "category": "new_field",
+        "description": "skillOverrides setting now works with off, user-invocable-only, and name-only modes.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "audit-skills"
+        ],
+        "reference_changelog_line": "`skillOverrides` setting now works: `off` hides from model and `/`, `user-invocable-only` hides from model only, `name-only` collapses description"
+      },
+      {
+        "feature_slug": "policy_refusal_request_id",
+        "category": "new_attr",
+        "description": "Policy refusal error messages now include the API Request ID for support debugging.",
+        "gap_score": 5,
+        "affected_skills": [
+          "errors"
+        ],
+        "reference_changelog_line": "Policy refusal error messages now include the API Request ID for easier support debugging"
+      }
+    ],
+    "raw_bullets_count": 27
+  },
+  {
+    "version": "2.1.131",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2
+  },
+  {
+    "version": "2.1.132",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "plan_mode_permission_bypass_fix",
+        "category": "breaking",
+        "description": "--permission-mode flag honored on resume and plan mode reapplied after ExitPlanMode, closing a permission bypass.",
+        "gap_score": 20,
+        "affected_skills": [
+          "checkpoint-resume",
+          "chain-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed `--permission-mode` flag being ignored when resuming a plan-mode session with `-p --continue`/`--resume`, and plan mode not being re-applied after `ExitPlanMode` within the same session"
+      },
+      {
+        "feature_slug": "claude_code_session_id_bash_env",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_SESSION_ID env var now exposed in Bash tool subprocess environment, matching hook session_id.",
+        "gap_score": 5,
+        "affected_skills": [
+          "telemetry-inspect",
+          "errors",
+          "analytics"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_SESSION_ID` environment variable to the Bash tool subprocess environment, matching the `session_id` passed to hooks"
+      },
+      {
+        "feature_slug": "disable_alternate_screen_env",
+        "category": "new_field",
+        "description": "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 opts out of the fullscreen renderer and keeps output in native scrollback.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` env var to opt out of the fullscreen alternate-screen renderer and keep the conversation in the terminal's native scrollback"
+      }
+    ],
+    "raw_bullets_count": 28
+  }
+]
