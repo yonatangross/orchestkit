@@ -118,12 +118,23 @@ function readFixtureClaudeOutput() {
 
 function callClaude(prompt) {
   // Single retry on parse failure. Each call has 60s timeout via spawnSync.
-  // Flag conventions per src/skills/bare-eval/SKILL.md:
-  //   - `-p --bare` is non-interactive print + bare output (CC 2.1.81+)
+  // Flag conventions:
+  //   - `-p` is non-interactive print mode (CC 2.1.81+)
   //   - `--max-turns 1` bounds execution; without it CC may agentically retry
   //   - `--output-format text` ensures raw stdout is the model response only
+  //
+  // We DO NOT pass `--bare` here. Per `claude --help`, `--bare` enforces
+  // "Anthropic auth is strictly ANTHROPIC_API_KEY or apiKeyHelper via
+  // --settings (OAuth and keychain are never read)". The cron uses
+  // CLAUDE_CODE_OAUTH_TOKEN, which `--bare` ignores — yielding silent
+  // `claude exit 1` with empty stderr on every call (~700ms per attempt;
+  // run 25487401956 had this exact symptom on all 4 versions). Dropping
+  // --bare lets OAuth auth flow normally. The "minimal mode" goodies
+  // (skip hooks/LSP/auto-memory/CLAUDE.md discovery) aren't needed for a
+  // one-shot text extraction call.
+  //
   // Prompt is fed via stdin (no positional arg), which is the documented
-  // streaming-input pattern for `-p --bare`.
+  // streaming-input pattern for `-p`.
   const fixture = readFixtureClaudeOutput();
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
@@ -133,7 +144,6 @@ function callClaude(prompt) {
             'claude',
             [
               '-p',
-              '--bare',
               '--max-turns',
               '1',
               '--output-format',
