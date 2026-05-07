@@ -54,5 +54,10 @@
   },
   "devDependencies": {
     "agentation-mcp": "^1.2.0"
+  },
+  "overrides": {
+    "hono": "^4.12.18",
+    "ip-address": "^10.2.0",
+    "express-rate-limit": "^8.5.1"
   }
 }
