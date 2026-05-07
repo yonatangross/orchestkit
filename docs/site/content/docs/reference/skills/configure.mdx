@@ -1269,6 +1269,59 @@ Commands still work - MCPs just enhance them:
 ## Browser Automation
 
 For browser automation and testing, use the `agent-browser` skill instead of an MCP.
+
+## CC 2.1.128/129 changes that affect `.mcp.json` and plugin manifests
+
+We floor at `2.1.132`, so all of these apply by default.
+
+### Reserved server name: `workspace` (CC 2.1.128)
+
+`workspace` is a reserved MCP server name in CC 2.1.128+. Any `.mcp.json` entry using it is silently skipped with a warning. Pick any other identifier — none of OrchestKit's bundled servers use this name.
+
+### `deniedMcpServers` is case-insensitive on hostnames (CC 2.1.129)
+
+`deniedMcpServers` patterns with `*://` scheme wildcards now match hostnames case-insensitively (RFC-correct). You no longer need defensive case-variant duplication:
+
+```jsonc
+// before (CC ≤ 2.1.128 — both required to actually deny)
+"deniedMcpServers": ["*://example.com", "*://EXAMPLE.com"]
+
+// at our floor (one entry covers all case variants)
+"deniedMcpServers": ["*://example.com"]
+```
+
+### `/mcp` shows tool counts and flags zero-tool servers (CC 2.1.128)
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notebooklm   connected · 24 tools
+  myserver     connected · 0 tools  ⚠
+```
+
+A zero-tool count after a successful connection means `tools/list` failed silently — usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
+
+### Plugin manifest `monitors` and `themes` move under `experimental` (CC 2.1.129)
+
+CC 2.1.129+ expects plugin manifests to declare `monitors` and `themes` under an `"experimental"` block. Top-level still works but `claude plugin validate` warns. Future CC versions are expected to error on top-level entries.
+
+```jsonc
+// .claude-plugin/plugin.json (post-CC 2.1.129 shape)
+{
+  "name": "your-plugin",
+  "version": "1.0.0",
+  "skills": "./skills/",
+  "experimental": {
+    "monitors": "./monitors/monitors.json"
+  }
+}
+```
+
+OrchestKit's source manifest (`manifests/ork.json`) and built `plugins/ork/.claude-plugin/plugin.json` use the new shape as of v7.86.0 — see `scripts/build-plugins.sh` for the codegen.
+
+### `CLAUDE_CODE_SHELL_PREFIX` no longer corrupts MCP stdio argv (CC 2.1.128)
+
+If you wrap CC in `nix-shell --run`, `direnv exec`, or similar via `CLAUDE_CODE_SHELL_PREFIX`, stdio MCP servers used to receive corrupted argv when their command-line args contained spaces or shell metacharacters. CC 2.1.128 preserves quoting through the prefix wrap. No action required at our floor — just notable history.
 See the `agent-browser` skill for Vercel's headless browser CLI.
 
 ### Presets

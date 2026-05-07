@@ -311,7 +311,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         }
         + if $has_skills then {skills: "./skills/"} else {} end
         + if $has_commands then {commands: "./commands/"} else {} end
-        + if $has_monitors then {monitors: "./monitors/monitors.json"} else {} end' \
+        + (if $has_monitors then {experimental: {monitors: "./monitors/monitors.json"}} else {} end)' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
