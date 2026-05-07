@@ -67,20 +67,26 @@ if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
 
   if [[ $npm_exit -ne 0 ]]; then
     if grep -qE "401 Unauthorized|E401|unauthenticated" "$INSTALL_LOG"; then
-      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to committed stub lockfile and retrying"
-      # Deterministic fallback: swap the dep to the local stub, copy the
-      # precomputed stub lockfile (checked in as package-lock.stub.json) over
-      # the main lockfile, and re-run `npm ci`. No registry round-trip, so
-      # this works even without NPM_TOKEN on feature-branch CI. Regenerating
-      # the lockfile inline (`npm install --package-lock-only`) was tried
-      # and fails — this repo's .npmrc routes @yonatan-hq to a private
-      # registry that still 401s during resolution. See PR #1426 for the
-      # full rationale.
+      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub and regenerating lockfile"
+      # Deterministic fallback: swap analytics to the local file: stub, drop
+      # the bumped lockfile, regenerate with --package-lock-only, then npm ci.
+      # Once analytics points at a file: path, no @yonatan-hq registry lookups
+      # happen — the .npmrc auth requirement no longer applies and `npm
+      # install` succeeds without NPM_TOKEN. `--ignore-scripts` skips
+      # fumadocs-mdx's postinstall (which would fail at the lockfile-only
+      # stage with no node_modules yet).
+      #
+      # PR #1426 noted that `npm install --package-lock-only` was tried and
+      # failed — but only WITHOUT swapping analytics first. After the swap
+      # there are no @yonatan-hq registry calls and regeneration succeeds.
+      # The committed package-lock.stub.json was deleted alongside this
+      # change because it trapped every dependabot bump (#1630).
       (cd "$DOCS_SITE" \
         && npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub' >/dev/null \
-        && cp package-lock.stub.json package-lock.json \
+        && rm -f package-lock.json \
+        && npm install --no-audit --no-fund --package-lock-only --ignore-scripts 2>&1 | tail -3 \
         && npm ci --no-audit --no-fund 2>&1 | tail -3) || {
-        fail "npm ci with committed stub lockfile failed in docs/site"
+        fail "stub-regen + npm ci failed in docs/site"
         exit 1
       }
     else
