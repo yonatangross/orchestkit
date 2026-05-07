@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "version": "2.1.128",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 37,
+    "failed_at": "2026-05-07T14:45:14.060Z"
+  },
+  {
+    "version": "2.1.129",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 27,
+    "failed_at": "2026-05-07T14:45:15.664Z"
+  },
+  {
+    "version": "2.1.131",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 2,
+    "failed_at": "2026-05-07T14:45:17.217Z"
+  },
+  {
+    "version": "2.1.132",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 28,
+    "failed_at": "2026-05-07T14:45:18.826Z"
+  }
+]
