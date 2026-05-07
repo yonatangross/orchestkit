@@ -100,13 +100,21 @@ jobs:
           fi
 
           if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
-            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to committed stub lockfile"
-            # Deterministic fallback: swap the dep, copy the precomputed stub
-            # lockfile (package-lock.stub.json) over the main lockfile, and
-            # rerun `npm ci`. No registry round-trip — works without NPM_TOKEN
-            # on feature-branch CI.
+            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub and regenerating lockfile"
+            # Deterministic fallback: swap the dep to the local file: stub, drop
+            # the bumped lockfile, then regenerate with --package-lock-only.
+            # Once analytics points at a file: path, no @yonatan-hq registry
+            # lookups happen — so the .npmrc auth requirement no longer applies
+            # and `npm install` succeeds without NPM_TOKEN. `--ignore-scripts`
+            # skips the fumadocs-mdx postinstall (it would fail at the
+            # lockfile-only stage with no node_modules yet).
+            #
+            # Replaces the legacy "cp package-lock.stub.json package-lock.json"
+            # pattern, which trapped every dependabot bump because the
+            # committed stub diverged whenever a dep version moved (#1630).
             npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-            cp package-lock.stub.json package-lock.json
+            rm -f package-lock.json
+            npm install --no-audit --no-fund --package-lock-only --ignore-scripts
             npm ci --no-audit --no-fund
           else
             echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
