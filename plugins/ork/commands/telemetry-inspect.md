@@ -84,6 +84,12 @@ Summary
 
 Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
 
+## Upstream OTel metric notes
+
+When inspecting Claude Code's own OTel metrics (downstream of this skill — `claude_code.*` in your collector):
+
+- **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover — annotate, don't alert. See `references/../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.
+
 ## Related
 
 - `lib/telemetry-schemas.ts` — source of truth for schema-locked paths

@@ -3074,6 +3074,17 @@ ollama pull deepseek-r1:70b-q4_0
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
 
+## Claude Code `/model` Picker — Gateway Discovery (CC 2.1.129+)
+
+When using Claude Code with a custom gateway (`ANTHROPIC_BASE_URL` pointed at LiteLLM, Bedrock-via-gateway, or a custom auth proxy), gateway-discovered models are **hidden from the `/model` picker by default** as of CC 2.1.129. Re-enable discovery with the env var:
+
+```bash
+export CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1
+claude
+```
+
+CC 2.1.126–2.1.128 queried `/v1/models` automatically; 2.1.129 made it opt-in to avoid unexpected gateway traffic and to keep the picker focused on the static built-in list. If a previously-visible custom model "disappeared" from `/model` after upgrading past 2.1.128, this env var is the one-line fix. See `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the full rationale.
+
 ### Synthetic Data
 
 # Synthetic Data Generation for Fine-Tuning

@@ -208,6 +208,62 @@ sdk.start();
 6. **Truncate large inputs/outputs** to 500-1000 chars to reduce storage
 7. **Use nested observations** to track sub-operations
 
+### CC 2.1.128: Subprocesses No Longer Inherit OTEL_* Env Vars
+
+Starting with Claude Code 2.1.128, the CLI strips `OTEL_*` environment variables before spawning subprocesses. Affected children: **Bash tool, hooks, MCP servers (stdio + Streamable HTTP), LSP servers**. The CLI continues to emit its own metrics; child processes get a clean OTEL env unless you set it back yourself.
+
+**Before (≤ 2.1.127)** — child app picks up the CLI's collector by accident:
+
+```bash
+# In the user's shell
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+claude  # CLI emits to collector
+
+# Inside the session, Bash tool runs:
+python -m my_app  # ← my_app inherits OTEL_EXPORTER_OTLP_ENDPOINT,
+                  #   spans land in the CLI's collector under
+                  #   service.name=claude-code (wrong)
+```
+
+**After (≥ 2.1.128)** — child app starts with `OTEL_*` stripped:
+
+```bash
+# Same shell setup as before; CLI still emits to collector
+
+# Inside the session, Bash tool runs:
+python -m my_app  # ← OTEL_* is empty here; my_app emits nothing
+                  #   unless explicitly configured below
+```
+
+**If you want the child app to trace** — set the env explicitly inside the wrapped command:
+
+```bash
+# Wrap the call in the Bash tool invocation, not the CLI environment
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 \
+OTEL_SERVICE_NAME=my-app \
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=dev \
+  python -m my_app
+```
+
+**For MCP servers**: declare the OTEL env in your `.mcp.json` server entry's `env` block, not in the user's shell. This keeps the CLI's collector and the server's collector configurable independently.
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "node",
+      "args": ["./server.js"],
+      "env": {
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-collector:4318",
+        "OTEL_SERVICE_NAME": "my-mcp-server"
+      }
+    }
+  }
+}
+```
+
+**Diagnosing**: if your dashboard shows a sudden drop in spans from a subprocess after upgrading past 2.1.128, check whether you were relying on inheritance. The fix is always "set OTEL env at the subprocess invocation site."
+
 ## References
 
 - [Python SDK v3 @observe](https://langfuse.com/docs/sdk/python/decorators)

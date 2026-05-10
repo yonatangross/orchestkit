@@ -181,3 +181,30 @@ histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
 ```
 
 See `scripts/prometheus-metrics.ts` for complete setup.
+
+## Claude Code OTel Metrics — Notes for Dashboards
+
+Claude Code emits OTel metrics under the `claude_code.*` namespace. Two metrics that frequently appear on team velocity dashboards:
+
+| Metric | Counts |
+|---|---|
+| `claude_code.tool.use` | Each tool invocation, labelled by `tool` |
+| `claude_code.pull_request.count` | PRs/MRs created during sessions |
+
+### CC 2.1.129: `claude_code.pull_request.count` now counts MCP-filed PRs
+
+Before CC 2.1.129, `claude_code.pull_request.count` only counted PRs/MRs created via shell commands run through the Bash tool (`gh pr create`, `glab mr create`, custom scripts). As of CC 2.1.129, the metric **also counts PRs/MRs filed via MCP tools** — e.g., GitHub MCP server's `create_pull_request`, GitLab MCP equivalents, and any custom MCP server exposing a PR/MR-creation tool.
+
+**Impact on existing dashboards**: a step-function increase at the 2.1.129 cutover for teams where MCP-driven PR creation is non-trivial. The "spike" is a measurement-surface change, not a behavioral change. Annotate the dashboard with the version bump so it isn't misread as a productivity surge.
+
+**Labels are unchanged**: the counter still emits `provider` and `result` labels; MCP-filed PRs are not specially flagged. If you need to distinguish MCP vs. shell origins:
+
+```text
+# Derive an MCP-origin counter by joining on tool-name in a separate stream
+sum(rate(claude_code.pull_request.count[5m])) by (provider)
+  - on(provider) sum(rate(claude_code.tool.use{tool=~"Bash"}[5m]))
+```
+
+(In practice, hold a separate counter in your collector that increments only on `claude_code.tool.use{tool=~"mcp__.*"}` co-occurring with a PR-creation event.)
+
+**See also**: `${CLAUDE_SKILL_DIR}/../telemetry-inspect/SKILL.md` and `${CLAUDE_SKILL_DIR}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
