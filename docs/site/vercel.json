@@ -4,5 +4,10 @@
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "github": {
+    "silent": true,
+    "autoJobCancelation": true
+  },
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- ."
 }
