@@ -110,91 +110,13 @@ jobs:
         run: node scripts/cc-triage.mjs
 
       # Step 3 — file issues for gaps with score >= 10, dedup against open `cc-adoption` issues.
+      # Extracted to scripts/cc-file-adoption-issues.sh so the loop is testable in
+      # isolation (#1696, W1e). Tests live in tests/integration/test-cc-release-watch-step3.sh.
       - name: File adoption issues
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          GAPS=shared/cc-adoption-gaps.json
-          ISSUE_ARGS=shared/gh-issue-args.json
-          if [ ! -s "$GAPS" ] || [ "$(jq 'length' "$GAPS")" = "0" ]; then
-            echo "No gaps to triage."
-            exit 0
-          fi
-          if [ ! -s "$ISSUE_ARGS" ]; then
-            echo "No gh-issue-args.json — watch step did not emit milestone title."
-            exit 0
-          fi
-
-          MILESTONE_TITLE=$(jq -r '.milestone' "$ISSUE_ARGS")
-          MILESTONE_NUM=$(gh api repos/${{ github.repository }}/milestones \
-            --jq ".[] | select(.title==\"$MILESTONE_TITLE\") | .number" || true)
-          if [ -z "$MILESTONE_NUM" ]; then
-            MILESTONE_NUM=$(gh api -X POST repos/${{ github.repository }}/milestones \
-              -f title="$MILESTONE_TITLE" --jq .number)
-            echo "Created milestone $MILESTONE_TITLE (#$MILESTONE_NUM)"
-          fi
-
-          # Iterate features across all gap entries.
-          jq -c '.[] | .version as $v | .features[]? | select(.gap_score >= 10) | . + {version: $v}' "$GAPS" \
-            | while read -r feat; do
-                SLUG=$(echo "$feat" | jq -r '.feature_slug')
-                VERSION=$(echo "$feat" | jq -r '.version')
-                DESC=$(echo "$feat" | jq -r '.description')
-                CAT=$(echo "$feat" | jq -r '.category')
-                SCORE=$(echo "$feat" | jq -r '.gap_score')
-                REF=$(echo "$feat" | jq -r '.reference_changelog_line')
-                AFFECTED=$(echo "$feat" | jq -r '.affected_skills | join(", ")')
-                KEY="${SLUG}+${VERSION}"
-
-                # Dedup via exact body marker. The earlier full-text search
-                # `\"$KEY\"` was lossy — GH's `+` operator inside a quoted
-                # phrase can tokenize unpredictably and slug substrings collide.
-                # We embed `**Key:** \`<KEY>\`` in the body and grep that line
-                # in `in:body`, which is exact and label-scoped.
-                EXISTING=$(gh issue list --label cc-adoption --state open \
-                  --search "\"Key: \\\`$KEY\\\`\" in:body" \
-                  --json number --jq 'length')
-                if [ "$EXISTING" -gt 0 ]; then
-                  echo "Skip (exists): $KEY"
-                  continue
-                fi
-
-                TITLE="adopt CC $VERSION feature: $SLUG ($CAT)"
-                # NOTE: do NOT use a `cat <<BODY` heredoc here. A heredoc
-                # body at column 1 breaks YAML's block-scalar indentation,
-                # which causes GHA to silently fail to register this
-                # workflow's `name:` and `workflow_dispatch` trigger
-                # (404/422 from gh workflow run). Use printf with each
-                # line as a separate quoted argument — that keeps every
-                # line indented inside the YAML block.
-                BODY=$(printf '%s\n' \
-                  "**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data." \
-                  "" \
-                  "**Key:** \`${KEY}\`" \
-                  "**Category:** \`${CAT}\` (gap_score=${SCORE})" \
-                  "**Affected skills:** ${AFFECTED:-(none detected)}" \
-                  "" \
-                  "## Changelog reference" \
-                  "" \
-                  "> ${REF}" \
-                  "" \
-                  "## What to do" \
-                  "" \
-                  "${DESC}" \
-                  "" \
-                  "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up." \
-                  "" \
-                  "## Policy" \
-                  "" \
-                  "Per \`shared/rules/cc-support-policy.md\`, the support floor will auto-bump after this version's matrix entry lands in \`src/hooks/src/lib/cc-version-matrix.ts\`. The follow-up bump PR is opened by \`.github/workflows/cc-support-window-bump.yml\`.")
-                gh issue create \
-                  --title "$TITLE" \
-                  --body "$BODY" \
-                  --label cc-adoption,automation \
-                  --milestone "$MILESTONE_TITLE"
-                echo "Filed: $KEY"
-              done
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/cc-file-adoption-issues.sh
 
       # Step 4 — fallback issue when LLM extraction was skipped AND there are unfiled gaps.
       #
