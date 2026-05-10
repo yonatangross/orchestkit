@@ -1,8 +1,8 @@
 {
   "$schema": "./cc-support.schema.json",
-  "latest": "2.1.132",
-  "supported_floor": "2.1.132",
-  "drop_after": "2.1.131",
+  "latest": "2.1.138",
+  "supported_floor": "2.1.138",
+  "drop_after": "2.1.137",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {

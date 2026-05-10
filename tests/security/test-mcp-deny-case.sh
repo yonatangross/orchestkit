@@ -7,7 +7,7 @@
 # Asserts that documentation about deniedMcpServers correctly tells users
 # they no longer need to enumerate hostname case variants. The real fix is
 # upstream in CC 2.1.129; this test guards against a regression in our
-# guidance (since we floor at 2.1.132).
+# guidance (since we floor at 2.1.138).
 #
 # Test Count: 2
 # Priority: LOW (documentation contract)

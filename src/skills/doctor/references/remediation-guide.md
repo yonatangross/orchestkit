@@ -52,7 +52,7 @@ claude plugin validate
 
 ### "Stale plugin paths in PATH"
 
-CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.132). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
+CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.138). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
 
 ### "Auto mode unable to evaluate"
 
@@ -69,7 +69,7 @@ Pick whichever applies — `/compact` if context is full, `--debug` to see the c
 
 If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race — concurrent wake-time refreshes invalidated the active token across every running session.
 
-**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.132, so anyone on the supported window is already fixed). Recover the session with:
+**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.138, so anyone on the supported window is already fixed). Recover the session with:
 
 ```bash
 claude /login
