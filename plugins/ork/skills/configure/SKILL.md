@@ -120,6 +120,8 @@ Categories available:
 
 > **CC 2.1.111 — prune overbroad Bash permissions:** Since 2.1.111, read-only Bash commands with glob patterns (`ls:*`, `head:*`, `grep:*`, `wc:*`, `find:*`, etc.) no longer trigger permission prompts by default. If your `.claude/settings.local.json` has explicit `Bash(ls:*)` / `Bash(grep:*)` style allows added to silence old prompts, they are now redundant. The built-in `/less-permission-prompts` skill scans your transcripts and proposes a prune diff — run it once per project and once per user profile, then commit the accepted subset. The committed OrchestKit `src/settings/ork.settings.json` is already minimal (allow = `Read`, `Glob`, `Grep`, a small set of MCP entries) and doesn't need changes.
 
+> **CC 2.1.129 — `Bash(mkdir *)` / `Bash(touch *)` allow rules now work for in-project paths:** previously silently rejected for project-relative paths; now honored as documented. Workaround entries enumerating explicit subpaths (`Bash(mkdir:./src/*)`, etc.) can be collapsed back to the canonical glob form. See `references/cc-version-settings.md` § CC 2.1.129.
+
 ## Step 5: Configure MCPs (Optional)
 
 All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation requires a local package install.

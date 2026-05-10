@@ -220,6 +220,21 @@ export CLAUDE_CODE_PLUGIN_SEED_DIR="/shared/team/plugins:/shared/org/plugins"
 
 This is useful for teams with multiple plugin sources — e.g., a shared org-wide plugin directory alongside a team-specific one. Claude Code scans all listed directories for plugin definitions at startup.
 
+### One-Off Plugin Loading from `.zip` (CC 2.1.128 / 2.1.129)
+
+For evaluating a plugin without committing to a marketplace install — useful for trialing a coworker's branch build, a CI-produced PR artifact, or an OrchestKit pre-release `.zip` before it's published:
+
+- **`--plugin-dir <path-to-zip>`** (CC 2.1.128+): load a local `.zip` archive as a plugin for the session. Same flag that previously only accepted directories, now also accepts archives.
+  ```bash
+  claude --plugin-dir ./vendor/some-plugin.zip
+  ```
+- **`--plugin-url <url>`** (CC 2.1.129+): fetch a `.zip` from a URL and load it for the current session only. The plugin is discarded when CC exits — nothing is written to `~/.claude/plugins/`.
+  ```bash
+  claude --plugin-url https://example.com/some-plugin.zip
+  ```
+
+Both are session-scoped trial paths; for permanent install, use the standard `/plugin install` flow against a marketplace. See `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` § CC 2.1.128/2.1.129 for the full notes.
+
 ## CLI Flags
 
 | Flag | Behavior |

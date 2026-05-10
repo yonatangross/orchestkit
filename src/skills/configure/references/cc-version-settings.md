@@ -397,3 +397,52 @@ Before 2.1.116, agent-scoped hooks (defined in `src/agents/<name>.md` frontmatte
 - Bash tool surfaces a GitHub API rate-limit hint when `gh` commands hit 403 — helps OrchestKit's commit/create-pr/review-pr skills back off instead of retrying.
 - Settings Usage tab renders 5-hour and weekly usage immediately with a fallback when `/usage` endpoint is rate-limited.
 - `/terminal-setup` configures VS Code/Cursor/Windsurf editor scroll sensitivity for smoother fullscreen-mode scrolling.
+
+## CC 2.1.128 Settings
+
+### `--plugin-dir` Now Accepts `.zip` Archives
+
+CC 2.1.128 extends `--plugin-dir` so it accepts a path to a `.zip` plugin archive in addition to an unpacked directory. Combined with the new `--plugin-url <url>` flag in 2.1.129 (see below), this enables a URL → download → load workflow for one-off plugin trials without committing the plugin to a marketplace or unpacking it manually.
+
+```bash
+# Load a plugin from a local zip
+claude --plugin-dir ./vendor/some-plugin.zip
+
+# Or from a download (chains naturally with --plugin-url; see 2.1.129)
+curl -LO https://example.com/some-plugin.zip
+claude --plugin-dir ./some-plugin.zip
+```
+
+**Action**: None for OrchestKit's own install path (we ship as a directory under `plugins/ork/`). Useful when evaluating third-party plugins side-by-side without polluting `~/.claude/plugins/`. The companion fix that stopped `/plugin` Components panel from reporting "Marketplace 'inline' not found" for `--plugin-dir`-loaded plugins (also in 2.1.128) means zip-loaded plugins now show in `/plugin` correctly.
+
+## CC 2.1.129 Settings
+
+### `Bash(mkdir *)` / `Bash(touch *)` Allow Rules Now Honored for In-Project Paths
+
+Before 2.1.129, `Bash(mkdir *)` and `Bash(touch *)` allow rules in `.claude/settings.json` were silently rejected for in-project relative paths — the prompt fired anyway, even though the rule was syntactically valid. As of 2.1.129 these rules are honored as documented.
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir *)",
+      "Bash(touch *)"
+    ]
+  }
+}
+```
+
+**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant — the canonical glob form works.
+
+### `--plugin-url <url>` for One-Off `.zip` Plugin Loading
+
+CC 2.1.129 adds `--plugin-url <url>` which fetches a plugin `.zip` archive from a URL and loads it for the current session only. Pairs with the `.zip` support in `--plugin-dir` (CC 2.1.128, see above) — `--plugin-url` is the network-fetch convenience wrapper.
+
+```bash
+# Try a plugin without committing to a marketplace install
+claude --plugin-url https://example.com/some-plugin.zip
+```
+
+**Use case**: Ad-hoc trial of an externally distributed plugin (e.g., a coworker's branch build, a release artifact from a GitHub Actions run) without modifying `~/.claude/plugins/` or adding a marketplace entry. The plugin is scoped to the session and discarded when CC exits. For long-term install, use the standard `/plugin install` flow against a marketplace.
+
+**Action for OrchestKit**: None for shipping. Mention this in `ork:setup` as a way to demo OrchestKit pre-release builds (e.g., a CI-produced `.zip` from a PR branch) without disturbing the user's existing install.
