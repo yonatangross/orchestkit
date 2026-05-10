@@ -325,7 +325,114 @@ else
 fi
 
 # ============================================================================
-# Test 8: empty gaps file → exit 0, no-op
+# Test 8: W1h (#1739) — versions below supported_floor skip LLM call entirely
+# Real-run evidence: cc-watch run 25632103449 (2026-05-10) attempted to triage
+# every unsnapshotted version (2.0.59, 2.0.60, ...100+) and timed out the job.
+# Below-floor entries should mark `below_floor: true`, NOT call the LLM, NOT
+# set `parse_failed`, and leave `features` as an empty array.
+# ============================================================================
+# Use a snapshot for an ancient version (well below the 2.1.138 floor in
+# shared/cc-support.json — this exercises the real production setting).
+mkdir -p shared/cc-snapshots
+cat > shared/cc-snapshots/2.0.59.md <<'EOF'
+# Claude Code 2.0.59
+
+- Some old feature that should not be triaged
+- Another stale bullet from ancient history
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {
+    "version": "2.0.59",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2
+  },
+  {
+    "version": "2.1.999",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2
+  }
+]
+EOF
+
+# A fixture that, if hit, would populate features. We use it to prove the
+# below-floor entry was NOT processed (its features stay empty), while the
+# above-floor entry IS processed.
+FIXTURE=/tmp/cc-triage-fixture-belowfloor.txt
+cat > "$FIXTURE" <<'EOF'
+[
+  {"feature_slug": "above_floor_feature", "category": "new_command", "description": "Above-floor entry processed normally", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "test"}
+]
+EOF
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "W1h: below-floor + above-floor mixed run exits 0"
+else
+  log_fail "W1h exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+fi
+
+# Below-floor entry: should be marked and have no features.
+BF=$(jq -r '.[] | select(.version=="2.0.59") | .below_floor' shared/cc-adoption-gaps.json)
+if [ "$BF" = "true" ]; then
+  log_pass "W1h: 2.0.59 marked below_floor: true"
+else
+  log_fail "W1h below_floor flag" "expected true, got '$BF'"
+fi
+
+BF_FEATURES=$(jq '.[] | select(.version=="2.0.59") | .features | length' shared/cc-adoption-gaps.json)
+if [ "$BF_FEATURES" = "0" ]; then
+  log_pass "W1h: below-floor entry has empty features[] (no LLM call made)"
+else
+  log_fail "W1h below-floor features" "expected 0, got $BF_FEATURES (LLM was called!)"
+fi
+
+# CRITICAL: skipping is NOT failure. parse_failed must NOT be set.
+BF_PARSE_FAILED=$(jq -r '.[] | select(.version=="2.0.59") | .parse_failed' shared/cc-adoption-gaps.json)
+if [ "$BF_PARSE_FAILED" = "false" ]; then
+  log_pass "W1h: below-floor skip does not set parse_failed (skipping ≠ failure)"
+else
+  log_fail "W1h parse_failed mismatch" "expected false, got '$BF_PARSE_FAILED' (skip was misclassified as failure)"
+fi
+
+# The skip log message should appear on stderr.
+if grep -qF "2.0.59 — below floor" /tmp/cc-triage-out.txt; then
+  log_pass "W1h: explicit 'below floor, skipping LLM' log emitted"
+else
+  log_fail "W1h log message" "expected 'below floor' log on stderr"
+fi
+
+# No 'extracting features from 2.0.59' log should appear (proves no LLM call).
+if grep -qF "extracting features from 2.0.59" /tmp/cc-triage-out.txt; then
+  log_fail "W1h LLM call avoidance" "found 'extracting features from 2.0.59' — LLM was called for below-floor version"
+else
+  log_pass "W1h: no 'extracting features from 2.0.59' log (LLM call was bypassed)"
+fi
+
+# Above-floor entry should still be processed normally.
+ABOVE_COUNT=$(jq '.[] | select(.version=="2.1.999") | .features | length' shared/cc-adoption-gaps.json)
+if [ "$ABOVE_COUNT" = "1" ]; then
+  log_pass "W1h: above-floor entry (2.1.999) processed normally — 1 feature extracted"
+else
+  log_fail "W1h above-floor regression" "expected 1 feature on 2.1.999, got $ABOVE_COUNT (skip logic over-applied)"
+fi
+
+# below_floor must NOT leak onto the above-floor entry.
+ABOVE_BF=$(jq -r '.[] | select(.version=="2.1.999") | .below_floor // "absent"' shared/cc-adoption-gaps.json)
+if [ "$ABOVE_BF" = "absent" ]; then
+  log_pass "W1h: above-floor entry does NOT carry below_floor flag"
+else
+  log_fail "W1h below_floor leak" "above-floor entry has below_floor=$ABOVE_BF"
+fi
+
+# ============================================================================
+# Test 9: empty gaps file → exit 0, no-op
 # ============================================================================
 echo '[]' > shared/cc-adoption-gaps.json
 EXIT=0

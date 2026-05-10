@@ -21,6 +21,7 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SNAPSHOT_DIR = join(ROOT, 'shared/cc-snapshots');
 const GAPS_PATH = join(ROOT, 'shared/cc-adoption-gaps.json');
+const SUPPORT_PATH = join(ROOT, 'shared/cc-support.json');
 const SKILLS_DIR = join(ROOT, 'src/skills');
 
 const VALID_CATEGORIES = new Set(['new_event', 'new_field', 'new_attr', 'new_command', 'new_perm', 'breaking', 'deprecation']);
@@ -28,6 +29,34 @@ const SCORE_BY_CATEGORY = {
   new_event: 10, new_field: 5, new_attr: 5,
   new_command: 15, new_perm: 12, breaking: 20, deprecation: 8,
 };
+
+// Mirror of cc-release-watch.mjs:compareSemver. Inlined here to avoid coupling
+// the two scripts via a shared module — both files are tiny and the function
+// is trivial. Returns negative if a < b, zero if equal, positive if a > b.
+function compareSemver(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if (pa[i] !== pb[i]) return pa[i] - pb[i];
+  }
+  return 0;
+}
+
+function readSupportedFloor() {
+  // Returns the supported_floor string (e.g. "2.1.138") or null if unavailable.
+  // Null means "don't filter" — fall back to the historical behaviour of
+  // triaging every entry. This keeps the script resilient if cc-support.json
+  // is missing or malformed (e.g. during a partially-applied bump).
+  if (!existsSync(SUPPORT_PATH)) return null;
+  try {
+    const support = JSON.parse(readFileSync(SUPPORT_PATH, 'utf8'));
+    const floor = support?.supported_floor;
+    if (typeof floor !== 'string' || !/^\d+\.\d+\.\d+$/.test(floor)) return null;
+    return floor;
+  } catch {
+    return null;
+  }
+}
 
 function buildSkillsCatalog() {
   const skills = [];
@@ -278,6 +307,12 @@ function main() {
   }
 
   const skillsCatalog = buildSkillsCatalog();
+  const supportedFloor = readSupportedFloor();
+  if (supportedFloor) {
+    console.log(`cc-triage: supported_floor = ${supportedFloor} (versions below this skip LLM extraction)`);
+  } else {
+    console.log('cc-triage: no supported_floor available — triaging all entries (legacy behaviour).');
+  }
   let updated = 0;
 
   for (const entry of gaps) {
@@ -287,6 +322,25 @@ function main() {
       console.log(`cc-triage: clearing sentinel on ${entry.version} for retry`);
       delete entry.parse_failed;
       delete entry.failed_at;
+    }
+
+    // W1h (#1739): skip the LLM call entirely for versions below the supported
+    // floor. cc-release-watch.mjs intentionally surfaces ALL unsnapshotted
+    // versions (so a recovery operator can still reissue them), but we do NOT
+    // want to burn LLM tokens classifying ancient CHANGELOG history that the
+    // adoption pipeline will never act on. Mark with `below_floor: true` so
+    // downstream filters can exclude them; the workflow's Step 3 jq filter
+    // (`select(.gap_score >= 10)`) already naturally skips entries with empty
+    // features[], so no workflow change is needed for issue filing. The
+    // sentinel is distinct from `parse_failed` (skipping is not failure), and
+    // takes precedence over the per-version LLM call below.
+    if (supportedFloor && compareSemver(entry.version, supportedFloor) < 0) {
+      entry.below_floor = true;
+      // Ensure features is a deterministic empty array (it normally already is).
+      if (!Array.isArray(entry.features)) entry.features = [];
+      console.error(`cc-triage: ${entry.version} — below floor ${supportedFloor}, skipping LLM`);
+      updated++;
+      continue;
     }
 
     const snapPath = join(SNAPSHOT_DIR, `${entry.version}.md`);
