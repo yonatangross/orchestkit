@@ -64,3 +64,17 @@ Auto mode could not evaluate this action.
 ```
 
 Pick whichever applies — `/compact` if context is full, `--debug` to see the classifier's reasoning, retry if it was transient.
+
+### "Logged out after laptop wake"
+
+If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race — concurrent wake-time refreshes invalidated the active token across every running session.
+
+**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.132, so anyone on the supported window is already fixed). Recover the session with:
+
+```bash
+claude /login
+```
+
+Then `claude --resume` the affected session(s). Checkpoint state in `.claude/pipeline-state.json` survives — see `checkpoint-resume` skill for resume semantics.
+
+If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race — investigate the refresh token (expired, keychain ACL changed, 1Password locked) instead.

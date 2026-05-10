@@ -540,6 +540,10 @@ Session recap is enabled by default since CC 2.1.110 (even with telemetry disabl
 - Cron-scheduled agents will be restored alongside the session
 - No need to manually re-create scheduled work after resuming
 
+## Plan Mode Preserved Across `--resume` (CC 2.1.132+)
+
+Plan mode preserved across `--resume` (CC 2.1.132+) — `--permission-mode plan` is honored when resuming a plan-mode session, and `ExitPlanMode` re-applies plan mode for the rest of the session. Pre-2.1.132 the flag was silently dropped, so any chain using `--resume` to re-enter plan mode could leak past plan-mode constraints. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
+
 
 ### Cron Monitoring
 
