@@ -270,22 +270,25 @@ jobs:
           fi
           echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
 
+      # Mint a Release Bot App installation token so the snapshot PR is opened
+      # by the App identity (not github-actions[bot]). PRs from
+      # github-actions[bot] do NOT trigger required CI checks, so auto-merge
+      # would stall indefinitely. App-issued tokens DO trigger CI. Mirrors
+      # the pattern already used by `.github/workflows/release-please.yml`.
+      - name: Mint Release Bot token for snapshot PR
+        id: app_token
+        if: success() && steps.changes.outputs.has_changes == 'true'
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3  # v3.1.1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - name: Open snapshot PR
         id: cpr
         if: success() && steps.changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1  # v8.1.1
         with:
-          # TODO(#1685): Replace `secrets.GITHUB_TOKEN` with
-          # `secrets.SNAPSHOT_PR_TOKEN` (a fine-grained PAT with
-          # `Contents: write` + `Pull requests: write` on this repo only)
-          # once a repo admin creates the secret. Required because PRs
-          # opened by the default GITHUB_TOKEN run AS github-actions[bot],
-          # whose pushes do NOT trigger required CI checks — so auto-merge
-          # never fires and snapshot PRs stall. A PAT pushes as a real
-          # user, which DOES trigger CI. Until the secret exists, this
-          # falls back to GITHUB_TOKEN and PRs require a manual rebase
-          # (push from a human) to kick CI.
-          token: ${{ secrets.SNAPSHOT_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app_token.outputs.token }}
           add-paths: |
             shared/cc-snapshots/
             shared/cc-adoption-gaps.json
