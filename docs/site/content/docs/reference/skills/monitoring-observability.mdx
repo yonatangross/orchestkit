@@ -5046,6 +5046,33 @@ histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
 
 See `scripts/prometheus-metrics.ts` for complete setup.
 
+## Claude Code OTel Metrics — Notes for Dashboards
+
+Claude Code emits OTel metrics under the `claude_code.*` namespace. Two metrics that frequently appear on team velocity dashboards:
+
+| Metric | Counts |
+|---|---|
+| `claude_code.tool.use` | Each tool invocation, labelled by `tool` |
+| `claude_code.pull_request.count` | PRs/MRs created during sessions |
+
+### CC 2.1.129: `claude_code.pull_request.count` now counts MCP-filed PRs
+
+Before CC 2.1.129, `claude_code.pull_request.count` only counted PRs/MRs created via shell commands run through the Bash tool (`gh pr create`, `glab mr create`, custom scripts). As of CC 2.1.129, the metric **also counts PRs/MRs filed via MCP tools** — e.g., GitHub MCP server's `create_pull_request`, GitLab MCP equivalents, and any custom MCP server exposing a PR/MR-creation tool.
+
+**Impact on existing dashboards**: a step-function increase at the 2.1.129 cutover for teams where MCP-driven PR creation is non-trivial. The "spike" is a measurement-surface change, not a behavioral change. Annotate the dashboard with the version bump so it isn't misread as a productivity surge.
+
+**Labels are unchanged**: the counter still emits `provider` and `result` labels; MCP-filed PRs are not specially flagged. If you need to distinguish MCP vs. shell origins:
+
+```text
+# Derive an MCP-origin counter by joining on tool-name in a separate stream
+sum(rate(claude_code.pull_request.count[5m])) by (provider)
+  - on(provider) sum(rate(claude_code.tool.use{tool=~"Bash"}[5m]))
+```
+
+(In practice, hold a separate counter in your collector that increments only on `claude_code.tool.use\{tool=~"mcp__.*"\}` co-occurring with a PR-creation event.)
+
+**See also**: `$\{CLAUDE_SKILL_DIR\}/../telemetry-inspect/SKILL.md` and `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
+
 ### Migration V2 V3
 
 # Migration Guide: v2 → v4 (Python) / v3 → v4 (JS)
@@ -7398,6 +7425,62 @@ sdk.start();
 5. **Add metadata** to observations for debugging (chunk counts, model params)
 6. **Truncate large inputs/outputs** to 500-1000 chars to reduce storage
 7. **Use nested observations** to track sub-operations
+
+### CC 2.1.128: Subprocesses No Longer Inherit OTEL_* Env Vars
+
+Starting with Claude Code 2.1.128, the CLI strips `OTEL_*` environment variables before spawning subprocesses. Affected children: **Bash tool, hooks, MCP servers (stdio + Streamable HTTP), LSP servers**. The CLI continues to emit its own metrics; child processes get a clean OTEL env unless you set it back yourself.
+
+**Before (≤ 2.1.127)** — child app picks up the CLI's collector by accident:
+
+```bash
+# In the user's shell
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+claude  # CLI emits to collector
+
+# Inside the session, Bash tool runs:
+python -m my_app  # ← my_app inherits OTEL_EXPORTER_OTLP_ENDPOINT,
+                  #   spans land in the CLI's collector under
+                  #   service.name=claude-code (wrong)
+```
+
+**After (≥ 2.1.128)** — child app starts with `OTEL_*` stripped:
+
+```bash
+# Same shell setup as before; CLI still emits to collector
+
+# Inside the session, Bash tool runs:
+python -m my_app  # ← OTEL_* is empty here; my_app emits nothing
+                  #   unless explicitly configured below
+```
+
+**If you want the child app to trace** — set the env explicitly inside the wrapped command:
+
+```bash
+# Wrap the call in the Bash tool invocation, not the CLI environment
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 \
+OTEL_SERVICE_NAME=my-app \
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment=dev \
+  python -m my_app
+```
+
+**For MCP servers**: declare the OTEL env in your `.mcp.json` server entry's `env` block, not in the user's shell. This keeps the CLI's collector and the server's collector configurable independently.
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "node",
+      "args": ["./server.js"],
+      "env": {
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-collector:4318",
+        "OTEL_SERVICE_NAME": "my-mcp-server"
+      }
+    }
+  }
+}
+```
+
+**Diagnosing**: if your dashboard shows a sudden drop in spans from a subprocess after upgrading past 2.1.128, check whether you were relying on inheritance. The fix is always "set OTEL env at the subprocess invocation site."
 
 ## References
 

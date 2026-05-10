@@ -157,6 +157,8 @@ export CLAUDE_MCP_DEBUG=1
 
 Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
 
+> **CC 2.1.128 — reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__<server>__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
+
 ## Example
 
 ```python

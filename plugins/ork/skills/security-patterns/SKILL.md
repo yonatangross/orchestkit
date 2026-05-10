@@ -318,6 +318,8 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 - PID namespace isolation on Linux for subprocess sandboxing
 - Prevent Bash permission bypasses via backslash escapes and compound commands
 
+> **CC 2.1.128 — SDK host "Always allow" persistence**: when a user picks "Always allow" from a Bash permission prompt in an SDK host, the grant now persists via `.claude/settings.local.json` instead of evaporating at session end. Audit your SDK consumers' `.gitignore` to confirm `.claude/settings.local.json` is excluded — committing it leaks per-developer Bash auth grants. Project-committed `.claude/settings.json` is unchanged; only the user-machine-local file receives the new entries.
+
 ### input-validation
 **Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
 **Solves:**

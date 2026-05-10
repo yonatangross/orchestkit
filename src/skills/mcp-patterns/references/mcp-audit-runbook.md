@@ -64,6 +64,43 @@ To freeze a server at a known-good version, edit `.mcp.json`:
 
 Document the pin reason in `mcp-version-matrix.md` under the affected row. Remove the pin once the reason is resolved (e.g., upstream ships a fix, your consumer code adapts to the new API).
 
+## CC 2.1.128: MCP Reconnect Tool Summarization
+
+CC 2.1.128 changed the on-reconnect tool announcement format. Re-announced tools are summarized by server prefix instead of being enumerated line-by-line:
+
+```text
+# Before (≤ 2.1.127)
+mcp__github__create_issue re-registered
+mcp__github__create_pull_request re-registered
+mcp__github__list_repositories re-registered
+... (37 lines per reconnect)
+
+# After (≥ 2.1.128)
+mcp__github__* (37 tools re-registered)
+```
+
+**Audit-log impact**: any audit-log diff/grep pattern that counted re-registrations by parsing per-line entries underestimates after 2.1.128. Two changes to apply:
+
+1. **Source-of-truth for tool surface area** — use the **initial connect** event (first registration after server start), which still emits the full per-tool list. Treat reconnect events as deltas only.
+2. **Reconnect-frequency monitoring** — the new summary line still contains the server prefix and tool count, so reconnect-event counters and per-server reconnect histograms continue to work; what changes is the per-tool dimension on reconnects.
+
+**Grep recipes** for the audit log:
+
+```bash
+# Count reconnects per server (works on both formats)
+grep -E '^mcp__([^_]+)__' audit.log | awk -F__ '{print $2}' | sort | uniq -c
+
+# Tool inventory at session start (always full enumeration)
+awk '/^=== session start ===/{in_session=1; next}
+     /^=== session end ===/{in_session=0}
+     in_session && /^mcp__/' audit.log
+
+# Detect 2.1.128+ summary lines specifically
+grep -E '^mcp__[^_]+__\* \([0-9]+ tools re-registered\)$' audit.log
+```
+
+If you maintain an external system that tracks tool counts via the audit log alone (e.g., a "MCP tool sprawl" alert), prefer the registry-discovery walk (`registry.modelcontextprotocol.io`) or query the server's `tools/list` directly via Inspector for an authoritative count.
+
 ## Related
 
 - `mcp-version-matrix.md` — the current-state matrix this runbook maintains
