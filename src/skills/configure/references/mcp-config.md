@@ -292,4 +292,27 @@ OrchestKit's source manifest (`manifests/ork.json`) and built `plugins/ork/.clau
 ### `CLAUDE_CODE_SHELL_PREFIX` no longer corrupts MCP stdio argv (CC 2.1.128)
 
 If you wrap CC in `nix-shell --run`, `direnv exec`, or similar via `CLAUDE_CODE_SHELL_PREFIX`, stdio MCP servers used to receive corrupted argv when their command-line args contained spaces or shell metacharacters. CC 2.1.128 preserves quoting through the prefix wrap. No action required at our floor — just notable history.
+
+## CC 2.1.132 changes
+
+### `/mcp` shows `needs auth` instead of `failed` for unauthorized claude.ai connectors
+
+Before 2.1.132, an unauthorized claude.ai MCP connector (HTTP 401) showed up in `/mcp` as `failed` — indistinguishable from a server that crashed during connect. CC 2.1.132 reports it as `needs auth`, so the user knows to run the connector's authorization flow.
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notion       needs auth                       ← run the connector's authorize flow
+  brokensvr    failed                           ← genuinely broken — investigate
+  flakysvr     connected · tools fetch failed   ← retried tools/list once and gave up (see below)
+```
+
+### Headless `-p` retries `tools/list` once then surfaces `connected · tools fetch failed`
+
+Before 2.1.132, MCP servers that connected successfully but then failed `tools/list` (for example, a stdio server crashing right after the handshake) silently appeared as `0 tools` with no error surface. CC 2.1.132 retries `tools/list` exactly once and, if it still fails, displays `connected · tools fetch failed` in `/mcp`. In headless `-p` mode the same status string lands in stderr/output so CI scripts can detect it.
+
+CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mode — auth-required connectors now fail fast instead of consuming the retry budget.
+
+**OrchestKit impact**: `/ork:doctor`'s MCP check can branch on three concrete states (`needs auth`, `connected · tools fetch failed`, `failed`) instead of conflating all of them as "broken". No `.mcp.json` change needed at our floor.
+
 See the `agent-browser` skill for Vercel's headless browser CLI.

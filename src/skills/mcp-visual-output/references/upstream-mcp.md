@@ -126,3 +126,24 @@ npm install @json-render/react @json-render/shadcn react react-dom
 # Build tools
 npm install -D vite @vitejs/plugin-react vite-plugin-singlefile
 ```
+
+<!-- /SYNCED — OrchestKit-local notes below survive the next sync -->
+
+## Auth status visibility (CC 2.1.132+)
+
+When a json-render-backed MCP server is loaded as a claude.ai connector, CC 2.1.132 distinguishes auth-required from broken in `/mcp`:
+
+```
+$ claude  /mcp
+  my-app       needs auth                       ← OAuth not completed for this connector
+  my-app       connected · tools fetch failed   ← handshake OK, tools/list failed (retried once)
+  my-app       failed                           ← genuinely broken
+```
+
+Implications when shipping an MCP App:
+
+- Return `401` (not a generic 500) for unauthenticated requests so CC surfaces `needs auth` instead of `failed`. Generic-500 used to render the same way pre-2.1.132 but no longer does.
+- Don't lazy-throw inside `tools/list`. CC 2.1.132 retries it once; persistent failure shows as `connected · tools fetch failed`, which is a worse user experience than failing the initial connect cleanly.
+- Headless `-p` callers no longer retry non-transient 4xx — an MCP App that issues `401` will fail fast in CI/scripted invocations as intended.
+
+See `configure/references/mcp-config.md` (`## CC 2.1.132 changes`) for the matching CLI-side status semantics.

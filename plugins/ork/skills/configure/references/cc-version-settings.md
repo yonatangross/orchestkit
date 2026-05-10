@@ -446,3 +446,41 @@ claude --plugin-url https://example.com/some-plugin.zip
 **Use case**: Ad-hoc trial of an externally distributed plugin (e.g., a coworker's branch build, a release artifact from a GitHub Actions run) without modifying `~/.claude/plugins/` or adding a marketplace entry. The plugin is scoped to the session and discarded when CC exits. For long-term install, use the standard `/plugin install` flow against a marketplace.
 
 **Action for OrchestKit**: None for shipping. Mention this in `ork:setup` as a way to demo OrchestKit pre-release builds (e.g., a CI-produced `.zip` from a PR branch) without disturbing the user's existing install.
+
+### Server-Managed Settings Now Apply to Pre-`user:inference` OAuth Tokens
+
+Before CC 2.1.129, enterprise/team users whose stored OAuth credentials predated the `user:inference` scope rollout silently bypassed server-managed settings policy — the policy file was fetched but not enforced. As of 2.1.129 the policy applies regardless of whether the cached token carries `user:inference`.
+
+**Impact for OrchestKit**: If your org publishes a managed `permissions`/`disableSkillShellExecution`/`forceRemoteSettingsRefresh` policy and some seats appeared to ignore it, those seats are now enforced after upgrade. No setting to change — re-login (`claude /login`) is only needed if a user is still on a pre-2.1.129 token AND wants the new scope locally; the server-side enforcement does not require re-login.
+
+### OAuth Refresh Race Fix After Wake-from-Sleep
+
+Before 2.1.129, when a laptop woke from sleep with multiple CC sessions open, the OAuth refresh attempt could race itself across sessions and invalidate the active token, logging every running session out at once. CC 2.1.129 serializes the wake-time refresh.
+
+**Impact for OrchestKit**: Long-running `/ork:implement` / `/ork:cover` / checkpoint-resume chains that span a sleep cycle no longer get killed by a phantom logout. If you still see "logged out after wake" on CC ≥ 2.1.129, it's a credential issue (expired refresh token, keychain ACL, 1Password unlock), not the race — see `doctor/references/remediation-guide.md`.
+
+## CC 2.1.132 Settings
+
+### `--permission-mode` Honored on Plan-Mode Resume
+
+Before 2.1.132, the `--permission-mode` flag was silently ignored when resuming a plan-mode session via `-p --continue` or `--resume`, and `ExitPlanMode` did not re-apply plan mode for the rest of the same session. Both gaps closed the wrong way (more permissive than declared), so this is a security-relevant fix, not just UX.
+
+```bash
+# At our floor (CC ≥ 2.1.132): plan mode survives resume as declared
+claude --resume <session-id> --permission-mode plan
+```
+
+**Impact for OrchestKit**: Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) and the checkpoint-resume / chain-patterns flows that re-enter sessions with `--resume` no longer leak past plan-mode constraints. No setting change — the floor in `engines.claudeCode` already guarantees the fix.
+
+### MCP Unauthorized Connector Status Visibility
+
+Before 2.1.132, claude.ai MCP connectors that returned `401 Unauthorized` were displayed in `/mcp` as `failed`, masking the real cause (the user just needs to authorize). Headless `-p` mode also retried these non-transient 4xx auth failures as if they were network blips. CC 2.1.132 splits the two: connectors needing auth show as `needs auth` and `-p` stops retrying them.
+
+```
+$ claude  /mcp
+  github       connected · 12 tools
+  notion       needs auth     ← was "failed" pre-2.1.132
+  myserver     connected · tools fetch failed
+```
+
+**Impact for OrchestKit**: `/ork:doctor` and `mcp-visual-output` skills can rely on `/mcp` status text to distinguish auth-required from genuinely broken servers. No config change at our floor.

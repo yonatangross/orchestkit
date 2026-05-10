@@ -71,6 +71,8 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | Parallelism | Task sub-agents only for phases with empty `dependencies` that don't share file writes |
 | Rate limit recovery | State is already saved — re-invoke `/checkpoint-resume` to continue |
 
+> Plan mode preserved across `--resume` (CC 2.1.132+) — `--permission-mode plan` is honored on resume, and `ExitPlanMode` re-applies plan mode for the rest of the session. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
+
 
 ---
 
