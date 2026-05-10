@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit requires Claude Code >= 2.1.132. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
+OrchestKit requires Claude Code >= 2.1.138. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
 ## Feature Matrix
 

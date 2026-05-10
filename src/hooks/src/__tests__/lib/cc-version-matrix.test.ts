@@ -17,11 +17,12 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.132', () => {
-      // 2026-05-07 bolder bump: floor jumped 2.1.125 -> 2.1.132 with manual_override
-      // (CLAUDE_CODE_SESSION_ID + sub-agent prompt cache + parallel-shell fanout). Stamper
-      // propagates supported_floor from shared/cc-support.json. Expires 2026-08-07.
-      expect(MIN_CC_VERSION).toBe('2.1.132');
+    test('is 2.1.138', () => {
+      // 2026-05-10 W4 floor bump (M134): 2.1.132 -> 2.1.138 (closeout). Versions 133/136/137/138
+      // upstream — 2.1.134/135 don't exist. Original 2026-05-07 bolder-bump manual_override
+      // still in force (expires 2026-08-07). Stamper propagates supported_floor from
+      // shared/cc-support.json.
+      expect(MIN_CC_VERSION).toBe('2.1.138');
     });
   });
 
@@ -76,7 +77,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.132');
+      const features = getAvailableFeatures('2.1.138');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -102,8 +103,10 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getMissingFeatures', () => {
-    test('no missing features at 2.1.132', () => {
-      const missing = getMissingFeatures('2.1.132');
+    test('no missing features at 2.1.138', () => {
+      // No new feature entries added in W4 — matrix still ends at 2.1.132.
+      // Adoption issues for 133/136/137/138 are tracked under M132/M135/M133.
+      const missing = getMissingFeatures('2.1.138');
       expect(missing.length).toBe(0);
     });
 

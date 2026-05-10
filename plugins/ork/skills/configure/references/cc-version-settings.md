@@ -543,7 +543,7 @@ The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the
 Before 2.1.132, the `--permission-mode` flag was silently ignored when resuming a plan-mode session via `-p --continue` or `--resume`, and `ExitPlanMode` did not re-apply plan mode for the rest of the same session. Both gaps closed the wrong way (more permissive than declared), so this is a security-relevant fix, not just UX.
 
 ```bash
-# At our floor (CC ≥ 2.1.132): plan mode survives resume as declared
+# At our floor (CC ≥ 2.1.138): plan mode survives resume as declared
 claude --resume <session-id> --permission-mode plan
 ```
 
