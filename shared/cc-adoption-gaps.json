@@ -1,30 +1,1934 @@
 [
   {
-    "version": "2.1.133",
-    "parse_failed": true,
+    "version": "0.2.21",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.26",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.30",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.31",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.32",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.34",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.36",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.37",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.41",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.44",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.47",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.49",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.50",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.53",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.54",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.59",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.61",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.63",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.66",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.67",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.69",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.70",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.72",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.74",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.75",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.82",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.93",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.96",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.98",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.100",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.102",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.105",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.106",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.107",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.108",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.117",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "0.2.125",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.0",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.1",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.4",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.6",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.7",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.8",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.10",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.11",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.17",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.18",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 8,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.21",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.22",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.23",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.24",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.25",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.27",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.28",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.29",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.30",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.31",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.32",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.33",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.34",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.35",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.36",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.37",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.38",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.39",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.40",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.41",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.42",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.43",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.44",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.45",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.48",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.51",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.52",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.53",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.54",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.55",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.56",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.57",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.58",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.59",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.60",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.61",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 8,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.62",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.63",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.64",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.65",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.68",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.69",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.70",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.71",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.72",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.73",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.77",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.80",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.81",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.82",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.83",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.84",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.85",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.86",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.88",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.90",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.93",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.94",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.97",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.106",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.109",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.110",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.111",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.112",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.113",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.115",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.117",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.119",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.120",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.123",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.124",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "1.0.126",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.0",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 10,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.1",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.5",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.8",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.9",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.10",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.11",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.12",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 11,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.13",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.14",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.15",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.17",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.19",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.20",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.21",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.22",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.24",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.25",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.27",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.28",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.30",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 16,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.31",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.32",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.33",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.34",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.35",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.36",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.37",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.41",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 12,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.42",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.43",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 8,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.45",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.46",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.47",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.49",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.50",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.51",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.52",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.54",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.55",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.56",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.57",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.58",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.59",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.60",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.61",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.62",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.64",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 14,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.65",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.67",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 11,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.68",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 6,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.69",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.70",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 12,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.71",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.72",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 10,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.73",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.74",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 13,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.75",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.0.76",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.0",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 109,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.2",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 22,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.3",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 13,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.4",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.5",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.6",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 25,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.7",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 15,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.9",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.10",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.11",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.12",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.14",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 16,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.15",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 4,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.16",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.17",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.18",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.19",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 14,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.20",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 28,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.21",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 10,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.22",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.23",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 11,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.25",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.27",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 9,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.29",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.30",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 19,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.31",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 11,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.32",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 12,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.33",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 16,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.34",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.36",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.37",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.38",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 7,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.39",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.41",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 22,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.42",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 5,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.43",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.44",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.45",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 15,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.46",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 2,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.47",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 68,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.49",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 27,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.50",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 25,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.51",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 11,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.52",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.53",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 8,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.55",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.56",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.58",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.59",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 8,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.61",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.62",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.63",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 26,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.66",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.68",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 3,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.69",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 103,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.70",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 29,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.71",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 28,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.72",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 51,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.73",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 26,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.74",
+    "parse_failed": false,
     "features": [],
     "raw_bullets_count": 17,
-    "failed_at": "2026-05-10T08:59:07.438Z"
+    "below_floor": true
   },
   {
-    "version": "2.1.136",
-    "parse_failed": true,
+    "version": "2.1.75",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 19,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.76",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 35,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.77",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 44,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.78",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 26,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.79",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 18,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.80",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 17,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.81",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 27,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.83",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 76,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.84",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 40,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.85",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 30,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.86",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 26,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.87",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.89",
+    "parse_failed": false,
     "features": [],
     "raw_bullets_count": 52,
-    "failed_at": "2026-05-10T08:59:12.936Z"
+    "below_floor": true
   },
   {
-    "version": "2.1.137",
-    "parse_failed": true,
+    "version": "2.1.90",
+    "parse_failed": false,
     "features": [],
-    "raw_bullets_count": 1,
-    "failed_at": "2026-05-10T08:59:18.312Z"
+    "raw_bullets_count": 19,
+    "below_floor": true
   },
   {
-    "version": "2.1.138",
-    "parse_failed": true,
+    "version": "2.1.91",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 13,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.92",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 21,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.94",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 25,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.96",
+    "parse_failed": false,
     "features": [],
     "raw_bullets_count": 1,
-    "failed_at": "2026-05-10T08:59:24.072Z"
+    "below_floor": true
+  },
+  {
+    "version": "2.1.97",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 46,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.98",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 57,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.101",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 46,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.105",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 37,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.107",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.108",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 24,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.109",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.110",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 33,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.111",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 35,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.112",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.113",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 38,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.114",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.116",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 25,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.117",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 28,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.118",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 34,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.119",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 51,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.120",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 22,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.121",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 39,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.122",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 18,
+    "below_floor": true
+  },
+  {
+    "version": "2.1.123",
+    "parse_failed": false,
+    "features": [],
+    "raw_bullets_count": 1,
+    "below_floor": true
   }
 ]
