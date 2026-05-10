@@ -214,7 +214,111 @@ rm -f shared/cc-snapshots/2.1.998.md shared/cc-adoption-gaps.json shared/gh-issu
 echo '# Claude Code 2.1.126 (placeholder for test)' > shared/cc-snapshots/2.1.126.md
 
 # ============================================================================
-# Test 6: missing fixture path errors cleanly (exit 1)
+# Test 6: W1b (#1693) — versions OLDER than knownLatest but missing on disk
+# must still be picked up. Earlier `cmp >= 0` filter caused permanently
+# invisible failure mode when cc-support.json.latest jumped past versions.
+# ============================================================================
+rm -f shared/cc-snapshots/2.1.13[345].md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+# Pre-populate 2.1.135 only — simulating "floor jumped to 135 but 133/134
+# never got snapshotted on disk". cc-support.json.latest is 2.1.132 today,
+# so use a temporary override via env reading: the script reads support.latest
+# directly. We simulate by leaving 2.1.135 snapshotted and 133/134 missing,
+# and we exploit the fact that the W1b filter must include versions
+# regardless of relation to knownLatest, as long as they're missing on disk.
+echo "# Claude Code 2.1.135 (placeholder)" > shared/cc-snapshots/2.1.135.md
+
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-w1b.txt 2>&1
+
+if [ -f shared/cc-snapshots/2.1.133.md ] && [ -f shared/cc-snapshots/2.1.134.md ]; then
+  log_pass "W1b: missing-on-disk versions older than nothing-vs-floor are snapshotted"
+else
+  log_fail "W1b snapshot recovery" "expected 2.1.133.md AND 2.1.134.md to be re-snapshotted (see /tmp/watch-w1b.txt)"
+fi
+
+# 2.1.135 was already snapshotted — must remain a no-op for it (W1b filter
+# is "snapshotted-on-disk" not "compare against floor").
+if [ -f shared/cc-adoption-gaps.json ]; then
+  HAS_135=$(jq -r '.[] | select(.version=="2.1.135") | .version' shared/cc-adoption-gaps.json)
+  if [ -z "$HAS_135" ]; then
+    log_pass "W1b: already-snapshotted 2.1.135 is NOT re-emitted in gaps"
+  else
+    log_fail "W1b: 2.1.135 leaked into gaps" "expected absent, got '$HAS_135'"
+  fi
+fi
+
+# Restore steady state.
+rm -f shared/cc-snapshots/2.1.13[345].md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 7: W1c (#1694) — `--reissue-existing X.Y.Z` re-emits gap entry without
+# overwriting existing snapshot file body.
+# ============================================================================
+# Set up: 2.1.133 snapshot exists with custom body. Run with --reissue-existing
+# 2.1.133. Expect: snapshot body unchanged, gap entry emitted with empty features.
+mkdir -p shared/cc-snapshots
+cat > shared/cc-snapshots/2.1.133.md <<'EOF'
+# Claude Code 2.1.133
+
+CUSTOM_BODY_THAT_SHOULD_NOT_BE_OVERWRITTEN
+
+- existing bullet 1
+- existing bullet 2
+EOF
+
+# Pre-populate 2.1.135 too so the watcher doesn't try to fetch it.
+echo "# Claude Code 2.1.135 (placeholder)" > shared/cc-snapshots/2.1.135.md
+echo "# Claude Code 2.1.134 (placeholder)" > shared/cc-snapshots/2.1.134.md
+
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
+  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133 > /tmp/watch-w1c.txt 2>&1
+
+if grep -qF "CUSTOM_BODY_THAT_SHOULD_NOT_BE_OVERWRITTEN" shared/cc-snapshots/2.1.133.md; then
+  log_pass "W1c: --reissue-existing keeps existing snapshot body"
+else
+  log_fail "W1c: snapshot overwritten" "custom body lost — see shared/cc-snapshots/2.1.133.md"
+fi
+
+if [ -f shared/cc-adoption-gaps.json ]; then
+  HAS_133=$(jq -r '.[] | select(.version=="2.1.133") | .version' shared/cc-adoption-gaps.json)
+  if [ "$HAS_133" = "2.1.133" ]; then
+    log_pass "W1c: --reissue-existing re-emits gap entry for 2.1.133"
+  else
+    log_fail "W1c: gap not re-emitted" "expected 2.1.133, got '$HAS_133' (cat /tmp/watch-w1c.txt)"
+  fi
+  EMPTY_FEATURES=$(jq -r '.[] | select(.version=="2.1.133") | .features | length' shared/cc-adoption-gaps.json)
+  if [ "$EMPTY_FEATURES" = "0" ]; then
+    log_pass "W1c: reissued gap entry has empty features[] (ready for triage)"
+  else
+    log_fail "W1c: features should be []" "got length=$EMPTY_FEATURES"
+  fi
+fi
+
+if grep -qF "reissue: " /tmp/watch-w1c.txt; then
+  log_pass "W1c: explicit reissue log emitted"
+else
+  log_fail "W1c log" "expected 'reissue:' line in stdout"
+fi
+
+# Comma-separated form
+rm -f shared/cc-adoption-gaps.json shared/gh-issue-args.json
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
+  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133,2.1.134 > /tmp/watch-w1c2.txt 2>&1
+
+if [ -f shared/cc-adoption-gaps.json ]; then
+  COUNT=$(jq -r '[.[] | select(.version=="2.1.133" or .version=="2.1.134")] | length' shared/cc-adoption-gaps.json)
+  if [ "$COUNT" = "2" ]; then
+    log_pass "W1c: comma-separated --reissue-existing reissues both versions"
+  else
+    log_fail "W1c: comma form" "expected 2 reissued entries, got $COUNT"
+  fi
+fi
+
+# Cleanup before final test
+rm -f shared/cc-snapshots/2.1.13[345].md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 8: missing fixture path errors cleanly (exit 1)
 # ============================================================================
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE=/nonexistent/path.md node scripts/cc-release-watch.mjs > /tmp/watch-err.txt 2>&1 || EXIT=$?

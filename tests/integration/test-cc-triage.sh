@@ -285,7 +285,47 @@ else
 fi
 
 # ============================================================================
-# Test 7: empty gaps file → exit 0, no-op
+# Test 7: W1d (#1696) — empty array result triggers retry + parse_failed
+# Root cause of M134 stuck state: model returned `[]` for a non-empty
+# changelog, which was syntactically valid JSON so parse_failed stayed false
+# and features stayed empty forever. The fix: empty arrays trigger retry,
+# and on second empty result, set parse_failed: true.
+# ============================================================================
+write_gaps
+FIXTURE=tests/fixtures/cc-changelogs/triage-empty-result.txt
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "W1d: empty-array fixture exits 0 (degrades gracefully)"
+else
+  log_fail "W1d empty-array exit" "expected 0, got $EXIT"
+fi
+
+PARSE_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$PARSE_FAILED" = "true" ]; then
+  log_pass "W1d: empty-array result writes parse_failed sentinel"
+else
+  log_fail "W1d parse_failed on empty" "expected true, got '$PARSE_FAILED' (this is the M134 root cause)"
+fi
+
+if grep -qF "empty array result" /tmp/cc-triage-out.txt; then
+  log_pass "W1d: empty-array detection logged with explicit reason"
+else
+  log_fail "W1d log message" "expected 'empty array result' in stderr (cat /tmp/cc-triage-out.txt)"
+fi
+
+if grep -qF "retry firing" /tmp/cc-triage-out.txt; then
+  log_pass "W1d: retry-warning emitted on stderr (visible in CI logs)"
+else
+  log_fail "W1d retry log" "expected 'retry firing' warning before second attempt"
+fi
+
+# ============================================================================
+# Test 8: empty gaps file → exit 0, no-op
 # ============================================================================
 echo '[]' > shared/cc-adoption-gaps.json
 EXIT=0

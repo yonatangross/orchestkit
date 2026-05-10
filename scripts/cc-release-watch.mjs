@@ -31,6 +31,31 @@ const ISSUE_ARGS_PATH = join(ROOT, 'shared/gh-issue-args.json');
 
 const FIXTURE_PATH = process.env.CC_RELEASE_WATCH_FIXTURE; // for tests
 
+function parseReissueFlag(argv) {
+  // `--reissue-existing X.Y.Z` or `--reissue-existing X.Y.Z,X.Y.Z2`.
+  // Either `--reissue-existing=val` or `--reissue-existing val` form is supported.
+  // Versions that match no parsed CHANGELOG entry are silently dropped (logged once).
+  const out = new Set();
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    let raw = null;
+    if (arg === '--reissue-existing' && i + 1 < argv.length) {
+      raw = argv[i + 1];
+      i++;
+    } else if (arg.startsWith('--reissue-existing=')) {
+      raw = arg.slice('--reissue-existing='.length);
+    }
+    if (raw === null) continue;
+    for (const v of raw.split(',')) {
+      const trimmed = v.trim();
+      if (/^\d+\.\d+\.\d+$/.test(trimmed)) out.add(trimmed);
+    }
+  }
+  return out;
+}
+
+const REISSUE_VERSIONS = parseReissueFlag(process.argv.slice(2));
+
 function fetchChangelog() {
   if (FIXTURE_PATH) {
     if (!existsSync(FIXTURE_PATH)) {
@@ -102,6 +127,10 @@ function main() {
   const knownLatest = support.latest || '0.0.0';
 
   console.log(`cc-release-watch: known latest = ${knownLatest}`);
+  if (REISSUE_VERSIONS.size > 0) {
+    console.log(`cc-release-watch: --reissue-existing = ${[...REISSUE_VERSIONS].join(', ')}`);
+  }
+  const reissueSet = REISSUE_VERSIONS;
 
   const changelog = fetchChangelog();
   const versions = parseVersions(changelog);
@@ -119,17 +148,20 @@ function main() {
       .map((f) => f.replace(/\.md$/, '')),
   );
 
-  // Take any version (a) newer than the known floor OR (b) at-or-newer than
-  // the floor but NOT yet snapshotted on disk. The latter recovers from a
-  // race where `cc-support.json.latest` advanced (via the bump workflow)
-  // before its snapshot file landed — without this the watcher would silently
-  // never re-create the missing snapshot.
+  // Take ANY version that's not yet snapshotted on disk, regardless of its
+  // relation to `knownLatest`. The earlier `cmp >= 0` filter dropped versions
+  // that were older than the known floor but missing on disk, producing a
+  // "permanently invisible" failure mode: if `cc-support.json.latest` jumped
+  // past 2.1.133/134 to 2.1.135 without those intermediate snapshots landing
+  // (race with the bump workflow), the watcher would skip them on every
+  // subsequent run forever. Snapshot presence on disk is the single source
+  // of truth for "have we processed this version" — comparing against the
+  // floor is redundant and actively harmful.
+  //
+  // Versions in `--reissue-existing` bypass the snapshotted check too, so a
+  // human can recover from a botched gaps file without re-fetching.
   const newVersions = versions
-    .filter((v) => {
-      if (snapshotted.has(v.version)) return false;
-      const cmp = compareSemver(v.version, knownLatest);
-      return cmp > 0 || cmp === 0;
-    })
+    .filter((v) => reissueSet.has(v.version) || !snapshotted.has(v.version))
     .sort((a, b) => compareSemver(a.version, b.version));
 
   if (newVersions.length === 0) {
@@ -142,14 +174,24 @@ function main() {
   console.log(`cc-release-watch: ${newVersions.length} new version(s): ${newVersions.map((v) => v.version).join(', ')}`);
 
   // Write per-version snapshot files.
+  // For `--reissue-existing` versions: do NOT overwrite an already-present
+  // snapshot — the existing file is the historical capture and may carry
+  // hand-edits or otherwise differ from upstream. The reissue is about
+  // re-emitting the gap entry, not re-fetching the body.
   for (const v of newVersions) {
     const snapPath = join(SNAPSHOT_DIR, `${v.version}.md`);
+    if (reissueSet.has(v.version) && existsSync(snapPath)) {
+      console.log(`  reissue: ${snapPath} already present — keeping existing body`);
+      continue;
+    }
     writeFileSync(snapPath, `# Claude Code ${v.version}\n\nCaptured: ${new Date().toISOString()}\n\n${v.body}\n`);
     console.log(`  wrote ${snapPath}`);
   }
 
   // Emit a gaps file with version-level entries — populated further by cc-triage.mjs (Part A LLM step).
   // If triage is skipped (no LLM token), the workflow's fallback step files a generic manual-triage issue.
+  // Reissued versions are included with empty `features[]` so the next triage
+  // run picks them up exactly like a fresh discovery would.
   const gaps = newVersions.map((v) => ({
     version: v.version,
     parse_failed: false,

@@ -116,8 +116,23 @@ function readFixtureClaudeOutput() {
   return { stdout: readFileSync(path, 'utf8'), status: 0 };
 }
 
+const CLAUDE_CALL_TIMEOUT_MS = 60_000;
+
 function callClaude(prompt) {
-  // Single retry on parse failure. Each call has 60s timeout via spawnSync.
+  // Single retry budget over THREE failure modes:
+  //   (a) timeout (spawnSync's `timeout` field — also surfaces as `signal === 'SIGTERM'`)
+  //   (b) JSON parse error / non-array result
+  //   (c) empty array (`[]`) — the actual root cause of M134's stuck state.
+  //       An empty array is syntactically valid JSON but semantically a failure
+  //       on a snapshot that has changelog bullets in it. Without re-running,
+  //       a transient model burp permanently writes `features: []` and the
+  //       version is dropped from triage forever (parse_failed: false means
+  //       "succeeded but no features", which the workflow trusts as final).
+  //
+  // Each attempt has its own 60s timeout (CLAUDE_CALL_TIMEOUT_MS). If both
+  // attempts fail, return null — caller sets `parse_failed: true` so
+  // `--retry-failed` can re-attempt later.
+  //
   // Flag conventions:
   //   - `-p` is non-interactive print mode (CC 2.1.81+)
   //   - `--max-turns 1` bounds execution; without it CC may agentically retry
@@ -139,7 +154,11 @@ function callClaude(prompt) {
   // Prompt is fed via stdin (no positional arg), which is the documented
   // streaming-input pattern for `-p`.
   const fixture = readFixtureClaudeOutput();
+  let lastReason = null;
   for (let attempt = 1; attempt <= 2; attempt++) {
+    if (attempt === 2 && lastReason) {
+      console.error(`cc-triage: retry firing — previous attempt failed with ${lastReason}`);
+    }
     try {
       const res = fixture
         ? fixture
@@ -157,9 +176,18 @@ function callClaude(prompt) {
             {
               input: prompt,
               encoding: 'utf8',
-              timeout: 60_000,
+              timeout: CLAUDE_CALL_TIMEOUT_MS,
             },
           );
+      // Detect timeout. spawnSync surfaces this via `signal === 'SIGTERM'`
+      // (also `error.code === 'ETIMEDOUT'` on some Node versions). Empty
+      // status + signal is the canonical "killed by timeout" shape.
+      if (res.signal === 'SIGTERM' || (res.error && res.error.code === 'ETIMEDOUT')) {
+        lastReason = `timeout after ${CLAUDE_CALL_TIMEOUT_MS / 1000}s`;
+        console.error(`cc-triage: claude call ${lastReason} (attempt ${attempt}/2)`);
+        if (attempt === 2) return null;
+        continue;
+      }
       if (res.status !== 0) {
         // Log BOTH stdout and stderr — claude sometimes emits errors to stdout
         // (e.g., model-not-found, auth issues), and stderr-only logging masked
@@ -168,15 +196,23 @@ function callClaude(prompt) {
         const stdoutSlice = (res.stdout || '').slice(0, 500).trim();
         const detail = stderrSlice || stdoutSlice || '(no output captured)';
         const channel = stderrSlice ? 'stderr' : (stdoutSlice ? 'stdout' : 'silent');
-        console.error(`claude exit ${res.status} [${channel}]: ${detail}`);
+        lastReason = `claude exit ${res.status} [${channel}]: ${detail}`;
+        console.error(lastReason);
         if (attempt === 2) return null;
         continue;
       }
       const out = (res.stdout || '').trim();
       const parsed = JSON.parse(out);
       if (!Array.isArray(parsed)) throw new Error('result is not array');
+      if (parsed.length === 0) {
+        lastReason = 'empty array result (model emitted [] for a non-empty changelog)';
+        console.error(`cc-triage: ${lastReason} (attempt ${attempt}/2)`);
+        if (attempt === 2) return null;
+        continue;
+      }
       return parsed;
     } catch (err) {
+      lastReason = `parse error: ${err.message}`;
       console.error(`attempt ${attempt} failed: ${err.message}`);
       if (attempt === 2) return null;
     }

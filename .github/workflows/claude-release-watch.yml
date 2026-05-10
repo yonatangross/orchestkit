@@ -5,6 +5,11 @@
 name: Claude Release Watch
 on:
   workflow_dispatch:
+    inputs:
+      reissue_existing:
+        description: 'Comma-separated CC versions to re-emit gap entries for (e.g. "2.1.133,2.1.134"). Existing snapshot bodies are kept; the gaps file is re-populated with empty features[] so triage re-runs.'
+        required: false
+        default: ''
   schedule:
     - cron: '0 14 * * *'
 
@@ -78,11 +83,23 @@ jobs:
       # than missing one cycle.
       # Needs GH_TOKEN because cc-release-watch.mjs calls
       # `gh api repos/anthropics/claude-code/contents/CHANGELOG.md`.
+      #
+      # `reissue_existing` (workflow_dispatch only) forwards a comma-separated
+      # list of versions whose gap entries should be re-emitted even when their
+      # snapshot file already exists on disk. Recovery hatch for stuck states
+      # like M134 where versions slipped past the floor without a triage pass.
       - name: Snapshot CC CHANGELOG and score gaps
         id: watch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/cc-release-watch.mjs
+          REISSUE_EXISTING: ${{ github.event.inputs.reissue_existing }}
+        run: |
+          set -euo pipefail
+          if [ -n "${REISSUE_EXISTING:-}" ]; then
+            node scripts/cc-release-watch.mjs --reissue-existing "$REISSUE_EXISTING"
+          else
+            node scripts/cc-release-watch.mjs
+          fi
 
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
       # below still files something so the human triage step is visible.
