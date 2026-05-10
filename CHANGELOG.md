@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.86.1](https://github.com/yonatangross/orchestkit/compare/v7.86.0...v7.86.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **cc-watch:** skip cc-triage for versions below supported floor ([#1739](https://github.com/yonatangross/orchestkit/issues/1739)) ([#1740](https://github.com/yonatangross/orchestkit/issues/1740)) ([5e551a6](https://github.com/yonatangross/orchestkit/commit/5e551a6ce24780b782dd25c31714fb0248733a1a))
+* **ci:** cc-watch uses GH App token ([#1735](https://github.com/yonatangross/orchestkit/issues/1735)) ([#1736](https://github.com/yonatangross/orchestkit/issues/1736)) ([e726b8d](https://github.com/yonatangross/orchestkit/commit/e726b8d2a0c1bb4c4a63601663ab36ae90bc368c))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.123) ([#1741](https://github.com/yonatangross/orchestkit/issues/1741)) ([8f9099e](https://github.com/yonatangross/orchestkit/commit/8f9099e3e188542e4d2949168a1217a12c13cd1b))
+
 ## [7.86.0](https://github.com/yonatangross/orchestkit/compare/v7.85.0...v7.86.0) (2026-05-10)
 
 
