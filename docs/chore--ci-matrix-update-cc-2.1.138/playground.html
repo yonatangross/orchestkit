@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>W5 CI matrix update playground</title>
+<style>body{font:14px ui-monospace,monospace;background:#0b0b0b;color:#e8e8e8;padding:32px;max-width:760px;margin:auto}h1{color:#7aa2f7}pre{background:#161616;padding:16px;border-radius:6px}.ok{color:#9ece6a}.bad{color:#f7768e}</style></head><body>
+<h1>W5 — CI matrix update for 2.1.138 floor</h1>
+<p>Aligns CI test fixtures and pinned versions to the new 2.1.138 floor (W4).</p>
+<h2>Changes</h2>
+<ul>
+<li><code>.github/workflows/plugin-validation.yml</code> — npm install pin <span class="bad">2.1.132</span> → <span class="ok">2.1.138</span></li>
+<li><code>tests/integration/test-cc-release-watch.sh</code> — synthetic test version <span class="bad">2.1.133</span> → <span class="ok">2.1.139</span> (above floor); pre-populate list updated to include 2.1.136/137/138 (real merged snapshots)</li>
+<li><code>tests/fixtures/cc-changelogs/synthetic.md</code> — fixture header <span class="bad">2.1.133</span> → <span class="ok">2.1.139</span></li>
+<li><code>tests/security/test-mcp-deny-case.sh</code> — guidance comment floor 2.1.132 → 2.1.138</li>
+</ul>
+<h2>Tests</h2>
+<pre class="ok">test-cc-release-watch.sh: 14/14 passed
+test:security: 14/14 passed
+test:manifests: 108 skills, 0 orphans
+actionlint: clean for plugin-validation.yml (only pre-existing info-level shellcheck on unrelated workflows)</pre>
+</body></html>
