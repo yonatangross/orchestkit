@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M132 Group F — CC 2.1.133 OAuth+session+network adoption</title>
+<style>
+body{font:14px ui-monospace,monospace;background:#0b0b0b;color:#e8e8e8;padding:32px;max-width:760px;margin:auto}
+h1{color:#7aa2f7;border-bottom:1px solid #333;padding-bottom:6px}
+h2{color:#bb9af7;margin-top:28px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #2a2a2a;vertical-align:top}
+th{color:#bb9af7}
+.muted{color:#888}
+.ok{color:#9ece6a}
+pre{background:#161616;padding:14px;border-radius:6px;overflow-x:auto;line-height:1.4}
+</style>
+</head>
+<body>
+<h1>M132 Group F — CC 2.1.133 OAuth + session + network fixes</h1>
+<p class="muted">First adoption PR for M132 (CC 2.1.133). 4 issues, all upstream breaking-fixes — no OrchestKit code changes, doc + matrix only.</p>
+
+<h2>Issues closed</h2>
+<table>
+  <tr><th>#</th><th>Slug</th><th>What it fixes</th></tr>
+  <tr><td>1703</td><td>parallel-sessions-refresh-token-race-fix</td><td>Concurrent CC sessions no longer all 401 after refresh-token race wipes shared creds</td></tr>
+  <tr><td>1707</td><td>remote-control-stop-interrupt-fix</td><td>claude.ai Remote Control stop/interrupt now matches local Esc — queued messages advance after interrupting stuck tool</td></tr>
+  <tr><td>1705</td><td>mcp-oauth-proxy-mtls-fix</td><td>MCP OAuth respects HTTP(S)_PROXY / NO_PROXY / mTLS end-to-end (discovery, DCR, token exchange, refresh)</td></tr>
+  <tr><td>1706</td><td>mapped-network-drives-add-dir-fix</td><td>Read/Write/Edit on Windows mapped network drives via --add-dir / SDK additionalDirectories</td></tr>
+</table>
+
+<h2>Files touched</h2>
+<ul>
+<li><code>src/skills/configure/references/cc-version-settings.md</code> — new <code>## CC 2.1.133 Settings</code> parent + 4 subsections</li>
+<li><code>src/skills/configure/references/mcp-config.md</code> — MCP OAuth proxy/mTLS note</li>
+<li><code>src/skills/chain-patterns/references/worktree-agent-pattern.md</code> — concurrent-session stability note</li>
+<li><code>src/skills/doctor/references/remediation-guide.md</code> — "all sessions 401 at once" remediation</li>
+<li><code>src/skills/mcp-patterns/SKILL.md</code> — proxy-aware OAuth note</li>
+<li><code>src/hooks/src/lib/cc-version-matrix.ts</code> — 4 new entries with <code>minVersion: '2.1.133'</code></li>
+</ul>
+
+<h2>Effect on cc-support-window-bump.yml</h2>
+<p>Adding entries to <code>cc-version-matrix.ts</code> triggers <code>cc-support-window-bump.yml</code> to auto-recompute the floor. Since the floor is already 2.1.138 (well above 2.1.133), no actual bump fires — but the matrix is now properly seeded for future support-window decay.</p>
+
+<h2>Verification</h2>
+<pre class="ok">test:security    14/14 PASS
+test:agents      37/37 valid
+test:manifests   108 skills, 0 orphans, PASSED
+typecheck        clean</pre>
+</body>
+</html>

@@ -1413,6 +1413,20 @@ Then `claude --resume` the affected session(s). Checkpoint state in `.claude/pip
 
 If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race — investigate the refresh token (expired, keychain ACL changed, 1Password locked) instead.
 
+### "All concurrent sessions 401 simultaneously"
+
+If you had multiple CC sessions open (worktree-isolated agents, parallel `/ork:implement` chains, multi-tab work) and every one of them dead-ended at `401 Unauthorized` at the same instant — that is the pre-2.1.133 parallel-session refresh-token race. A refresh-token rotation fired in one session, the other sessions raced against it, and they all wound up holding the now-invalidated old token.
+
+**Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.138, so the supported window is already past this). Recover the stuck sessions with:
+
+```bash
+claude /login
+```
+
+Then `claude --resume` the affected sessions. Worktree state in each agent's branch is unaffected.
+
+If "all sessions 401 at once" still reproduces on CC ≥ 2.1.133, the cause is no longer this race — check the refresh token itself (expired, revoked by the IdP, keychain ACL changed, 1Password locked). See also the "Logged out after laptop wake" entry above for the related 2.1.129 wake-from-sleep race.
+
 
 ### Report Format
 

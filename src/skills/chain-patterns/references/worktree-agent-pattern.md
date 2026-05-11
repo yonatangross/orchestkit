@@ -56,6 +56,8 @@ Agent(
 
 CC ≤ 2.1.127 branched from `origin/<default-branch>`, which silently dropped local-only commits. We floor at `2.1.138` so this concern is gone — your worktree starts from wherever your tree is now.
 
+> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `${CLAUDE_SKILL_DIR}/../configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
+
 ## Limitations
 
 - Worktree agents are slightly slower to start (~2-3s overhead)

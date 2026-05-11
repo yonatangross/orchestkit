@@ -315,4 +315,25 @@ CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mod
 
 **OrchestKit impact**: `/ork:doctor`'s MCP check can branch on three concrete states (`needs auth`, `connected · tools fetch failed`, `failed`) instead of conflating all of them as "broken". No `.mcp.json` change needed at our floor.
 
+## CC 2.1.133 changes
+
+### MCP OAuth flow now respects `HTTP(S)_PROXY` / `NO_PROXY` / mTLS
+
+Before 2.1.133, CC's MCP OAuth client opened HTTP connections directly to the OAuth endpoints regardless of `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, or mTLS client-cert settings. The MCP server itself was reachable via the proxy (because the MCP transport already respected it) but every OAuth step bypassed the proxy: discovery (`/.well-known/oauth-authorization-server`), **dynamic client registration (DCR)**, the initial token exchange, and every subsequent refresh.
+
+CC 2.1.133 routes the entire MCP OAuth flow through the same proxy/mTLS configuration as the rest of CC's HTTP traffic.
+
+```bash
+# Enterprise behind a corporate proxy with mTLS to internal MCP servers
+export HTTPS_PROXY=http://proxy.corp.example.com:3128
+export NO_PROXY=localhost,127.0.0.1,.internal.example.com
+export NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca-bundle.pem
+# Optional mTLS client cert + key for the OAuth endpoint
+export CLAUDE_CODE_MCP_CLIENT_CERT=/etc/ssl/claude-client.pem
+export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
+claude
+```
+
+**OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
+
 See the `agent-browser` skill for Vercel's headless browser CLI.
