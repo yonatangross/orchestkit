@@ -770,3 +770,90 @@ Skill({ name: 'ork:architecture-patterns' });
 ```
 
 **Impact for OrchestKit**: **Direct, immediate** — every OrchestKit agent in `src/agents/*` that uses `skills:` in its frontmatter relies on this discovery path. Before 2.1.133, Task-delegated work in `ork:implement`, `ork:cover`, `ork:verify`, `ork:fix-issue`, `ork:review-pr`, and `ork:explore` could silently fall back to non-skill behavior because the Skill tool returned "skill not found" inside the subagent. At our floor the fix is implicit — no agent-frontmatter or settings change is required. If you maintain custom agents that worked around this by inlining skill content into the agent body, you can now revert to a clean `Skill({ name: ... })` call.
+
+## CC 2.1.136 Settings
+
+### `settings.autoMode.hard_deny` — Unconditional Auto-Mode Block Tier
+
+CC 2.1.136 adds a new permission-classifier tier: `settings.autoMode.hard_deny`. Rules in this list **block unconditionally** — regardless of user intent, regardless of any matching `allow` entry, regardless of permission mode. This is stronger than the existing auto-mode deny list (which a user-confirmed allow can override) and is the right home for patterns that should never run, full stop.
+
+```json
+// .claude/settings.json
+{
+  "autoMode": {
+    "hard_deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git reset --hard origin/main)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | sh)"
+    ]
+  }
+}
+```
+
+| Tier | Behavior | Override path |
+|------|----------|---------------|
+| `permissions.deny` | Blocks; user can re-issue with explicit allow | Bypassable with allow rule or `--permission-mode acceptEdits` |
+| `autoMode.deny` (classifier) | Blocks in auto mode only; user prompt in default mode | Bypassable with allow rule |
+| `autoMode.hard_deny` (NEW) | Blocks unconditionally; allow rules ignored | **None** — only way around is removing the rule |
+
+**Impact for OrchestKit**: Direct hit on `src/settings/*.settings.json` and the `permission-design`-style guidance. The recommended OrchestKit baseline should promote a small set of catastrophic patterns from `autoMode.deny` to `autoMode.hard_deny` — specifically the ones that no real workflow should ever need to override interactively. Audit existing classifier rules: anything documented as "deny unless user explicitly confirms" stays in `autoMode.deny`; anything documented as "never run, period" (destructive recursive removes, force-push to default branch, pipe-to-shell from network) should move to `hard_deny`. Skills documenting permission patterns (`security-patterns`, `permission-design` if added) should cover the new tier.
+
+### Plan Mode Now Blocks Writes Even With Matching `Edit(...)` Allow Rule ⚠ behavior change
+
+Before 2.1.136, plan mode had a security gap: if a user had an `Edit(<path>)` allow rule defined for normal sessions, that rule **bypassed plan mode's no-write contract** — the rule's allow effect leaked into plan mode and let writes through silently. Plan mode is supposed to be a read-only / proposal-only context; the bypass meant a session running in plan mode could still mutate files if the path matched any persisted allow rule.
+
+CC 2.1.136 fixes the bypass: plan mode now blocks writes regardless of allow rules. The only way to write in plan mode is to exit plan mode (`ExitPlanMode`) first.
+
+```bash
+# Pre-2.1.136 (BROKEN): plan mode + Edit(src/**) allow rule = writes go through
+claude --permission-mode plan
+# Edit on src/foo.ts → silently allowed by the Edit(src/**) rule
+
+# At our floor (CC ≥ 2.1.138, includes 2.1.136 fix): plan mode blocks writes
+claude --permission-mode plan
+# Edit on src/foo.ts → blocked by plan mode (allow rule has no effect)
+```
+
+**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.138). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
+
+### `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` — Re-Enable Session Quality Survey for OTEL Capture
+
+CC 2.1.136 adds `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1` to re-enable the in-session feedback survey for enterprises that capture survey responses via OpenTelemetry. The survey is normally suppressed in enterprise / OTEL-emitting deployments to avoid noise; this env var opts back in when the org actually wants to ingest the responses.
+
+```bash
+# Enterprise deployment that captures CC OTEL traces and wants survey signal
+export CLAUDE_CODE_ENABLE_OTEL=1
+export CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1
+claude
+```
+
+**Impact for OrchestKit**: None for personal use — OrchestKit doesn't ship an OTEL config. Relevant for enterprise rollouts that bundle OrchestKit with a corporate `claude` install and pipe CC telemetry to an internal OTEL collector. If you maintain such a deployment and want survey responses in your telemetry stream alongside the existing tool-use traces, set the env var on the host that launches `claude` (managed-env or shell init, not in OrchestKit's per-project config).
+
+### `AskUserQuestion` Preserves Multi-Select Array Answers ⚠ behavior change
+
+Before 2.1.136, `AskUserQuestion` with `multiSelect: true` silently **discarded** the answer when the runtime supplied it as an array (the documented shape). The question dispatched, the user clicked their selections, but the agent received no usable answer — effectively a soft hang on multi-select questions. CC 2.1.136 fixes the array path so multi-select answers are preserved end-to-end.
+
+```typescript
+// Multi-select question that now works at our floor (CC ≥ 2.1.138)
+AskUserQuestion({
+  questions: [{
+    question: 'Which test tiers should I generate?',
+    header: 'Test tiers',
+    multiSelect: true,
+    options: [
+      { label: 'Unit', description: 'Vitest unit tests' },
+      { label: 'Integration', description: 'Testcontainers + real DB' },
+      { label: 'E2E', description: 'Playwright user flows' },
+    ],
+  }],
+});
+// Pre-2.1.136: returned answer object had multi-select silently dropped
+// At our floor: returned answer is the full string[] of selected labels
+```
+
+**Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork:elicit` flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.

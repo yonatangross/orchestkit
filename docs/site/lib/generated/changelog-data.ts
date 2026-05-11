@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.6",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**labs:** thorough pin sync 2026-05 (3 skills) ([#1753](https://github.com/yonatangross/orchestkit/issues/1753)) ([11a6984](https://github.com/yonatangross/orchestkit/commit/11a69848a68b66f63f588c60bc88108165df00a7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** deepen @json-render/directives coverage in skill body ([#1755](https://github.com/yonatangross/orchestkit/issues/1755)) ([5de3d5b](https://github.com/yonatangross/orchestkit/commit/5de3d5b6d7c5ad574b5cfa9707e983199b9eb20a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.5",
     "date": "2026-05-11",
     "compareUrl": "",

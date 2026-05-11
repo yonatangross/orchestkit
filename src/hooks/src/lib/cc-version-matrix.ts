@@ -468,6 +468,11 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'hooks_effort_level_input',                minVersion: '2.1.133', description: 'Hooks receive effort.level JSON input field + $CLAUDE_EFFORT env var; Bash tool reads $CLAUDE_EFFORT' },
   { feature: 'effort_cross_session_leak_fix',           minVersion: '2.1.133', description: '/effort changes are now session-scoped; no longer leak to concurrent sessions; IDE effort changes no longer silently dropped' },
   { feature: 'subagent_skill_discovery_fix',            minVersion: '2.1.133', description: 'Subagents (via Task tool) now discover project/user/plugin skills as documented' },
+  // 2.1.136 (2026-05-10) — autoMode.hard_deny tier, plan-mode Edit-allow bypass fix, OTEL feedback survey env, AskUserQuestion multi-select array fix
+  { feature: 'auto_mode_hard_deny',                     minVersion: '2.1.136', description: 'settings.autoMode.hard_deny tier — classifier rules that block unconditionally, bypassing user intent and allow exceptions' },
+  { feature: 'plan_mode_edit_allow_block_fix',          minVersion: '2.1.136', description: 'Plan mode now blocks file writes even when a matching Edit(...) allow rule exists (was silently bypassed pre-2.1.136)' },
+  { feature: 'otel_feedback_survey_env',                minVersion: '2.1.136', description: 'CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL env var re-enables session quality survey for OTEL-capturing enterprises' },
+  { feature: 'ask_user_question_multi_select_array_fix', minVersion: '2.1.136', description: 'AskUserQuestion preserves multi-select answers supplied as arrays (was silently discarded pre-2.1.136)' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
