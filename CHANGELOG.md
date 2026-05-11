@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.86.4](https://github.com/yonatangross/orchestkit/compare/v7.86.3...v7.86.4) (2026-05-11)
+
+
+### Miscellaneous
+
+* **adopt:** M132 Group F CC 2.1.133 OAuth+session+network ([#1747](https://github.com/yonatangross/orchestkit/issues/1747)) ([ad12153](https://github.com/yonatangross/orchestkit/commit/ad1215389d8338ede2873fc800793596225b5b87))
+
 ## [7.86.3](https://github.com/yonatangross/orchestkit/compare/v7.86.2...v7.86.3) (2026-05-11)
 
 
