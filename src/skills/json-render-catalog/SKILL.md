@@ -2,7 +2,7 @@
 name: json-render-catalog
 description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects."
 tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
@@ -48,6 +48,63 @@ Storybook becomes the single source of truth — adding a story automatically ex
 - **`@json-render/react-three-fiber`** now ships 20 components including `GaussianSplat` (0.17).
 - **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
 - **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
+
+## Directives — @json-render/directives (0.19)
+
+Directives are the safe escape hatch for computed values. AI emits a `$`-prefixed object, the renderer resolves it inside-out before the component receives props — the catalog stays strict (no `z.any()` widening) and the spec stays declarative. The `@json-render/directives` package ships seven prebuilt directives plus an i18n factory; `standardDirectives` exports them as one array for one-line registration. Directives nest freely (e.g. `$format` wrapping `$math`) and are resolved by all four renderer integrations (React, Vue, Svelte, Solid).
+
+### Registration
+
+```ts
+import { Render } from '@json-render/react'
+import { standardDirectives, createI18nDirective } from '@json-render/directives'
+
+const directives = [
+  ...standardDirectives,
+  createI18nDirective({
+    locale: 'en',
+    fallbackLocale: 'en',
+    messages: { en: { greeting: 'Hello, {{name}}!' } },
+  }),
+]
+
+<Render catalog={catalog} components={components} spec={spec} directives={directives} />
+```
+
+### The seven prebuilt directives
+
+| Directive | Purpose | Minimal usage |
+|-----------|---------|---------------|
+| `$format` | `Intl`-based formatting for `date`, `currency`, `number`, `percent`. Supports `locale`, `currency`, `notation`, and `style: "relative"` for human-readable date deltas. | `{ "$format": "currency", "value": 1299, "currency": "USD" }` → `$1,299.00` |
+| `$math` | Arithmetic — `add`, `subtract`, `multiply`, `divide`, `mod`, `min`, `max`, `round`, `floor`, `ceil`, `abs`. Division by zero returns `0`; non-numeric inputs coerce to `0`. | `{ "$math": "multiply", "a": { "$state": "/qty" }, "b": 9.99 }` |
+| `$concat` | Joins an array of dynamic values into a string, resolving each element through the directive pipeline first. | `{ "$concat": ["Hello, ", { "$state": "/user/name" }, "!"] }` |
+| `$count` | Length of an array or string; `0` for anything else. | `{ "$count": { "$state": "/items" } }` |
+| `$truncate` | Truncate to `length` (default 100) with optional `suffix` (default `...`). No-op if already short enough. | `{ "$truncate": { "$state": "/bio" }, "length": 80 }` |
+| `$pluralize` | Singular/plural/zero selection. Prepends the count automatically (`"3 items"`, `"1 item"`, or the literal `zero` form). | `{ "$pluralize": { "$state": "/cart/count" }, "zero": "no items", "one": "item", "other": "items" }` |
+| `$join` | Join an array with a `separator` (default `", "`). | `{ "$join": { "$state": "/tags" }, "separator": " · " }` |
+
+`createI18nDirective({ locale, messages, fallbackLocale? })` registers a `$t` directive with `{{param}}` interpolation: `{ "$t": "greeting", "params": { "name": "Ada" } }`.
+
+### Custom directives via `defineDirective`
+
+`defineDirective` lives in `@json-render/core` (0.19+). A directive declares a Zod schema for its JSON shape and a `resolve(raw, ctx)` function — use `resolvePropValue(raw.field, ctx)` to recursively resolve any nested directive or state reference before computing.
+
+```ts
+import { defineDirective, resolvePropValue } from '@json-render/core'
+import { z } from 'zod'
+
+export const initialsDirective = defineDirective({
+  name: '$initials',
+  description: 'First letter of each word, uppercased.',
+  schema: z.object({ $initials: z.unknown() }),
+  resolve(raw, ctx) {
+    const text = String(resolvePropValue(raw.$initials, ctx) ?? '')
+    return text.split(/\s+/).map((w) => w[0]?.toUpperCase() ?? '').join('')
+  },
+})
+```
+
+Spread into the renderer alongside `standardDirectives`: `directives={[...standardDirectives, initialsDirective]}`. Keep the schema tight — directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
 
 ## Quick Reference
 

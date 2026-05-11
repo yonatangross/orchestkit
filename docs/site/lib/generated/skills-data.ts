@@ -2685,7 +2685,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "json-render-catalog": {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "OrchestKit",
     "tags": [
       "json-render",
