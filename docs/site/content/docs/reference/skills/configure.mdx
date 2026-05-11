@@ -1028,6 +1028,144 @@ $ claude  /mcp
 
 **Impact for OrchestKit**: `/ork:doctor` and `mcp-visual-output` skills can rely on `/mcp` status text to distinguish auth-required from genuinely broken servers. No config change at our floor.
 
+## CC 2.1.133 Settings
+
+### Parallel-Session Refresh-Token Race Fix
+
+Before 2.1.133, when multiple CC sessions shared the same credentials and a refresh-token rotation fired in one session, the other sessions could race against it and end up using the now-invalidated token — all of them dead-ending at `401 Unauthorized` simultaneously. CC 2.1.133 serializes the rotation so concurrent sessions see the same fresh token.
+
+**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `engines.claudeCode` (≥ 2.1.138) already guarantees the fix is active.
+
+If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_SKILL_DIR\}/../doctor/references/remediation-guide.md` for recovery steps.
+
+### Remote Control Stop/Interrupt Now Cancels CLI Session
+
+Before 2.1.133, pressing **Stop** in claude.ai's Remote Control surface (the web-side stop/interrupt button) did not fully cancel the underlying CLI session the same way a local `Esc` keypress would. The CLI was nominally interrupted but queued messages never advanced after the user had aborted a stuck tool call or prompt — the session stayed wedged until manually killed.
+
+CC 2.1.133 makes the Remote Control stop path identical to local `Esc`: the current tool/prompt aborts, the message queue resumes, and the session is immediately usable again.
+
+**Impact for OrchestKit**: No OrchestKit skill currently drives a Remote Control flow, so there's no end-user-facing change today. The fix matters as forward-compat for any future agentation/`channels`-style surface that exposes a remote stop button — any OrchestKit chain that gets driven from claude.ai now interrupts cleanly without leaving a hung CLI side.
+
+### MCP OAuth Honors HTTP(S)_PROXY / NO_PROXY / mTLS
+
+Before 2.1.133, CC's MCP OAuth client opened HTTP connections directly to the OAuth endpoints regardless of `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, or mTLS client-certificate settings. The MCP server itself was reachable via the proxy (because the MCP transport layer respected it) but every OAuth step bypassed it — discovery (`/.well-known/oauth-authorization-server`), **dynamic client registration (DCR)**, the initial token exchange, and every subsequent refresh.
+
+CC 2.1.133 routes the entire MCP OAuth flow through the same proxy/mTLS configuration as other HTTP traffic.
+
+```bash
+# Enterprise behind a corporate proxy with mTLS to internal MCP servers
+export HTTPS_PROXY=http://proxy.corp.example.com:3128
+export NO_PROXY=localhost,127.0.0.1,.internal.example.com
+export NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca-bundle.pem
+# mTLS client cert + key for the OAuth endpoint
+export CLAUDE_CODE_MCP_CLIENT_CERT=/etc/ssl/claude-client.pem
+export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
+claude
+```
+
+**Impact for OrchestKit**: Direct hit on enterprise MCP deployments behind corporate proxies — the `mcp-patterns` skill (the OrchestKit in-tree equivalent of `building-mcp-server-on-cloudflare`) can now confidently document an enterprise OAuth flow without warning users away on proxy/mTLS environments. If you support MCP-server connectivity guidance in a customer skill, drop the "proxy-aware OAuth requires manual workaround" caveat for CC ≥ 2.1.133. Also relevant to `mcp-config.md` (see CC 2.1.133 changes section there).
+
+### `--add-dir` / SDK `additionalDirectories` Works for Windows Mapped Network Drives
+
+Before 2.1.133, passing a Windows **mapped network drive** path (e.g., `Z:\\share\\project`, `\\\\server\\share`) via `claude --add-dir` or the SDK's `additionalDirectories` resulted in every subsequent `Read`/`Write`/`Edit` against that directory being denied at the permission layer — the path matched the allowlist textually but failed an internal "is real local filesystem" check that misidentified mapped drives.
+
+```powershell
+# Before 2.1.133 — denied even though --add-dir accepted it
+claude --add-dir Z:\share\project
+# Read tool on Z:\share\project\file.ts → "path not in allowed directories"
+
+# At our floor (CC ≥ 2.1.138) — works as documented
+claude --add-dir Z:\share\project
+# Read/Write/Edit succeed
+```
+
+**Impact for OrchestKit**: Windows users running CC against shared team drives — common in Citrix/VDI corporate setups, dev-shared NAS mounts, and OneDrive/SharePoint-as-drive workflows — can now use `--add-dir` and the SDK's `additionalDirectories` without a UNC-vs-letter workaround. No OrchestKit skill change required — the fix is implicit at our floor.
+
+### `worktree.baseRef` Setting — Default Changed to `"fresh"` ⚠ behavior change
+
+CC 2.1.133 adds the `worktree.baseRef` setting (`"fresh"` | `"head"`) that controls where `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from. **The default is `"fresh"`**, which means new worktrees branch from `origin/&lt;default-branch&gt;` — **not** from your local `HEAD`.
+
+This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `EnterWorktree` branched from local `HEAD`, which is what OrchestKit's worktree-isolation pattern (`chain-patterns/references/worktree-agent-pattern.md`) relies on: unpushed commits in the parent worktree need to be visible to spawned agents. With the new `"fresh"` default, those unpushed commits are silently dropped when the worktree is created.
+
+**Recommended OrchestKit setting** — in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "baseRef": "head"
+  }
+}
+```
+
+```json
+// All three forms re-acquire the 2.1.128–2.1.132 behavior:
+//   --worktree
+//   EnterWorktree tool
+//   agent-isolation worktrees (Task tool, isolation: "worktree")
+{ "worktree": { "baseRef": "head" } }
+```
+
+**Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/&lt;default&gt;` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
+
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Task(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `$\{CLAUDE_SKILL_DIR\}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+
+### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
+
+CC 2.1.133 adds two managed-tier settings for Linux and WSL sandbox deployments: `sandbox.bwrapPath` (custom **bubblewrap** binary location) and `sandbox.socatPath` (custom **socat** binary location). These let enterprise admins point the sandbox at vendored binaries on hosts where `bwrap` / `socat` are not on `$PATH`, are at non-standard paths (e.g., `/opt/corp-tools/bin/bwrap`), or where the default-PATH copy is too old / has the wrong capability set.
+
+```json
+// /etc/claude-code/managed-settings.json (or equivalent managed path)
+{
+  "sandbox": {
+    "bwrapPath": "/opt/corp-tools/bin/bwrap",
+    "socatPath": "/opt/corp-tools/bin/socat"
+  }
+}
+```
+
+**Tier**: managed (admin-only) — these are not user-settable in `.claude/settings.json`. They live in `managed-settings.json` (or any of the `managed-settings.d/` fragments, CC 2.1.83+).
+
+**Impact for OrchestKit**: None for personal use — OrchestKit doesn't ship a sandbox config. For enterprise rollouts that bundle OrchestKit with a corporate `claude` install on Linux/WSL fleets, add `sandbox.bwrapPath` / `sandbox.socatPath` to the managed-settings bundle if `bwrap` / `socat` are not on the default `$PATH` for the target hosts. macOS and native Windows are unaffected (no bwrap/socat dependency).
+
+### `parentSettingsBehavior` Admin Key — Opt SDK `managedSettings` into Policy Merge
+
+CC 2.1.133 adds the `parentSettingsBehavior` admin-tier key with values `"first-wins"` | `"merge"`. SDK hosts can pass a `managedSettings` block as the "parent tier" of the precedence chain — this key controls whether that parent tier participates in the merge against the admin-managed policy, or is overridden first-wins-style by the admin tier.
+
+```json
+// /etc/claude-code/managed-settings.json
+{
+  "parentSettingsBehavior": "merge"
+  // or
+  // "parentSettingsBehavior": "first-wins"
+}
+```
+
+| Value | Effect |
+|-------|--------|
+| `"first-wins"` (default) | Admin-managed settings win — SDK-passed `managedSettings` are ignored where keys conflict |
+| `"merge"` | SDK `managedSettings` participate in the precedence merge alongside the admin tier — useful when the SDK host needs to declare a stricter policy than the admin baseline |
+
+**Impact for OrchestKit**: None for the CLI host. Relevant only for SDK consumers (`claude-code-sdk-*` integrations) that ship their own `managedSettings` and need that policy to compose with an org-level managed-settings bundle rather than be overridden by it. If you build an SDK host on top of OrchestKit, set `parentSettingsBehavior: "merge"` on the admin side so your host's `managedSettings` block isn't silently dropped.
+
+### `Edit`/`Write` Allow Rules at Drive Root or POSIX `/` Now Match Correctly
+
+Before 2.1.133, `Edit` and `Write` allow rules scoped to a Windows **drive root** (e.g., `Edit(C:\\**)`) or to the POSIX root (`Edit(/**)`) matched incorrectly and always fired the permission prompt anyway — the rule was syntactically valid and accepted but the path-match step misclassified the rule as not covering the target path. CC 2.1.133 fixes the match logic so these rules now behave as documented.
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Edit(/**)",
+      "Write(/**)",
+      "Edit(C:\\**)",
+      "Write(C:\\**)"
+    ]
+  }
+}
+```
+
+**Impact for OrchestKit**: None for the standard OrchestKit setup — OrchestKit recommends per-project allow rules under `.claude/settings.json` for the project directory, not a system-wide drive-root grant. Relevant if you've added a drive-root rule as a workaround in `.claude/settings.local.json` to silence the prompt-every-time symptom of this bug — at our floor the workaround is no longer needed and the rule actually means what it says. Audit any `Edit(C:\\**)`-shaped rules with that history; if they were added as workarounds, narrow them now that the canonical glob form works.
+
 
 ### Http Hooks
 
@@ -1510,6 +1648,27 @@ Before 2.1.132, MCP servers that connected successfully but then failed `tools/l
 CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mode — auth-required connectors now fail fast instead of consuming the retry budget.
 
 **OrchestKit impact**: `/ork:doctor`'s MCP check can branch on three concrete states (`needs auth`, `connected · tools fetch failed`, `failed`) instead of conflating all of them as "broken". No `.mcp.json` change needed at our floor.
+
+## CC 2.1.133 changes
+
+### MCP OAuth flow now respects `HTTP(S)_PROXY` / `NO_PROXY` / mTLS
+
+Before 2.1.133, CC's MCP OAuth client opened HTTP connections directly to the OAuth endpoints regardless of `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, or mTLS client-cert settings. The MCP server itself was reachable via the proxy (because the MCP transport already respected it) but every OAuth step bypassed the proxy: discovery (`/.well-known/oauth-authorization-server`), **dynamic client registration (DCR)**, the initial token exchange, and every subsequent refresh.
+
+CC 2.1.133 routes the entire MCP OAuth flow through the same proxy/mTLS configuration as the rest of CC's HTTP traffic.
+
+```bash
+# Enterprise behind a corporate proxy with mTLS to internal MCP servers
+export HTTPS_PROXY=http://proxy.corp.example.com:3128
+export NO_PROXY=localhost,127.0.0.1,.internal.example.com
+export NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca-bundle.pem
+# Optional mTLS client cert + key for the OAuth endpoint
+export CLAUDE_CODE_MCP_CLIENT_CERT=/etc/ssl/claude-client.pem
+export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
+claude
+```
+
+**OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
 
 See the `agent-browser` skill for Vercel's headless browser CLI.
 

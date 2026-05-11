@@ -17,6 +17,85 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.3",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump anthropics/claude-code-action from 1.0.111 to 1.0.119 ([#1743](https://github.com/yonatangross/orchestkit/issues/1743)) ([c672ae8](https://github.com/yonatangross/orchestkit/commit/c672ae8e313f965bbf0c700a0f9edc48e108345d))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.2",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump github/codeql-action from 4.35.3 to 4.35.4 ([#1744](https://github.com/yonatangross/orchestkit/issues/1744)) ([f99744e](https://github.com/yonatangross/orchestkit/commit/f99744eec682f5f8e7ebc5538540e6e622c29407))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.1",
+    "date": "2026-05-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** skip cc-triage for versions below supported floor ([#1739](https://github.com/yonatangross/orchestkit/issues/1739)) ([#1740](https://github.com/yonatangross/orchestkit/issues/1740)) ([5e551a6](https://github.com/yonatangross/orchestkit/commit/5e551a6ce24780b782dd25c31714fb0248733a1a))",
+          "**ci:** cc-watch uses GH App token ([#1735](https://github.com/yonatangross/orchestkit/issues/1735)) ([#1736](https://github.com/yonatangross/orchestkit/issues/1736)) ([e726b8d](https://github.com/yonatangross/orchestkit/commit/e726b8d2a0c1bb4c4a63601663ab36ae90bc368c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.123) ([#1741](https://github.com/yonatangross/orchestkit/issues/1741)) ([8f9099e](https://github.com/yonatangross/orchestkit/commit/8f9099e3e188542e4d2949168a1217a12c13cd1b))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.0",
+    "date": "2026-05-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cc:** bump CC floor 2.1.132 → 2.1.138 ([#1682](https://github.com/yonatangross/orchestkit/issues/1682)) ([#1734](https://github.com/yonatangross/orchestkit/issues/1734)) ([70c2e4a](https://github.com/yonatangross/orchestkit/commit/70c2e4a5aa940e5a601586e472f2266017539411))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** silent-skip + reissue flag + LLM retry ([#1730](https://github.com/yonatangross/orchestkit/issues/1730)) ([78aa054](https://github.com/yonatangross/orchestkit/commit/78aa0541c3f077256811f1c1f429ba624caf1209))",
+          "**ci:** cc-watch PR uses PAT + version-stamped title ([#1685](https://github.com/yonatangross/orchestkit/issues/1685) [#1697](https://github.com/yonatangross/orchestkit/issues/1697)) ([#1698](https://github.com/yonatangross/orchestkit/issues/1698)) ([fbd1728](https://github.com/yonatangross/orchestkit/commit/fbd172844a117cc3c7be8b115f683b2a9ba86141))",
+          "**deps:** override fast-uri to ^3.1.2 for CVE-2026-6321/6322 ([#1687](https://github.com/yonatangross/orchestkit/issues/1687)) ([#1688](https://github.com/yonatangross/orchestkit/issues/1688)) ([6ea510e](https://github.com/yonatangross/orchestkit/commit/6ea510ef7057a4fbbd5c7729ca19ef3f31e7f444))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**adopt:** CC 2.1.128/129 Group A — foundation doc adoption ([#1672](https://github.com/yonatangross/orchestkit/issues/1672)) ([3bb704e](https://github.com/yonatangross/orchestkit/commit/3bb704e75b2524793958cc193956a93331f3686a))",
+          "**adopt:** CC 2.1.128/129 Group B — MCP hygiene + manifest restructure ([#1674](https://github.com/yonatangross/orchestkit/issues/1674)) ([907f78e](https://github.com/yonatangross/orchestkit/commit/907f78e3f79c6154c224a1e85fa9afe003437ccb))",
+          "**adopt:** M131 Group C CC 2.1.129/132 OAuth+perm docs ([#1731](https://github.com/yonatangross/orchestkit/issues/1731)) ([d299f6d](https://github.com/yonatangross/orchestkit/commit/d299f6d073a96ee7ffc87eb3b47badf3a07f8c01))",
+          "**adopt:** M131 Group D CC 2.1.128/129 docs ([#1686](https://github.com/yonatangross/orchestkit/issues/1686)) ([a102355](https://github.com/yonatangross/orchestkit/commit/a102355ba4a52cb24a5fee2330b20a74947dc4d3))",
+          "**adopt:** M131 Group E CC 2.1.128/129 OTEL+MCP+SDK docs ([#1732](https://github.com/yonatangross/orchestkit/issues/1732)) ([e0767ba](https://github.com/yonatangross/orchestkit/commit/e0767ba203b66f98162b5d56c8e9da4ace5c1361)), closes [#1636](https://github.com/yonatangross/orchestkit/issues/1636) [#1655](https://github.com/yonatangross/orchestkit/issues/1655) [#1638](https://github.com/yonatangross/orchestkit/issues/1638) [#1642](https://github.com/yonatangross/orchestkit/issues/1642) [#1661](https://github.com/yonatangross/orchestkit/issues/1661) [#1659](https://github.com/yonatangross/orchestkit/issues/1659) [#1660](https://github.com/yonatangross/orchestkit/issues/1660) [#1643](https://github.com/yonatangross/orchestkit/issues/1643) [#1668](https://github.com/yonatangross/orchestkit/issues/1668)",
+          "**cc-watch:** snapshot upstream CHANGELOG ([#1678](https://github.com/yonatangross/orchestkit/issues/1678)) ([57a1273](https://github.com/yonatangross/orchestkit/commit/57a1273357062d0fb3693e0f81f668453747075d))",
+          "**ci:** gate Vercel previews on docs/site/ changes ([#1690](https://github.com/yonatangross/orchestkit/issues/1690)) ([#1691](https://github.com/yonatangross/orchestkit/issues/1691)) ([7910008](https://github.com/yonatangross/orchestkit/commit/79100089940eae397541a01f21a1b7548ac5259b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.85.0",
     "date": "2026-05-07",
     "compareUrl": "",

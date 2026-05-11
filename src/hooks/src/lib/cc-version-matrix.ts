@@ -456,6 +456,15 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'permission_mode_resume_plan',     minVersion: '2.1.132', description: '--permission-mode flag is honored when resuming a plan-mode session with -p --continue / --resume; plan mode is re-applied after ExitPlanMode within the same session' },
   { feature: 'effort_env_picker_fix',           minVersion: '2.1.132', description: '/effort picker reflects the CLAUDE_CODE_EFFORT_LEVEL env var override (was previously ignored)' },
   { feature: 'disable_alt_screen_env',          minVersion: '2.1.132', description: 'CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 opts out of the fullscreen alternate-screen renderer and keeps the conversation in the terminal native scrollback — useful for screen-recording and CI capture' },
+  // 2.1.133 (2026-05-10) — parallel-session refresh-token race, Remote Control stop/interrupt, MCP OAuth proxy/mTLS, mapped network drives
+  { feature: 'parallel_session_refresh_token_race_fix', minVersion: '2.1.133', description: 'Parallel sessions no longer 401 after shared-credential refresh-token race' },
+  { feature: 'remote_control_stop_interrupt_fix',       minVersion: '2.1.133', description: 'claude.ai Remote Control stop/interrupt now matches local Esc cancellation' },
+  { feature: 'mcp_oauth_proxy_mtls_fix',                minVersion: '2.1.133', description: 'MCP OAuth full flow respects HTTP(S)_PROXY/NO_PROXY/mTLS' },
+  { feature: 'mapped_network_drive_add_dir_fix',        minVersion: '2.1.133', description: '--add-dir / SDK additionalDirectories works for Windows mapped network drives' },
+  { feature: 'worktree_base_ref_setting',               minVersion: '2.1.133', description: 'worktree.baseRef setting (fresh|head) — default changed to fresh in 2.1.133' },
+  { feature: 'sandbox_bwrap_socat_managed_settings',    minVersion: '2.1.133', description: 'sandbox.bwrapPath / sandbox.socatPath managed settings (Linux/WSL)' },
+  { feature: 'parent_settings_behavior_admin_key',      minVersion: '2.1.133', description: 'parentSettingsBehavior admin-tier key (first-wins|merge) for SDK managedSettings' },
+  { feature: 'edit_write_drive_root_allow_rules_fix',   minVersion: '2.1.133', description: 'Edit/Write allow rules scoped to drive root (C:\\\\) or POSIX / now match correctly' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

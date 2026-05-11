@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M132 Group G — CC 2.1.133 perm + sandbox + settings adoption</title>
+<style>
+body{font:14px ui-monospace,monospace;background:#0b0b0b;color:#e8e8e8;padding:32px;max-width:760px;margin:auto}
+h1{color:#7aa2f7;border-bottom:1px solid #333;padding-bottom:6px}
+h2{color:#bb9af7;margin-top:28px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #2a2a2a;vertical-align:top}
+th{color:#bb9af7}
+.muted{color:#888}
+.ok{color:#9ece6a}
+.warn{color:#e0af68}
+.alert{background:#2a1f1f;border-left:3px solid #f7768e;padding:10px 14px;margin:10px 0}
+pre{background:#161616;padding:14px;border-radius:6px;overflow-x:auto;line-height:1.4}
+code{background:#161616;padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<h1>M132 Group G — CC 2.1.133 perm + sandbox + settings</h1>
+<p class="muted">Second adoption PR for M132 (CC 2.1.133). 3 new-perm features + 1 breaking permission-rule fix. Stacked on Group F (#1747) which introduced the <code>## CC 2.1.133 Settings</code> parent header.</p>
+
+<div class="alert">
+<strong class="warn">⚠ Behavior change for OrchestKit</strong> — CC 2.1.133 added <code>worktree.baseRef</code> with default <code>"fresh"</code>, which branches new worktrees from <code>origin/&lt;default&gt;</code> instead of local <code>HEAD</code>. OrchestKit's agent-isolation pattern needs unpushed commits visible to spawned agents. <strong>Set <code>worktree.baseRef: "head"</code></strong> in <code>.claude/settings.json</code> or you will lose in-progress work when agents spawn.
+</div>
+
+<h2>Issues closed</h2>
+<table>
+<tr><th>#</th><th>Slug</th><th>Category</th><th>What it does</th></tr>
+<tr><td>1699</td><td>worktree-base-ref-setting</td><td>new_perm</td><td>New <code>worktree.baseRef</code> setting — default <code>"fresh"</code> regresses 2.1.128–2.1.132 local-HEAD behavior. OrchestKit must set <code>"head"</code>.</td></tr>
+<tr><td>1700</td><td>sandbox-bwrap-socat-managed-settings</td><td>new_perm</td><td>New <code>sandbox.bwrapPath</code> / <code>sandbox.socatPath</code> managed settings for Linux/WSL custom binary locations.</td></tr>
+<tr><td>1701</td><td>parent-settings-behavior-admin-key</td><td>new_perm</td><td>New <code>parentSettingsBehavior</code> admin key (<code>first-wins</code>|<code>merge</code>) for SDK <code>managedSettings</code> precedence.</td></tr>
+<tr><td>1704</td><td>edit-write-drive-root-allow-rules-fix</td><td>breaking</td><td><code>Edit</code>/<code>Write</code> allow rules at drive root (<code>C:\</code>) or POSIX <code>/</code> now match correctly instead of always prompting.</td></tr>
+</table>
+
+<h2>Files touched</h2>
+<ul>
+<li><code>src/skills/configure/references/cc-version-settings.md</code> — 4 new subsections under existing <code>## CC 2.1.133 Settings</code> parent (Group F)</li>
+<li><code>src/skills/chain-patterns/references/worktree-agent-pattern.md</code> — Required Setting callout + corrected branch-base prose</li>
+<li><code>src/skills/doctor/references/remediation-guide.md</code> — "EnterWorktree drops my unpushed commits" entry</li>
+<li><code>src/hooks/src/lib/cc-version-matrix.ts</code> — 4 new entries at <code>minVersion: '2.1.133'</code></li>
+</ul>
+
+<h2>Recommended setting</h2>
+<pre>{
+  "worktree": {
+    "baseRef": "head"
+  }
+}</pre>
+
+<h2>Verification</h2>
+<pre class="ok">test:security    14/14 PASS
+test:agents      37/37 valid
+test:skills      PASSED
+test:manifests   108 skills, 0 orphans
+typecheck        clean
+build            107 skills / 37 agents / 188 hooks (no count drift)</pre>
+
+<h2>Stacking notes</h2>
+<p class="muted">This PR is stacked on Group F (#1747). When F squash-merges to main, rebase G onto main: <code>git rebase --onto main &lt;F-tip-sha&gt;</code> (per <a href="../../agent-memory/feedback_stacked_pr_squash_rebase.md">stacked-PR squash-rebase memory</a>).</p>
+
+</body>
+</html>
