@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.86.6](https://github.com/yonatangross/orchestkit/compare/v7.86.5...v7.86.6) (2026-05-11)
+
+
+### Miscellaneous
+
+* **labs:** thorough pin sync 2026-05 (3 skills) ([#1753](https://github.com/yonatangross/orchestkit/issues/1753)) ([11a6984](https://github.com/yonatangross/orchestkit/commit/11a69848a68b66f63f588c60bc88108165df00a7))
+
+
+### Documentation
+
+* **skills:** deepen @json-render/directives coverage in skill body ([#1755](https://github.com/yonatangross/orchestkit/issues/1755)) ([5de3d5b](https://github.com/yonatangross/orchestkit/commit/5de3d5b6d7c5ad574b5cfa9707e983199b9eb20a))
+
 ## [7.86.5](https://github.com/yonatangross/orchestkit/compare/v7.86.4...v7.86.5) (2026-05-11)
 
 
