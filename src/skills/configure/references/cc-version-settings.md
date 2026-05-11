@@ -699,3 +699,74 @@ Before 2.1.133, `Edit` and `Write` allow rules scoped to a Windows **drive root*
 ```
 
 **Impact for OrchestKit**: None for the standard OrchestKit setup — OrchestKit recommends per-project allow rules under `.claude/settings.json` for the project directory, not a system-wide drive-root grant. Relevant if you've added a drive-root rule as a workaround in `.claude/settings.local.json` to silence the prompt-every-time symptom of this bug — at our floor the workaround is no longer needed and the rule actually means what it says. Audit any `Edit(C:\\**)`-shaped rules with that history; if they were added as workarounds, narrow them now that the canonical glob form works.
+
+### Hooks Now Receive `effort.level` Input + `$CLAUDE_EFFORT` Env
+
+CC 2.1.133 surfaces the active effort level to every hook invocation in two new ways:
+
+1. **`effort.level` JSON input field** — the hook stdin payload now includes the active effort as a top-level `effort.level` string (`"low"` | `"medium"` | `"high"` | `"xhigh"`).
+2. **`$CLAUDE_EFFORT` environment variable** — set in the hook process env and inherited by anything the hook spawns. Bash tool invocations also see `$CLAUDE_EFFORT`, so shell commands can branch on it without going through the hook.
+
+```typescript
+// PreToolUse hook reading effort from JSON stdin
+import { readFileSync } from 'node:fs';
+
+const input = JSON.parse(readFileSync(0, 'utf-8'));
+const effort = input.effort?.level ?? process.env.CLAUDE_EFFORT ?? 'medium';
+
+if (effort === 'low') {
+  // Skip expensive validation — user signaled fast iteration
+  process.exit(0);
+}
+```
+
+```bash
+# Bash tool / hook script reading effort directly
+if [ "${CLAUDE_EFFORT:-medium}" = "xhigh" ]; then
+  # Run the full audit suite — user explicitly opted in
+  npm run test:all
+else
+  npm run test:quick
+fi
+```
+
+**Impact for OrchestKit**: Direct hit on `src/hooks/src/**` — every OrchestKit hook can now be effort-aware. Concrete opportunities:
+
+- **`quality-gates`** hooks can gate expensive correctness checks (full type-check, security scan, integration suite) to `high` / `xhigh` and skip them on `low` for fast iteration.
+- **`ci-debug`**, **`assess`**, and **`verify`** chains can scale the number of parallel agents spawned with effort level.
+- **`pre-commit`** style gates can downgrade strict checks to advisory at `low` and enforce blocking at `high`.
+
+No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.138). Hook authors should treat absence as `medium` for forward compat.
+
+### `/effort` Now Session-Scoped (No Cross-Session Leak)
+
+Before 2.1.133, running `/effort high` (or any effort change) in one CC session could **silently bump the effort level of every other concurrent session** on the same machine — the effort state was stored in a shared global rather than per-session. A related bug also caused IDE-driven effort changes (the VSCode/JetBrains effort picker) to be silently dropped when another session held the lock.
+
+CC 2.1.133 makes `/effort` session-local: each session has its own effort state, IDE effort changes are reliably applied to the active session, and concurrent sessions no longer trample each other.
+
+```bash
+# Session A
+/effort xhigh
+# → Session A is now xhigh
+
+# Session B (concurrent, started before or after)
+/effort low
+# → Session B is now low; Session A stays at xhigh (was previously also forced to low)
+```
+
+**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `engines.claudeCode` (≥ 2.1.138) already guarantees the fix.
+
+### Subagents Now Discover Project/User/Plugin Skills
+
+Before 2.1.133, subagents spawned via the **Task tool** could not discover skills from any source — project (`.claude/skills/`), user (`~/.claude/skills/`), or plugin (e.g., OrchestKit's bundled skills). The Skill tool inside a subagent saw an empty registry even when the parent session could list dozens of skills. This was a **direct regression** for OrchestKit because every agent in `src/agents/*` that delegates work via Task and relies on a Skill call inside the subagent was broken at the discovery step.
+
+CC 2.1.133 restores documented behavior: subagents inherit the full skill registry (project + user + plugin tiers) and can invoke any skill the parent session sees.
+
+```typescript
+// Inside a subagent body (e.g., src/agents/backend-system-architect.md):
+// Before 2.1.133: this would fail — Skill not found
+// At our floor (CC ≥ 2.1.138): works as documented
+Skill({ name: 'ork:architecture-patterns' });
+```
+
+**Impact for OrchestKit**: **Direct, immediate** — every OrchestKit agent in `src/agents/*` that uses `skills:` in its frontmatter relies on this discovery path. Before 2.1.133, Task-delegated work in `ork:implement`, `ork:cover`, `ork:verify`, `ork:fix-issue`, `ork:review-pr`, and `ork:explore` could silently fall back to non-skill behavior because the Skill tool returned "skill not found" inside the subagent. At our floor the fix is implicit — no agent-frontmatter or settings change is required. If you maintain custom agents that worked around this by inlining skill content into the agent body, you can now revert to a clean `Skill({ name: ... })` call.

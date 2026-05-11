@@ -465,6 +465,9 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'sandbox_bwrap_socat_managed_settings',    minVersion: '2.1.133', description: 'sandbox.bwrapPath / sandbox.socatPath managed settings (Linux/WSL)' },
   { feature: 'parent_settings_behavior_admin_key',      minVersion: '2.1.133', description: 'parentSettingsBehavior admin-tier key (first-wins|merge) for SDK managedSettings' },
   { feature: 'edit_write_drive_root_allow_rules_fix',   minVersion: '2.1.133', description: 'Edit/Write allow rules scoped to drive root (C:\\\\) or POSIX / now match correctly' },
+  { feature: 'hooks_effort_level_input',                minVersion: '2.1.133', description: 'Hooks receive effort.level JSON input field + $CLAUDE_EFFORT env var; Bash tool reads $CLAUDE_EFFORT' },
+  { feature: 'effort_cross_session_leak_fix',           minVersion: '2.1.133', description: '/effort changes are now session-scoped; no longer leak to concurrent sessions; IDE effort changes no longer silently dropped' },
+  { feature: 'subagent_skill_discovery_fix',            minVersion: '2.1.133', description: 'Subagents (via Task tool) now discover project/user/plugin skills as documented' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

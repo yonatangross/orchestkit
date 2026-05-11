@@ -238,6 +238,8 @@ CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
 
 CC provides a `CLAUDE_ENV_FILE` env var to hooks running on `SessionStart`, `CwdChanged`, `FileChanged`, and `ConfigChange` events. Hook scripts write `export KEY=value` lines to this file, and CC reads them back after execution, setting those env vars for **all future hook invocations** in the session. This is cleaner than file-based state for lightweight key-value data.
 
+> **Effort awareness (CC 2.1.133+)**: Hooks can read `$CLAUDE_EFFORT` (or the `effort.level` JSON input field) directly to gate expensive checks on `high`/`xhigh` and skip them on `low`. Bash tool commands also see `$CLAUDE_EFFORT`. See `src/skills/configure/references/cc-version-settings.md` ("Hooks Now Receive `effort.level` Input + `$CLAUDE_EFFORT` Env").
+
 ### How It Works
 
 ```

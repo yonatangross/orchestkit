@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M132 Group H — CC 2.1.133 effort+skill-discovery</title>
+<style>
+body{font:14px ui-monospace,monospace;background:#0b0b0b;color:#e8e8e8;padding:32px;max-width:760px;margin:auto}
+h1{color:#7aa2f7;border-bottom:1px solid #333;padding-bottom:6px}
+h2{color:#bb9af7;margin-top:28px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #2a2a2a;vertical-align:top}
+th{color:#bb9af7}
+.muted{color:#888}
+.ok{color:#9ece6a}
+pre{background:#161616;padding:14px;border-radius:6px;overflow-x:auto;line-height:1.4}
+</style>
+</head>
+<body>
+<h1>M132 Group H — CC 2.1.133 effort + skill discovery (FINAL group)</h1>
+<p class="muted">Completes M132 (CC 2.1.133 adoption). 3 issues, doc adoption + matrix entries + hooks README note. After this lands, M132 is 11/11 (100%).</p>
+
+<h2>Issues closed</h2>
+<table>
+  <tr><th>#</th><th>Slug</th><th>What it fixes / adds</th></tr>
+  <tr><td>1702</td><td>hooks-effort-level-input</td><td>NEW: hooks receive <code>effort.level</code> JSON input field + <code>$CLAUDE_EFFORT</code> env var (also in Bash tool)</td></tr>
+  <tr><td>1708</td><td>effort-cross-session-leak-fix</td><td>FIXED: <code>/effort</code> in one session no longer changes other concurrent sessions; IDE effort changes no longer silently dropped</td></tr>
+  <tr><td>1709</td><td>subagent-skill-discovery-fix</td><td>FIXED: subagents (via Task tool) now discover project/user/plugin skills as documented</td></tr>
+</table>
+
+<h2>OrchestKit impact</h2>
+<ul>
+<li><strong>#1702</strong> — 188 hooks in <code>src/hooks/</code> can now branch on effort without parsing JSON input. <code>quality-gates</code> skill benefits directly.</li>
+<li><strong>#1708</strong> — Chain-patterns multi-worktree flows are stable; concurrent sessions are isolated.</li>
+<li><strong>#1709</strong> — Agent-orchestration patterns (<code>ork:implement</code>, <code>ork:fix-issue</code>, etc.) that spawn subagents now work as documented; if subagents claimed "skill not found", that was the bug.</li>
+</ul>
+
+<h2>Files</h2>
+<ul>
+<li><code>src/skills/configure/references/cc-version-settings.md</code> — 3 new subsections under existing <code>## CC 2.1.133 Settings</code></li>
+<li><code>src/hooks/README.md</code> — callout: hooks can read <code>$CLAUDE_EFFORT</code> directly (2.1.133+)</li>
+<li><code>src/hooks/src/lib/cc-version-matrix.ts</code> — 3 new entries</li>
+<li><code>src/hooks/src/__tests__/lib/cc-version-matrix.test.ts</code> — count assertions bumped +3 (matrix grows from 400 → 403)</li>
+<li>plugins/ mirror + docs/site MDX regen</li>
+</ul>
+
+<h2>Verification</h2>
+<pre class="ok">vitest cc-version-matrix.test.ts  64/64 PASS</pre>
+
+<h2>M132 milestone closeout</h2>
+<p>After this PR merges:</p>
+<pre class="ok">M132 (CC 2.1.133 adoption)  11/11 closed  (100%)
+  Group F  4 issues  shipped
+  Group G  4 issues  shipped
+  Group H  3 issues  shipping NOW</pre>
+</body>
+</html>
