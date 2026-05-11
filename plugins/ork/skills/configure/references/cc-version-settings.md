@@ -614,3 +614,88 @@ claude --add-dir Z:\share\project
 ```
 
 **Impact for OrchestKit**: Windows users running CC against shared team drives — common in Citrix/VDI corporate setups, dev-shared NAS mounts, and OneDrive/SharePoint-as-drive workflows — can now use `--add-dir` and the SDK's `additionalDirectories` without a UNC-vs-letter workaround. No OrchestKit skill change required — the fix is implicit at our floor.
+
+### `worktree.baseRef` Setting — Default Changed to `"fresh"` ⚠ behavior change
+
+CC 2.1.133 adds the `worktree.baseRef` setting (`"fresh"` | `"head"`) that controls where `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from. **The default is `"fresh"`**, which means new worktrees branch from `origin/<default-branch>` — **not** from your local `HEAD`.
+
+This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `EnterWorktree` branched from local `HEAD`, which is what OrchestKit's worktree-isolation pattern (`chain-patterns/references/worktree-agent-pattern.md`) relies on: unpushed commits in the parent worktree need to be visible to spawned agents. With the new `"fresh"` default, those unpushed commits are silently dropped when the worktree is created.
+
+**Recommended OrchestKit setting** — in `.claude/settings.json`:
+
+```json
+{
+  "worktree": {
+    "baseRef": "head"
+  }
+}
+```
+
+```json
+// All three forms re-acquire the 2.1.128–2.1.132 behavior:
+//   --worktree
+//   EnterWorktree tool
+//   agent-isolation worktrees (Task tool, isolation: "worktree")
+{ "worktree": { "baseRef": "head" } }
+```
+
+**Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/<default>` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
+
+**Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Task(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work. `ork:doctor` flags this — see `${CLAUDE_SKILL_DIR}/../doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits").
+
+### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
+
+CC 2.1.133 adds two managed-tier settings for Linux and WSL sandbox deployments: `sandbox.bwrapPath` (custom **bubblewrap** binary location) and `sandbox.socatPath` (custom **socat** binary location). These let enterprise admins point the sandbox at vendored binaries on hosts where `bwrap` / `socat` are not on `$PATH`, are at non-standard paths (e.g., `/opt/corp-tools/bin/bwrap`), or where the default-PATH copy is too old / has the wrong capability set.
+
+```json
+// /etc/claude-code/managed-settings.json (or equivalent managed path)
+{
+  "sandbox": {
+    "bwrapPath": "/opt/corp-tools/bin/bwrap",
+    "socatPath": "/opt/corp-tools/bin/socat"
+  }
+}
+```
+
+**Tier**: managed (admin-only) — these are not user-settable in `.claude/settings.json`. They live in `managed-settings.json` (or any of the `managed-settings.d/` fragments, CC 2.1.83+).
+
+**Impact for OrchestKit**: None for personal use — OrchestKit doesn't ship a sandbox config. For enterprise rollouts that bundle OrchestKit with a corporate `claude` install on Linux/WSL fleets, add `sandbox.bwrapPath` / `sandbox.socatPath` to the managed-settings bundle if `bwrap` / `socat` are not on the default `$PATH` for the target hosts. macOS and native Windows are unaffected (no bwrap/socat dependency).
+
+### `parentSettingsBehavior` Admin Key — Opt SDK `managedSettings` into Policy Merge
+
+CC 2.1.133 adds the `parentSettingsBehavior` admin-tier key with values `"first-wins"` | `"merge"`. SDK hosts can pass a `managedSettings` block as the "parent tier" of the precedence chain — this key controls whether that parent tier participates in the merge against the admin-managed policy, or is overridden first-wins-style by the admin tier.
+
+```json
+// /etc/claude-code/managed-settings.json
+{
+  "parentSettingsBehavior": "merge"
+  // or
+  // "parentSettingsBehavior": "first-wins"
+}
+```
+
+| Value | Effect |
+|-------|--------|
+| `"first-wins"` (default) | Admin-managed settings win — SDK-passed `managedSettings` are ignored where keys conflict |
+| `"merge"` | SDK `managedSettings` participate in the precedence merge alongside the admin tier — useful when the SDK host needs to declare a stricter policy than the admin baseline |
+
+**Impact for OrchestKit**: None for the CLI host. Relevant only for SDK consumers (`claude-code-sdk-*` integrations) that ship their own `managedSettings` and need that policy to compose with an org-level managed-settings bundle rather than be overridden by it. If you build an SDK host on top of OrchestKit, set `parentSettingsBehavior: "merge"` on the admin side so your host's `managedSettings` block isn't silently dropped.
+
+### `Edit`/`Write` Allow Rules at Drive Root or POSIX `/` Now Match Correctly
+
+Before 2.1.133, `Edit` and `Write` allow rules scoped to a Windows **drive root** (e.g., `Edit(C:\\**)`) or to the POSIX root (`Edit(/**)`) matched incorrectly and always fired the permission prompt anyway — the rule was syntactically valid and accepted but the path-match step misclassified the rule as not covering the target path. CC 2.1.133 fixes the match logic so these rules now behave as documented.
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Edit(/**)",
+      "Write(/**)",
+      "Edit(C:\\**)",
+      "Write(C:\\**)"
+    ]
+  }
+}
+```
+
+**Impact for OrchestKit**: None for the standard OrchestKit setup — OrchestKit recommends per-project allow rules under `.claude/settings.json` for the project directory, not a system-wide drive-root grant. Relevant if you've added a drive-root rule as a workaround in `.claude/settings.local.json` to silence the prompt-every-time symptom of this bug — at our floor the workaround is no longer needed and the rule actually means what it says. Audit any `Edit(C:\\**)`-shaped rules with that history; if they were added as workarounds, narrow them now that the canonical glob form works.

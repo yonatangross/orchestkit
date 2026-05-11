@@ -17,6 +17,52 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.3",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump anthropics/claude-code-action from 1.0.111 to 1.0.119 ([#1743](https://github.com/yonatangross/orchestkit/issues/1743)) ([c672ae8](https://github.com/yonatangross/orchestkit/commit/c672ae8e313f965bbf0c700a0f9edc48e108345d))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.2",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump github/codeql-action from 4.35.3 to 4.35.4 ([#1744](https://github.com/yonatangross/orchestkit/issues/1744)) ([f99744e](https://github.com/yonatangross/orchestkit/commit/f99744eec682f5f8e7ebc5538540e6e622c29407))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.1",
+    "date": "2026-05-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** skip cc-triage for versions below supported floor ([#1739](https://github.com/yonatangross/orchestkit/issues/1739)) ([#1740](https://github.com/yonatangross/orchestkit/issues/1740)) ([5e551a6](https://github.com/yonatangross/orchestkit/commit/5e551a6ce24780b782dd25c31714fb0248733a1a))",
+          "**ci:** cc-watch uses GH App token ([#1735](https://github.com/yonatangross/orchestkit/issues/1735)) ([#1736](https://github.com/yonatangross/orchestkit/issues/1736)) ([e726b8d](https://github.com/yonatangross/orchestkit/commit/e726b8d2a0c1bb4c4a63601663ab36ae90bc368c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.123) ([#1741](https://github.com/yonatangross/orchestkit/issues/1741)) ([8f9099e](https://github.com/yonatangross/orchestkit/commit/8f9099e3e188542e4d2949168a1217a12c13cd1b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.0",
     "date": "2026-05-10",
     "compareUrl": "",

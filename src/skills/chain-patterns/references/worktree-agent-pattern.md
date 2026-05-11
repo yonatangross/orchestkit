@@ -46,15 +46,29 @@ Agent(
 - `SubagentStart` → `unified-dispatcher` (logs agent spawn)
 - `SubagentStop` → `unified-dispatcher` (logs completion)
 
-## Branch base (CC 2.1.128+)
+## Required Setting (CC ≥ 2.1.133)
 
-`EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/<default-branch>`. This means:
+CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` branches new worktrees from `origin/<default-branch>` — **not** from local `HEAD`. OrchestKit's agent-isolation pattern needs unpushed commits to be visible to spawned agents, so set:
+
+```json
+{
+  "worktree": {
+    "baseRef": "head"
+  }
+}
+```
+
+Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Without it, agents spawned via `Task(... isolation: "worktree")` start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, and tests will run against stale source.
+
+## Branch base (CC 2.1.128–2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
+
+With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where this was the default), `EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/<default-branch>`. This means:
 
 - Unpushed commits in the parent worktree are preserved in the new worktree
 - No need to `git push` before spawning isolated agents
 - Parent and child see the same uncommitted history
 
-CC ≤ 2.1.127 branched from `origin/<default-branch>`, which silently dropped local-only commits. We floor at `2.1.138` so this concern is gone — your worktree starts from wherever your tree is now.
+CC ≤ 2.1.127 branched from `origin/<default-branch>`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/<default>) — see "Required Setting" above. We floor at `2.1.138`, so the setting is the single source of truth.
 
 > **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `${CLAUDE_SKILL_DIR}/../configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
 
