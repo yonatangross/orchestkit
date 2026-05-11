@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.5",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**adopt:** M132 Group H CC 2.1.133 effort+skill discovery ([#1750](https://github.com/yonatangross/orchestkit/issues/1750)) ([45378c5](https://github.com/yonatangross/orchestkit/commit/45378c5038a33477760e0edbfa108d21679aa253)), closes [#1702](https://github.com/yonatangross/orchestkit/issues/1702) [#1708](https://github.com/yonatangross/orchestkit/issues/1708) [#1709](https://github.com/yonatangross/orchestkit/issues/1709)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.86.4",
+    "date": "2026-05-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**adopt:** M132 Group F CC 2.1.133 OAuth+session+network ([#1747](https://github.com/yonatangross/orchestkit/issues/1747)) ([ad12153](https://github.com/yonatangross/orchestkit/commit/ad1215389d8338ede2873fc800793596225b5b87))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.3",
     "date": "2026-05-11",
     "compareUrl": "",

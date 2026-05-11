@@ -12,7 +12,7 @@ persuasion-type: reference
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.18.0"
+  upstream-version-tested: "0.19.0"
   shadcn-component-count: 36
 ---
 
@@ -33,8 +33,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.j
 
 Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
-## New in 2026-04 (json-render 0.14 → 0.18)
+## New in 2026-04 → 2026-05 (json-render 0.14 → 0.19)
 
+- **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
+- **`@json-render/directives` package (0.19)** — seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `{{param}}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec — AI no longer needs string-mangling or duplicated literals.
 - **Devtools ecosystem (0.18)** — five new packages: `@json-render/devtools` core + framework adapters for React, Vue, Svelte, Solid. Inspector panel has six tabs (Spec, State, Actions, Stream, Catalog, Pick) with DOM element picking that maps back to spec keys. Tree-shakes to `null` in production. Companion Next.js demo app shipped with AI-chat + catalog integration. Action observer infrastructure exposed for adapters to mirror events into the panel.
 - **Zod 4 fix (0.18)** — `formatZodType` now correctly handles `z.record()`, `z.default()`, and `z.literal()` (previously produced empty/wrong prompt output).
 - **Three edit modes (0.14)** — `patch` (RFC 6902), `merge` (RFC 7396), `diff` (unified) for progressive AI refinements. `buildEditUserPrompt()` + `diffToPatches()` + `deepMergeSpec()` in `@json-render/core`.
@@ -308,6 +310,8 @@ Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, code
 - `@json-render/next` (0.16) — generates full Next.js apps (routes, layouts, SSR, metadata)
 - `@json-render/shadcn-svelte` (0.16) — 36-component Svelte 5 mirror of the React shadcn catalog
 - `@json-render/react-three-fiber` now ships 20 components (includes `GaussianSplat` in 0.17)
+- `@json-render/devtools` + framework adapters (0.18) — six-tab inspector panel, DOM picker, tree-shakes to `null` in prod
+- `@json-render/directives` (0.19) — seven Intl/math/string directives + `createI18nDirective` + `standardDirectives` registration helper
 
 ## When to Use vs When NOT to Use
 

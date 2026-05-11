@@ -15,7 +15,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.26.0"
+  upstream-version-tested: "0.27.0"
 allowed-tools:
   - Read
   - Glob
@@ -53,7 +53,18 @@ agent-browser open "http://myapp.localhost:1355"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 (agent-browser 0.23 → 0.26.0)
+## New in 2026-04 → 2026-05 (agent-browser 0.23 → 0.27.0)
+
+**React introspection + perf observability (0.27):**
+- **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`** — first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive — gitignore captures.
+- **`vitals [url]`** — reports Core Web Vitals (LCP, CLS, TTFB, FCP, INP) plus React hydration phases for any page. Useful for perf gates in CI.
+- **`pushstate <url>`** — client-side SPA navigation without a full page load. Pairs with `react renders` to measure SPA route transitions without resetting profiling state.
+- **`--init-script <path>` (repeatable, env `AGENT_BROWSER_INIT_SCRIPTS`)** + **`--enable <feature>` (repeatable, env `AGENT_BROWSER_ENABLE`)** — register scripts before first navigation; `--enable react-devtools` is built-in. Hook treats arbitrary init scripts as code-execution surface — same trust model as `skills get`.
+- **`network route --resource-type <csv>`** — filter intercepted requests by CDP resource type (document, script, xhr, fetch, image, ...). Lets you mock only API calls without breaking page assets.
+- **`cookies set --curl <file>`** — auto-detects JSON, cURL, and Cookie-header formats for bulk cookie import. Hook still treats cookie-set as auth-state injection.
+- **Dashboard behind a reverse proxy** — observability dashboard now works from proxied origins via same-origin proxy. Enables path-based routing for shared dev environments.
+- Fixed `doctor` generating duplicate check IDs when invoked multiple times in the same process.
+- npm publishing moved to GitHub Actions OIDC trusted publishing — no manually managed npm tokens upstream.
 
 **Diagnostic tooling + stable IDs (0.26):**
 - `agent-browser doctor` — one-shot environment + Chrome + daemon + config + security + provider + network check. Flags: `--offline`, `--quick`, `--fix`, `--json`. Run before opening an issue to attach a structured snapshot.
@@ -105,6 +116,9 @@ agent-browser open "http://localhost:3000"  # which app is this?
 | `skills list/get` | v0.25 | Capability pack discovery — hook warns on third-party |
 | `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |
 | `dashboard` | v0.25 | Embedded debug UI — local proxy attack surface |
+| `react tree` / `react inspect` / `react renders` / `react suspense` | v0.27 | React DevTools introspection — fiber state may contain sensitive props |
+| `vitals [url]` | v0.27 | Core Web Vitals + React hydration phases |
+| `pushstate <url>` | v0.27 | SPA client-side navigation without full reload |
 
 **New flags:**
 
@@ -119,6 +133,10 @@ agent-browser open "http://localhost:3000"  # which app is this?
 | `--provider agentcore` | global | v0.25 (AWS Bedrock AgentCore) |
 | `--annotate` | screenshot | v0.24 |
 | `--no-auto-dialog` | global | v0.23.1 |
+| `--init-script <path>` (repeatable) | global | v0.27 |
+| `--enable <feature>` (repeatable) | global | v0.27 (built-in: `react-devtools`) |
+| `--resource-type <csv>` | network route | v0.27 |
+| `--curl <file>` | cookies set | v0.27 (auto-detects JSON/cURL/Cookie-header) |
 
 **Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22), AWS Bedrock AgentCore (v0.25).
 
@@ -148,6 +166,8 @@ The hook intercepts all `agent-browser` Bash commands and enforces:
 | **Skill install** | `skills get` fetches third-party capability packs — treat as code install (v0.25+) | **WARN** |
 | **Chat transcripts** | `chat` REPL logs may capture sensitive page text — pipe through same URL rules (v0.25+) | **WARN** |
 | **Remote provider** | `--provider agentcore/browserless` sends traffic to cloud endpoints; routing disabled remotely | **WARN** |
+| **Init scripts** | `--init-script <path>` registers arbitrary JS before first navigation — code-execution surface (v0.27+) | **WARN** |
+| **React fiber dumps** | `react tree`/`react inspect` may expose sensitive props/state from prod apps; gitignore captures (v0.27+) | **WARN** |
 
 ### Security Rules (in `rules/`)
 
