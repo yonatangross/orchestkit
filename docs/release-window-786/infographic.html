@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OrchestKit v7.86 — 24-Hour Release Sprint</title>
+<style>
+  :root { --bg:#0b0b0b; --panel:#141414; --line:#222; --ink:#fafafa; --dim:#cfcfcf; --mute:#888; --accent:#7aa2f7; --accent2:#bb9af7; --good:#9ece6a; --warn:#e0af68; --bad:#f7768e; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--dim); font: 15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif; padding: 56px 32px; min-height: 100vh; }
+  .page { max-width: 1240px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 64px; }
+  .eyebrow { color: var(--accent); font: 600 12px/1 ui-monospace,SF Mono,Menlo,monospace; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 16px; }
+  h1 { color: var(--ink); font: 700 64px/1.02 -apple-system,sans-serif; letter-spacing: -.035em; margin-bottom: 12px; }
+  .sub { color: var(--mute); font-size: 18px; }
+  .grid { display: grid; gap: 24px; margin-bottom: 56px; }
+  .grid-12 { grid-template-columns: repeat(12, 1fr); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 28px; }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-5 { grid-column: span 5; }
+  .span-6 { grid-column: span 6; }
+  .span-7 { grid-column: span 7; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: span 12; }
+  .num { font: 700 56px/1 -apple-system,sans-serif; color: var(--ink); letter-spacing: -.03em; }
+  .num.med { font-size: 40px; }
+  .num.small { font-size: 28px; }
+  .num.accent { color: var(--accent); }
+  .num.warm { color: var(--accent2); }
+  .num.good { color: var(--good); }
+  .num.warn { color: var(--warn); }
+  .num.bad { color: var(--bad); }
+  .lbl { color: var(--mute); font: 500 12px/1.3 ui-monospace,monospace; text-transform: uppercase; letter-spacing: .12em; margin-top: 10px; }
+  .sublbl { color: var(--dim); font-size: 14px; margin-top: 6px; }
+  h2 { color: var(--ink); font: 600 24px/1.2 -apple-system,sans-serif; letter-spacing: -.01em; margin-bottom: 16px; }
+  h3 { color: var(--accent2); font: 600 16px/1.3 -apple-system,sans-serif; margin: 12px 0 6px; }
+  p { line-height: 1.55; margin-bottom: 8px; }
+  code { font-family: ui-monospace,SF Mono,Menlo,monospace; background: #0f0f0f; padding: 2px 6px; border-radius: 4px; font-size: .88em; color: var(--good); }
+  .release-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 16px 0; }
+  .rel { background: #0f0f0f; border: 1px solid var(--line); border-radius: 8px; padding: 12px 8px; text-align: center; }
+  .rel.headline { border-color: var(--accent); }
+  .rel .v { color: var(--ink); font: 700 16px/1 -apple-system,sans-serif; }
+  .rel .t { color: var(--mute); font: 10px/1.3 ui-monospace,monospace; margin: 4px 0 8px; }
+  .rel .what { color: var(--dim); font-size: 11px; line-height: 1.3; }
+  .ascii { font: 12px/1.5 ui-monospace,SF Mono,Menlo,monospace; color: var(--good); background: #0f0f0f; border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; white-space: pre; overflow-x: auto; margin: 12px 0; }
+  ul { margin: 8px 0 0 0; padding-left: 0; list-style: none; }
+  ul li { padding: 5px 0 5px 22px; position: relative; font-size: 14px; color: var(--dim); line-height: 1.4; }
+  ul li::before { content: "▸"; color: var(--accent); position: absolute; left: 4px; top: 5px; font-size: .85em; }
+  .pill { display: inline-block; padding: 3px 10px; background: #0f0f0f; border: 1px solid var(--line); border-radius: 999px; font: 11px ui-monospace,monospace; color: var(--good); margin-right: 6px; margin-bottom: 4px; }
+  .pill.warn { color: var(--warn); }
+  .pill.bad { color: var(--bad); }
+  footer { text-align: center; color: var(--mute); margin-top: 64px; font: 12px ui-monospace,monospace; }
+  @media (max-width: 1000px) {
+    .span-3, .span-4, .span-5 { grid-column: span 6; }
+    .span-6, .span-7, .span-8 { grid-column: span 12; }
+    h1 { font-size: 44px; }
+    .num { font-size: 44px; }
+    .release-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="eyebrow">OrchestKit · 2026-05-10 → 05-11 · Release Window</div>
+    <h1>7 Releases in 24 Hours.</h1>
+    <div class="sub">CC floor bumped 2.1.132 → 2.1.138 · Two adoption milestones closed at 100% · cc-watch is now self-healing.</div>
+  </header>
+
+  <!-- HEADLINE METRICS -->
+  <div class="grid grid-12">
+    <div class="card span-3">
+      <div class="num accent">7</div>
+      <div class="lbl">Releases shipped</div>
+      <div class="sublbl">v7.86.0 → v7.86.6</div>
+    </div>
+    <div class="card span-3">
+      <div class="num good">2.1.138</div>
+      <div class="lbl">New CC floor</div>
+      <div class="sublbl">was 2.1.132</div>
+    </div>
+    <div class="card span-3">
+      <div class="num warm">100%</div>
+      <div class="lbl">M131 + M132 + M134</div>
+      <div class="sublbl">all closed today</div>
+    </div>
+    <div class="card span-3">
+      <div class="num bad">2</div>
+      <div class="lbl">CVEs patched</div>
+      <div class="sublbl">CVE-2026-6321/6322</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="grid grid-12">
+    <div class="card span-12">
+      <h2>The 24-hour train</h2>
+      <div class="release-row">
+        <div class="rel headline">
+          <div class="v">7.86.0</div>
+          <div class="t">5-10 14:07</div>
+          <div class="what">CC floor 2.1.132 → 2.1.138</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.1</div>
+          <div class="t">5-10 20:33</div>
+          <div class="what">cc-watch hardening + GH App token</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.2</div>
+          <div class="t">5-11 06:11</div>
+          <div class="what">codeql-action bump</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.3</div>
+          <div class="t">5-11 06:40</div>
+          <div class="what">claude-code-action bump</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.4</div>
+          <div class="t">5-11 09:16</div>
+          <div class="what">M132 Groups F + G</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.5</div>
+          <div class="t">5-11 12:31</div>
+          <div class="what">M132 Group H · M132 → 100%</div>
+        </div>
+        <div class="rel">
+          <div class="v">7.86.6</div>
+          <div class="t">5-11 ~13</div>
+          <div class="what">Vercel Labs thorough sync</div>
+        </div>
+      </div>
+      <p style="color:var(--mute);font-size:14px;margin-top:8px">Two through five were release-please patch bumps fired automatically as conventional commits landed. One human decision drove the whole train.</p>
+    </div>
+  </div>
+
+  <!-- COMPONENT COUNTS -->
+  <div class="grid grid-12">
+    <div class="card span-3">
+      <div class="num warm">107</div>
+      <div class="lbl">Skills</div>
+      <div class="sublbl">27 user-invocable</div>
+    </div>
+    <div class="card span-3">
+      <div class="num warm">37</div>
+      <div class="lbl">Agents</div>
+      <div class="sublbl">specialized roles</div>
+    </div>
+    <div class="card span-3">
+      <div class="num warm">188</div>
+      <div class="lbl">Hooks</div>
+      <div class="sublbl">120 global · 46 agent · 22 skill</div>
+    </div>
+    <div class="card span-3">
+      <div class="num warm">12</div>
+      <div class="lbl">CC 2.1.133 matrix entries</div>
+      <div class="sublbl">Groups F + G + H</div>
+    </div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="grid grid-12">
+    <div class="card span-6">
+      <h2>M131 — CC 2.1.132 adoption</h2>
+      <div style="display:flex;align-items:baseline;gap:16px;margin:12px 0 20px">
+        <div class="num med good">36/36</div>
+        <div style="color:var(--mute);font-size:14px;">closed (100%)</div>
+      </div>
+      <h3>Groups A → E</h3>
+      <ul>
+        <li><strong>A</strong> · CC version matrix · hook/agent format updates</li>
+        <li><strong>B</strong> · MCP audit runbook · manifest restructure</li>
+        <li><strong>C</strong> · OAuth + plan-mode resume permission</li>
+        <li><strong>D</strong> · bash mkdir/touch allow · plugin-url/-dir.zip</li>
+        <li><strong>E</strong> · OTEL env isolation · MCP reconnect · SDK localSettings</li>
+      </ul>
+    </div>
+    <div class="card span-6">
+      <h2>M132 — CC 2.1.133 adoption</h2>
+      <div style="display:flex;align-items:baseline;gap:16px;margin:12px 0 20px">
+        <div class="num med good">14/14</div>
+        <div style="color:var(--mute);font-size:14px;">closed (100%)</div>
+      </div>
+      <h3>Groups F · G · H</h3>
+      <ul>
+        <li><strong>F</strong> · parallel-session token race · MCP OAuth proxy · Remote Control interrupt · Windows mapped drives</li>
+        <li><strong>G</strong> · <code>worktree.baseRef</code> setting · sandbox path managed settings · parentSettingsBehavior</li>
+        <li><strong>H</strong> · <code>$CLAUDE_EFFORT</code> hooks env · session-scoped <code>/effort</code> · subagent skill discovery</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CC-WATCH PIPELINE -->
+  <div class="grid grid-12">
+    <div class="card span-7">
+      <h2>cc-watch pipeline — now self-healing</h2>
+      <div class="ascii">  Anthropic ships X.Y.Z+1
+            ↓
+   Daily cron @ 14:00 UTC
+            ↓
+   cc-release-watch.mjs
+     ├── snapshot detection     W1b ✓
+     ├── cc-triage with retry   W1d ✓
+     │      ├── ≥ floor: LLM
+     │      └──  < floor: skip  W1h ✓
+     └── file adoption issues   W1e ✓
+            ↓
+   peter-evans → release-bot GH App  W1a ✓
+            ↓
+   PR opens → CI fires → auto-merges 🎉
+</div>
+      <p style="color:var(--mute);font-size:13px">Yesterday this chain had three silent failure modes. Today all three are guarded by integration tests.</p>
+    </div>
+    <div class="card span-5">
+      <h2 style="color:var(--warn)">⚠ Behavior change</h2>
+      <h3 style="color:var(--warn)">worktree.baseRef</h3>
+      <p>CC 2.1.133 reverted the 2.1.128 default — <code>EnterWorktree</code> now branches from <code>origin/&lt;default&gt;</code> again, silently dropping unpushed commits.</p>
+      <div class="ascii" style="font-size:11px;">{
+  "worktree": {
+    "baseRef": "head"
+  }
+}</div>
+      <p style="font-size:13px"><span class="pill warn">Required</span> Anyone using OrchestKit's worktree-isolation flow must set <code>baseRef: "head"</code> on CC ≥ 2.1.133.</p>
+    </div>
+  </div>
+
+  <!-- VERCEL LABS -->
+  <div class="grid grid-12">
+    <div class="card span-12">
+      <h2>Vercel Labs upstream sync</h2>
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:24px;margin-top:8px">
+        <div>
+          <h3>agent-browser 0.26 → 0.27</h3>
+          <ul>
+            <li>React DevTools (tree, inspect, renders, suspense)</li>
+            <li><code>vitals</code> + <code>pushstate</code> + <code>--init-script</code></li>
+            <li>Network <code>--resource-type</code> filter</li>
+            <li>Dashboard proxy · <code>doctor</code> dedupe fix</li>
+          </ul>
+        </div>
+        <div>
+          <h3>json-render 0.18 → 0.19</h3>
+          <ul>
+            <li><code>defineDirective</code> custom API</li>
+            <li>New <code>@json-render/directives</code> package</li>
+            <li>7 directives: <code>$format</code>, <code>$math</code>, <code>$concat</code>, <code>$count</code>, <code>$truncate</code>, <code>$pluralize</code>, <code>$join</code></li>
+            <li>I18n + <code>standardDirectives</code></li>
+          </ul>
+        </div>
+        <div>
+          <h3>portless 0.12 → 0.13</h3>
+          <ul>
+            <li>OS startup service (<code>install/status/uninstall</code>)</li>
+            <li>launchd · systemd · Task Scheduler</li>
+            <li>Tailscale readiness preflight fix</li>
+            <li>Apps survive reboots</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT'S NEXT -->
+  <div class="grid grid-12">
+    <div class="card span-12">
+      <h2>What's queued</h2>
+      <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:24px;align-items:center">
+        <div>
+          <h3>M135 — CC 2.1.136 adoption</h3>
+          <p>The W3 recovery agent pre-filed <strong>20 issues</strong> covering CC 2.1.136's 50+ upstream bullets (autoMode.hard_deny, plugin slug case, MCP reconnect summarization, plan-mode Edit allow rule, etc.). Same Group-F/G/H pattern carries it home whenever someone has bandwidth.</p>
+        </div>
+        <div style="display:flex;gap:16px">
+          <div class="card" style="background:#0f0f0f;flex:1">
+            <div class="num med">0/20</div>
+            <div class="lbl">M135 issues</div>
+            <div class="sublbl">CC 2.1.136 — the big release</div>
+          </div>
+          <div class="card" style="background:#0f0f0f;flex:1">
+            <div class="num med">0/0</div>
+            <div class="lbl">M133 (CC 2.1.138)</div>
+            <div class="sublbl">empty by design — Internal fixes only</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    github.com/yonatangross/orchestkit · v7.86 release window · 2026-05-11
+  </footer>
+
+</div>
+</body>
+</html>

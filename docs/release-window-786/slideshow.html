@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OrchestKit v7.86 — 7 Releases in 24 Hours</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0b0b0b; color: #e8e8e8; font: 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif; overflow: hidden; }
+  .deck { height: 100vh; width: 100vw; position: relative; }
+  .slide {
+    position: absolute; inset: 0; padding: 80px 96px;
+    display: none; flex-direction: column; justify-content: center;
+    opacity: 0; transition: opacity .35s ease;
+  }
+  .slide.active { display: flex; opacity: 1; }
+  .slide-no {
+    position: absolute; top: 32px; right: 48px;
+    font: 12px/1 ui-monospace,SF Mono,Menlo,monospace;
+    color: #555; letter-spacing: .1em;
+  }
+  .eyebrow { color: #7aa2f7; font: 600 13px/1 ui-monospace,SF Mono,Menlo,monospace; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 24px; }
+  h1 { font-size: clamp(48px, 6vw, 88px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; margin-bottom: 24px; color: #fafafa; }
+  h2 { font-size: clamp(32px, 4vw, 56px); font-weight: 600; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 32px; color: #fafafa; }
+  h3 { font-size: 28px; font-weight: 600; letter-spacing: -.01em; margin: 32px 0 16px; color: #bb9af7; }
+  p { font-size: clamp(18px, 1.6vw, 22px); color: #cfcfcf; max-width: 60ch; margin-bottom: 16px; }
+  p.lead { font-size: clamp(20px, 2vw, 28px); color: #e8e8e8; max-width: 50ch; }
+  ul { margin: 24px 0 24px 0; padding: 0; list-style: none; max-width: 70ch; }
+  ul li { font-size: clamp(17px, 1.4vw, 20px); padding: 8px 0 8px 28px; position: relative; color: #d8d8d8; line-height: 1.45; }
+  ul li::before { content: "▸"; color: #7aa2f7; position: absolute; left: 4px; top: 8px; font-size: .9em; }
+  code, .mono { font: inherit; font-family: ui-monospace,SF Mono,Menlo,monospace; background: #1a1a1a; padding: 2px 8px; border-radius: 4px; color: #9ece6a; font-size: .9em; }
+  .grid { display: grid; gap: 32px; margin-top: 24px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .stat { padding: 24px; background: #141414; border: 1px solid #222; border-radius: 12px; }
+  .stat .num { font: 700 clamp(40px, 4.5vw, 72px)/1 -apple-system,sans-serif; color: #fafafa; letter-spacing: -.03em; }
+  .stat .label { color: #888; font: 500 13px/1.3 ui-monospace,monospace; text-transform: uppercase; letter-spacing: .12em; margin-top: 8px; }
+  .stat .sub { color: #7aa2f7; font-size: 14px; margin-top: 4px; }
+  .timeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin: 40px 0; }
+  .release { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 16px 12px; text-align: center; transition: border-color .2s; }
+  .release.headline { border-color: #7aa2f7; background: linear-gradient(180deg, #1a1f2e 0%, #141414 100%); }
+  .release .v { font: 700 18px/1 -apple-system,sans-serif; color: #fafafa; margin-bottom: 4px; }
+  .release .t { font: 11px/1 ui-monospace,monospace; color: #888; margin-bottom: 12px; }
+  .release .what { font-size: 12px; color: #cfcfcf; line-height: 1.35; }
+  .ascii-box {
+    font: 13px/1.5 ui-monospace,SF Mono,Menlo,monospace;
+    color: #9ece6a;
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 8px;
+    padding: 20px 24px;
+    white-space: pre;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; z-index: 10; }
+  .nav button {
+    background: #1a1a1a; color: #cfcfcf; border: 1px solid #2a2a2a;
+    width: 40px; height: 40px; border-radius: 8px; font: 18px ui-monospace,monospace;
+    cursor: pointer; transition: background .15s;
+  }
+  .nav button:hover { background: #2a2a2a; }
+  .nav .pos { font: 13px ui-monospace,monospace; color: #888; padding: 0 12px; }
+  .footer { position: absolute; bottom: 32px; left: 96px; font: 12px ui-monospace,monospace; color: #555; }
+  .pill { display: inline-block; padding: 4px 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 999px; font: 12px ui-monospace,monospace; color: #9ece6a; margin-right: 8px; }
+  .pill.warn { color: #e0af68; }
+  .pill.bad { color: #f7768e; }
+  .kbd { font: 11px ui-monospace,monospace; background: #2a2a2a; border: 1px solid #3a3a3a; padding: 2px 6px; border-radius: 4px; color: #cfcfcf; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- Slide 1: Title -->
+  <section class="slide active">
+    <div class="slide-no">01 / 12</div>
+    <div class="eyebrow">OrchestKit · 2026-05-10 → 05-11</div>
+    <h1>7 Releases in 24 Hours.</h1>
+    <p class="lead">A Claude Code floor bump (2.1.132 → 2.1.138), two adoption milestones closed at 100%, and a cc-watch pipeline that is finally self-healing.</p>
+    <div style="margin-top:48px">
+      <span class="pill">v7.86.0</span>
+      <span class="pill">v7.86.1</span>
+      <span class="pill">v7.86.2</span>
+      <span class="pill">v7.86.3</span>
+      <span class="pill">v7.86.4</span>
+      <span class="pill">v7.86.5</span>
+      <span class="pill">v7.86.6</span>
+    </div>
+    <div class="footer">github.com/yonatangross/orchestkit · v7.86 release window</div>
+  </section>
+
+  <!-- Slide 2: Release timeline -->
+  <section class="slide">
+    <div class="slide-no">02 / 12</div>
+    <div class="eyebrow">The window</div>
+    <h2>Every release in the v7.86 train.</h2>
+    <div class="timeline">
+      <div class="release headline">
+        <div class="v">7.86.0</div>
+        <div class="t">5-10 14:07 UTC</div>
+        <div class="what">CC floor bump 2.1.132 → 2.1.138</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.1</div>
+        <div class="t">5-10 20:33 UTC</div>
+        <div class="what">cc-watch hardening + GH App token</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.2</div>
+        <div class="t">5-11 06:11 UTC</div>
+        <div class="what">codeql-action 4.35.3 → 4.35.4</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.3</div>
+        <div class="t">5-11 06:40 UTC</div>
+        <div class="what">claude-code-action 1.0.111 → 1.0.119</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.4</div>
+        <div class="t">5-11 09:16 UTC</div>
+        <div class="what">M132 Groups F + G</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.5</div>
+        <div class="t">5-11 12:31 UTC</div>
+        <div class="what">M132 Group H · final 3</div>
+      </div>
+      <div class="release">
+        <div class="v">7.86.6</div>
+        <div class="t">5-11 ~13 UTC</div>
+        <div class="what">Vercel Labs thorough sync</div>
+      </div>
+    </div>
+    <p style="margin-top:32px">Two through five were release-please patch bumps fired automatically as <code>fix</code>/<code>feat</code> commits landed. The whole train was driven by exactly one human decision: <strong>"upgrade to latest"</strong>.</p>
+  </section>
+
+  <!-- Slide 3: The headline -->
+  <section class="slide">
+    <div class="slide-no">03 / 12</div>
+    <div class="eyebrow">The headline · M134</div>
+    <h1>2.1.132 → 2.1.138</h1>
+    <p class="lead">Six minor versions in one bump. The Claude Code floor was lifted as part of the M134 epic — <strong>26 of 26 workstream issues closed</strong>.</p>
+    <div class="grid grid-3" style="margin-top:48px;max-width:none;">
+      <div class="stat">
+        <div class="num">2.1.138</div>
+        <div class="label">New CC floor</div>
+        <div class="sub">was 2.1.132</div>
+      </div>
+      <div class="stat">
+        <div class="num">26/26</div>
+        <div class="label">M134 issues closed</div>
+        <div class="sub">100%</div>
+      </div>
+      <div class="stat">
+        <div class="num">6</div>
+        <div class="label">CC versions adopted</div>
+        <div class="sub">133, 136, 137, 138 (134/135 N/A)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Components -->
+  <section class="slide">
+    <div class="slide-no">04 / 12</div>
+    <div class="eyebrow">The plugin · post-release</div>
+    <h2>OrchestKit by the numbers.</h2>
+    <div class="grid grid-4" style="margin-top:32px;max-width:none;">
+      <div class="stat">
+        <div class="num">107</div>
+        <div class="label">Skills</div>
+        <div class="sub">27 user-invocable</div>
+      </div>
+      <div class="stat">
+        <div class="num">37</div>
+        <div class="label">Agents</div>
+        <div class="sub">specialized roles</div>
+      </div>
+      <div class="stat">
+        <div class="num">188</div>
+        <div class="label">Hooks</div>
+        <div class="sub">120 global · 46 agent · 22 skill</div>
+      </div>
+      <div class="stat">
+        <div class="num">12</div>
+        <div class="label">2.1.133 matrix entries</div>
+        <div class="sub">across Groups F + G + H</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: M131 -->
+  <section class="slide">
+    <div class="slide-no">05 / 12</div>
+    <div class="eyebrow">Milestone closeout · M131</div>
+    <h2>CC 2.1.132 adoption — done at 36/36.</h2>
+    <p class="lead">The whole 2.1.128/129/132 surface, finally documented and shipped.</p>
+    <div class="grid grid-2" style="margin-top:40px;max-width:none;">
+      <div>
+        <h3 style="margin-top:0;color:#9ece6a;">Group A — Foundation</h3>
+        <ul><li>CC version matrix · base doc</li><li>Hook/agent format updates</li></ul>
+        <h3 style="color:#9ece6a;">Group B — MCP hygiene</h3>
+        <ul><li>MCP audit runbook</li><li>Manifest restructure</li></ul>
+        <h3 style="color:#9ece6a;">Group C — OAuth + perm</h3>
+        <ul><li>Plan-mode resume perm-mode honored</li><li>MCP unauth connector status</li></ul>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#9ece6a;">Group D — bash + plugin URL</h3>
+        <ul><li>mkdir/touch allow rules</li><li>plugin-dir .zip + plugin-url</li></ul>
+        <h3 style="color:#9ece6a;">Group E — OTEL/MCP/SDK</h3>
+        <ul><li>Subprocess env isolation</li><li>MCP reconnect summarization</li><li>SDK localSettings hint</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 6: M132 -->
+  <section class="slide">
+    <div class="slide-no">06 / 12</div>
+    <div class="eyebrow">Milestone closeout · M132</div>
+    <h2>CC 2.1.133 adoption — done at 14/14.</h2>
+    <p class="lead">Three groups, all shipped today. 12 new entries in the CC version matrix.</p>
+    <div class="grid grid-3" style="margin-top:40px;max-width:none;">
+      <div>
+        <h3 style="margin-top:0;color:#bb9af7;">Group F</h3>
+        <p style="font-size:14px;color:#888;">OAuth + session + network</p>
+        <ul style="font-size:15px;">
+          <li>parallel-session refresh-token race fix</li>
+          <li>MCP OAuth proxy + mTLS</li>
+          <li>Remote Control stop/interrupt</li>
+          <li>Windows mapped network drives</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#bb9af7;">Group G</h3>
+        <p style="font-size:14px;color:#888;">perms + sandbox + settings</p>
+        <ul style="font-size:15px;">
+          <li><code>worktree.baseRef</code> setting (⚠ default flip)</li>
+          <li><code>sandbox.bwrapPath</code> / <code>socatPath</code></li>
+          <li><code>parentSettingsBehavior</code> admin key</li>
+          <li>Edit/Write drive-root allow rules</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#bb9af7;">Group H</h3>
+        <p style="font-size:14px;color:#888;">effort + skill discovery</p>
+        <ul style="font-size:15px;">
+          <li>Hooks get <code>$CLAUDE_EFFORT</code> env</li>
+          <li><code>/effort</code> is session-scoped now</li>
+          <li>Subagents discover skills again</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 7: cc-watch -->
+  <section class="slide">
+    <div class="slide-no">07 / 12</div>
+    <div class="eyebrow">Pipeline · now self-healing</div>
+    <h2>cc-watch — Anthropic ships → we adopt automatically.</h2>
+    <div class="ascii-box" style="font-size:14px;">
+   Anthropic ships X.Y.Z+1
+            ↓
+   Daily cron @ 14:00 UTC
+            ↓
+   ┌────────────────────────────────────────────┐
+   │  cc-release-watch.mjs                      │
+   │    ├── snapshot detection      W1b ✓       │
+   │    └── cc-triage with retry    W1d ✓       │
+   │           ├── ≥ floor: LLM                 │
+   │           └──  < floor: skip   W1h ✓       │
+   │    └── file adoption issues    W1e ✓       │
+   └────────────────┬───────────────────────────┘
+                    ↓
+   peter-evans → release-bot GH App token (W1a ✓)
+                    ↓
+        PR opens → CI fires → auto-merges 🎉
+    </div>
+    <p style="margin-top:24px">Yesterday this chain had three silent failure modes. Today all three are guarded by tests (Step 3 integration test landed in v7.86.5).</p>
+  </section>
+
+  <!-- Slide 8: worktree.baseRef -->
+  <section class="slide">
+    <div class="slide-no">08 / 12</div>
+    <div class="eyebrow">⚠ Behavior-changing</div>
+    <h2>worktree.baseRef default flipped back to "fresh".</h2>
+    <p class="lead">Upstream CC 2.1.133 reverted the 2.1.128 behavior: <code>EnterWorktree</code> now branches from <code>origin/&lt;default&gt;</code> again — silently dropping unpushed commits.</p>
+    <h3>OrchestKit's response</h3>
+    <p>Documented in <code>chain-patterns/worktree-agent-pattern</code> as a <strong>required setting</strong>:</p>
+    <div class="ascii-box" style="font-size:15px;">
+{
+  "worktree": {
+    "baseRef": "head"
+  }
+}
+    </div>
+    <p style="margin-top:24px;color:#e0af68;"><span class="pill warn">Action required</span> Anyone running CC ≥ 2.1.133 with OrchestKit's worktree-isolation flow must set this or lose work.</p>
+  </section>
+
+  <!-- Slide 9: Security -->
+  <section class="slide">
+    <div class="slide-no">09 / 12</div>
+    <div class="eyebrow">Security</div>
+    <h2>Two CVEs patched same-day.</h2>
+    <div class="grid grid-2" style="margin-top:32px;max-width:none;">
+      <div>
+        <h3 style="margin-top:0;color:#f7768e;">CVE-2026-6321</h3>
+        <p>fast-uri path traversal via percent-encoded dot segments. <strong>High severity.</strong></p>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#f7768e;">CVE-2026-6322</h3>
+        <p>fast-uri host confusion via percent-encoded authority delimiters. <strong>High severity.</strong></p>
+      </div>
+    </div>
+    <h3 style="margin-top:48px">Mitigation</h3>
+    <p><code>fast-uri ^3.1.2</code> added to <code>package.json</code> overrides. fast-uri reaches <code>orchestkit</code> as a transitive (<code>agentation-mcp → @modelcontextprotocol/sdk → ajv → fast-uri</code>) — overrides bypass the long dependency chain.</p>
+    <p style="margin-top:24px"><span class="pill">CLAUDE_CODE_OAUTH_TOKEN renewed</span> Also done today: stale token detected in cc-watch logs, rotated via <code>claude setup-token</code>.</p>
+  </section>
+
+  <!-- Slide 10: Labs sync -->
+  <section class="slide">
+    <div class="slide-no">10 / 12</div>
+    <div class="eyebrow">Vercel Labs upstream sync</div>
+    <h2>Three packages, thorough body updates.</h2>
+    <div class="grid grid-3" style="margin-top:32px;max-width:none;">
+      <div>
+        <h3 style="margin-top:0;color:#7aa2f7;">agent-browser</h3>
+        <p style="font-size:14px;color:#888;">0.26 → 0.27</p>
+        <ul style="font-size:15px;">
+          <li>React DevTools tree/inspect/renders/suspense</li>
+          <li><code>vitals</code> command</li>
+          <li><code>pushstate</code>, <code>--init-script</code></li>
+          <li>Network <code>--resource-type</code></li>
+          <li>Dashboard proxy, <code>doctor</code> dedupe fix</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#7aa2f7;">json-render</h3>
+        <p style="font-size:14px;color:#888;">0.18 → 0.19</p>
+        <ul style="font-size:15px;">
+          <li><code>defineDirective</code> custom API</li>
+          <li>New <code>@json-render/directives</code></li>
+          <li>7 directives: <code>$format</code>, <code>$math</code>, <code>$concat</code>, <code>$count</code>, <code>$truncate</code>, <code>$pluralize</code>, <code>$join</code></li>
+          <li>I18n + <code>standardDirectives</code></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-top:0;color:#7aa2f7;">portless</h3>
+        <p style="font-size:14px;color:#888;">0.12 → 0.13</p>
+        <ul style="font-size:15px;">
+          <li>OS startup service (launchd, systemd, Task Scheduler)</li>
+          <li>Tailscale readiness preflight fix</li>
+          <li><code>portless service install/status/uninstall</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 11: What's next -->
+  <section class="slide">
+    <div class="slide-no">11 / 12</div>
+    <div class="eyebrow">What's queued</div>
+    <h2>M135 — CC 2.1.136 adoption.</h2>
+    <p class="lead">The W3 recovery agent pre-filed 20 issues. Whenever someone has bandwidth, the same Group-F/G/H pattern carries it home.</p>
+    <div class="grid grid-2" style="margin-top:48px;max-width:none;">
+      <div class="stat">
+        <div class="num">0/20</div>
+        <div class="label">M135 closed</div>
+        <div class="sub">CC 2.1.136 — the big release</div>
+      </div>
+      <div class="stat">
+        <div class="num">50+</div>
+        <div class="label">Upstream bullets in 2.1.136</div>
+        <div class="sub">includes autoMode.hard_deny, plugin slug case, MCP reconnect</div>
+      </div>
+    </div>
+    <p style="margin-top:32px;color:#888">M133 (CC 2.1.138) is intentionally empty — that release was "Internal fixes only".</p>
+  </section>
+
+  <!-- Slide 12: End -->
+  <section class="slide">
+    <div class="slide-no">12 / 12</div>
+    <div class="eyebrow">Ship log · 2026-05-11</div>
+    <h1>That's the v7.86 train.</h1>
+    <p class="lead">Floor lifted, two milestones closed, the cc-watch pipeline becomes the first piece of infrastructure that recovers on its own from upstream drops.</p>
+    <h3 style="margin-top:48px">Reading list</h3>
+    <ul>
+      <li><code>CHANGELOG.md</code> — top of file, entries 7.86.0 through 7.86.6</li>
+      <li><code>shared/cc-support.json</code> — single source of truth for floor</li>
+      <li><code>src/skills/configure/references/cc-version-settings.md</code> — canonical per-version docs</li>
+      <li><code>src/hooks/src/lib/cc-version-matrix.ts</code> — programmatic CC feature lookup</li>
+      <li><code>.github/workflows/claude-release-watch.yml</code> — the self-healing pipeline</li>
+      <li><code>shared/cc-snapshots/*.md</code> — versioned upstream CHANGELOG captures (2.1.123 → 2.1.138)</li>
+    </ul>
+    <div class="footer">Use <span class="kbd">←</span> <span class="kbd">→</span> to navigate · <span class="kbd">f</span> for fullscreen · <span class="kbd">esc</span> to exit</div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Previous">←</button>
+  <span class="pos" id="pos">01 / 12</span>
+  <button id="next" aria-label="Next">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const pos = document.getElementById('pos');
+  function go(n) {
+    idx = (n + total) % total;
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    pos.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    location.hash = '#' + (idx + 1);
+  }
+  document.getElementById('prev').onclick = () => go(idx - 1);
+  document.getElementById('next').onclick = () => go(idx + 1);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(idx + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    if (e.key === 'f' || e.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(total - 1);
+  });
+  // Deep-link to slide via #N
+  const m = location.hash.match(/^#(\d+)$/);
+  if (m) { const n = parseInt(m[1], 10) - 1; if (n >= 0 && n < total) go(n); }
+</script>
+</body>
+</html>
