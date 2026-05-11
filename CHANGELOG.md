@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.86.5](https://github.com/yonatangross/orchestkit/compare/v7.86.4...v7.86.5) (2026-05-11)
+
+
+### Miscellaneous
+
+* **adopt:** M132 Group H CC 2.1.133 effort+skill discovery ([#1750](https://github.com/yonatangross/orchestkit/issues/1750)) ([45378c5](https://github.com/yonatangross/orchestkit/commit/45378c5038a33477760e0edbfa108d21679aa253)), closes [#1702](https://github.com/yonatangross/orchestkit/issues/1702) [#1708](https://github.com/yonatangross/orchestkit/issues/1708) [#1709](https://github.com/yonatangross/orchestkit/issues/1709)
+
 ## [7.86.4](https://github.com/yonatangross/orchestkit/compare/v7.86.3...v7.86.4) (2026-05-11)
 
 
