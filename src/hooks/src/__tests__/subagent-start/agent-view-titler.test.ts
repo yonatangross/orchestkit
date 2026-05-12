@@ -122,7 +122,7 @@ describe('agent-view-titler', () => {
       expect(title!.length).toBeLessThanOrEqual(51); // 50 budget + 1 ellipsis char
       expect(title!.endsWith('…')).toBe(true);
       // No trailing punctuation/whitespace before the ellipsis
-      expect(title!).not.toMatch(/[\s,;:.\-]+…$/);
+      expect(title!).not.toMatch(/[\s,;:.-]+…$/);
     });
 
     it('returns silent success when there is neither agent name nor prompt body', () => {

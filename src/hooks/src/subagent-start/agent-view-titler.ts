@@ -87,7 +87,7 @@ export function truncateBody(body: string, max: number): string {
   const lastSpace = hardCut.lastIndexOf(' ');
   const minSoftCut = Math.floor(max * 0.6);
   const cutAt = lastSpace >= minSoftCut ? lastSpace : max;
-  return body.slice(0, cutAt).replace(/[\s,;:.\-]+$/, '') + '…';
+  return `${body.slice(0, cutAt).replace(/[\s,;:.-]+$/, '')}…`;
 }
 
 /**
