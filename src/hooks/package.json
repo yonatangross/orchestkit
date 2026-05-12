@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:property": "vitest run --config vitest.property.config.ts",
+    "bench": "vitest bench --run --config vitest.bench.config.ts",
     "lint:biome": "biome check src/",
     "lint:biome:fix": "biome check --write src/",
     "clean": "rm -rf dist coverage",

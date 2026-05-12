@@ -1,3 +1,4 @@
 node_modules/
 coverage/
+bench-results.json
 .claude/.instance_env

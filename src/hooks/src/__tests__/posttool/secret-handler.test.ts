@@ -236,10 +236,14 @@ describe('secretHandler — tool guard', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. Perf benchmark — catch catastrophic backtracking
+// 5. Large-input correctness — catch redaction failures on big payloads
 // ---------------------------------------------------------------------------
-describe('secretHandler — performance', () => {
-  it('processes 50KB output in under 50ms', () => {
+// Throughput / catastrophic-backtracking detection lives in the dedicated
+// bench file (`src/__bench__/secret-handler.bench.ts`) so wall-clock noise
+// from coverage instrumentation and parallel workers never gates CI. This
+// test asserts only what the test runner is good at: correctness.
+describe('secretHandler — large input correctness', () => {
+  it('redacts a github-pat hidden inside 50KB of filler', () => {
     // Arrange
     process.env.ORK_SECRET_HOOK = 'REDACT';
     // Filler must end on a non-word char so \b matches before the secret.
@@ -250,12 +254,9 @@ describe('secretHandler — performance', () => {
     const input = makeInput({ tool_output: big });
 
     // Act
-    const start = performance.now();
     const result = secretHandler(input, testCtx);
-    const elapsedMs = performance.now() - start;
 
-    // Assert — correctness AND perf
+    // Assert — correctness only; timing belongs in the bench file
     expect(result.hookSpecificOutput?.updatedToolOutput).toContain('[REDACTED:github-pat]');
-    expect(elapsedMs).toBeLessThan(50);
   });
 });
