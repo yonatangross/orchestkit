@@ -68,7 +68,7 @@ export function writeWorktreeAdvisory(
     const dir = join(projectDir, ADVISORY_DIR);
     mkdirSync(dir, { recursive: true });
     const file = join(dir, `${ADVISORY_PREFIX}${slugify(name)}${ADVISORY_SUFFIX}`);
-    writeFileSync(file, advisory.trimEnd() + '\n', 'utf8');
+    writeFileSync(file, `${advisory.trimEnd()}\n`, 'utf8');
     return true;
   } catch {
     return false;
@@ -110,8 +110,7 @@ export function consumeWorktreeAdvisories(projectDir: string): string | null {
       // Delete only after successful read — keeps file as fallback if read failed
       try { unlinkSync(fullPath); } catch { /* best-effort cleanup */ }
     } catch {
-      // Skip this file; leave it on disk to retry next prompt
-      continue;
+      // Skip this file on read error; leave it on disk for the next prompt.
     }
   }
 
