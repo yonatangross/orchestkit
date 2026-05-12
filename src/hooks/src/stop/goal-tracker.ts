@@ -150,7 +150,7 @@ export function goalTrackerStop(
 
   try {
     mkdirSync(dirname(path), { recursive: true });
-    appendFileSync(path, JSON.stringify(endEntry) + '\n', 'utf8');
+    appendFileSync(path, `${JSON.stringify(endEntry)}\n`, 'utf8');
     ctx.log(HOOK_NAME, `closed /goal: status=${status} turns=${turnCount}`);
   } catch (err) {
     ctx.log(

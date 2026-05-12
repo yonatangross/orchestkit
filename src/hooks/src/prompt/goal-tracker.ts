@@ -77,7 +77,7 @@ function readBrake(projectDir: string): BrakeFile | null {
 function appendHistory(projectDir: string, entry: Record<string, unknown>): void {
   const path = join(projectDir, HISTORY_REL);
   mkdirSync(dirname(path), { recursive: true });
-  appendFileSync(path, JSON.stringify(entry) + '\n', 'utf8');
+  appendFileSync(path, `${JSON.stringify(entry)}\n`, 'utf8');
 }
 
 /** Estimate token usage from prompt length (~3.5 chars/token). */

@@ -28,13 +28,13 @@ function writeHistory(lines: object[]): string {
   const dir = join(tmp, '.claude', 'state');
   mkdirSync(dir, { recursive: true });
   const path = join(dir, 'goal-history.jsonl');
-  writeFileSync(path, lines.map(l => JSON.stringify(l)).join('\n') + '\n');
+  writeFileSync(path, `${lines.map(l => JSON.stringify(l)).join('\n')}\n`);
   return path;
 }
 
 describe('findOpenEntry', () => {
   it('returns null when session has no entries', () => {
-    const raw = JSON.stringify({ session_id: 'other', started_at: 't', ended_at: null }) + '\n';
+    const raw = `${JSON.stringify({ session_id: 'other', started_at: 't', ended_at: null })}\n`;
     expect(findOpenEntry(raw, 'sess-X')).toBeNull();
   });
 

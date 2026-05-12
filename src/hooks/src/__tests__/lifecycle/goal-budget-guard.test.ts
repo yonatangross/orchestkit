@@ -34,7 +34,7 @@ function writeHistory(lines: object[]): void {
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, 'goal-history.jsonl'),
-    lines.map(l => JSON.stringify(l)).join('\n') + '\n',
+    `${lines.map(l => JSON.stringify(l)).join('\n')}\n`,
   );
 }
 
