@@ -14,12 +14,13 @@ export * from '../lib/orchestration-types.js';
 export * from '../lib/orchestration-state.js';
 export * from '../lib/retry-manager.js';
 
-// SubagentStart hooks (5)
+// SubagentStart hooks (6 — #1783 added agent-view-titler)
 import { contextGate } from '../subagent-start/context-gate.js';
 import { subagentContextStager } from '../subagent-start/subagent-context-stager.js';
 import { subagentValidator } from '../subagent-start/subagent-validator.js';
 import { modelCostAdvisor } from '../subagent-start/model-cost-advisor.js';
 import { issueContextInjector } from '../subagent-start/issue-context-injector.js';
+import { agentViewTitler } from '../subagent-start/agent-view-titler.js';
 import { unifiedSubagentStartDispatcher } from '../subagent-start/unified-dispatcher.js';
 
 // SubagentStop hooks (9) — #1282 added subagent-scope-auditor
@@ -42,12 +43,13 @@ import type { HookFn } from '../types.js';
  * Subagent hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // SubagentStart hooks (5)
+  // SubagentStart hooks (6 — #1783 added agent-view-titler)
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/model-cost-advisor': modelCostAdvisor,
   'subagent-start/issue-context-injector': issueContextInjector,
+  'subagent-start/agent-view-titler': agentViewTitler,
   'subagent-start/unified-dispatcher': unifiedSubagentStartDispatcher,
 
   // SubagentStop hooks (9)

@@ -161,11 +161,13 @@ describe('hooks.json wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 188', () => {
+    it('description total matches 191', () => {
       // 184 -> 186: M126 #1543 — posttool/secret-handler + (intermediate bumps)
       // 186 -> 187: M130 #1487 — lifecycle/cc-version-check
       // 187 -> 188: ASCII Design System — posttool/ascii-lint
-      expect(hooksConfig.description).toContain('188 total');
+      // 188 -> 189: M139 #1783 — subagent-start/agent-view-titler
+      // 189 -> 191: M139 #1782 — lifecycle/plugins-drift-snapshot + posttool/check-plugins-drift
+      expect(hooksConfig.description).toContain('191 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

@@ -357,7 +357,9 @@ describe('Cross-Bundle Consistency', () => {
     // 217 -> 218: M126 #1543 Bundle C — posttool/secret-handler (CC 2.1.121 updatedToolOutput)
     // 218 -> 219: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
     // 219 -> 220: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
-    expect(totalHooks).toBe(220);
+    // 220 -> 223: M139 Bundle A — lifecycle/plugins-drift-snapshot,
+    //              posttool/check-plugins-drift, subagent-start/agent-view-titler
+    expect(totalHooks).toBe(223);
   });
 });
 

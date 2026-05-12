@@ -110,7 +110,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->188<!--/ork--> hooks (<!--ork:hooks-global-->120<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->191<!--/ork--> hooks (<!--ork:hooks-global-->123<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -355,6 +355,44 @@ echo '{"tool_name":"Read","session_id":"test","tool_input":{}}' | \
 # Expected output:
 # {"continue":true,"suppressOutput":true,"hookSpecificOutput":{"permissionDecision":"allow"}}
 ```
+
+---
+
+## Adding a hook with outputBlock + continueOnBlock
+
+Hooks signal three outcomes via `HookResult`:
+
+| Outcome | Shape | When to use |
+|---------|-------|-------------|
+| Silent success | `outputSilentSuccess()` → `{continue:true, suppressOutput:true}` | Default; nothing interesting happened |
+| Advisory (continue-on-block) | `outputNotify(msg, {prefix})` → `continue:true` + `additionalContext` | You want to warn but NOT halt the tool |
+| Block | `outputBlock(reason)` → `continue:false, stopReason, hookSpecificOutput.permissionDecisionReason` | Operation must be stopped (halts tool execution) |
+
+**Pattern: graduate severity by confidence.** Start advisory, only block when multiple independent signals agree. Example from `posttool/write/stale-import-detector.ts`:
+
+```typescript
+const refs = findStaleReferences(...);
+if (refs.length < MIN_SIGNAL_REFS) return outputSilentSuccess();
+
+// Block only when (1) refs >= BLOCK_THRESHOLD, (2) co-located importer
+// present, (3) no suppression comment near any import. Otherwise advise.
+if (cond1 && cond2 && cond3) return outputBlock(blockReason);
+return outputNotify(advisoryMessage, { prefix: 'stale-import-detector' });
+```
+
+Test the three branches with the harness in `tests/integration/hooks/`:
+
+```bash
+# Run the harness against the in-tree fixture hooks
+bash tests/integration/hooks/test-continue-on-block-pattern.sh
+
+# Or drive a single hook module directly with a JSON input
+node tests/integration/hooks/lib/run-hook-fixture.mjs \
+  path/to/my-hook.mjs \
+  --input '{"tool_name":"Write","tool_input":{"file_path":"/tmp/x.ts"}}'
+```
+
+The harness exposes three assertion helpers: `assert_silent_success`, `assert_block <reason-substr>`, and `assert_advisory_continue <ctx-substr>`. New hooks adding a block path should add one assertion per branch.
 
 ---
 
@@ -1283,7 +1321,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->188<!--/ork--> hooks (<!--ork:hooks-global-->120<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->191<!--/ork--> hooks (<!--ork:hooks-global-->123<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 

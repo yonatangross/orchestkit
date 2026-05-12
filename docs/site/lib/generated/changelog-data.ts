@@ -17,6 +17,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.7",
+    "date": "2026-05-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**adopt:** M135 Group I CC 2.1.136 autoMode + plan-mode ([#1760](https://github.com/yonatangross/orchestkit/issues/1760)) ([3e44265](https://github.com/yonatangross/orchestkit/commit/3e442656d4284243b78d7edee62e629db77ec077)), closes [#1711](https://github.com/yonatangross/orchestkit/issues/1711) [#1717](https://github.com/yonatangross/orchestkit/issues/1717) [#1710](https://github.com/yonatangross/orchestkit/issues/1710) [#1719](https://github.com/yonatangross/orchestkit/issues/1719)",
+          "**adopt:** M137 CC 2.1.139 adoption + 2.1.136 matrix backfill ([#1773](https://github.com/yonatangross/orchestkit/issues/1773)) ([c05d712](https://github.com/yonatangross/orchestkit/commit/c05d712de96bb3378f4250e999a0b3d6115e222c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**release:** add v7.86 release-window slideshow + infographic ([#1758](https://github.com/yonatangross/orchestkit/issues/1758)) ([c5b00e8](https://github.com/yonatangross/orchestkit/commit/c5b00e8d114133a323e5d99b5aea01c636221869))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**tests:** drop fragile counts from cc-version-matrix ([#1761](https://github.com/yonatangross/orchestkit/issues/1761)) ([f2a29bd](https://github.com/yonatangross/orchestkit/commit/f2a29bdbb2056b441dcae017b4befccfc783d4b6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**mcp/memory:** Memory graph dir moves from user-global to `${CLAUDE_PROJECT_DIR}/.claude/memory/`. Resolved by CC 2.1.139 stdio MCP env injection — no manual path expansion needed. Existing entries auto-discovered; manual move possible by relocating the prior `memory.json` into the new project-scoped path."
+        ]
+      },
+      {
+        "type": "added",
+        "items": [
+          "**skill:** `ork:agents-view` — Research Preview wrapper around `claude agents` and `claude plugin details ork` for parallel-agent observability and per-session cost projection (CC 2.1.139+)."
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.6",
     "date": "2026-05-11",
     "compareUrl": "",

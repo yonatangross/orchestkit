@@ -109,7 +109,11 @@ describe('Async Hooks Registry', () => {
       //           + expect/snapshot-recorder (PostToolUse Skill, async)
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
       // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
-      expect(asyncHooks.length, 'Should have exactly 80 async hooks').toBe(80);
+      // 80 -> 81: M139 #1782 — lifecycle/plugins-drift-snapshot (SessionStart, async).
+      //           The companion posttool/check-plugins-drift is intentionally sync
+      //           so its outputBlock can gate the next tool call; subagent-start/
+      //           agent-view-titler (#1783) is also sync.
+      expect(asyncHooks.length, 'Should have exactly 81 async hooks').toBe(81);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
