@@ -372,6 +372,10 @@ When reporting fix status, follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rul
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
+## Picker fallback (#1795)
+
+If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `prompt/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
