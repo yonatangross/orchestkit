@@ -39,6 +39,9 @@ import { goalTracker } from '../prompt/goal-tracker.js';
 // M119 (#1795) — AskUserQuestion picker stall mitigation
 import { askFallbackInjector } from '../prompt/ask-fallback-injector.js';
 
+// M119 PR-2 (#1794 follow-up) — picks up deferred worktree advisories
+import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.js';
+
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
@@ -64,6 +67,8 @@ export const hooks: Record<string, HookFn> = {
   'prompt/goal-tracker': goalTracker,
   // M119 (#1795) — AskUserQuestion picker stall mitigation (ORK_ASK_FALLBACK=text)
   'prompt/ask-fallback-injector': askFallbackInjector,
+  // M119 PR-2 (#1794 follow-up) — deferred worktree advisory consumer
+  'prompt/worktree-advisory-consumer': worktreeAdvisoryConsumer,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/todo-enforcer': todoEnforcer,

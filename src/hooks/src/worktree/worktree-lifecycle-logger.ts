@@ -12,10 +12,11 @@
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, outputPromptContext } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
+import { writeWorktreeAdvisory } from '../lib/worktree-advisory.js';
 
 /** Heuristic: repos with many top-level dirs are likely monorepos. */
 const MONOREPO_DIR_THRESHOLD = 15;
@@ -92,15 +93,24 @@ export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOO
     const { isMonorepo, topDirCount } = detectMonorepo(projectDir);
     const hasSparse = hasSparsePathsConfigured(projectDir);
 
-    let advisory = `[WorktreeCreate] Creating worktree "${name}". ` +
-      'You are now working in an isolated worktree. Changes here do not affect the main working tree.';
-
+    // PR-2 (#1794 follow-up): defer monorepo advisory delivery to the next
+    // UserPromptSubmit via .claude/state/worktree-advisory-<slug>.md. CC does
+    // not consume additionalContext on WorktreeCreate (that's why PR-1
+    // returns silent success), so we write the advisory to disk now and let
+    // prompt/worktree-advisory-consumer inject it on the next user prompt.
     if (isMonorepo && !hasSparse) {
-      advisory += `\n\n⚡ **Monorepo detected** (${topDirCount} top-level dirs). ` +
+      const advisory =
+        `⚡ **Monorepo detected on worktree "${name}"** (${topDirCount} top-level dirs). ` +
         'Consider configuring `worktree.sparsePaths` in `.claude/settings.json` to speed up worktree creation. ' +
         'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
         'only those directories will be checked out in worktrees (CC 2.1.76+).';
-      ctx.log('worktree-lifecycle', `Monorepo (${topDirCount} dirs) without sparsePaths — advisory injected`);
+      const wrote = writeWorktreeAdvisory(advisory, name, projectDir);
+      ctx.log(
+        'worktree-lifecycle',
+        wrote
+          ? `Monorepo (${topDirCount} dirs) without sparsePaths — advisory deferred to next prompt`
+          : `Monorepo advisory write failed for worktree "${name}" — falling back to ctx.log only`,
+      );
     }
 
     // CC 2.1.84: HTTP type hooks return worktree path via hookSpecificOutput
@@ -108,14 +118,15 @@ export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOO
       const worktreePath = join(projectDir, '.worktrees', name);
       ctx.log('worktree-lifecycle', `HTTP type — returning worktreePath: ${worktreePath}`);
       return {
-        ...outputPromptContext(advisory),
+        continue: true,
+        suppressOutput: true,
         hookSpecificOutput: { worktreePath },
       };
     }
 
     // CC WorktreeCreate command-type does not consume additionalContext.
     // Returning a UserPromptSubmit envelope here would make CC misread stdout
-    // as a chdir target (see #1794). Keep ctx.log() above for dev-facing logs.
+    // as a chdir target (see #1794). Advisory delivery is deferred above.
     return outputSilentSuccess();
   }
 
