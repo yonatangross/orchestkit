@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OrchestKit · CC 2.1.139 adoption playground</title>
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #131820; --panel2: #1a212c; --fg: #e6e6e6;
+    --muted: #94a3b8; --accent: #7c9eff; --good: #4ade80; --warn: #fbbf24;
+    --bad: #f87171; --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin-bottom: 28px; }
+  .grid { display: grid; gap: 20px; grid-template-columns: 1fr; max-width: 1080px; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid #232a36; border-radius: 12px;
+    padding: 18px; overflow: hidden;
+  }
+  .panel h2 { margin: 0 0 10px; font-size: 15px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
+  .terminal {
+    background: #05080d; color: #d6e4ff; border-radius: 8px; padding: 14px;
+    font: 12.5px/1.55 var(--mono); white-space: pre; overflow: auto; min-height: 220px;
+  }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .pill {
+    font: 11px/1 var(--mono); padding: 4px 8px; border-radius: 999px;
+    border: 1px solid #2a3340; color: var(--muted);
+  }
+  .pill.running { color: var(--accent); border-color: var(--accent); }
+  .pill.blocked { color: var(--warn); border-color: var(--warn); }
+  .pill.done { color: var(--good); border-color: var(--good); }
+  .kbd {
+    font: 11px/1 var(--mono); background: #1d2531; border: 1px solid #2a3340;
+    padding: 2px 6px; border-radius: 4px; color: var(--accent);
+  }
+  table { width: 100%; border-collapse: collapse; font: 12px/1.4 var(--mono); }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px dotted #1f2733; }
+  th { color: var(--muted); font-weight: normal; }
+  .num { text-align: right; }
+  .footer { color: var(--muted); margin-top: 28px; font-size: 12px; }
+  .footer code { font: 12px var(--mono); color: var(--accent); }
+</style>
+</head>
+<body>
+  <h1>CC 2.1.139 adoption · playground</h1>
+  <div class="sub">Three things land in this PR: <span class="pill">agent view</span> <span class="pill">/goal</span> <span class="pill">claude plugin details</span> — wired into 188 hooks and 4 long-running skills.</div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <h2>1. <code>claude agents</code> (Research Preview)</h2>
+      <div class="terminal" id="t-agents"></div>
+      <div class="row" style="margin-top:10px"><span class="pill running">running</span><span class="pill blocked">blocked on you</span><span class="pill done">done</span></div>
+    </div>
+
+    <div class="panel">
+      <h2>2. <code>/goal</code> overlay (unattended run)</h2>
+      <div class="terminal" id="t-goal"></div>
+      <div class="row" style="margin-top:10px">
+        <span class="pill">elapsed <span id="g-elapsed">0:12</span></span>
+        <span class="pill">turns <span id="g-turns">3</span></span>
+        <span class="pill">tokens <span id="g-tokens">12.4k</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. <code>claude plugin details ork</code></h2>
+      <table>
+        <thead><tr><th>Component</th><th class="num">Count</th><th class="num">Est. tokens / session</th></tr></thead>
+        <tbody>
+          <tr><td>Skills</td><td class="num">108</td><td class="num">14.2k</td></tr>
+          <tr><td>Agents</td><td class="num">37</td><td class="num">3.1k</td></tr>
+          <tr><td>Hooks (global)</td><td class="num">120</td><td class="num">0.4k</td></tr>
+          <tr><td>Hooks (agent-scoped)</td><td class="num">46</td><td class="num">0.2k</td></tr>
+          <tr><td>Hooks (skill-scoped)</td><td class="num">22</td><td class="num">0.1k</td></tr>
+          <tr><td>User-invocable</td><td class="num">28</td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+      <div class="footer" style="margin-top:14px">
+        New: <code>ork:agents-view</code> (Research Preview). Floor: <code>CC &gt;= 2.1.139</code>.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>4. Hook <code>continueOnBlock</code> (advisory hooks)</h2>
+      <div class="terminal">$ Edit file with circular import
+<span style="color:#fbbf24">⚠ circular-dep-detector</span>: A → B → A
+<span style="color:#94a3b8">(continueOnBlock: true — reason fed to Claude, turn continues)</span>
+Claude: removing the back-edge from B to A and re-running…
+<span style="color:#4ade80">✓ check passes; tool re-attempts</span></div>
+      <div class="footer" style="margin-top:10px">Applied to: stale-import-detector, architecture-validator, boundary-validator, naming-validator, circular-dep-detector.</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Closes #1762 #1763 #1764 #1765 #1766 #1767 #1768 #1769 #1770 #1771 #1772 · Milestone <a href="https://github.com/yonatangross/orchestkit/milestone/137" style="color:var(--accent)">M137 — CC 2.1.139 adoption</a>
+  </div>
+
+<script>
+(() => {
+  // Panel 1 — animated agent list
+  const sessions = [
+    { state: "running", skill: "ork:audit-full",  turns: 14, tokens: "42.1k", path: "yonatangross/orchestkit" },
+    { state: "running", skill: "ork:brainstorm",  turns:  3, tokens: "12.4k", path: "yonatangross/orchestkit (worktree cc139)" },
+    { state: "blocked", skill: "ork:design-ship", turns:  6, tokens: "18.7k", path: "client/web-app" },
+    { state: "done",    skill: "ork:cover",       turns:  9, tokens: "27.5k", path: "yonatangross/labs" },
+    { state: "done",    skill: "ork:fix-issue",   turns:  4, tokens:  "8.9k", path: "yonatangross/orchestkit" },
+  ];
+  const pad = (s, w) => (s + "                                  ").slice(0, w);
+  const lines = [
+    "$ claude agents",
+    "",
+    "  state    skill              turns  tokens   path",
+    "  ───────  ─────────────────  ─────  ───────  ───────────────────────────────"
+  ];
+  for (const s of sessions) {
+    const color = s.state === "running" ? "color:#7c9eff" :
+                  s.state === "blocked" ? "color:#fbbf24" : "color:#4ade80";
+    lines.push(`  <span style="${color}">${pad(s.state, 7)}</span>  ${pad(s.skill, 17)}  ${String(s.turns).padStart(5)}  ${pad(s.tokens, 7)}  ${s.path}`);
+  }
+  lines.push("");
+  lines.push("  (q to quit · / to filter · enter to attach)");
+  document.getElementById("t-agents").innerHTML = lines.join("\n");
+
+  // Panel 2 — /goal overlay incrementally updating
+  const goalLines = [
+    "$ /goal until findings.critical == 0 OR no_new_issues_for_3_turns",
+    "",
+    "  goal set. running ork:audit-full across the working tree…",
+    "",
+    "  turn 1  ▸ scanning src/skills/         12 findings   <span style='color:#fbbf24'>3 critical</span>",
+    "  turn 2  ▸ scanning src/agents/          5 findings   <span style='color:#fbbf24'>1 critical</span>",
+    "  turn 3  ▸ scanning src/hooks/           2 findings   <span style='color:#4ade80'>0 critical</span>",
+    "  turn 3  ▸ ✓ goal met — exiting"
+  ];
+  document.getElementById("t-goal").innerHTML = goalLines.join("\n");
+
+  // Live overlay ticker
+  let s = 12, turns = 3, tk = 12.4;
+  const elapsedEl = document.getElementById("g-elapsed");
+  const turnsEl = document.getElementById("g-turns");
+  const tokensEl = document.getElementById("g-tokens");
+  setInterval(() => {
+    s += 1;
+    if (s % 8 === 0) { turns += 1; tk += 4.2; }
+    if (turns > 18) { s = 12; turns = 3; tk = 12.4; }
+    elapsedEl.textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+    turnsEl.textContent = turns;
+    tokensEl.textContent = `${tk.toFixed(1)}k`;
+  }, 800);
+})();
+</script>
+</body>
+</html>

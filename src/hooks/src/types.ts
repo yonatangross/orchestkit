@@ -75,6 +75,8 @@ export interface HookInput {
   agent_type?: string;
   /** Agent ID */
   agent_id?: string;
+  /** Parent agent ID for sub-agent trace stitching (CC 2.1.139) */
+  parent_agent_id?: string;
   /** Agent output (SubagentStop) */
   agent_output?: string;
   /** Output (alternative field name) */

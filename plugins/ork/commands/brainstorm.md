@@ -352,6 +352,19 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 | **YAGNI ruthlessly** | Remove unnecessary complexity |
 
 
+## Running unattended with /goal
+
+Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+
+**Example completion condition for this skill:**
+
+```
+/goal until design.options_count >= 2 AND user_chose_option
+```
+
+Stops when: 2+ ranked design options presented and the user selects one (or after Phase 6 if running unattended via -p). Compatible with claude.ai Remote Control runs.
+
+
 ## Related Skills
 
 - `ork:architecture-decision-record` - Document key decisions made during brainstorming

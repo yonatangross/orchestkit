@@ -230,6 +230,18 @@ If the dev stack isn't live, auto-expect skips silently — `/ork:dev` is the pr
 | `rules/idempotent-boot.md` | HIGH | Re-running while live |
 | `rules/teardown-order.md` | MEDIUM | `stop` invocations |
 
+## Running unattended with /goal
+
+Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+
+**Example completion condition for this skill:**
+
+```
+/goal until services.running == 4
+```
+
+Stops when: all 4 dev-loop services (portless + emulate + dev-server + agent-browser) report healthy on their respective ports/sockets. Compatible with claude.ai Remote Control runs.
+
 ## Related skills
 
 - `/ork:expect` — diff-aware browser tests; reuses the agent-browser session this skill warms

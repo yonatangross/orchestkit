@@ -17,12 +17,11 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.138', () => {
-      // 2026-05-10 W4 floor bump (M134): 2.1.132 -> 2.1.138 (closeout). Versions 133/136/137/138
-      // upstream — 2.1.134/135 don't exist. Original 2026-05-07 bolder-bump manual_override
-      // still in force (expires 2026-08-07). Stamper propagates supported_floor from
-      // shared/cc-support.json.
-      expect(MIN_CC_VERSION).toBe('2.1.138');
+    test('is 2.1.139', () => {
+      // 2026-05-12 M137 floor bump: 2.1.138 -> 2.1.139 (agent view + /goal + hook args[]/
+      // continueOnBlock + MCP CLAUDE_PROJECT_DIR + agent-id telemetry). Versions 134/135 never
+      // released upstream. Manual_override from 2026-05-07 still in force (expires 2026-08-07).
+      expect(MIN_CC_VERSION).toBe('2.1.139');
     });
   });
 
@@ -30,7 +29,7 @@ describe('cc-version-matrix', () => {
     // Single canary: bump this number when adding entries.
     // Drop check belongs here too — if anyone removes an entry the count regresses.
     test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(407);
+      expect(CC_FEATURE_MATRIX.length).toBe(443);
     });
 
     test('is sorted by version ascending', () => {
@@ -78,7 +77,7 @@ describe('cc-version-matrix', () => {
 
   describe('getAvailableFeatures', () => {
     test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.138');
+      const features = getAvailableFeatures('2.1.139');
       expect(features.length).toBe(CC_FEATURE_MATRIX.length);
     });
 
@@ -384,6 +383,53 @@ describe('cc-version-matrix', () => {
 
     test('otel_feedback_survey_env available at 2.1.136', () => {
       expect(hasFeature('2.1.136', 'otel_feedback_survey_env')).toBe(true);
+    });
+
+    test('mcp_servers_persistence_clear_fix boundary: absent at 2.1.133, present at 2.1.136', () => {
+      expect(hasFeature('2.1.133', 'mcp_servers_persistence_clear_fix')).toBe(false);
+      expect(hasFeature('2.1.136', 'mcp_servers_persistence_clear_fix')).toBe(true);
+    });
+
+    test('vscode_windows_activation_fix available at 2.1.137', () => {
+      expect(hasFeature('2.1.137', 'vscode_windows_activation_fix')).toBe(true);
+    });
+
+    test('agent_view_command boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'agent_view_command')).toBe(false);
+      expect(hasFeature('2.1.139', 'agent_view_command')).toBe(true);
+    });
+
+    test('goal_command boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'goal_command')).toBe(false);
+      expect(hasFeature('2.1.139', 'goal_command')).toBe(true);
+    });
+
+    test('hook_args_array_form boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'hook_args_array_form')).toBe(false);
+      expect(hasFeature('2.1.139', 'hook_args_array_form')).toBe(true);
+    });
+
+    test('post_tool_continue_on_block boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'post_tool_continue_on_block')).toBe(false);
+      expect(hasFeature('2.1.139', 'post_tool_continue_on_block')).toBe(true);
+    });
+
+    test('mcp_stdio_claude_project_dir boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'mcp_stdio_claude_project_dir')).toBe(false);
+      expect(hasFeature('2.1.139', 'mcp_stdio_claude_project_dir')).toBe(true);
+    });
+
+    test('subagent_agent_id_headers boundary: absent at 2.1.138, present at 2.1.139', () => {
+      expect(hasFeature('2.1.138', 'subagent_agent_id_headers')).toBe(false);
+      expect(hasFeature('2.1.139', 'subagent_agent_id_headers')).toBe(true);
+    });
+
+    test('skill_wildcard_permission_fix available at 2.1.139', () => {
+      expect(hasFeature('2.1.139', 'skill_wildcard_permission_fix')).toBe(true);
+    });
+
+    test('plugin_details_command available at 2.1.139', () => {
+      expect(hasFeature('2.1.139', 'plugin_details_command')).toBe(true);
     });
 
     test('returns false for unknown feature', () => {

@@ -273,6 +273,18 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 - "Find all usages of EventBroadcaster"
 - "What's the workflow for content analysis?"
 
+## Running unattended with /goal
+
+Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+
+**Example completion condition for this skill:**
+
+```
+/goal until report.has_architecture_diagram AND patterns.detected_count >= 5
+```
+
+Stops when: codebase architecture diagram is generated and at least 5 design patterns have been classified. Compatible with claude.ai Remote Control runs.
+
 ## Related Skills
 - `ork:implement`: Implement after exploration
 ---
