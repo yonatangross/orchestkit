@@ -125,7 +125,7 @@ fi
 
 # Test 9: Setup dispatcher references sync-setup-dispatcher
 echo -n "  Setup uses sync-setup-dispatcher... "
-SETUP_SYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command // "" | select(contains("setup/sync-setup-dispatcher"))] | length' "$HOOKS_JSON")
+SETUP_SYNC=$(jq '[.hooks.Setup[]?.hooks[]? | (.command // "") + " " + ((.args // []) | join(" ")) | select(contains("setup/sync-setup-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $SETUP_SYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
