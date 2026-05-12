@@ -7,13 +7,15 @@
  * Covers:
  * - outputPromptContextWithTitle() behavior (pure)
  * - buildSessionTitle() format, branch cleanup, effort suffix
- * - Dispatcher emits sessionTitle when ctx.branch is present
- * - Delta-skip turns still emit title (title is cheap)
+ * - First-turn emit (no state file → emit derived title)
+ * - Delta-detect: same title as previous turn → omit emit so `/rename` survives
+ * - Branch/effort change → emit refreshes prompt bar
  * - Empty branch → no title → falls back to outputSilentSuccess/outputPromptContext
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { mockCommonReal } from '../fixtures/mock-common.js';
+import { existsSync, readFileSync } from 'node:fs';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
@@ -173,5 +175,76 @@ describe('prompt/unified-dispatcher — sessionTitle (CC 2.1.94)', () => {
     const result = unifiedPromptDispatcher(input, testCtx);
     // Current behavior: early-return silent on oversized prompt, no title set
     expect(result.hookSpecificOutput?.sessionTitle).toBeUndefined();
+  });
+});
+
+describe('prompt/unified-dispatcher — sessionTitle delta-detect (preserves /rename)', () => {
+  let testCtx: ReturnType<typeof createTestContext>;
+  const mockedExists = vi.mocked(existsSync);
+  const mockedRead = vi.mocked(readFileSync);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    testCtx = createTestContext();
+  });
+
+  test('second turn with same branch OMITS sessionTitle so `/rename` survives', () => {
+    testCtx = createTestContext({ branch: 'feature-auth' });
+    // Simulate state file exists and contains the same title we would emit
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt') ? 'feature-auth' : '',
+    );
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    // The fix: title is NOT re-asserted, so CC keeps whatever the user
+    // last set via /rename. This is the core regression we are guarding.
+    expect(result.hookSpecificOutput?.sessionTitle).toBeUndefined();
+  });
+
+  test('branch change between turns RE-EMITS sessionTitle', () => {
+    testCtx = createTestContext({ branch: 'feature-auth' });
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    // Previous turn was on a different branch
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt') ? 'old-branch' : '',
+    );
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
+  });
+
+  test('effort change between turns RE-EMITS sessionTitle (suffix differs)', () => {
+    testCtx = createTestContext({ branch: 'feature-x' });
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    // Last turn was at default effort (no suffix)
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt') ? 'feature-x' : '',
+    );
+
+    const input = createPromptInput('do something', {
+      effort_level: 'low',
+    } as Partial<HookInput> & { effort_level?: string });
+    const result = unifiedPromptDispatcher(input, testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-x · low');
+  });
+
+  test('first turn (no state file) emits derived title', () => {
+    testCtx = createTestContext({ branch: 'feature-auth' });
+    // Default mock: existsSync returns false → first turn
+    mockedExists.mockReturnValue(false);
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
   });
 });

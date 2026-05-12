@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OrchestKit — /rename Override Fix Playground</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #14181f;
+    --panel-2: #1c222c;
+    --border: #2a3140;
+    --text: #e6e9ef;
+    --muted: #8a93a3;
+    --accent: #4ea1ff;
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin-bottom: 28px; }
+  .controls {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; margin-bottom: 20px;
+  }
+  button {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 14px; font: inherit; cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  button:hover { background: #232a37; border-color: #3a4456; }
+  button.primary { background: var(--accent); color: #0b0d12; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { background: #6db5ff; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; min-height: 340px;
+  }
+  .panel h2 { font-size: 14px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .panel.before h2::before { content: "■ "; color: var(--bad); }
+  .panel.after h2::before  { content: "■ "; color: var(--good); }
+
+  .titlebar {
+    background: #000; color: var(--text); font-family: var(--mono);
+    padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; min-height: 36px;
+  }
+  .titlebar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  .titlebar .title { flex: 1; }
+  .titlebar .title.empty { color: var(--muted); font-style: italic; }
+  .titlebar .badge {
+    font-size: 11px; padding: 2px 6px; border-radius: 4px;
+    background: var(--panel-2); color: var(--muted);
+  }
+  .titlebar .badge.changed { background: var(--bad); color: #fff; animation: flash 0.6s ease; }
+  .titlebar .badge.kept    { background: var(--good); color: #0b0d12; }
+
+  @keyframes flash {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  .log {
+    margin-top: 12px; font-family: var(--mono); font-size: 12px;
+    background: #0a0c10; border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px; height: 220px; overflow-y: auto;
+  }
+  .log .line { margin-bottom: 6px; opacity: 0; animation: fadeIn .3s forwards; }
+  .log .line.user   { color: var(--accent); }
+  .log .line.hook   { color: var(--muted); }
+  .log .line.action { color: var(--warn); }
+  .log .line.good   { color: var(--good); }
+  .log .line.bad    { color: var(--bad); }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .step-info {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 18px;
+    font-size: 14px;
+  }
+  .step-info .step-num { color: var(--accent); font-family: var(--mono); font-weight: 600; }
+  .step-info .desc { color: var(--text); }
+
+  .legend {
+    display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+  footer { margin-top: 32px; color: var(--muted); font-size: 12px; }
+  code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 0.92em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>/rename override fix — interactive playground</h1>
+  <div class="sub">
+    Step through the same script in both worlds. Watch the title bar in each panel.
+    <strong>BEFORE</strong> overwrites user <code>/rename</code> on every prompt.
+    <strong>AFTER</strong> uses delta-detect: omit <code>sessionTitle</code> when unchanged so the user's title survives.
+  </div>
+
+  <div class="step-info">
+    <span class="step-num" id="step-num">step 0</span> ·
+    <span class="desc" id="step-desc">click <em>Next step</em> to begin</span>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="next">Next step ▶</button>
+    <button id="reset">⟲ Reset</button>
+    <button id="auto">▶▶ Auto-play</button>
+    <span style="flex:1"></span>
+    <span style="color: var(--muted); font-size: 13px; align-self: center;">
+      <span id="counter">0 / 7</span>
+    </span>
+  </div>
+
+  <div class="grid">
+    <div class="panel before">
+      <h2>BEFORE — hook emits every turn (the bug)</h2>
+      <div class="titlebar">
+        <div class="dot"></div>
+        <div class="title empty" id="title-before">— no title —</div>
+        <div class="badge" id="badge-before"></div>
+      </div>
+      <div class="log" id="log-before"></div>
+    </div>
+
+    <div class="panel after">
+      <h2>AFTER — delta-detect (the fix)</h2>
+      <div class="titlebar">
+        <div class="dot"></div>
+        <div class="title empty" id="title-after">— no title —</div>
+        <div class="badge" id="badge-after"></div>
+      </div>
+      <div class="log" id="log-after"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--accent)"></span>user input</span>
+    <span><span class="swatch" style="background:var(--muted)"></span>hook trace</span>
+    <span><span class="swatch" style="background:var(--warn)"></span>action</span>
+    <span><span class="swatch" style="background:var(--good)"></span>title preserved</span>
+    <span><span class="swatch" style="background:var(--bad)"></span>title overwritten</span>
+  </div>
+
+  <footer>
+    Source diff: <code>src/hooks/src/prompt/unified-dispatcher.ts</code> · branch <code>fix/session-title-override</code>
+  </footer>
+</div>
+
+<script>
+// Script — both panels run the same user actions; only the hook policy differs.
+const STEPS = [
+  {
+    n: 1,
+    desc: 'You open Claude Code on branch fix/session-title-override.',
+    user: 'open session',
+    branch: 'fix/session-title-override',
+    action: 'session start',
+  },
+  {
+    n: 2,
+    desc: 'You send your first prompt.',
+    user: 'hello',
+    branch: 'fix/session-title-override',
+    action: 'prompt',
+  },
+  {
+    n: 3,
+    desc: 'You run /rename to label this session.',
+    user: '/rename "Sprint X"',
+    branch: 'fix/session-title-override',
+    action: 'rename',
+    renameValue: 'Sprint X',
+  },
+  {
+    n: 4,
+    desc: 'You send another prompt on the same branch.',
+    user: 'what about Y?',
+    branch: 'fix/session-title-override',
+    action: 'prompt',
+  },
+  {
+    n: 5,
+    desc: 'You send a third prompt — same branch, your rename should still be there.',
+    user: 'and Z?',
+    branch: 'fix/session-title-override',
+    action: 'prompt',
+  },
+  {
+    n: 6,
+    desc: 'You checkout a different branch.',
+    user: '!git checkout main',
+    branch: 'main',
+    action: 'checkout',
+  },
+  {
+    n: 7,
+    desc: 'You send a prompt — branch changed, title should follow.',
+    user: 'now on main',
+    branch: 'main',
+    action: 'prompt',
+  },
+];
+
+// Per-panel state
+const state = {
+  before: { title: '', lastEmittedTitle: null },
+  after:  { title: '', lastEmittedTitle: null },
+};
+
+let stepIx = 0;
+let autoTimer = null;
+
+function setTitle(panel, value, badge, badgeClass) {
+  const el = document.getElementById('title-' + panel);
+  if (value) {
+    el.textContent = value;
+    el.classList.remove('empty');
+  } else {
+    el.textContent = '— no title —';
+    el.classList.add('empty');
+  }
+  const b = document.getElementById('badge-' + panel);
+  b.className = 'badge ' + (badgeClass || '');
+  b.textContent = badge || '';
+  // Clear badge after a beat
+  if (badge) setTimeout(() => { b.textContent = ''; b.className = 'badge'; }, 1200);
+}
+
+function log(panel, text, cls) {
+  const div = document.createElement('div');
+  div.className = 'line ' + (cls || '');
+  div.textContent = text;
+  const c = document.getElementById('log-' + panel);
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+
+function applyStep(step) {
+  const stepLabel = `step ${step.n}`;
+  document.getElementById('step-num').textContent = stepLabel;
+  document.getElementById('step-desc').textContent = step.desc;
+  document.getElementById('counter').textContent = `${step.n} / ${STEPS.length}`;
+
+  // Branch-derived title (what the hook would compute)
+  const derived = step.branch;
+
+  for (const panel of ['before', 'after']) {
+    const s = state[panel];
+
+    log(panel, `▶ ${step.user}`, 'user');
+
+    if (step.action === 'session start') {
+      log(panel, `  session opened on branch=${step.branch}`, 'hook');
+      continue;
+    }
+
+    if (step.action === 'rename') {
+      s.title = step.renameValue;
+      setTitle(panel, s.title, 'rename', 'kept');
+      log(panel, `  CC sets title="${step.renameValue}"`, 'action');
+      continue;
+    }
+
+    if (step.action === 'checkout') {
+      // checkout itself doesn't fire UserPromptSubmit; title doesn't change yet
+      log(panel, `  branch flipped → ${step.branch} (no hook fired)`, 'hook');
+      continue;
+    }
+
+    // step.action === 'prompt' — UserPromptSubmit hook fires
+    if (panel === 'before') {
+      // BUGGY policy: always emit derived title
+      log(panel, `  hook: emit sessionTitle="${derived}"`, 'hook');
+      const wasUserSet = s.title && s.title !== s.lastEmittedTitle;
+      s.title = derived;
+      s.lastEmittedTitle = derived;
+      setTitle(panel, s.title, wasUserSet ? 'overwritten' : 'set', wasUserSet ? 'changed' : '');
+      if (wasUserSet) log(panel, `  ✗ user /rename was overwritten`, 'bad');
+    } else {
+      // FIXED policy: emit only when derived differs from last-emitted
+      if (s.lastEmittedTitle === null) {
+        // first turn — emit
+        log(panel, `  hook: no state file → emit sessionTitle="${derived}"`, 'hook');
+        s.title = derived;
+        s.lastEmittedTitle = derived;
+        setTitle(panel, s.title, 'set', '');
+      } else if (s.lastEmittedTitle === derived) {
+        // same as last → skip
+        log(panel, `  hook: derived="${derived}" == last → SKIP emit`, 'hook');
+        log(panel, `  ✓ user title preserved`, 'good');
+        setTitle(panel, s.title, 'kept', 'kept');
+      } else {
+        // branch/effort changed → emit
+        log(panel, `  hook: derived="${derived}" != last="${s.lastEmittedTitle}" → EMIT`, 'hook');
+        s.title = derived;
+        s.lastEmittedTitle = derived;
+        setTitle(panel, s.title, 'refreshed', '');
+      }
+    }
+  }
+}
+
+function next() {
+  if (stepIx >= STEPS.length) {
+    stopAuto();
+    document.getElementById('next').disabled = true;
+    return;
+  }
+  applyStep(STEPS[stepIx]);
+  stepIx++;
+  if (stepIx >= STEPS.length) {
+    document.getElementById('next').disabled = true;
+    stopAuto();
+  }
+}
+
+function reset() {
+  stopAuto();
+  stepIx = 0;
+  state.before = { title: '', lastEmittedTitle: null };
+  state.after  = { title: '', lastEmittedTitle: null };
+  document.getElementById('log-before').innerHTML = '';
+  document.getElementById('log-after').innerHTML = '';
+  document.getElementById('step-num').textContent = 'step 0';
+  document.getElementById('step-desc').textContent = 'click Next step to begin';
+  document.getElementById('counter').textContent = `0 / ${STEPS.length}`;
+  setTitle('before', '', '', '');
+  setTitle('after', '', '', '');
+  document.getElementById('next').disabled = false;
+}
+
+function startAuto() {
+  if (autoTimer) return;
+  autoTimer = setInterval(() => {
+    if (stepIx >= STEPS.length) { stopAuto(); return; }
+    next();
+  }, 1400);
+  document.getElementById('auto').textContent = '⏸ Stop';
+}
+
+function stopAuto() {
+  if (autoTimer) clearInterval(autoTimer);
+  autoTimer = null;
+  document.getElementById('auto').textContent = '▶▶ Auto-play';
+}
+
+document.getElementById('next').addEventListener('click', next);
+document.getElementById('reset').addEventListener('click', reset);
+document.getElementById('auto').addEventListener('click', () => {
+  if (autoTimer) stopAuto();
+  else startAuto();
+});
+</script>
+</body>
+</html>

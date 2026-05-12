@@ -185,6 +185,45 @@ function buildSessionTitle(branch: string, effort: string, isWorktree = false): 
 }
 
 /**
+ * Decide whether to emit `sessionTitle` for this turn.
+ *
+ * Why this exists: CC 2.1.94 lets hooks set the prompt-bar title via
+ * `hookSpecificOutput.sessionTitle`. If we emit it on every turn,
+ * we silently overwrite any title the user set with `/rename` — the user's
+ * value differs from our branch-derived value, so CC re-asserts ours and
+ * the rename disappears within one prompt.
+ *
+ * Fix: emit only when the computed title differs from the title we
+ * emitted on the previous turn. Mirrors the prompt-hash.txt delta-skip
+ * pattern below (line ~324). `/rename` sticks indefinitely on the same
+ * branch; branch checkouts still refresh the title automatically.
+ *
+ * Returns true on first turn (no state file), on branch/effort change, or on
+ * I/O failure (fail-open keeps prior behavior).
+ */
+function shouldEmitSessionTitle(
+  title: string,
+  sessionId: string | undefined,
+  projectDir: string | undefined,
+): boolean {
+  if (!title) return false;
+  if (!sessionId || !projectDir) return true;
+  try {
+    const dir = getPromptSessionDir(sessionId, projectDir);
+    const file = join(dir, 'last-session-title.txt');
+    if (existsSync(file)) {
+      const last = readFileSync(file, 'utf8').trim();
+      if (last === title) return false;
+    }
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(file, title, 'utf8');
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+/**
  * Detect noisy/low-value context that shouldn't consume token budget.
  * Returns true if the context is only bracket-enclosed markers or
  * cross-project context lines with no actionable content.
@@ -302,14 +341,17 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     }
   }
 
-  // Build the session title (CC 2.1.94) — emitted alongside context so the
-  // prompt bar shows the current branch + effort. Safe to emit repeatedly:
-  // CC treats a sessionTitle identical to the previous turn's as a no-op.
+  // Build the session title (CC 2.1.94) and decide whether to emit it.
+  // Delta-skip: emit only when the title differs from the previous turn so
+  // we don't overwrite `/rename`. The CC "identical = no-op" claim only
+  // covers repeats of OUR value — a user `/rename` changes the live title
+  // to something else, which makes our next emit a clobbering override.
   const sessionTitle = buildSessionTitle(ctx.branch, effort, ctx.isWorktree);
+  const emitTitle = shouldEmitSessionTitle(sessionTitle, sessionId, projectDir);
 
   // No context produced — still try to set the title if we have one
   if (contextParts.length === 0) {
-    if (sessionTitle) {
+    if (emitTitle) {
       return outputPromptContextWithTitle('', sessionTitle);
     }
     return outputSilentSuccess();
@@ -330,7 +372,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       const lastHash = readFileSync(hashFile, 'utf8').trim();
       if (lastHash === consolidatedHash) {
         ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
-        if (sessionTitle) {
+        if (emitTitle) {
           return outputPromptContextWithTitle('', sessionTitle);
         }
         return outputSilentSuccess();
@@ -346,14 +388,14 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     // Proceed with injection on error
   }
 
-  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t${sessionTitle ? ` · title="${sessionTitle}"` : ''}`);
+  ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t${emitTitle ? ` · title="${sessionTitle}"` : sessionTitle ? ' · title=(skipped, unchanged)' : ''}`);
 
   // Track token usage for budget enforcement
   if (totalTokens > 0) {
     trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
   }
 
-  if (sessionTitle) {
+  if (emitTitle) {
     return outputPromptContextWithTitle(consolidated, sessionTitle);
   }
   return outputPromptContext(consolidated);
