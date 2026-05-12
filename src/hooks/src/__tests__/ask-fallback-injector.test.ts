@@ -61,4 +61,77 @@ describe('ask-fallback-injector (#1795)', () => {
     const result = askFallbackInjector(baseInput, NOOP_CTX);
     expect(result).toEqual({ continue: true, suppressOutput: true });
   });
+
+  // --- thorough-coverage additions (#1795 cover pass) -----------------------
+
+  it('does not match partial env values like "text-mode" or "text " (whitespace, suffix)', () => {
+    for (const v of ['text-mode', 'text ', ' text', 'TextOff', 'text\n', 'plaintext']) {
+      process.env.ORK_ASK_FALLBACK = v;
+      const result = askFallbackInjector(baseInput, NOOP_CTX);
+      expect(
+        result,
+        `ORK_ASK_FALLBACK="${v}" should NOT trigger (strict equality)`,
+      ).toEqual({ continue: true, suppressOutput: true });
+    }
+  });
+
+  it('reminder content includes a worked example with numbered options + "Reply with"', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const ctx = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext;
+    expect(ctx, 'reminder must include a worked example').toBeDefined();
+    // Worked example shape — numbered list with reply pattern
+    expect(ctx).toMatch(/1\./);
+    expect(ctx).toMatch(/2\./);
+    expect(ctx).toMatch(/3\./);
+    expect(ctx).toContain('Reply with');
+  });
+
+  it('reminder content tells the model to keep options to 2-4 to match picker affordances', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const ctx = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext as string;
+    expect(ctx).toMatch(/2.{1,4}4/);  // matches "2-4", "2–4", or "2 to 4" — exact glyph not asserted
+    expect(ctx).toContain('picker affordances');
+  });
+
+  it('reminder content tells user how to unset/restore picker mode', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const ctx = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext as string;
+    expect(ctx).toContain('Unset ORK_ASK_FALLBACK');
+    expect(ctx).toContain('upstream');
+  });
+
+  it('reminder wrapped in <system-reminder> tags (CC system-reminder injection contract)', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const ctx = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext as string;
+    expect(ctx.startsWith('<system-reminder>')).toBe(true);
+    expect(ctx.endsWith('</system-reminder>')).toBe(true);
+  });
+
+  it('input shape — works with minimal HookInput (no optional fields beyond required)', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const minimal: HookInput = {
+      hook_event: 'UserPromptSubmit',
+      tool_name: '',
+      session_id: 'min',
+      tool_input: {},
+    };
+    const result = askFallbackInjector(minimal, NOOP_CTX);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
+  });
+
+  it('returned reminder is stable across calls (deterministic — no Date.now/random)', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    const a = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext;
+    const b = askFallbackInjector(baseInput, NOOP_CTX).hookSpecificOutput?.additionalContext;
+    expect(a).toBe(b);
+  });
+
+  it('hook never throws even on malformed input', () => {
+    process.env.ORK_ASK_FALLBACK = 'text';
+    // @ts-expect-error — testing defensive behavior on malformed input
+    expect(() => askFallbackInjector({}, NOOP_CTX)).not.toThrow();
+    // @ts-expect-error — testing defensive behavior on malformed input
+    expect(() => askFallbackInjector(null, NOOP_CTX)).not.toThrow();
+  });
 });
