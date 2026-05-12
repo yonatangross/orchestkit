@@ -3486,6 +3486,34 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "prd-to-goal": {
+    "name": "prd-to-goal",
+    "description": "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
+    "version": "0.1.0",
+    "author": "OrchestKit",
+    "tags": [
+      "/goal",
+      "planning",
+      "prd",
+      "automation",
+      "cc-2.1.139"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [
+      "Read",
+      "Bash",
+      "Grep"
+    ],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "presentation-builder": {
     "name": "presentation-builder",
     "description": "Creates zero-dependency, animation-rich HTML presentations from scratch or by converting PowerPoint files. Use when the user wants to build a presentation, convert a PPT/PPTX to web slides, or create a slide deck for a talk, pitch, or tutorial. Generates single self-contained HTML files with inline CSS/JS.",

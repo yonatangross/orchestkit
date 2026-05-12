@@ -705,6 +705,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "prd-to-goal",
+    "label": "Prd To Goal",
+    "type": "command",
+    "complexity": "low",
+    "category": "product",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "presentation-builder",
     "label": "Presentation Builder",
     "type": "reference",

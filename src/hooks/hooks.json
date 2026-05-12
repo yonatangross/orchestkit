@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 123 global + 46 agent-scoped + 22 skill-scoped = 191 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. M126 #1543: posttool/secret-handler scans Read/Bash/Grep/Glob for API keys + private blocks via CC 2.1.121 updatedToolOutput; OFF by default, ORK_SECRET_HOOK=AUDIT|REDACT to enable. M130 #1487: lifecycle/cc-version-check warns when running CC drifts from feature matrix. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 126 global + 46 agent-scoped + 22 skill-scoped = 194 total hooks (18 once:true context loaders). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. M126 #1543: posttool/secret-handler scans Read/Bash/Grep/Glob for API keys + private blocks via CC 2.1.121 updatedToolOutput; OFF by default, ORK_SECRET_HOOK=AUDIT|REDACT to enable. M130 #1487: lifecycle/cc-version-check warns when running CC drifts from feature matrix. M140 Bundle B (#1790, #1791): prompt/goal-tracker + stop/goal-tracker write /goal convergence telemetry to .claude/state/goal-history.jsonl; lifecycle/goal-budget-guard (SessionEnd) enforces ORK_GOAL_MAX_TURNS_PER_SESSION (default 30) / ORK_GOAL_MAX_TOKENS_PER_SESSION (default 250k) by writing .claude/state/goal-budget-tripped.json, which prompt/goal-tracker reads with continueOnBlock:true so the user can override by deleting the file. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -583,6 +583,16 @@
           {
             "type": "command",
             "command": "node",
+            "timeout": 5,
+            "continueOnBlock": true,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "prompt/goal-tracker"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
             "async": true,
             "timeout": 5,
             "args": [
@@ -810,6 +820,16 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/telemetry-sync.mjs"
             ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/goal-budget-guard"
+            ]
           }
         ]
       }
@@ -914,6 +934,16 @@
             "statusMessage": "Checking uncommitted changes...",
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/goal-tracker"
             ]
           },
           {

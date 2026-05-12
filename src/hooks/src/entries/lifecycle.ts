@@ -72,6 +72,8 @@ import { typeErrorIndexer } from '../lifecycle/type-error-indexer.js';
 import { nudgeOutcomeResolver } from '../lifecycle/nudge-outcome-resolver.js';
 // M139 #1782: plugins/ drift snapshot — companion to posttool/check-plugins-drift
 import { pluginsDriftSnapshot } from '../lifecycle/plugins-drift-snapshot.js';
+// M140 G5 (#1791) — /goal cost circuit-breaker (SessionEnd)
+import { goalBudgetGuard } from '../lifecycle/goal-budget-guard.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -143,6 +145,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/nudge-outcome-resolver': nudgeOutcomeResolver,
   // M139 #1782: plugins/ drift snapshot
   'lifecycle/plugins-drift-snapshot': pluginsDriftSnapshot,
+  // M140 G5 (#1791) — /goal cost circuit-breaker
+  'lifecycle/goal-budget-guard': goalBudgetGuard,
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,

@@ -1,5 +1,5 @@
 // OrchestKit Hooks - Unified Bundle (for CLI tools)
-// Generated: 2026-05-12T11:56:54.376Z
+// Generated: 2026-05-12T13:12:38.843Z
 // Use split bundles (permission.mjs, pretool.mjs, etc.) for hooks
 
 var Tt=(t=>typeof require<"u"?require:typeof Proxy<"u"?new Proxy(t,{get:(e,n)=>(typeof require<"u"?require:e)[n]}):t)(function(t){if(typeof require<"u")return require.apply(this,arguments);throw Error('Dynamic require of "'+t+'" is not supported')});function rx(t){return typeof t.command=="string"}function sx(t){return typeof t.file_path=="string"&&typeof t.content=="string"}function ix(t){return typeof t.file_path=="string"&&typeof t.old_string=="string"&&typeof t.new_string=="string"}function ax(t){return typeof t.file_path=="string"&&t.content===void 0}function u(){return{continue:!0,suppressOutput:!0}}function It(){return{continue:!0,suppressOutput:!0,hookSpecificOutput:{permissionDecision:"allow"}}}function E(t){return{continue:!1,stopReason:t,hookSpecificOutput:{permissionDecision:"deny",permissionDecisionReason:t}}}function y(t){return t?.trim()?{continue:!0,suppressOutput:!0,hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:t}}:u()}function Xr(t,e){if(e<=0||!t)return t;let n=[];for(let o of t.split(`
