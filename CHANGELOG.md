@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **mcp/memory:** Memory graph dir moves from user-global to `${CLAUDE_PROJECT_DIR}/.claude/memory/`. Resolved by CC 2.1.139 stdio MCP env injection — no manual path expansion needed. Existing entries auto-discovered; manual move possible by relocating the prior `memory.json` into the new project-scoped path.
 
+### Documentation
+
+* **m137:** M137 (#1773) shipped CC 2.1.139 adoption + M135 (CC 2.1.136) matrix backfill in one bundled PR. This follow-up records the per-issue closure references that the consolidated `Closes` line in #1773 left dangling, so each tracking issue (#1763–#1772 and #1713–#1729) gets a clean auto-close on merge.
+
 ### Added
 
 * **skill:** `ork:agents-view` — Research Preview wrapper around `claude agents` and `claude plugin details ork` for parallel-agent observability and per-session cost projection (CC 2.1.139+).
