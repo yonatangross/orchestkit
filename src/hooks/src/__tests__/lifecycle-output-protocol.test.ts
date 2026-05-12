@@ -32,7 +32,7 @@
  * Refs #1794
  */
 
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterEach } from 'vitest';
 import type { HookInput, HookResult } from '../types.js';
 import { createTestContext } from './fixtures/test-context.js';
 
@@ -411,5 +411,185 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     // Original must be unmodified
     expect(input.hookSpecificOutput).toBe(originalHSO);
     expect(input.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sanitizeOutput — edge cases & all lifecycle events the guard claims to cover
+// (#1794 thorough-testing pass)
+// ---------------------------------------------------------------------------
+
+describe('sanitizeOutput — non-object inputs (defense-in-depth)', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  it('passes through null untouched', () => {
+    expect(sanitizeOutput(null, 'WorktreeCreate')).toBeNull();
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes through undefined untouched', () => {
+    expect(sanitizeOutput(undefined, 'WorktreeCreate')).toBeUndefined();
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes through strings untouched (e.g. legacy plain-text outputs)', () => {
+    expect(sanitizeOutput('legacy worktree path', 'WorktreeCreate')).toBe('legacy worktree path');
+  });
+
+  it('passes through arrays untouched', () => {
+    const arr = [{ continue: true }];
+    expect(sanitizeOutput(arr, 'WorktreeCreate')).toBe(arr);
+  });
+
+  it('passes through results with null hookSpecificOutput', () => {
+    const input = { continue: true, hookSpecificOutput: null };
+    expect(sanitizeOutput(input, 'WorktreeCreate')).toEqual(input);
+  });
+
+  it('coerces malformed array hookSpecificOutput into empty object (no leak through stdout)', () => {
+    // Defensive: hookSpecificOutput is malformed (array, not object). Guard's
+    // shallow-clone converts {...[]} → {}. Empty object remains (no keys to
+    // strip → mutated=false → not deleted), which is harmless: CC ignores
+    // empty hookSpecificOutput. The important property is that the array is
+    // NOT leaked as-is through stdout, which would confuse CC's parser.
+    const input = { continue: true, hookSpecificOutput: [] as unknown };
+    const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
+    expect(result.continue).toBe(true);
+    expect(Array.isArray(result.hookSpecificOutput)).toBe(false);
+    expect(result.hookSpecificOutput).toEqual({});
+  });
+});
+
+describe('sanitizeOutput — selective stripping (only the offending field is removed)', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  it('strips additionalContext but keeps hookSpecificOutput when other fields remain', () => {
+    // Worktree* events: additionalContext stripped, worktreePath should survive
+    const input = {
+      continue: true,
+      hookSpecificOutput: { worktreePath: '/some/wt', additionalContext: 'leaked text' },
+    };
+    const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso).toBeDefined();
+    expect(hso.worktreePath).toBe('/some/wt');
+    expect(hso.additionalContext).toBeUndefined();
+    expect(stderrSpy).toHaveBeenCalledWith(
+      expect.stringContaining('stripped additionalContext from WorktreeCreate')
+    );
+  });
+
+  it('drops empty hookSpecificOutput entirely after stripping all keys', () => {
+    const input = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'x' },
+    };
+    const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  it('preserves additionalContext on UserPromptSubmit AND PostToolUse (allow-listed)', () => {
+    for (const event of ['UserPromptSubmit', 'PostToolUse', 'PreToolUse'] as const) {
+      const input = {
+        continue: true,
+        hookSpecificOutput: { hookEventName: event, additionalContext: 'context' },
+      };
+      const result = sanitizeOutput(input, event) as Record<string, unknown>;
+      const hso = result.hookSpecificOutput as Record<string, unknown>;
+      expect(hso?.additionalContext, `${event} must preserve additionalContext`).toBe('context');
+    }
+  });
+});
+
+describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  // The guard claims to strip hookEventName/additionalContext from these events.
+  // We verify each event triggers stripping when malformed input is supplied —
+  // proving the EVENTS_WITH_HOOK_EVENT_NAME / EVENTS_WITH_ADDITIONAL_CONTEXT
+  // allow-lists match the documented contract.
+  const SANITIZE_EVENTS = [
+    'WorktreeCreate',
+    'WorktreeRemove',
+    'CwdChanged',
+    'FileChanged',
+    'ConfigChange',
+    'InstructionsLoaded',
+    'TaskCreated',
+    'Notification',
+    'Stop',
+    'StopFailure',
+    'SessionStart',
+    'SessionEnd',
+    'PreCompact',
+    'PostCompact',
+    'Elicitation',
+  ];
+
+  for (const event of SANITIZE_EVENTS) {
+    it(`strips wrong-event hookEventName + additionalContext from ${event}`, () => {
+      const input = {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: 'UserPromptSubmit',
+          additionalContext: `bogus ${event} advisory`,
+        },
+      };
+      const result = sanitizeOutput(input, event) as Record<string, unknown>;
+      expect(result.hookSpecificOutput, `${event} must have empty/dropped hookSpecificOutput`).toBeUndefined();
+      expect(result.continue).toBe(true);
+      expect(stderrSpy).toHaveBeenCalledWith(
+        expect.stringMatching(new RegExp(`stripped hookEventName=UserPromptSubmit from ${event}`)),
+      );
+    });
+  }
+});
+
+describe('sanitizeOutput — error-path inputs (run-hook.mjs catch branch)', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  it('passes synthetic error result through unchanged on lifecycle event (no hookSpecificOutput)', () => {
+    // run-hook.mjs error path returns { continue: true, systemMessage: "..." }
+    const errResult = { continue: true, systemMessage: 'Hook error (worktree/whatever): boom' };
+    expect(sanitizeOutput(errResult, 'WorktreeCreate')).toEqual(errResult);
+    expect(stderrSpy).not.toHaveBeenCalled();
+  });
+
+  it('still sanitizes if a future error-path adds a stray hookSpecificOutput', () => {
+    // Defensive — if someone adds hookSpecificOutput to the error path, guard catches it
+    const errResult = {
+      continue: true,
+      systemMessage: 'Hook error',
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'leak' },
+    };
+    const result = sanitizeOutput(errResult, 'WorktreeCreate') as Record<string, unknown>;
+    expect(result.hookSpecificOutput).toBeUndefined();
+    expect(result.systemMessage).toBe('Hook error');
+  });
+});
+
+describe('sanitizeOutput — opt-out env var precision', () => {
+  beforeEach(() => { stderrSpy.mockClear(); delete process.env.ORCHESTKIT_DISABLE_OUTPUT_GUARD; });
+  afterEach(() => { delete process.env.ORCHESTKIT_DISABLE_OUTPUT_GUARD; });
+
+  it('case-sensitive: ORCHESTKIT_DISABLE_OUTPUT_GUARD=true does NOT opt out (must be exactly "1")', () => {
+    process.env.ORCHESTKIT_DISABLE_OUTPUT_GUARD = 'true';
+    const input = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'leak' },
+    };
+    const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
+    expect(result.hookSpecificOutput).toBeUndefined();  // still sanitized
+  });
+
+  it('only "1" disables guard (numeric "0" still sanitizes)', () => {
+    process.env.ORCHESTKIT_DISABLE_OUTPUT_GUARD = '0';
+    const input = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'leak' },
+    };
+    const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
+    expect(result.hookSpecificOutput).toBeUndefined();
   });
 });
