@@ -15,6 +15,7 @@ import { mkdirSync, statSync, renameSync } from 'node:fs';
 import { bufferWrite } from './analytics-buffer.js';
 import { createHash } from 'node:crypto';
 import { getHomeDir, joinPath } from './paths.js';
+import { postAnalyticsToSink } from './telemetry-http-sink.js';
 
 function getAnalyticsDir(): string {
   return joinPath(getHomeDir(), '.claude', 'analytics');
@@ -62,4 +63,9 @@ export function appendAnalytics(file: string, entry: Record<string, unknown>): v
   } catch {
     // Never block hooks
   }
+
+  // Dual-write to yonatan-hq platform if configured. The sink is its own
+  // try/catch fortress; it cannot fail in a way that escapes back here.
+  // Local JSONL above is the source of truth — this is best-effort sync.
+  postAnalyticsToSink(file, entry);
 }
