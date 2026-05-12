@@ -25,6 +25,9 @@ import { sessionEndTracking } from '../stop/session-end-tracking.js';
 // Graph-first session summary (replaces memory-capture.ts)
 import { sessionSummary } from '../stop/session-summary.js';
 
+// M140 G3 (#1790) — /goal convergence telemetry stop hook
+import { goalTrackerStop } from '../stop/goal-tracker.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -43,6 +46,8 @@ export const hooks: Record<string, HookFn> = {
   'stop/workflow-preference-learner': workflowPreferenceLearner,
   'stop/session-end-tracking': sessionEndTracking,
   'stop/session-summary': sessionSummary,
+  // M140 G3 (#1790) — /goal convergence telemetry stop hook
+  'stop/goal-tracker': goalTrackerStop,
 };
 
 export function getHook(name: string): HookFn | undefined {

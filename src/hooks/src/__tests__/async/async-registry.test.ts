@@ -113,7 +113,10 @@ describe('Async Hooks Registry', () => {
       //           The companion posttool/check-plugins-drift is intentionally sync
       //           so its outputBlock can gate the next tool call; subagent-start/
       //           agent-view-titler (#1783) is also sync.
-      expect(asyncHooks.length, 'Should have exactly 81 async hooks').toBe(81);
+      // 81 -> 83: M140 Bundle B (#1790, #1791) — stop/goal-tracker (async) +
+      //           lifecycle/goal-budget-guard (SessionEnd, async). The companion
+      //           prompt/goal-tracker is SYNC (needs outputBlock + continueOnBlock).
+      expect(asyncHooks.length, 'Should have exactly 83 async hooks').toBe(83);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

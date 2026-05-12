@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OrchestKit · M140 Bundle B — make /goal real</title>
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #131820; --fg: #e6e6e6;
+    --muted: #94a3b8; --accent: #7c9eff; --good: #4ade80;
+    --warn: #fbbf24; --bad: #f87171;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin-bottom: 24px; }
+  .grid { display: grid; gap: 20px; grid-template-columns: 1fr; max-width: 1080px; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .panel { background: var(--panel); border: 1px solid #232a36; border-radius: 12px; padding: 18px; }
+  .panel h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--muted); }
+  .terminal { background: #05080d; color: #d6e4ff; border-radius: 8px; padding: 14px;
+    font: 12.5px/1.55 var(--mono); white-space: pre; overflow: auto; }
+  .pill { display: inline-block; font: 11px/1 var(--mono); padding: 4px 8px;
+    border-radius: 999px; border: 1px solid #2a3340; color: var(--muted); margin-right: 6px; }
+  .pill.good { color: var(--good); border-color: var(--good); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .footer { color: var(--muted); margin-top: 24px; font-size: 12px; }
+  .footer code { font: 12px var(--mono); color: var(--accent); }
+  .meta { color: var(--muted); font-size: 11px; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <h1>M140 Bundle B — make /goal real</h1>
+  <div class="sub">Turns the M137 inline recipes into a data-driven primitive. <span class="pill good">3 items</span><span class="pill">+3 hooks</span><span class="pill">+1 skill</span></div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <h2>1. /goal convergence telemetry (G3)</h2>
+      <div class="terminal">user: /goal until findings.critical == 0
+prompt/goal-tracker:
+  → appends to .claude/state/goal-history.jsonl
+  → { session_id, condition, started_at, started_token_estimate }
+
+... 8 turns later ...
+
+stop/goal-tracker:
+  → matches open record by session_id
+  → appends close: status=<span style="color:#4ade80">converged</span>
+                   turn_count=8 tokens_estimate=42100</div>
+      <div class="meta">Two hooks (UserPromptSubmit + Stop), one append-only JSONL ledger. The first read-consumer of /goal in OrchestKit.</div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Monitor surfaces convergence rate</h2>
+      <div class="terminal"><span style="color:#94a3b8">statusline:</span>  last 10 /goal: <span style="color:#4ade80">8✓</span> <span style="color:#fbbf24">1↻</span> <span style="color:#f87171">1✗</span> avg 6t
+
+  ✓ = converged          (model self-stopped, condition met)
+  ↻ = spun               (high turn count, no natural stop)
+  ✗ = aborted            (user Esc / Ctrl+F)
+
+  Aggregated from .claude/state/goal-history.jsonl
+  src/monitors/goal-convergence.json</div>
+      <div class="meta">Surfaced in the OrchestKit statusline so you see /goal health at-a-glance, not just per-run.</div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Cost circuit-breaker (G5)</h2>
+      <div class="terminal">SessionEnd:
+  Σ(this session's /goal turns)  = 34       <span style="color:#fbbf24">⚠ over 30</span>
+  Σ(this session's /goal tokens) = 287k     <span style="color:#fbbf24">⚠ over 250k</span>
+
+  → write .claude/state/goal-budget-tripped.json
+      { tripped_at, reason: "turns_cap", turns, tokens }
+
+next session:
+user: /goal until ...
+prompt/goal-tracker (continueOnBlock: true):
+  <span style="color:#f87171">⛔ previous session burned 34 turns / 287k tokens on /goal.
+    Cool-down active. Delete .claude/state/goal-budget-tripped.json
+    to override.</span></div>
+      <div class="meta">Soft cap — refuses NEW /goal, doesn't interrupt in-flight. Env: ORK_GOAL_MAX_TURNS_PER_SESSION (30), ORK_GOAL_MAX_TOKENS_PER_SESSION (250k).</div>
+    </div>
+
+    <div class="panel">
+      <h2>4. prd-to-goal skill (G2)</h2>
+      <div class="terminal">$ /ork:prd-to-goal "fix login fails on email with +"
+
+decomposed:
+  ✓ failing test passes
+  ✓ no regressions in suite
+  ✓ commit + PR opened
+
+output:
+  /goal until test_passes("test_login_email_plus")
+              AND ci.failures == 0
+              AND gh.pr.exists("fix/login-email-plus")
+  /goal abort-if turns > 15
+              OR tokens > 100000
+              OR no_progress_for_3_turns</div>
+      <div class="meta">3 worked examples in the skill body: bug fix, feature, refactor. Each shows acceptance criteria → boolean assertions over observable state.</div>
+    </div>
+
+    <div class="panel">
+      <h2>5. closes "emit-only" gap</h2>
+      <div class="terminal"><span style="color:#94a3b8">M137 (#1773): /goal recipes in 4 SKILL.md files</span>
+              <span style="color:#f87171">emit-only — nothing reads what happens</span>
+
+<span style="color:#94a3b8">M139 #1784: PR template "Consumer" checkbox</span>
+              <span style="color:#fbbf24">cultural fix — surface the question</span>
+
+<span style="color:#94a3b8">M140 Bundle B: /goal gets 3 consumers</span>
+              <span style="color:#4ade80">G3 logs every run
+              G3 stop closes with status
+              G5 caps cumulative session cost</span>
+
+  → /goal is now load-bearing instead of decorative</div>
+      <div class="meta">First cohort that ships explicitly with the M139 Consumer answer wired in.</div>
+    </div>
+
+    <div class="panel">
+      <h2>6. counts + verification</h2>
+      <table style="width:100%;font:12px var(--mono)">
+        <thead><tr><th style="text-align:left;color:var(--muted)">Metric</th><th style="text-align:right;color:var(--muted)">Before</th><th style="text-align:right;color:var(--muted)">After</th></tr></thead>
+        <tbody>
+          <tr><td>hooks (global)</td><td style="text-align:right">123</td><td style="text-align:right">126 <span class="pill good">+3</span></td></tr>
+          <tr><td>hooks (total)</td><td style="text-align:right">191</td><td style="text-align:right">194</td></tr>
+          <tr><td>async hooks</td><td style="text-align:right">81</td><td style="text-align:right">83</td></tr>
+          <tr><td>skills</td><td style="text-align:right">108</td><td style="text-align:right">109 <span class="pill good">+1</span></td></tr>
+        </tbody>
+      </table>
+      <div class="meta" style="margin-top:14px">
+        ✓ vitest: 8158 passed, 2 skipped (290 files) ·
+        ✓ npm run build: clean ·
+        ✓ validate-counts.sh: PASS
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Closes #1790 #1791 #1792 · Milestone
+    <a href="https://github.com/yonatangross/orchestkit/milestone/140" style="color:var(--accent)">M140 — Make /goal real (Bundle B)</a>
+    · Source: <code>/ork:brainstorm</code> 2026-05-12 (deeper CC 2.1.139 integration)
+  </div>
+</body>
+</html>

@@ -135,8 +135,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const commandHooks = allHooks.filter(h => h.type === 'command');
 
       // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
-      // Should have 11 command hooks: 9 flattened stop hooks + stop-uncommitted-check + lifecycle/webhook-forwarder
-      expect(commandHooks.length, 'Stop should have 11 command hooks').toBe(11);
+      // 11 -> 12: M140 Bundle B (#1790) — added stop/goal-tracker
+      expect(commandHooks.length, 'Stop should have 12 command hooks').toBe(12);
 
       const uncommittedCheckHook = commandHooks.find(h => commandPath(h).includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -304,7 +304,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
       // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
       // 80 -> 81: M139 #1782 — lifecycle/plugins-drift-snapshot (SessionStart, async)
-      expect(asyncHooks.length, 'Should have exactly 81 async hooks').toBe(81);
+      // 81 -> 83: M140 Bundle B — stop/goal-tracker + lifecycle/goal-budget-guard
+      expect(asyncHooks.length, 'Should have exactly 83 async hooks').toBe(83);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -404,7 +405,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 78 -> 79: M130 #1487 — lifecycle/cc-version-check (SessionStart, async)
       // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
       // 80 -> 81: M139 #1782 — lifecycle/plugins-drift-snapshot (SessionStart, async)
-      expect(asyncCount).toBe(81);
+      // 81 -> 83: M140 Bundle B — stop/goal-tracker + lifecycle/goal-budget-guard
+      expect(asyncCount).toBe(83);
     });
 
     it('should have hooks for all critical security operations', () => {

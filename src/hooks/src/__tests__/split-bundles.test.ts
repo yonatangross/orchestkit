@@ -359,7 +359,9 @@ describe('Cross-Bundle Consistency', () => {
     // 219 -> 220: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
     // 220 -> 223: M139 Bundle A — lifecycle/plugins-drift-snapshot,
     //              posttool/check-plugins-drift, subagent-start/agent-view-titler
-    expect(totalHooks).toBe(223);
+    // 223 -> 226: M140 Bundle B (#1790, #1791) — prompt/goal-tracker (G3) +
+    //              stop/goal-tracker (G3) + lifecycle/goal-budget-guard (G5).
+    expect(totalHooks).toBe(226);
   });
 });
 
