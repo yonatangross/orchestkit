@@ -73,6 +73,8 @@ import { metricsDispatcher } from '../posttool/metrics-dispatcher.js';
 import { uiChangeDetector } from '../posttool/ui-change-detector.js';
 // M125 #6: ARIA snapshot recorder after /ork:expect
 import { expectSnapshotRecorder } from '../posttool/expect/snapshot-recorder.js';
+// M139 #1782: plugins/ drift detector (Write|Edit, src/ paths only)
+import { checkPluginsDrift } from '../posttool/check-plugins-drift.js';
 
 import type { HookFn } from '../types.js';
 
@@ -143,6 +145,9 @@ export const hooks: Record<string, HookFn> = {
 
   // M125 #6: ARIA snapshot recorder after /ork:expect runs
   'posttool/expect/snapshot-recorder': expectSnapshotRecorder,
+
+  // M139 #1782: plugins/ drift detector
+  'posttool/check-plugins-drift': checkPluginsDrift,
 };
 
 export function getHook(name: string): HookFn | undefined {

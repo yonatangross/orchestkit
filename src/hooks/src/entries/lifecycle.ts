@@ -70,6 +70,8 @@ import { staleCacheCleanup } from '../lifecycle/stale-cache-cleanup.js';
 import { staleTeamCleanup } from '../lifecycle/stale-team-cleanup.js';
 import { typeErrorIndexer } from '../lifecycle/type-error-indexer.js';
 import { nudgeOutcomeResolver } from '../lifecycle/nudge-outcome-resolver.js';
+// M139 #1782: plugins/ drift snapshot — companion to posttool/check-plugins-drift
+import { pluginsDriftSnapshot } from '../lifecycle/plugins-drift-snapshot.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -139,6 +141,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/stale-team-cleanup': staleTeamCleanup,
   'lifecycle/type-error-indexer': typeErrorIndexer,
   'lifecycle/nudge-outcome-resolver': nudgeOutcomeResolver,
+  // M139 #1782: plugins/ drift snapshot
+  'lifecycle/plugins-drift-snapshot': pluginsDriftSnapshot,
 
   // PostCompact hooks (CC 2.1.76)
   'lifecycle/post-compact-recovery': postCompactRecovery,

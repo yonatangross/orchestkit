@@ -563,6 +563,60 @@ fi
 echo ""
 
 # ============================================================================
+# Test 11: Research Preview / experimental frontmatter policy (#1785)
+# ============================================================================
+# Policy: If a SKILL.md body mentions "Research Preview" or "(RP)", the
+# frontmatter SHOULD declare an `experimental:` block. If `experimental:`
+# is declared, it MUST contain a non-empty `exit-criteria:` array so the
+# skill has a documented path back to GA.
+# ============================================================================
+echo -e "${CYAN}Test 11: Research Preview Feature Flag Policy${NC}"
+echo "────────────────────────────────────────────────────────────────────────────"
+
+rp_missing_experimental=()
+experimental_missing_exit_criteria=()
+
+for skill_dir in "$SKILLS_DIR"/*/; do
+    if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+
+        # Extract body (everything after the closing frontmatter ---)
+        body=$(awk '/^---$/{c++; next} c>=2{print}' "$skill_file")
+
+        # Scan body for RP mentions (case-insensitive)
+        if echo "$body" | grep -qiE "research preview|\(RP\)"; then
+            # Check frontmatter for experimental: block
+            frontmatter=$(extract_frontmatter "$skill_file")
+            if echo "$frontmatter" | grep -qE "^experimental:"; then
+                # Has experimental — verify exit-criteria is non-empty array.
+                # Look for `exit-criteria:` followed by at least one `- ` item
+                # within the indented block.
+                if ! echo "$frontmatter" | awk '
+                    /^[[:space:]]*exit-criteria:[[:space:]]*$/ {in_block=1; next}
+                    in_block && /^[[:space:]]+-[[:space:]]+/ {found=1; exit}
+                    in_block && /^[^[:space:]]/ {exit}
+                    END {exit !found}
+                '; then
+                    experimental_missing_exit_criteria+=("$skill_name")
+                    fail "$skill_name: 'experimental:' block present but 'exit-criteria' missing or empty"
+                else
+                    info "$skill_name: experimental block with exit-criteria (OK)"
+                fi
+            else
+                rp_missing_experimental+=("$skill_name")
+                warn "$skill_name: mentions Research Preview / (RP) but has no 'experimental:' frontmatter block"
+            fi
+        fi
+    fi
+done
+
+if [[ ${#rp_missing_experimental[@]} -eq 0 ]] && [[ ${#experimental_missing_exit_criteria[@]} -eq 0 ]]; then
+    pass "RP feature flag policy satisfied for all skills"
+fi
+echo ""
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo "============================================================================"

@@ -13,6 +13,10 @@
 -
 -
 
+## Consumer
+
+- [ ] **Every new field/flag/manifest entry in this PR has a documented consumer** (test, hook, skill, or downstream feature). If intentionally emit-only, add the `emit-only` label and link the follow-up issue.
+
 ## Test plan
 
 <!-- How did you verify? Check what applies. -->

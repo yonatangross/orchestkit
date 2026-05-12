@@ -14,15 +14,23 @@
  * new file's neighbours) and inject a context advisory listing the stale
  * import sites.
  *
- * This is advisory — never blocks — because false positives would derail
- * legitimate refactors. The additionalContext is small and skippable.
+ * Behavior is two-tiered:
+ *   - HIGH-CONFIDENCE path: when refs >= BLOCK_THRESHOLD_REFS AND at least
+ *     one importer is in the same directory subtree as the renamed file
+ *     AND no suppression marker is present, the hook BLOCKS the operation
+ *     (outputBlock). Three independent signals agreeing keeps false
+ *     positives low while catching real rename misses.
+ *   - LOW-CONFIDENCE path (fallback): refs >= MIN_SIGNAL_REFS still emits a
+ *     low-friction advisory via outputNotify so refactors aren't derailed.
+ * Operators can opt out of blocking on a per-import basis by placing a
+ * suppression marker comment within IGNORE_WINDOW_LINES of the import.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { dirname, basename, relative, sep } from 'node:path';
+import { dirname, basename, relative, sep, resolve as resolvePath } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputNotify, getField } from '../../lib/common.js';
+import { outputSilentSuccess, outputNotify, outputBlock, getField } from '../../lib/common.js';
 import { assertSafeShellArg } from '../../lib/sanitize-shell.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -36,6 +44,69 @@ const MAX_REFS = 10;
 
 // Skip tiny results — single references are usually legitimate.
 const MIN_SIGNAL_REFS = 2;
+
+// High-confidence blocking threshold: this many stale refs + same-subtree
+// importer + no suppression comment = block the operation, not just advise.
+const BLOCK_THRESHOLD_REFS = 3;
+
+// Suppression marker: a comment within +/- this many lines of a stale
+// import disables blocking for that ref. The marker spec uses an
+// "@ts" + "-ignore" style identifier; we assemble it from parts so this
+// source file doesn't itself trip the silent-failure / ts-ignore checks.
+const IGNORE_MARKER = ['@ts', '-ignore-stale-import'].join('');
+const IGNORE_WINDOW_LINES = 2;
+
+/** Parsed grep hit: file path, line number, line content. */
+interface StaleRef {
+  file: string;
+  line: number;
+  content: string;
+}
+
+function parseGrepRef(raw: string): StaleRef | null {
+  // grep -n output: "<file>:<lineno>:<content>"
+  const m = raw.match(/^([^:]+):(\d+):(.*)$/);
+  if (!m) return null;
+  return { file: m[1], line: parseInt(m[2], 10), content: m[3] };
+}
+
+/**
+ * Returns true if importer lives in the same directory subtree as the
+ * renamed file (any shared ancestor up to two levels above the renamed
+ * file's parent). Co-location is a strong signal that the import was
+ * meant to track this file.
+ */
+function isSameSubtree(renamedFile: string, importerFile: string): boolean {
+  const renamedParent = dirname(renamedFile);
+  const importerParent = dirname(importerFile);
+  if (importerParent === renamedParent) return true;
+  if (importerParent.startsWith(renamedParent + sep)) return true;
+  if (renamedParent.startsWith(importerParent + sep)) return true;
+  const oneUp = dirname(renamedParent);
+  if (oneUp && oneUp !== renamedParent && importerParent.startsWith(oneUp + sep)) return true;
+  return false;
+}
+
+/**
+ * Returns true if the stale ref has the suppression marker within
+ * +/- IGNORE_WINDOW_LINES of its line.
+ */
+function hasIgnoreMarker(projectDir: string, ref: StaleRef): boolean {
+  try {
+    const abs = ref.file.startsWith('/') ? ref.file : resolvePath(projectDir, ref.file);
+    const text = readFileSync(abs, 'utf8');
+    const lines = text.split('\n');
+    const idx = ref.line - 1;
+    const lo = Math.max(0, idx - IGNORE_WINDOW_LINES);
+    const hi = Math.min(lines.length - 1, idx + IGNORE_WINDOW_LINES);
+    for (let i = lo; i <= hi; i++) {
+      if (lines[i].includes(IGNORE_MARKER)) return true;
+    }
+  } catch {
+    return false; // silent: best-effort
+  }
+  return false;
+}
 
 /**
  * Given a file path, derive the module identifier that imports would use.
@@ -146,6 +217,38 @@ export function staleImportDetector(input: HookInput, ctx: HookContext = NOOP_CT
 
   ctx.log(HOOK_NAME, `Found ${refs.length} import references to ${pathHint}`);
 
+  // ---- Blocking decision (HIGH-CONFIDENCE path) --------------------------
+  // Block only when ALL three conditions hold:
+  //   (1) at least BLOCK_THRESHOLD_REFS stale references,
+  //   (2) at least one importer lives in the same directory subtree as
+  //       the renamed/touched file (strong "real rename" signal),
+  //   (3) no suppression marker (IGNORE_MARKER) within +/- IGNORE_WINDOW_LINES
+  //       of ANY stale import (operator explicitly opted out).
+  // If only (1) holds, fall through to the advisory path (outputNotify).
+  const parsed: StaleRef[] = refs
+    .map(parseGrepRef)
+    .filter((r): r is StaleRef => r !== null);
+
+  const cond1 = parsed.length >= BLOCK_THRESHOLD_REFS;
+  const cond2 = parsed.some(r => isSameSubtree(filePath, r.file));
+  const cond3 = !parsed.some(r => hasIgnoreMarker(ctx.projectDir, r));
+
+  if (cond1 && cond2 && cond3) {
+    const refsList = parsed
+      .slice(0, MAX_REFS)
+      .map(r => `  - ${r.file}:${r.line}`)
+      .join('\n');
+    const reason =
+      `Stale imports detected for ${basename(filePath)} (${parsed.length} references). ` +
+      `At least one importer is in the same directory subtree, ` +
+      `which strongly suggests this Write renamed or moved an export. ` +
+      `Fix these imports or add a "${IGNORE_MARKER}" comment within 2 lines ` +
+      `of each import to suppress:\n${refsList}\n` +
+      `Suggestion: update import paths to point at ${pathHint}.`;
+    return outputBlock(reason);
+  }
+
+  // ---- Advisory path (fallback) ------------------------------------------
   // We do NOT know whether these are stale without a rename/delete tracker.
   // Report as "touch points" to double-check after the edit, rather than as
   // confirmed stale. Low-friction advisory.

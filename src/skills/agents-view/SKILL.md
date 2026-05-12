@@ -16,6 +16,12 @@ metadata:
   category: observability
   milestone: M137
   research-preview: true
+experimental:
+  reason: "depends on CC 2.1.139 agent-view (Research Preview)"
+  ga-by: "CC 2.1.145 expected"
+  exit-criteria:
+    - "CC removes Research Preview label from `claude agents`"
+    - "At least one non-trivial OrchestKit skill consumes agent-id without rewrite"
 triggers:
   keywords: ["agents view", "agent status", "running agents", "agent cost", "plugin details", "hook footprint"]
   examples:

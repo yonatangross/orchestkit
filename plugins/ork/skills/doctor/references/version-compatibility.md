@@ -4,6 +4,24 @@
 
 OrchestKit requires Claude Code >= 2.1.139. This matrix documents which CC features OrchestKit depends on and their minimum version requirements.
 
+## Experimental skills
+
+Skills that depend on a Claude Code Research Preview feature are marked with an
+`experimental:` frontmatter block declaring the reason, expected GA window, and
+exit criteria. Doctor should compute this list dynamically by scanning
+`src/skills/*/SKILL.md` for frontmatter containing `experimental:` and report
+any skills whose `exit-criteria` is missing or empty as a warning.
+
+Current experimental skills (M139, snapshot — verify via dynamic scan):
+
+| Skill | RP dependency | Expected GA |
+|---|---|---|
+| `ork:agents-view` | CC 2.1.139 `claude agents` (Research Preview) | CC 2.1.145 expected |
+
+When the underlying RP feature reaches GA and the `exit-criteria` are satisfied,
+remove the `experimental:` block from the skill's frontmatter and drop the entry
+from this table.
+
 ## Feature Matrix
 
 | Feature | Min CC Version | OrchestKit Usage | Degradation if Missing |
