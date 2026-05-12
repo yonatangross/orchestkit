@@ -68,13 +68,19 @@ else
 fi
 
 # 3. doctor version-compatibility.md :: overview line (may be absent)
+# Read the file first into a variable, then grep that variable. This avoids
+# pipefail-aborting on the no-match case where grep exits 1, which the script
+# would otherwise treat as a hard fail.
 DOCTOR_MD="$PROJECT_ROOT/src/skills/doctor/references/version-compatibility.md"
 if [[ -f "$DOCTOR_MD" ]]; then
-    DOCTOR_VAL=$(grep -oE "Minimum supported CC version: \*\*[0-9.]+\*\*" "$DOCTOR_MD" | head -1 | sed -E "s/.*\*\*([0-9.]+)\*\*.*/\1/")
-    if [[ -n "$DOCTOR_VAL" && "$DOCTOR_VAL" == "$SOT" ]]; then
-        log_pass "doctor version-compatibility.md = $DOCTOR_VAL"
-    elif [[ -n "$DOCTOR_VAL" ]]; then
-        log_fail "doctor version-compatibility.md" "got '$DOCTOR_VAL', want '$SOT'"
+    DOCTOR_CONTENT=$(cat "$DOCTOR_MD")
+    if [[ "$DOCTOR_CONTENT" =~ Minimum\ supported\ CC\ version:\ \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\* ]]; then
+        DOCTOR_VAL="${BASH_REMATCH[1]}"
+        if [[ "$DOCTOR_VAL" == "$SOT" ]]; then
+            log_pass "doctor version-compatibility.md = $DOCTOR_VAL"
+        else
+            log_fail "doctor version-compatibility.md" "got '$DOCTOR_VAL', want '$SOT'"
+        fi
     else
         log_pass "doctor version-compatibility.md (overview-line marker absent, skipping)"
     fi
