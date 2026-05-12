@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.87.0",
+    "date": "2026-05-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks/lib:** dual-write analytics to yonatan-hq platform ([#1799](https://github.com/yonatangross/orchestkit/issues/1799)) ([7070412](https://github.com/yonatangross/orchestkit/commit/70704122c7bb305826d627cfc70e030b27638e02))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** [#1795](https://github.com/yonatangross/orchestkit/issues/1795) — ORK_ASK_FALLBACK=text picker stall mitigation ([#1798](https://github.com/yonatangross/orchestkit/issues/1798)) ([19fbc6e](https://github.com/yonatangross/orchestkit/commit/19fbc6eebdb4d462e681c5784780bdc38c526b15))",
+          "**hooks:** kill [#1794](https://github.com/yonatangross/orchestkit/issues/1794) — WorktreeCreate output shape + dispatcher guard ([#1797](https://github.com/yonatangross/orchestkit/issues/1797)) ([3e6d164](https://github.com/yonatangross/orchestkit/commit/3e6d164c8093a832592d52873e18c67ba5174cae))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.8",
     "date": "2026-05-12",
     "compareUrl": "",
