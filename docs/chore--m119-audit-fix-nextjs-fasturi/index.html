@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OrchestKit · docs/site CVE audit fix · 15 advisories resolved</title>
+<style>
+  body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; background: #0f1117; color: #e4e6eb; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; color: #f4f4f5; }
+  .sub { color: #94a3b8; margin: 0 0 24px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px; }
+  .card { background: #161922; border: 1px solid #23283a; border-radius: 8px; padding: 14px 16px; }
+  .card .n { font-size: 28px; font-weight: 600; color: #f8fafc; }
+  .card .label { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  table { width: 100%; border-collapse: collapse; background: #161922; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #23283a; font-size: 13px; }
+  th { background: #1c2030; color: #a3b1c9; font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  .sev { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .sev.high { background: #4a1d1d; color: #fca5a5; }
+  .sev.moderate { background: #4a3a1d; color: #fde68a; }
+  .sev.low { background: #1d3a4a; color: #93c5fd; }
+  code { background: #1c2030; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+  details { margin-top: 16px; background: #161922; border: 1px solid #23283a; border-radius: 8px; padding: 12px 16px; }
+  summary { cursor: pointer; color: #cbd5e1; font-weight: 500; }
+  pre { overflow-x: auto; font-size: 12px; line-height: 1.5; color: #cbd5e1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>docs/site CVE audit fix — 15 advisories resolved</h1>
+  <p class="sub">Lockfile-only patch: 16 added, 9 removed, 58 packages updated. No <code>package.json</code> edits required (within existing <code>^16.2.3</code> range).</p>
+
+  <div class="grid">
+    <div class="card"><div class="n">15</div><div class="label">CVEs resolved</div></div>
+    <div class="card"><div class="n">2</div><div class="label">fast-uri (high)</div></div>
+    <div class="card"><div class="n">13</div><div class="label">Next.js advisories</div></div>
+    <div class="card"><div class="n">0</div><div class="label">remaining findings</div></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Package</th><th>Severity</th><th>Advisory</th></tr></thead>
+    <tbody>
+      <tr><td>fast-uri</td><td><span class="sev high">high</span></td><td>path traversal via percent-encoded dot segments</td></tr>
+      <tr><td>fast-uri</td><td><span class="sev high">high</span></td><td>host confusion via percent-encoded authority delimiters</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>DoS with Server Components</td></tr>
+      <tr><td>next</td><td><span class="sev moderate">moderate</span></td><td>XSS in App Router with CSP nonces</td></tr>
+      <tr><td>next</td><td><span class="sev low">low</span></td><td>cache poisoning via RSC cache-busting collisions</td></tr>
+      <tr><td>next</td><td><span class="sev moderate">moderate</span></td><td>XSS in beforeInteractive scripts</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>DoS via connection exhaustion (Cache Components)</td></tr>
+      <tr><td>next</td><td><span class="sev moderate">moderate</span></td><td>DoS in Image Optimization API</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>SSRF via WebSocket upgrades</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>Middleware/Proxy bypass via dynamic route parameter injection</td></tr>
+      <tr><td>next</td><td><span class="sev moderate">moderate</span></td><td>cache poisoning in RSC responses</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>Middleware/Proxy bypass via segment-prefetch (App Router)</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>Middleware/Proxy bypass in i18n (Pages Router)</td></tr>
+      <tr><td>next</td><td><span class="sev low">low</span></td><td>Middleware/Proxy redirect cache poisoning</td></tr>
+      <tr><td>next</td><td><span class="sev high">high</span></td><td>App Router segment-prefetch bypass — incomplete fix follow-up</td></tr>
+    </tbody>
+  </table>
+
+  <details>
+    <summary>Reproduction & verification</summary>
+    <pre>
+# Before
+$ bash tests/security/test-npm-audit.sh
+  ✗ docs/site: 15 findings ≥ moderate (NOT in allowlist)
+  Total: 16  |  Passed: 1  |  Failed: 15
+
+# Fix
+$ cd docs/site && npm audit fix
+added 16, removed 9, changed 58 packages; found 0 vulnerabilities
+
+# After
+$ bash tests/security/test-npm-audit.sh
+  ✓ docs/site: 0 findings ≥ moderate
+  ✓ src/hooks: 0 findings ≥ moderate
+  Total: 2  |  Passed: 2  |  Failed: 0
+    </pre>
+  </details>
+
+  <details>
+    <summary>Why this is its own PR</summary>
+    <p>The CVEs were disclosed after PR #1798 opened. They block the local pre-push security gate for any new PR but don't appear in the diff of recent feature work. Splitting into a dedicated chore PR keeps scope reviewable and avoids coupling unrelated test/hook changes with a 58-package lockfile churn.</p>
+  </details>
+</div>
+</body>
+</html>
