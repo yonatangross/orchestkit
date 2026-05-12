@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.86.8",
+    "date": "2026-05-12",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** preserve /rename via sessionTitle delta-detect ([#1779](https://github.com/yonatangross/orchestkit/issues/1779)) ([2cb8ec6](https://github.com/yonatangross/orchestkit/commit/2cb8ec658d7d3ab91e589f50fbb2e833c7f6f6b6))",
+          "**hooks:** titler double-prefix — strip leading ork: before wrap ([#1789](https://github.com/yonatangross/orchestkit/issues/1789)) ([2abf7e0](https://github.com/yonatangross/orchestkit/commit/2abf7e0c1827f589ddef3379ae52be4e2d34c142))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**adopt:** M139 Bundle A — close the M137 loop ([#1786](https://github.com/yonatangross/orchestkit/issues/1786)) ([79623c0](https://github.com/yonatangross/orchestkit/commit/79623c00d940987e5cf7b92aa87396fff56b6472))",
+          "**adopt:** M140 Bundle B — make /goal real ([#1793](https://github.com/yonatangross/orchestkit/issues/1793)) ([dca28a5](https://github.com/yonatangross/orchestkit/commit/dca28a5aff9910ec3ce193860249daedfa5f00e8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**claude:** replace static counts with plugin-details pointer (D2) ([#1777](https://github.com/yonatangross/orchestkit/issues/1777)) ([e04ba7d](https://github.com/yonatangross/orchestkit/commit/e04ba7def4b7039dd5d57a56a4f999c5009906a0))",
+          "**release:** add v7.86 release-window slideshow + infographic ([#1776](https://github.com/yonatangross/orchestkit/issues/1776)) ([6d673c1](https://github.com/yonatangross/orchestkit/commit/6d673c1acc012976386642237c70685ac8d9791e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.86.7",
     "date": "2026-05-12",
     "compareUrl": "",

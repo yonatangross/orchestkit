@@ -361,7 +361,8 @@ describe('Cross-Bundle Consistency', () => {
     //              posttool/check-plugins-drift, subagent-start/agent-view-titler
     // 223 -> 226: M140 Bundle B (#1790, #1791) — prompt/goal-tracker (G3) +
     //              stop/goal-tracker (G3) + lifecycle/goal-budget-guard (G5).
-    expect(totalHooks).toBe(226);
+    // 226 -> 227: M119 #1795 — prompt/ask-fallback-injector (UserPromptSubmit).
+    expect(totalHooks).toBe(227);
   });
 });
 

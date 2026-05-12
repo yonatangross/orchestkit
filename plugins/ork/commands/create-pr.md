@@ -326,6 +326,10 @@ Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/r
 - `ork:commit` — Create commits before PRs
 - `ork:review-pr` — Review PRs after creation
 
+## Picker fallback (#1795)
+
+If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `prompt/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
