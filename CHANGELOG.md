@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.87.0](https://github.com/yonatangross/orchestkit/compare/v7.86.8...v7.87.0) (2026-05-12)
+
+
+### Features
+
+* **hooks/lib:** dual-write analytics to yonatan-hq platform ([#1799](https://github.com/yonatangross/orchestkit/issues/1799)) ([7070412](https://github.com/yonatangross/orchestkit/commit/70704122c7bb305826d627cfc70e030b27638e02))
+
+
+### Bug Fixes
+
+* **hooks:** [#1795](https://github.com/yonatangross/orchestkit/issues/1795) — ORK_ASK_FALLBACK=text picker stall mitigation ([#1798](https://github.com/yonatangross/orchestkit/issues/1798)) ([19fbc6e](https://github.com/yonatangross/orchestkit/commit/19fbc6eebdb4d462e681c5784780bdc38c526b15))
+* **hooks:** kill [#1794](https://github.com/yonatangross/orchestkit/issues/1794) — WorktreeCreate output shape + dispatcher guard ([#1797](https://github.com/yonatangross/orchestkit/issues/1797)) ([3e6d164](https://github.com/yonatangross/orchestkit/commit/3e6d164c8093a832592d52873e18c67ba5174cae))
+
 ## [7.86.8](https://github.com/yonatangross/orchestkit/compare/v7.86.7...v7.86.8) (2026-05-12)
 
 

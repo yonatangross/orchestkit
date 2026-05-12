@@ -9,7 +9,7 @@ export const PLUGINS: Plugin[] = [
     "description": "The complete AI development toolkit — 109 skills, 37 agents, 195 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
-    "version": "7.86.8", // x-release-please-version
+    "version": "7.87.0", // x-release-please-version
     "skillCount": 109,
     "agentCount": 37,
     "hooks": 195,
