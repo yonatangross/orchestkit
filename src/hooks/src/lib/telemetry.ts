@@ -47,6 +47,7 @@ export interface TelemetryEvent {
     tool_error?: string;
     agent_type?: string;
     agent_id?: string;
+    parent_agent_id?: string;
   };
   metadata: {
     branch: string;
@@ -123,6 +124,8 @@ export function buildEvent(input: HookInput): TelemetryEvent {
       tool_error: input.tool_error || undefined,
       agent_type: input.agent_type || (input.tool_input as Record<string, unknown>)?.subagent_type as string || undefined,
       agent_id: input.agent_id || undefined,
+      // CC 2.1.139: parent_agent_id for sub-agent trace stitching (Langfuse/Datadog)
+      parent_agent_id: input.parent_agent_id || undefined,
     },
     metadata: {
       branch: getCachedBranch(),

@@ -249,7 +249,7 @@ RUN_HOOK="$HOOKS_DIR/bin/run-hook.mjs"
 echo -n "  context-loader hook (lifecycle bundle)... "
 if [[ -f "$RUN_HOOK" ]] && node "$RUN_HOOK" 2>&1 | grep -q "Usage\|hook-name" || [[ -f "$HOOKS_DIR/dist/lifecycle.mjs" ]]; then
     # session-context-loader was consolidated into sync-session-dispatcher (P0-3)
-    if jq -e '.. | .command? // empty | select(test("sync-session-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
+    if jq -e '.. | objects | select(has("command")) | ((.command // "") + " " + ((.args // []) | join(" "))) | select(test("sync-session-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered via sync-session-dispatcher in hooks.json)"
         PASSED=$((PASSED + 1))
     else
@@ -263,7 +263,7 @@ fi
 
 echo -n "  unified-dispatcher hook (posttool bundle)... "
 if [[ -f "$HOOKS_DIR/dist/posttool.mjs" ]]; then
-    if jq -e '.. | .command? // empty | select(test("unified-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
+    if jq -e '.. | objects | select(has("command")) | ((.command // "") + " " + ((.args // []) | join(" "))) | select(test("unified-dispatcher"))' "$HOOKS_DIR/hooks.json" >/dev/null 2>&1; then
         echo -e "${GREEN}PASS${NC} (registered in hooks.json)"
         PASSED=$((PASSED + 1))
     else

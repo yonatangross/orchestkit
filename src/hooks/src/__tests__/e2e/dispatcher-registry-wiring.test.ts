@@ -10,10 +10,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { commandPath } from '../_helpers/hook-entry.js';
 
 interface Hook {
   type: string;
   command?: string;
+  args?: string[];
   prompt?: string;
   async?: boolean;
   timeout?: number;
@@ -78,13 +80,13 @@ describe('Dispatcher Registry Wiring E2E', () => {
         'posttool/expect/fingerprint-saver',
       ];
       for (const entry of flattenedPostToolEntries) {
-        const hook = postToolHooks.find(h => h.command?.includes(entry));
+        const hook = postToolHooks.find(h => commandPath(h).includes(entry));
         expect(hook, `PostToolUse should have flattened entry ${entry}`).toBeDefined();
         expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
 
       // auto-lint should be sync (blocking for formatting)
-      const autoLintHook = postToolHooks.find(h => h.command?.includes('posttool/auto-lint'));
+      const autoLintHook = postToolHooks.find(h => commandPath(h).includes('posttool/auto-lint'));
       expect(autoLintHook, 'PostToolUse should have auto-lint').toBeDefined();
       expect(autoLintHook?.async, 'auto-lint should NOT be async').not.toBe(true);
 
@@ -99,7 +101,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
         'lifecycle/type-error-indexer',
       ];
       for (const entry of flattenedSessionStartEntries) {
-        const hook = sessionStartHooks.find(h => h.command?.includes(entry));
+        const hook = sessionStartHooks.find(h => commandPath(h).includes(entry));
         expect(hook, `SessionStart should have flattened entry ${entry}`).toBeDefined();
         expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
@@ -109,7 +111,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const notificationHooks = notificationGroups.flatMap(g => g.hooks);
       const flattenedNotificationEntries = ['notification/desktop', 'notification/sound'];
       for (const entry of flattenedNotificationEntries) {
-        const hook = notificationHooks.find(h => h.command?.includes(entry));
+        const hook = notificationHooks.find(h => commandPath(h).includes(entry));
         expect(hook, `Notification should have flattened entry ${entry}`).toBeDefined();
         expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
@@ -119,7 +121,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const subagentStopHooks = subagentStopGroups.flatMap(g => g.hooks);
       const flattenedSubagentStopEntries = ['subagent-stop/handoff-preparer', 'subagent-stop/feedback-loop'];
       for (const entry of flattenedSubagentStopEntries) {
-        const hook = subagentStopHooks.find(h => h.command?.includes(entry));
+        const hook = subagentStopHooks.find(h => commandPath(h).includes(entry));
         expect(hook, `SubagentStop should have flattened entry ${entry}`).toBeDefined();
         expect(hook?.async, `${entry} should have async: true`).toBe(true);
       }
@@ -136,7 +138,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // Should have 11 command hooks: 9 flattened stop hooks + stop-uncommitted-check + lifecycle/webhook-forwarder
       expect(commandHooks.length, 'Stop should have 11 command hooks').toBe(11);
 
-      const uncommittedCheckHook = commandHooks.find(h => h.command?.includes('stop-uncommitted-check.mjs'));
+      const uncommittedCheckHook = commandHooks.find(h => commandPath(h).includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
     });
   });
@@ -151,8 +153,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const bashHooks: { name: string; groupIndex: number; hookIndex: number }[] = [];
       bashGroups.forEach((group, groupIndex) => {
         group.hooks.forEach((hook, hookIndex) => {
-          if (hook.command?.includes('pretool/bash/')) {
-            const name = hook.command?.split('pretool/bash/')[1]?.split(' ')[0] || '';
+          if (commandPath(hook).includes('pretool/bash/')) {
+            const name = commandPath(hook).split('pretool/bash/')[1]?.split(' ')[0] || '';
             bashHooks.push({ name, groupIndex, hookIndex });
           }
         });
@@ -177,8 +179,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const writeHooks: string[] = [];
       writeGroups.forEach(group => {
         group.hooks.forEach(hook => {
-          if (hook.command?.includes('pretool/write-edit/')) {
-            const name = hook.command?.split('pretool/write-edit/')[1]?.split(' ')[0] || '';
+          if (commandPath(hook).includes('pretool/write-edit/')) {
+            const name = commandPath(hook).split('pretool/write-edit/')[1]?.split(' ')[0] || '';
             writeHooks.push(name);
           }
         });
@@ -240,7 +242,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // Permission decision hooks must be sync (blocking). Telemetry forwarders are allowed async.
       for (const hook of allHooks) {
-        const isForwarder = typeof hook.command === 'string' && hook.command.includes('webhook-forwarder');
+        const isForwarder = commandPath(hook).includes('webhook-forwarder');
         if (!isForwarder) {
           expect(
             hook.async,
@@ -262,7 +264,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const hookName of autoApproveHooks) {
-        const hook = allHooks.find(h => h.command?.includes(hookName));
+        const hook = allHooks.find(h => commandPath(h).includes(hookName));
         expect(hook, `${hookName} should be registered`).toBeDefined();
       }
     });
@@ -309,12 +311,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const notificationGroups = hooksConfig.hooks.Notification || [];
       const allHooks = notificationGroups.flatMap(g => g.hooks);
 
-      const desktopHook = allHooks.find(h => h.command?.includes('notification/desktop'));
+      const desktopHook = allHooks.find(h => commandPath(h).includes('notification/desktop'));
       expect(desktopHook, 'Notification desktop hook should exist').toBeDefined();
-      expect(desktopHook?.command, 'Notification desktop should use run-hook.mjs').toContain('run-hook.mjs');
+      expect(commandPath(desktopHook ?? {}), 'Notification desktop should use run-hook.mjs').toContain('run-hook.mjs');
       expect(desktopHook?.async, 'Notification desktop should have async: true').toBe(true);
 
-      const soundHook = allHooks.find(h => h.command?.includes('notification/sound'));
+      const soundHook = allHooks.find(h => commandPath(h).includes('notification/sound'));
       expect(soundHook, 'Notification sound hook should exist').toBeDefined();
       expect(soundHook?.async, 'Notification sound should have async: true').toBe(true);
     });
@@ -331,7 +333,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const pattern of onceHookPatterns) {
-        const hook = allHooks.find(h => h.command?.includes(pattern));
+        const hook = allHooks.find(h => commandPath(h).includes(pattern));
         if (hook) {
           expect(hook.once, `${pattern} should have once: true`).toBe(true);
         }
@@ -349,10 +351,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // v7.30.0: SubagentStop dispatcher flattened — 2 individual async hooks (#1264)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
-      const handoffHook = stopHooks.find(h => h.command?.includes('subagent-stop/handoff-preparer'));
+      const handoffHook = stopHooks.find(h => commandPath(h).includes('subagent-stop/handoff-preparer'));
       expect(handoffHook, 'SubagentStop should have handoff-preparer').toBeDefined();
       expect(handoffHook?.async, 'SubagentStop handoff-preparer should have async: true').toBe(true);
-      expect(handoffHook?.command, 'SubagentStop handoff-preparer should use run-hook.mjs').toContain('run-hook.mjs');
+      expect(commandPath(handoffHook ?? {}), 'SubagentStop handoff-preparer should use run-hook.mjs').toContain('run-hook.mjs');
     });
 
     it('should have unified dispatcher in SubagentStart', () => {
@@ -362,7 +364,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const allHooks = startGroups.flatMap(g => g.hooks);
 
       const dispatcher = allHooks.find(h =>
-        h.command?.includes('subagent-start/unified-dispatcher')
+        commandPath(h).includes('subagent-start/unified-dispatcher')
       );
 
       expect(dispatcher, 'SubagentStart should have unified dispatcher').toBeDefined();
@@ -415,7 +417,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const hookName of securityHooks) {
-        const hook = bashHooks.find(h => h.command?.includes(hookName));
+        const hook = bashHooks.find(h => commandPath(h).includes(hookName));
         expect(hook, `Security hook ${hookName} should exist`).toBeDefined();
       }
     });

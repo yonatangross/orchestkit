@@ -9,25 +9,25 @@ description: "Hooks triggered on PostToolUse events (22 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `agent-task-auto-register` | `Agent` | 🔇 Silent | After an Agent tool call succeeds, checks if a task was registered |
-| `webhook-forwarder` | `Agent` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
-| `mcp-output-transform` | `mcp__*` | 🔇 Silent | MCP Output Transform — PostToolUse hook for MCP tool results |
-| `webhook-forwarder` | `mcp__*` | 🔇 Silent | Universal Webhook Forwarder — streams ALL hook events to registered sinks. |
-| `secret-handler` | `Read\|Bash\|Grep\|Glob` | 🔇 Silent | Secret Handler — PostToolUse hook for Read/Bash/Grep/Glob outputs. |
-| `auto-lint` | `Write\|Edit` | 🔇 Silent | PostToolUse format-on-save for Write/Edit |
-| `ascii-lint` | `Write\|Edit` | 🔇 Silent | ASCII Lint — PostToolUse warn-only linter for fenced ASCII blocks in *.md. |
-| `ui-change-detector` | `Write\|Edit` | 💡 Injects | UI Change Detector — PostToolUse hook (M125 #2) |
-| `redact-secrets` | `Write\|Edit` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
-| `security-auditor` | `Write\|Edit` | 🔇 Silent | Audits Write\|Edit ops targeting .claude/ config files |
-| `stale-import-detector` | `Write\|Edit` | 🔇 Silent | Source: usage analytics #3 friction point — file splits and renames leave |
-| `edit-history-tracker` | `Write\|Edit` | 🔇 Silent | Edit History Tracker — PostToolUse/Write hook |
-| `commit-nudge` | `Write\|Edit` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
-| `redact-secrets` | `Bash` | 🔇 Silent | Runs after Bash commands in security-scanning skill |
-| `commit-nudge` | `Bash` | 🔇 Silent | Commit Nudge — Escalating reminders to commit work |
-| `gh-rate-limit-tracker` | `Bash` | 🔇 Silent | GitHub Rate-Limit Tracker |
-| `team-member-start` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | Links spawned teammates to the team activity log after successful spawn. |
-| `fingerprint-saver` | `Skill` | 🔇 Silent | Expect Fingerprint Auto-Saver (#1191) |
-| `snapshot-recorder` | `Skill` | 🔇 Silent | Expect Snapshot Recorder (M125 #6) |
-| `auto-verify` | `Skill` | 🔇 Silent | Design-Import Auto-Verify (#1386) |
-| `metrics-dispatcher` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 💡 Injects | PostTool Metrics Dispatcher — Issue #1489 (M121) |
-| `context-crossing-warn` | `Read\|Grep\|Glob\|WebFetch\|WebSearch` | 🔇 Silent | Context-Crossing Warn — Issue #1470 (extended by M119 dogfood cluster) |
+| `node` | `Agent` | 🔇 Silent | — |
+| `node` | `Agent` | 🔇 Silent | — |
+| `node` | `mcp__*` | 🔇 Silent | — |
+| `node` | `mcp__*` | 🔇 Silent | — |
+| `node` | `Read\|Bash\|Grep\|Glob` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `node` | `Bash` | 🔇 Silent | — |
+| `node` | `Bash` | 🔇 Silent | — |
+| `node` | `Bash` | 🔇 Silent | — |
+| `node` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | — |
+| `node` | `Skill` | 🔇 Silent | — |
+| `node` | `Skill` | 🔇 Silent | — |
+| `node` | `Skill` | 🔇 Silent | — |
+| `node` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | — |
+| `node` | `Read\|Grep\|Glob\|WebFetch\|WebSearch` | 🔇 Silent | — |

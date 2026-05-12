@@ -5,6 +5,34 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.86.7](https://github.com/yonatangross/orchestkit/compare/v7.86.6...v7.86.7) (2026-05-12)
+
+
+### Miscellaneous
+
+* **adopt:** M135 Group I CC 2.1.136 autoMode + plan-mode ([#1760](https://github.com/yonatangross/orchestkit/issues/1760)) ([3e44265](https://github.com/yonatangross/orchestkit/commit/3e442656d4284243b78d7edee62e629db77ec077)), closes [#1711](https://github.com/yonatangross/orchestkit/issues/1711) [#1717](https://github.com/yonatangross/orchestkit/issues/1717) [#1710](https://github.com/yonatangross/orchestkit/issues/1710) [#1719](https://github.com/yonatangross/orchestkit/issues/1719)
+* **adopt:** M137 CC 2.1.139 adoption + 2.1.136 matrix backfill ([#1773](https://github.com/yonatangross/orchestkit/issues/1773)) ([c05d712](https://github.com/yonatangross/orchestkit/commit/c05d712de96bb3378f4250e999a0b3d6115e222c))
+
+
+### Documentation
+
+* **release:** add v7.86 release-window slideshow + infographic ([#1758](https://github.com/yonatangross/orchestkit/issues/1758)) ([c5b00e8](https://github.com/yonatangross/orchestkit/commit/c5b00e8d114133a323e5d99b5aea01c636221869))
+
+
+### Code Refactoring
+
+* **tests:** drop fragile counts from cc-version-matrix ([#1761](https://github.com/yonatangross/orchestkit/issues/1761)) ([f2a29bd](https://github.com/yonatangross/orchestkit/commit/f2a29bdbb2056b441dcae017b4befccfc783d4b6))
+
+## [Unreleased]
+
+### Changed
+
+* **mcp/memory:** Memory graph dir moves from user-global to `${CLAUDE_PROJECT_DIR}/.claude/memory/`. Resolved by CC 2.1.139 stdio MCP env injection — no manual path expansion needed. Existing entries auto-discovered; manual move possible by relocating the prior `memory.json` into the new project-scoped path.
+
+### Added
+
+* **skill:** `ork:agents-view` — Research Preview wrapper around `claude agents` and `claude plugin details ork` for parallel-agent observability and per-session cost projection (CC 2.1.139+).
+
 ## [7.86.6](https://github.com/yonatangross/orchestkit/compare/v7.86.5...v7.86.6) (2026-05-11)
 
 

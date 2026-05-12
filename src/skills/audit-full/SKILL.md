@@ -184,6 +184,20 @@ Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork
 
 ---
 
+## Running unattended with /goal
+
+Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+
+**Example completion condition for this skill:**
+
+```
+/goal until findings.critical == 0 OR no_new_critical_for_3_turns
+```
+
+Stops when: zero critical issues remain across 3 consecutive passes, or a structural anti-pattern budget is reached. Compatible with claude.ai Remote Control runs.
+
+---
+
 ## Related Skills
 
 - `security-scanning` — Automated scanner integration (npm audit, Semgrep, etc.)

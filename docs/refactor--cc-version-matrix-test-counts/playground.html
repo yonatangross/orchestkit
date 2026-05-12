@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Refactor: cc-version-matrix test counts (playground)</title>
+<style>
+body{font:14px ui-monospace,monospace;background:#0b0b0b;color:#e8e8e8;padding:32px;max-width:820px;margin:auto}
+h1{color:#7aa2f7;border-bottom:1px solid #333;padding-bottom:6px}
+h2{color:#bb9af7;margin-top:28px}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #2a2a2a;vertical-align:top}
+th{color:#bb9af7}
+.muted{color:#888}
+.ok{color:#9ece6a}
+.warn{color:#e0af68}
+.bad{color:#f7768e}
+pre{background:#161616;padding:14px;border-radius:6px;overflow-x:auto;line-height:1.4}
+code{background:#161616;padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<h1>Refactor: cc-version-matrix test counts</h1>
+<p class="muted">Removes the per-version <code>missing.length</code> assertions (and their hand-tallied math comments) from <code>cc-version-matrix.test.ts</code>. Adoption PRs no longer need to bump 9 hardcoded numbers — only the single <code>CC_FEATURE_MATRIX.length</code> canary.</p>
+
+<h2>Why this matters</h2>
+<p>Each CC adoption PR (M131/M132/M134/M135 and every future one) had to:</p>
+<ul>
+<li>Add N entries to <code>cc-version-matrix.ts</code></li>
+<li>Bump <code>CC_FEATURE_MATRIX.length</code> by N</li>
+<li>Bump 9 separate <code>expect(missing.length).toBe(K)</code> assertions by N each</li>
+<li>Re-write the inline <code>// 10 (2.1.128) + 9 (2.1.129) + ...</code> math comments</li>
+</ul>
+<p>The per-version counts were tautological once <code>is sorted by version ascending</code> covers the sort invariant. The real test value was always in the <code>.some(f =&gt; f.feature === 'X')</code> semantic assertions.</p>
+
+<h2>Before / after</h2>
+<table>
+<tr><th>Aspect</th><th>Before</th><th>After</th></tr>
+<tr><td>Hardcoded counts</td><td><span class="bad">10</span> (1 canary + 9 per-version)</td><td><span class="ok">1</span> (canary only)</td></tr>
+<tr><td>Math comments to update</td><td><span class="bad">9</span> inline sum expressions</td><td><span class="ok">0</span></td></tr>
+<tr><td>Bumps per adoption PR</td><td><span class="bad">10 numbers</span> + 9 comments</td><td><span class="ok">1 number</span></td></tr>
+<tr><td>Tests still passing</td><td>64/64 → 68/68</td><td><span class="ok">68/68 PASS</span> (zero behavior change)</td></tr>
+<tr><td>Lines changed</td><td>—</td><td>+32 / -34 net</td></tr>
+</table>
+
+<h2>What the new tests look like</h2>
+<pre>test('2.1.119 misses 2.1.128 + 2.1.129 + 2.1.132 + 2.1.133 + 2.1.136 features', () =&gt; {
+  const missing = getMissingFeatures('2.1.119');
+  // Semantic assertions: these break if getMissingFeatures regresses or an entry is dropped
+  expect(missing.some(f =&gt; f.feature === 'enter_worktree_branch_from_head')).toBe(true);
+  expect(missing.some(f =&gt; f.feature === 'plugin_dir_zip_archives')).toBe(true);
+  expect(missing.some(f =&gt; f.feature === 'experimental_themes_monitors')).toBe(true);
+  expect(missing.some(f =&gt; f.feature === 'claude_code_session_id_env')).toBe(true);
+  expect(missing.some(f =&gt; f.feature === 'auto_mode_hard_deny')).toBe(true);
+  // Universal boundary: nothing missing should be &lt;= 2.1.119
+  expect(missing.every(f =&gt; compareCCVersions(f.minVersion, '2.1.119') &gt; 0)).toBe(true);
+});</pre>
+
+<h2>What's still caught</h2>
+<ul>
+<li><strong>Dropped matrix entry</strong> — fails <code>CC_FEATURE_MATRIX.length</code> canary AND the relevant <code>.some(...)</code> assertion</li>
+<li><strong>getMissingFeatures regression</strong> — fails the <code>.some(...)</code> + <code>.every(...)</code> boundary checks</li>
+<li><strong>Matrix sort broken</strong> — fails <code>is sorted by version ascending</code> (already a separate test)</li>
+<li><strong>Wrong minVersion on an entry</strong> — fails the corresponding <code>hasFeature(...)</code> boundary test</li>
+</ul>
+
+<h2>What's lost</h2>
+<p>Cross-check that <code>available.length + missing.length === total</code>. In practice this was never failing — the impl is <code>filter(f =&gt; cmp(v, f.minVersion) &gt;= 0)</code> vs <code>filter(f =&gt; cmp(v, f.minVersion) &lt; 0)</code> — the two filters partition exhaustively by construction. Not worth the maintenance cost.</p>
+
+<h2>Verification</h2>
+<pre class="ok">vitest cc-version-matrix.test.ts   68/68 PASS
+npm run build                      OK
+npm run test:skills                OK
+npm run test:manifests             OK
+npm run test:security              14/14 PASS
+npm run typecheck                  clean</pre>
+
+<h2>Why "playground" lives in this HTML</h2>
+<p class="muted">OrchestKit CI requires non-bot PRs to include <code>docs/&lt;branch-slug&gt;/*.html</code> + the word "playground" in the PR body. This file satisfies both gates. Content is a static summary; no JS, no API calls.</p>
+</body>
+</html>

@@ -7,7 +7,7 @@
  * Keep in sync with: src/skills/doctor/references/version-compatibility.md
  */
 
-export const MIN_CC_VERSION = '2.1.138';
+export const MIN_CC_VERSION = '2.1.139';
 
 export interface CCFeatureEntry {
   readonly feature: string;
@@ -468,6 +468,50 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'hooks_effort_level_input',                minVersion: '2.1.133', description: 'Hooks receive effort.level JSON input field + $CLAUDE_EFFORT env var; Bash tool reads $CLAUDE_EFFORT' },
   { feature: 'effort_cross_session_leak_fix',           minVersion: '2.1.133', description: '/effort changes are now session-scoped; no longer leak to concurrent sessions; IDE effort changes no longer silently dropped' },
   { feature: 'subagent_skill_discovery_fix',            minVersion: '2.1.133', description: 'Subagents (via Task tool) now discover project/user/plugin skills as documented' },
+  // 2.1.136 (2026-05-10) — autoMode.hard_deny tier, plan-mode Edit-allow bypass fix, OTEL feedback survey env, AskUserQuestion multi-select array fix
+  { feature: 'auto_mode_hard_deny',                     minVersion: '2.1.136', description: 'settings.autoMode.hard_deny tier — classifier rules that block unconditionally, bypassing user intent and allow exceptions' },
+  { feature: 'plan_mode_edit_allow_block_fix',          minVersion: '2.1.136', description: 'Plan mode now blocks file writes even when a matching Edit(...) allow rule exists (was silently bypassed pre-2.1.136)' },
+  { feature: 'otel_feedback_survey_env',                minVersion: '2.1.136', description: 'CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL env var re-enables session quality survey for OTEL-capturing enterprises' },
+  { feature: 'ask_user_question_multi_select_array_fix', minVersion: '2.1.136', description: 'AskUserQuestion preserves multi-select answers supplied as arrays (was silently discarded pre-2.1.136)' },
+  { feature: 'mcp_servers_persistence_clear_fix',       minVersion: '2.1.136', description: 'MCP servers from .mcp.json, plugins, and claude.ai connectors no longer silently disappear after /clear in VS Code, JetBrains, Agent SDK' },
+  { feature: 'oauth_credential_write_race_fix',         minVersion: '2.1.136', description: 'Concurrent credential writes no longer overwrite freshly-rotated OAuth tokens and force re-login' },
+  { feature: 'mcp_oauth_multi_refresh_fix',             minVersion: '2.1.136', description: 'MCP OAuth refresh tokens are preserved when multiple servers refresh concurrently — fixes daily re-auth for users with many remote MCP servers' },
+  { feature: 'redacted_thinking_block_400_fix',         minVersion: '2.1.136', description: 'Extended thinking emitting a redacted thinking block after a tool call no longer triggers API 400' },
+  { feature: 'resume_underscore_path_fix',              minVersion: '2.1.136', description: '--resume / --continue find sessions when the project path contains underscores' },
+  { feature: 'plugin_hook_cache_cleanup_fix',           minVersion: '2.1.136', description: 'Plugin Stop/UserPromptSubmit hooks survive cache cleanup that deletes a version still in use by a running session' },
+  { feature: 'plugin_slash_command_spaces_fix',         minVersion: '2.1.136', description: 'Plugin slash commands with spaces (e.g. /myplugin review) resolve to their namespaced form' },
+  { feature: 'plugin_skills_entry_hide_default_fix',    minVersion: '2.1.136', description: 'A skills entry in plugin.json no longer hides the plugin default skills/ directory; listing a file path now shows an error instead of silent failure' },
+  { feature: 'plugin_slug_case_insensitive_fix',        minVersion: '2.1.136', description: 'Plugin uninstall and enable/disable match slugs case-insensitively' },
+  { feature: 'plugin_marketplace_remove_key_change',    minVersion: '2.1.136', description: 'Plugin marketplace removal key changed to d (was r, which collided with retry)' },
+  { feature: 'worktree_collision_error_msg',            minVersion: '2.1.136', description: 'Improved error message when --worktree collides with an existing or stale worktree' },
+  { feature: 'doctor_mcp_schema_error_detail',          minVersion: '2.1.136', description: '/doctor MCP schema errors now name the missing field and source file path' },
+  { feature: 'claude_env_file_stale_fix',               minVersion: '2.1.136', description: 'Env vars from CLAUDE_ENV_FILE SessionStart hooks no longer go stale after /resume or /clear' },
+  { feature: 'ide_shell_lock_config_dir_fix',           minVersion: '2.1.136', description: 'IDE shell-integration lock files respect CLAUDE_CONFIG_DIR' },
+  { feature: 'mcp_tool_content_blocks_visible_fix',     minVersion: '2.1.136', description: 'MCP tool results are visible when the server returns content blocks' },
+  { feature: 'bash_permission_parser_diagnostic_fix',   minVersion: '2.1.136', description: 'Bash permission prompts show user-readable explanations instead of internal parser diagnostics' },
+  // 2.1.137 (2026-05-11) — VSCode-only fix
+  { feature: 'vscode_windows_activation_fix',           minVersion: '2.1.137', description: '[VSCode] Extension activates on Windows (regression fix)' },
+  // 2.1.138 (2026-05-12) — internal fixes (no user-visible features)
+  // 2.1.139 (2026-05-12) — agent view (Research Preview), /goal, hook args[]/continueOnBlock, MCP CLAUDE_PROJECT_DIR, agent-id headers
+  { feature: 'agent_view_command',                      minVersion: '2.1.139', description: 'claude agents (Research Preview) — unified list of every CC session: running, blocked on you, or done. Cross-session observability for parallel agent workflows. Pairs with ork:agents-view skill.' },
+  { feature: 'goal_command',                            minVersion: '2.1.139', description: '/goal command sets a completion condition; Claude keeps working across turns until met. Works in interactive, -p, and Remote Control. Live overlay shows elapsed/turns/tokens. Adopted by ork:audit-full, brainstorm, explore, dev skills for unattended runs.' },
+  { feature: 'scroll_speed_command',                    minVersion: '2.1.139', description: '/scroll-speed tunes mouse wheel scroll speed with live preview' },
+  { feature: 'plugin_details_command',                  minVersion: '2.1.139', description: 'claude plugin details <name> shows component inventory + projected per-session token cost. Direct fit for OrchestKit count audits.' },
+  { feature: 'transcript_view_navigation',              minVersion: '2.1.139', description: 'Transcript view: ? for keyboard shortcuts, { / } to jump between user prompts, v to toggle shortcut panel' },
+  { feature: 'hook_args_array_form',                    minVersion: '2.1.139', description: 'Hook args: string[] (exec form) spawns command directly without shell — path placeholders never need quoting. Eliminates ${VAR} injection risk. Migration target for OrchestKit\'s 188 hook entries.' },
+  { feature: 'post_tool_continue_on_block',             minVersion: '2.1.139', description: 'PostToolUse continueOnBlock: true feeds rejection reason back to Claude and continues the turn instead of dying. Field is ignored by ≤ 2.1.138 (safe to set). Used by OrchestKit advisory hooks (stale-import, architecture-validator, boundary, naming, circular-dep).' },
+  { feature: 'mcp_stdio_claude_project_dir',            minVersion: '2.1.139', description: 'MCP stdio servers receive CLAUDE_PROJECT_DIR in their environment (matching hooks). Plugin configs can reference ${CLAUDE_PROJECT_DIR} in commands. Used by ork:memory MCP server for per-project memory graphs.' },
+  { feature: 'mcp_reconnect_picks_up_mcp_json_edits',   minVersion: '2.1.139', description: '/mcp Reconnect picks up .mcp.json edits without a restart, and shows HTTP status + URL on reconnect failure' },
+  { feature: 'context_all_per_skill_tokenizer',         minVersion: '2.1.139', description: '/context all per-skill token estimates account for the model tokenizer and show rounded values' },
+  { feature: 'plugin_install_auto_refresh_marketplace', minVersion: '2.1.139', description: 'claude plugin install <name>@<marketplace> auto-refreshes the marketplace and retries before reporting plugin not found' },
+  { feature: 'context_plugin_source_attribution',       minVersion: '2.1.139', description: '/context shows the providing plugin name for plugin-sourced skills' },
+  { feature: 'remote_mcp_reconnect_retry_ga',           minVersion: '2.1.139', description: 'Remote MCP server reconnect retry on transient failures is now enabled for all users (was opt-in)' },
+  { feature: 'subagent_agent_id_headers',               minVersion: '2.1.139', description: 'Sub-agent API requests carry x-claude-code-agent-id / x-claude-code-parent-agent-id headers; claude_code.llm_request OTEL spans include agent_id / parent_agent_id attributes. Used by OrchestKit hook telemetry to stitch parent→child spans.' },
+  { feature: 'remote_control_apikey_gating',            minVersion: '2.1.139', description: 'Remote Control, /schedule, claude.ai MCP connectors, and notification preferences are disabled when ANTHROPIC_API_KEY / apiKeyHelper / ANTHROPIC_AUTH_TOKEN is set, even if a Claude.ai login also exists. Unset the API key to use these features.' },
+  { feature: 'skill_wildcard_permission_fix',           minVersion: '2.1.139', description: 'Skill(name *) permission rules — the wildcard form now works as a prefix match, matching Bash(ls *) behavior' },
+  { feature: 'settings_symlink_hot_reload_fix',         minVersion: '2.1.139', description: 'Settings hot-reload detects edits to symlinked ~/.claude/settings.json' },
+  { feature: 'auto_allow_bash_sandboxed_expansion_fix', minVersion: '2.1.139', description: 'autoAllowBashIfSandboxed auto-approves commands with shell expansions like $VAR and $(cmd)' },
+  { feature: 'compaction_preserves_sensitive_prefs',    minVersion: '2.1.139', description: 'Compaction prompt now asks the model to preserve sensitive user instructions' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

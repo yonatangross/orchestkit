@@ -1,13 +1,13 @@
 {
   "$schema": "./cc-support.schema.json",
-  "latest": "2.1.138",
-  "supported_floor": "2.1.138",
-  "drop_after": "2.1.137",
+  "latest": "2.1.139",
+  "supported_floor": "2.1.139",
+  "drop_after": "2.1.138",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {
-    "reason": "Bolder bump per 2026-05-07 decision — gates on CLAUDE_CODE_SESSION_ID (2.1.132) so hook utilities can correlate Bash subprocesses to the parent session without minting their own UUIDs, plus the parallel-shell-fanout fix and ~3x sub-agent prompt-cache reduction (both 2.1.128). Tightens the support window vs. the 'latest + 3' policy for ~12 weeks; auto-bump policy resumes after expires.",
-    "expires": "2026-08-07"
+    "reason": "M137 bump (2026-05-12) — gates on 2.1.139 agent-view (Research Preview) for ork:agents-view skill, /goal for unattended skills (audit-full/brainstorm/explore/dev), PostToolUse continueOnBlock for advisory hooks, and CLAUDE_PROJECT_DIR for per-project MCP memory. Auto-bump policy resumes after expires.",
+    "expires": "2026-08-12"
   },
   "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. Updated by .github/workflows/cc-support-window-bump.yml when cc-version-matrix.ts gains a new entry."
 }

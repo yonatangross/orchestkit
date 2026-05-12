@@ -5,15 +5,15 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 1,
-  "skills": 107,
+  "skills": 108,
   "agents": 37,
   "hooks": 188,
-  "commands": 27,
+  "commands": 28,
   "compositions": 14
 };
 
 // Extracted from src/hooks/src/lib/cc-version-matrix.ts
-export const MIN_CC_VERSION = "2.1.138";
+export const MIN_CC_VERSION = "2.1.139";
 
 export const AGENTS: AgentSummary[] = [
   {
@@ -422,14 +422,14 @@ export const SKILLS_SUMMARY = {
       "write-prd"
     ],
     "git": [
+      "agents-view",
       "ai-ui-generation",
       "animation-motion-design",
       "api-design",
       "assess",
       "code-review-playbook",
       "commit",
-      "create-pr",
-      "demo-producer"
+      "create-pr"
     ],
     "video": [
       "demo-producer",

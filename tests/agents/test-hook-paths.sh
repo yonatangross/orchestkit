@@ -96,8 +96,12 @@ echo ""
 # Extract hook commands from plugin.json using jq (more reliable than grep)
 # Only look in the hooks section, not lspServers
 if command -v jq >/dev/null 2>&1; then
-    # Use jq to properly extract hook commands from the hooks section
-    hook_commands=$(jq -r '.hooks[]?.command // empty' "$PLUGIN_JSON" 2>/dev/null || true)
+    # Use jq to extract hook invocations. Supports legacy string form
+    # { command: "node ... path" } and CC 2.1.139 args[] exec form
+    # { command: "node", args: ["...", "path"] } — joins them so downstream
+    # validators see the full path.
+    # silent: known-noise — jq stderr swallowed; absent .hooks is a normal early-return path.
+    hook_commands=$(jq -r '.hooks[]? | (.command // "") + (if has("args") and (.args|type) == "array" then " " + (.args | join(" ")) else "" end)' "$PLUGIN_JSON" 2>/dev/null || true)
 
     if [[ -n "$hook_commands" ]]; then
         while IFS= read -r hook_cmd; do

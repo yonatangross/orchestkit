@@ -16,6 +16,7 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { commandPath } from './_helpers/hook-entry.js';
 
 // ---------------------------------------------------------------------------
 // Parse hooks.json
@@ -23,7 +24,7 @@ import { join, resolve } from 'node:path';
 
 const hooksJsonPath = join(__dirname, '..', '..', 'hooks.json');
 const hooksJson = JSON.parse(readFileSync(hooksJsonPath, 'utf8'));
-const hookEvents: Record<string, Array<{ matcher?: string; hooks: Array<{ type: string; command?: string; async?: boolean }> }>> = hooksJson.hooks;
+const hookEvents: Record<string, Array<{ matcher?: string; hooks: Array<{ type: string; command?: string; args?: string[]; async?: boolean }> }>> = hooksJson.hooks;
 
 // Source root for resolving dispatcher .ts files
 const srcRoot = resolve(__dirname, '..');
@@ -63,7 +64,7 @@ interface CoverageEntry {
  */
 function hasStandaloneForwarder(hooks: Array<{ type: string; command?: string }>): boolean {
   return hooks.some(
-    (h) => h.type === 'command' && typeof h.command === 'string' && h.command.includes('lifecycle/webhook-forwarder'),
+    (h) => h.type === 'command' && commandPath(h).includes('lifecycle/webhook-forwarder'),
   );
 }
 
@@ -127,8 +128,8 @@ function buildCoverageMap(): CoverageEntry[] {
       let dispatcherPath: string | undefined;
 
       for (const hook of group.hooks) {
-        if (hook.type === 'command' && typeof hook.command === 'string') {
-          const hookPath = extractHookPath(hook.command);
+        if (hook.type === 'command') {
+          const hookPath = extractHookPath(commandPath(hook));
           if (hookPath && hookPath !== 'lifecycle/webhook-forwarder') {
             dispatcherPath = hookPath;
             // M121 #1489: fan-out dispatchers provide coverage by calling

@@ -16,7 +16,7 @@
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
-      "env": { "MEMORY_FILE": ".claude/memory/memory.json" },
+      "env": { "MEMORY_FILE": "${CLAUDE_PROJECT_DIR}/.claude/memory/memory.json" },
       "description": "Knowledge graph memory (PRIMARY) - zero-config, always available",
       "auto": "90"
     },

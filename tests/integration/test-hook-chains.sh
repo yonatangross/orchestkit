@@ -48,7 +48,10 @@ fi
 get_hooks_for_event() {
     local event="$1"
     local matcher="${2:-*}"
-    jq -r ".hooks.${event}[] | select(.matcher == \"$matcher\" or .matcher == null) | .hooks[].command" "$HOOKS_JSON" 2>/dev/null | \
+    # Emit full invocation (command + args). Supports legacy string form and
+    # CC 2.1.139 args[] exec form (M138 #1774).
+    # silent: known-noise — jq's stderr suppressed; missing matcher → empty result is expected.
+    jq -r ".hooks.${event}[] | select(.matcher == \"$matcher\" or .matcher == null) | .hooks[] | (.command + (if has(\"args\") and (.args|type) == \"array\" then \" \" + (.args | join(\" \")) else \"\" end))" "$HOOKS_JSON" 2>/dev/null | \
         sed "s|\${CLAUDE_PLUGIN_ROOT}|$CLAUDE_PLUGIN_ROOT|g" || echo ""
 }
 
