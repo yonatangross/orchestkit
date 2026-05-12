@@ -8,15 +8,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Validating command..."
+            "statusMessage": "Validating command...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/bash/sync-bash-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -25,15 +33,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/sync-write-edit-dispatcher",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Checking file safety..."
+            "statusMessage": "Checking file safety...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/write-edit/sync-write-edit-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -42,14 +58,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/mcp/context7-tracker"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -58,14 +82,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/mcp/memory-validator"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -74,15 +106,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/sync-task-dispatcher",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Preparing agent..."
+            "statusMessage": "Preparing agent...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/task/sync-task-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -91,15 +131,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/read/tldr-summary",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Analyzing file structure..."
+            "statusMessage": "Analyzing file structure...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/read/tldr-summary"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -109,14 +157,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/ask/headless-responder",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/ask/headless-responder"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -125,15 +181,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/cron-guard",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Checking cron permissions..."
+            "statusMessage": "Checking cron permissions...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "pretool/cron-guard"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -144,15 +208,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/task/agent-task-auto-register",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/task/agent-task-auto-register"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -161,15 +233,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/mcp-output-transform",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Processing MCP result..."
+            "statusMessage": "Processing MCP result...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/mcp-output-transform"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -178,9 +258,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/secret-handler",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Scanning for secrets..."
+            "statusMessage": "Scanning for secrets...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/secret-handler"
+            ]
           }
         ]
       },
@@ -189,52 +273,84 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/auto-lint",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Formatting..."
+            "statusMessage": "Formatting...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/auto-lint"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/ascii-lint",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/ascii-lint"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/ui-change-detector",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/ui-change-detector"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/redact-secrets"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/config-change/security-auditor",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/config-change/security-auditor"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/stale-import-detector",
+            "command": "node",
             "async": true,
             "timeout": 8,
-            "continueOnBlock": true
+            "continueOnBlock": true,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/write/stale-import-detector"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/edit-history-tracker",
+            "command": "node",
             "async": true,
-            "timeout": 3
+            "timeout": 3,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/write/edit-history-tracker"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/commit-nudge",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/commit-nudge"
+            ]
           }
         ]
       },
@@ -243,21 +359,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/redact-secrets"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/commit-nudge",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/commit-nudge"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/gh-rate-limit-tracker",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/bash/gh-rate-limit-tracker"
+            ]
           }
         ]
       },
@@ -266,9 +394,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/task/team-member-start",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/task/team-member-start"
+            ]
           }
         ]
       },
@@ -277,21 +409,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/expect/fingerprint-saver",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/expect/fingerprint-saver"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/expect/snapshot-recorder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/expect/snapshot-recorder"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/design-import/auto-verify",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/design-import/auto-verify"
+            ]
           }
         ]
       },
@@ -300,8 +444,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/metrics-dispatcher",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/metrics-dispatcher"
+            ]
           }
         ]
       },
@@ -310,8 +458,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/context-crossing-warn",
-            "timeout": 3
+            "command": "node",
+            "timeout": 3,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/context-crossing-warn"
+            ]
           }
         ]
       }
@@ -322,15 +474,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Analyzing failure..."
+            "statusMessage": "Analyzing failure...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/failure-handler"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -342,15 +502,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/unified-dispatcher",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Evaluating permissions..."
+            "statusMessage": "Evaluating permissions...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "permission/unified-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       },
@@ -359,14 +527,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "permission/auto-approve-project-writes"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -376,21 +552,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/unified-dispatcher",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Processing prompt..."
+            "statusMessage": "Processing prompt...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "prompt/unified-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/thrash-detector",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "prompt/thrash-detector"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -400,63 +588,103 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-pull",
+            "command": "node",
             "async": true,
-            "timeout": 15
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/pattern-sync-pull"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/nudge-outcome-resolver",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/nudge-outcome-resolver"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-env-setup",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/session-env-setup"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/stale-team-cleanup",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/stale-team-cleanup"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/stale-cache-cleanup",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/stale-cache-cleanup"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/type-error-indexer",
+            "command": "node",
             "async": true,
-            "timeout": 15
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/type-error-indexer"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-dispatcher",
+            "command": "node",
             "timeout": 20,
-            "statusMessage": "Loading session context..."
+            "statusMessage": "Loading session context...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/sync-session-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-injector",
+            "command": "node",
             "timeout": 3,
-            "statusMessage": "Loading handoff..."
+            "statusMessage": "Loading handoff...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/session-handoff-injector"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/cc-version-check",
+            "command": "node",
             "async": true,
-            "timeout": 3
+            "timeout": 3,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/cc-version-check"
+            ]
           }
         ]
       }
@@ -466,14 +694,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/cwd-changed",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/cwd-changed"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -484,14 +720,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/file-changed",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/file-changed"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -501,32 +745,51 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/sync-session-end-dispatcher",
+            "command": "node",
             "timeout": 30,
-            "statusMessage": "Saving session data..."
+            "statusMessage": "Saving session data...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/sync-session-end-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-handoff-generator",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/session-handoff-generator"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/usage-summary-reporter",
+            "command": "node",
             "async": true,
-            "timeout": 8
+            "timeout": 8,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/usage-summary-reporter"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/telemetry-sync.mjs",
+            "command": "node",
             "async": true,
-            "timeout": 15
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/telemetry-sync.mjs"
+            ]
           }
         ]
       }
@@ -536,69 +799,112 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/handoff-writer",
+            "command": "node",
             "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/session-summary",
-            "async": true,
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/task-completion-check",
-            "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/security-scan-aggregator",
-            "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/ledger-cleanup",
-            "async": true,
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/coverage-check",
-            "async": true,
-            "timeout": 20
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/evidence-collector",
-            "async": true,
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/coverage-threshold-gate",
-            "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/cross-instance-test-validator",
-            "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs",
             "timeout": 10,
-            "statusMessage": "Checking uncommitted changes..."
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/handoff-writer"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/session-summary"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/task-completion-check"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/security-scan-aggregator"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/ledger-cleanup"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 20,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/coverage-check"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/evidence-collector"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/coverage-threshold-gate"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "skill/cross-instance-test-validator"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "timeout": 10,
+            "statusMessage": "Checking uncommitted changes...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -608,15 +914,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/stop-failure-handler",
+            "command": "node",
             "async": true,
-            "timeout": 15
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "stop/stop-failure-handler"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -626,15 +940,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/unified-dispatcher",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Configuring agent..."
+            "statusMessage": "Configuring agent...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-start/unified-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -644,39 +966,63 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/handoff-preparer",
+            "command": "node",
             "async": true,
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/feedback-loop",
-            "async": true,
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/sync-subagent-stop-dispatcher",
             "timeout": 15,
-            "statusMessage": "Processing agent results..."
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-stop/handoff-preparer"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-stop/feedback-loop"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/watchdog",
-            "async": true,
-            "timeout": 5
+            "command": "node",
+            "timeout": 15,
+            "statusMessage": "Processing agent results...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-stop/sync-subagent-stop-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/subagent-scope-auditor",
+            "command": "node",
             "async": true,
-            "timeout": 8
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-stop/watchdog"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 8,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "subagent-stop/subagent-scope-auditor"
+            ]
           }
         ]
       }
@@ -686,21 +1032,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/desktop",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "notification/desktop"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/sound",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "notification/sound"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -710,27 +1068,43 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-guard",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Checking compact safety..."
+            "statusMessage": "Checking compact safety...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/pre-compact-guard"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-task-done-prompt",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Checking for task-done breakpoint..."
+            "statusMessage": "Checking for task-done breakpoint...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/pre-compact-task-done-prompt"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Saving context before compact..."
+            "statusMessage": "Saving context before compact...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/pre-compact-saver"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -740,15 +1114,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/post-compact-recovery",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Recovering context after compact..."
+            "statusMessage": "Recovering context after compact...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/post-compact-recovery"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -758,15 +1140,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard",
+            "command": "node",
             "timeout": 5,
-            "statusMessage": "Checking elicitation safety..."
+            "statusMessage": "Checking elicitation safety...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "elicitation/elicitation-guard"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -776,14 +1166,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-result-logger",
-            "timeout": 5
+            "command": "node",
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "elicitation/elicitation-result-logger"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -793,27 +1191,43 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/progress-reporter",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "teammate-idle/progress-reporter"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-synthesis-trigger",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "teammate-idle/team-synthesis-trigger"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-quality-gate",
+            "command": "node",
             "async": true,
-            "timeout": 10
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "teammate-idle/team-quality-gate"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -823,14 +1237,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-created/sync-task-created-dispatcher",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "task-created/sync-task-created-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -840,14 +1262,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs task-completed/sync-task-completed-dispatcher",
-            "timeout": 15
+            "command": "node",
+            "timeout": 15,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "task-completed/sync-task-completed-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -857,14 +1287,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "worktree/worktree-lifecycle-logger"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -874,14 +1312,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs worktree/worktree-lifecycle-logger",
-            "timeout": 10
+            "command": "node",
+            "timeout": 10,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "worktree/worktree-lifecycle-logger"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -891,15 +1337,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs instructions-loaded/instructions-loaded-dispatcher",
+            "command": "node",
             "timeout": 15,
-            "statusMessage": "Indexing loaded rules..."
+            "statusMessage": "Indexing loaded rules...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "instructions-loaded/instructions-loaded-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -909,15 +1363,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs config-change/settings-reload",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Checking settings change..."
+            "statusMessage": "Checking settings change...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "config-change/settings-reload"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -927,15 +1389,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission-denied/unified-dispatcher",
+            "command": "node",
             "timeout": 10,
-            "statusMessage": "Evaluating denied permission..."
+            "statusMessage": "Evaluating denied permission...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "permission-denied/unified-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }
@@ -945,15 +1415,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/sync-setup-dispatcher",
+            "command": "node",
             "timeout": 120,
-            "statusMessage": "Running first-time setup..."
+            "statusMessage": "Running first-time setup...",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "setup/sync-setup-dispatcher"
+            ]
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder",
+            "command": "node",
             "async": true,
-            "timeout": 5
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/webhook-forwarder"
+            ]
           }
         ]
       }

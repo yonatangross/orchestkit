@@ -12,6 +12,7 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { commandPath } from './_helpers/hook-entry.js';
 
 // Import all bundle entry points
 import * as permissionBundle from '../entries/permission.js';
@@ -43,9 +44,10 @@ function extractHookPaths(): Set<string> {
     const entries = hooksJson.hooks[eventType];
     for (const entry of entries) {
       for (const hook of entry.hooks || []) {
-        if (hook.type === 'command' && typeof hook.command === 'string') {
+        if (hook.type === 'command') {
           // Match: node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs <hook-path>
-          const match = hook.command.match(/run-hook\.mjs\s+(\S+)/);
+          // Handles both legacy string form and CC 2.1.139 args[] exec form.
+          const match = commandPath(hook).match(/run-hook\.mjs\s+(\S+)/);
           if (match) {
             paths.add(match[1]);
           }
@@ -262,10 +264,9 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
           return;
         }
 
-        for (const entry of entries as Array<{ hooks?: Array<{ command?: string }> }>) {
+        for (const entry of entries as Array<{ hooks?: Array<{ command?: string; args?: string[] }> }>) {
           for (const hook of entry.hooks || []) {
-            if (typeof hook.command !== 'string') continue;
-            const match = hook.command.match(/run-hook\.mjs\s+(\S+)/);
+            const match = commandPath(hook).match(/run-hook\.mjs\s+(\S+)/);
             if (!match) continue; // standalone script, skip
             const hookPath = match[1];
             const prefix = hookPath.split('/')[0];
@@ -310,15 +311,15 @@ describe('Cross-Reference Validation: hooks.json <-> bundles', () => {
     test('no duplicate hook commands within the same matcher', () => {
       const duplicates: string[] = [];
       for (const [eventType, entries] of Object.entries(hooksJson.hooks)) {
-        for (const entry of entries as Array<{ matcher?: string; hooks?: Array<{ command?: string }> }>) {
+        for (const entry of entries as Array<{ matcher?: string; hooks?: Array<{ command?: string; args?: string[] }> }>) {
           const commands = new Set<string>();
           for (const hook of entry.hooks || []) {
-            if (typeof hook.command === 'string') {
-              if (commands.has(hook.command)) {
-                duplicates.push(`${eventType}/${entry.matcher || '*'}: duplicate "${hook.command}"`);
-              }
-              commands.add(hook.command);
+            const path = commandPath(hook);
+            if (!path) continue;
+            if (commands.has(path)) {
+              duplicates.push(`${eventType}/${entry.matcher || '*'}: duplicate "${path}"`);
             }
+            commands.add(path);
           }
         }
       }

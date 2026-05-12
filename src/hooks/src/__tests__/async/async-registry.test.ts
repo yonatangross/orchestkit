@@ -7,10 +7,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { commandPath } from '../_helpers/hook-entry.js';
 
 interface Hook {
   type: string;
   command?: string;
+  args?: string[];
   prompt?: string;
   async?: boolean;
   timeout?: number;
@@ -65,10 +67,10 @@ describe('Async Hooks Registry', () => {
       }
 
       for (const { path: hookPath, event } of expectedAsyncDispatchers) {
-        const hook = allHooks.find(h => h.command?.includes(hookPath));
+        const hook = allHooks.find(h => commandPath(h).includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} (${event}) should exist in hooks.json`).toBeDefined();
-        expect(hook?.command, `Dispatcher ${hookPath} (${event}) should use run-hook.mjs (not silent)`).toContain('run-hook.mjs');
-        expect(hook?.command, `Dispatcher ${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(commandPath(hook), `Dispatcher ${hookPath} (${event}) should use run-hook.mjs (not silent)`).toContain('run-hook.mjs');
+        expect(commandPath(hook), `Dispatcher ${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
         expect(hook?.async, `Dispatcher ${hookPath} (${event}) should have async: true`).toBe(true);
       }
     });
@@ -136,7 +138,7 @@ describe('Async Hooks Registry', () => {
 
       const allBlockingHooks = [...preToolHooks, ...permissionHooks];
       for (const hookPath of blockingHookPaths) {
-        const hook = allBlockingHooks.find(h => h.command?.includes(hookPath));
+        const hook = allBlockingHooks.find(h => commandPath(h).includes(hookPath));
         if (hook) {
           expect(hook.async, `Blocking hook ${hookPath} should NOT have async: true`).not.toBe(true);
         }
@@ -151,10 +153,10 @@ describe('Async Hooks Registry', () => {
         }
       }
 
-      const silentHooks = allHooks.filter(h => h.command?.includes('run-hook-silent.mjs'));
+      const silentHooks = allHooks.filter(h => commandPath(h).includes('run-hook-silent.mjs'));
       expect(silentHooks.length, 'No hooks should use run-hook-silent.mjs (use async: true instead)').toBe(0);
 
-      const stopFafHooks = allHooks.filter(h => h.command?.includes('stop-fire-and-forget.mjs'));
+      const stopFafHooks = allHooks.filter(h => commandPath(h).includes('stop-fire-and-forget.mjs'));
       expect(stopFafHooks.length, 'No hooks should use stop-fire-and-forget.mjs (use async: true instead)').toBe(0);
     });
   });
@@ -193,7 +195,7 @@ describe('Async Hooks Registry', () => {
       // Write|Edit group: auto-lint (sync) + redact-secrets, config-auditor, commit-nudge (async)
       const writeEditGroup = postToolGroups.find(g => g.matcher === 'Write|Edit');
       expect(writeEditGroup, 'Write|Edit group should exist').toBeDefined();
-      const writeEditAutoLint = writeEditGroup!.hooks.find(h => h.command?.includes('posttool/auto-lint'));
+      const writeEditAutoLint = writeEditGroup!.hooks.find(h => commandPath(h).includes('posttool/auto-lint'));
       expect(writeEditAutoLint, 'Write|Edit should have auto-lint').toBeDefined();
       expect(writeEditAutoLint!.async, 'auto-lint should be sync (not async)').not.toBe(true);
 
@@ -216,7 +218,7 @@ describe('Async Hooks Registry', () => {
       );
       expect(catchAllGroup, 'catch-all dispatcher group should exist').toBeDefined();
       const dispatcher = catchAllGroup!.hooks.find(h =>
-        h.command?.includes('posttool/metrics-dispatcher'),
+        commandPath(h).includes('posttool/metrics-dispatcher'),
       );
       expect(dispatcher, 'catch-all should route to metrics-dispatcher').toBeDefined();
       // Dispatcher is sync — async fan-out happens inside via Promise.allSettled
@@ -253,15 +255,15 @@ describe('Async Hooks Registry', () => {
       ];
 
       for (const hookPath of asyncDispatchers) {
-        const hook = allHooks.find(h => h.command?.includes(hookPath));
+        const hook = allHooks.find(h => commandPath(h).includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} should exist`).toBeDefined();
-        expect(hook!.command, `${hookPath} should use run-hook.mjs`).toContain('run-hook.mjs');
-        expect(hook!.command, `${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
+        expect(commandPath(hook), `${hookPath} should use run-hook.mjs`).toContain('run-hook.mjs');
+        expect(commandPath(hook), `${hookPath} should NOT use run-hook-silent.mjs`).not.toContain('run-hook-silent.mjs');
         expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
       }
 
       for (const hookPath of flattenedAsyncEntries) {
-        const hook = allHooks.find(h => h.command?.includes(hookPath));
+        const hook = allHooks.find(h => commandPath(h).includes(hookPath));
         expect(hook, `Flattened entry ${hookPath} should exist`).toBeDefined();
         expect(hook!.async, `${hookPath} should have async: true`).toBe(true);
       }

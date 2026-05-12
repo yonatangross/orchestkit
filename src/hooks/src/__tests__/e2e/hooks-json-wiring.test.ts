@@ -14,10 +14,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { commandPath } from '../_helpers/hook-entry.js';
 
 interface Hook {
   type: string;
   command?: string;
+  args?: string[];
   async?: boolean;
   timeout?: number;
   once?: boolean;
@@ -65,7 +67,7 @@ describe('hooks.json wiring E2E', () => {
     it('StopFailure command routes to stop-failure-handler', () => {
       const hooks = hooksConfig.hooks.StopFailure.flatMap(g => g.hooks ?? []);
       const hasHandler = hooks.some(h =>
-        typeof h.command === 'string' && h.command.includes('stop-failure-handler')
+        commandPath(h).includes('stop-failure-handler')
       );
       expect(hasHandler).toBe(true);
     });
@@ -75,8 +77,8 @@ describe('hooks.json wiring E2E', () => {
       const stopFailureHooks = hooksConfig.hooks.StopFailure?.flatMap(g => g.hooks ?? []) ?? [];
 
       // StopFailure should NOT use the same dispatcher as Stop
-      const stopCommands = stopHooks.map(h => h.command).filter(Boolean);
-      const sfCommands = stopFailureHooks.map(h => h.command).filter(Boolean);
+      const stopCommands = stopHooks.map(h => commandPath(h)).filter(Boolean);
+      const sfCommands = stopFailureHooks.map(h => commandPath(h)).filter(Boolean);
 
       // At least one command should differ (they're different handlers)
       // lifecycle/webhook-forwarder is a cross-cutting hook on all events — exclude from overlap check
@@ -103,8 +105,8 @@ describe('hooks.json wiring E2E', () => {
       const createHooks = hooksConfig.hooks.WorktreeCreate.flatMap(g => g.hooks ?? []);
       const removeHooks = hooksConfig.hooks.WorktreeRemove.flatMap(g => g.hooks ?? []);
 
-      const createCommands = createHooks.map(h => h.command).filter(Boolean);
-      const removeCommands = removeHooks.map(h => h.command).filter(Boolean);
+      const createCommands = createHooks.map(h => commandPath(h)).filter(Boolean);
+      const removeCommands = removeHooks.map(h => commandPath(h)).filter(Boolean);
 
       // Both should route to worktree-lifecycle-logger
       expect(createCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(true);

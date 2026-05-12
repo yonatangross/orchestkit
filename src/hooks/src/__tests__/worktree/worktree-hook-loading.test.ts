@@ -16,6 +16,7 @@
 
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import type { HookInput } from '../../types.js';
+import { commandPath } from '../_helpers/hook-entry.js';
 
 // Mock fs operations to avoid real filesystem reads
 vi.mock('node:fs', () => ({
@@ -72,7 +73,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
     it('should use worktree-lifecycle-logger for WorktreeCreate', () => {
       const hooks = hooksJson.hooks.WorktreeCreate.flatMap((g: Record<string, unknown>) => (g.hooks as unknown[]) ?? []);
       const hasLogger = hooks.some((h: Record<string, unknown>) =>
-        typeof h.command === 'string' && h.command.includes('worktree-lifecycle-logger')
+        commandPath(h).includes('worktree-lifecycle-logger')
       );
       expect(hasLogger).toBe(true);
     });
@@ -80,7 +81,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
     it('should use worktree-lifecycle-logger for WorktreeRemove', () => {
       const hooks = hooksJson.hooks.WorktreeRemove.flatMap((g: Record<string, unknown>) => (g.hooks as unknown[]) ?? []);
       const hasLogger = hooks.some((h: Record<string, unknown>) =>
-        typeof h.command === 'string' && h.command.includes('worktree-lifecycle-logger')
+        commandPath(h).includes('worktree-lifecycle-logger')
       );
       expect(hasLogger).toBe(true);
     });
