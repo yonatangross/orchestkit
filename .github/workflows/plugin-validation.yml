@@ -232,8 +232,13 @@ jobs:
             exit 1
           fi
 
-          # Extract all hook commands from hooks.json
-          hooks=$(jq -r '.. | .command? // empty' "$HOOKS_JSON" | sort -u)
+          # Extract all hook commands from hooks.json.
+          # Supports both legacy string form { command: "node ... path" } and
+          # CC 2.1.139 args[] exec form { command: "node", args: ["...", "path"] }.
+          hooks=$(jq -r '
+            .. | objects | select(has("command")) |
+            (.command + (if has("args") and (.args|type) == "array" then " " + (.args | join(" ")) else "" end))
+          ' "$HOOKS_JSON" | sort -u)
 
           missing=0
           while IFS= read -r hook; do

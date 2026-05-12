@@ -64,7 +64,11 @@ else
   fail "Invalid hook event types: $INVALID_EVENTS"
 fi
 
-# 4. All command hooks reference a known dispatcher script
+# 4. All command hooks reference a known dispatcher script.
+# Supports both legacy string form ("command": "node ... run-hook.mjs path") and
+# CC 2.1.139 args[] exec form ("command": "node", "args": [".../run-hook.mjs", "path"]).
+# silent: best-effort  — python3 -c block is a self-contained validator; we want its
+# stderr surfaced to the caller, but the surrounding test runner re-asserts via $BAD_COMMANDS.
 BAD_COMMANDS=$(python3 -c "
 import json
 KNOWN_DISPATCHERS = ['run-hook.mjs', 'run-hook-silent.mjs', 'stop-fire-and-forget.mjs', 'stop-uncommitted-check.mjs', 'telemetry-sync.mjs']
@@ -73,12 +77,14 @@ bad = []
 for event, entries in data.get('hooks', {}).items():
   for entry in entries:
     for hook in entry.get('hooks', []):
-      cmd = hook.get('command', '')
-      if cmd and not any(d in cmd for d in KNOWN_DISPATCHERS):
-        bad.append(f'{event}: {cmd[:60]}')
+      cmd = hook.get('command', '') or ''
+      args = hook.get('args', []) or []
+      resolved = (cmd + ' ' + ' '.join(args)).strip() if args else cmd
+      if resolved and not any(d in resolved for d in KNOWN_DISPATCHERS):
+        bad.append(f'{event}: {resolved[:60]}')
 if bad:
   for b in bad: print(b)
-" 2>/dev/null || true)
+")
 
 if [[ -z "$BAD_COMMANDS" ]]; then
   pass "All command hooks use known dispatcher scripts"

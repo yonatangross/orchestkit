@@ -22,9 +22,12 @@ export interface HookEntryShape {
 
 /**
  * Return the resolved command + args as a single whitespace-joined string.
- * Empty string when the entry has neither.
+ * Empty string when the entry has neither — or when called with undefined.
+ * Accepting undefined keeps test sites tidy when piping through `.find(...)`
+ * results without requiring a non-null assertion at every callsite.
  */
-export function commandPath(entry: HookEntryShape): string {
+export function commandPath(entry: HookEntryShape | undefined | null): string {
+  if (!entry) return '';
   const cmd = typeof entry.command === 'string' ? entry.command : '';
   const args = Array.isArray(entry.args) ? entry.args.filter((a): a is string => typeof a === 'string') : [];
   if (args.length === 0) return cmd;
