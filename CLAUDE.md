@@ -12,9 +12,9 @@ No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycop
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **<!--ork:skills-->108<!--/ork--> skills**, **<!--ork:agents-->37<!--/ork--> agents**, **<!--ork:hooks-->188<!--/ork--> hooks** (<!--ork:hooks-global-->120<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped).
+**OrchestKit** — Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
 
-**Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
+For live component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork` — requires CC ≥ 2.1.139.
 
 ## Directory Structure
 
@@ -79,7 +79,7 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 ## Plugin Architecture
 
-Single plugin `ork`: <!--ork:skills-->108<!--/ork--> skills, <!--ork:agents-->37<!--/ork--> agents, <!--ork:hooks-->188<!--/ork--> hooks (<!--ork:hooks-global-->120<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped). <!--ork:invocable-->28<!--/ork--> user-invocable via `/ork:skillname`.
+Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts + per-session token cost: `claude plugin details ork`.
 
 ## Monitors
 
