@@ -247,4 +247,54 @@ describe('prompt/unified-dispatcher — sessionTitle delta-detect (preserves /re
 
     expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
   });
+
+  test('trims whitespace when comparing stored value vs current title', () => {
+    // Stored value with leading/trailing whitespace should still match.
+    // Guards against state-file lines accidentally ending in \n.
+    testCtx = createTestContext({ branch: 'feature-auth' });
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt') ? '  feature-auth  \n' : '',
+    );
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    // Trimmed comparison matches → no re-emit
+    expect(result.hookSpecificOutput?.sessionTitle).toBeUndefined();
+  });
+
+  test('isWorktree change between turns RE-EMITS sessionTitle', () => {
+    // When the worktree state flips, the title gains/loses the "wt" suffix,
+    // which counts as a delta — emit so the prompt bar reflects reality.
+    testCtx = createTestContext({ branch: 'feature-x', isWorktree: true });
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    // Last turn was non-worktree (no `wt` suffix)
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt') ? 'feature-x' : '',
+    );
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-x · wt');
+  });
+
+  test('I/O failure on state-file read is fail-open → still emits title', () => {
+    testCtx = createTestContext({ branch: 'feature-x' });
+    mockedExists.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('last-session-title.txt'),
+    );
+    // Throw to simulate filesystem error during readFileSync
+    mockedRead.mockImplementation(() => {
+      throw new Error('EACCES: permission denied');
+    });
+
+    const result = unifiedPromptDispatcher(createPromptInput('do something'), testCtx);
+
+    // Fail-open: prior behavior (always emit) preserved when state I/O breaks
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-x');
+  });
 });
