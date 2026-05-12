@@ -97,8 +97,18 @@ export function truncateBody(body: string, max: number): string {
 function resolveAgentName(input: HookInput): string | null {
   const raw = input.subagent_type ?? input.agent_type ?? null;
   if (!raw) return null;
-  const cleaned = raw.trim();
+  let cleaned = raw.trim();
   if (!cleaned) return null;
+  // Strip a leading `ork:` segment so the title wrapper doesn't double-prefix:
+  // [${AGENT_PREFIX}:${name}] with name="ork:foo" produced "[ork:ork:foo]".
+  // Single-segment strip — `ork:foo:bar` becomes `foo:bar`, not `bar`.
+  const colonIdx = cleaned.indexOf(':');
+  if (colonIdx > 0 && colonIdx < cleaned.length - 1) {
+    const prefix = cleaned.slice(0, colonIdx);
+    if (prefix === AGENT_PREFIX) {
+      cleaned = cleaned.slice(colonIdx + 1);
+    }
+  }
   // Defense: agent names should be kebab-case identifiers. Strip any chars
   // that aren't alnum / dash / colon / underscore to avoid title injection.
   return cleaned.replace(/[^A-Za-z0-9_\-:.]/g, '').slice(0, 64);
