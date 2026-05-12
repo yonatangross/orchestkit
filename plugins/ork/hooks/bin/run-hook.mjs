@@ -14,6 +14,7 @@ import { dirname, join } from 'node:path';
 import { existsSync, readFileSync, appendFile, mkdirSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
+import { sanitizeOutput } from './output-guard.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -506,16 +507,21 @@ async function runHook(parsedInput) {
     const result = await hookFn(parsedInput, ctx);
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
-    console.log(JSON.stringify(result));
+    const firingEvent = parsedInput.hook_event || '';
+    console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
   } catch (err) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
     success = false;
     // On any error, output silent success to not block Claude Code
-    console.log(JSON.stringify({
+    // Error path: the synthetic error result has no hookSpecificOutput so
+    // sanitizeOutput is a no-op here — but we call it consistently so that
+    // any future mutation of the error shape is also guarded.
+    const firingEvent = parsedInput?.hook_event || '';
+    console.log(JSON.stringify(sanitizeOutput({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
-    }));
+    }, firingEvent)));
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;

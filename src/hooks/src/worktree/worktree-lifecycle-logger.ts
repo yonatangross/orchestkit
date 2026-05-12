@@ -6,6 +6,7 @@
  * Logs worktree creation and removal events, emits advisory context.
  * CC 2.1.76+: Detects monorepo and suggests worktree.sparsePaths.
  * CC 2.1.84+: Supports type: "http" — returns worktree path via hookSpecificOutput.
+ * Fix: #1794 — command-type returns silent OK (CC doesn't consume additionalContext for WorktreeCreate).
  *
  * Hook events: WorktreeCreate, WorktreeRemove
  */
@@ -112,17 +113,18 @@ export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOO
       };
     }
 
-    return outputPromptContext(advisory);
+    // CC WorktreeCreate command-type does not consume additionalContext.
+    // Returning a UserPromptSubmit envelope here would make CC misread stdout
+    // as a chdir target (see #1794). Keep ctx.log() above for dev-facing logs.
+    return outputSilentSuccess();
   }
 
   if (event === 'WorktreeRemove') {
     // CC 2.1.69: WorktreeRemove sends `worktree_path` (absolute path)
     const worktreePath = input.worktree_path || 'unknown';
     ctx.log('worktree-lifecycle', `Worktree removed: ${worktreePath}`);
-    return outputPromptContext(
-      `[WorktreeRemove] Worktree removed: ${worktreePath}. ` +
-      'The isolated worktree has been cleaned up. You are back in the main working tree.'
-    );
+    // Same constraint as WorktreeCreate (#1794) — return silent success.
+    return outputSilentSuccess();
   }
 
   ctx.log('worktree-lifecycle', `Unexpected event: ${event}`);

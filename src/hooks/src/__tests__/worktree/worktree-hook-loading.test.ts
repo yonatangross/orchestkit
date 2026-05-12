@@ -105,7 +105,11 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       expect(result.continue).toBe(true);
     });
 
-    it('should inject advisory context for WorktreeCreate', () => {
+    it('should return silent success for command-type WorktreeCreate (#1794)', () => {
+      // CC command-type WorktreeCreate does not consume additionalContext.
+      // Returning a UserPromptSubmit envelope caused CC to mkdir a literal
+      // directory named after the stringified envelope (see #1794).
+      // Advisory is emitted via ctx.log() instead — dev-facing only.
       const input: HookInput = {
         hook_event: 'WorktreeCreate',
         tool_name: '',
@@ -116,14 +120,10 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       };
 
       const result = worktreeLifecycleLogger(input, testCtx);
-      // Should produce context (not silent success) for WorktreeCreate
-      const context = result.hookSpecificOutput?.additionalContext as string | undefined;
-      expect(context).toBeDefined();
-      expect(context).toContain('feat-payments');
-      expect(context).toContain('WorktreeCreate');
+      expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
-    it('should handle missing name field gracefully', () => {
+    it('should handle missing name field gracefully with silent success (#1794)', () => {
       const input: HookInput = {
         hook_event: 'WorktreeCreate',
         tool_name: '',
@@ -134,9 +134,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       };
 
       const result = worktreeLifecycleLogger(input, testCtx);
-      expect(result.continue).toBe(true);
-      const context = result.hookSpecificOutput?.additionalContext as string | undefined;
-      expect(context).toContain('unknown');
+      expect(result).toEqual({ continue: true, suppressOutput: true });
     });
   });
 
@@ -158,7 +156,10 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       expect(result.continue).toBe(true);
     });
 
-    it('should inject removal advisory for WorktreeRemove', () => {
+    it('should return silent success for command-type WorktreeRemove (#1794)', () => {
+      // Same constraint as WorktreeCreate — command-type does not consume
+      // additionalContext, so we return silent success rather than a
+      // UserPromptSubmit envelope that CC would misparse (see #1794).
       const input: HookInput = {
         hook_event: 'WorktreeRemove',
         tool_name: '',
@@ -169,10 +170,7 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       };
 
       const result = worktreeLifecycleLogger(input, testCtx);
-      const context = result.hookSpecificOutput?.additionalContext as string | undefined;
-      expect(context).toBeDefined();
-      expect(context).toContain('WorktreeRemove');
-      expect(context).toContain('feat-payments');
+      expect(result).toEqual({ continue: true, suppressOutput: true });
     });
 
     it('should handle missing worktree_path gracefully', () => {

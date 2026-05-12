@@ -234,6 +234,8 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             --exclude='logs' \
             --exclude='.instance' \
             --exclude='__tests__' \
+            --exclude='*.d.mts' \
+            --exclude='*.d.ts' \
             --exclude='TEST_REPORT.md' \
             --exclude='IMPROVEMENT-PLAN.md' \
             --exclude='.gitignore' \
