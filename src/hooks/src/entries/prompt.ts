@@ -36,6 +36,9 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 // M140 G3 (#1790) — /goal convergence telemetry start hook
 import { goalTracker } from '../prompt/goal-tracker.js';
 
+// M119 (#1795) — AskUserQuestion picker stall mitigation
+import { askFallbackInjector } from '../prompt/ask-fallback-injector.js';
+
 // --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
@@ -59,6 +62,8 @@ export const hooks: Record<string, HookFn> = {
   'prompt/profile-injector': profileInjector,
   // M140 G3 (#1790) — /goal convergence telemetry
   'prompt/goal-tracker': goalTracker,
+  // M119 (#1795) — AskUserQuestion picker stall mitigation (ORK_ASK_FALLBACK=text)
+  'prompt/ask-fallback-injector': askFallbackInjector,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/todo-enforcer': todoEnforcer,

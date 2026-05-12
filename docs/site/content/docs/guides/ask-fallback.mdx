@@ -1,0 +1,79 @@
+---
+title: "AskUserQuestion picker fallback (ORK_ASK_FALLBACK=text)"
+description: "Text-prompt fallback for when the Claude Code AskUserQuestion picker stalls or otherwise refuses keystrokes."
+---
+
+# AskUserQuestion picker fallback
+
+## When to use this
+
+Claude Code's `AskUserQuestion` picker can occasionally render fully but refuse to accept keystrokes — Enter / arrow keys do nothing, only `Esc` dismisses the picker. The skill that called the picker then sees `User declined to answer questions` and aborts.
+
+This was observed in CC 2.1.139 (see [orchestkit#1795](https://github.com/yonatangross/orchestkit/issues/1795)). Suspected upstream input-handling regression; reproduction is intermittent and not yet fully characterised.
+
+OrchestKit ships a mitigation: a `UserPromptSubmit` hook (`prompt/ask-fallback-injector`) that, when the `ORK_ASK_FALLBACK=text` environment variable is set, injects a system reminder telling the assistant to use inline numbered text prompts instead of calling `AskUserQuestion`.
+
+## How to enable
+
+Set the env var before starting Claude Code:
+
+```bash
+export ORK_ASK_FALLBACK=text
+claude
+```
+
+Or for a single session:
+
+```bash
+ORK_ASK_FALLBACK=text claude
+```
+
+The hook checks this variable on every `UserPromptSubmit`. While set, every skill that would otherwise open a picker (33 skills today: `brainstorm`, `fix-issue`, `create-pr`, `assess`, `verify`, etc.) emits a numbered list inline and asks the user to reply with the option number.
+
+## Example interaction
+
+Without fallback (picker mode):
+
+```
+┌─ Which auth strategy? ─────────────────────────┐
+│ ▸ JWT (stateless, no revoke)                   │
+│   Session cookies (server-side store)          │
+│   OAuth-only (delegate to provider)            │
+└────────────────────────────────────────────────┘
+  Enter to select · ↑/↓ to navigate · Esc to cancel
+```
+
+With fallback (`ORK_ASK_FALLBACK=text`):
+
+```
+> Which auth strategy?
+>   1. JWT (stateless, no revoke)
+>   2. Session cookies (server-side store)
+>   3. OAuth-only (delegate to provider)
+> Reply with 1, 2, or 3.
+```
+
+## How to disable
+
+Unset the variable and restart CC:
+
+```bash
+unset ORK_ASK_FALLBACK
+claude
+```
+
+Restart restores picker mode. Recommended once an upstream CC fix ships.
+
+## Implementation
+
+- **Hook:** `src/hooks/src/prompt/ask-fallback-injector.ts`
+- **Event:** `UserPromptSubmit`
+- **Cost:** one env-var read per prompt, ~80-byte reminder when active, no I/O
+- **Tests:** `src/hooks/src/__tests__/ask-fallback-injector.test.ts`
+- **Scope:** global — applies to all 33 skills using `AskUserQuestion` without per-skill edits
+
+## Related
+
+- [orchestkit#1795](https://github.com/yonatangross/orchestkit/issues/1795) — original bug report
+- M119 (Usage hygiene) milestone — UX behavioural mitigations
+- `ORK_GOAL_MAX_TURNS_PER_SESSION` / `ORK_GOAL_MAX_TOKENS_PER_SESSION` — sibling env-var-based behavioural controls (M140)
