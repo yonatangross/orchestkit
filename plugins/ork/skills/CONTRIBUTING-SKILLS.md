@@ -192,6 +192,25 @@ One-line description of this category.
 2. Mistake (consequence)
 ```
 
+## Storage Patterns (#1816)
+
+When your skill accumulates state across sessions (decisions, observations, knowledge, ledger entries), pick the storage pattern before you start writing — switching later costs migration work.
+
+| Need | Pattern |
+|---|---|
+| Bounded growth, < 30k total chars | **Rolling logbook** (single `.md` appended forever) |
+| Unbounded growth, lookups by-key or by-date | **Index-per-entry** (small index + sibling files via Read) |
+| Reads as chronological narrative | Rolling logbook |
+| Each entry independently meaningful | Index-per-entry |
+
+**Default to index-per-entry** if unsure — bounded by construction.
+
+CC auto-loads everything matching `.claude/rules/*.md` into every `<system-reminder>`. At 40,000 chars it warns; by then the file has been billing context tokens for weeks. The `lifecycle/rules-size-check` hook (#1815) warns at 35k chars so you have ~5k of runway before the cliff.
+
+Concrete failure case: `yonatan-hq/platform/.claude/rules/recent-decisions.md` reached 53.8k chars in 7 months on the rolling pattern. Index-per-entry would have stayed under 1k forever.
+
+Full reference with migration path, decision matrix, and per-skill examples: `src/skills/skill-evolution/references/storage-patterns.md`.
+
 ## Rules
 
 Prescriptive patterns: "do this, not that" with code examples. The core content of tech/pattern skills.

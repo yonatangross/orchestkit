@@ -1,7 +1,12 @@
 {
   "name": "ork",
+<<<<<<< HEAD
   "version": "7.88.1",
   "description": "The Complete AI Development Toolkit — 109 skills, 37 agents, 196 hooks for full-stack development.",
+=======
+  "version": "7.88.0",
+  "description": "The Complete AI Development Toolkit — 109 skills, 37 agents, 197 hooks for full-stack development.",
+>>>>>>> 220604db7 (feat(hooks): rules-size-check + storage-patterns (#1815 #1816))
   "author": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com",

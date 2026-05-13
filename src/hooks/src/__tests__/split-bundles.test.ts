@@ -363,7 +363,8 @@ describe('Cross-Bundle Consistency', () => {
     //              stop/goal-tracker (G3) + lifecycle/goal-budget-guard (G5).
     // 226 -> 227: M119 #1795 — prompt/ask-fallback-injector (UserPromptSubmit).
     // 227 -> 228: M119 PR-2 (#1794 follow-up) — prompt/worktree-advisory-consumer.
-    expect(totalHooks).toBe(228);
+    // 228 -> 229: M119 #1815 — lifecycle/rules-size-check (SessionStart, async).
+    expect(totalHooks).toBe(229);
   });
 });
 

@@ -4431,6 +4431,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "evolution-analysis.md",
         "evolution-commands.md",
+        "storage-patterns.md",
         "version-management.md"
       ]
     },

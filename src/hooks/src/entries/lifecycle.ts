@@ -74,6 +74,8 @@ import { nudgeOutcomeResolver } from '../lifecycle/nudge-outcome-resolver.js';
 import { pluginsDriftSnapshot } from '../lifecycle/plugins-drift-snapshot.js';
 // M140 G5 (#1791) — /goal cost circuit-breaker (SessionEnd)
 import { goalBudgetGuard } from '../lifecycle/goal-budget-guard.js';
+// M119 #1815 — warn when .claude/rules/*.md exceeds CC's 40k auto-load cliff
+import { rulesSizeCheck } from '../lifecycle/rules-size-check.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -108,6 +110,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/webhook-forwarder': webhookForwarder,
   'lifecycle/session-handoff-generator': sessionHandoffGenerator,
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
+  // M119 #1815 — pre-flight warning before CC's 40k auto-load cliff
+  'lifecycle/rules-size-check': rulesSizeCheck,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,
