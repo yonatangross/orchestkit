@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.88.0](https://github.com/yonatangross/orchestkit/compare/v7.87.0...v7.88.0) (2026-05-13)
+
+
+### Features
+
+* **hooks:** deferred worktree advisory consumer — PR-2 [#1794](https://github.com/yonatangross/orchestkit/issues/1794) follow-up ([#1801](https://github.com/yonatangross/orchestkit/issues/1801)) ([f017d9e](https://github.com/yonatangross/orchestkit/commit/f017d9e9cb9939e0e07ce1951be136386e9a4b88))
+
+
+### Miscellaneous
+
+* **deps:** npm audit fix in docs/site — 15 GHSAs resolved ([#1810](https://github.com/yonatangross/orchestkit/issues/1810)) ([3428ea1](https://github.com/yonatangross/orchestkit/commit/3428ea1386c4ce3db856e473bbf6fddaa297e2fd))
+
 ## [7.87.0](https://github.com/yonatangross/orchestkit/compare/v7.86.8...v7.87.0) (2026-05-12)
 
 
