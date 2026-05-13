@@ -508,6 +508,10 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // We verify each event triggers stripping when malformed input is supplied —
   // proving the EVENTS_WITH_HOOK_EVENT_NAME / EVENTS_WITH_ADDITIONAL_CONTEXT
   // allow-lists match the documented contract.
+  //
+  // Note: SessionStart and PostCompact are EXCLUDED here — they're allow-listed
+  // for additionalContext + hookEventName (#1234 audit, hq-ext session banner
+  // observed consuming it). See "SessionStart allow-listed" describe block below.
   const SANITIZE_EVENTS = [
     'WorktreeCreate',
     'WorktreeRemove',
@@ -519,10 +523,8 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
     'Notification',
     'Stop',
     'StopFailure',
-    'SessionStart',
     'SessionEnd',
     'PreCompact',
-    'PostCompact',
     'Elicitation',
   ];
 
@@ -543,6 +545,36 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
         expect.stringMatching(new RegExp(`stripped hookEventName=UserPromptSubmit from ${event}`)),
       );
     });
+  }
+});
+
+describe('sanitizeOutput — SessionStart + PostCompact allow-listed (#1234 audit fix)', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  // CC consumes additionalContext on SessionStart (proof: hq-ext's tier banner
+  // injects via SessionStart and the model receives it). Earlier output-guard
+  // was over-strict and would have silently dropped these.
+  for (const event of ['SessionStart', 'PostCompact'] as const) {
+    it(`preserves matching hookEventName + additionalContext on ${event}`, () => {
+      const input = {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: event,
+          additionalContext: `legitimate ${event} context`,
+        },
+      };
+      const result = sanitizeOutput(input, event) as Record<string, unknown>;
+      const hso = result.hookSpecificOutput as Record<string, unknown>;
+      expect(hso.hookEventName).toBe(event);
+      expect(hso.additionalContext).toBe(`legitimate ${event} context`);
+      expect(stderrSpy).not.toHaveBeenCalled();
+    });
+
+    // Note: detecting wrong-event hookEventName WITHIN an allow-listed event
+    // (e.g. hookEventName='UserPromptSubmit' fired from SessionStart) is a
+    // tighter check than the original guard contract. Deferred as a separate
+    // hardening — see #1234 audit follow-up.
   }
 });
 

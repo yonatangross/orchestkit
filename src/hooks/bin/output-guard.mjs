@@ -24,7 +24,8 @@
 
 /**
  * Events where hookEventName is valid and CC reads hookSpecificOutput.
- * Derived from src/hooks/src/types.ts:223 HookSpecificOutput.hookEventName union.
+ * Derived from src/hooks/src/types.ts:223 HookSpecificOutput.hookEventName union
+ * plus SessionStart/PostCompact which CC also consumes (see #1234 audit).
  */
 const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'PreToolUse',
@@ -35,17 +36,25 @@ const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'UserPromptSubmit',
   'SubagentStart',
   'SubagentStop',
+  // CC also reads hookSpecificOutput on these (#1234 audit, hq-ext session
+  // banner injection observed in the wild).
+  'SessionStart',
+  'PostCompact',
 ]);
 
 /**
  * Events where additionalContext is read by CC.
- * Only UserPromptSubmit and PostToolUse* consume additionalContext.
+ * UserPromptSubmit, PreToolUse, PostToolUse* — and per #1234 audit also
+ * SessionStart + PostCompact (CC pins SessionStart additionalContext into
+ * the cached system prompt, observed live via hq-ext's tier banner).
  */
 const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
   'UserPromptSubmit',
   'PreToolUse',
   'PostToolUse',
   'PostToolUseFailure',
+  'SessionStart',
+  'PostCompact',
 ]);
 
 /**

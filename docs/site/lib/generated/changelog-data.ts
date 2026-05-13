@@ -17,6 +17,45 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.89.1",
+    "date": "2026-05-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**playground-gate:** allow-list cron snapshot + orchestkit-release-bot ([#1820](https://github.com/yonatangross/orchestkit/issues/1820)) ([7069d57](https://github.com/yonatangross/orchestkit/commit/7069d5755a2777f71e15444af856da0d439f220a))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.89.0",
+    "date": "2026-05-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** rules-size-check + storage-patterns ([#1815](https://github.com/yonatangross/orchestkit/issues/1815) [#1816](https://github.com/yonatangross/orchestkit/issues/1816)) ([#1817](https://github.com/yonatangross/orchestkit/issues/1817)) ([a6ca836](https://github.com/yonatangross/orchestkit/commit/a6ca836d9bb86bdae26da41513eaa765bbf51c55))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.88.1",
+    "date": "2026-05-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** npm audit fix in orchestkit-demos + src/mcp-server — final 2 high GHSAs ([#1813](https://github.com/yonatangross/orchestkit/issues/1813)) ([2fb455b](https://github.com/yonatangross/orchestkit/commit/2fb455b3e8dbcb035a9d83802d1d5c82f03f161b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.88.0",
     "date": "2026-05-13",
     "compareUrl": "",
