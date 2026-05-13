@@ -305,7 +305,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
       // 80 -> 81: M139 #1782 — lifecycle/plugins-drift-snapshot (SessionStart, async)
       // 81 -> 83: M140 Bundle B — stop/goal-tracker + lifecycle/goal-budget-guard
-      expect(asyncHooks.length, 'Should have exactly 83 async hooks').toBe(83);
+      // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
+      expect(asyncHooks.length, 'Should have exactly 84 async hooks').toBe(84);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -406,7 +407,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 79 -> 80: ASCII Design System — posttool/ascii-lint (PostToolUse Write|Edit, async)
       // 80 -> 81: M139 #1782 — lifecycle/plugins-drift-snapshot (SessionStart, async)
       // 81 -> 83: M140 Bundle B — stop/goal-tracker + lifecycle/goal-budget-guard
-      expect(asyncCount).toBe(83);
+      // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
+      expect(asyncCount).toBe(84);
     });
 
     it('should have hooks for all critical security operations', () => {
