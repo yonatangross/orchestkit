@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.88.1](https://github.com/yonatangross/orchestkit/compare/v7.88.0...v7.88.1) (2026-05-13)
+
+
+### Miscellaneous
+
+* **deps:** npm audit fix in orchestkit-demos + src/mcp-server — final 2 high GHSAs ([#1813](https://github.com/yonatangross/orchestkit/issues/1813)) ([2fb455b](https://github.com/yonatangross/orchestkit/commit/2fb455b3e8dbcb035a9d83802d1d5c82f03f161b))
+
 ## [7.88.0](https://github.com/yonatangross/orchestkit/compare/v7.87.0...v7.88.0) (2026-05-13)
 
 
