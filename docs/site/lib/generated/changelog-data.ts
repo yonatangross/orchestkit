@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.88.0",
+    "date": "2026-05-13",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** deferred worktree advisory consumer — PR-2 [#1794](https://github.com/yonatangross/orchestkit/issues/1794) follow-up ([#1801](https://github.com/yonatangross/orchestkit/issues/1801)) ([f017d9e](https://github.com/yonatangross/orchestkit/commit/f017d9e9cb9939e0e07ce1951be136386e9a4b88))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** npm audit fix in docs/site — 15 GHSAs resolved ([#1810](https://github.com/yonatangross/orchestkit/issues/1810)) ([3428ea1](https://github.com/yonatangross/orchestkit/commit/3428ea1386c4ce3db856e473bbf6fddaa297e2fd))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.87.0",
     "date": "2026-05-12",
     "compareUrl": "",
