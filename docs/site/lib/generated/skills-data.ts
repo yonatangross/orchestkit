@@ -2617,6 +2617,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "e2e-verification.md",
         "feedback-loop.md",
         "interview-mode.md",
+        "manual-worktree-pattern.md",
         "micro-planning-guide.md",
         "orchestration-modes.md",
         "scope-creep-detection.md",

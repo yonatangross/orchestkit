@@ -295,19 +295,85 @@ for agent_result in agent_results:
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 
-Phase 5 agents SHOULD use `isolation: "worktree"` to prevent file conflicts:
+> ⚠️ **`isolation="worktree"` does NOT reliably isolate in CC Opus 4.7 (Nov
+> 2026 — Apr 2026). When multiple parallel agents are spawned with that
+> param, observed behavior is that ALL agents share the PRIMARY worktree
+> and thrash its HEAD via sequential `git checkout`. Each agent's
+> untracked files get auto-stashed when the next agent's checkout fires.
+> Result: agents get cut off at ~60-tool-use cliff because each one's
+> push attempt fails on thrashed `node_modules`. Documented in
+> `feedback_agent_worktree_isolation_unreliable.md` (incident
+> 2026-05-11) and reproduced in M164 Wave 1 (4 agents, 3 thrashed).**
+
+**Use the manual pre-create pattern below until isolation reliability is
+fixed (tracked at Yonatan-HQ/platform#3224).**
+
+#### Manual pre-create worktree pattern (RELIABLE)
+
+Before spawning each agent, the lead creates the worktree explicitly and
+passes the absolute path. The agent's first Bash call is always
+`cd <worktree-path>`. Result: 4-22 tool-uses per agent (vs 60-86 under
+the broken isolation), one-run completion.
 
 ```python
+import subprocess
+
+def setup_agent_worktree(repo_root: str, slug: str, branch: str) -> str:
+    """Pre-create a worktree off origin/main and return its absolute path.
+
+    The lead does this synchronously BEFORE spawning the agent. Each agent
+    gets a distinct branch under feat/<slug>-<role>, so parallel spawns
+    can never thrash a shared HEAD.
+    """
+    path = f"{repo_root}/../{slug}-{branch.split('/')[-1]}"
+    subprocess.run(
+        ["git", "-C", repo_root, "worktree", "add", "-b", branch, path, "origin/main"],
+        check=True,
+    )
+    return path
+
+# Pre-create one worktree per agent (sequential, ~2s each)
+backend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-backend")
+frontend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-frontend")
+tests_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-tests")
+
+# Spawn agents WITHOUT isolation param. First Bash call in each prompt
+# must be `cd <worktree-path>`. Do NOT use isolation="worktree".
 Agent(subagent_type="backend-system-architect",
-  prompt="Implement backend: {feature}. Architecture: {from 04-architecture.json}",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {backend_wt}. THEN implement backend: {feature}. "
+         f"Architecture: {from 04-architecture.json}. "
+         f"Commit + push + open PR from {backend_wt} when done.",
+  run_in_background=true)
 Agent(subagent_type="frontend-ui-developer",
-  prompt="Implement frontend: {feature}...",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {frontend_wt}. THEN implement frontend: {feature}. "
+         f"Commit + push + open PR from {frontend_wt} when done.",
+  run_in_background=true)
 Agent(subagent_type="test-generator",
-  prompt="Generate tests: {feature}...",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {tests_wt}. THEN generate tests: {feature}. "
+         f"Commit + push + open PR from {tests_wt} when done.",
+  run_in_background=true)
 ```
+
+#### Why this works
+
+The bug appears to be in CC's `isolation` param handling — the param is
+accepted but the worktree may not actually be created/switched before
+the agent's first Bash fires. By the time the agent runs, its CWD is the
+primary tree. Manual pre-creation moves the worktree-add into the
+deterministic lead-context BEFORE the agent starts; the agent's prompt
+explicitly forbids touching the primary tree.
+
+#### "Push early" rule for tool-budget survival
+
+When agents work in isolation (any flavor), include in the prompt:
+> "As soon as you have a minimal working file + 1 reference doc, commit +
+> push + open PR. Iterate via follow-up commits."
+
+This converts the 60-tool-use cliff into a 18-22-use first checkpoint.
+Subsequent iterations are cheaper because the agent's `gh pr view`
+gives stable state to resume from.
+
+Load full incident details: `Read("${CLAUDE_SKILL_DIR}/references/manual-worktree-pattern.md")`
 
 ### Post-Deploy Monitoring (CC 2.1.71)
 

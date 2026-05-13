@@ -305,19 +305,85 @@ for agent_result in agent_results:
 
 ### Worktree-Isolated Implementation (CC 2.1.50)
 
-Phase 5 agents SHOULD use `isolation: "worktree"` to prevent file conflicts:
+> ⚠️ **`isolation="worktree"` does NOT reliably isolate in CC Opus 4.7 (Nov
+> 2026 — Apr 2026). When multiple parallel agents are spawned with that
+> param, observed behavior is that ALL agents share the PRIMARY worktree
+> and thrash its HEAD via sequential `git checkout`. Each agent's
+> untracked files get auto-stashed when the next agent's checkout fires.
+> Result: agents get cut off at ~60-tool-use cliff because each one's
+> push attempt fails on thrashed `node_modules`. Documented in
+> `feedback_agent_worktree_isolation_unreliable.md` (incident
+> 2026-05-11) and reproduced in M164 Wave 1 (4 agents, 3 thrashed).**
+
+**Use the manual pre-create pattern below until isolation reliability is
+fixed (tracked at Yonatan-HQ/platform#3224).**
+
+#### Manual pre-create worktree pattern (RELIABLE)
+
+Before spawning each agent, the lead creates the worktree explicitly and
+passes the absolute path. The agent's first Bash call is always
+`cd &lt;worktree-path&gt;`. Result: 4-22 tool-uses per agent (vs 60-86 under
+the broken isolation), one-run completion.
 
 ```python
+import subprocess
+
+def setup_agent_worktree(repo_root: str, slug: str, branch: str) -> str:
+    """Pre-create a worktree off origin/main and return its absolute path.
+
+    The lead does this synchronously BEFORE spawning the agent. Each agent
+    gets a distinct branch under feat/<slug>-<role>, so parallel spawns
+    can never thrash a shared HEAD.
+    """
+    path = f"{repo_root}/../{slug}-{branch.split('/')[-1]}"
+    subprocess.run(
+        ["git", "-C", repo_root, "worktree", "add", "-b", branch, path, "origin/main"],
+        check=True,
+    )
+    return path
+
+# Pre-create one worktree per agent (sequential, ~2s each)
+backend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-backend")
+frontend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-frontend")
+tests_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-tests")
+
+# Spawn agents WITHOUT isolation param. First Bash call in each prompt
+# must be `cd <worktree-path>`. Do NOT use isolation="worktree".
 Agent(subagent_type="backend-system-architect",
-  prompt="Implement backend: {feature}. Architecture: {from 04-architecture.json}",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {backend_wt}. THEN implement backend: {feature}. "
+         f"Architecture: {from 04-architecture.json}. "
+         f"Commit + push + open PR from {backend_wt} when done.",
+  run_in_background=true)
 Agent(subagent_type="frontend-ui-developer",
-  prompt="Implement frontend: {feature}...",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {frontend_wt}. THEN implement frontend: {feature}. "
+         f"Commit + push + open PR from {frontend_wt} when done.",
+  run_in_background=true)
 Agent(subagent_type="test-generator",
-  prompt="Generate tests: {feature}...",
-  isolation="worktree", run_in_background=true)
+  prompt=f"FIRST: cd {tests_wt}. THEN generate tests: {feature}. "
+         f"Commit + push + open PR from {tests_wt} when done.",
+  run_in_background=true)
 ```
+
+#### Why this works
+
+The bug appears to be in CC's `isolation` param handling — the param is
+accepted but the worktree may not actually be created/switched before
+the agent's first Bash fires. By the time the agent runs, its CWD is the
+primary tree. Manual pre-creation moves the worktree-add into the
+deterministic lead-context BEFORE the agent starts; the agent's prompt
+explicitly forbids touching the primary tree.
+
+#### "Push early" rule for tool-budget survival
+
+When agents work in isolation (any flavor), include in the prompt:
+> "As soon as you have a minimal working file + 1 reference doc, commit +
+> push + open PR. Iterate via follow-up commits."
+
+This converts the 60-tool-use cliff into a 18-22-use first checkpoint.
+Subsequent iterations are cheaper because the agent's `gh pr view`
+gives stable state to resume from.
+
+Load full incident details: `Read("$\{CLAUDE_SKILL_DIR\}/references/manual-worktree-pattern.md")`
 
 ### Post-Deploy Monitoring (CC 2.1.71)
 
@@ -916,7 +982,7 @@ git worktree list
 
 ---
 
-## References (16)
+## References (17)
 
 ### Agent Phases
 
@@ -2190,6 +2256,151 @@ Include a "What I Would Change for Production" section:
 - **Monitoring:** would add structured logging, health checks
 
 > This section demonstrates production awareness without over-engineering the take-home. Reviewers value this signal.
+
+
+### Manual Worktree Pattern
+
+# Manual Pre-Create Worktree Pattern
+
+**Workaround for the broken `Agent(isolation="worktree")` behavior in
+CC Opus 4.7 (Nov 2026 — Apr 2026).** Tracked at
+[Yonatan-HQ/platform#3224](https://github.com/Yonatan-HQ/platform/issues/3224).
+
+## TL;DR
+
+Don't use `isolation="worktree"` on parallel agent spawns. Instead:
+
+1. The **lead** creates one worktree per agent BEFORE spawning, using
+   `git worktree add -b &lt;branch&gt; &lt;path&gt; origin/main`.
+2. Each agent prompt starts with `FIRST: cd &lt;worktree-path&gt;. THEN ...`.
+3. Each agent commits + pushes + opens a PR from its own worktree.
+
+Result: 4-22 tool-uses per agent (vs 60-86 with broken isolation),
+one-run completion, zero HEAD thrash.
+
+## The bug
+
+Spawned 4 parallel background agents on 2026-05-11 22:30 IDT with:
+
+```python
+Agent(subagent_type="x", isolation="worktree", run_in_background=true)
+Agent(subagent_type="y", isolation="worktree", run_in_background=true)
+Agent(subagent_type="z", isolation="worktree", run_in_background=true)
+Agent(subagent_type="w", isolation="worktree", run_in_background=true)
+```
+
+**Expected:** Each agent operates in its own isolated worktree.
+
+**Actual:** `git reflog` on the primary worktree showed:
+
+```
+checkout: moving from <branch-a> to <branch-b>
+checkout: moving from <branch-b> to <branch-c>
+checkout: moving from <branch-c> to <branch-d>
+```
+
+Sequential `git checkout` calls on the PRIMARY worktree. Each agent's
+untracked files got auto-stashed when the next agent's checkout fired.
+Three of four agents hit the ~60-tool-use cliff before push because
+their `pnpm install` / `pre-push` hooks failed against thrashed
+`node_modules`.
+
+## The fix (Wave 2 / 3 pattern from M164)
+
+Pre-creating worktrees from the LEAD context, before the agents start:
+
+```python
+backend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-backend")
+frontend_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-frontend")
+tests_wt = setup_agent_worktree(REPO, SLUG, f"feat/{SLUG}-tests")
+```
+
+Then spawning with **no** `isolation` param, but with an explicit `cd`
+as the first instruction:
+
+```python
+Agent(subagent_type="backend-system-architect",
+  prompt=f"FIRST: cd {backend_wt}. THEN implement backend: {feature}. "
+         f"Commit + push + open PR from {backend_wt} when done.",
+  run_in_background=true)
+```
+
+Result: M164 Wave 2/3 agents finished in 4-22 tool-uses each, one-run.
+M164 Wave 1 (broken pattern) needed 60-86 tool-uses per agent and 3 of
+4 hit cutoffs.
+
+## Helper
+
+```python
+import subprocess
+
+def setup_agent_worktree(repo_root: str, slug: str, branch: str) -> str:
+    """Pre-create a worktree off origin/main; return absolute path."""
+    path = f"{repo_root}/../{slug}-{branch.split('/')[-1]}"
+    subprocess.run(
+        ["git", "-C", repo_root, "worktree", "add",
+         "-b", branch, path, "origin/main"],
+        check=True,
+    )
+    return path
+```
+
+## Why this works
+
+The bug appears to be in CC's `isolation` param handling — the param is
+accepted but the worktree may not actually be created (or `cd`'d into)
+before the agent's first Bash call fires. By the time the agent runs,
+its CWD is still the primary tree. Manual pre-creation moves the
+`worktree add` into the deterministic lead context BEFORE the agent
+starts; the agent's prompt then explicitly `cd`s into the prepared
+worktree.
+
+## Constraints on the agent prompt
+
+To make the pattern reliable:
+
+1. **`cd` must be the FIRST Bash call.** Wrap it in a header like
+   `FIRST: cd &lt;path&gt;. THEN: ...` so the agent can't skip it.
+2. **Forbid touching the primary tree.** Add to the prompt: "Do not
+   `cd` out of this worktree. All commits, pushes, and PRs originate
+   from \{worktree-path\}."
+3. **Push early.** Add: "As soon as you have a minimal working file +
+   1 reference doc, commit + push + open PR. Iterate via follow-up
+   commits." This converts the 60-tool cliff into an 18-22 first
+   checkpoint.
+4. **Explicit branch.** Always pass `-b feat/&lt;slug&gt;-&lt;role&gt;` to the
+   `git worktree add` — never let the agent decide its own branch
+   (collisions cause the original thrash).
+
+## What this DOESN'T fix
+
+- **Single-agent isolation:** if you only spawn ONE agent with
+  `isolation="worktree"`, it MAY work — the bug surfaces under parallel
+  spawns. Use the manual pattern anyway for consistency.
+- **EnterWorktree (operator-level):** This is the model-managed,
+  not-agent-managed worktree tool. It works fine and is unrelated.
+- **The root-cause CC bug:** Filed as `#3224 Path A` if a fix is found
+  upstream, this whole reference becomes deletable.
+
+## Cleanup
+
+After agents finish + PRs merge:
+
+```bash
+git worktree remove ../<slug>-backend --force
+git worktree remove ../<slug>-frontend --force
+git worktree remove ../<slug>-tests --force
+git worktree prune
+```
+
+If a worktree has uncommitted local state when removing, capture or
+discard explicitly — don't blindly `--force` away unmerged work.
+
+## References
+
+- `feedback_agent_worktree_isolation_unreliable.md` — original incident
+- `Yonatan-HQ/platform#3224` — upstream tracking issue
+- `Yonatan-HQ/platform#3132` — companion worktree-audit cron script
 
 
 ### Micro Planning Guide
