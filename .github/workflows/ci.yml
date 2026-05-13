@@ -162,15 +162,15 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          # Skip for bot PRs (dependabot, release-please)
-          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
-            echo "::notice::Skipping playground check for bot PR"
+          # Skip for bot PRs (dependabot, release-please, in-house cron bot)
+          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" || "$PR_AUTHOR" == "orchestkit-release-bot[bot]" ]]; then
+            echo "::notice::Skipping playground check for bot PR ($PR_AUTHOR)"
             exit 0
           fi
 
-          # Skip for chore/ci/docs-only branches
-          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/) ]]; then
-            echo "::notice::Skipping playground check for automated branch"
+          # Skip for automated branches (dependabot, release-please, renovate, cc-snapshot cron)
+          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-) ]]; then
+            echo "::notice::Skipping playground check for automated branch ($HEAD_REF)"
             exit 0
           fi
 
@@ -202,12 +202,12 @@ jobs:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          # Skip for bot PRs
-          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" ]]; then
+          # Skip for bot PRs (dependabot, release-please, in-house cron bot)
+          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" || "$PR_AUTHOR" == "orchestkit-release-bot[bot]" ]]; then
             exit 0
           fi
           # Skip for automated branches
-          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/) ]]; then
+          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-) ]]; then
             exit 0
           fi
 
