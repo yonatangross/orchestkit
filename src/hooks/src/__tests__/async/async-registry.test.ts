@@ -116,7 +116,8 @@ describe('Async Hooks Registry', () => {
       // 81 -> 83: M140 Bundle B (#1790, #1791) — stop/goal-tracker (async) +
       //           lifecycle/goal-budget-guard (SessionEnd, async). The companion
       //           prompt/goal-tracker is SYNC (needs outputBlock + continueOnBlock).
-      expect(asyncHooks.length, 'Should have exactly 83 async hooks').toBe(83);
+      // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
+      expect(asyncHooks.length, 'Should have exactly 84 async hooks').toBe(84);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
