@@ -169,7 +169,7 @@ describe('hooks.json wiring E2E', () => {
       // 189 -> 191: M139 #1782 — lifecycle/plugins-drift-snapshot + posttool/check-plugins-drift
       // 191 -> 194: M140 Bundle B — prompt/goal-tracker, stop/goal-tracker,
       //                              lifecycle/goal-budget-guard (#1790, #1791)
-      // 194 -> 195: M119 #1795 — prompt/ask-fallback-injector
+      // 194 -> 195: M119 #1795 — ask-fallback-injector (M104 PR-A: moved to lifecycle/SessionStart)
       // 195 -> 196: M119 PR-2 — prompt/worktree-advisory-consumer (#1794 follow-up)
       // 196 -> 197: M119 #1815 — lifecycle/rules-size-check
       expect(hooksConfig.description).toContain('197 total');

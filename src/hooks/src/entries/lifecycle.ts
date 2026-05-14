@@ -76,6 +76,10 @@ import { pluginsDriftSnapshot } from '../lifecycle/plugins-drift-snapshot.js';
 import { goalBudgetGuard } from '../lifecycle/goal-budget-guard.js';
 // M119 #1815 — warn when .claude/rules/*.md exceeds CC's 40k auto-load cliff
 import { rulesSizeCheck } from '../lifecycle/rules-size-check.js';
+// M119 #1795 / M104 PR-A — AskUserQuestion picker stall mitigation
+// (moved from UserPromptSubmit to SessionStart so the reminder pins to the
+// cached system-prompt prefix instead of re-injecting every turn)
+import { askFallbackInjector } from '../lifecycle/ask-fallback-injector.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -112,6 +116,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-handoff-injector': sessionHandoffInjector,
   // M119 #1815 — pre-flight warning before CC's 40k auto-load cliff
   'lifecycle/rules-size-check': rulesSizeCheck,
+  // M119 #1795 / M104 PR-A — ORK_ASK_FALLBACK=text reminder (cached on SessionStart)
+  'lifecycle/ask-fallback-injector': askFallbackInjector,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

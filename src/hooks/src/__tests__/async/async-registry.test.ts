@@ -117,7 +117,11 @@ describe('Async Hooks Registry', () => {
       //           lifecycle/goal-budget-guard (SessionEnd, async). The companion
       //           prompt/goal-tracker is SYNC (needs outputBlock + continueOnBlock).
       // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
-      expect(asyncHooks.length, 'Should have exactly 84 async hooks').toBe(84);
+      // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector moved from
+      //           UserPromptSubmit (sync) to SessionStart (async, 5s).
+      //           Reminder now pins to cached prompt prefix instead of
+      //           re-injecting on every turn.
+      expect(asyncHooks.length, 'Should have exactly 85 async hooks').toBe(85);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

@@ -122,6 +122,14 @@ export function mockCommonBasic(
       suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx },
     })),
+    outputSessionStartContext: vi.fn((ctx: string): HookResult => {
+      if (!ctx?.trim()) return { continue: true, suppressOutput: true };
+      return {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: ctx },
+      };
+    }),
     outputPromptContextWithTitle: vi.fn((ctx: string, title: string): HookResult => {
       const trimmedTitle = title?.trim();
       if (!trimmedTitle) {

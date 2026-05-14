@@ -36,8 +36,9 @@ import { handoffInjector } from '../prompt/handoff-injector.js';
 // M140 G3 (#1790) — /goal convergence telemetry start hook
 import { goalTracker } from '../prompt/goal-tracker.js';
 
-// M119 (#1795) — AskUserQuestion picker stall mitigation
-import { askFallbackInjector } from '../prompt/ask-fallback-injector.js';
+// M119 (#1795) — AskUserQuestion picker stall mitigation moved to
+// lifecycle/ask-fallback-injector (M104 PR-A: SessionStart caches the reminder
+// in the prompt prefix instead of re-injecting it every turn).
 
 // M119 PR-2 (#1794 follow-up) — picks up deferred worktree advisories
 import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.js';
@@ -65,8 +66,8 @@ export const hooks: Record<string, HookFn> = {
   'prompt/profile-injector': profileInjector,
   // M140 G3 (#1790) — /goal convergence telemetry
   'prompt/goal-tracker': goalTracker,
-  // M119 (#1795) — AskUserQuestion picker stall mitigation (ORK_ASK_FALLBACK=text)
-  'prompt/ask-fallback-injector': askFallbackInjector,
+  // M119 (#1795) — ask-fallback-injector moved to lifecycle/ in M104 PR-A
+  // (SessionStart-cached reminder, see ../lifecycle/ask-fallback-injector.js)
   // M119 PR-2 (#1794 follow-up) — deferred worktree advisory consumer
   'prompt/worktree-advisory-consumer': worktreeAdvisoryConsumer,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)

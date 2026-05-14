@@ -374,7 +374,7 @@ When reporting fix status, follow `Read("${CLAUDE_PLUGIN_ROOT}/skills/shared/rul
 
 ## Picker fallback (#1795)
 
-If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `prompt/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
+If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
 
 ## References
 

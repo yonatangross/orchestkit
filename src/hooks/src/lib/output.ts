@@ -216,6 +216,27 @@ export function outputPromptContextWithTitle(ctx: string, title: string): HookRe
 }
 
 /**
+ * Output with additionalContext for SessionStart hooks.
+ *
+ * Pins to the cached system-prompt prefix instead of re-injecting every turn
+ * (UserPromptSubmit re-injects on every prompt → N× token cost). Allow-listed
+ * by hooks/bin/output-guard.mjs after #1822.
+ *
+ * Empty/whitespace-only content is silently dropped to save tokens (#865).
+ */
+export function outputSessionStartContext(ctx: string): HookResult {
+  if (!ctx?.trim()) return outputSilentSuccess();
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext: ctx,
+    },
+  };
+}
+
+/**
  * Output with user notification + Claude context (CC 2.1.9+)
  * Issue #278: Dual-channel output for three-tier UX
  *

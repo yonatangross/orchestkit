@@ -18,6 +18,7 @@ export {
   outputWithContext,
   outputPromptContext,
   outputPromptContextWithTitle,
+  outputSessionStartContext,
   outputWithNotification,
   outputAllowWithContext,
   outputError,

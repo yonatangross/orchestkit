@@ -361,7 +361,8 @@ describe('Cross-Bundle Consistency', () => {
     //              posttool/check-plugins-drift, subagent-start/agent-view-titler
     // 223 -> 226: M140 Bundle B (#1790, #1791) — prompt/goal-tracker (G3) +
     //              stop/goal-tracker (G3) + lifecycle/goal-budget-guard (G5).
-    // 226 -> 227: M119 #1795 — prompt/ask-fallback-injector (UserPromptSubmit).
+    // 226 -> 227: M119 #1795 — ask-fallback-injector (M104 PR-A: moved from
+    //              prompt/UserPromptSubmit → lifecycle/SessionStart async).
     // 227 -> 228: M119 PR-2 (#1794 follow-up) — prompt/worktree-advisory-consumer.
     // 228 -> 229: M119 #1815 — lifecycle/rules-size-check (SessionStart, async).
     expect(totalHooks).toBe(229);
