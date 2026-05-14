@@ -365,7 +365,10 @@ describe('Cross-Bundle Consistency', () => {
     //              prompt/UserPromptSubmit → lifecycle/SessionStart async).
     // 227 -> 228: M119 PR-2 (#1794 follow-up) — prompt/worktree-advisory-consumer.
     // 228 -> 229: M119 #1815 — lifecycle/rules-size-check (SessionStart, async).
-    expect(totalHooks).toBe(229);
+    // 229 -> 230: M104 PR-B — lifecycle/agentation-context exported as registry key
+    //              (moved from internal use inside prompt/unified-dispatcher to
+    //              a SessionStart entry).
+    expect(totalHooks).toBe(230);
   });
 });
 

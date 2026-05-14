@@ -308,7 +308,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
       // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector moved from
       //           UserPromptSubmit (sync) to SessionStart (async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 85 async hooks').toBe(85);
+      // 85 -> 86: M104 PR-B — lifecycle/agentation-context moved from
+      //           prompt/unified-dispatcher (UserPromptSubmit) to SessionStart (async, 5s)
+      expect(asyncHooks.length, 'Should have exactly 86 async hooks').toBe(86);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -411,7 +413,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 81 -> 83: M140 Bundle B — stop/goal-tracker + lifecycle/goal-budget-guard
       // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
       // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector (SessionStart, async)
-      expect(asyncCount).toBe(85);
+      // 85 -> 86: M104 PR-B — lifecycle/agentation-context (SessionStart, async)
+      expect(asyncCount).toBe(86);
     });
 
     it('should have hooks for all critical security operations', () => {

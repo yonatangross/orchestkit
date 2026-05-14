@@ -324,7 +324,9 @@ describe('UserPromptSubmit Unified Dispatcher — registry', () => {
   it('registeredHookNames includes required hooks', () => {
     const names = promptHookNames();
     // After #972: antipattern-warning migrated to type:prompt hook in hooks.json.
-    // Dispatcher now manages 3 hooks: handoff-injector, agentation-context, context-exhaustion-warner.
+    // After M104 PR-B: agentation-context migrated to lifecycle/SessionStart.
+    // Dispatcher now manages 5 hooks: handoff-injector, frustration-detector,
+    // cache-break-detector, context-exhaustion-warner, pipeline-detector.
     const required = ['context-exhaustion-warner'];
     for (const name of required) {
       expect(names, `Expected "${name}" to be registered`).toContain(name);

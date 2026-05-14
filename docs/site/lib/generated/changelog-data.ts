@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "7.90.0",
+    "date": "2026-05-14",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**implement:** codify manual-worktree for parallel agents ([#1824](https://github.com/yonatangross/orchestkit/issues/1824)) ([a0b80b7](https://github.com/yonatangross/orchestkit/commit/a0b80b7b1ad90a4e01dd208988965746e5be365b))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** allow SessionStart + PostCompact in output-guard ([#1234](https://github.com/yonatangross/orchestkit/issues/1234)) ([#1822](https://github.com/yonatangross/orchestkit/issues/1822)) ([921e113](https://github.com/yonatangross/orchestkit/commit/921e1131c123884821d7c754a9d204df703ef255))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** migrate ask-fallback-injector → SessionStart (M104 PR-A) ([#1825](https://github.com/yonatangross/orchestkit/issues/1825)) ([34d80de](https://github.com/yonatangross/orchestkit/commit/34d80de521b8af014c53c22a5d369936b907cf75))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "7.89.1",
     "date": "2026-05-13",
     "compareUrl": "",

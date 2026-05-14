@@ -121,7 +121,11 @@ describe('Async Hooks Registry', () => {
       //           UserPromptSubmit (sync) to SessionStart (async, 5s).
       //           Reminder now pins to cached prompt prefix instead of
       //           re-injecting on every turn.
-      expect(asyncHooks.length, 'Should have exactly 85 async hooks').toBe(85);
+      // 85 -> 86: M104 PR-B — lifecycle/agentation-context moved from
+      //           inside prompt/unified-dispatcher (UserPromptSubmit, runOnce)
+      //           to SessionStart (async, 5s). .mcp.json is static for the
+      //           session, so the reminder pins to the cached prompt prefix.
+      expect(asyncHooks.length, 'Should have exactly 86 async hooks').toBe(86);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

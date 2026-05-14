@@ -5,11 +5,10 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
- * 6 hooks managed by this dispatcher:
+ * 5 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
- * - agentation-context (producesContext: true)
  *
  * Every-turn silent analytics:
  * - frustration-detector (producesContext: false, Issue #1243)
@@ -17,13 +16,17 @@
  *
  * Every-turn context producers:
  * - context-exhaustion-warner (producesContext: true)
+ * - pipeline-detector (producesContext: true)
  *
  * Removed (#960): skill-nudge-prompt — replaced by CC native skill matching
  * Migrated (#972): antipattern-warning → type:prompt hook in hooks.json (LLM classifies directly)
  *
- * Moved to SessionStart (sync-session-dispatcher, correct lifecycle):
+ * Moved to SessionStart (correct lifecycle for static config):
  * - profile-injector → materializeProfileRules()
  * - memory-context-loader → materializeDecisionRules()
+ * - agentation-context → lifecycle/agentation-context (M104 PR-B, #1234 audit) —
+ *   .mcp.json contents don't change mid-session, so pin the reminder to the
+ *   cached SessionStart prefix instead of re-checking each prompt.
  *
  * CC 2.1.9 Compliant: Single additionalContext output
  * CC 2.1.94: sessionTitle set from branch + effort for prompt-bar identification
@@ -53,7 +56,7 @@ import { cacheBreakDetector } from './cache-break-detector.js';
 // antipattern-warning migrated to type:prompt hook in hooks.json (#972)
 // Import hook implementations — once-per-session
 import { handoffInjector } from './handoff-injector.js';
-import { agentationContext } from './agentation-context.js';
+// agentation-context moved to lifecycle/SessionStart in M104 PR-B (#1234 audit)
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -85,18 +88,20 @@ interface PromptHookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 6 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
  *
  * profile-injector + memory-context-loader moved to SessionStart (sync-session-dispatcher)
  * where they materialize rules files BEFORE CC loads instructions.
+ *
+ * agentation-context moved to lifecycle/SessionStart in M104 PR-B (#1234 audit) —
+ * .mcp.json is static for the session, so pin the reminder to the cached prefix.
  */
 const HOOKS: PromptHookConfig[] = [
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
-  { name: 'agentation-context', fn: agentationContext, producesContext: true, runOnce: true },
 
   // --- Silent analytics (no context output, fire-and-forget) ---
   { name: 'frustration-detector', fn: frustrationDetector, producesContext: false },

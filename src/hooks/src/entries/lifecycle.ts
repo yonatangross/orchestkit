@@ -80,6 +80,10 @@ import { rulesSizeCheck } from '../lifecycle/rules-size-check.js';
 // (moved from UserPromptSubmit to SessionStart so the reminder pins to the
 // cached system-prompt prefix instead of re-injecting every turn)
 import { askFallbackInjector } from '../lifecycle/ask-fallback-injector.js';
+// #638 / M104 PR-B — Agentation MCP annotation reminder (moved from
+// prompt/unified-dispatcher UserPromptSubmit → SessionStart; .mcp.json is
+// static for the session, so the reminder pins to the cached prompt prefix)
+import { agentationContext } from '../lifecycle/agentation-context.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -118,6 +122,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/rules-size-check': rulesSizeCheck,
   // M119 #1795 / M104 PR-A — ORK_ASK_FALLBACK=text reminder (cached on SessionStart)
   'lifecycle/ask-fallback-injector': askFallbackInjector,
+  // #638 / M104 PR-B — Agentation MCP annotation reminder (cached on SessionStart)
+  'lifecycle/agentation-context': agentationContext,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,
