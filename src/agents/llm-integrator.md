@@ -90,7 +90,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.7: 128K Output Tokens
 Generate complete LLM integrations (provider setup + streaming endpoint + function calling + prompt templates + tests) in a single pass.
 With 128K output, build entire provider integration without splitting across responses.
 
@@ -174,7 +174,7 @@ PROVIDERS = {
         "models": {
             "fast": "claude-haiku-4-5-20251001",
             "balanced": "claude-sonnet-4-6",
-            "powerful": "claude-opus-4-6"
+            "powerful": "claude-opus-4-7"
         },
         "supports_caching": True,
         "supports_streaming": True

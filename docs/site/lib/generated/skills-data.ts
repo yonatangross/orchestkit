@@ -119,7 +119,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "agents-view": {
     "name": "agents-view",
-    "description": "Wraps the Research Preview `claude agents` CLI (CC 2.1.139+) and `claude plugin details ork` for live observability of parallel agent sessions. Surfaces running/blocked/done state, per-session token cost, and the 188-hook plugin's runtime footprint. Use when debugging multi-agent workflows, projecting cost on a long-running orchestration, or auditing which hooks fired during a run.",
+    "description": "Wraps the Research Preview `claude agents` CLI (CC 2.1.139+) and `claude plugin details ork` for live observability of parallel agent sessions. Surfaces running/blocked/done state, per-session token cost, and the 198-hook plugin's runtime footprint. Use when debugging multi-agent workflows, projecting cost on a long-running orchestration, or auditing which hooks fired during a run.",
     "version": "0.1.0",
     "author": "OrchestKit",
     "tags": [
