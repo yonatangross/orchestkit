@@ -224,12 +224,41 @@ Output coverage baseline to user immediately (progressive output).
 
 Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_background=true`.
 
+> ⚠️ **`isolation="worktree"` does NOT reliably isolate parallel agents in
+> CC Opus 4.7.** Observed: spawning multiple agents with that param thrashes
+> the PRIMARY worktree's HEAD via sequential `git checkout`, cutting agents
+> off at ~60 tool uses. Tracked at Yonatan-HQ/platform#3224.
+>
+> **Use the manual pre-create pattern instead.** Create one worktree per
+> agent BEFORE spawning (`git worktree add ../<repo>-<tier> -b feat/<slug>-<tier> origin/dev`),
+> then make `FIRST: cd <worktree-path>` the first Bash call in each agent
+> prompt. Empirical: 4–22 tool-uses per agent (vs 60–86 with broken
+> isolation), zero cutoffs across M164 Wave 2/3 + M170 sub-agents.
+>
+> Full pattern + helper function + prompt-constraint template:
+> `Read("/Users/yonatangross/coding/yonatangross/orchestkit/src/skills/implement/references/manual-worktree-pattern.md")`
+> (cross-referenced from `/ork:implement` — same doc applies here).
+
 ```python
-# Unit tests agent
+# Pre-create worktrees BEFORE the agent batch (lead-thread responsibility).
+# One worktree per tier (unit / integration / e2e) so they don't conflict.
+import subprocess
+REPO_ROOT = Bash("git rev-parse --show-toplevel").stdout.strip()
+BASE_REF = "origin/dev"  # or "origin/main" depending on repo convention
+TIER_WORKTREES = {}
+for tier in TIERS:
+    wt_path = f"../<repo>-cover-{tier}"  # adjust per your repo
+    branch = f"feat/cover-{SCOPE_SLUG}-{tier}"
+    Bash(f"git worktree add {wt_path} -b {branch} {BASE_REF}")
+    TIER_WORKTREES[tier] = wt_path
+
+# Unit tests agent (manual pre-create pattern)
 if "unit" in TIERS:
     Agent(
         subagent_type="test-generator",
-        prompt=f"""Generate unit tests for: {SCOPE}
+        prompt=f"""FIRST: cd {TIER_WORKTREES["unit"]}
+
+        Generate unit tests for: {SCOPE}
         Coverage gaps: {gap_map.unit_gaps}
         Framework: {detected_framework}
         Existing tests: {existing_test_files}
@@ -240,15 +269,19 @@ if "unit" in TIERS:
         - MSW/VCR for HTTP mocking (never mock fetch directly)
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
-        - Target: 90%+ business logic coverage""",
-        isolation="worktree",
+        - Target: 90%+ business logic coverage
+
+        Do NOT use `isolation="worktree"` — this worktree was pre-created
+        by the lead. Every Bash call should start from {TIER_WORKTREES["unit"]}.""",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
     )
 
 # Integration + E2E agents follow the same pattern:
-# - subagent_type="test-generator", isolation="worktree", run_in_background=True
+# - Pre-create worktree at TIER_WORKTREES["integration"] / TIER_WORKTREES["e2e"]
+# - Agent prompt FIRST line: `cd <path>`
+# - subagent_type="test-generator", run_in_background=True (no isolation kwarg)
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
@@ -256,7 +289,7 @@ if "unit" in TIERS:
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
-# - subagent_type="emulate-engineer", isolation="worktree"
+# - subagent_type="emulate-engineer" (same manual-worktree pattern)
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
