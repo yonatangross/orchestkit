@@ -21,7 +21,7 @@ For live component counts (skills / agents / hooks / per-session token cost) run
 ```
 src/                    ← SOURCE (edit here!)
 ├── skills/<name>/SKILL.md    # 109 skills (YAML frontmatter + Markdown)
-├── agents/<name>.md          # 39 agents (CC 2.1.78 format)
+├── agents/<name>.md          # 37 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
 manifests/                    # Plugin definitions (JSON)

@@ -26,7 +26,7 @@ appendAnalytics('agent-usage.jsonl', {
   ts: new Date().toISOString(),
   pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),  // "a3f8b2c1d4e5"
   agent: agentType,       // "code-quality-reviewer" (not PII)
-  model: modelName,       // "claude-opus-4-6" (not PII)
+  model: modelName,       // "claude-opus-4-7" (not PII)
   duration_ms: durationMs,
   success: true,
 });
