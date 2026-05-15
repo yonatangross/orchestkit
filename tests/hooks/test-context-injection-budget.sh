@@ -108,7 +108,7 @@ if [ "$HELLO_TOKENS" = "-1" ] || [ -z "$HELLO_TOKENS" ]; then
   echo "    Falling back to static analysis..."
 
   # Static analysis: count the AGENTATION_CONTEXT string length
-  AGENTATION_LEN=$(grep -o '\[Agentation\].*' "$PROJECT_ROOT/src/hooks/src/prompt/agentation-context.ts" | head -1 | wc -c | tr -d ' ')
+  AGENTATION_LEN=$(grep -o '\[Agentation\].*' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts" | head -1 | wc -c | tr -d ' ')
   AGENTATION_TOKENS=$((AGENTATION_LEN / 3))
 
   if [ "$AGENTATION_TOKENS" -lt 20 ]; then
@@ -194,11 +194,11 @@ echo ""
 echo "▶ Test 5: Agentation context compression"
 echo "────────────────────────────────────────────────────────────"
 
-AGENTATION_LINES=$(grep -c '.' "$PROJECT_ROOT/src/hooks/src/prompt/agentation-context.ts" <<< "$(sed -n '/AGENTATION_CONTEXT/,/;$/p' "$PROJECT_ROOT/src/hooks/src/prompt/agentation-context.ts")" 2>/dev/null || echo "0")
+AGENTATION_LINES=$(grep -c '.' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts" <<< "$(sed -n '/AGENTATION_CONTEXT/,/;$/p' "$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts")" 2>/dev/null || echo "0")
 
 # Check that the constant value fits on one line (backtick string with no newlines)
 CONST_HAS_NEWLINE=$(node -e "
-  const src = require('fs').readFileSync('$PROJECT_ROOT/src/hooks/src/prompt/agentation-context.ts','utf8');
+  const src = require('fs').readFileSync('$PROJECT_ROOT/src/hooks/src/lifecycle/agentation-context.ts','utf8');
   const m = src.match(/AGENTATION_CONTEXT\s*=\s*\x60([^\x60]*)\x60/);
   console.log(m && !m[1].includes('\\n') ? 'single' : 'multi');
 " 2>/dev/null)
