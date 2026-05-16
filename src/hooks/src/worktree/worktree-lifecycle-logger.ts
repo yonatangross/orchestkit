@@ -17,6 +17,7 @@ import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
 import { writeWorktreeAdvisory } from '../lib/worktree-advisory.js';
+import { safeIdentifier } from '../lib/safe-fs.js';
 
 /** Heuristic: repos with many top-level dirs are likely monorepos. */
 const MONOREPO_DIR_THRESHOLD = 15;
@@ -83,8 +84,12 @@ export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOO
   const event = input.hook_event;
 
   if (event === 'WorktreeCreate') {
-    // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth')
-    const name = input.name || 'unknown';
+    // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth').
+    // #1826: guard against envelope leak — if CC hands us `{"continue":...}` as
+    // the name (because upstream hook stdout polluted its state cache), fall
+    // back to 'unknown' rather than propagate corruption into .worktrees/
+    // directories and worktree-advisory-<slug>.md filenames.
+    const name = safeIdentifier(input.name, 'unknown');
     const hookType = input.type;
     ctx.log('worktree-lifecycle', `Worktree creating: name=${name}, type=${hookType || 'command'}`);
 

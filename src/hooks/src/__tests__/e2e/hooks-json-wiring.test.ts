@@ -161,7 +161,7 @@ describe('hooks.json wiring E2E', () => {
   // hooks.json description accuracy
   // ===========================================================================
   describe('hooks.json description accuracy', () => {
-    it('description total matches 198', () => {
+    it('description total matches 199', () => {
       // 184 -> 186: M126 #1543 — posttool/secret-handler + (intermediate bumps)
       // 186 -> 187: M130 #1487 — lifecycle/cc-version-check
       // 187 -> 188: ASCII Design System — posttool/ascii-lint
@@ -174,7 +174,9 @@ describe('hooks.json wiring E2E', () => {
       // 196 -> 197: M119 #1815 — lifecycle/rules-size-check
       // 197 -> 198: M104 PR-B — lifecycle/agentation-context (new SessionStart entry;
       //                          moved from prompt/unified-dispatcher's internal HOOKS array)
-      expect(hooksConfig.description).toContain('198 total');
+      // 198 -> 199: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart;
+      //                          idempotent quarantine sweep for #1250-recurrence envelope leak).
+      expect(hooksConfig.description).toContain('199 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

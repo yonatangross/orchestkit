@@ -29,6 +29,45 @@ export function looksLikePath(p: unknown): p is string {
 }
 
 /**
+ * Reject envelope-shaped strings used as single-segment identifiers
+ * (worktree names, session IDs, slugs). Stricter than looksLikePath:
+ * also forbids path separators, leading dots, and control chars, since
+ * a valid identifier never contains them.
+ *
+ * #1826: the `{"continue":true,"suppressOutput":true}` envelope leaks
+ * from upstream hook stdout via the CC harness and reaches
+ * WorktreeCreate.name. This guard makes OrchestKit fail-closed
+ * (return false → caller falls back) instead of propagating the
+ * corruption into `.worktrees/{...}/` directories or session-summary
+ * filenames.
+ */
+export function looksLikeIdentifier(s: unknown): s is string {
+  if (typeof s !== 'string' || s.length === 0) return false;
+  if (s.length > 200) return false;
+  if (s.startsWith('{') || s.startsWith('[')) return false;
+  if (s.includes('\0') || s.includes('/') || s.includes('\\')) return false;
+  if (s.includes('"continue":') || s.includes('"suppressOutput":')) return false;
+  if (s.startsWith('.') || s.startsWith('-')) return false;
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1F]/.test(s)) return false;
+  return true;
+}
+
+/**
+ * Return `candidate` if it passes looksLikeIdentifier, else `fallback`.
+ * On rejection: emit a one-line stderr warning so the corruption is
+ * visible in CC's hook-debug stream.
+ */
+export function safeIdentifier(candidate: unknown, fallback: string): string {
+  if (looksLikeIdentifier(candidate)) return candidate;
+  const repr = (JSON.stringify(candidate) ?? String(candidate)).slice(0, 120);
+  process.stderr.write(
+    `[orchestkit] safeIdentifier rejected suspicious value (likely envelope leak #1826): ${repr}\n`,
+  );
+  return fallback;
+}
+
+/**
  * Drop-in replacement for `fs.mkdirSync` that refuses JSON-shaped paths.
  *
  * On rejection: writes a one-line warning to stderr and returns undefined
