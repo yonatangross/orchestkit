@@ -368,7 +368,9 @@ describe('Cross-Bundle Consistency', () => {
     // 229 -> 230: M104 PR-B — lifecycle/agentation-context exported as registry key
     //              (moved from internal use inside prompt/unified-dispatcher to
     //              a SessionStart entry).
-    expect(totalHooks).toBe(230);
+    // 230 -> 231: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart,
+    //              idempotent quarantine sweep for #1250-recurrence envelope leak).
+    expect(totalHooks).toBe(231);
   });
 });
 

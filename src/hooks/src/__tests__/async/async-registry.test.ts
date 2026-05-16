@@ -125,7 +125,10 @@ describe('Async Hooks Registry', () => {
       //           inside prompt/unified-dispatcher (UserPromptSubmit, runOnce)
       //           to SessionStart (async, 5s). .mcp.json is static for the
       //           session, so the reminder pins to the cached prompt prefix.
-      expect(asyncHooks.length, 'Should have exactly 86 async hooks').toBe(86);
+      // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart,
+      //           async, 5s). Idempotent quarantine sweep of historical
+      //           `{"continue":true,...}`-named entries from #1250 recurrence.
+      expect(asyncHooks.length, 'Should have exactly 87 async hooks').toBe(87);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

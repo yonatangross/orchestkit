@@ -8,6 +8,7 @@
 
 import os from 'node:os';
 import path from 'node:path';
+import { safeIdentifier } from './safe-fs.js';
 
 /**
  * Get the user's home directory (cross-platform)
@@ -146,10 +147,16 @@ export function getSessionErrorsFile(): string {
 }
 
 /**
- * Get the session temp directory for a given session ID (cross-platform)
+ * Get the session temp directory for a given session ID (cross-platform).
+ * #1826: validate sessionId before interpolating into the path — historical
+ * incidents created `/tmp/claude-session-{"continue":true,...}` directories
+ * when an envelope leaked from upstream hook stdout into the session-id
+ * field. Fall back to a fixed 'invalid' bucket so all corrupt writes
+ * collapse into one quarantine dir instead of spawning many.
  */
 export function getSessionTempDir(sessionId: string): string {
-  return path.join(getTempDir(), `claude-session-${sessionId}`);
+  const safe = safeIdentifier(sessionId, 'invalid');
+  return path.join(getTempDir(), `claude-session-${safe}`);
 }
 
 /**

@@ -18,6 +18,7 @@ import {
   getProjectDir,
   getPluginRoot,
   safeProjectDir,
+  getSessionTempDir,
 } from '../../lib/paths.js';
 
 // Helpers ────────────────────────────────────────────────────────────────────
@@ -179,5 +180,23 @@ describe('paths.ts JSON-leak guard (#1250)', () => {
   it('safeProjectDir accepts a valid candidate', () => {
     process.env.CLAUDE_PROJECT_DIR = '/env/project';
     expect(safeProjectDir('/caller/project')).toBe('/caller/project');
+  });
+});
+
+describe('getSessionTempDir envelope guard (#1826)', () => {
+  it('collapses an envelope-shaped sessionId into the "invalid" bucket', () => {
+    const dir = getSessionTempDir(LEAKED_JSON);
+    expect(dir.endsWith('claude-session-invalid')).toBe(true);
+    expect(dir).not.toContain('{');
+  });
+
+  it('accepts a normal session ID', () => {
+    const dir = getSessionTempDir('abc-123');
+    expect(dir.endsWith('claude-session-abc-123')).toBe(true);
+  });
+
+  it('collapses path-separator-containing sessionId into "invalid"', () => {
+    const dir = getSessionTempDir('../escape');
+    expect(dir.endsWith('claude-session-invalid')).toBe(true);
   });
 });

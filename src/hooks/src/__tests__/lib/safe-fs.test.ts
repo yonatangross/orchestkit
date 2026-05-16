@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, existsSync, rmSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { safeMkdirSync, looksLikePath } from '../../lib/safe-fs.js';
+import { safeMkdirSync, looksLikePath, looksLikeIdentifier, safeIdentifier } from '../../lib/safe-fs.js';
 
 const LEAKED_JSON = '{"continue":true,"suppressOutput":true}';
 const LEAKED_ARRAY = '[1,2]';
@@ -76,5 +76,65 @@ describe('safeMkdirSync', () => {
   it('returns undefined on rejection (does not throw)', () => {
     expect(() => safeMkdirSync(LEAKED_JSON, { recursive: true })).not.toThrow();
     expect(safeMkdirSync(LEAKED_JSON, { recursive: true })).toBeUndefined();
+  });
+});
+
+describe('looksLikeIdentifier (#1826)', () => {
+  it('rejects the envelope literal as an identifier', () => {
+    expect(looksLikeIdentifier(LEAKED_JSON)).toBe(false);
+    expect(looksLikeIdentifier(LEAKED_ARRAY)).toBe(false);
+  });
+
+  it('rejects envelope-substring matches even when not JSON-prefixed', () => {
+    // Defensive: catches double-wrapped or partially-stripped envelopes too.
+    expect(looksLikeIdentifier('foo"continue":true,"suppressOutput":truebar')).toBe(false);
+  });
+
+  it('rejects strings with path separators', () => {
+    expect(looksLikeIdentifier('a/b')).toBe(false);
+    expect(looksLikeIdentifier('a\\b')).toBe(false);
+  });
+
+  it('rejects strings with control characters', () => {
+    expect(looksLikeIdentifier('foo\nbar')).toBe(false);
+    expect(looksLikeIdentifier('foo\tbar')).toBe(false);
+    expect(looksLikeIdentifier('foo\0bar')).toBe(false);
+  });
+
+  it('rejects leading dot / dash (path-traversal / flag-injection shape)', () => {
+    expect(looksLikeIdentifier('.hidden')).toBe(false);
+    expect(looksLikeIdentifier('--flag')).toBe(false);
+  });
+
+  it('rejects strings longer than 200 chars', () => {
+    expect(looksLikeIdentifier('a'.repeat(201))).toBe(false);
+  });
+
+  it('rejects empty / non-string values', () => {
+    expect(looksLikeIdentifier('')).toBe(false);
+    expect(looksLikeIdentifier(null as unknown as string)).toBe(false);
+    expect(looksLikeIdentifier(42 as unknown as string)).toBe(false);
+  });
+
+  it('accepts ordinary slug-like identifiers', () => {
+    expect(looksLikeIdentifier('feature-auth')).toBe(true);
+    expect(looksLikeIdentifier('m167-1-wire-memory-hook')).toBe(true);
+    expect(looksLikeIdentifier('a_b_c')).toBe(true);
+    expect(looksLikeIdentifier('session-abc123')).toBe(true);
+  });
+});
+
+describe('safeIdentifier (#1826)', () => {
+  it('returns fallback for the envelope literal', () => {
+    expect(safeIdentifier(LEAKED_JSON, 'unknown')).toBe('unknown');
+  });
+
+  it('returns the candidate when it is a valid identifier', () => {
+    expect(safeIdentifier('feature-auth', 'unknown')).toBe('feature-auth');
+  });
+
+  it('returns fallback for undefined/empty', () => {
+    expect(safeIdentifier(undefined, 'unknown')).toBe('unknown');
+    expect(safeIdentifier('', 'unknown')).toBe('unknown');
   });
 });
