@@ -48,8 +48,9 @@ export function looksLikeIdentifier(s: unknown): s is string {
   if (s.includes('\0') || s.includes('/') || s.includes('\\')) return false;
   if (s.includes('"continue":') || s.includes('"suppressOutput":')) return false;
   if (s.startsWith('.') || s.startsWith('-')) return false;
-  // eslint-disable-next-line no-control-regex
-  if (/[\x00-\x1F]/.test(s)) return false;
+  for (let i = 0; i < s.length; i++) {
+    if (s.charCodeAt(i) < 32) return false;
+  }
   return true;
 }
 
