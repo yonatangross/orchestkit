@@ -257,43 +257,12 @@ Output coverage baseline to user immediately (progressive output).
 
 Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_background=true`.
 
-> ⚠️ **`isolation="worktree"` does NOT reliably isolate parallel agents in
-> CC Opus 4.7. Observed: spawning multiple agents with that param thrashes
-> the PRIMARY worktree's HEAD via sequential `git checkout`, cutting agents
-> off at ~60 tool uses. Tracked at Yonatan-HQ/platform#3224.**
-
-**Use the manual pre-create pattern instead.** The lead creates one
-worktree per agent BEFORE spawning, and each agent prompt starts with
-`FIRST: cd <worktree-path>`. Empirical: 4–22 tool-uses per agent (vs
-60–86 with broken isolation), zero cutoffs across M164 Wave 2/3.
-
-Load full pattern: `Read("${CLAUDE_SKILL_DIR}/references/manual-worktree-pattern.md")`
-
 ```python
-# 1. PRE-CREATE worktrees in the lead (NOT via isolation=)
-import subprocess
-WORKTREES = {
-    "unit": "../platform-cover-unit-{slug}",
-    "integration": "../platform-cover-int-{slug}",
-    "e2e": "../platform-cover-e2e-{slug}",
-}
-for tier, wt_path in WORKTREES.items():
-    if tier not in TIERS:
-        continue
-    subprocess.run([
-        "git", "worktree", "add", "-b", f"cover/{slug}-{tier}",
-        wt_path.format(slug=SCOPE_SLUG), "origin/main"
-    ], check=True)
-
-# 2. Spawn agents WITHOUT isolation= — prepend `cd <wt_path>` to every prompt
+# Unit tests agent
 if "unit" in TIERS:
     Agent(
         subagent_type="test-generator",
-        prompt=f"""FIRST: `cd {WORKTREES["unit"].format(slug=SCOPE_SLUG)}`
-        — run this as the FIRST segment of EVERY Bash call. Stay in this
-        worktree for the entire task. Do not switch branches.
-
-        Generate unit tests for: {SCOPE}
+        prompt=f"""Generate unit tests for: {SCOPE}
         Coverage gaps: {gap_map.unit_gaps}
         Framework: {detected_framework}
         Existing tests: {existing_test_files}
@@ -304,20 +273,15 @@ if "unit" in TIERS:
         - MSW/VCR for HTTP mocking (never mock fetch directly)
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
-        - Target: 90%+ business logic coverage
-
-        Push early: as soon as you have ≥1 passing test, commit + push.
-        Iterate via follow-up commits. Do NOT use --no-verify on commits.""",
-        # isolation="worktree",  ← REMOVED — see warning above
+        - Target: 90%+ business logic coverage""",
+        isolation="worktree",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
     )
 
 # Integration + E2E agents follow the same pattern:
-# - Pre-create worktree in lead (above), pass path in agent prompt
-# - subagent_type="test-generator", run_in_background=True
-# - First-Bash-segment: cd <pre-created-worktree-path>
+# - subagent_type="test-generator", isolation="worktree", run_in_background=True
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
@@ -325,7 +289,7 @@ if "unit" in TIERS:
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
-# - Pre-create worktree + first-Bash cd as above
+# - subagent_type="emulate-engineer", isolation="worktree"
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
