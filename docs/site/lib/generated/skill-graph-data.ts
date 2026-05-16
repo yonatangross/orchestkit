@@ -272,7 +272,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 4,
-    "usedByCount": 1
+    "usedByCount": 2
   },
   {
     "id": "database-patterns",
@@ -452,7 +452,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 5,
-    "usedByCount": 5
+    "usedByCount": 6
   },
   {
     "id": "feedback",
@@ -492,7 +492,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "other",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 0
+    "usedByCount": 1
   },
   {
     "id": "golden-dataset",
@@ -622,7 +622,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 16
+    "usedByCount": 17
   },
   {
     "id": "memory-fabric",
@@ -915,6 +915,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "swarm-migrate",
+    "label": "Swarm Migrate",
+    "type": "command",
+    "complexity": "high",
+    "category": "workflow",
+    "hasDeps": true,
+    "depCount": 6,
+    "usedByCount": 0
+  },
+  {
     "id": "task-dependency-patterns",
     "label": "Task Dependency Patterns",
     "type": "reference",
@@ -1042,7 +1052,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 10,
-    "usedByCount": 3
+    "usedByCount": 4
   },
   {
     "id": "visualize-plan",
@@ -1488,6 +1498,30 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "setup",
     "target": "help"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "github-operations"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "create-pr"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "ci-debug"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "verify"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "memory"
+  },
+  {
+    "source": "swarm-migrate",
+    "target": "explore"
   },
   {
     "source": "upgrade-assessment",

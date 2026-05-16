@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=29  # M140 added /ork:prd-to-goal (#1792); M137 added /ork:agents-view (#1768)
+EXPECTED_USER_INVOCABLE=30  # +1 for /ork:swarm-migrate (cross-repo migration coordinator from insights synthesis 2026-05-16)
 EXPECTED_INTERNAL=80
 
 missing_user_invocable=()

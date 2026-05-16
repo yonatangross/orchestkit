@@ -4521,6 +4521,53 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "swarm-migrate": {
+    "name": "swarm-migrate",
+    "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
+    "version": "0.1.0",
+    "author": "OrchestKit",
+    "tags": [
+      "migration",
+      "cross-repo",
+      "swarm",
+      "parallel-agents",
+      "worktree",
+      "ledger"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Agent",
+      "Task",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskStop",
+      "ToolSearch",
+      "Monitor"
+    ],
+    "skills": [
+      "github-operations",
+      "create-pr",
+      "ci-debug",
+      "verify",
+      "memory",
+      "explore"
+    ],
+    "agent": null,
+    "complexity": "high",
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "task-dependency-patterns": {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
