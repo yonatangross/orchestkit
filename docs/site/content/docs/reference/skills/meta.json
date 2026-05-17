@@ -93,6 +93,7 @@
     "skill-evolution",
     "storybook-mcp-integration",
     "storybook-testing",
+    "swarm-migrate",
     "task-dependency-patterns",
     "telemetry-inspect",
     "testing-e2e",

@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 110 OrchestKit skills."
+description: "Complete reference for all 111 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **110 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **111 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -100,6 +100,7 @@ OrchestKit includes **110 skills** — reusable knowledge modules that provide p
 | [Skill Evolution](/docs/reference/skills/skill-evolution) | Reference | medium | Tracks skill usage patterns, edit frequency, and success rates to suggest improvements and optimizations. Manages skill versioning with safe rollback capability and confidence scoring for suggestions. Use when reviewing skill performance, applying auto-suggested changes, or rolling back problematic versions. |
 | [Storybook Mcp Integration](/docs/reference/skills/storybook-mcp-integration) | Reference | medium | Storybook MCP server integration for component-aware AI development. Covers 6 tools across 3 toolsets (dev, docs, testing): component discovery via list-all-documentation/get-documentation, story previews via preview-stories, and automated testing via run-story-tests. Use when generating components that should reuse existing Storybook components, running component tests via MCP, or previewing stories in chat. |
 | [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9. |
+| [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement. |
 | [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status. |
 | [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files. |
 | [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testing with axe-core, and CI integration. Use when writing E2E tests, setting up Playwright, implementing visual regression, or testing accessibility. |
