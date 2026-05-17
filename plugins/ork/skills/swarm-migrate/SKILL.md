@@ -224,10 +224,11 @@ Completed: 12/14 repos · paused: 2 · duration: 47 min
 | Coordinator crash mid-flight | `.swarm-state.json` half-written | Skill is resumable: re-run with same spec, it reads the ledger and skips `merged`/`green` repos |
 | Worker subagent hangs | No ledger update for >5 min | Coordinator times out the agent, marks repo `worker-timeout`, surfaces logs |
 
-## Chain partners
+## Related Skills
 
-- Upstream: `/ork:brainstorm` to design the spec, `/ork:visualize-plan` to ASCII-preview the DAG before dispatch.
-- Downstream: `/ork:verify` per repo after merge, `/status` for org-wide sweep, `/ci-debug` if a worker hits a CI red.
+- **Upstream** — `/ork:brainstorm` to design the spec, `/ork:visualize-plan` to ASCII-preview the DAG before dispatch.
+- **Downstream** — `/ork:verify` per repo after merge, `/status` for org-wide sweep, `/ci-debug` if a worker hits a CI red.
+- **Composes with** — `/ork:create-pr` (each worker calls into it), `/ork:github-operations` (bulk-update labels/milestones post-swarm).
 
 ## What this skill does NOT do
 
