@@ -205,6 +205,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "ci-debug",
+    "label": "Ci Debug",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": true,
+    "depCount": 2,
+    "usedByCount": 2
+  },
+  {
     "id": "ci-sentinel",
     "label": "Ci Sentinel",
     "type": "command",
@@ -502,7 +512,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "other",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 2
+    "usedByCount": 3
   },
   {
     "id": "golden-dataset",
@@ -632,7 +642,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 18
+    "usedByCount": 19
   },
   {
     "id": "memory-fabric",
@@ -1224,6 +1234,14 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "brainstorm",
     "target": "browser-tools"
+  },
+  {
+    "source": "ci-debug",
+    "target": "github-operations"
+  },
+  {
+    "source": "ci-debug",
+    "target": "memory"
   },
   {
     "source": "ci-sentinel",
