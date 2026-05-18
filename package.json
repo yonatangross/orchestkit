@@ -2,10 +2,14 @@
   "name": "orchestkit",
   "version": "7.90.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "bash scripts/build-plugins.sh",
+    "build": "bash scripts/build-plugins.sh && npm run --workspace=@orchestkit/hook-contract build --if-present",
     "prebuild": "echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
