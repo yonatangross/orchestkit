@@ -44,7 +44,11 @@ concurrency:
 
 env:
   # Daily token ceiling. Sentinel pauses for the calendar day once exceeded.
-  ORK_SENTINEL_DAILY_TOKEN_BUDGET: "500000"
+  # Bumped 500k → 1M on 2026-05-18 after dropping `--bare` (full CC load
+  # raises per-PR cost from ~4k to ~10k tokens). Hourly cron × 3 PRs × 10k
+  # ≈ 720k/day, so 1M gives headroom for spike days. Cost projection:
+  # ~$10-12/month per repo at Sonnet blended rates.
+  ORK_SENTINEL_DAILY_TOKEN_BUDGET: "1000000"
   # Per-PR analysis timeout (wall clock). Sentinel skips a PR that times out.
   ORK_SENTINEL_PER_PR_TIMEOUT_S: "300"
 
@@ -155,20 +159,27 @@ jobs:
               continue
             fi
 
-            # Run /ci-debug headless. Bare mode (CC 2.1.81+) avoids loading
-            # plugins/hooks so the budget is predictable.
+            # Run /ci-debug headless.
             #
-            # M146-6 (#1849): explicit --permission-mode and --effort lock the
-            # dispatch envelope so cost-per-PR stays predictable regardless
-            # of what the runner inherits. The skill is read-only by design
-            # (no edits), so dontAsk + low effort is the right tradeoff.
+            # Originally used `--bare` (CC 2.1.81+) for minimal plugin/hook load,
+            # but verified locally on 2026-05-18 that `--bare` doesn't actually
+            # honor ANTHROPIC_API_KEY (returns "Not logged in" regardless of
+            # env var or --settings.apiKey/apiKeyHelper). Dropped --bare;
+            # cost goes from ~4k to ~10k tokens per PR but the workflow actually
+            # authenticates. Documented the trade-off in SKILL.md.
+            #
+            # M146-6 (#1849): explicit --permission-mode locks the dispatch
+            # envelope. The skill is read-only by design (no edits), so
+            # `dontAsk` is the right tradeoff. `--effort` removed alongside
+            # --bare — it's a session config that needs the full CC load to
+            # take effect and is duplicated by --max-turns 4 for our use case.
             tmpdir="$(mktemp -d)"
             timeout "${ORK_SENTINEL_PER_PR_TIMEOUT_S}s" \
-              claude -p --bare \
+              claude -p \
                 --permission-mode dontAsk \
-                --effort low \
                 --max-turns 4 \
                 --output-format json \
+                --no-session-persistence \
                 "Run /ci-debug on PR ${number} in repo ${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}. Use only the gh CLI. Output the report markdown only — no preamble." \
               > "${tmpdir}/verdict.json" 2> "${tmpdir}/err.log" \
               || { echo "::warning::claude run failed for #${number}, see error log"; cat "${tmpdir}/err.log"; continue; }
