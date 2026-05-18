@@ -1,3 +1,10 @@
+---
+title: claude --bare auth is broken — never use it in CI
+impact: HIGH
+impactDescription: Prevents silent CI failures from claude --bare ignoring all auth credentials
+tags: [ci, auth, claude-code, headless, bare]
+---
+
 # Rule: `claude --bare` auth is broken — never use it in CI
 
 **Status**: confirmed CC 2.1.81–2.1.143 · upstream bug filed [anthropics/claude-code#60155](https://github.com/anthropics/claude-code/issues/60155) · prior incident [orchestkit#1629](https://github.com/yonatangross/orchestkit/issues/1629)
