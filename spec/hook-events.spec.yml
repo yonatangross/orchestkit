@@ -1,0 +1,112 @@
+# OrchestKit Hook Event Spec — single source of truth for M141-2 (#1864).
+#
+# This file is authored by hand. Codegen reads it and emits:
+#   - packages/hook-contract/src/events.generated.ts  (npm registry + union types)
+#   - packages/hook-contract/src/schemas.generated.ts (JSON Schema draft-07)
+#   - (future, M141-2 step 2) packages/hook-contract-py/orchestkit_hook_contract/events.py
+#
+# CI parity gate (M141-2 step 4) fails if either package's emit drifts from
+# this spec — i.e. someone edited the .generated.ts files directly without
+# updating the spec + running `npm run codegen`.
+
+spec_version: 1
+last_updated: '2026-05-18'
+
+# Top-level metadata baked into emitted file headers.
+metadata:
+  name: '@orchestkit/hook-contract'
+  description: 'Hook event contract for OrchestKit'
+  source_repo: 'https://github.com/yonatangross/orchestkit'
+  source_file: 'spec/hook-events.spec.yml'
+
+# Common envelope fields present on every event payload. Per-event variants
+# extend with their own `payload` shape (M141-2 step 3 fills these in).
+envelope:
+  required:
+    - { name: event, type: string, description: 'Discriminator — equals the event name' }
+  optional:
+    - { name: timestamp, type: string, description: 'ISO-8601 UTC timestamp' }
+    - { name: session_id, type: string, description: 'Correlation ID across hook fires in one CC session' }
+    - { name: cwd, type: string, description: 'Project working directory at fire time' }
+    - { name: payload, type: object, description: 'Per-event variant fields — see events[].payload below' }
+
+# The 19 events emitted by Claude Code 2.1.71+ and consumed by OrchestKit's
+# HTTP hook fan-out. Order matches the hand-written registry from M141-1
+# (#1802) so the first codegen run is a byte-identical diff with the
+# original handwritten file.
+events:
+  - name: SessionStart
+    since_cc: '2.1.0'
+    description: 'Fired when a CC session starts. Async hooks here observe project state before the first prompt.'
+
+  - name: UserPromptSubmit
+    since_cc: '2.1.9'
+    description: 'Fires when the user submits a prompt — used to inject additionalContext.'
+
+  - name: PreToolUse
+    since_cc: '2.1.0'
+    description: 'Before any tool invocation — gate or transform tool input.'
+
+  - name: PostToolUse
+    since_cc: '2.1.0'
+    description: 'After a successful tool invocation — observe result.'
+
+  - name: PostToolUseFailure
+    since_cc: '2.1.7'
+    description: 'After a failed tool invocation — observe error.'
+
+  - name: PermissionRequest
+    since_cc: '2.1.0'
+    description: 'Fires when a tool needs permission approval.'
+
+  - name: SubagentStart
+    since_cc: '2.1.0'
+    description: 'Fires when a subagent begins execution.'
+
+  - name: SubagentStop
+    since_cc: '2.1.0'
+    description: 'Fires when a subagent finishes (success or error).'
+
+  - name: Stop
+    since_cc: '2.1.0'
+    description: 'Fires when the assistant finishes a turn.'
+
+  - name: SessionEnd
+    since_cc: '2.1.7'
+    description: 'Fires when a CC session ends — final flush.'
+
+  - name: Setup
+    since_cc: '2.1.0'
+    description: 'Fires during setup (--init / --maintenance).'
+
+  - name: Notification
+    since_cc: '2.1.0'
+    description: 'Fires on user-facing notifications.'
+
+  - name: PreCompact
+    since_cc: '2.1.76'
+    description: 'Fires before automatic context compaction.'
+
+  - name: TeammateIdle
+    since_cc: '2.1.33'
+    description: 'Fires when a teammate agent has been idle past a threshold.'
+
+  - name: TaskCompleted
+    since_cc: '2.1.33'
+    description: 'Fires when a TaskCreate task is marked completed.'
+
+  - name: InstructionsLoaded
+    since_cc: '2.1.69'
+    description: 'Fires when project/user instructions (CLAUDE.md/rules) are loaded.'
+
+  - name: WorktreeCreate
+    since_cc: '2.1.50'
+    description: 'Fires when a git worktree is created via EnterWorktree.'
+
+  - name: WorktreeRemove
+    since_cc: '2.1.50'
+    description: 'Fires when a git worktree is removed via ExitWorktree.'
+
+  - name: ConfigChange
+    since_cc: '2.1.50'
+    description: 'Fires when settings.json / settings.local.json is modified.'
