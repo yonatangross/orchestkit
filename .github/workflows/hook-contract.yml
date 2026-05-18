@@ -43,6 +43,13 @@ jobs:
       - name: Install workspace deps
         run: npm ci --workspaces --include-workspace-root --no-audit --no-fund
 
+      - name: Codegen drift gate
+        # Fail fast if events.generated.ts / schemas.generated.ts drift from
+        # spec/hook-events.spec.yml. Runs the gate explicitly so CI logs name
+        # it; same check also fires via prebuild before npm run build below.
+        working-directory: packages/hook-contract
+        run: npm run codegen:check
+
       - name: Typecheck
         working-directory: packages/hook-contract
         run: npm run typecheck
