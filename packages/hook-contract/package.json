@@ -1,0 +1,75 @@
+{
+  "name": "@orchestkit/hook-contract",
+  "version": "0.1.0",
+  "description": "Hook event contract for OrchestKit — types, JSON schemas, and a thin validation helper. Zero runtime deps.",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./events": {
+      "types": "./dist/esm/events.d.ts",
+      "import": "./dist/esm/events.js",
+      "require": "./dist/cjs/events.js"
+    },
+    "./schemas": {
+      "types": "./dist/esm/schemas.d.ts",
+      "import": "./dist/esm/schemas.js",
+      "require": "./dist/cjs/schemas.js"
+    },
+    "./validate": {
+      "types": "./dist/esm/validate.d.ts",
+      "import": "./dist/esm/validate.js",
+      "require": "./dist/cjs/validate.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "npm run build:esm && npm run build:cjs && node scripts/rename-cjs.mjs",
+    "build:esm": "tsc -p tsconfig.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
+    "publish:dry-run": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.18"
+  },
+  "keywords": [
+    "claude-code",
+    "orchestkit",
+    "hooks",
+    "contract",
+    "schema",
+    "types"
+  ],
+  "author": "Yonatan Gross",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yonatangross/orchestkit.git",
+    "directory": "packages/hook-contract"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false
+}
