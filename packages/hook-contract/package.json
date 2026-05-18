@@ -53,6 +53,7 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
+    "js-yaml": "^4.1.0",
     "typescript": "^5.6.0",
     "vitest": "^4.0.18"
   },

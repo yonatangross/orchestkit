@@ -47,3 +47,34 @@ export function isHookEventName(value: unknown): value is HookEventName {
 }
 
 export const HOOK_EVENT_NAME_SET: ReadonlySet<HookEventName> = new Set(HOOK_EVENT_NAMES);
+
+/**
+ * Map from event name to its payload type. Events without a payload
+ * block in the spec map to `unknown` for backwards compatibility.
+ * Consumers can index into this for typed payload access:
+ *
+ *   function handle(p: PayloadFor<'PreToolUse'>) { p.tool_name; }
+ */
+export interface PayloadMap {
+  SessionStart: unknown;
+  UserPromptSubmit: unknown;
+  PreToolUse: unknown;
+  PostToolUse: unknown;
+  PostToolUseFailure: unknown;
+  PermissionRequest: unknown;
+  SubagentStart: unknown;
+  SubagentStop: unknown;
+  Stop: unknown;
+  SessionEnd: unknown;
+  Setup: unknown;
+  Notification: unknown;
+  PreCompact: unknown;
+  TeammateIdle: unknown;
+  TaskCompleted: unknown;
+  InstructionsLoaded: unknown;
+  WorktreeCreate: unknown;
+  WorktreeRemove: unknown;
+  ConfigChange: unknown;
+}
+
+export type PayloadFor<E extends HookEventName> = PayloadMap[E];

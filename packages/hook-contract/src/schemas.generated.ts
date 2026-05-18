@@ -23,7 +23,17 @@ export interface JsonSchema {
 
 const SCHEMA_DRAFT = 'https://json-schema.org/draft-07/schema#';
 
+/**
+ * Per-event payload schemas (M141-2 step 3, #1864). Events without a
+ * payload block in the spec are absent here — their schema falls back
+ * to an open `payload: object` (envelope-level, M141-1 behavior).
+ */
+const PAYLOAD_SCHEMAS: Partial<Record<HookEventName, JsonSchema>> = {
+
+};
+
 function envelopeSchema(event: HookEventName): JsonSchema {
+  const payloadSchema: JsonSchema = PAYLOAD_SCHEMAS[event] ?? { type: 'object', additionalProperties: true };
   return {
     $schema: SCHEMA_DRAFT,
     $id: `https://orchestkit.dev/schemas/hook-contract/${event}.json`,
@@ -34,7 +44,7 @@ function envelopeSchema(event: HookEventName): JsonSchema {
       timestamp: { type: 'string', description: 'ISO-8601 UTC timestamp' },
       session_id: { type: 'string' },
       cwd: { type: 'string' },
-      payload: { type: 'object', additionalProperties: true },
+      payload: payloadSchema,
     },
     required: ['event'],
     additionalProperties: true,
