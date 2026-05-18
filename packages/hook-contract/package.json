@@ -37,6 +37,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "prebuild": "npm run codegen:check",
     "build": "npm run build:esm && npm run build:cjs && node scripts/rename-cjs.mjs",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
@@ -44,6 +45,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
+    "codegen": "node scripts/codegen.mjs",
+    "codegen:check": "node scripts/codegen.mjs --check",
     "publish:dry-run": "npm pack --dry-run"
   },
   "engines": {
