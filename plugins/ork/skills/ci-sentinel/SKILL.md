@@ -1,7 +1,7 @@
 ---
 name: ci-sentinel
 license: MIT
-compatibility: "Claude Code 2.1.81+ (uses --bare mode for budget-predictable headless runs)."
+compatibility: "Claude Code 2.1.142+ (uses --permission-mode + --no-session-persistence for headless GHA runs; --bare was tried but doesn't honor ANTHROPIC_API_KEY in CC 2.1.143 — see SKILL body for the trade-off)."
 description: "Hourly autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red required checks, posts the verdict as a collapsed PR comment, and appends to a per-repo .sentinel/ledger.jsonl. v1 is propose-don't-apply — NEVER auto-pushes a fix. Use when you're tired of /status sweeps catching the same 10 CI failure patterns over and over."
 argument-hint: "[install|status|enable|disable]"
 context: fork
@@ -43,7 +43,7 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
         │
         ▼
    🤖 for each PR (skipping those already commented at this SHA):
-       claude -p --bare → run /ci-debug → capture verdict markdown
+       claude -p → run /ci-debug → capture verdict markdown
         │
         ▼
    💬 post collapsed PR comment with marker so future runs dedupe
@@ -86,23 +86,31 @@ The workflow is intentionally configured via in-file env vars (not workflow inpu
 
 | Var | Default | Meaning |
 |---|---|---|
-| `ORK_SENTINEL_DAILY_TOKEN_BUDGET` | `500000` | Hard daily ceiling. Hour-of-day not enforced; calendar day in UTC. |
-| `ORK_SENTINEL_PER_PR_TIMEOUT_S` | `300` | Per-PR wall-clock cap on the `claude -p --bare` invocation. |
+| `ORK_SENTINEL_DAILY_TOKEN_BUDGET` | `1000000` | Hard daily ceiling. Hour-of-day not enforced; calendar day in UTC. Bumped from 500k after dropping `--bare` (see "Why no --bare" below). |
+| `ORK_SENTINEL_PER_PR_TIMEOUT_S` | `300` | Per-PR wall-clock cap on the `claude -p` invocation. |
 | `max_prs` (workflow_dispatch input) | `10` | Cap on PRs analyzed in one sweep. |
 | `dry_run` (workflow_dispatch input) | `false` | Skip comment posting (for spec validation). |
 
+### Why no --bare (2026-05-18 finding)
+
+Originally designed around `claude -p --bare` (CC 2.1.81+) for minimal plugin/hook load and predictable ~4k tokens/PR. First real dispatch revealed `--bare` doesn't honor `ANTHROPIC_API_KEY` env var, `--settings.apiKey`, or `--settings.apiKeyHelper` — every call returns `"Not logged in · Please run /login"`. Reproduced locally against multiple settings shapes.
+
+Dropped `--bare`; cost per PR rises ~4k → ~10k tokens (plugins + hooks load), partially offset by `--no-session-persistence` (avoids disk writes). Daily budget bumped 500k → 1M to absorb the change while keeping monthly cost in the $10-12 range per repo.
+
+If/when CC fixes `--bare` auth, the workflow can revert to bare mode by changing one line.
+
 ### Dispatch envelope (CC 2.1.142+ flags — M146-6 / #1849)
 
-Each headless `claude -p --bare` invocation locks the dispatch envelope so cost-per-PR stays predictable regardless of what the runner inherits:
+Each `claude -p` invocation locks the dispatch envelope so cost-per-PR stays predictable regardless of what the runner inherits:
 
 | Flag | Value | Why |
 |---|---|---|
 | `--permission-mode` | `dontAsk` | `/ci-debug` is read-only by design (proposes, never applies). `dontAsk` silently refuses destructive ops — exactly what we want from an autonomous classifier. **Never** use `bypassPermissions` here. |
-| `--effort` | `low` | Pattern classification doesn't need deep reasoning. Low keeps cost-per-PR in the $0.01–$0.03 range. |
 | `--max-turns` | `4` | Cap on the conversation length. Sweep, classify, report — done. |
 | `--output-format` | `json` | Ledger needs `usage.total_tokens` for the budget circuit-breaker. |
+| `--no-session-persistence` | (flag) | Don't write session state to disk; sentinel runs are ephemeral. |
 
-These are hardcoded in the workflow. If you need to override for a fork (e.g. you want `medium` effort), edit `.github/workflows/ci-sentinel.yml` directly — they're intentionally not exposed as `workflow_dispatch` inputs to prevent accidental cost spikes from a one-off manual run.
+These are hardcoded in the workflow. If you need to override for a fork (e.g. you want a different `permission-mode`), edit `.github/workflows/ci-sentinel.yml` directly — intentionally not exposed as `workflow_dispatch` inputs to prevent accidental cost spikes from a one-off manual run.
 
 ## Comment shape
 
@@ -136,11 +144,11 @@ When v1.1 lands the journal:
 
 ## Cost model (back-of-envelope)
 
-Per-PR analysis: ~3-5k tokens (gh CLI output + classification turn).
-Hourly sweep with avg 3 failing PRs: ~12k tokens/hour = ~290k/day.
-Daily budget 500k tokens = safe headroom for spikes.
+Per-PR analysis: ~8-12k tokens (full CC load — plugins + hooks — since `--bare` was dropped, see "Why no --bare" above).
+Hourly sweep with avg 3 failing PRs: ~30k tokens/hour = ~720k/day.
+Daily budget 1M tokens = safe headroom for spike days.
 
-At ~$15/MTok (Sonnet input/output blended), that's roughly **$4-5/month per repo** before any auto-fix saves a session. Compared to 21 manual ci-debug sessions/month — each costing 10-20 minutes of your time — payback is immediate.
+At ~$15/MTok (Sonnet input/output blended), that's roughly **$10-12/month per repo** before any auto-fix saves a session. Compared to 21 manual ci-debug sessions/month — each costing 10-20 minutes of your time — payback is immediate (5+ hours reclaimed for ~$12).
 
 ## Related Skills
 
