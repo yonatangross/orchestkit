@@ -78,9 +78,9 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=29   # Each adds ~50-100 tokens to system prompt (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792)
+MAX_USER_INVOCABLE_SKILLS=33   # Each adds ~50-100 tokens to system prompt (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865)
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
-TOTAL_SESSION_MAX_TOKENS=5400  # Combined session overhead budget (5300 → 5400 in M140 #1792 for ork:prd-to-goal; M137 #1768 for ork:agents-view; prior bump for CC 2.1.90 matrix growth)
+TOTAL_SESSION_MAX_TOKENS=5500  # Combined session overhead budget (5300 → 5400 in M140 #1792 for ork:prd-to-goal; M137 #1768 for ork:agents-view; prior bump for CC 2.1.90 matrix growth; 5400→5500 in #1865 to match invocable-cap bump — covers ~57 token overage observed on origin/main + ~40 headroom)
 
 echo "  Budgets:"
 echo "  ├─ CLAUDE.md:           < ${CLAUDE_MD_MAX_BYTES} bytes (~$(estimate_tokens $CLAUDE_MD_MAX_BYTES)t)"
