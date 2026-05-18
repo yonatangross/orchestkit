@@ -59,6 +59,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Claude Code
+        run: |
+          # First dry-run on 2026-05-18 failed with
+          # "claude: No such file or directory" — ubuntu-latest ships
+          # without CC. Install once per run; ~5s cold from npm.
+          npm install -g @anthropic-ai/claude-code
+          claude --version
+
       - name: Resolve repo + auth context
         id: ctx
         run: |
