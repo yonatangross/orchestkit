@@ -56,7 +56,7 @@ from .validate import (
 
 __version__ = "0.1.0"
 
-__all__ = [
+__all__ = [  # noqa: RUF022 — grouped by category for readability
     # Constants
     "HOOK_EVENT_NAMES",
     "HOOK_EVENT_NAME_SET",
