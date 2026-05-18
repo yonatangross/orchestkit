@@ -23,7 +23,317 @@ export interface JsonSchema {
 
 const SCHEMA_DRAFT = 'https://json-schema.org/draft-07/schema#';
 
+/**
+ * Per-event payload schemas (M141-2 step 3, #1864). Events without a
+ * payload block in the spec are absent here — their schema falls back
+ * to an open `payload: object` (envelope-level, M141-1 behavior).
+ */
+const PAYLOAD_SCHEMAS: Partial<Record<HookEventName, JsonSchema>> = {
+  "SessionStart": {
+    "type": "object",
+    "properties": {
+      "plugin_root": {
+        "type": "string",
+        "description": "Absolute path to the plugin root (injected by run-hook.mjs)"
+      },
+      "permissionMode": {
+        "type": "string",
+        "description": "Permission mode (default | acceptEdits | dontAsk | auto)"
+      }
+    },
+    "additionalProperties": true
+  },
+  "UserPromptSubmit": {
+    "type": "object",
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "description": "The user prompt text being submitted"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "prompt"
+    ]
+  },
+  "PreToolUse": {
+    "type": "object",
+    "properties": {
+      "tool_name": {
+        "type": "string",
+        "description": "The tool being invoked (e.g. Bash, Write, Read)"
+      },
+      "tool_input": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Tool-specific input parameters"
+      },
+      "tool_use_id": {
+        "type": "string",
+        "description": "CC 2.1.69 correlation ID for matching with PostToolUse"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "tool_name",
+      "tool_input"
+    ]
+  },
+  "PostToolUse": {
+    "type": "object",
+    "properties": {
+      "tool_name": {
+        "type": "string",
+        "description": "The tool that was invoked"
+      },
+      "tool_input": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Tool input passed to the invocation"
+      },
+      "tool_output": {
+        "description": "Tool output (type varies by tool)"
+      },
+      "tool_error": {
+        "type": "string",
+        "description": "Tool error message if one was produced"
+      },
+      "exit_code": {
+        "type": "number",
+        "description": "Tool exit code where applicable"
+      },
+      "tool_use_id": {
+        "type": "string",
+        "description": "CC 2.1.69 correlation ID"
+      },
+      "duration_ms": {
+        "type": "number",
+        "description": "Tool execution duration in milliseconds"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "tool_name",
+      "tool_input"
+    ]
+  },
+  "PostToolUseFailure": {
+    "type": "object",
+    "properties": {
+      "tool_name": {
+        "type": "string",
+        "description": "The tool that failed"
+      },
+      "tool_input": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Tool input passed to the failed invocation"
+      },
+      "tool_error": {
+        "type": "string",
+        "description": "Error message from the tool"
+      },
+      "exit_code": {
+        "type": "number",
+        "description": "Tool exit code"
+      },
+      "tool_use_id": {
+        "type": "string",
+        "description": "CC 2.1.69 correlation ID"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "tool_name",
+      "tool_input",
+      "tool_error"
+    ]
+  },
+  "PermissionRequest": {
+    "type": "object",
+    "properties": {
+      "tool_name": {
+        "type": "string",
+        "description": "The tool requesting permission"
+      },
+      "tool_input": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Tool input that triggered the permission request"
+      },
+      "permission_suggestions": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "CC 2.1.69 suggested \"always allow\" options"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "tool_name",
+      "tool_input"
+    ]
+  },
+  "SubagentStart": {
+    "type": "object",
+    "properties": {
+      "subagent_type": {
+        "type": "string",
+        "description": "Subagent type (CC 2.1.0+ field name)"
+      },
+      "agent_type": {
+        "type": "string",
+        "description": "Alternative agent type field name"
+      },
+      "agent_id": {
+        "type": "string",
+        "description": "Agent ID"
+      },
+      "parent_agent_id": {
+        "type": "string",
+        "description": "Parent agent ID for trace stitching (CC 2.1.139)"
+      }
+    },
+    "additionalProperties": true
+  },
+  "SubagentStop": {
+    "type": "object",
+    "properties": {
+      "agent_type": {
+        "type": "string",
+        "description": "Agent type"
+      },
+      "agent_id": {
+        "type": "string",
+        "description": "Agent ID"
+      },
+      "agent_output": {
+        "type": "string",
+        "description": "Final agent output text"
+      },
+      "output": {
+        "type": "string",
+        "description": "Alternative output field name"
+      },
+      "error": {
+        "type": "string",
+        "description": "Error from subagent if it failed"
+      },
+      "duration_ms": {
+        "type": "number",
+        "description": "Total subagent execution duration"
+      },
+      "agent_transcript_path": {
+        "type": "string",
+        "description": "Path to subagent transcript (CC 2.1.69)"
+      },
+      "last_assistant_message": {
+        "type": "string",
+        "description": "Final assistant message text (CC 2.1.47+)"
+      }
+    },
+    "additionalProperties": true
+  },
+  "Stop": {
+    "type": "object",
+    "properties": {
+      "last_assistant_message": {
+        "type": "string",
+        "description": "Final assistant message text (CC 2.1.47+)"
+      },
+      "stop_hook_active": {
+        "type": "boolean",
+        "description": "Whether a stop hook is currently active (prevents re-entry)"
+      }
+    },
+    "additionalProperties": true
+  },
+  "Notification": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Notification message text"
+      },
+      "notification_type": {
+        "type": "string",
+        "description": "Notification type discriminator"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "message"
+    ]
+  },
+  "PreCompact": {
+    "type": "object",
+    "properties": {
+      "compaction_count": {
+        "type": "number",
+        "description": "Number of compactions in this session so far"
+      },
+      "context_size_after": {
+        "type": "number",
+        "description": "Estimated context size after compaction (tokens)"
+      }
+    },
+    "additionalProperties": true
+  },
+  "TeammateIdle": {
+    "type": "object",
+    "properties": {
+      "teammate_id": {
+        "type": "string",
+        "description": "Teammate agent ID"
+      },
+      "teammate_type": {
+        "type": "string",
+        "description": "Teammate agent type"
+      },
+      "idle_duration_ms": {
+        "type": "number",
+        "description": "How long the teammate has been idle"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "teammate_id",
+      "teammate_type",
+      "idle_duration_ms"
+    ]
+  },
+  "TaskCompleted": {
+    "type": "object",
+    "properties": {
+      "task_id": {
+        "type": "string",
+        "description": "Completed task ID"
+      },
+      "task_subject": {
+        "type": "string",
+        "description": "Task subject"
+      },
+      "task_status": {
+        "type": "string",
+        "description": "Task result status"
+      },
+      "token_count": {
+        "type": "number",
+        "description": "Tokens consumed by the task (CC 2.1.30)"
+      },
+      "tool_uses": {
+        "type": "number",
+        "description": "Tool invocations in the task (CC 2.1.30)"
+      }
+    },
+    "additionalProperties": true,
+    "required": [
+      "task_id"
+    ]
+  },
+};
+
 function envelopeSchema(event: HookEventName): JsonSchema {
+  const payloadSchema: JsonSchema = PAYLOAD_SCHEMAS[event] ?? { type: 'object', additionalProperties: true };
   return {
     $schema: SCHEMA_DRAFT,
     $id: `https://orchestkit.dev/schemas/hook-contract/${event}.json`,
@@ -34,7 +344,7 @@ function envelopeSchema(event: HookEventName): JsonSchema {
       timestamp: { type: 'string', description: 'ISO-8601 UTC timestamp' },
       session_id: { type: 'string' },
       cwd: { type: 'string' },
-      payload: { type: 'object', additionalProperties: true },
+      payload: payloadSchema,
     },
     required: ['event'],
     additionalProperties: true,

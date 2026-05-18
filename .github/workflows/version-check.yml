@@ -25,6 +25,15 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
         with:
           node-version: '22'
+          cache: 'npm'
+
+      - name: Install workspace deps
+        # Required so `npm run build` can resolve devDeps of workspace
+        # packages (e.g. packages/hook-contract needs js-yaml at codegen
+        # time). Without this step, `npm run build` chains into the
+        # workspace and fails with ERR_MODULE_NOT_FOUND. Caught on M141-2
+        # step 3 (#1869); same class as the issue worked around in #1863.
+        run: npm ci --workspaces --include-workspace-root --no-audit --no-fund
 
       - name: Build plugins
         run: npm run build
