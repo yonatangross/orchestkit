@@ -76,6 +76,38 @@ jobs:
           npm install -g @anthropic-ai/claude-code
           claude --version
 
+      - name: Configure Claude apiKeyHelper
+        # Critical (#1857 postmortem): `claude -p` does NOT authenticate
+        # via ANTHROPIC_API_KEY env var alone in a fresh-HOME environment.
+        # Verified locally on 2026-05-18 (CC 2.1.143) — empty HOME + env
+        # var returns "Not logged in" even though --help says it should
+        # work. The only documented path that DOES work in headless mode
+        # is `apiKeyHelper` in `~/.claude/settings.json` — a shell command
+        # whose stdout is the API key. Putting the actual key in a tiny
+        # helper script keeps it out of settings.json (which CC may log).
+        # See shared/rules/cc-bare-auth-gotcha.md and feedback memory
+        # entry for the full reproducer.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set — add it under Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          mkdir -p ~/.claude
+          printf '#!/bin/sh\necho "$ANTHROPIC_API_KEY"\n' > ~/.claude/api-key-helper.sh
+          chmod +x ~/.claude/api-key-helper.sh
+          printf '{"apiKeyHelper":"%s/.claude/api-key-helper.sh"}\n' "$HOME" > ~/.claude/settings.json
+          # Smoke test: confirm auth actually works before we burn budget
+          # on N failed PR analyses. Fails the job loudly if auth is broken.
+          smoke=$(claude -p --max-turns 1 --output-format json --no-session-persistence \
+            "respond with the single word OK" 2>&1)
+          if echo "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
+            echo "::error::Auth smoke test failed: $(echo "$smoke" | jq -r '.result // "<no result>"' | head -c 200)"
+            exit 1
+          fi
+          echo "Auth smoke test OK ($(echo "$smoke" | jq -r '.usage.total_tokens // 0') tokens)"
+
       - name: Resolve repo + auth context
         id: ctx
         run: |
