@@ -144,9 +144,16 @@ jobs:
 
             # Run /ci-debug headless. Bare mode (CC 2.1.81+) avoids loading
             # plugins/hooks so the budget is predictable.
+            #
+            # M146-6 (#1849): explicit --permission-mode and --effort lock the
+            # dispatch envelope so cost-per-PR stays predictable regardless
+            # of what the runner inherits. The skill is read-only by design
+            # (no edits), so dontAsk + low effort is the right tradeoff.
             tmpdir="$(mktemp -d)"
             timeout "${ORK_SENTINEL_PER_PR_TIMEOUT_S}s" \
               claude -p --bare \
+                --permission-mode dontAsk \
+                --effort low \
                 --max-turns 4 \
                 --output-format json \
                 "Run /ci-debug on PR ${number} in repo ${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}. Use only the gh CLI. Output the report markdown only — no preamble." \

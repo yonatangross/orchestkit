@@ -433,6 +433,27 @@ Full rule (when to fire, body content limits, graceful fallback for users withou
 
 ## Agent Coordination
 
+### Dispatch envelope (CC 2.1.142+ flags — M146-6 / #1849)
+
+When dispatching subagents — whether via the in-session `Agent` tool or a headless `claude -p --bare` from a wrapper script — set explicit `--permission-mode` and `--effort` per agent role so behaviour is deterministic across interactive vs CI runs:
+
+| Agent role | `--permission-mode` | `--effort` | Rationale |
+|---|---|---|---|
+| Read-only analysis (`Explore`, `code-quality-reviewer`, `debug-investigator`) | `dontAsk` | `low` | No writes, no risk; minimise cost. |
+| Test generation (`test-generator`) | `acceptEdits` | `medium` | Writes test files; permission prompts would block the parallel sweep. |
+| Production code (`frontend-ui-developer`, `backend-system-architect`) | `default` or `acceptEdits` | `medium` to `high` | Set per-feature complexity. `default` keeps the user in the loop. |
+| **Never** | `bypassPermissions` | — | Skip the audit trail — only acceptable in throwaway sandboxes. |
+
+In-session `Agent` tool calls inherit the parent session's permission mode; the table is the **policy** for what those defaults should be. For genuinely headless invocations (cron, CI), pass the flags explicitly to `claude -p --bare`:
+
+```bash
+claude -p --bare \
+  --permission-mode dontAsk \
+  --effort low \
+  --max-turns 8 \
+  "<prompt>"
+```
+
 ### Context Passing
 
 All spawned agents receive: changed files list, project tier, architectural constraints, and decisions from prior phases (discovery, plan). Pass via the agent prompt, not just "implement X".

@@ -69,6 +69,19 @@ The workflow is intentionally configured via in-file env vars (not workflow inpu
 | `max_prs` (workflow_dispatch input) | `10` | Cap on PRs analyzed in one sweep. |
 | `dry_run` (workflow_dispatch input) | `false` | Skip comment posting (for spec validation). |
 
+### Dispatch envelope (CC 2.1.142+ flags — M146-6 / #1849)
+
+Each headless `claude -p --bare` invocation locks the dispatch envelope so cost-per-PR stays predictable regardless of what the runner inherits:
+
+| Flag | Value | Why |
+|---|---|---|
+| `--permission-mode` | `dontAsk` | `/ci-debug` is read-only by design (proposes, never applies). `dontAsk` silently refuses destructive ops — exactly what we want from an autonomous classifier. **Never** use `bypassPermissions` here. |
+| `--effort` | `low` | Pattern classification doesn't need deep reasoning. Low keeps cost-per-PR in the $0.01–$0.03 range. |
+| `--max-turns` | `4` | Cap on the conversation length. Sweep, classify, report — done. |
+| `--output-format` | `json` | Ledger needs `usage.total_tokens` for the budget circuit-breaker. |
+
+These are hardcoded in the workflow. If you need to override for a fork (e.g. you want `medium` effort), edit `.github/workflows/ci-sentinel.yml` directly — they're intentionally not exposed as `workflow_dispatch` inputs to prevent accidental cost spikes from a one-off manual run.
+
 ## Comment shape
 
 Every verdict comment looks like:

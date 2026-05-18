@@ -338,6 +338,27 @@ if capabilities.memory:
 
 ## Agent Coordination
 
+### Dispatch envelope (CC 2.1.142+ flags — M146-6 / #1849)
+
+When spawning the 5 RCA agents (debug-investigator, code-quality-reviewer, test-generator, etc.) — whether in-session via the `Agent` tool or headless via `claude -p --bare` — set explicit per-role flags so behaviour is deterministic across interactive and CI runs:
+
+| Agent role | `--permission-mode` | `--effort` |
+|---|---|---|
+| RCA / investigation (`debug-investigator`, `Explore`) | `dontAsk` | `low` — `medium` |
+| Test reproduction (`test-generator`) | `acceptEdits` | `medium` |
+| Fix authoring (production code) | `default` (keep user in loop) | `medium` — `high` |
+| Verification (`code-quality-reviewer`) | `dontAsk` | `low` |
+
+**Never** use `bypassPermissions` — fix-issue's RCA phase often touches code paths; the audit trail matters. For headless invocations (e.g. from `/ork:ci-sentinel` or a cron-driven bug sweep), pass the flags explicitly:
+
+```bash
+claude -p --bare \
+  --permission-mode dontAsk \
+  --effort medium \
+  --max-turns 12 \
+  "/ork:fix-issue <N>"
+```
+
 ### SendMessage (Evidence Sharing)
 
 When an RCA agent discovers the root cause, share with the fix agent:
