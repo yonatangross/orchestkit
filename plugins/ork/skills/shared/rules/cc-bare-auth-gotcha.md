@@ -29,37 +29,65 @@ regardless of whether the API key is supplied via env var, `--settings.apiKey`, 
 ## Do this
 
 ```yaml
-# RIGHT — apiKeyHelper in ~/.claude/settings.json + plain `claude -p`
+# RIGHT — FILE-BACKED apiKeyHelper + plain `claude -p`
+#
+# Critical: the helper script does NOT inherit $ANTHROPIC_API_KEY from
+# the parent step's env. CC strips env before spawning the helper.
+# Verified locally 2026-05-18 (CC 2.1.143): "apiKeyHelper failed: did
+# not return a value". The helper must read from a file the workflow
+# writes.
 - name: Configure Claude apiKeyHelper
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   run: |
     mkdir -p ~/.claude
-    printf '#!/bin/sh\necho "$ANTHROPIC_API_KEY"\n' > ~/.claude/api-key-helper.sh
+    umask 077
+    printf '%s' "$ANTHROPIC_API_KEY" > ~/.claude/.api-key
+    chmod 600 ~/.claude/.api-key
+    printf '#!/bin/sh\ncat %s/.claude/.api-key\n' "$HOME" \
+      > ~/.claude/api-key-helper.sh
     chmod +x ~/.claude/api-key-helper.sh
     printf '{"apiKeyHelper":"%s/.claude/api-key-helper.sh"}\n' "$HOME" \
       > ~/.claude/settings.json
 
 - name: Analyze
-  env:
-    ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   run: |
     claude -p --max-turns 4 --output-format json --no-session-persistence "..."
 ```
 
-Cost: ~10k tokens/call instead of `--bare`'s advertised ~4k. Worth it — the alternative is a silently failing workflow.
+Cost: ~10k tokens/call instead of `--bare`'s advertised ~4k. Worth it — the alternative is a silently failing workflow. The runner is ephemeral; the `.api-key` file is wiped at job end.
+
+## What does NOT work (don't try these)
+
+| Pattern | Result |
+|---|---|
+| `claude --bare` + `ANTHROPIC_API_KEY` env var | "Not logged in" — `--bare` ignores env despite help text |
+| `claude --bare` + `--settings {"apiKey":"..."}` | "Not logged in" — same |
+| `claude --bare` + `--settings {"apiKeyHelper":"..."}` | "Not logged in" — same |
+| `claude -p` + `--settings {"apiKey":"..."}` | "Not logged in" — `apiKey` in settings is silently ignored |
+| `claude -p` + helper that echoes `$ANTHROPIC_API_KEY` | "apiKeyHelper failed: did not return a value" — env stripped before helper invocation |
+
+The ONLY working combo: plain `claude -p` + `apiKeyHelper` that reads from a file the workflow writes.
 
 ## Verify auth before burning budget
 
-Always include a one-call smoke test after the apiKeyHelper write step:
+Always include a one-call smoke test after the apiKeyHelper write step. Disable `set -e` around the smoke since `claude -p` exits 1 on auth failure and would silently kill the step under errexit:
 
 ```bash
+set +e
 smoke=$(claude -p --max-turns 1 --output-format json --no-session-persistence \
   "respond with OK" 2>&1)
-echo "$smoke" | jq -e '.is_error == true' >/dev/null && {
+smoke_exit=$?
+set -e
+
+echo "claude smoke exit: $smoke_exit"
+printf '%s\n' "$smoke" | head -c 400
+
+if [ "$smoke_exit" -ne 0 ] || \
+   printf '%s' "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
   echo "::error::Auth smoke test failed"
   exit 1
-}
+fi
 ```
 
 The smoke test runs once per workflow invocation and catches auth breaks at the START of the job — not 10 PRs later when you've wasted classifier runs on every failure.

@@ -95,18 +95,54 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.claude
-          printf '#!/bin/sh\necho "$ANTHROPIC_API_KEY"\n' > ~/.claude/api-key-helper.sh
+          # Write the key to a 600-mode file. The helper script reads from
+          # this file rather than from $ANTHROPIC_API_KEY because CC spawns
+          # the helper with a stripped environment — env vars from the
+          # parent step are NOT inherited (verified locally 2026-05-18:
+          # "apiKeyHelper failed: did not return a value"). The runner is
+          # ephemeral; file is gone at job end.
+          umask 077
+          printf '%s' "$ANTHROPIC_API_KEY" > ~/.claude/.api-key
+          chmod 600 ~/.claude/.api-key
+          printf '#!/bin/sh\ncat %s/.claude/.api-key\n' "$HOME" > ~/.claude/api-key-helper.sh
           chmod +x ~/.claude/api-key-helper.sh
           printf '{"apiKeyHelper":"%s/.claude/api-key-helper.sh"}\n' "$HOME" > ~/.claude/settings.json
+          echo "settings.json contents (helper path):"
+          cat ~/.claude/settings.json
+          echo "helper script:"
+          cat ~/.claude/api-key-helper.sh
+          echo "key file: $(wc -c < ~/.claude/.api-key) bytes, mode $(stat -c %a ~/.claude/.api-key 2>/dev/null || stat -f %A ~/.claude/.api-key 2>/dev/null)"
+
           # Smoke test: confirm auth actually works before we burn budget
           # on N failed PR analyses. Fails the job loudly if auth is broken.
+          #
+          # IMPORTANT (#1858 → #1859 follow-up): bash `-e` propagates the exit
+          # code of a command substitution. `claude -p` exits 1 on any auth
+          # failure, which under `set -e` silently kills the step BEFORE we
+          # can log the error. Disable -e around the smoke and capture both
+          # stdout and exit explicitly so the failure mode is visible.
+          set +e
           smoke=$(claude -p --max-turns 1 --output-format json --no-session-persistence \
             "respond with the single word OK" 2>&1)
-          if echo "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
-            echo "::error::Auth smoke test failed: $(echo "$smoke" | jq -r '.result // "<no result>"' | head -c 200)"
+          smoke_exit=$?
+          set -e
+
+          echo "claude smoke exit: $smoke_exit"
+          echo "claude smoke output (first 400 chars):"
+          printf '%s\n' "$smoke" | head -c 400
+          echo
+
+          if [ "$smoke_exit" -ne 0 ]; then
+            echo "::error::Auth smoke test exited $smoke_exit — see output above"
             exit 1
           fi
-          echo "Auth smoke test OK ($(echo "$smoke" | jq -r '.usage.total_tokens // 0') tokens)"
+          if printf '%s' "$smoke" | jq -e '.is_error == true' >/dev/null 2>&1; then
+            result=$(printf '%s' "$smoke" | jq -r '.result // "<no result>"' | head -c 200)
+            echo "::error::Auth smoke test reported is_error=true: $result"
+            exit 1
+          fi
+          tokens=$(printf '%s' "$smoke" | jq -r '.usage.total_tokens // 0')
+          echo "Auth smoke test OK (${tokens} tokens)"
 
       - name: Resolve repo + auth context
         id: ctx
