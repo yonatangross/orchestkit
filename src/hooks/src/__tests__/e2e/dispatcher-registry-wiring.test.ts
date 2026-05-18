@@ -311,7 +311,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 85 -> 86: M104 PR-B — lifecycle/agentation-context moved from
       //           prompt/unified-dispatcher (UserPromptSubmit) to SessionStart (async, 5s)
       // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart, async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 87 async hooks').toBe(87);
+      // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async, 5s)
+      expect(asyncHooks.length, 'Should have exactly 88 async hooks').toBe(88);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -416,7 +417,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector (SessionStart, async)
       // 85 -> 86: M104 PR-B — lifecycle/agentation-context (SessionStart, async)
       // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart, async)
-      expect(asyncCount).toBe(87);
+      // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async)
+      expect(asyncCount).toBe(88);
     });
 
     it('should have hooks for all critical security operations', () => {

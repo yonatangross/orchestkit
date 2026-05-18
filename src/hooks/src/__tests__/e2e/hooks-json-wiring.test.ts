@@ -176,7 +176,10 @@ describe('hooks.json wiring E2E', () => {
       //                          moved from prompt/unified-dispatcher's internal HOOKS array)
       // 198 -> 199: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart;
       //                          idempotent quarantine sweep for #1250-recurrence envelope leak).
-      expect(hooksConfig.description).toContain('199 total');
+      // 199 -> 200: M141 #1860 — lifecycle/hook-token-check (SessionStart;
+      //                          warns when $ORCHESTKIT_HOOK_TOKEN is unset but
+      //                          type:http hooks reference it).
+      expect(hooksConfig.description).toContain('200 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

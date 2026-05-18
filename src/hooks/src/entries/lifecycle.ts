@@ -87,6 +87,9 @@ import { agentationContext } from '../lifecycle/agentation-context.js';
 // #1826 — defensive backfill cleanup of envelope-corrupt session/worktree
 // entries (idempotent: writes a done-marker after first sweep).
 import { cleanupEnvelopeCorruption } from '../lifecycle/cleanup-envelope-corruption.js';
+// #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks
+// reference it (fail-silent class closer; pairs with generator --write refusal).
+import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -129,6 +132,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/agentation-context': agentationContext,
   // #1826 — backfill cleanup of envelope-corrupt session/worktree entries
   'lifecycle/cleanup-envelope-corruption': cleanupEnvelopeCorruption,
+  // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks reference it
+  'lifecycle/hook-token-check': hookTokenCheck,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

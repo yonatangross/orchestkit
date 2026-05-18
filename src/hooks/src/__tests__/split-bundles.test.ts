@@ -370,7 +370,9 @@ describe('Cross-Bundle Consistency', () => {
     //              a SessionStart entry).
     // 230 -> 231: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart,
     //              idempotent quarantine sweep for #1250-recurrence envelope leak).
-    expect(totalHooks).toBe(231);
+    // 231 -> 232: M141 #1860 — lifecycle/hook-token-check (SessionStart, async,
+    //              defense-in-depth for ORCHESTKIT_HOOK_TOKEN fail-silent class).
+    expect(totalHooks).toBe(232);
   });
 });
 

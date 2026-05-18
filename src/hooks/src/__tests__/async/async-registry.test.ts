@@ -128,7 +128,10 @@ describe('Async Hooks Registry', () => {
       // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart,
       //           async, 5s). Idempotent quarantine sweep of historical
       //           `{"continue":true,...}`-named entries from #1250 recurrence.
-      expect(asyncHooks.length, 'Should have exactly 87 async hooks').toBe(87);
+      // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async, 5s).
+      //           Warns when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks
+      //           reference it; defense-in-depth with generator --write refusal.
+      expect(asyncHooks.length, 'Should have exactly 88 async hooks').toBe(88);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
