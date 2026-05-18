@@ -110,7 +110,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->199<!--/ork--> hooks (<!--ork:hooks-global-->131<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->200<!--/ork--> hooks (<!--ork:hooks-global-->132<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -697,6 +697,23 @@ HTTP hooks live in `.claude/settings.local.json` (per-user, not committed), gene
 ```bash
 npm run generate:http-hooks -- https://your-api.com/hooks --write
 ```
+
+### Required Env Var Checklist (#1860)
+
+Every generated entry references `$ORCHESTKIT_HOOK_TOKEN` literally as the Bearer token. If the var is unset in the shell that launches Claude Code, **every hook fire returns 401** and CC surfaces on-screen `PreToolUse:Bash hook error` spam — which masks real errors (e.g. yonatan-hq/platform#3589 ingestion gaps).
+
+The generator now fails closed: `--write` refuses to persist entries when `$ORCHESTKIT_HOOK_TOKEN` is empty.
+
+```text
+1. Pick a token:           your CC plugin server expects a bearer string.
+2. Export it in the shell: export ORCHESTKIT_HOOK_TOKEN=<token>
+3. Persist it:             echo 'export ORCHESTKIT_HOOK_TOKEN=...' >> ~/.zshrc
+   - OR 1Password ref:     op read 'op://Private/orchestkit/hook-token'
+4. Run the generator:      npm run generate:http-hooks -- <url> --write
+5. Restart the CC session  so the new settings.local.json takes effect.
+```
+
+If you intend to set the token later (in a different shell init, secret manager fetch, etc.), pass `--allow-missing-token` to bypass the guard — but the SessionStart hook (`lifecycle/hook-token-check`) will still emit a stderr warning every time CC starts until the var is exported.
 
 See `src/skills/configure/references/http-hooks.md` for full setup guide.
 
@@ -1321,7 +1338,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 12 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** <!--ork:hooks-->199<!--/ork--> hooks (<!--ork:hooks-global-->131<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->200<!--/ork--> hooks (<!--ork:hooks-global-->132<!--/ork--> global + <!--ork:hooks-agent-->46<!--/ork--> agent-scoped + <!--ork:hooks-skill-->22<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
