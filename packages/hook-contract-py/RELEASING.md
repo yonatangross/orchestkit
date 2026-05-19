@@ -2,25 +2,35 @@
 
 Tag-driven release flow. Tags matching `hook-contract-py/v<version>` trigger `.github/workflows/publish-hook-contract-py.yml`, which builds, publishes to TestPyPI, runs a fresh-install smoke test, then publishes to public PyPI and cuts a GitHub Release.
 
+## Accounts
+
+| Registry | Username | Credential stored in |
+|---|---|---|
+| https://pypi.org | `yonyonai` | 1Password: `op://Personal/PyPI - yonyonai` (tag: `pypi,orchestkit,trusted-publisher`) |
+| https://test.pypi.org | `yonyonai` (register if not yet) | Same 1Password entry |
+
+> No API token stored in GitHub Actions secrets — OIDC trusted publishing handles auth via short-lived tokens minted per-run.
+
 ## One-time setup (already done if PyPI shows a trusted publisher)
 
-Register this repo as a Trusted Publisher on PyPI so the workflow can publish without storing a PyPI API token as a secret. OIDC handles auth via short-lived tokens.
+Register this repo as a Trusted Publisher on PyPI so the workflow can publish without storing a PyPI API token as a secret.
 
 ### TestPyPI
 
-1. Open https://test.pypi.org/manage/account/publishing/ (log in)
-2. Click "Add a new pending publisher"
-3. Fill in:
+1. Log in as `yonyonai` at https://test.pypi.org/manage/account/publishing/
+2. (If you haven't registered `yonyonai` on TestPyPI yet, register the account first — same email recommended.)
+3. Click "Add a new pending publisher"
+4. Fill in:
    - **PyPI project name**: `orchestkit-hook-contract`
    - **Owner**: `yonatangross`
    - **Repository name**: `orchestkit`
    - **Workflow filename**: `publish-hook-contract-py.yml`
    - **Environment name**: `testpypi`
-4. Save
+5. Save
 
 ### PyPI (production)
 
-Same process at https://pypi.org/manage/account/publishing/ with:
+Log in as `yonyonai` at https://pypi.org/manage/account/publishing/ and repeat the same form with:
    - **Environment name**: `pypi`
 
 ## Cut a release
