@@ -272,6 +272,8 @@ jobs:
     needs: [preflight, publish-pypi]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Required by `gh release create` below. This is the minimum scope;
+    # all other jobs in this workflow run under the top-level `contents: read`.
     permissions:
       contents: write
     steps:

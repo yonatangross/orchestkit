@@ -18,16 +18,20 @@ concurrency:
   group: cc-release-watch
   cancel-in-progress: false
 
-# Least privilege: write issues + commit snapshots; PRs only if scripts open dedupe PRs.
+# Default-deny at workflow level; writes scoped to the watch job below.
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
   watch:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Least privilege at job level: write issues + commit snapshots;
+    # PRs only because scripts open dedupe PRs via peter-evans.
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     # Hoist CLAUDE_CODE_OAUTH_TOKEN to JOB-LEVEL env so it's readable in
     # step-level `if:` expressions (the `secrets` context is NOT allowed
     # in `if:`, and step-level env is applied AFTER `if:` evaluates).

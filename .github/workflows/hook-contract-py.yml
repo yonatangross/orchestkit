@@ -17,6 +17,10 @@ on:
       - ".github/workflows/hook-contract-py.yml"
   workflow_dispatch:
 
+# Default-deny: jobs that need writes override at job level.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: codegen-check · mypy · pytest · build
