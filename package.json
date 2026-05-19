@@ -10,6 +10,7 @@
     "prebuild": "echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present",
+    "test:parity": "python3 scripts/parity-check.py",
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
