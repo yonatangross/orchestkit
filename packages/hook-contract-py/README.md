@@ -4,8 +4,9 @@ Pydantic v2 + JSON Schema contract for Claude Code hook events. Python sibling o
 
 ## Status
 
-- **M141-3 (this package)**: scaffold — Pydantic models, JSON schemas, structural validator, hand-rolled codegen from spec.
-- **M141-6 (next)**: cross-language parity gate CI — diff this output against the npm side field-by-field.
+- **M141-3**: scaffold — Pydantic models, JSON schemas, structural validator, hand-rolled codegen from spec.
+- **M141-4 (this change)**: HMAC signing protocol + reference verifier. Spec at [`../hook-contract/docs/signing-rfc.md`](../hook-contract/docs/signing-rfc.md). Shared golden vectors at [`../hook-contract/test-vectors/signing/`](../hook-contract/test-vectors/signing/).
+- **M141-6**: cross-language parity gate CI — diff this output against the npm side field-by-field.
 
 ## Install
 
@@ -37,6 +38,32 @@ assert p.tool_name == "Bash"
 # Pydantic envelope
 e = HookEvent(event="PreToolUse", payload={"tool_name": "Bash", "tool_input": {}})
 ```
+
+### HMAC signing (M141-4)
+
+Sign hook deliveries on the sender and verify on the receiver. Full spec: [`../hook-contract/docs/signing-rfc.md`](../hook-contract/docs/signing-rfc.md).
+
+```python
+from orchestkit_hook_contract import sign, verify, HOOK_SIGNATURE_HEADER
+
+# Sender
+import json, requests, os
+body = json.dumps(event).encode("utf-8")
+header = sign(body, os.environ["HOOK_SECRET"])
+requests.post(url, headers={HOOK_SIGNATURE_HEADER: header, "Content-Type": "application/json"}, data=body)
+
+# Receiver (Flask / FastAPI / etc. — capture raw body, NOT json.dumps(req.json))
+result = verify(
+    request.headers.get(HOOK_SIGNATURE_HEADER),
+    request.get_data(),  # raw bytes
+    os.environ["HOOK_SECRET"],
+    tolerance_sec=300,
+)
+if not result.valid:
+    abort(401, result.reason)  # "missing_header" | "malformed_header" | "stale" | "signature_mismatch"
+```
+
+Mirrors the npm sibling byte-for-byte against the same 13 golden vectors. Zero deps beyond `hmac` + `hashlib` from the stdlib.
 
 ## Coverage
 

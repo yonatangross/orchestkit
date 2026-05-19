@@ -2,10 +2,12 @@
 
 All notable changes to `orchestkit-hook-contract` are documented here.
 
-## Unreleased — release-flow scaffolding
+## Unreleased — release-flow scaffolding + HMAC signing
 
 ### Added
 
+- HMAC signing module (M141-4, #1805): `sign()`, `verify()`, `Reason` literal, `VerifyResult` dataclass, `HOOK_SIGNATURE_HEADER`, `MIN_SECRET_BYTES`. Stdlib-only (`hmac` + `hashlib`). Mirrors the npm sibling byte-for-byte against the 13 shared golden vectors at `../hook-contract/test-vectors/signing/`. Spec at `../hook-contract/docs/signing-rfc.md`.
+- 42 pytest cases for signing: vector-driven cross-language conformance + API-surface coverage (round-trip, missing/malformed/stale, weak-secret callback, key rotation, multi-scheme, 8192-byte DoS cap, 10-digit timestamp cap).
 - `.github/workflows/publish-hook-contract-py.yml` — tag-driven PyPI release pipeline. Triggers on `hook-contract-py/v*` tags. Pipeline: preflight → build → test → publish-testpypi → smoke-testpypi → publish-pypi → github-release. Pattern adapted from Yonatan-HQ/core; uses public PyPI + OIDC trusted publishing.
 - `packages/hook-contract-py/RELEASING.md` — release-flow documentation including the one-time Trusted Publisher setup on pypi.org and test.pypi.org.
 
