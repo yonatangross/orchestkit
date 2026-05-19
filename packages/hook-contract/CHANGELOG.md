@@ -2,6 +2,30 @@
 
 All notable changes to `@orchestkit/hook-contract` are documented here.
 
+## Unreleased — M141-4 (#1805)
+
+### Added
+
+- `docs/signing-rfc.md` — HMAC-SHA256 signing protocol RFC. Stripe-style `X-CC-Hooks-Signature: t=<unix>,v1=<hex>` header, 300s replay window, multi-scheme key rotation, stable `Reason` enum (`ok | missing_header | malformed_header | stale | signature_mismatch | weak_secret`). Language-neutral spec — npm and PyPI implementations MUST match byte-for-byte.
+- `src/signing.ts` — pure verifier (`verify`) + signer (`sign`) using `node:crypto` (`createHmac`, `timingSafeEqual`). Multi-secret rotation support; never throws on bad header input — every failure maps to a `Reason`. Constant-time compare on equal-length buffers only.
+- `HOOK_SIGNATURE_HEADER` constant for middleware authors.
+- `test-vectors/signing/*.json` — 13 golden vectors (5 positive, 8 negative) shared with the PyPI sibling. Bodies are base64-encoded so vectors carry arbitrary bytes.
+- `scripts/generate-signing-vectors.mjs` — deterministic regenerator for the vector files.
+- `tests/signing.test.ts` — 24 tests including the full vector matrix, sign/verify round-trip, rotation array support, and weak-secret callback.
+
+### Security hardening (from security-auditor review)
+
+- Header length capped at 8192 bytes (returns `malformed_header`) — DoS guardrail.
+- Timestamps with more than 10 digits returned as `stale` — prevents safe-integer overflow on the TS side and matches Python's `bigint` behavior so cross-language parity is preserved.
+- `weak_secret` warning fires only after `parseHeader` succeeds — prevents info-disclosure via malformed-request probing.
+- `matched = timingSafeEqual(...) || matched` uses explicit OR-assign so the non-short-circuit intent survives future refactors.
+- `MIN_SECRET_BYTES` exported so callers can pre-validate at config time.
+
+### Notes
+
+- Platform consumer (`yonatan-hq/platform`) currently uses a non-conforming header (`X-CC-Hooks-Signature: sha256=<hex>` with no replay protection); migration is M141-8 (#1809). The RFC appendix captures the gap analysis.
+- `@types/node` added as a devDependency for `node:crypto` types — still zero runtime deps.
+
 ## Unreleased — M141-2 step 1 (#1864)
 
 ### Added
