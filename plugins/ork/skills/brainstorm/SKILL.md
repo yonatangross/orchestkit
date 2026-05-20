@@ -249,6 +249,28 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | **4. Evaluation & Rating** | Rate 0-10 (7 dimensions incl. **simplicity**), devil's advocate | Ranked ideas |
 | **5. Synthesis** | Filter to top 2-3, trade-off table, **test strategy per approach** | Options |
 | **6. Design Presentation** | Present in 200-300 word sections, log to experiment journal | Validated design |
+| **6.5. Audio Podcast** (signal-fired, optional) | Auto-emit `brainstorm-podcast.m4a` when composite≥8.0 + approaches≥4 | `.m4a` file |
+
+### Phase 6.5 — Post-synthesis audio podcast (signal-fired, optional)
+
+After Phase 6 lands, optionally invoke `scripts/post_synth_podcast.py <session-dir>` to auto-emit an audio podcast summarizing the top approaches + trade-offs. Self-skips on every non-happy-path so it never breaks the brainstorm:
+
+```bash
+python3 plugins/ork/skills/brainstorm/scripts/post_synth_podcast.py "$CLAUDE_JOB_DIR"
+```
+
+Auto-skip conditions (all exit 0, all WARN-logged):
+
+| Skip reason | Trigger |
+|-------------|---------|
+| `signal absent` | `composite[recommended] < 8.0` OR `len(approaches) < 4` |
+| `design-doc.md not found` | Phase 6 didn't write a design doc to the session dir |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `hq-content MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `hq-content` |
+
+Session dir must contain `brainstorm-output.json` (with `recommended`, `composite`, `approaches`) + `design-doc.md`. Handoff JSON at `<session-dir>/brainstorm-podcast.json` records `status` (`fired` / `skipped`) and `m4a_path` on success.
+
+Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler for `/hq-ext:decide`).
 
 ### Progressive Output (CC 2.1.76)
 
