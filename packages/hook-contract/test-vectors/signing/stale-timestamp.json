@@ -1,0 +1,14 @@
+{
+  "name": "stale-timestamp",
+  "description": "Timestamp older than now by (tolerance + 1) seconds.",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "eyJldmVudCI6IlByZVRvb2xVc2UifQ==",
+  "timestamp": 1731000000,
+  "now": 1731000301,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=e5e36d61c6e5612e791f9373ed831f42acf7824a76aec15faa47b5fc8af9d38a",
+  "expected": {
+    "valid": false,
+    "reason": "stale"
+  }
+}
