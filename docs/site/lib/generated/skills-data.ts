@@ -524,6 +524,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "comparison-table.md"
       ],
       "scripts": [
+        "memory_writeback.py",
         "render-spec.mjs"
       ],
       "checklists": [
@@ -788,7 +789,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scripts": [
         "create-design-doc.md",
         "decision-matrix-template.md",
-        "design-doc-template.md"
+        "design-doc-template.md",
+        "post_synth_podcast.py"
       ],
       "checklists": [
         "brainstorm-completion.md",
@@ -3067,7 +3069,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "graph-utils.mjs",
         "playground-template.html",
         "render-graph.mjs",
-        "render-playground.mjs"
+        "render-playground.mjs",
+        "staleness_cron.py",
+        "staleness_lib.py"
       ]
     },
     "plugins": [

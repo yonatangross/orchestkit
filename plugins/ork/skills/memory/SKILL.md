@@ -97,6 +97,38 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/memory-commands.md")` for fu
 
 ---
 
+## Scheduled Sweeps (cron)
+
+### Nightly KG staleness report
+
+Cron job in `.github/workflows/memory-staleness.yml` runs nightly at 04:00 UTC. Calls `scripts/staleness_cron.py` to scan ALL memory MCP entities, flag those whose latest observation timestamp is older than 30 days, and write a Markdown report to `docs/reports/memory-staleness-YYYY-MM-DD.md`.
+
+```bash
+python3 plugins/ork/skills/memory/scripts/staleness_cron.py docs/reports/ \
+    --threshold-days 30 --limit 50
+```
+
+Auto-skip conditions (all exit 0, all WARN-logged):
+
+| Skip reason | Trigger |
+|-------------|---------|
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `memory MCP unreachable` | memory MCP server down OR `.mcp.json` doesn't define `memory` |
+
+**Report contents:**
+- Total / stale / fresh entity counts
+- Top N stale entries sorted by staleness (no-timestamp first, then oldest → newest)
+- Each row: name, entityType, age in days, observations count
+- Suggested actions per age bucket (>90d review, >180d archive candidate)
+
+**Treats entities with no parsable timestamp as stale** — operator intervention is the right outcome (backfill `last_read` observation OR prune).
+
+Pure helpers (`parse_iso_timestamp`, `latest_observation_timestamp`, `is_stale`, `build_report_payload`, `render_markdown`) live in sibling `staleness_lib.py` for unit-testability.
+
+Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast) and orchestkit#1886 (post-synth podcast) + #1887 (memory writeback) pattern. Unblocked by `Yonatan-HQ/core#993` (yg-mcp-core 0.3.0).
+
+---
+
 ## Workflow
 
 ### 1. Parse Subcommand
