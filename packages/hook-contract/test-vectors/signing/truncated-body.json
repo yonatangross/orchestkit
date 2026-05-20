@@ -1,0 +1,14 @@
+{
+  "name": "truncated-body",
+  "description": "Signature computed over full body; body delivered with last byte removed.",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "eyJldmVudCI6IlByZVRvb2xVc2UiLCJ0b29sIjoiQmFzaCI=",
+  "timestamp": 1731000000,
+  "now": 1731000000,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=b5d8e8af1095339a3e7b0b7a493a4d87de3ad2166b65c11c394150b23a83ae96",
+  "expected": {
+    "valid": false,
+    "reason": "signature_mismatch"
+  }
+}

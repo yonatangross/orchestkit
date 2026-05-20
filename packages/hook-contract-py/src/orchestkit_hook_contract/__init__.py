@@ -48,6 +48,14 @@ from .schemas import (
     HOOK_EVENT_SCHEMAS,
     PAYLOAD_SCHEMAS,
 )
+from .signing import (
+    HOOK_SIGNATURE_HEADER,
+    MIN_SECRET_BYTES,
+    Reason,
+    VerifyResult,
+    sign,
+    verify,
+)
 from .validate import (
     ValidationResult,
     is_hook_event,
@@ -72,6 +80,13 @@ __all__ = [  # noqa: RUF022 — grouped by category for readability
     "is_hook_event",
     "validate_hook_event",
     "ValidationResult",
+    # HMAC signing (M141-4)
+    "HOOK_SIGNATURE_HEADER",
+    "MIN_SECRET_BYTES",
+    "Reason",
+    "VerifyResult",
+    "sign",
+    "verify",
     # Per-event payload classes
     "NotificationPayload",
     "PermissionRequestPayload",
