@@ -16,5 +16,6 @@
 export * from './events.js';
 export * from './schemas.js';
 export * from './validate.js';
+export * from './signing.js';
 
 export const HOOK_CONTRACT_VERSION = '0.1.0' as const;
