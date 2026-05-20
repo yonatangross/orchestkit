@@ -139,4 +139,59 @@ describe('agentWatchdog', () => {
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
+
+  // ─── Zombie reaping (#1882) ───────────────────────────────────────
+  // Spawns older than MAX_SPAWN_AGE_MS (24h) are treated as zombies
+  // from prior sessions and silently dropped. Without this, watchdog
+  // accumulates noise across sessions until the operator stops reading
+  // it and misses a real hang.
+
+  it('silently drops zombie spawn older than 24h cap', () => {
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: twoDaysAgo, agent_id: 'zombie', subagent_type: 'workflow-architect' })
+    );
+
+    const result = agentWatchdog(makeInput(), testCtx);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(result.systemMessage).toBeUndefined();
+  });
+
+  it('still warns for an agent JUST under the 24h cap', () => {
+    // 23h59m old — still inside the cap, still critical
+    const justUnder = new Date(Date.now() - (24 * 60 * 60 * 1000 - 60 * 1000)).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: justUnder, agent_id: 'aged', subagent_type: 'security-auditor' })
+    );
+
+    const result = agentWatchdog(makeInput(), testCtx);
+
+    expect(result.systemMessage).toContain('CRITICAL');
+    expect(result.systemMessage).toContain('security-auditor');
+  });
+
+  it('only legitimate recent spawn surfaces when mixed with zombies', () => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue([
+      JSON.stringify({ timestamp: sevenDaysAgo, agent_id: 'zombie-1', subagent_type: 'agents-view-editor' }),
+      JSON.stringify({ timestamp: sevenDaysAgo, agent_id: 'zombie-2', subagent_type: 'manifest-reconciler' }),
+      JSON.stringify({ timestamp: sevenDaysAgo, agent_id: 'zombie-3', subagent_type: 'opus-sweeper' }),
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'real-hung', subagent_type: 'backend-system-architect' }),
+    ].join('\n'));
+
+    const result = agentWatchdog(makeInput(), testCtx);
+
+    expect(result.systemMessage).toContain('CRITICAL');
+    expect(result.systemMessage).toContain('backend-system-architect');
+    expect(result.systemMessage).not.toContain('agents-view-editor');
+    expect(result.systemMessage).not.toContain('manifest-reconciler');
+    expect(result.systemMessage).not.toContain('opus-sweeper');
+  });
 });
