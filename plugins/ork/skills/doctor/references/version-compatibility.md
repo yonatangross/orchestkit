@@ -14,13 +14,14 @@ any skills whose `exit-criteria` is missing or empty as a warning.
 
 Current experimental skills (M139, snapshot — verify via dynamic scan):
 
-| Skill | RP dependency | Expected GA |
-|---|---|---|
-| `ork:agents-view` | CC 2.1.139 `claude agents` (Research Preview) | CC 2.1.145 expected |
+_None._ `ork:agents-view` was removed in favor of the native `claude agents`
+CLI (CC 2.1.139+) plus the parallel-primitives doc at
+`docs/parallel-primitives.md`.
 
-When the underlying RP feature reaches GA and the `exit-criteria` are satisfied,
-remove the `experimental:` block from the skill's frontmatter and drop the entry
-from this table.
+When a future skill depends on an unreleased CC feature, add it to this table
+with its `exit-criteria` so doctor can warn about Research Preview surface
+area. Remove the entry once the underlying CLI feature reaches GA and the
+skill is no longer marked `experimental:` in its frontmatter.
 
 ## Feature Matrix
 
