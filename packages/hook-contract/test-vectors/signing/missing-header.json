@@ -1,0 +1,14 @@
+{
+  "name": "missing-header",
+  "description": "No header value at all (null/empty string).",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "eyJldmVudCI6IlByZVRvb2xVc2UifQ==",
+  "timestamp": 1731000000,
+  "now": 1731000000,
+  "tolerance_sec": 300,
+  "header": "",
+  "expected": {
+    "valid": false,
+    "reason": "missing_header"
+  }
+}
