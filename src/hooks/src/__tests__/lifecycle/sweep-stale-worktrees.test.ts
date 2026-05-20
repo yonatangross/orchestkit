@@ -19,7 +19,8 @@ import {
   existsSync,
   utimesSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { execFileSync } from 'node:child_process';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
@@ -46,6 +47,10 @@ describe('sweepStaleWorktrees (#1884)', () => {
     parent = mkdtempSync(join(tmpdir(), 'sweep-stale-parent-'));
     project = join(parent, 'fakerepo');
     mkdirSync(project, { recursive: true });
+    // Initialize the project as a real git repo so `git worktree list` succeeds
+    // and returns an empty registry (rather than failing → null → bail out
+    // under the new fail-closed registry-check behavior).
+    execFileSync('git', ['init', '--quiet', project], { stdio: 'ignore' });
     originalProject = process.env.CLAUDE_PROJECT_DIR;
     process.env.CLAUDE_PROJECT_DIR = project;
   });
@@ -152,6 +157,43 @@ describe('sweepStaleWorktrees (#1884)', () => {
     const removed = sweepStaleSiblings(project, NOOP_CTX);
     expect(removed).toBe(0);
     expect(existsSync(project)).toBe(true);
+  });
+
+  it('refuses to scan when projectDir is the filesystem root', () => {
+    // Pathological: if projectDir resolves to "/", dirname is also "/", so
+    // parent === projectDir. Must bail out cleanly without scanning.
+    const removed = sweepStaleSiblings('/', NOOP_CTX);
+    expect(removed).toBe(0);
+  });
+
+  it('refuses to scan when projectDir is the user home directory', () => {
+    // Pathological: never sweep siblings of $HOME — they're not project-related.
+    // Use the actual homedir() since the guard compares resolved paths.
+    const removed = sweepStaleSiblings(homedir(), NOOP_CTX);
+    expect(removed).toBe(0);
+  });
+
+  it('skips sweep when git worktree list fails (null registry → fail-closed)', () => {
+    // Build a separate tmp project that is NOT a git repo. `git -C project
+    // worktree list` will fail with "not a git repo", so registeredWorktrees
+    // returns null. Sweep MUST skip — not fall through to predicates 3+4
+    // (which alone would still delete the stale dir, but the spec is
+    // fail-closed: no registry verification → no sweep).
+    const nogitParent = mkdtempSync(join(tmpdir(), 'sweep-nogit-'));
+    const nogitProject = join(nogitParent, 'norepo');
+    mkdirSync(nogitProject, { recursive: true });
+    // Intentionally do NOT run `git init` here.
+    const stale = join(nogitParent, 'norepo-aborted');
+    mkdirSync(stale, { recursive: true });
+    backdate(stale, MIN_AGE_MS + 60_000);
+
+    try {
+      const removed = sweepStaleSiblings(nogitProject, NOOP_CTX);
+      expect(removed).toBe(0);
+      expect(existsSync(stale)).toBe(true);
+    } finally {
+      rmSync(nogitParent, { recursive: true, force: true });
+    }
   });
 
   it('opt-out via ORK_NO_STALE_SWEEP=1 short-circuits the hook', () => {

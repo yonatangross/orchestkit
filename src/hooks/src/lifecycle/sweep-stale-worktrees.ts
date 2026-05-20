@@ -32,6 +32,7 @@ import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { existsSync, rmSync, readdirSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { getProjectDir } from '../lib/paths.js';
@@ -42,10 +43,12 @@ const MIN_AGE_MS = 60 * 60 * 1000; // 1 hour — race-protect in-flight worktree
 const MAX_DEPTH_FILES = 3; // Find files up to 3 levels deep (avoids deep scans).
 
 /**
- * Return paths registered with git worktree list, or empty list on failure.
- * Used to skip directories that ARE legitimate worktrees.
+ * Return paths registered with git worktree list, or `null` if the git call
+ * itself failed (binary missing, repo corrupt, timeout). The caller treats
+ * `null` as "skip this sweep cycle entirely" — fail-closed: if we cannot
+ * verify the registry (predicate #2), do nothing.
  */
-function registeredWorktrees(projectDir: string): Set<string> {
+function registeredWorktrees(projectDir: string): Set<string> | null {
   try {
     const stdout = execFileSync('git', ['-C', projectDir, 'worktree', 'list', '--porcelain'], {
       encoding: 'utf8',
@@ -60,13 +63,7 @@ function registeredWorktrees(projectDir: string): Set<string> {
     }
     return paths;
   } catch {
-    // Git unreachable / repo corrupt / binary missing — predicate #2
-    // (registry check) is silently bypassed. Returning empty set means every
-    // sibling is treated as registry-orphan for this run. Predicates 3+4
-    // (file emptiness AND mtime > 1h) remain load-bearing and prevent any
-    // false-positive deletion. The git failure isn't surfaced because (a)
-    // this function has no HookContext and (b) predicates 3+4 are sufficient.
-    return new Set();
+    return null;
   }
 }
 
@@ -94,7 +91,7 @@ function isEmptyOfFiles(path: string, depth = 0): boolean {
     if (entry === '.DS_Store' || entry === 'Thumbs.db') continue;
 
     const full = join(path, entry);
-    let st;
+    let st: ReturnType<typeof statSync>;
     try {
       st = statSync(full);
     } catch {
@@ -113,8 +110,19 @@ function isEmptyOfFiles(path: string, depth = 0): boolean {
  * stale ones. Returns count removed. Safe — never throws.
  */
 export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number {
-  const parent = dirname(projectDir);
-  const repoName = basename(projectDir);
+  const resolvedProject = resolve(projectDir);
+  const parent = dirname(resolvedProject);
+  const repoName = basename(resolvedProject);
+
+  // ─── Pathological projectDir guards (fail-closed) ─────────────────────
+  // If projectDir is the filesystem root, the user's home directory, or
+  // doesn't have a real basename, scanning its siblings could touch arbitrary
+  // user files. Predicates 3+4 (file emptiness + mtime) still prevent
+  // deletion in those cases, but we shouldn't even iterate — a) wasted work,
+  // b) a future predicate weakening could turn a wasted scan into damage.
+  if (!repoName || repoName === '.' || repoName === '..') return 0;
+  if (parent === resolvedProject) return 0;                  // filesystem root
+  if (resolvedProject === resolve(homedir())) return 0;      // never scan from $HOME
   if (!existsSync(parent)) return 0;
 
   let siblings: string[];
@@ -124,7 +132,17 @@ export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number
     return 0;
   }
 
-  const registered = registeredWorktrees(projectDir);
+  // ─── Registry check (predicate #2) — fail-closed if git is unhealthy ──
+  const registered = registeredWorktrees(resolvedProject);
+  if (registered === null) {
+    // Git failed (binary missing, repo corrupt, timeout). Skip this entire
+    // sweep cycle — without a known-good registry we can't safely identify
+    // which siblings are orphan worktrees vs legitimate registered ones.
+    // Next SessionStart with healthy git will catch up.
+    ctx.log(HOOK_NAME, 'skipping sweep — `git worktree list` failed; cannot verify registry');
+    return 0;
+  }
+
   const now = Date.now();
   let removed = 0;
 
@@ -134,12 +152,12 @@ export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number
 
     // Predicate 1: never delete project root itself (defensive — startsWith
     // already filters this out, but belt-and-braces).
-    if (fullPath === resolve(projectDir)) continue;
+    if (fullPath === resolvedProject) continue;
 
     // Predicate 2: skip if registered as a real worktree.
     if (registered.has(fullPath)) continue;
 
-    let st;
+    let st: ReturnType<typeof statSync>;
     try {
       st = statSync(fullPath);
     } catch {

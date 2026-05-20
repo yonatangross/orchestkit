@@ -377,7 +377,11 @@ describe('Cross-Bundle Consistency', () => {
     // 233 -> 235: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash])
     //              + stop/session-heartbeat-finalizer (SessionEnd via dispatcher).
     //              Cross-session state bus at ~/.claude/state/orchestkit/<repo>/<sid>.json.
-    expect(totalHooks).toBe(235);
+    // 235 -> 236: #1884 — lifecycle/sweep-stale-worktrees (SessionStart async).
+    //              Reaps empty <repo>-* sibling dirs left behind by aborted
+    //              `git worktree add` attempts (4 safety predicates,
+    //              ORK_NO_STALE_SWEEP=1 opt-out).
+    expect(totalHooks).toBe(236);
   });
 });
 
