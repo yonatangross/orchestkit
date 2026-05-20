@@ -20,6 +20,17 @@ import { NOOP_CTX } from '../lib/context.js';
 const HOOK_NAME = 'agent-watchdog';
 const WARNING_MS = 5 * 60 * 1000;   // 5 minutes
 const CRITICAL_MS = 10 * 60 * 1000; // 10 minutes
+// Hard age cap: spawns older than this are treated as zombies from prior
+// sessions (terminal closed, OOM, kernel panic, /clear without graceful
+// completion) and silently dropped from watchdog output. Without this,
+// subagent-spawns.jsonl accumulates entries forever and watchdog spews
+// CRITICAL warnings about agents that haven't existed for days. See #1882.
+//
+// Any agent legitimately running longer than 24h is hung in practice;
+// the warning at that age serves no actionable purpose.
+//
+// Precise session_id filtering is a follow-up (schema migration).
+export const MAX_SPAWN_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface SpawnEntry {
   timestamp: string;
@@ -73,6 +84,8 @@ export function agentWatchdog(input: HookInput, ctx: HookContext = NOOP_CTX): Ho
 
     if (!spawn.timestamp) continue;
     const elapsed = now - new Date(spawn.timestamp).getTime();
+    // Reap zombies: silently drop spawns older than the hard cap (see #1882).
+    if (elapsed > MAX_SPAWN_AGE_MS) continue;
     const agentLabel = spawn.subagent_type || spawn.agent_id || 'unknown';
 
     if (elapsed >= CRITICAL_MS) {
