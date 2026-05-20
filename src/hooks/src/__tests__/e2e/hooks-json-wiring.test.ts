@@ -179,7 +179,12 @@ describe('hooks.json wiring E2E', () => {
       // 199 -> 200: M141 #1860 — lifecycle/hook-token-check (SessionStart;
       //                          warns when $ORCHESTKIT_HOOK_TOKEN is unset but
       //                          type:http hooks reference it).
-      expect(hooksConfig.description).toContain('200 total');
+      // 200 -> 201: #1885 — posttool/bash/session-heartbeat-publisher
+      //                          (cross-session state bus).
+      // 201 -> 202: #1884 — lifecycle/sweep-stale-worktrees (SessionStart;
+      //                          removes stale empty <repo>-* dirs that block
+      //                          fresh `git worktree add`).
+      expect(hooksConfig.description).toContain('202 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

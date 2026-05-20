@@ -135,7 +135,9 @@ describe('Async Hooks Registry', () => {
       //           async, 5s) publishes cross-session state at
       //           ~/.claude/state/orchestkit/<repo>/<sid>.json on structural
       //           git/gh events.
-      expect(asyncHooks.length, 'Should have exactly 89 async hooks').toBe(89);
+      // 89 -> 90: #1884 — lifecycle/sweep-stale-worktrees (SessionStart, async, 5s)
+      //           removes empty <repo>-* sibling dirs that block `git worktree add`.
+      expect(asyncHooks.length, 'Should have exactly 90 async hooks').toBe(90);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

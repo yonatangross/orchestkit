@@ -87,6 +87,9 @@ import { agentationContext } from '../lifecycle/agentation-context.js';
 // #1826 — defensive backfill cleanup of envelope-corrupt session/worktree
 // entries (idempotent: writes a done-marker after first sweep).
 import { cleanupEnvelopeCorruption } from '../lifecycle/cleanup-envelope-corruption.js';
+// #1884 — sweep stale empty sibling paths from aborted git-worktree-add runs
+// (blocks fresh worktree creation otherwise; opt-out via ORK_NO_STALE_SWEEP=1).
+import { sweepStaleWorktrees } from '../lifecycle/sweep-stale-worktrees.js';
 // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks
 // reference it (fail-silent class closer; pairs with generator --write refusal).
 import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
@@ -132,6 +135,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/agentation-context': agentationContext,
   // #1826 — backfill cleanup of envelope-corrupt session/worktree entries
   'lifecycle/cleanup-envelope-corruption': cleanupEnvelopeCorruption,
+  // #1884 — sweep stale empty sibling paths from aborted worktree-add runs
+  'lifecycle/sweep-stale-worktrees': sweepStaleWorktrees,
   // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks reference it
   'lifecycle/hook-token-check': hookTokenCheck,
 
