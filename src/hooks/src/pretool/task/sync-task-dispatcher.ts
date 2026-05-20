@@ -24,6 +24,7 @@ import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.
 import { teamSizeGate } from './team-size-gate.js';
 import { taskExistenceGate } from './task-existence-gate.js';
 import { taskAgentAdvisor } from './task-agent-advisor.js';
+import { toolInvocationLinter } from '../tool-invocation-linter.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'sync-task-dispatcher';
@@ -42,9 +43,12 @@ const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
   { name: 'task-existence-gate', fn: taskExistenceGate },
-  // task-agent-advisor runs LAST: pure advisory, never blocks. Suggests
-  // curated ork agents when ad-hoc subagent_type names are used (#706).
+  // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
+  // tool-invocation-linter: registry-driven advisory for known-bad invocations
+  // (e.g. Agent isolation:'worktree' — #1883). Runs LAST in the chain because
+  // it's purely informational; never blocks at the warn/info severities.
+  { name: 'tool-invocation-linter', fn: toolInvocationLinter },
 ];
 
 /**

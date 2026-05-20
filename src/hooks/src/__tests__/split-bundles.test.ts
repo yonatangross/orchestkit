@@ -372,7 +372,9 @@ describe('Cross-Bundle Consistency', () => {
     //              idempotent quarantine sweep for #1250-recurrence envelope leak).
     // 231 -> 232: M141 #1860 — lifecycle/hook-token-check (SessionStart, async,
     //              defense-in-depth for ORCHESTKIT_HOOK_TOKEN fail-silent class).
-    expect(totalHooks).toBe(232);
+    // 232 -> 233: #1883 — pretool/tool-invocation-linter (PreToolUse, registry-driven
+    //              advisor for known-bad invocations like Agent isolation:"worktree").
+    expect(totalHooks).toBe(233);
   });
 });
 
