@@ -1,0 +1,14 @@
+{
+  "name": "body-with-trailing-newline",
+  "description": "Body ends with a newline byte (0x0A); the signature MUST cover it.",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "eyJldmVudCI6IlN0b3AifQo=",
+  "timestamp": 1731000000,
+  "now": 1731000000,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=23e8c5b3feb1867a45b8b8401ddbc3710dc81cf92107d3f16582d03d789bd6b3",
+  "expected": {
+    "valid": true,
+    "reason": "ok"
+  }
+}

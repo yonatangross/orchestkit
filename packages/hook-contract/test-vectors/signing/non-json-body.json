@@ -1,0 +1,14 @@
+{
+  "name": "non-json-body",
+  "description": "Body is text/plain bytes; raw-bytes discipline allows arbitrary content types.",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "cGxhaW4gdGV4dCBwYXlsb2FkLCBub3QgSlNPTg==",
+  "timestamp": 1731000000,
+  "now": 1731000000,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=df964ad9a2ec5f41b379badf9b2d776419cfa7ab8722ab94211c4a75bab7764c",
+  "expected": {
+    "valid": true,
+    "reason": "ok"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "multi-scheme-rotation",
+  "description": "Header contains v1 (old secret) and v2 (new secret); verifier holds only the v2 secret.",
+  "secret_hex": "ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100",
+  "body_b64": "eyJldmVudCI6IlBvc3RUb29sVXNlIn0=",
+  "timestamp": 1731000000,
+  "now": 1731000005,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=9d2c05389e7ff7d6871256a08311773cb9b60f52bf23e303df45969d8dc507bb,v2=e5a3c8d3dd14f63b50a4f1151928546beaaad193bb8714118c4711fec856b3d8",
+  "expected": {
+    "valid": true,
+    "reason": "ok"
+  }
+}

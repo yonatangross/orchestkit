@@ -1,0 +1,14 @@
+{
+  "name": "uppercase-digest",
+  "description": "Verifier accepts uppercase hex digest (normalized to lowercase before compare).",
+  "secret_hex": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+  "body_b64": "eyJldmVudCI6IlNlc3Npb25TdGFydCJ9",
+  "timestamp": 1731000000,
+  "now": 1731000000,
+  "tolerance_sec": 300,
+  "header": "t=1731000000,v1=2C4F9D83B4AC228C6450FC2536B0487217216E1D74ACCCEF1F23568B0E2C3D31",
+  "expected": {
+    "valid": true,
+    "reason": "ok"
+  }
+}
