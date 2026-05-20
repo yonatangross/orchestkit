@@ -75,10 +75,10 @@ describe('tool-invocation-rules registry — test coverage gate', () => {
     }
 
     if (offenders.length > 0) {
-      const msg =
-        offenders
-          .map((o) => `  ${o.id}: only ${o.count} mention(s) in tool-invocation-linter.test.ts (need ≥ 2)`)
-          .join('\n') + '\n  Add positive + negative tests referencing the rule id.';
+      const lines = offenders.map(
+        (o) => `  ${o.id}: only ${o.count} mention(s) in tool-invocation-linter.test.ts (need ≥ 2)`,
+      );
+      const msg = `${lines.join('\n')}\n  Add positive + negative tests referencing the rule id.`;
       throw new Error(`Registry coverage gate failed:\n${msg}`);
     }
   });
