@@ -5,6 +5,62 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.91.0](https://github.com/yonatangross/orchestkit/compare/v7.90.0...v7.91.0) (2026-05-20)
+
+
+### Features
+
+* **ci:** cross-language parity gate (M141-6, [#1807](https://github.com/yonatangross/orchestkit/issues/1807)) ([903d870](https://github.com/yonatangross/orchestkit/commit/903d87022494f4c1b71cc5944a5bfde51cebbfdf))
+* **ci:** PyPI publish workflow for hook-contract-py ([#1864](https://github.com/yonatangross/orchestkit/issues/1864)) ([204efe9](https://github.com/yonatangross/orchestkit/commit/204efe996510a7c03e53e64e8dedb90c77869a30))
+* **hook-contract-py:** scaffold PyPI sibling (M141-3, [#1804](https://github.com/yonatangross/orchestkit/issues/1804)) ([2960185](https://github.com/yonatangross/orchestkit/commit/29601855f38f5c9434a5fc190d7ba918a93d9acb))
+* **hook-contract:** codegen scaffold + drift gate (M141-2 step 1, [#1864](https://github.com/yonatangross/orchestkit/issues/1864)) ([b17fb03](https://github.com/yonatangross/orchestkit/commit/b17fb03c6848c45ca0d06183839150cced52c689))
+* **hook-contract:** HMAC signing protocol + impl (M141-4, [#1805](https://github.com/yonatangross/orchestkit/issues/1805)) ([#1878](https://github.com/yonatangross/orchestkit/issues/1878)) ([762ab0f](https://github.com/yonatangross/orchestkit/commit/762ab0fc85b8ca1ff3ba6924a292debaf2e42f6e))
+* **hook-contract:** per-event payload schemas (M141-2 step 3, [#1864](https://github.com/yonatangross/orchestkit/issues/1864)) ([38eeb28](https://github.com/yonatangross/orchestkit/commit/38eeb2816b07a615cda0f2d6f0dfeaf901b4af3c))
+* **hook-contract:** scaffold @orchestkit/hook-contract + setup token enforcement (M141-1) ([2cbf5e2](https://github.com/yonatangross/orchestkit/commit/2cbf5e250354f372ef744f6f7fba4bbfcf7ac15e))
+* **skill:** /ork:ci-sentinel — hourly CI-failure classifier ([#1842](https://github.com/yonatangross/orchestkit/issues/1842)) ([5ce3df1](https://github.com/yonatangross/orchestkit/commit/5ce3df1b243a841c898d5cf527ea3915828936b3))
+* **skill:** /ork:swarm-migrate — cross-repo migration coordinator ([#1839](https://github.com/yonatangross/orchestkit/issues/1839)) ([20c54f3](https://github.com/yonatangross/orchestkit/commit/20c54f32f8c94af22000a00bc94950878080ab6c))
+* **skills:** wire --permission-mode + --effort dispatch envelope ([#1855](https://github.com/yonatangross/orchestkit/issues/1855)) ([832d4c8](https://github.com/yonatangross/orchestkit/commit/832d4c8a1488699b9635bdf420298564d3765eda))
+* **skills:** yg-mcp-core consumers across brainstorm/assess/memory (closes [#1886](https://github.com/yonatangross/orchestkit/issues/1886), [#1887](https://github.com/yonatangross/orchestkit/issues/1887), [#1888](https://github.com/yonatangross/orchestkit/issues/1888)) ([#1889](https://github.com/yonatangross/orchestkit/issues/1889)) ([1473f05](https://github.com/yonatangross/orchestkit/commit/1473f058f8c15bb6ad6c68c73a12c6417a60c4d2))
+
+
+### Bug Fixes
+
+* **ci-sentinel:** drop --bare (auth broken), bump budget 500k→1M ([#1857](https://github.com/yonatangross/orchestkit/issues/1857)) ([42ee3ab](https://github.com/yonatangross/orchestkit/commit/42ee3ab2cae6dbf92146cfda9dfaf791a4b6acde))
+* **ci-sentinel:** file-backed apiKeyHelper + safer smoke test ([#1859](https://github.com/yonatangross/orchestkit/issues/1859)) ([25cfbfc](https://github.com/yonatangross/orchestkit/commit/25cfbfca68dede95e6f73a2615cf84baec03ff16))
+* **ci-sentinel:** install Claude Code on the runner ([#1856](https://github.com/yonatangross/orchestkit/issues/1856)) ([b723901](https://github.com/yonatangross/orchestkit/commit/b7239017a0c990c3443038bb1c393b4666c024ab))
+* **ci-sentinel:** wire apiKeyHelper auth + shared --bare gotcha rule ([#1858](https://github.com/yonatangross/orchestkit/issues/1858)) ([1bd3d19](https://github.com/yonatangross/orchestkit/commit/1bd3d196b977dcfa6bf12006d81d82509ceac79d))
+* **ci:** bump token-overhead + skill-length caps + add missing frontmatter ([#1865](https://github.com/yonatangross/orchestkit/issues/1865)) ([9951ffd](https://github.com/yonatangross/orchestkit/commit/9951ffd18fffe9d52b2863a4f4053e276e3322d8))
+* **hooks:** envelope input guard at WorktreeCreate.name ([#1826](https://github.com/yonatangross/orchestkit/issues/1826)) ([#1837](https://github.com/yonatangross/orchestkit/issues/1837)) ([9ac4e75](https://github.com/yonatangross/orchestkit/commit/9ac4e754b65291a89edff81806650e952310ba88))
+* **security:** override ws to ^8.20.1 — patches GHSA-58qx-3vcg-4xpx ([#1879](https://github.com/yonatangross/orchestkit/issues/1879)) ([ab159cd](https://github.com/yonatangross/orchestkit/commit/ab159cd2b3d4db0da6f47f64bcd1254e90edb3b4))
+* **skill:** port /ci-debug into ork (cross-skill-ref alignment) ([#1843](https://github.com/yonatangross/orchestkit/issues/1843)) ([7068d71](https://github.com/yonatangross/orchestkit/commit/7068d71c9574a46864fa0f5326e65e2d470faca3))
+
+
+### Miscellaneous
+
+* **7.91:** adopt CC 2.1.142 (M123 P0 bundle) ([#1836](https://github.com/yonatangross/orchestkit/issues/1836)) ([ce6f429](https://github.com/yonatangross/orchestkit/commit/ce6f429ad8492aa48b622e303b6814964d4546b2))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.141) ([#1829](https://github.com/yonatangross/orchestkit/issues/1829)) ([a7f9e87](https://github.com/yonatangross/orchestkit/commit/a7f9e87e3f74ad5e4b233835fa3ceb11150443f6))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.142) ([#1831](https://github.com/yonatangross/orchestkit/issues/1831)) ([eb7761c](https://github.com/yonatangross/orchestkit/commit/eb7761c48c937716b72cb205eb6f279e572702ad))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.143) ([#1838](https://github.com/yonatangross/orchestkit/issues/1838)) ([bddeb69](https://github.com/yonatangross/orchestkit/commit/bddeb69f5971d36b8fc4524ba2eebe78ef3f8e5b))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.143) ([#1841](https://github.com/yonatangross/orchestkit/issues/1841)) ([920f1d2](https://github.com/yonatangross/orchestkit/commit/920f1d227c17b799e3569d04428faf58ebdbff56))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.144) ([#1876](https://github.com/yonatangross/orchestkit/issues/1876)) ([7a37ae0](https://github.com/yonatangross/orchestkit/commit/7a37ae05abdd4650d37071889e6d30f21019093a))
+* **skills:** kill ork:agents-view, document parallel primitives ([#1890](https://github.com/yonatangross/orchestkit/issues/1890)) ([dbd06cb](https://github.com/yonatangross/orchestkit/commit/dbd06cbe6d39ff37c51d4e31f6b4a82700419945))
+* **workflows:** scope GITHUB_TOKEN to least privilege (6 CodeQL highs) ([#1880](https://github.com/yonatangross/orchestkit/issues/1880)) ([fda035c](https://github.com/yonatangross/orchestkit/commit/fda035c2d5e73eaa3574841134e8c49476cb5d86))
+
+
+### Performance
+
+* **hooks:** migrate agentation-context → SessionStart (M104 PR-B) ([#1827](https://github.com/yonatangross/orchestkit/issues/1827)) ([cfa0984](https://github.com/yonatangross/orchestkit/commit/cfa0984e43d6c19a380ca22c26b78235b8f78265))
+
+
+### CI/CD
+
+* 50 SUCCESS / 3 FAILURE — all 3 failures pre-existing on origin/main, tracked in [#1865](https://github.com/yonatangross/orchestkit/issues/1865). ([2cbf5e2](https://github.com/yonatangross/orchestkit/commit/2cbf5e250354f372ef744f6f7fba4bbfcf7ac15e))
+* bump actions/checkout from 4 to 6 ([#1851](https://github.com/yonatangross/orchestkit/issues/1851)) ([9e6dd22](https://github.com/yonatangross/orchestkit/commit/9e6dd22cff371516ffcacbc5e9849a07429b1f6d))
+* bump actions/create-github-app-token from 3.1.1 to 3.2.0 ([#1850](https://github.com/yonatangross/orchestkit/issues/1850)) ([a861187](https://github.com/yonatangross/orchestkit/commit/a8611877b2ab1f12f5e89c913250dcf90e396eb8))
+* bump actions/upload-artifact from 4.6.2 to 7.0.1 ([#1854](https://github.com/yonatangross/orchestkit/issues/1854)) ([bb76cbe](https://github.com/yonatangross/orchestkit/commit/bb76cbee8d830d81dfc9b708289c0dfdf7f0571c))
+* bump anthropics/claude-code-action from 1.0.119 to 1.0.123 ([#1852](https://github.com/yonatangross/orchestkit/issues/1852)) ([88b4134](https://github.com/yonatangross/orchestkit/commit/88b41346c46c33a3b17850e42d0f68e34b25a146))
+* bump github/codeql-action from 4.35.4 to 4.35.5 ([#1853](https://github.com/yonatangross/orchestkit/issues/1853)) ([d889da6](https://github.com/yonatangross/orchestkit/commit/d889da693ec433659067201f06be26051edb7066))
+
 ## [7.90.0](https://github.com/yonatangross/orchestkit/compare/v7.89.1...v7.90.0) (2026-05-14)
 
 
