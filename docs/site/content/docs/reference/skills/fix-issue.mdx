@@ -69,6 +69,26 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 > Load pattern details: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`
 
+## Phase 0b — Prior-fix lookup (signal-fired, optional)
+
+Before diagnosis kicks off, optionally invoke `scripts/prior_fix_lookup.py &lt;session-dir&gt;` to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:
+
+```bash
+python3 plugins/ork/skills/fix-issue/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
+```
+
+Auto-skip conditions (all exit 0, all WARN-logged):
+
+| Skip reason | Trigger |
+|-------------|---------|
+| `signal absent` | `error_text` missing OR signature extractor returns `None` |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `memory MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `memory` |
+
+Session dir must contain `fix-issue-input.json` (with `error_text: str`). The signature extractor (`signature_lib.extract_signature`) normalizes Python tracebacks, JS stack traces, and generic `&lt;Type&gt;: &lt;msg&gt;` errors to a `&lt;error_type&gt; &lt;primary_path&gt;:&lt;lineno&gt;` shape used as the `search_nodes` query. Handoff JSON at `&lt;session-dir&gt;/prior-fix-matches.json` records `status`, `signature`, and `matches_count`; the top-3 matches land in `&lt;session-dir&gt;/prior-fix-matches.md` as a Markdown table.
+
+Mirrors the memory-consumer pattern from PR #1889 but read-only. Closes orchestkit#1895.
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else (after MCP probe), create tasks to track progress:**

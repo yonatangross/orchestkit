@@ -254,6 +254,26 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 
 **Why this matters:** Downstream skills (`/ork:fix-issue`, `/ork:implement`, `/ork:create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
 
+## Phase 6 — Notebook summary (signal-fired, optional)
+
+After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
+
+```bash
+python3 plugins/ork/skills/explore/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
+```
+
+Auto-skip conditions (all exit 0, all WARN-logged):
+
+| Skip reason | Trigger |
+|-------------|---------|
+| `signal absent` | `len(dirs_scanned) < 3` (or field missing on `explore-output.json`) |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `hq-content MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `hq-content` |
+
+Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `<session-dir>/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
+
+Mirrors the `/ork:brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
+
 ## Common Exploration Queries
 
 - "How does authentication work?"
