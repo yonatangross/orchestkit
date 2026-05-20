@@ -5,6 +5,31 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.92.0](https://github.com/yonatangross/orchestkit/compare/v7.91.0...v7.92.0) (2026-05-20)
+
+
+### Features
+
+* **hooks:** cross-session state bus for [#1885](https://github.com/yonatangross/orchestkit/issues/1885) ([#1906](https://github.com/yonatangross/orchestkit/issues/1906)) ([9bab036](https://github.com/yonatangross/orchestkit/commit/9bab0368966d2f4f1bb9d7cf2aaaf6f6ac16ef16))
+* **hooks:** tool-invocation-linter framework ([#1883](https://github.com/yonatangross/orchestkit/issues/1883) seed) ([#1900](https://github.com/yonatangross/orchestkit/issues/1900)) ([3800941](https://github.com/yonatangross/orchestkit/commit/3800941c4776d5b6d2d61d1575411a2ed93740b5))
+* **skills:** round 2 yg-mcp-core consumers — explore + review-pr + fix-issue ([#1898](https://github.com/yonatangross/orchestkit/issues/1898)) ([038ac22](https://github.com/yonatangross/orchestkit/commit/038ac223085767defa79b34bb4ac443bdd04748b))
+
+
+### Bug Fixes
+
+* **build:** preflight check for missing node_modules (closes [#1899](https://github.com/yonatangross/orchestkit/issues/1899)) ([#1904](https://github.com/yonatangross/orchestkit/issues/1904)) ([431c66e](https://github.com/yonatangross/orchestkit/commit/431c66e20109070706cfb3f47db69260639a6879))
+* **hooks:** cap agent-watchdog at 24h to reap zombies ([#1882](https://github.com/yonatangross/orchestkit/issues/1882)) ([#1896](https://github.com/yonatangross/orchestkit/issues/1896)) ([a03e5cb](https://github.com/yonatangross/orchestkit/commit/a03e5cb013eec4f8f6875c9630294e9e3511a09d))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.145) ([#1903](https://github.com/yonatangross/orchestkit/issues/1903)) ([0a4374c](https://github.com/yonatangross/orchestkit/commit/0a4374c4cde50b71ce87e0a3bf28ff4666c09fbe))
+
+
+### Documentation
+
+* **skills:** codify manual-worktree pattern in /ork:cover (closes platform[#3224](https://github.com/yonatangross/orchestkit/issues/3224)) ([#1835](https://github.com/yonatangross/orchestkit/issues/1835)) ([523b39d](https://github.com/yonatangross/orchestkit/commit/523b39d626088ea4d28adc88fd0865150163f83b))
+
 ## [7.91.0](https://github.com/yonatangross/orchestkit/compare/v7.90.0...v7.91.0) (2026-05-20)
 
 
