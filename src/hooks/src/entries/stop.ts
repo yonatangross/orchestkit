@@ -22,6 +22,8 @@ import { ledgerCleanup } from '../stop/ledger-cleanup.js';
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
 import { sessionEndTracking } from '../stop/session-end-tracking.js';
+// #1885 — cross-session state bus finalizer (companion to posttool publisher)
+import { sessionHeartbeatFinalizer } from '../stop/session-heartbeat-finalizer.js';
 // Graph-first session summary (replaces memory-capture.ts)
 import { sessionSummary } from '../stop/session-summary.js';
 
@@ -45,6 +47,8 @@ export const hooks: Record<string, HookFn> = {
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
   'stop/session-end-tracking': sessionEndTracking,
+  // #1885 — marks status=completed in cross-session state bus
+  'stop/session-heartbeat-finalizer': sessionHeartbeatFinalizer,
   'stop/session-summary': sessionSummary,
   // M140 G3 (#1790) — /goal convergence telemetry stop hook
   'stop/goal-tracker': goalTrackerStop,

@@ -173,6 +173,83 @@ These compose:
 
 ---
 
+## Cross-session state bus — inspecting other sessions (#1885)
+
+The `claude agents` UI gives the **human** an at-a-glance view of every
+running session: status, PR number, last commit. For the **AI thread**,
+that same data has been unavailable — checking what a sibling session is
+doing required ~6 grep / `gh pr list` / `git log` shell commands per
+peek.
+
+OrchestKit closes that gap with a small cross-session state bus. It is
+not a wrapper around `claude agents` (that was `/ork:agents-view`,
+removed in #1890). It is a small write surface that doesn't exist
+elsewhere: each session distils its own structural events to a known
+file path that any other session can read with a plain `Read` tool call.
+
+### Where state lives
+
+```
+~/.claude/state/orchestkit/<repo-slug>/<session-id>.json
+```
+
+One file per session, atomically rewritten on each structural event.
+
+### What gets written
+
+```json
+{
+  "repo":           "platform",
+  "session_id":     "f4ebd85f-…",
+  "started_at":     "2026-05-20T16:55:00Z",
+  "last_heartbeat": "2026-05-20T17:42:14Z",
+  "status":         "running",
+  "last_commit":    { "sha": "3a99c20", "msg": "feat(api): canonical seed-data migration" },
+  "last_push":      { "branch": "feat/m165-…", "ref": "3a99c20" },
+  "last_pr":        { "number": 3703, "url": "…", "state": "open" }
+}
+```
+
+### Who writes it
+
+- **`posttool/bash/session-heartbeat-publisher`** (PostToolUse[Bash], async)
+  fires on every Bash call, matches structural commands (`git commit`,
+  `git push`, `gh pr create|merge|ready`), parses the output, and
+  atomically rewrites the file.
+- **`stop/session-heartbeat-finalizer`** (SessionEnd, via the sync
+  dispatcher) marks `status: "completed"` on graceful exit. Sessions
+  killed unsafely will keep `status: "running"` with a stale
+  `last_heartbeat` — readers treat that combination as effectively
+  stopped.
+
+### Reading
+
+Any session can read another's state with one tool call:
+
+```
+Read('~/.claude/state/orchestkit/platform/<sid>.json')
+```
+
+For a fleet view:
+
+```bash
+ls ~/.claude/state/orchestkit/*/*.json | xargs cat | jq -s \
+  'map({ repo, status, last_pr: .last_pr.number, last_commit: .last_commit.msg })'
+```
+
+### Design constraints
+
+- **No coupling to CC internals.** We do not parse CC's transcript
+  JSONL; each session publishes its own distilled summary.
+- **No cross-session writes.** A session only touches its own file.
+- **No locks.** Each writer owns its own path; readers see a
+  consistent snapshot via rename-after-tmp-write.
+- **No new skill or CLI named after a CC binary** (see #1890 — that
+  was the `/ork:agents-view` lesson). The file format _is_ the
+  contract; consumers are plain `Read` callers.
+
+---
+
 ## See also
 
 - `claude agents --help` — the CLI itself (CC 2.1.139+).

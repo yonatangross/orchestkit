@@ -131,7 +131,11 @@ describe('Async Hooks Registry', () => {
       // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async, 5s).
       //           Warns when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks
       //           reference it; defense-in-depth with generator --write refusal.
-      expect(asyncHooks.length, 'Should have exactly 88 async hooks').toBe(88);
+      // 88 -> 89: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash],
+      //           async, 5s) publishes cross-session state at
+      //           ~/.claude/state/orchestkit/<repo>/<sid>.json on structural
+      //           git/gh events.
+      expect(asyncHooks.length, 'Should have exactly 89 async hooks').toBe(89);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

@@ -374,7 +374,10 @@ describe('Cross-Bundle Consistency', () => {
     //              defense-in-depth for ORCHESTKIT_HOOK_TOKEN fail-silent class).
     // 232 -> 233: #1883 — pretool/tool-invocation-linter (PreToolUse, registry-driven
     //              advisor for known-bad invocations like Agent isolation:"worktree").
-    expect(totalHooks).toBe(233);
+    // 233 -> 235: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash])
+    //              + stop/session-heartbeat-finalizer (SessionEnd via dispatcher).
+    //              Cross-session state bus at ~/.claude/state/orchestkit/<repo>/<sid>.json.
+    expect(totalHooks).toBe(235);
   });
 });
 

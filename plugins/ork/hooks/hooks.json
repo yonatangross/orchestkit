@@ -396,6 +396,16 @@
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "posttool/bash/gh-rate-limit-tracker"
             ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/bash/session-heartbeat-publisher"
+            ]
           }
         ]
       },

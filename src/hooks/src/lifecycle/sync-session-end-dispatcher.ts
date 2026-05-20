@@ -23,6 +23,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 // Import consolidated hook implementations
 import { sessionCleanup } from './session-cleanup.js';
 import { patternSyncPush } from './pattern-sync-push.js';
+import { sessionHeartbeatFinalizer } from '../stop/session-heartbeat-finalizer.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-session-end-dispatcher';
@@ -41,6 +42,11 @@ interface SessionEndHookConfig {
 const SYNC_HOOKS: SessionEndHookConfig[] = [
   { name: 'session-cleanup', fn: sessionCleanup, runOnFail: true },
   { name: 'pattern-sync-push', fn: patternSyncPush, runOnFail: false },
+  // #1885 — cross-session state bus: mark status=completed in
+  // ~/.claude/state/orchestkit/<repo>/<sid>.json so other sessions know.
+  // runOnFail: true because state finalization must happen even on
+  // unclean termination paths (best-effort write, never throws).
+  { name: 'session-heartbeat-finalizer', fn: sessionHeartbeatFinalizer, runOnFail: true },
 ];
 
 /**

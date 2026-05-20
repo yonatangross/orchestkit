@@ -312,7 +312,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           prompt/unified-dispatcher (UserPromptSubmit) to SessionStart (async, 5s)
       // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart, async, 5s)
       // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 88 async hooks').toBe(88);
+      // 88 -> 89: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash], async, 5s)
+      expect(asyncHooks.length, 'Should have exactly 89 async hooks').toBe(89);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -418,7 +419,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 85 -> 86: M104 PR-B — lifecycle/agentation-context (SessionStart, async)
       // 86 -> 87: M138 #1826 — lifecycle/cleanup-envelope-corruption (SessionStart, async)
       // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async)
-      expect(asyncCount).toBe(88);
+      // 88 -> 89: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash], async)
+      expect(asyncCount).toBe(89);
     });
 
     it('should have hooks for all critical security operations', () => {

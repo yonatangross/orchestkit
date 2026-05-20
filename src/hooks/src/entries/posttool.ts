@@ -30,6 +30,8 @@ import { issueProgressCommenter } from '../posttool/bash/issue-progress-commente
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
 import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 import { ghRateLimitTracker } from '../posttool/bash/gh-rate-limit-tracker.js';
+// #1885 — cross-session state bus publisher
+import { sessionHeartbeatPublisher } from '../posttool/bash/session-heartbeat-publisher.js';
 
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
@@ -106,6 +108,8 @@ export const hooks: Record<string, HookFn> = {
   'posttool/bash/issue-subtask-updater': issueSubtaskUpdater,
   'posttool/bash/pattern-extractor': patternExtractor,
   'posttool/bash/gh-rate-limit-tracker': ghRateLimitTracker,
+  // #1885 — publishes structural git/gh events to cross-session state bus
+  'posttool/bash/session-heartbeat-publisher': sessionHeartbeatPublisher,
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
