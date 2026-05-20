@@ -4266,6 +4266,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
+        "memory-persistence.md",
         "orchestration-mode-selection.md",
         "review-report-template.md",
         "review-template.md",

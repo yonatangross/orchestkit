@@ -386,21 +386,7 @@ Combine all agent feedback into a structured report. Load template: `Read("${CLA
 
 ### Memory Persistence
 
-After synthesis, persist critical/high findings to the memory graph so future reviews build on past knowledge:
-
-```python
-# Persist review findings for cross-session learning
-mcp__memory__create_entities(entities=[{
-    "name": "PR-{number}-Review",
-    "entityType": "code-review",
-    "observations": ["<summary>", "<critical findings>", "<patterns discovered>"]
-}])
-# Update known-weaknesses entity if new patterns found
-mcp__memory__add_observations(observations=[{
-    "entityName": "review-known-weaknesses",
-    "contents": ["<new pattern from this review>"]
-}])
-```
+After synthesis, persist critical/high findings to the memory graph for cross-session learning. The Phase 8c verdict writeback (below) handles this automatically when `yg-mcp-core>=0.3.0` is installed; for interactive sessions, see `references/memory-persistence.md` for the manual `mcp__memory__create_entities` + `mcp__memory__add_observations` pattern.
 
 ## Phase 6: Submit Review
 

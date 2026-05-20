@@ -374,48 +374,7 @@ Load heal strategy details: `Read("${CLAUDE_SKILL_DIR}/references/heal-loop-stra
 
 Generate coverage report with before/after comparison.
 
-```
-Coverage Report: {SCOPE}
-═══════════════════════════
-
-Baseline → After
-────────────────
-  Unit:        67.2% → 91.3% (+24.1%)
-  Integration: 42.0% → 78.5% (+36.5%)
-  E2E:          0.0% → 65.0% (+65.0%)
-  Overall:     48.4% → 82.1% (+33.7%)
-
-Tests Generated
-───────────────
-  Unit:        23 tests (18 pass, 5 healed)
-  Integration: 12 tests (10 pass, 2 healed)
-  E2E:          8 tests (8 pass)
-  Total:       43 tests
-
-Heal Iterations: 2/3
-
-Files Created
-─────────────
-  tests/unit/services/test_auth.py
-  tests/unit/services/test_payment.py
-  tests/integration/api/test_users.py
-  tests/integration/api/test_checkout.py
-  tests/e2e/checkout.spec.ts
-  tests/e2e/pages/CheckoutPage.ts
-
-Real Services Used: PostgreSQL (testcontainers), Redis (docker-compose)
-
-Remaining Gaps
-──────────────
-  - src/services/notification.ts (0% — no tests generated, out of scope)
-  - src/utils/crypto.ts (45% — edge cases not covered)
-
-Next Steps
-──────────
-  /ork:verify {SCOPE}    # Grade the implementation + tests
-  /ork:commit             # Commit generated tests
-  /loop 10m npm test -- --coverage  # Watch coverage while coding
-```
+Full report layout (baseline→after table, tests-generated counts, heal iterations, files created, remaining gaps, next-steps commands): `Read("${CLAUDE_SKILL_DIR}/references/coverage-report-template.md")`.
 
 ### PushNotification on Completion (CC 2.1.110+)
 
