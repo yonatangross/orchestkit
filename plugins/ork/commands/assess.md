@@ -272,6 +272,32 @@ This guarantees JSON spec and markdown report stay in sync.
 **Downstream consumption:** `/ork:implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
 
 
+## Phase 7c: Memory Writeback (signal-fired, optional)
+
+When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `/ork:memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
+
+```bash
+python3 plugins/ork/skills/assess/scripts/memory_writeback.py "<assessment-dir>"
+```
+
+`<assessment-dir>` is the dir containing `assessment.json` (typically the session's `.claude/chain/`). The script writes a `memory-writeback.json` handoff alongside it.
+
+Auto-skip conditions (all exit 0, all WARN-logged):
+
+| Skip reason | Trigger |
+|-------------|---------|
+| `no composite score` | `assessment.json` has no top-level `composite` numeric field |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `memory MCP unreachable` | memory MCP server down OR `.mcp.json` doesn't define `memory` |
+
+The created entity has:
+- `name`: `<slug-or-dir>@<timestamp>` (stable across re-runs — re-runs create new entities)
+- `entityType`: `assessment` (override with `--entity-type <type>`)
+- `observations`: `composite=X.XX`, one `<dim>=X.XX` per scored dimension, optional `summary: ...` and `topic: ...`
+
+Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#1886 (post-synthesis podcast) pattern. Unblocked by `Yonatan-HQ/core#993` (yg-mcp-core 0.3.0).
+
+
 ## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
 
 Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
