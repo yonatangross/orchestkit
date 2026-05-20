@@ -11,9 +11,9 @@ on:
       - 'shared/cc-support.json'
   workflow_dispatch:
 
+# Default-deny at workflow level; writes scoped to the recompute-floor job.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: cc-support-window-bump
@@ -23,6 +23,9 @@ jobs:
   recompute-floor:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write       # push branch
+      pull-requests: write  # peter-evans/create-pull-request
     # Skip if the trigger was the bump workflow's own merge. Without this,
     # peter-evans/create-pull-request → squash-merge → push fires this same
     # workflow again. The compute step's `skip=true` branch usually ends it
