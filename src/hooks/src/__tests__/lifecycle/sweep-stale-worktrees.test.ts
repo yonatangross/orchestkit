@@ -76,6 +76,21 @@ describe('sweepStaleWorktrees (#1884)', () => {
     expect(isEmptyOfFiles(d)).toBe(false);
   });
 
+  it('isEmptyOfFiles: returns false past MAX_DEPTH_FILES (conservative)', () => {
+    // Regression for the self-review finding: the depth bailout originally
+    // returned true (would falsely flag deeply-nested trees as empty). The
+    // conservative answer when we can't verify is false (treat as non-empty).
+    const d = join(parent, 'deep-tree');
+    // Build a 5-level deep chain — past MAX_DEPTH_FILES=3.
+    let cursor = d;
+    for (let i = 0; i < 5; i++) {
+      cursor = join(cursor, `l${i}`);
+    }
+    mkdirSync(cursor, { recursive: true });
+    // Top 3 levels look empty, but we can't verify past depth — must say false.
+    expect(isEmptyOfFiles(d)).toBe(false);
+  });
+
   it('isEmptyOfFiles: ignores .DS_Store / Thumbs.db cruft (Finder metadata)', () => {
     // macOS Finder leaves .DS_Store everywhere; an aborted worktree that
     // happened to be opened in Finder would otherwise be flagged non-empty.

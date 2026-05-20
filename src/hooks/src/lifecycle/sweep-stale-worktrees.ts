@@ -60,6 +60,12 @@ function registeredWorktrees(projectDir: string): Set<string> {
     }
     return paths;
   } catch {
+    // Git unreachable / repo corrupt / binary missing — predicate #2
+    // (registry check) is silently bypassed. Returning empty set means every
+    // sibling is treated as registry-orphan for this run. Predicates 3+4
+    // (file emptiness AND mtime > 1h) remain load-bearing and prevent any
+    // false-positive deletion. The git failure isn't surfaced because (a)
+    // this function has no HookContext and (b) predicates 3+4 are sufficient.
     return new Set();
   }
 }
@@ -69,7 +75,11 @@ function registeredWorktrees(projectDir: string): Set<string> {
  * empty dirs). Limited to MAX_DEPTH_FILES levels to bound the scan.
  */
 function isEmptyOfFiles(path: string, depth = 0): boolean {
-  if (depth > MAX_DEPTH_FILES) return true; // assume non-empty past depth — conservative
+  // Conservative: treat unknown-depth subtree as NON-empty. The function name
+  // says "is empty" → returning false here is the safe answer when we can't
+  // verify. Returning true would risk false-positive deletion of a tree with
+  // genuine content nested deeper than MAX_DEPTH_FILES levels.
+  if (depth > MAX_DEPTH_FILES) return false;
   let entries: string[];
   try {
     entries = readdirSync(path);
