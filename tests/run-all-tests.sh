@@ -163,7 +163,8 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     echo -e "${BOLD}${CYAN}UNIT TESTS${NC}"
     echo ""
 
-    run_test "Shell Syntax Validation" "$SCRIPT_DIR/unit/test-shell-syntax.sh" || true
+    run_test "Shell Syntax Validation" "$SCRIPT_DIR/unit/test-shell-syntax.sh" || true  # silent: known-noise
+    run_test "Build Install Preflight (#1899)" "$SCRIPT_DIR/build/test-check-install.sh" || true  # silent: known-noise
     run_test "JSON Validity Check" "$SCRIPT_DIR/unit/test-json-validity.sh" || true
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true

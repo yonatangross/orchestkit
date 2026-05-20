@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build": "bash scripts/build-plugins.sh && npm run --workspace=@orchestkit/hook-contract build --if-present",
-    "prebuild": "echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
+    "prebuild": "bash scripts/check-install.sh && echo '🔨 Building plugins from source...' && bash scripts/sync-shared-scripts.sh",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "test:packages": "npm run --workspace=@orchestkit/hook-contract test --if-present",
     "test:parity": "python3 scripts/parity-check.py",
