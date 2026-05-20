@@ -117,35 +117,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "agents-view": {
-    "name": "agents-view",
-    "description": "Wraps the Research Preview `claude agents` CLI (CC 2.1.139+) and `claude plugin details ork` for live observability of parallel agent sessions. Surfaces running/blocked/done state, per-session token cost, and the 198-hook plugin's runtime footprint. Use when debugging multi-agent workflows, projecting cost on a long-running orchestration, or auditing which hooks fired during a run.",
-    "version": "0.1.0",
-    "author": "OrchestKit",
-    "tags": [
-      "observability",
-      "agents",
-      "cli",
-      "research-preview",
-      "cc-2.1.139",
-      "cost",
-      "debugging"
-    ],
-    "userInvocable": true,
-    "context": "inherit",
-    "allowedTools": [
-      "Bash",
-      "Read"
-    ],
-    "skills": [],
-    "agent": null,
-    "complexity": "low",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "ai-ui-generation": {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
@@ -553,6 +524,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "comparison-table.md"
       ],
       "scripts": [
+        "memory_writeback.py",
         "render-spec.mjs"
       ],
       "checklists": [
@@ -817,7 +789,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scripts": [
         "create-design-doc.md",
         "decision-matrix-template.md",
-        "design-doc-template.md"
+        "design-doc-template.md",
+        "post_synth_podcast.py"
       ],
       "checklists": [
         "brainstorm-completion.md",
@@ -3096,7 +3069,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "graph-utils.mjs",
         "playground-template.html",
         "render-graph.mjs",
-        "render-playground.mjs"
+        "render-playground.mjs",
+        "staleness_cron.py",
+        "staleness_lib.py"
       ]
     },
     "plugins": [

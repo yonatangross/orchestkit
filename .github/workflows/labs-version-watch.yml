@@ -8,9 +8,9 @@ on:
     - cron: "0 8 * * 1"  # Monday 08:00 UTC
   workflow_dispatch:
 
+# Default-deny at workflow level; writes scoped to the check-and-pr job.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: labs-version-watch
@@ -20,6 +20,9 @@ jobs:
   check-and-pr:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write       # push branch
+      pull-requests: write  # gh pr create
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 

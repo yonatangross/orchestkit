@@ -20,7 +20,7 @@ For live component counts (skills / agents / hooks / per-session token cost) run
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 109 skills (YAML frontmatter + Markdown)
+├── skills/<name>/SKILL.md    # 111 skills (YAML frontmatter + Markdown)
 ├── agents/<name>.md          # 37 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions, keybindings)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
@@ -87,6 +87,6 @@ Live in `src/monitors/monitors.json`, registered via `manifests/ork.json`. See `
 
 ## Version
 
-- **Current**: 7.90.0 · **Claude Code**: >= 2.1.139 <!-- x-release-please-version -->
+- **Current**: 7.91.0 · **Claude Code**: >= 2.1.139 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

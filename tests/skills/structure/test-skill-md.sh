@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=32  # +1 for /ci-debug (ported from ~/.claude/skills to ship with ork; #1842 cross-skill-ref alignment fix)
+EXPECTED_USER_INVOCABLE=31  # -1 from 32 after killing /ork:agents-view (#1890 — superseded by docs/parallel-primitives.md)
 EXPECTED_INTERNAL=80
 
 missing_user_invocable=()

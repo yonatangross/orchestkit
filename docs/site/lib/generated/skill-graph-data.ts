@@ -25,16 +25,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
-    "id": "agents-view",
-    "label": "Agents View",
-    "type": "command",
-    "complexity": "low",
-    "category": "devops",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "ai-ui-generation",
     "label": "Ai Ui Generation",
     "type": "reference",

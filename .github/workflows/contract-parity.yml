@@ -21,6 +21,10 @@ on:
       - ".github/workflows/contract-parity.yml"
   workflow_dispatch:
 
+# Default-deny: jobs that need writes override at job level.
+permissions:
+  contents: read
+
 jobs:
   parity:
     name: npm ↔ PyPI schema parity

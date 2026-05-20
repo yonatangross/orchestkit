@@ -6,7 +6,7 @@
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {
-    "reason": "M137 bump (2026-05-12) — gates on 2.1.139 agent-view (Research Preview) for ork:agents-view skill, /goal for unattended skills (audit-full/brainstorm/explore/dev), PostToolUse continueOnBlock for advisory hooks, and CLAUDE_PROJECT_DIR for per-project MCP memory. Auto-bump policy resumes after expires.",
+    "reason": "M137 bump (2026-05-12) — gates on 2.1.139 /goal for unattended skills (audit-full/brainstorm/explore/dev), PostToolUse continueOnBlock for advisory hooks, and CLAUDE_PROJECT_DIR for per-project MCP memory. The 2.1.139 `claude agents` CLI is also used directly (no wrapper skill). Auto-bump policy resumes after expires.",
     "expires": "2026-08-12"
   },
   "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. Updated by .github/workflows/cc-support-window-bump.yml when cc-version-matrix.ts gains a new entry."
