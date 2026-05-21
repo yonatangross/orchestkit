@@ -274,13 +274,6 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         echo -e "    ${GREEN}Copied MCP server${NC}"
     fi
 
-    # Copy monitors if they exist
-    if [[ -d "$SRC_DIR/monitors" ]]; then
-        mkdir -p "$PLUGIN_DIR/monitors"
-        cp "$SRC_DIR/monitors/"*.json "$PLUGIN_DIR/monitors/" 2>/dev/null || true
-        echo -e "    ${GREEN}Copied monitors${NC}"
-    fi
-
     # Copy shared resources if they exist
     if [[ -d "$SRC_DIR/shared" ]]; then
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"
@@ -296,7 +289,6 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
-        --argjson has_monitors "$([[ -d "$PLUGIN_DIR/monitors" ]] && echo true || echo false)" \
         '{
           name: $name,
           version: $version,
@@ -312,8 +304,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
         }
         + if $has_skills then {skills: "./skills/"} else {} end
-        + if $has_commands then {commands: "./commands/"} else {} end
-        + (if $has_monitors then {experimental: {monitors: "./monitors/monitors.json"}} else {} end)' \
+        + if $has_commands then {commands: "./commands/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))

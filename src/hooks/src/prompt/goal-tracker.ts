@@ -6,9 +6,9 @@
  *
  * Detects `/goal <condition>` invocations in the user prompt and appends a
  * "started" entry to `.claude/state/goal-history.jsonl`. The companion
- * Stop hook (`stop/goal-tracker`) appends an "ended" entry that the
- * `goal-convergence` monitor and `lifecycle/goal-budget-guard` (M140 G5)
- * read for convergence telemetry + cost circuit-breaking.
+ * Stop hook (`stop/goal-tracker`) appends an "ended" entry that
+ * `lifecycle/goal-budget-guard` (M140 G5) reads for convergence telemetry +
+ * cost circuit-breaking.
  *
  * Brake-file integration with G5:
  *   If `.claude/state/goal-budget-tripped.json` exists, surface its reason as

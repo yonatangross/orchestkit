@@ -20,8 +20,5 @@
     "multi-agent"
   ],
   "skills": "./skills/",
-  "commands": "./commands/",
-  "experimental": {
-    "monitors": "./monitors/monitors.json"
-  }
+  "commands": "./commands/"
 }

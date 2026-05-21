@@ -1763,9 +1763,9 @@ $ claude  /mcp
 
 A zero-tool count after a successful connection means `tools/list` failed silently — usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
 
-### Plugin manifest `monitors` and `themes` move under `experimental` (CC 2.1.129)
+### Experimental plugin manifest fields move under `experimental` (CC 2.1.129)
 
-CC 2.1.129+ expects plugin manifests to declare `monitors` and `themes` under an `"experimental"` block. Top-level still works but `claude plugin validate` warns. Future CC versions are expected to error on top-level entries.
+CC 2.1.129+ expects plugin manifests to declare experimental fields (e.g. `themes`) under an `"experimental"` block. Top-level still works but `claude plugin validate` warns. Future CC versions are expected to error on top-level entries.
 
 ```jsonc
 // .claude-plugin/plugin.json (post-CC 2.1.129 shape)
@@ -1774,12 +1774,12 @@ CC 2.1.129+ expects plugin manifests to declare `monitors` and `themes` under an
   "version": "1.0.0",
   "skills": "./skills/",
   "experimental": {
-    "monitors": "./monitors/monitors.json"
+    "themes": "./themes/"
   }
 }
 ```
 
-OrchestKit's source manifest (`manifests/ork.json`) and built `plugins/ork/.claude-plugin/plugin.json` use the new shape as of v7.86.0 — see `scripts/build-plugins.sh` for the codegen.
+OrchestKit no longer ships any experimental fields as of v7.94.0 (the prior `monitors` registration was removed in M168 Phase 1) — see `scripts/build-plugins.sh` for the codegen.
 
 ### `CLAUDE_CODE_SHELL_PREFIX` no longer corrupts MCP stdio argv (CC 2.1.128)
 
