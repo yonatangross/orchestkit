@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.93.1] - 2026-05-21
+
+### Fixed
+
+- **tests:** `stop-uncommitted-check.test.ts` fixtures no longer corrupt
+  the parent worktree's git config or branch ref. Without isolation
+  env (HOME, GIT_CONFIG_GLOBAL, GIT_DIR, GIT_WORK_TREE), the test's
+  `git config user.name "Test"` walked up from `tmpDir` and wrote to
+  the parent's `.git/config`; fixture commits then landed on the
+  active branch ref, losing real work. Closes #1917.
+
+---
+
+
 ## [7.93.0](https://github.com/yonatangross/orchestkit/compare/v7.92.0...v7.93.0) (2026-05-20)
 
 
