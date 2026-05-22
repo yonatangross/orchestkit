@@ -28,14 +28,13 @@ const CRITICAL_MS = 10 * 60 * 1000; // 10 minutes
 //
 // Any agent legitimately running longer than 24h is hung in practice;
 // the warning at that age serves no actionable purpose.
-//
-// Precise session_id filtering is a follow-up (schema migration).
 export const MAX_SPAWN_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface SpawnEntry {
   timestamp: string;
   agent_id?: string;
   subagent_type?: string;
+  session_id?: string;
 }
 
 /**
@@ -71,6 +70,7 @@ function getActiveSpawns(): SpawnEntry[] {
  */
 export function agentWatchdog(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const completedAgentId = input.agent_id;
+  const currentSessionId = process.env.CLAUDE_SESSION_ID;
   const now = Date.now();
 
   const spawns = getActiveSpawns();
@@ -81,6 +81,13 @@ export function agentWatchdog(input: HookInput, ctx: HookContext = NOOP_CTX): Ho
   for (const spawn of spawns) {
     // Skip the agent that just completed
     if (spawn.agent_id && spawn.agent_id === completedAgentId) continue;
+
+    // Session-scope filter: only warn about agents spawned in THIS session.
+    // Cross-session zombies (terminal closed, OOM, /clear) are someone else's
+    // problem and pollute output of the current session otherwise.
+    // Spawns without a session_id are pre-filter entries — let the 24h cap
+    // handle them.
+    if (currentSessionId && spawn.session_id && spawn.session_id !== currentSessionId) continue;
 
     if (!spawn.timestamp) continue;
     const elapsed = now - new Date(spawn.timestamp).getTime();
