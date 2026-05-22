@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.1.0](https://github.com/yonatangross/orchestkit/compare/v8.0.0...v8.1.0) (2026-05-22)
+
+
+### Features
+
+* **hooks:** SQLite Layer 1 — session registry + locks (M168 Phase 2) ([#1920](https://github.com/yonatangross/orchestkit/issues/1920)) ([96267da](https://github.com/yonatangross/orchestkit/commit/96267da069c1a4dfc86e5a3577457b5751e912ce))
+
+
+### Bug Fixes
+
+* **release:** revert version drift + guard against recurrence ([#1947](https://github.com/yonatangross/orchestkit/issues/1947)) ([eb4059d](https://github.com/yonatangross/orchestkit/commit/eb4059d3db846678545c4e07c4a612973f19a347))
+
+
+### Documentation
+
+* **rules:** add visual-style rule for ASCII art and emoji usage ([#1939](https://github.com/yonatangross/orchestkit/issues/1939)) ([f831757](https://github.com/yonatangross/orchestkit/commit/f8317573e7e4e1dc852592494451d4c01acb1ac5))
+
 ## [8.0.0](https://github.com/yonatangross/orchestkit/compare/v7.95.0...v8.0.0) (2026-05-22)
 
 
