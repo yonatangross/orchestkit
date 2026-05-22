@@ -372,6 +372,14 @@ Hotfix branches with bare names (e.g. `hotfix-auth-bug`) still trigger the pre-p
 
 If you need to override release-please's computed next version, use release-please's own [release-as footer](https://github.com/googleapis/release-please?tab=readme-ov-file#how-do-i-change-the-version-number) in the commit message.
 
+### Do not hand-edit release-please's governed files
+
+The same "release-please owns version decisions" rule applies to any **manual edit** of the files release-please tracks — not just running `bump-version.sh`. The governed list lives in `.release-please-config.json` under `extra-files`, plus the manifest, `version.txt`, and `CHANGELOG.md`.
+
+Hand-editing those files in a feature PR (e.g. an inner `chore: bump to vX.Y.Z` commit inside a squash) desyncs release-please's state machine: it can no longer find a tag matching the new manifest version, falls back to the bootstrap-sha, re-scans all history, and re-applies any `feat!:` or `BREAKING CHANGE:` it finds. The result is a wildly wrong major bump (see PR #1946 incident: a manual 8.0.0 → 8.1.0 in a feature PR caused the next release-please run to propose 9.0.0).
+
+CI enforces this via `.github/workflows/release-please-guard.yml` — non-bot PRs touching governed files fail the guard check.
+
 ### Release Cadence
 
 Release PRs are driven by two triggers:
