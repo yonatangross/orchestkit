@@ -51,7 +51,10 @@ jobs:
           # Note: BRANCH_NAME set via env to prevent shell injection from PR branch names
 
           # Check branch name prefix
-          if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor)/ ]]; then
+          # Includes issue/ and bug/ since they host conventional-commits feature
+          # work (see CONTRIBUTING.md "Branch naming" — those prefixes are valid).
+          # Must stay in lock-step with bin/git-hooks/pre-push L23.
+          if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug)/ ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
             echo "Skipping version check for $BRANCH_NAME (release-please handles versioning)"
             exit 0
