@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 2.1.140-148 Adoption — Doc Bundle Playground</title>
+<style>
+:root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --green:#3fb950; --amber:#d29922; }
+* { box-sizing:border-box; }
+body { margin:0; padding:32px; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.55; }
+.wrap { max-width:880px; margin:0 auto; }
+h1 { font-size:24px; margin:0 0 8px; }
+.sub { color:var(--muted); margin-bottom:24px; }
+.card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:18px 20px; margin-bottom:16px; }
+.card h2 { font-size:16px; margin:0 0 12px; color:var(--accent); }
+.before, .after { font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:10px 12px; border-radius:6px; white-space:pre-wrap; }
+.before { background:#2d1b1b; border-left:3px solid #d29922; margin-bottom:8px; }
+.after  { background:#1b2d1b; border-left:3px solid var(--green); }
+.label { display:inline-block; font-size:11px; padding:2px 6px; border-radius:3px; margin-right:6px; }
+.lbl-before { background:#d29922; color:#0d1117; }
+.lbl-after  { background:var(--green); color:#0d1117; }
+ul.changes { list-style:none; padding:0; }
+ul.changes li { padding:8px 0; border-bottom:1px solid var(--border); }
+ul.changes li:last-child { border-bottom:none; }
+.tag { font-size:11px; color:var(--muted); margin-left:8px; }
+.foot { color:var(--muted); font-size:12px; margin-top:32px; padding-top:16px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>CC 2.1.140–2.1.148 Adoption — Doc Bundle Playground</h1>
+<p class="sub">Branch: <code>docs/cc-adoption-bundle-2.1.140-148</code> · Targets: v8.1.0+ doc currency · Conflict surface: zero (doc-only)</p>
+
+<div class="card">
+<h2>What this PR changes</h2>
+<ul class="changes">
+<li>📝 <strong>brainstorm SKILL.md L398</strong> — adds terminalSequence (CC 2.1.141+) as a lighter alternative to PushNotification <span class="tag">cross-refs #1847</span></li>
+<li>📝 <strong>brainstorm SKILL.md L419</strong> — bumps /goal compatibility note to CC 2.1.143+ with the bg-agent race rationale</li>
+<li>🧠 <strong>memory: feedback_schedule_wakeup_scope.md</strong> — appends upstream-confirmation that CC 2.1.140 fixed /loop redundant wakeups</li>
+<li>🧠 <strong>memory: feedback_gh_secondary_rate_limit.md (NEW)</strong> — codifies the parallel-gh-call abuse-detection lesson from this session</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>Edit 1 — brainstorm L398: terminalSequence alternative</h2>
+<div class="before"><span class="label lbl-before">BEFORE</span>
+&gt; <strong>Push notifications (CC 2.1.110+):</strong> For long brainstorm sessions, use <code>PushNotification</code> to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").</div>
+<div class="after"><span class="label lbl-after">AFTER</span>
+&gt; <strong>Push notifications (CC 2.1.110+):</strong> ...same as before...
+&gt;
+&gt; <strong>Lighter alternative (CC 2.1.141+):</strong> Hooks can emit desktop notifications, window titles, and bells natively via the <code>terminalSequence</code> field in hook JSON output — no Remote Control required, no Anthropic round-trip. See #1847 for the migration of ork's existing notification hooks.</div>
+</div>
+
+<div class="card">
+<h2>Edit 2 — brainstorm L419: /goal compatibility floor</h2>
+<div class="before"><span class="label lbl-before">BEFORE</span>
+Set a completion condition with <code>/goal</code> (CC 2.1.139+) and this skill will keep working across turns until the condition is met.</div>
+<div class="after"><span class="label lbl-after">AFTER</span>
+Set a completion condition with <code>/goal</code> (CC 2.1.139+, <strong>2.1.143+ recommended for this skill</strong>) and this skill will keep working across turns until the condition is met.
+
+&gt; <strong>Why 2.1.143+:</strong> Pre-2.1.143 <code>/goal</code> evaluator could fire while background shells or delegated subagents were still running — racing the parallel agents this skill spawns in Phase 2. Fixed in CC 2.1.143.</div>
+</div>
+
+<div class="card">
+<h2>Why this bundle</h2>
+<p>OrchestKit's CC floor is <code>>= 2.1.139</code> but several brainstorm-relevant fixes shipped in 2.1.141 and 2.1.143. Without these notes, callers running the floor minimum would hit silent races (e.g., <code>/goal</code> firing during parallel brainstorm). Doc-only PR, no code paths change, no manifest churn.</p>
+<p>The memory updates capture lessons from this multi-session investigation: the /loop dedup is now upstream-codified, and the GH secondary-rate-limit lesson was discovered the hard way during the parallel agent sweep (Track A).</p>
+</div>
+
+<div class="foot">
+Filed alongside cross-link comments on #1830, #1897, #1862, #1874 and new tracking issues #1923–#1925 + Track A's 19-issue CC adoption sweep across milestones #142–#152.
+</div>
+</div>
+</body>
+</html>

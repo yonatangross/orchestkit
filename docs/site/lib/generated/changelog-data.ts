@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.1.0",
+    "date": "2026-05-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** SQLite Layer 1 — session registry + locks (M168 Phase 2) ([#1920](https://github.com/yonatangross/orchestkit/issues/1920)) ([96267da](https://github.com/yonatangross/orchestkit/commit/96267da069c1a4dfc86e5a3577457b5751e912ce))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**release:** revert version drift + guard against recurrence ([#1947](https://github.com/yonatangross/orchestkit/issues/1947)) ([eb4059d](https://github.com/yonatangross/orchestkit/commit/eb4059d3db846678545c4e07c4a612973f19a347))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**rules:** add visual-style rule for ASCII art and emoji usage ([#1939](https://github.com/yonatangross/orchestkit/issues/1939)) ([f831757](https://github.com/yonatangross/orchestkit/commit/f8317573e7e4e1dc852592494451d4c01acb1ac5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.0.0",
     "date": "2026-05-22",
     "compareUrl": "",
