@@ -193,7 +193,11 @@ describe('hooks.json wiring E2E', () => {
       //                          lifecycle/session-finalizer, posttool/heartbeat
       //                          (SQLite Layer 1 session registry — replaces
       //                          broken agent-watchdog #1830 liveness semantics).
-      expect(hooksConfig.description).toContain('205 total');
+      // 205 -> 207: M168 Phase 3 (#1913) — posttool/chain-staleness-checker,
+      //                          stop/goal-convergence-emitter (events.jsonl
+      //                          Layer 3 event-log at
+      //                          ~/.local/state/orchestkit/events.jsonl).
+      expect(hooksConfig.description).toContain('207 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

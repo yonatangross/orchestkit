@@ -136,7 +136,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
       // 11 -> 12: M140 Bundle B (#1790) — added stop/goal-tracker
-      expect(commandHooks.length, 'Stop should have 12 command hooks').toBe(12);
+      // 12 -> 13: M168 Phase 3 (#1913) — added stop/goal-convergence-emitter (events.jsonl emitter)
+      expect(commandHooks.length, 'Stop should have 13 command hooks').toBe(13);
 
       const uncommittedCheckHook = commandHooks.find(h => commandPath(h).includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -317,7 +318,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 90 -> 93: M168 Phase 2 (#1912) — lifecycle/session-registrar (SessionStart, 5s),
       //           lifecycle/session-finalizer (SessionEnd, 5s), posttool/heartbeat (PostToolUse, 3s).
       //           SQLite Layer 1 session registry — replaces broken agent-watchdog (#1830).
-      expect(asyncHooks.length, 'Should have exactly 93 async hooks').toBe(93);
+      // 93 -> 95: M168 Phase 3 (#1913) — posttool/chain-staleness-checker (PostToolUse, 3s) +
+      //           stop/goal-convergence-emitter (Stop, 3s). Layer 3 events.jsonl event-log.
+      expect(asyncHooks.length, 'Should have exactly 95 async hooks').toBe(95);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -428,7 +431,9 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 90 -> 93: M168 Phase 2 (#1912) — three new async hooks for SQLite Layer 1
       //           session registry: lifecycle/session-registrar, lifecycle/session-finalizer,
       //           posttool/heartbeat. Replaces broken agent-watchdog (#1830) liveness.
-      expect(asyncCount).toBe(93);
+      // 93 -> 95: M168 Phase 3 (#1913) — two new async hooks for Layer 3 events.jsonl
+      //           event-log: posttool/chain-staleness-checker + stop/goal-convergence-emitter.
+      expect(asyncCount).toBe(95);
     });
 
     it('should have hooks for all critical security operations', () => {

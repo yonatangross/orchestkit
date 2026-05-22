@@ -385,7 +385,13 @@ describe('Cross-Bundle Consistency', () => {
     //              Layer 1 session registry: lifecycle/session-registrar (SessionStart),
     //              lifecycle/session-finalizer (SessionEnd), posttool/heartbeat
     //              (PostToolUse). Replaces broken agent-watchdog (#1830) liveness.
-    expect(totalHooks).toBe(239);
+    // 239 -> 241: M168 Phase 3 (#1913) — two new bundle handlers for Layer 3
+    //              events.jsonl event-log: posttool/chain-staleness-checker
+    //              (PostToolUse) + stop/goal-convergence-emitter (Stop).
+    //              Cross-session append-only JSONL bus at
+    //              ~/.local/state/orchestkit/events.jsonl with POSIX O_APPEND
+    //              atomicity + cursor-based reads + 10MB rotation.
+    expect(totalHooks).toBe(241);
   });
 });
 

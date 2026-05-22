@@ -142,7 +142,11 @@ describe('Async Hooks Registry', () => {
       //           - lifecycle/session-registrar (SessionStart, async, 5s)
       //           - lifecycle/session-finalizer  (SessionEnd,   async, 5s)
       //           - posttool/heartbeat           (PostToolUse,  async, 3s)
-      expect(asyncHooks.length, 'Should have exactly 93 async hooks').toBe(93);
+      // 93 -> 95: M168 Phase 3 (#1913) — two new async hooks for the
+      //           events.jsonl event-log (Layer 3 coordination):
+      //           - posttool/chain-staleness-checker (PostToolUse, async, 3s)
+      //           - stop/goal-convergence-emitter   (Stop,         async, 3s)
+      expect(asyncHooks.length, 'Should have exactly 95 async hooks').toBe(95);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
