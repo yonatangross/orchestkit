@@ -24,7 +24,7 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { getOrCreateDb, writeWithRetry } from '../lib/session-registry.js';
+import { writeWithRetry } from '../lib/session-registry.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
