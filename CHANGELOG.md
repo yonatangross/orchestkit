@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.2.0](https://github.com/yonatangross/orchestkit/compare/v8.1.0...v8.2.0) (2026-05-22)
+
+
+### Features
+
+* **hooks:** events.jsonl + chain-staleness + goal-emitter (M168 Phase 3) ([#1948](https://github.com/yonatangross/orchestkit/issues/1948)) ([f1fcb70](https://github.com/yonatangross/orchestkit/commit/f1fcb70763b5d67afc1c8b060b241ef643d574d8))
+
 ## [8.1.0](https://github.com/yonatangross/orchestkit/compare/v8.0.0...v8.1.0) (2026-05-22)
 
 

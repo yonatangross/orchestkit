@@ -20,7 +20,7 @@ echo "Running pre-push validations for branch: $BRANCH"
 # create "ghost versions" when the two disagree (see #1457). Skip enforcement
 # on all conventional-commit prefixes; release-please owns the version.
 # Bare-named branches (e.g. hotfixes) still get enforced.
-if [[ "$BRANCH" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor)/ ]]; then
+if [[ "$BRANCH" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug)/ ]]; then
   echo "  ✓ Skipping version check for $BRANCH (release-please handles versioning)"
   exit 0
 fi

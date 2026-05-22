@@ -104,6 +104,31 @@ echo -e "${GREEN}  Found $MANIFEST_COUNT manifests${NC}"
 echo ""
 
 # ============================================================================
+# Phase 1.5: Ensure src/hooks/dist is fresh
+# ============================================================================
+# The hooks bundle is what actually runs at hook-invocation time. The rsync
+# below copies whatever's in src/hooks/dist into plugins/ — if that bundle
+# is stale (someone edited a hook but forgot `cd src/hooks && npm run build`),
+# users get the old behavior with no warning. See the 2026-05-22 incident
+# where plugins/ shipped an 8-day-old watchdog without a 24h zombie cap.
+#
+# Skip cleanly if hook deps aren't installed (e.g. running build-plugins.sh
+# in an environment where only marketplace assembly is needed).
+HOOKS_DIR="$SRC_DIR/hooks"
+if [[ -d "$HOOKS_DIR" && -f "$HOOKS_DIR/package.json" && -d "$HOOKS_DIR/node_modules" ]]; then
+    echo -e "${BLUE}[1.5/10] Refreshing src/hooks/dist (esbuild)...${NC}"
+    ( cd "$HOOKS_DIR" && npm run --silent build ) || {
+        echo -e "${YELLOW}  ⚠ src/hooks build failed — continuing with existing dist/${NC}"
+        echo -e "${YELLOW}    (plugins/ may carry a stale bundle; investigate)${NC}"
+    }
+    echo -e "${GREEN}  Hooks bundle refreshed${NC}"
+    echo ""
+else
+    echo -e "${YELLOW}[1.5/10] Skipping hooks rebuild — node_modules missing in $HOOKS_DIR${NC}"
+    echo ""
+fi
+
+# ============================================================================
 # Phase 2: Clean Previous Build
 # ============================================================================
 echo -e "${BLUE}[2/10] Cleaning previous build...${NC}"

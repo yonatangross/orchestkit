@@ -34,6 +34,8 @@ import { ghRateLimitTracker } from '../posttool/bash/gh-rate-limit-tracker.js';
 import { sessionHeartbeatPublisher } from '../posttool/bash/session-heartbeat-publisher.js';
 // #1912 — M168 Phase 2: rate-limited heartbeat write to SQLite session registry
 import { heartbeat as sessionHeartbeat } from '../posttool/heartbeat.js';
+// #1913 — M168 Phase 3: rate-limited chain staleness checker → events.jsonl
+import { chainStalenessChecker } from '../posttool/chain-staleness-checker.js';
 
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
@@ -114,6 +116,8 @@ export const hooks: Record<string, HookFn> = {
   'posttool/bash/session-heartbeat-publisher': sessionHeartbeatPublisher,
   // #1912 — M168 Phase 2: rate-limited heartbeat write to SQLite session registry
   'posttool/heartbeat': sessionHeartbeat,
+  // #1913 — M168 Phase 3: chain staleness → events.jsonl
+  'posttool/chain-staleness-checker': chainStalenessChecker,
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
