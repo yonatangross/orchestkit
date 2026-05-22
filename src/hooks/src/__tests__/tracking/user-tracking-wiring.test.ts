@@ -28,7 +28,11 @@ describe('Issue #245: User Tracking Wiring', () => {
   });
 
   describe('PostToolUse hooks after #897 slimming', () => {
-    test('posttool dispatcher has redact-secrets registered', async () => {
+    // Cold dynamic-import of the posttool dispatcher bundle takes ~3s in
+    // isolation; under parallel test load it can blow the 5s default
+    // timeout. Bump to 15s — wiring assertion is one-shot and not perf
+    // sensitive.
+    test('posttool dispatcher has redact-secrets registered', { timeout: 15000 }, async () => {
       const { registeredHookNames, registeredHookMatchers } = await import(
         '../../posttool/unified-dispatcher.js'
       );

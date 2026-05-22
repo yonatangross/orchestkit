@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.1.0] - 2026-05-22
+
+### Added
+
+- **hooks:** SQLite Layer 1 — `session-registry.ts` + migrations,
+  `session-registrar.ts` (SessionStart), `session-finalizer.ts`
+  (SessionEnd), `heartbeat.ts` (PostToolUse). Foundation for the
+  4-layer coordination architecture (M168 Phase 2, #1908, #1912).
+  Closes #1830, #1897.
+- New dep: `better-sqlite3@^11` (synchronous, matches hook model).
+- Database at `~/.local/state/orchestkit/sessions.db` with WAL
+  pragmas, BEGIN IMMEDIATE + jittered backoff retry, and
+  `PRAGMA integrity_check` auto-quarantine.
+
+---
+
+
+## [7.96.0] - 2026-05-22
+
+### Added
+
+- TODO: Describe your changes here
+
+---
+
+
 ## [8.0.0](https://github.com/yonatangross/orchestkit/compare/v7.95.0...v8.0.0) (2026-05-22)
 
 
