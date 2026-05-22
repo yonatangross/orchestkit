@@ -194,4 +194,50 @@ describe('agentWatchdog', () => {
     expect(result.systemMessage).not.toContain('manifest-reconciler');
     expect(result.systemMessage).not.toContain('opus-sweeper');
   });
+
+  it('filters out spawns from other sessions when CLAUDE_SESSION_ID is set', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    const prevEnv = process.env.CLAUDE_SESSION_ID;
+    process.env.CLAUDE_SESSION_ID = 'current-session';
+
+    try {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue([
+        JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'other-session-zombie', subagent_type: 'opus-sweeper', session_id: 'older-session-uuid' }),
+        JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'this-session-hung', subagent_type: 'backend-system-architect', session_id: 'current-session' }),
+      ].join('\n'));
+
+      const result = agentWatchdog(makeInput(), testCtx);
+
+      expect(result.systemMessage).toContain('CRITICAL');
+      expect(result.systemMessage).toContain('backend-system-architect');
+      expect(result.systemMessage).not.toContain('opus-sweeper');
+    } finally {
+      if (prevEnv === undefined) delete process.env.CLAUDE_SESSION_ID;
+      else process.env.CLAUDE_SESSION_ID = prevEnv;
+    }
+  });
+
+  it('still warns for spawns without session_id (pre-filter entries) under the 24h cap', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    const prevEnv = process.env.CLAUDE_SESSION_ID;
+    process.env.CLAUDE_SESSION_ID = 'current-session';
+
+    try {
+      vi.mocked(existsSync).mockReturnValue(true);
+      // No session_id field — represents older log lines from before the
+      // filter shipped. Should still fire (subject only to the 24h cap).
+      vi.mocked(readFileSync).mockReturnValue(
+        JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'pre-filter-hung', subagent_type: 'legacy-agent' })
+      );
+
+      const result = agentWatchdog(makeInput(), testCtx);
+
+      expect(result.systemMessage).toContain('CRITICAL');
+      expect(result.systemMessage).toContain('legacy-agent');
+    } finally {
+      if (prevEnv === undefined) delete process.env.CLAUDE_SESSION_ID;
+      else process.env.CLAUDE_SESSION_ID = prevEnv;
+    }
+  });
 });
