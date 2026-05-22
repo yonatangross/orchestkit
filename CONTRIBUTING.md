@@ -378,7 +378,7 @@ The same "release-please owns version decisions" rule applies to any **manual ed
 
 Hand-editing those files in a feature PR (e.g. an inner `chore: bump to vX.Y.Z` commit inside a squash) desyncs release-please's state machine: it can no longer find a tag matching the new manifest version, falls back to the bootstrap-sha, re-scans all history, and re-applies any `feat!:` or `BREAKING CHANGE:` it finds. The result is a wildly wrong major bump (see PR #1946 incident: a manual 8.0.0 → 8.1.0 in a feature PR caused the next release-please run to propose 9.0.0).
 
-CI enforces this via `.github/workflows/release-please-guard.yml` — non-bot PRs touching governed files fail the guard check.
+CI enforces this via `.github/workflows/release-please-guard.yml` — non-bot PRs touching governed files fail the guard check. For legitimate exceptions (drift fixes like #1947, schema changes to a governed file), apply the `release-please-override` label and the guard will skip.
 
 ### Release Cadence
 
