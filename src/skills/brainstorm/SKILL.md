@@ -396,6 +396,8 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 > **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
 > **Push notifications (CC 2.1.110+):** For long brainstorm sessions, use `PushNotification` to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").
+>
+> **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output — no Remote Control required, no Anthropic round-trip. See #1847 for the migration of ork's existing notification hooks.
 
 > **Manual cleanup:** If `TeamDelete()` doesn't terminate all agents, press `Ctrl+F` twice to force-stop remaining background agents. Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
 
@@ -416,7 +418,9 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 ## Running unattended with /goal
 
-Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+Set a completion condition with `/goal` (CC 2.1.139+, **2.1.143+ recommended for this skill**) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
+
+> **Why 2.1.143+:** Pre-2.1.143 `/goal` evaluator could fire while background shells or delegated subagents were still running — racing the parallel agents this skill spawns in Phase 2. Fixed in CC 2.1.143 (changelog: "`/goal` evaluator firing while background shells or delegated subagents are still running").
 
 **Example completion condition for this skill:**
 
