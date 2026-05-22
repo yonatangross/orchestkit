@@ -5,6 +5,38 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.95.0] - 2026-05-22
+
+### ⚠ BREAKING CHANGES
+
+- **monitors:** the entire `src/monitors/` mechanism is deleted with no
+  backwards compatibility. The 3 polling shells (`goal-convergence`,
+  `chain-state-watcher`, `uncommitted-work-reminder`) are removed in
+  this release as Phase 1 of M168 Coordination Redesign (#1908).
+  Subsequent M168 phases (#1912-#1916) ship SQLite-backed
+  event-driven replacements. `commit-nudge.ts` (PostToolUse hook)
+  continues to fire and covers the only useful monitor signal
+  (uncommitted-work-reminder).
+
+### Removed
+
+- `src/monitors/` directory (entire)
+- `"monitors"` registration from `manifests/ork.json`
+- `## Monitors` section from `CLAUDE.md`
+- Monitors copy step + `has_monitors` flag from `scripts/build-plugins.sh`
+
+### Fixed
+
+- Closes #1877 — `goal-convergence` notification spam (monitor deleted entirely)
+
+### Related
+
+- Parent umbrella: #1908 (M168 Coordination Redesign)
+- This PR: #1911 (Phase 1)
+
+---
+
+
 ## [7.94.0](https://github.com/yonatangross/orchestkit/compare/v7.93.1...v7.94.0) (2026-05-22)
 
 
@@ -6988,3 +7020,4 @@ Usage-Driven Hardening — **9/9 issues closed**. 🎉
 [5.6.0]: https://github.com/yonatangross/orchestkit/releases/tag/v5.6.0
 [5.5.0]: https://github.com/yonatangross/orchestkit/releases/tag/v5.5.0
 [5.2.4]: https://github.com/yonatangross/orchestkit/releases/tag/v5.2.4
+

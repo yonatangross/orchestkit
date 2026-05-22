@@ -1,5 +1,0 @@
-{
-  "name": "goal-convergence",
-  "description": "Reports rolling-window convergence stats for /goal runs from .claude/state/goal-history.jsonl: counts of converged/spun/aborted plus avg turn_count. Emits a single statusline line every 60s.",
-  "command": "while true; do f=.claude/state/goal-history.jsonl; if [ -f \"$f\" ]; then stats=$(awk -F'\"' 'BEGIN{c=0;s=0;a=0;t=0;n=0} /\"status\":\"converged\"/{c++} /\"status\":\"spun\"/{s++} /\"status\":\"aborted\"/{a++} /\"turn_count\":/{for(i=1;i<=NF;i++) if($i==\"turn_count\"){match($(i+1),/[0-9]+/);if(RSTART){v=substr($(i+1),RSTART,RLENGTH)+0;t+=v;n++}}} END{total=c+s+a; if(total==0){print \"no /goal runs yet\"} else {avg=(n>0)?int(t/n+0.5):0; printf \"last %d /goal: %d\\u2713 %d\\u21bb %d\\u2717 avg %dt\", total, c, s, a, avg}}' \"$f\" | tail -10000); echo \"$stats\"; else echo \"no /goal history\"; fi; sleep 60; done"
-}

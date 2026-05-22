@@ -81,12 +81,8 @@ Commit after each logical unit of work — never batch all commits to end of ses
 
 Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts + per-session token cost: `claude plugin details ork`.
 
-## Monitors
-
-Live in `src/monitors/monitors.json`, registered via `manifests/ork.json`. See `docs/monitor-authoring.md` for rules.
-
 ## Version
 
-- **Current**: 7.94.0 · **Claude Code**: >= 2.1.139 <!-- x-release-please-version -->
+- **Current**: 7.95.0 · **Claude Code**: >= 2.1.139 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.
