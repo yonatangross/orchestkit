@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OrchestKit Visual Style Playground</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 24px;
+  }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; color: var(--accent); }
+  .lead { color: var(--muted); margin: 0 0 24px; max-width: 720px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.12s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card.copied { border-color: var(--ok); }
+  .glyph { font-size: 28px; line-height: 1; }
+  .meaning { font-weight: 600; color: var(--fg); }
+  .use { color: var(--muted); font-size: 12px; }
+  pre {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--ok);
+    color: #0d1117;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .ranking { display: flex; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+  .pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .pill:hover { border-color: var(--accent); }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .rule-link { color: var(--accent); text-decoration: none; }
+  .rule-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>🎨 OrchestKit Visual Style Playground</h1>
+<p class="lead">
+Interactive demo of the visual-style rule (<code>src/rules/visual-style.md</code>).
+Click any glyph or ASCII block to copy. The vocabulary is closed — only these 12 semantic
+emojis are sanctioned across OrchestKit's chat output, SKILL.md files, hook messages, and docs.
+</p>
+
+<h2>The Twelve-Glyph Vocabulary</h2>
+<div class="grid" id="vocab"></div>
+
+<h2>Risk + Ranking Glyphs (paired only)</h2>
+<div class="ranking" id="paired"></div>
+
+<h2>ASCII Box-Drawing Palette</h2>
+<pre id="palette">┌──────────────────────────────────────────────────────────────┐
+│  Light box (default for ASCII chunks)                        │
+│    Top-left ┌  Top-right ┐  Bot-left └  Bot-right ┘          │
+│    Horizontal ─  Vertical │                                  │
+└──────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════╗
+║  Heavy box (reserve for top-level section headers)           ║
+║    Top-left ╔  Top-right ╗  Bot-left ╚  Bot-right ╝          ║
+║    Horizontal ═  Vertical ║                                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+Dividers:    ───────  ═══════
+Arrows:      → ↓ ▶ ◀
+Progress:    [▓▓▓▓▓░░░░░]  [████████░░]
+Bullets:     • ◦ ‣</pre>
+
+<h2>Example Output Patterns</h2>
+<pre id="example">┌─ 🥇 ROLLOUT A ──────────────────────────────────────────────┐
+│  Risk: 🟢 LOW  ·  Leverage: 🔥 HIGH  ·  Effort: 🟢 LOW       │
+│                                                              │
+│  ✅ Step 1 — done                                            │
+│  🔄 Step 2 — in progress                                     │
+│  ⏸ Step 3 — blocked by step 2                                │
+│  💡 Step 4 — suggested follow-up                             │
+└──────────────────────────────────────────────────────────────┘</pre>
+
+<footer>
+Source rule: <a class="rule-link" href="https://github.com/yonatangross/orchestkit/blob/main/src/rules/visual-style.md">src/rules/visual-style.md</a>
+&nbsp;·&nbsp;
+Adding a glyph requires a PR that updates both the rule and this playground.
+</footer>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const vocab = [
+  { g: "✅", m: "success / done / pass",      u: "completed tasks, passing tests, met criteria" },
+  { g: "❌", m: "failure / blocked / no",     u: "failed tests, denied actions, explicit don't" },
+  { g: "⚠️", m: "warning / caution",          u: "non-fatal issues, edge cases, soft constraints" },
+  { g: "🔄", m: "in-progress / loop",         u: "running tasks, retry loops, async work" },
+  { g: "⏸",  m: "paused / blocked-by",        u: "waiting on dependency or user input" },
+  { g: "💡", m: "hint / suggestion",          u: "optional improvements, consider this" },
+  { g: "🚨", m: "hard block / critical",      u: "security violations, hook denies, must-fix" },
+  { g: "🎯", m: "goal / target",              u: "objectives, success criteria, focus" },
+  { g: "🔥", m: "high-leverage / hot",        u: "top priority, recommended path" },
+  { g: "📜", m: "docs / skill / spec",        u: "references to SKILL.md, documentation" },
+  { g: "🤖", m: "agent",                      u: "references to subagents" },
+  { g: "⚡", m: "hook",                       u: "references to hooks, fast/automated paths" },
+];
+
+const paired = [
+  { g: "🟢", m: "low risk" },
+  { g: "🟡", m: "medium risk" },
+  { g: "🔴", m: "high risk" },
+  { g: "🥇", m: "first" },
+  { g: "🥈", m: "second" },
+  { g: "🥉", m: "third" },
+];
+
+const vocabEl = document.getElementById("vocab");
+vocab.forEach((v) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <span class="glyph">${v.g}</span>
+    <span class="meaning">${v.m}</span>
+    <span class="use">${v.u}</span>
+  `;
+  card.addEventListener("click", () => copyText(v.g, card));
+  vocabEl.appendChild(card);
+});
+
+const pairedEl = document.getElementById("paired");
+paired.forEach((p) => {
+  const pill = document.createElement("span");
+  pill.className = "pill";
+  pill.textContent = `${p.g} ${p.m}`;
+  pill.addEventListener("click", () => copyText(p.g));
+  pairedEl.appendChild(pill);
+});
+
+["palette", "example"].forEach((id) => {
+  const el = document.getElementById(id);
+  el.style.cursor = "pointer";
+  el.title = "Click to copy";
+  el.addEventListener("click", () => copyText(el.textContent, el));
+});
+
+function copyText(text, el) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast();
+    if (el) {
+      el.classList.add("copied");
+      setTimeout(() => el.classList.remove("copied"), 600);
+    }
+  });
+}
+
+function showToast() {
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1200);
+}
+</script>
+</body>
+</html>

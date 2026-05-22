@@ -10,6 +10,10 @@ Always respond in English. Never Hebrew. No exceptions.
 
 No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycophancy.md`.
 
+## Visuals
+
+ASCII art and 12 semantic emojis encouraged in chat output. Rule: `src/rules/visual-style.md`.
+
 ## Project Overview
 
 **OrchestKit** — Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
