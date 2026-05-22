@@ -314,7 +314,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async, 5s)
       // 88 -> 89: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash], async, 5s)
       // 89 -> 90: #1884 — lifecycle/sweep-stale-worktrees (SessionStart, async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 90 async hooks').toBe(90);
+      // 90 -> 93: M168 Phase 2 (#1912) — lifecycle/session-registrar (SessionStart, 5s),
+      //           lifecycle/session-finalizer (SessionEnd, 5s), posttool/heartbeat (PostToolUse, 3s).
+      //           SQLite Layer 1 session registry — replaces broken agent-watchdog (#1830).
+      expect(asyncHooks.length, 'Should have exactly 93 async hooks').toBe(93);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -422,7 +425,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 87 -> 88: M141 #1860 — lifecycle/hook-token-check (SessionStart, async)
       // 88 -> 89: #1885 — posttool/bash/session-heartbeat-publisher (PostToolUse[Bash], async)
       // 89 -> 90: #1884 — lifecycle/sweep-stale-worktrees (SessionStart, async)
-      expect(asyncCount).toBe(90);
+      // 90 -> 93: M168 Phase 2 (#1912) — three new async hooks for SQLite Layer 1
+      //           session registry: lifecycle/session-registrar, lifecycle/session-finalizer,
+      //           posttool/heartbeat. Replaces broken agent-watchdog (#1830) liveness.
+      expect(asyncCount).toBe(93);
     });
 
     it('should have hooks for all critical security operations', () => {

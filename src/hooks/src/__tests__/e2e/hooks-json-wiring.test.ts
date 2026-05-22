@@ -117,21 +117,26 @@ describe('hooks.json wiring E2E', () => {
   // ===========================================================================
   // Entry point exports match hooks.json
   //
-  // These two tests import compiled entry bundles (~80-100KB each with
-  // transitive deps). Cold-import under vitest parallel workers is ~1.5s
-  // in isolation but can exceed the 5s default when CPU is saturated by
-  // sibling test files. Raise the timeout to 15s so parallel runs don't
-  // flake — the tests themselves are trivially fast once the import
-  // completes.
+  // These two tests import compiled entry bundles. After M168 Phase 2 (#1912)
+  // the lifecycle bundle imports session-registrar (which transitively pulls
+  // better-sqlite3 native + 3 migration files + retry/integrity-check logic),
+  // pushing the cold-import to ~5-7s in isolation, ~12-15s under vitest's
+  // parallel-worker saturation. Stop bundle is ~5s solo.
+  //
+  // Why 30s: under heavy parallel load (vitest spawns ~8 workers, all paying
+  // their own import cost), the longest tail observed is ~22s. 30s is a
+  // generous ceiling that still surfaces a regression if the bundle becomes
+  // catastrophically slow to load. The tests themselves are trivial once the
+  // import completes (just a property lookup).
   // ===========================================================================
   describe('entry point bundle exports', () => {
-    it('stop bundle exports stop-failure-handler', { timeout: 15000 }, async () => {
+    it('stop bundle exports stop-failure-handler', { timeout: 30000 }, async () => {
       const stopBundle = await import('../../entries/stop.js');
       expect(stopBundle.hooks['stop/stop-failure-handler']).toBeDefined();
       expect(typeof stopBundle.hooks['stop/stop-failure-handler']).toBe('function');
     });
 
-    it('lifecycle bundle exports worktree-lifecycle-logger', { timeout: 15000 }, async () => {
+    it('lifecycle bundle exports worktree-lifecycle-logger', { timeout: 30000 }, async () => {
       const lifecycleBundle = await import('../../entries/lifecycle.js');
       expect(lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBeDefined();
       expect(typeof lifecycleBundle.hooks['worktree/worktree-lifecycle-logger']).toBe('function');
@@ -184,7 +189,11 @@ describe('hooks.json wiring E2E', () => {
       // 201 -> 202: #1884 — lifecycle/sweep-stale-worktrees (SessionStart;
       //                          removes stale empty <repo>-* dirs that block
       //                          fresh `git worktree add`).
-      expect(hooksConfig.description).toContain('202 total');
+      // 202 -> 205: M168 Phase 2 (#1912) — lifecycle/session-registrar,
+      //                          lifecycle/session-finalizer, posttool/heartbeat
+      //                          (SQLite Layer 1 session registry — replaces
+      //                          broken agent-watchdog #1830 liveness semantics).
+      expect(hooksConfig.description).toContain('205 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

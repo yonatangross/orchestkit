@@ -32,6 +32,8 @@ import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 import { ghRateLimitTracker } from '../posttool/bash/gh-rate-limit-tracker.js';
 // #1885 — cross-session state bus publisher
 import { sessionHeartbeatPublisher } from '../posttool/bash/session-heartbeat-publisher.js';
+// #1912 — M168 Phase 2: rate-limited heartbeat write to SQLite session registry
+import { heartbeat as sessionHeartbeat } from '../posttool/heartbeat.js';
 
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
@@ -110,6 +112,8 @@ export const hooks: Record<string, HookFn> = {
   'posttool/bash/gh-rate-limit-tracker': ghRateLimitTracker,
   // #1885 — publishes structural git/gh events to cross-session state bus
   'posttool/bash/session-heartbeat-publisher': sessionHeartbeatPublisher,
+  // #1912 — M168 Phase 2: rate-limited heartbeat write to SQLite session registry
+  'posttool/heartbeat': sessionHeartbeat,
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 134 global + 46 agent-scoped + 22 skill-scoped = 202 total hooks (18 once:true context loaders). #1884: lifecycle/sweep-stale-worktrees — SessionStart async hook removes sibling directories matching `<repo>-*` that are NOT in `git worktree list`, have zero files (find -type f), and are >1h old; closes the trap where aborted Agent(isolation:\"worktree\") runs leave empty paths that block fresh `git worktree add`. Opt-out via ORK_NO_STALE_SWEEP=1. M141 #1860: lifecycle/hook-token-check — SessionStart async hook scans .claude/settings.local.json (project + ~) for type:http entries that reference $ORCHESTKIT_HOOK_TOKEN; emits a single stderr banner when the env var is unset (defense-in-depth, paired with generate-http-hooks --write refusal). M138 #1826: lifecycle/cleanup-envelope-corruption — SessionStart async hook quarantines historical `{\"continue\":true,...}`-named entries under ~/.claude/hooks/sessions/ and <projectDir>/.worktrees/ (recurrence of #1250 reached EnterWorktree's name path); idempotent via ~/.claude/.orchestkit-envelope-cleanup-done marker. Paired with safeIdentifier() guard in lib/safe-fs.ts applied at WorktreeCreate.name read + getSessionTempDir(sessionId). M119 #1815: lifecycle/rules-size-check — SessionStart async hook warns when .claude/rules/*.md exceeds 35k chars (12.5% safety margin under CC's 40k auto-load cliff). Operator-facing stderr signal; references CONTRIBUTING-SKILLS.md storage-patterns (#1816). M119 PR-2 (#1794 follow-up): prompt/worktree-advisory-consumer — UserPromptSubmit reads .claude/state/worktree-advisory-*.md written by worktree-lifecycle-logger on monorepo detect, injects sparsePaths nudge as additionalContext (CC doesn't consume it on WorktreeCreate event itself). M119 (#1795) / M104 PR-A: lifecycle/ask-fallback-injector — SessionStart async hook injects text-prompt reminder when ORK_ASK_FALLBACK=text is set; pins to cached prompt prefix (previously UserPromptSubmit, re-injected per turn). M104 PR-B (#638): lifecycle/agentation-context — SessionStart async hook injects Agentation MCP annotation reminder when configured in .mcp.json; pins to cached prompt prefix (previously inside prompt/unified-dispatcher with runOnce per-turn file-flag check). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. M126 #1543: posttool/secret-handler scans Read/Bash/Grep/Glob for API keys + private blocks via CC 2.1.121 updatedToolOutput; OFF by default, ORK_SECRET_HOOK=AUDIT|REDACT to enable. M130 #1487: lifecycle/cc-version-check warns when running CC drifts from feature matrix. M140 Bundle B (#1790, #1791): prompt/goal-tracker + stop/goal-tracker write /goal convergence telemetry to .claude/state/goal-history.jsonl; lifecycle/goal-budget-guard (SessionEnd) enforces ORK_GOAL_MAX_TURNS_PER_SESSION (default 30) / ORK_GOAL_MAX_TOKENS_PER_SESSION (default 250k) by writing .claude/state/goal-budget-tripped.json, which prompt/goal-tracker reads with continueOnBlock:true so the user can override by deleting the file. All timeouts in SECONDS per CC spec.",
+  "description": "OrchestKit hooks - 137 global + 46 agent-scoped + 22 skill-scoped = 205 total hooks (18 once:true context loaders). M168 Phase 2 (#1912): lifecycle/session-registrar (SessionStart) + lifecycle/session-finalizer (SessionEnd) + posttool/heartbeat (PostToolUse) — Layer 1 SQLite session registry at ~/.local/state/orchestkit/sessions.db with WAL pragmas, schema migrations, BEGIN IMMEDIATE retry, and PRAGMA integrity_check auto-quarantine; replaces broken agent-watchdog (#1830) liveness semantics. #1884: lifecycle/sweep-stale-worktrees — SessionStart async hook removes sibling directories matching `<repo>-*` that are NOT in `git worktree list`, have zero files (find -type f), and are >1h old; closes the trap where aborted Agent(isolation:\"worktree\") runs leave empty paths that block fresh `git worktree add`. Opt-out via ORK_NO_STALE_SWEEP=1. M141 #1860: lifecycle/hook-token-check — SessionStart async hook scans .claude/settings.local.json (project + ~) for type:http entries that reference $ORCHESTKIT_HOOK_TOKEN; emits a single stderr banner when the env var is unset (defense-in-depth, paired with generate-http-hooks --write refusal). M138 #1826: lifecycle/cleanup-envelope-corruption — SessionStart async hook quarantines historical `{\"continue\":true,...}`-named entries under ~/.claude/hooks/sessions/ and <projectDir>/.worktrees/ (recurrence of #1250 reached EnterWorktree's name path); idempotent via ~/.claude/.orchestkit-envelope-cleanup-done marker. Paired with safeIdentifier() guard in lib/safe-fs.ts applied at WorktreeCreate.name read + getSessionTempDir(sessionId). M119 #1815: lifecycle/rules-size-check — SessionStart async hook warns when .claude/rules/*.md exceeds 35k chars (12.5% safety margin under CC's 40k auto-load cliff). Operator-facing stderr signal; references CONTRIBUTING-SKILLS.md storage-patterns (#1816). M119 PR-2 (#1794 follow-up): prompt/worktree-advisory-consumer — UserPromptSubmit reads .claude/state/worktree-advisory-*.md written by worktree-lifecycle-logger on monorepo detect, injects sparsePaths nudge as additionalContext (CC doesn't consume it on WorktreeCreate event itself). M119 (#1795) / M104 PR-A: lifecycle/ask-fallback-injector — SessionStart async hook injects text-prompt reminder when ORK_ASK_FALLBACK=text is set; pins to cached prompt prefix (previously UserPromptSubmit, re-injected per turn). M104 PR-B (#638): lifecycle/agentation-context — SessionStart async hook injects Agentation MCP annotation reminder when configured in .mcp.json; pins to cached prompt prefix (previously inside prompt/unified-dispatcher with runOnce per-turn file-flag check). Webhook forwarder is standalone async on ALL 27 events (v7.29.0: decoupled from dispatchers — zero inline forwarder calls). M121 #1489: posttool metrics-dispatcher fans out webhook-forwarder+metrics-bridge+context-crossing-warn in-process on the catchall matcher (2 hooks.json entries collapsed into 1). M119 #1476: nudge-outcome-resolver added on SessionStart to close the pre-compact-prompt feedback loop. M126 #1543: posttool/secret-handler scans Read/Bash/Grep/Glob for API keys + private blocks via CC 2.1.121 updatedToolOutput; OFF by default, ORK_SECRET_HOOK=AUDIT|REDACT to enable. M130 #1487: lifecycle/cc-version-check warns when running CC drifts from feature matrix. M140 Bundle B (#1790, #1791): prompt/goal-tracker + stop/goal-tracker write /goal convergence telemetry to .claude/state/goal-history.jsonl; lifecycle/goal-budget-guard (SessionEnd) enforces ORK_GOAL_MAX_TURNS_PER_SESSION (default 30) / ORK_GOAL_MAX_TOKENS_PER_SESSION (default 250k) by writing .claude/state/goal-budget-tripped.json, which prompt/goal-tracker reads with continueOnBlock:true so the user can override by deleting the file. All timeouts in SECONDS per CC spec.",
   "hooks": {
     "PreToolUse": [
       {
@@ -465,6 +465,16 @@
           {
             "type": "command",
             "command": "node",
+            "async": true,
+            "timeout": 3,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "posttool/heartbeat"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
             "timeout": 5,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
@@ -702,6 +712,16 @@
             "timeout": 5,
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/session-registrar"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "lifecycle/sweep-stale-worktrees"
             ]
           },
@@ -908,6 +928,16 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "lifecycle/goal-budget-guard"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/session-finalizer"
             ]
           }
         ]
