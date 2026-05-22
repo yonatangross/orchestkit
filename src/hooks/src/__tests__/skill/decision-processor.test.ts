@@ -722,7 +722,13 @@ describe('decision-processor', () => {
   // ---------------------------------------------------------------------------
 
   describe('edge cases', () => {
-    test('handles very long output', () => {
+    // The decision processor runs ~50 regex passes (decision/relation/best-practice
+    // detectors) against the input. With 100x-repeated input (~50KB), each pass
+    // is O(input.length), totaling ~2.1s solo. Under vitest's parallel worker
+    // load it can blow the 5s default. This test asserts COMPLETION on very-long
+    // output, not throughput — bump the per-test timeout to 15s. If perf
+    // regresses dramatically (>10s solo), that's a separate issue worth filing.
+    test('handles very long output', { timeout: 15000 }, () => {
       // Arrange
       const longOutput = createDecisionText(
         'to use PostgreSQL',

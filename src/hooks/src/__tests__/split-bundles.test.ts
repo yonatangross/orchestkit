@@ -381,7 +381,11 @@ describe('Cross-Bundle Consistency', () => {
     //              Reaps empty <repo>-* sibling dirs left behind by aborted
     //              `git worktree add` attempts (4 safety predicates,
     //              ORK_NO_STALE_SWEEP=1 opt-out).
-    expect(totalHooks).toBe(236);
+    // 236 -> 239: M168 Phase 2 (#1912) — three new bundle handlers for SQLite
+    //              Layer 1 session registry: lifecycle/session-registrar (SessionStart),
+    //              lifecycle/session-finalizer (SessionEnd), posttool/heartbeat
+    //              (PostToolUse). Replaces broken agent-watchdog (#1830) liveness.
+    expect(totalHooks).toBe(239);
   });
 });
 

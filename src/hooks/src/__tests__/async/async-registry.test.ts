@@ -137,7 +137,12 @@ describe('Async Hooks Registry', () => {
       //           git/gh events.
       // 89 -> 90: #1884 — lifecycle/sweep-stale-worktrees (SessionStart, async, 5s)
       //           removes empty <repo>-* sibling dirs that block `git worktree add`.
-      expect(asyncHooks.length, 'Should have exactly 90 async hooks').toBe(90);
+      // 90 -> 93: M168 Phase 2 (#1912) — three new async hooks for the SQLite
+      //           session registry (Layer 1 coordination):
+      //           - lifecycle/session-registrar (SessionStart, async, 5s)
+      //           - lifecycle/session-finalizer  (SessionEnd,   async, 5s)
+      //           - posttool/heartbeat           (PostToolUse,  async, 3s)
+      expect(asyncHooks.length, 'Should have exactly 93 async hooks').toBe(93);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

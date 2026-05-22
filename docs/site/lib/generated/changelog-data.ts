@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.1.0",
+    "date": "2026-05-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** SQLite Layer 1 — `session-registry.ts` + migrations,",
+          "New dep: `better-sqlite3@^11` (synchronous, matches hook model).",
+          "Database at `~/.local/state/orchestkit/sessions.db` with WAL"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "7.96.0",
+    "date": "2026-05-22",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "TODO: Describe your changes here"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.0.0",
     "date": "2026-05-22",
     "compareUrl": "",

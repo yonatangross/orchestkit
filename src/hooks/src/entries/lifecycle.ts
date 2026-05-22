@@ -95,6 +95,8 @@ import { sweepStaleWorktrees } from '../lifecycle/sweep-stale-worktrees.js';
 import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
 // #1912 — M168 Phase 2: SQLite session registry (Layer 1 coordination)
 import { sessionRegistrar } from '../lifecycle/session-registrar.js';
+// #1912 — M168 Phase 2: SQLite session registry finalizer (SessionEnd; lifecycle/ prefix per convention)
+import { sessionFinalizer } from '../lifecycle/session-finalizer.js';
 
 // Elicitation hooks (CC 2.1.76)
 import { elicitationGuard } from '../elicitation/elicitation-guard.js';
@@ -143,6 +145,8 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/hook-token-check': hookTokenCheck,
   // #1912 — M168 Phase 2: SQLite session registry (Layer 1 coordination)
   'lifecycle/session-registrar': sessionRegistrar,
+  // #1912 — M168 Phase 2: SessionEnd finalizer (lifecycle/ prefix per cross-reference-validation.test.ts:235)
+  'lifecycle/session-finalizer': sessionFinalizer,
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/unified-dispatcher': unifiedTeammateIdleDispatcher,

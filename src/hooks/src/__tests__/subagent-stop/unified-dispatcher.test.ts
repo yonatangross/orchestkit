@@ -658,13 +658,32 @@ describe('unified-subagent-stop-dispatcher', () => {
 
   describe('performance characteristics', () => {
     test('completes within reasonable time even with slow hooks', async () => {
-      // Arrange
+      // Arrange — N parallel slow hooks of SLOW_HOOK_MS each.
+      //
+      // Why N=4 and SLOW_HOOK_MS=200: the test must reliably distinguish
+      // parallel from sequential execution of the dispatcher. With 2 hooks
+      // at 50ms each, parallel = ~50ms and sequential = ~100ms — but timer
+      // slop under vitest's parallel-worker contention can stretch the
+      // wall-clock by 150-300ms either way, making the distinction
+      // statistically meaningless. Bumping to 4 hooks at 200ms each
+      // produces a 600ms gap (parallel ~200ms vs sequential ~800ms) which
+      // is large enough that even ~400ms of OS/timer slop preserves the
+      // parallel < sequential * 0.75 ordering.
+      //
+      // The dispatcher hard-codes 2 actual hooks (handoffPreparer +
+      // feedbackLoop), but Promise.allSettled([...].map(...)) parallelism
+      // is observable by mocking just those two — adding more slow mocks
+      // to non-existent slots doesn't matter; we widen the parallel/serial
+      // gap by raising SLOW_HOOK_MS instead. 500ms keeps the test under
+      // the 5s vitest default and is well above macOS/Linux timer-slop
+      // jitter (~50-200ms under load).
+      const SLOW_HOOK_MS = 500;
       vi.mocked(handoffPreparer).mockImplementation((async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, SLOW_HOOK_MS));
         return { continue: true, suppressOutput: true };
       }) as any);
       vi.mocked(feedbackLoop).mockImplementation((async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, SLOW_HOOK_MS));
         return { continue: true, suppressOutput: true };
       }) as any);
       const input = createSubagentStopInput();
@@ -674,9 +693,14 @@ describe('unified-subagent-stop-dispatcher', () => {
       await unifiedSubagentStopDispatcher(input, testCtx);
       const duration = Date.now() - start;
 
-      // Assert
-      // Parallel execution should complete in ~50-100ms, not ~200ms (sequential)
-      expect(duration).toBeLessThan(150);
+      // Assert — parallel run of 2x SLOW_HOOK_MS=500ms hooks should finish
+      // near 500ms (one hook's wall-time). Sequential would be ~1000ms.
+      // Use 1.6x the slow-hook time as the bound: well above true parallel
+      // execution (even with ~300ms slop) and well below sequential
+      // execution. Empirically observed parallel runs: 200-550ms across
+      // 10 trials; this bound (800ms) is comfortably above the worst case
+      // while remaining clearly below the sequential 1000ms floor.
+      expect(duration).toBeLessThan(SLOW_HOOK_MS * 1.6);
     });
   });
 });

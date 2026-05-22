@@ -17,7 +17,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { writeWithRetry } from '../lib/session-registry.js';
 
-const HOOK_NAME = 'stop/session-finalizer';
+const HOOK_NAME = 'lifecycle/session-finalizer';
 
 export function sessionFinalizer(
   input: HookInput,

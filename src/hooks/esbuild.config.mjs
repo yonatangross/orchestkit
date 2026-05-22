@@ -39,7 +39,18 @@ const commonBuildOptions = {
   minify: !isWatch,
   sourcemap: true,
   metafile: true,
-  external: [],
+  // M168 Phase 2 (#1912): better-sqlite3 is a native C++ addon with
+  // CommonJS dynamic require()s for fs/path/bindings. Bundling it via
+  // esbuild's ESM bundler emits `var I=(t=>typeof require<"u"?require:...)`
+  // shims that throw `Dynamic require of "fs" is not supported` at load
+  // time. The whole bundle then crashes on first import — silently caught
+  // by run-hook.mjs's try/catch around loadBundle(), which swallows the
+  // throw and writes `{continue:true, suppressOutput:true}` to stdout.
+  // The hook never runs (root cause of #1920's hook-runner integration
+  // failure: state file never written because the hook bundle never loaded).
+  // Solution: mark better-sqlite3 external so Node's CJS loader resolves
+  // it natively at runtime (node_modules is shipped alongside dist/).
+  external: ['better-sqlite3'],
   drop: isWatch ? [] : ['debugger'],
   define: {
     'process.env.NODE_ENV': isWatch ? '"development"' : '"production"',

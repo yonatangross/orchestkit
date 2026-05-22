@@ -75,7 +75,11 @@ function findAllSkillFiles(dir: string): string[] {
 }
 
 describe('Skill frontmatter hooks invariant (CC 2.1.94+)', () => {
-  test('all SKILL.md frontmatter hook refs resolve to exported handlers', async () => {
+  // Heavy: imports the skill entry bundle (~108 handlers) AND scans every
+  // SKILL.md under src/skills/ (108+ files). Runs in ~3s solo; under
+  // vitest's default parallel load it can blow the 5s default. Bump to
+  // 15s — this is a one-shot validation, not a perf-sensitive unit test.
+  test('all SKILL.md frontmatter hook refs resolve to exported handlers', { timeout: 15000 }, async () => {
     // Import the registered hooks map from the skill entry point
     const skillEntry = await import('../entries/skill.js');
     const registered = new Set(skillEntry.listHooks());

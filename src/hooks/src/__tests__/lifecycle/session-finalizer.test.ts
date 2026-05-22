@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
 
-import { sessionFinalizer } from '../../stop/session-finalizer.js';
+import { sessionFinalizer } from '../../lifecycle/session-finalizer.js';
 import { openDb, __resetDbForTests } from '../../lib/session-registry.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import type { HookInput } from '../../types.js';
@@ -28,7 +28,7 @@ function makeInput(sid: string): HookInput {
   } as HookInput;
 }
 
-describe('stop/session-finalizer (#1912)', () => {
+describe('lifecycle/session-finalizer (#1912)', () => {
   let workDir: string;
   let dbPath: string;
   let prevEnv: string | undefined;

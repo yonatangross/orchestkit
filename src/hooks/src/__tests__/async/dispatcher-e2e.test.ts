@@ -55,7 +55,14 @@ function runHook(hookName: string, input?: Record<string, unknown>): Promise<Run
         ORCHESTKIT_LOG_LEVEL: 'error', // minimize noise
       },
       stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 10000,
+      // Bumped from 10s after M168 Phase 2 (#1912) increased the lifecycle
+      // bundle to ~200KB (sqlite native + migrations). Under vitest's
+      // parallel-worker saturation, cold node startup + bundle import for
+      // the heaviest bundles (stop, lifecycle) can exceed 10s — manifesting
+      // as exitCode=null (SIGTERM from this timeout, before the test's
+      // own per-test timeout fires). 30s gives generous headroom; the
+      // process exits naturally in 2-4s under normal load.
+      timeout: 30000,
     });
 
     let stdout = '';
@@ -104,7 +111,15 @@ beforeAll(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('E2E: run-hook.mjs Pipeline', () => {
+// Run this file's tests serially. Every test spawns a node subprocess
+// (cold load → bundle import → hook execution), which is CPU-intensive.
+// When vitest runs these in parallel WITHIN this file AND the worker pool
+// runs 8 files in parallel, the system thrashes badly enough that
+// individual spawns can exceed 30s — the subprocess gets killed (SIGTERM),
+// resulting in exitCode=null. Serial execution within the file caps
+// concurrent node spawns at one-per-worker, which is the right amount
+// of parallelism for spawn-heavy tests. (Fixes #1912 flake.)
+describe.sequential('E2E: run-hook.mjs Pipeline', () => {
 
   // =========================================================================
   // BUNDLE ROUTING + STDOUT CONTRACT — each dispatcher loads correct bundle,
@@ -131,7 +146,17 @@ describe('E2E: run-hook.mjs Pipeline', () => {
     ];
 
     for (const { name, hook, input } of dispatchers) {
-      it(`${name}: exits 0, outputs valid JSON with continue:true and suppressOutput:true`, async () => {
+      // Each iteration spawns `node bin/run-hook.mjs ...` as a subprocess,
+      // which cold-loads the corresponding bundle. After M168 Phase 2
+      // (#1912) the lifecycle bundle ballooned to ~200KB (sqlite native
+      // imports), and the stop bundle's transitive imports of session
+      // hooks also grew. Under vitest's parallel-worker contention, cold
+      // subprocess startup + bundle import can exceed the 5s default.
+      // Bump to 35s — these tests assert the CLI contract (exit code +
+      // JSON shape), not throughput. Subprocess spawn itself has a 30s
+      // hard timeout (see runHook above); 35s lets that fire first with
+      // a meaningful exitCode=null signal instead of vitest's SIGKILL.
+      it(`${name}: exits 0, outputs valid JSON with continue:true and suppressOutput:true`, { timeout: 60000 }, async () => {
         const result = await runHook(hook, input);
         expect(result.exitCode).toBe(0);
         expect(result.parsed).not.toBeNull();

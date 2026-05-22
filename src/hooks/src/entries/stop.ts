@@ -24,8 +24,6 @@ import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.j
 import { sessionEndTracking } from '../stop/session-end-tracking.js';
 // #1885 — cross-session state bus finalizer (companion to posttool publisher)
 import { sessionHeartbeatFinalizer } from '../stop/session-heartbeat-finalizer.js';
-// #1912 — M168 Phase 2: SQLite session registry finalizer (Layer 1)
-import { sessionFinalizer } from '../stop/session-finalizer.js';
 // Graph-first session summary (replaces memory-capture.ts)
 import { sessionSummary } from '../stop/session-summary.js';
 
@@ -51,8 +49,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/session-end-tracking': sessionEndTracking,
   // #1885 — marks status=completed in cross-session state bus
   'stop/session-heartbeat-finalizer': sessionHeartbeatFinalizer,
-  // #1912 — M168 Phase 2: marks status=completed in SQLite session registry
-  'stop/session-finalizer': sessionFinalizer,
   'stop/session-summary': sessionSummary,
   // M140 G3 (#1790) — /goal convergence telemetry stop hook
   'stop/goal-tracker': goalTrackerStop,
