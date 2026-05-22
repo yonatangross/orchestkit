@@ -31,14 +31,36 @@ function runHook(projectDir: string): { continue: boolean; suppressOutput?: bool
 describe('stop-uncommitted-check.mjs output', () => {
   let tmpDir: string;
 
+  /**
+   * Isolated git env — prevents gitdir walk-up to the parent worktree
+   * when this test runs from inside an existing checkout (CI, dev,
+   * pre-push hook). Without these, `git config user.name "Test"` writes
+   * to the parent's .git/config and commits land on the parent's branch
+   * ref. Fixes #1917.
+   */
+  function isolatedGitEnv() {
+    return {
+      ...process.env,
+      HOME: tmpDir,
+      GIT_CONFIG_GLOBAL: '/dev/null',
+      GIT_CONFIG_SYSTEM: '/dev/null',
+      GIT_DIR: join(tmpDir, '.git'),
+      GIT_WORK_TREE: tmpDir,
+    };
+  }
+
   /** Run git in the temp repo with signing disabled. */
   function git(cmd: string) {
-    execSync(`git -c commit.gpgsign=false ${cmd}`, { cwd: tmpDir, stdio: 'pipe' });
+    execSync(`git -c commit.gpgsign=false ${cmd}`, {
+      cwd: tmpDir,
+      stdio: 'pipe',
+      env: isolatedGitEnv(),
+    });
   }
 
   beforeEach(() => {
     tmpDir = mkdtempSync(join(tmpdir(), 'stop-uncommitted-'));
-    execSync('git init', { cwd: tmpDir, stdio: 'pipe' });
+    execSync('git init', { cwd: tmpDir, stdio: 'pipe', env: isolatedGitEnv() });
     git('config user.name "Test"');
     git('config user.email "test@test.com"');
     git('commit --allow-empty -m "init"');
