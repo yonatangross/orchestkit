@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.2.1](https://github.com/yonatangross/orchestkit/compare/v8.2.0...v8.2.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* **deps:** bump transitive qs 6.15.0 → 6.15.2 (GHSA-q8mj-m7cp-5q26) ([#1957](https://github.com/yonatangross/orchestkit/issues/1957)) ([201229d](https://github.com/yonatangross/orchestkit/commit/201229d7c2a1914cc07edd7b2e4ae93e7ad6d518))
+* **hooks:** cross-session watchdog filter + auto-rebuild bundle ([#1952](https://github.com/yonatangross/orchestkit/issues/1952)) ([a625044](https://github.com/yonatangross/orchestkit/commit/a62504464345d8d0617f9d5c9634df3db886335d))
+
+
+### Miscellaneous
+
+* **deps:** remove stale pnpm-lock.yaml (closes 3 dependabot alerts) ([#1953](https://github.com/yonatangross/orchestkit/issues/1953)) ([218dfe0](https://github.com/yonatangross/orchestkit/commit/218dfe017e98313f3456c0a794a8b65fd5e3820c))
+
+
+### Documentation
+
+* **audits:** postmortem for release-please version drift incident ([#1950](https://github.com/yonatangross/orchestkit/issues/1950)) ([4e30fd5](https://github.com/yonatangross/orchestkit/commit/4e30fd5a5b72a77ad69199e28152e00aea8f6964))
+* **skills:** brainstorm CC 2.1.141 + 2.1.143 version-floor notes ([#1951](https://github.com/yonatangross/orchestkit/issues/1951)) ([f6d360c](https://github.com/yonatangross/orchestkit/commit/f6d360c336237b82202e12676cd81742910d99c9))
+
+
+### CI/CD
+
+* bump the npm_and_yarn group across 2 directories with 1 update ([#1958](https://github.com/yonatangross/orchestkit/issues/1958)) ([5159133](https://github.com/yonatangross/orchestkit/commit/515913389279ec61932fca52513c9ae31849087f))
+
 ## [8.2.0](https://github.com/yonatangross/orchestkit/compare/v8.1.0...v8.2.0) (2026-05-22)
 
 
