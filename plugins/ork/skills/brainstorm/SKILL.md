@@ -206,7 +206,7 @@ Full level table + detection rules: `Read("${CLAUDE_SKILL_DIR}/references/effort
 
 ---
 
-## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+## 🚨 CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -238,7 +238,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ---
 
-## The Seven-Phase Process
+## 🔄 The Seven-Phase Process
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -293,7 +293,7 @@ Read("${CLAUDE_SKILL_DIR}/references/phase-workflow.md")
 
 ---
 
-## When NOT to Use
+## ⚠️ When NOT to Use
 
 Skip brainstorming when:
 - Requirements are crystal clear and specific
@@ -428,7 +428,7 @@ Stops when: 2+ ranked design options presented and the user selects one (or afte
 
 ---
 
-## Related Skills
+## 📜 Related Skills
 
 - `ork:architecture-decision-record` - Document key decisions made during brainstorming
 - `ork:implement` - Execute the implementation plan after brainstorming completes
