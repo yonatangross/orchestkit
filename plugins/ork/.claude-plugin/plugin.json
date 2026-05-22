@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "8.0.0",
-  "description": "The Complete AI Development Toolkit — 111 skills, 37 agents, 202 hooks for full-stack development.",
+  "version": "7.93.0",
+  "description": "The Complete AI Development Toolkit — 111 skills, 37 agents, 205 hooks for full-stack development.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com",
@@ -20,5 +20,8 @@
     "multi-agent"
   ],
   "skills": "./skills/",
-  "commands": "./commands/"
+  "commands": "./commands/",
+  "experimental": {
+    "monitors": "./monitors/monitors.json"
+  }
 }
