@@ -7,11 +7,34 @@
  * `claude -p --bare --model claude-opus-4-7` with a typed prompt to extract
  * structured CCFeature[] from the snapshot file.
  *
- * Soft dependency on CLAUDE_CODE_OAUTH_TOKEN. If not set, this script no-ops
- * cleanly (exit 0) so the workflow's fallback "manual triage needed" issue
- * filer can still run.
+ * Soft dependency on CLAUDE_CODE_OAUTH_TOKEN for the LLM extraction pass. If
+ * not set, extraction is skipped but the script still runs the skill-feature
+ * gap pass below and exits 0, so the workflow's fallback "manual triage needed"
+ * issue filer can still run.
  *
- * Issue: #1486 (M130). Prompt design: ork:llm-integrator agent output.
+ * ── Skill-feature gap pass (#1486 → #1964) ─────────────────────────────────
+ * After extraction (or on its own, token-free), computeSkillGaps() cross-refs
+ * each feature's LLM-curated `affected_skills` against that skill's
+ * `compatibility:` floor and writes shared/cc-skill-gaps.json — a flat JSON
+ * array of adoption candidates, sorted by gap_score desc then skill name:
+ *
+ *   [{
+ *     "skill":                    string,  // bare skill dir name (no "ork:")
+ *     "skill_floor":              string,  // its compatibility floor, e.g. "2.1.139"
+ *     "introduced_in":            string,  // CC version that introduced the feature
+ *     "feature_slug":             string,  // snake_case feature id (from extraction)
+ *     "category":                 string,  // new_event|new_field|new_attr|new_command|new_perm
+ *     "gap_score":                number,  // category weight (see SCORE_BY_CATEGORY)
+ *     "description":              string,
+ *     "reference_changelog_line": string
+ *   }]
+ *
+ * A skill is flagged only when skill_floor < introduced_in (it predates the
+ * feature). Skills with no resolvable floor, or already floored at/above the
+ * feature version, are never flagged — keeping false-positives near zero.
+ * Feeds scripts/cc-file-adoption-issues.sh with a richer per-skill view.
+ *
+ * Issue: #1486 (M130), #1964 (CC 2.1.148). Prompt design: ork:llm-integrator.
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -23,8 +46,15 @@ const SNAPSHOT_DIR = join(ROOT, 'shared/cc-snapshots');
 const GAPS_PATH = join(ROOT, 'shared/cc-adoption-gaps.json');
 const SUPPORT_PATH = join(ROOT, 'shared/cc-support.json');
 const SKILLS_DIR = join(ROOT, 'src/skills');
+const SKILL_GAPS_PATH = join(ROOT, 'shared/cc-skill-gaps.json');
 
 const VALID_CATEGORIES = new Set(['new_event', 'new_field', 'new_attr', 'new_command', 'new_perm', 'breaking', 'deprecation']);
+
+// Categories that represent NEW surface a skill could adopt. The skill-feature
+// gap pass (#1964) only flags these — `breaking`/`deprecation` are handled by
+// the version-floor bump itself, not per-skill adoption. Tunable: drop a
+// category here to narrow the gap report.
+const GAP_RELEVANT_CATEGORIES = new Set(['new_event', 'new_field', 'new_attr', 'new_command', 'new_perm']);
 const SCORE_BY_CATEGORY = {
   new_event: 10, new_field: 5, new_attr: 5,
   new_command: 15, new_perm: 12, breaking: 20, deprecation: 8,
@@ -283,25 +313,101 @@ function validateAndScore(features) {
   return clean.sort((a, b) => b.gap_score - a.gap_score).slice(0, 20);
 }
 
-function main() {
-  const retryFailed = process.argv.includes('--retry-failed') || process.env.RETRY_FAILED === '1';
+// ---------------------------------------------------------------------------
+// Skill-feature gap pass (#1964)
+// ---------------------------------------------------------------------------
 
-  if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
-    console.log('cc-triage: CLAUDE_CODE_OAUTH_TOKEN not set — skipping LLM extraction.');
-    process.exit(0);
+const SKILL_FLOOR_CACHE = new Map();
+
+/**
+ * Resolve a skill's `compatibility:` floor as a semver string (e.g. "2.1.139"),
+ * or null if the skill has no SKILL.md, no compatibility line, or an
+ * unparseable floor. Accepts both bare ("doctor") and namespaced ("ork:doctor")
+ * names — the `ork:` prefix is stripped before the directory lookup, since the
+ * skills catalog feeds the LLM bare dir names but `affected_skills` may echo
+ * either form. Cached per process — the skill-gap pass reads each floor once
+ * per feature it appears in.
+ */
+function parseSkillFloor(skillName) {
+  const name = String(skillName).replace(/^ork:/, '').trim();
+  if (!name) return null;
+  if (SKILL_FLOOR_CACHE.has(name)) return SKILL_FLOOR_CACHE.get(name);
+  const skillPath = join(SKILLS_DIR, name, 'SKILL.md');
+  let floor = null;
+  if (existsSync(skillPath)) {
+    const txt = readFileSync(skillPath, 'utf8');
+    // `compatibility: "Claude Code 2.1.139+."` — grab the first x.y.z it names.
+    const m = txt.match(/^compatibility:.*?(\d+\.\d+\.\d+)/m);
+    if (m) floor = m[1];
   }
+  SKILL_FLOOR_CACHE.set(name, floor);
+  return floor;
+}
 
-  if (!existsSync(GAPS_PATH)) {
-    console.log('cc-triage: no gaps file — nothing to do.');
-    process.exit(0);
+/**
+ * Build the per-skill adoption-candidate list (#1964).
+ *
+ * For every gap entry that has extracted `features`, each feature in a
+ * GAP_RELEVANT_CATEGORIES is mapped to skills via its LLM-curated
+ * `affected_skills` (the domain filter — using it instead of a fresh keyword
+ * sweep is what keeps false-positives low, satisfying the acceptance bar).
+ * A skill is flagged only when its `compatibility:` floor is STRICTLY BELOW the
+ * CC version that introduced the feature — i.e. the skill predates the feature
+ * and may need updating. Skills with no resolvable floor are skipped (cannot
+ * assess → no false positive). Skills already floored at/above the feature
+ * version are not flagged.
+ *
+ * @param {Array<object>} gaps  Parsed shared/cc-adoption-gaps.json entries.
+ * @returns {Array<{skill:string, skill_floor:string, introduced_in:string,
+ *   feature_slug:string, category:string, gap_score:number, description:string,
+ *   reference_changelog_line:string}>}  Sorted gap_score desc, then skill asc.
+ *   Deduplicated on `${skill} ${feature_slug}`.
+ */
+function computeSkillGaps(gaps) {
+  const candidates = [];
+  const seen = new Set();
+  for (const entry of gaps) {
+    if (!Array.isArray(entry.features) || entry.features.length === 0) continue;
+    if (typeof entry.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(entry.version)) continue;
+    for (const feat of entry.features) {
+      if (!GAP_RELEVANT_CATEGORIES.has(feat.category)) continue;
+      const affected = Array.isArray(feat.affected_skills) ? feat.affected_skills : [];
+      for (const rawSkill of affected) {
+        const skill = String(rawSkill).replace(/^ork:/, '').trim();
+        if (!skill) continue;
+        const floor = parseSkillFloor(skill);
+        if (!floor) continue; // unknown floor → cannot assess, skip
+        if (compareSemver(floor, entry.version) >= 0) continue; // already current
+        const key = `${skill} ${feat.feature_slug}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        candidates.push({
+          skill,
+          skill_floor: floor,
+          introduced_in: entry.version,
+          feature_slug: feat.feature_slug,
+          category: feat.category,
+          gap_score: feat.gap_score,
+          description: feat.description,
+          reference_changelog_line: feat.reference_changelog_line || '',
+        });
+      }
+    }
   }
+  return candidates.sort(
+    (a, b) => b.gap_score - a.gap_score || a.skill.localeCompare(b.skill) || a.feature_slug.localeCompare(b.feature_slug),
+  );
+}
 
-  const gaps = JSON.parse(readFileSync(GAPS_PATH, 'utf8'));
-  if (!Array.isArray(gaps) || gaps.length === 0) {
-    console.log('cc-triage: gaps file empty.');
-    process.exit(0);
-  }
+function writeSkillGaps(candidates) {
+  writeFileSync(SKILL_GAPS_PATH, JSON.stringify(candidates, null, 2) + '\n');
+  console.log(`cc-triage: wrote ${candidates.length} skill-feature gap candidate(s) to ${SKILL_GAPS_PATH}`);
+}
 
+// Token-gated LLM extraction loop. Mutates `gaps` in place and rewrites
+// GAPS_PATH when any entry changed. Factored out of main() (#1964) so the
+// skill-feature gap pass can still run when no OAUTH token is present.
+function runExtraction(gaps, retryFailed) {
   if (retryFailed) {
     console.log('cc-triage: --retry-failed set — sentinel entries will be re-attempted.');
   }
@@ -371,6 +477,33 @@ function main() {
   } else {
     console.log('cc-triage: no entries needed extraction.');
   }
+}
+
+function main() {
+  const retryFailed = process.argv.includes('--retry-failed') || process.env.RETRY_FAILED === '1';
+
+  if (!existsSync(GAPS_PATH)) {
+    console.log('cc-triage: no gaps file — nothing to do.');
+    process.exit(0);
+  }
+
+  const gaps = JSON.parse(readFileSync(GAPS_PATH, 'utf8'));
+  if (!Array.isArray(gaps) || gaps.length === 0) {
+    console.log('cc-triage: gaps file empty.');
+    process.exit(0);
+  }
+
+  // LLM extraction is token-gated; the skill-gap pass below is not.
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+    runExtraction(gaps, retryFailed);
+  } else {
+    console.log('cc-triage: CLAUDE_CODE_OAUTH_TOKEN not set — skipping LLM extraction.');
+  }
+
+  // Skill-feature gap pass (#1964) — pure data processing over the (possibly
+  // freshly-extracted) features. Always refreshes shared/cc-skill-gaps.json so
+  // a no-token CI step or local run keeps the per-skill report current.
+  writeSkillGaps(computeSkillGaps(gaps));
 }
 
 main();
