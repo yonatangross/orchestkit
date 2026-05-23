@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.4.0](https://github.com/yonatangross/orchestkit/compare/v8.3.0...v8.4.0) (2026-05-23)
+
+
+### Features
+
+* **hooks:** adopt CC 2.1.145 background_tasks in agent-watchdog ([#1967](https://github.com/yonatangross/orchestkit/issues/1967)) ([800feb0](https://github.com/yonatangross/orchestkit/commit/800feb0b0948fb8694afa12175cf36d4f72aceed))
+* **tests:** scan SKILL.md compat floors (closes [#1963](https://github.com/yonatangross/orchestkit/issues/1963)) ([#1968](https://github.com/yonatangross/orchestkit/issues/1968)) ([c476f9f](https://github.com/yonatangross/orchestkit/commit/c476f9f5bfb5194c85e0a7a0f2338bafa903b1c0))
+
+
+### Bug Fixes
+
+* **hooks:** rotate subagent-spawns.jsonl at 500KB (closes [#1956](https://github.com/yonatangross/orchestkit/issues/1956)) ([#1966](https://github.com/yonatangross/orchestkit/issues/1966)) ([2d168a0](https://github.com/yonatangross/orchestkit/commit/2d168a08c70ca6f1f5c05f8f15be75dd34e1f679))
+
+
+### Miscellaneous
+
+* **skills:** bump 108 SKILL.md floors to 2.1.139 + flip STRICT default ([#1970](https://github.com/yonatangross/orchestkit/issues/1970)) ([82d4830](https://github.com/yonatangross/orchestkit/commit/82d48300a65a6c120cf37e61aec5178f448e0552))
+
+
+### Documentation
+
+* **milestones:** mark M170 as superseded after prior-art assessment ([#1962](https://github.com/yonatangross/orchestkit/issues/1962)) ([cbf5920](https://github.com/yonatangross/orchestkit/commit/cbf59208b02e175a9afddebd772dcbc48ab26aae))
+
 ## [8.3.0](https://github.com/yonatangross/orchestkit/compare/v8.2.1...v8.3.0) (2026-05-23)
 
 
