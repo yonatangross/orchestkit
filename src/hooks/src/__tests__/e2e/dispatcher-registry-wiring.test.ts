@@ -320,7 +320,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           SQLite Layer 1 session registry — replaces broken agent-watchdog (#1830).
       // 93 -> 95: M168 Phase 3 (#1913) — posttool/chain-staleness-checker (PostToolUse, 3s) +
       //           stop/goal-convergence-emitter (Stop, 3s). Layer 3 events.jsonl event-log.
-      expect(asyncHooks.length, 'Should have exactly 96 async hooks').toBe(96);
+      // 95 -> 96: visual-style lint extension — posttool/code-comment-glyph-warn.
+      // 96 -> 100: M168 Phase 4 (#1914) — worktree/enter-registrar (WorktreeCreate, 5s),
+      //            worktree/exit-finalizer (WorktreeRemove, 5s),
+      //            pretool/settings-override-resolver (PreToolUse, 3s),
+      //            + lifecycle/webhook-forwarder on the new PreToolUse group.
+      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -433,7 +438,12 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           posttool/heartbeat. Replaces broken agent-watchdog (#1830) liveness.
       // 93 -> 95: M168 Phase 3 (#1913) — two new async hooks for Layer 3 events.jsonl
       //           event-log: posttool/chain-staleness-checker + stop/goal-convergence-emitter.
-      expect(asyncCount).toBe(96);
+      // 95 -> 96: visual-style lint extension — posttool/code-comment-glyph-warn.
+      // 96 -> 100: M168 Phase 4 (#1914) — three new async hooks for Layer 4 worktree
+      //            advisory + per-session settings overrides: worktree/enter-registrar,
+      //            worktree/exit-finalizer, pretool/settings-override-resolver, plus
+      //            lifecycle/webhook-forwarder on the new PreToolUse group.
+      expect(asyncCount).toBe(100);
     });
 
     it('should have hooks for all critical security operations', () => {

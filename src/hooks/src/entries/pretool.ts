@@ -70,6 +70,9 @@ import { toolInvocationLinter } from '../pretool/tool-invocation-linter.js';
 // PreTool/Cron hooks (1) — CI/headless guard
 import { cronGuard } from '../pretool/cron-guard.js';
 
+// PreTool/Settings-override resolver (1) — M168 Phase 4 (#1914)
+import { settingsOverrideResolver } from '../pretool/settings-override-resolver.js';
+
 // Unified dispatchers (3) — consolidate sequential hooks into single process
 import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
 import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
@@ -143,6 +146,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Cron hooks (1) — CI/headless guard
   'pretool/cron-guard': cronGuard,
+
+  // PreTool/Settings-override resolver — M168 Phase 4 (#1914)
+  'pretool/settings-override-resolver': settingsOverrideResolver,
 
   // Unified dispatchers (3) — consolidate sequential hooks into single process
   'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,

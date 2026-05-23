@@ -386,15 +386,13 @@ describe('Cross-Bundle Consistency', () => {
     //              lifecycle/session-finalizer (SessionEnd), posttool/heartbeat
     //              (PostToolUse). Replaces broken agent-watchdog (#1830) liveness.
     // 239 -> 241: M168 Phase 3 (#1913) — two new bundle handlers for Layer 3
-    //              events.jsonl event-log: posttool/chain-staleness-checker
-    //              (PostToolUse) + stop/goal-convergence-emitter (Stop).
-    //              Cross-session append-only JSONL bus at
-    //              ~/.local/state/orchestkit/events.jsonl with POSIX O_APPEND
-    //              atomicity + cursor-based reads + 10MB rotation.
-    // 241 -> 242: visual-style lint extension — posttool/code-comment-glyph-warn
-    //              advisory hook (Edit/Write) that scans code comments for
-    //              glyphs outside the 12-vocab from src/rules/visual-style.md.
-    expect(totalHooks).toBe(242);
+    //              events.jsonl event-log.
+    // 241 -> 242: visual-style lint extension — posttool/code-comment-glyph-warn.
+    // 242 -> 245: M168 Phase 4 (#1914) — three new bundle handlers for Layer 4
+    //              worktree advisory + per-session settings overrides:
+    //              worktree/enter-registrar (WorktreeCreate), worktree/exit-finalizer
+    //              (WorktreeRemove), pretool/settings-override-resolver (PreToolUse).
+    expect(totalHooks).toBe(245);
   });
 });
 
