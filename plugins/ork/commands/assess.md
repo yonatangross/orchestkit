@@ -11,7 +11,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 
 Comprehensive assessment skill for answering "is this good?" with structured evaluation, scoring, and actionable recommendations.
 
-## Quick Start
+## 🎯 Quick Start
 
 ```bash
 /ork:assess backend/app/services/auth.py
@@ -128,7 +128,7 @@ AskUserQuestion(
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 
-## Task Management (CC 2.1.16)
+## 🚨 Task Management (CC 2.1.16)
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -175,7 +175,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | "Where should we focus?" | Prioritized recommendations |
 
 
-## Workflow Overview
+## 🔄 Workflow Overview
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -325,7 +325,7 @@ Rules:
 - **Composite score still computes from `score` only** — not weighted by confidence — to keep the number comparable across runs.
 
 
-## Grade Interpretation
+## 💡 Grade Interpretation
 
 Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
 
@@ -347,7 +347,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 | complexity-metrics (load `${CLAUDE_SKILL_DIR}/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
 | complexity-breakdown (load `${CLAUDE_SKILL_DIR}/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
 
-## Related Skills
+## 📜 Related Skills
 
 - `ork:verify` - Post-implementation verification
 - `ork:code-review-playbook` - Code review patterns

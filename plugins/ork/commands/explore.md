@@ -11,7 +11,7 @@ allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate,
 
 Multi-angle codebase exploration using 3-5 parallel agents.
 
-## Quick Start
+## 🎯 Quick Start
 
 ```bash
 /ork:explore authentication
@@ -119,7 +119,7 @@ Choose **Agent Teams** (mesh) or **Task tool** (star):
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
 
 
-## Task Management (MANDATORY)
+## 🚨 Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to show progress:**
 
@@ -153,7 +153,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 ```
 
 
-## Workflow Overview
+## 🔄 Workflow Overview
 
 | Phase | Activities | Output |
 |-------|------------|--------|
@@ -293,7 +293,7 @@ Set a completion condition with `/goal` (CC 2.1.139+) and this skill will keep w
 
 Stops when: codebase architecture diagram is generated and at least 5 design patterns have been classified. Compatible with claude.ai Remote Control runs.
 
-## Related Skills
+## 📜 Related Skills
 - `ork:implement`: Implement after exploration
 
 **Version:** 2.6.0 (April 2026) — `${CLAUDE_EFFORT}` env var scales agent count (CC 2.1.120, #1540)
