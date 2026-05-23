@@ -30,6 +30,10 @@ cd "$PROJECT_ROOT"
 # Backup and restore mutated state.
 GAPS_BACKUP=""
 [ -f shared/cc-adoption-gaps.json ] && GAPS_BACKUP=$(cat shared/cc-adoption-gaps.json)
+# cc-skill-gaps.json is written on every run (#1964) — back it up too.
+SKILL_GAPS_BACKUP=""
+SKILL_GAPS_EXISTED=0
+[ -f shared/cc-skill-gaps.json ] && { SKILL_GAPS_BACKUP=$(cat shared/cc-skill-gaps.json); SKILL_GAPS_EXISTED=1; }
 SNAP_BACKUP_DIR=$(mktemp -d)
 [ -d shared/cc-snapshots ] && rsync -a shared/cc-snapshots/ "$SNAP_BACKUP_DIR/"
 
@@ -38,6 +42,11 @@ restore() {
     echo "$GAPS_BACKUP" > shared/cc-adoption-gaps.json
   else
     rm -f shared/cc-adoption-gaps.json
+  fi
+  if [ "$SKILL_GAPS_EXISTED" = "1" ]; then
+    echo "$SKILL_GAPS_BACKUP" > shared/cc-skill-gaps.json
+  else
+    rm -f shared/cc-skill-gaps.json
   fi
   rm -rf shared/cc-snapshots
   mkdir -p shared/cc-snapshots
@@ -442,6 +451,91 @@ if [ "$EXIT" = "0" ] && grep -q "gaps file empty" /tmp/cc-triage-out.txt; then
   log_pass "Empty gaps: exit 0 with explicit message"
 else
   log_fail "Empty gaps" "expected exit 0 + 'gaps file empty', got exit=$EXIT"
+fi
+
+# ============================================================================
+# Test 10: skill-feature gap pass (#1964) — flags below-floor skills only
+# Runs WITHOUT a token (pure data processing over pre-populated features).
+# Anchors on real skills floored at 2.1.139 (accessibility/doctor): a feature
+# introduced at 2.1.999 is above their floor → flagged; one at 2.1.100 is below
+# → not flagged; a `breaking` category is never flagged.
+# ============================================================================
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  {
+    "version": "2.1.999",
+    "parse_failed": false,
+    "features": [
+      {"feature_slug": "high_event", "category": "new_event", "description": "above-floor event", "gap_score": 10, "affected_skills": ["accessibility", "ork:doctor"], "reference_changelog_line": "new event"},
+      {"feature_slug": "high_breaking", "category": "breaking", "description": "behaviour change", "gap_score": 20, "affected_skills": ["accessibility"], "reference_changelog_line": "breaking"},
+      {"feature_slug": "ghost_skill_feature", "category": "new_command", "description": "maps to nonexistent skill", "gap_score": 15, "affected_skills": ["this-skill-does-not-exist"], "reference_changelog_line": "ghost"}
+    ]
+  },
+  {
+    "version": "2.1.100",
+    "parse_failed": false,
+    "features": [
+      {"feature_slug": "low_field", "category": "new_field", "description": "below-floor field", "gap_score": 5, "affected_skills": ["accessibility"], "reference_changelog_line": "old field"}
+    ]
+  }
+]
+EOF
+
+EXIT=0
+# silent: known-noise (unset of an unset var is a no-op, not a real failure)
+unset CLAUDE_CODE_OAUTH_TOKEN || true
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "skill-gap: runs and exits 0 without a token"
+else
+  log_fail "skill-gap exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+fi
+
+if [ -f shared/cc-skill-gaps.json ]; then
+  log_pass "skill-gap: shared/cc-skill-gaps.json written"
+else
+  log_fail "skill-gap output" "shared/cc-skill-gaps.json not created"
+fi
+
+# accessibility + doctor flagged for the above-floor new_event (2 candidates).
+HIGH_EVENT=$(jq '[.[] | select(.feature_slug=="high_event")] | length' shared/cc-skill-gaps.json)
+if [ "$HIGH_EVENT" = "2" ]; then
+  log_pass "skill-gap: above-floor new_event flags both affected skills (2)"
+else
+  log_fail "skill-gap above-floor" "expected 2 candidates for high_event, got $HIGH_EVENT"
+fi
+
+# breaking category is never flagged.
+BREAKING=$(jq '[.[] | select(.feature_slug=="high_breaking")] | length' shared/cc-skill-gaps.json)
+if [ "$BREAKING" = "0" ]; then
+  log_pass "skill-gap: 'breaking' category excluded (0 candidates)"
+else
+  log_fail "skill-gap breaking exclusion" "expected 0, got $BREAKING"
+fi
+
+# below-floor feature (2.1.100 ≤ skill floor 2.1.139) not flagged.
+LOW_FIELD=$(jq '[.[] | select(.feature_slug=="low_field")] | length' shared/cc-skill-gaps.json)
+if [ "$LOW_FIELD" = "0" ]; then
+  log_pass "skill-gap: skill already at/above feature version not flagged (no false positive)"
+else
+  log_fail "skill-gap floor compare" "expected 0 for low_field, got $LOW_FIELD"
+fi
+
+# unknown skill (no SKILL.md / no floor) silently skipped.
+GHOST=$(jq '[.[] | select(.skill=="this-skill-does-not-exist")] | length' shared/cc-skill-gaps.json)
+if [ "$GHOST" = "0" ]; then
+  log_pass "skill-gap: unresolvable skill floor skipped (no false positive)"
+else
+  log_fail "skill-gap unknown skill" "expected 0, got $GHOST"
+fi
+
+# emitted candidate carries the documented schema fields.
+SCHEMA_OK=$(jq -r '[.[] | select(.feature_slug=="high_event" and .skill=="accessibility")][0] | (has("skill_floor") and has("introduced_in") and has("category") and has("gap_score"))' shared/cc-skill-gaps.json)
+if [ "$SCHEMA_OK" = "true" ]; then
+  log_pass "skill-gap: candidate carries documented schema fields"
+else
+  log_fail "skill-gap schema" "expected documented fields present, got $SCHEMA_OK"
 fi
 
 echo ""
