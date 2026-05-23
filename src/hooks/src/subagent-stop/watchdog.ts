@@ -76,11 +76,29 @@ export function agentWatchdog(input: HookInput, ctx: HookContext = NOOP_CTX): Ho
   const spawns = getActiveSpawns();
   if (spawns.length === 0) return outputSilentSuccess();
 
+  // CC 2.1.145+: when CC ships an authoritative live-task list on Stop hook
+  // input, treat IT as truth and drop spawn entries not in it. Cures the
+  // 4-day-old phantom-agent CRITICAL noise the 24h cap was supposed to fix
+  // but didn't (see #1882). On CC < 2.1.145, background_tasks is undefined
+  // and we fall back to timestamp-based filtering only.
+  const liveAgentIds = new Set<string>();
+  const hasAuthoritative = Array.isArray(input.background_tasks);
+  if (hasAuthoritative) {
+    for (const task of input.background_tasks ?? []) {
+      if (task.agent_id) liveAgentIds.add(task.agent_id);
+    }
+  }
+
   const warnings: string[] = [];
 
   for (const spawn of spawns) {
     // Skip the agent that just completed
     if (spawn.agent_id && spawn.agent_id === completedAgentId) continue;
+
+    // CC 2.1.145+: drop spawns NOT in CC's authoritative live list.
+    // If hasAuthoritative is true but spawn lacks agent_id, fall through to
+    // the older timestamp/session checks rather than dropping blindly.
+    if (hasAuthoritative && spawn.agent_id && !liveAgentIds.has(spawn.agent_id)) continue;
 
     // Session-scope filter: only warn about agents spawned in THIS session.
     // Cross-session zombies (terminal closed, OOM, /clear) are someone else's

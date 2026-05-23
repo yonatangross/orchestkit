@@ -29,7 +29,7 @@ describe('cc-version-matrix', () => {
     // Single canary: bump this number when adding entries.
     // Drop check belongs here too — if anyone removes an entry the count regresses.
     test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(443);
+      expect(CC_FEATURE_MATRIX.length).toBe(447);
     });
 
     test('is sorted by version ascending', () => {
@@ -76,9 +76,17 @@ describe('cc-version-matrix', () => {
   });
 
   describe('getAvailableFeatures', () => {
-    test('all features available at latest version', () => {
-      const features = getAvailableFeatures('2.1.139');
-      expect(features.length).toBe(CC_FEATURE_MATRIX.length);
+    test('all features at or below floor are available at floor', () => {
+      // The matrix may contain forward-looking entries above MIN_CC_VERSION
+      // (e.g. CC 2.1.145 features the watchdog adopts conditionally).
+      // Those entries are correctly NOT available at the floor — verify
+      // getAvailableFeatures returns precisely the at-or-below subset.
+      const features = getAvailableFeatures(MIN_CC_VERSION);
+      const expected = CC_FEATURE_MATRIX.filter(
+        f => compareCCVersions(f.minVersion, MIN_CC_VERSION) <= 0
+      );
+      expect(features.length).toBe(expected.length);
+      expect(features.every(f => compareCCVersions(f.minVersion, MIN_CC_VERSION) <= 0)).toBe(true);
     });
 
     test('2.1.47 has all features up to 2.1.47', () => {
@@ -111,9 +119,17 @@ describe('cc-version-matrix', () => {
     // `getMissingFeatures` will fail those, and a dropped matrix entry will fail
     // `CC_FEATURE_MATRIX.length` (the single remaining count canary).
 
-    test('no missing features at floor', () => {
+    test('only forward-looking features are missing at floor', () => {
+      // Features at minVersion > MIN_CC_VERSION are correctly "missing" at
+      // the floor (e.g. CC 2.1.145 adoption surface). Verify the missing set
+      // matches the above-floor subset exactly — no false positives, no
+      // false negatives.
       const missing = getMissingFeatures(MIN_CC_VERSION);
-      expect(missing.length).toBe(0);
+      const expected = CC_FEATURE_MATRIX.filter(
+        f => compareCCVersions(f.minVersion, MIN_CC_VERSION) > 0
+      );
+      expect(missing.length).toBe(expected.length);
+      expect(missing.every(f => compareCCVersions(f.minVersion, MIN_CC_VERSION) > 0)).toBe(true);
     });
 
     test('2.1.119 misses 2.1.128 + 2.1.129 + 2.1.132 + 2.1.133 + 2.1.136 features', () => {

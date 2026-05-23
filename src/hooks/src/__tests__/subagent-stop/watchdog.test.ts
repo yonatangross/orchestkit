@@ -240,4 +240,93 @@ describe('agentWatchdog', () => {
       else process.env.CLAUDE_SESSION_ID = prevEnv;
     }
   });
+
+  // ─── CC 2.1.145 background_tasks cross-reference ──────────────────────
+  // When CC ships an authoritative live-task list, treat IT as truth and
+  // drop spawn entries not in it. Cures the phantom-agent noise that the
+  // 24h cap was supposed to fix but didn't.
+
+  it('CC 2.1.145+: drops recent spawn NOT in background_tasks', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'stale-but-recent', subagent_type: 'security-auditor' })
+    );
+
+    // background_tasks lists a different agent — our spawn entry is stale
+    const result = agentWatchdog(
+      makeInput({ background_tasks: [{ agent_id: 'some-other-live-agent', subagent_type: 'explorer' }] }),
+      testCtx
+    );
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(result.systemMessage).toBeUndefined();
+  });
+
+  it('CC 2.1.145+: still warns when spawn IS in background_tasks', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'real-hung-agent', subagent_type: 'security-auditor' })
+    );
+
+    const result = agentWatchdog(
+      makeInput({ background_tasks: [{ agent_id: 'real-hung-agent', subagent_type: 'security-auditor' }] }),
+      testCtx
+    );
+
+    expect(result.systemMessage).toContain('CRITICAL');
+    expect(result.systemMessage).toContain('security-auditor');
+  });
+
+  it('CC 2.1.145+: empty background_tasks drops every spawn', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue([
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'ghost-1', subagent_type: 'a' }),
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'ghost-2', subagent_type: 'b' }),
+    ].join('\n'));
+
+    const result = agentWatchdog(makeInput({ background_tasks: [] }), testCtx);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(result.systemMessage).toBeUndefined();
+  });
+
+  it('CC < 2.1.145: no background_tasks field — falls back to timestamp filtering', () => {
+    // Without background_tasks, behavior should match the old code path
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'fallback-hung', subagent_type: 'legacy-agent' })
+    );
+
+    // background_tasks intentionally omitted
+    const result = agentWatchdog(makeInput(), testCtx);
+
+    expect(result.systemMessage).toContain('CRITICAL');
+    expect(result.systemMessage).toContain('legacy-agent');
+  });
+
+  it('CC 2.1.145+: spawn without agent_id falls through to timestamp checks', () => {
+    // A spawn entry with no agent_id can't be cross-referenced; it must
+    // still go through the older session/timestamp gates rather than
+    // being dropped blindly.
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(
+      JSON.stringify({ timestamp: elevenMinAgo, subagent_type: 'no-id-agent' })
+    );
+
+    const result = agentWatchdog(
+      makeInput({ background_tasks: [{ agent_id: 'some-other-agent' }] }),
+      testCtx
+    );
+
+    // Should still fire because the entry doesn't have an agent_id to drop on
+    expect(result.systemMessage).toContain('CRITICAL');
+    expect(result.systemMessage).toContain('no-id-agent');
+  });
 });
