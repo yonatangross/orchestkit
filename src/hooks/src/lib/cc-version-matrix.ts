@@ -512,6 +512,12 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'settings_symlink_hot_reload_fix',         minVersion: '2.1.139', description: 'Settings hot-reload detects edits to symlinked ~/.claude/settings.json' },
   { feature: 'auto_allow_bash_sandboxed_expansion_fix', minVersion: '2.1.139', description: 'autoAllowBashIfSandboxed auto-approves commands with shell expansions like $VAR and $(cmd)' },
   { feature: 'compaction_preserves_sensitive_prefs',    minVersion: '2.1.139', description: 'Compaction prompt now asks the model to preserve sensitive user instructions' },
+
+  // 2.1.145 (2026-05-20) — Stop/SubagentStop authoritative bg state, OTEL agent_id span attrs
+  { feature: 'stop_hook_background_tasks',              minVersion: '2.1.145', description: 'Stop and SubagentStop hook input now includes background_tasks[] — authoritative live-agent list. OrchestKit watchdog uses this to suppress phantom-agent CRITICAL alerts from stale subagent-spawns.jsonl entries.' },
+  { feature: 'stop_hook_session_crons',                 minVersion: '2.1.145', description: 'Stop and SubagentStop hook input now includes session_crons[] — active cron schedules at hook fire time. Available for hooks that want to suppress action during cron ticks.' },
+  { feature: 'otel_agent_id_tool_spans',                minVersion: '2.1.145', description: 'claude_code.tool OTEL spans gain agent_id + parent_agent_id attributes; trace parenting fixed so background subagent spans nest under the dispatching Agent tool span.' },
+  { feature: 'agents_json_listing',                     minVersion: '2.1.145', description: 'claude agents --json lists live sessions as JSON for scripting (tmux-resurrect, status bars, session pickers).' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

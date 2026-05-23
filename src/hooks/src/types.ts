@@ -193,6 +193,33 @@ export interface HookInput {
   changed_file?: string;
   /** Absolute path to the changed file (FileChanged) */
   changed_file_path?: string;
+
+  // Stop/SubagentStop authoritative state (CC 2.1.145)
+  /**
+   * Authoritative list of background tasks currently running at hook fire time.
+   * When present, treat as the source of truth for which subagents are live —
+   * cross-reference against home-grown spawn logs to drop stale entries.
+   * Schema not formally documented in CC 2.1.145 CHANGELOG; field is typed
+   * loosely until a real payload pins it down.
+   */
+  background_tasks?: Array<{
+    agent_id?: string;
+    subagent_type?: string;
+    session_id?: string;
+    started_at?: string;
+    status?: string;
+    [key: string]: unknown;
+  }>;
+  /**
+   * Session cron schedules active at hook fire time (CC 2.1.145).
+   * Useful for hooks that want to suppress action when a cron is mid-tick.
+   */
+  session_crons?: Array<{
+    cron_id?: string;
+    expression?: string;
+    next_run_at?: string;
+    [key: string]: unknown;
+  }>;
 }
 
 /**

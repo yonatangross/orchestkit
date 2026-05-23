@@ -144,6 +144,24 @@ function normalizeInput(input) {
   if (input.agent_id && !input.tool_input.agent_id) {
     input.tool_input.agent_id = input.agent_id;
   }
+  // CC 2.1.139: parent_agent_id for trace stitching — mirror to tool_input
+  if (input.parent_agent_id && !input.tool_input.parent_agent_id) {
+    input.tool_input.parent_agent_id = input.parent_agent_id;
+  }
+  // CC 2.1.145: background_tasks + session_crons land at the top level on
+  // Stop/SubagentStop. Hooks read them directly off `input` — no mirroring
+  // into tool_input. Defensive: if CC sends them as a JSON-encoded string
+  // (shouldn't, but normalizeInput defensively unwraps elsewhere), parse it.
+  for (const key of ['background_tasks', 'session_crons']) {
+    const val = input[key];
+    if (typeof val === 'string' && (val.startsWith('[') || val.startsWith('{'))) {
+      try {
+        input[key] = JSON.parse(val);
+      } catch {
+        // Leave as-is if unparseable
+      }
+    }
+  }
   return input;
 }
 
