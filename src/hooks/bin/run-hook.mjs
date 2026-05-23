@@ -168,12 +168,77 @@ function normalizeInput(input) {
 /** Silent success — tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
 
+/**
+ * Security-critical hooks that CANNOT be disabled via hook-overrides.json.
+ * These hooks enforce security boundaries and must always run.
+ * See: https://github.com/yonatangross/orchestkit/issues/686
+ *
+ * Hoisted before bundle loading so security-hook disable attempts always
+ * produce a stderr warning, even if the bundle can't load (empty
+ * plugins/ork/hooks/dist/, partial install). Without the hoist, an empty
+ * dist directory silently bypasses the rejection because the dispatcher
+ * short-circuits to SILENT_OK before reaching runHook() / isHookDisabled().
+ * Covered by tests/hooks/test-run-hook-dispatcher.sh "Security Hook
+ * Override Protection" (was Linux-only flake before this hoist).
+ */
+const SECURITY_HOOKS = new Set([
+  'pretool/bash/dangerous-command-blocker',
+  'pretool/bash/compound-command-validator',
+  'pretool/write-edit/file-guard',
+  'pretool/Write/security-pattern-validator',
+  'skill/redact-secrets',
+]);
+
+/** Load hook overrides from .claude/hook-overrides.json (or null). */
+function loadOverrides(projectDir) {
+  const overridesPath = join(projectDir, '.claude', 'hook-overrides.json');
+  if (!existsSync(overridesPath)) return null;
+  try {
+    return JSON.parse(readFileSync(overridesPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a hook is disabled via overrides. Security-critical hooks in
+ * SECURITY_HOOKS are never disabled — they emit a stderr warning instead.
+ */
+function isHookDisabled(name, overrides) {
+  if (!overrides?.disabled) return false;
+  if (!Array.isArray(overrides.disabled) || !overrides.disabled.includes(name)) return false;
+  if (SECURITY_HOOKS.has(name)) {
+    process.stderr.write(`[orchestkit] WARNING: cannot disable security hook "${name}" via hook-overrides.json — override ignored\n`);
+    return false;
+  }
+  return true;
+}
+
 const hookName = process.argv[2];
 
 // If no hook name provided, output silent success
 if (!hookName) {
   console.log(SILENT_OK);
   process.exit(0);
+}
+
+// Early security-hook override probe — emits the stderr warning even when
+// the bundle can't load. See SECURITY_HOOKS docstring above.
+try {
+  const earlyProjectDir = process.env.CLAUDE_PROJECT_DIR || '.';
+  const earlyOverrides = loadOverrides(earlyProjectDir);
+  if (
+    earlyOverrides?.disabled &&
+    Array.isArray(earlyOverrides.disabled) &&
+    earlyOverrides.disabled.includes(hookName) &&
+    SECURITY_HOOKS.has(hookName)
+  ) {
+    process.stderr.write(
+      `[orchestkit] WARNING: cannot disable security hook "${hookName}" via hook-overrides.json — override ignored\n`,
+    );
+  }
+} catch {
+  // Best-effort — never crash the dispatcher over an override probe
 }
 
 /**
@@ -327,46 +392,8 @@ process.stdin.on('error', () => {
   }
 });
 
-/**
- * Security-critical hooks that CANNOT be disabled via hook-overrides.json.
- * These hooks enforce security boundaries and must always run.
- * See: https://github.com/yonatangross/orchestkit/issues/686
- */
-const SECURITY_HOOKS = new Set([
-  'pretool/bash/dangerous-command-blocker',
-  'pretool/bash/compound-command-validator',
-  'pretool/write-edit/file-guard',
-  'pretool/Write/security-pattern-validator',
-  'skill/redact-secrets',
-]);
-
-/**
- * Load hook overrides from .claude/hook-overrides.json
- * Returns null if file doesn't exist or is invalid
- */
-function loadOverrides(projectDir) {
-  const overridesPath = join(projectDir, '.claude', 'hook-overrides.json');
-  if (!existsSync(overridesPath)) return null;
-  try {
-    return JSON.parse(readFileSync(overridesPath, 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Check if a hook is disabled via overrides.
- * Security-critical hooks in SECURITY_HOOKS cannot be disabled.
- */
-function isHookDisabled(name, overrides) {
-  if (!overrides?.disabled) return false;
-  if (!Array.isArray(overrides.disabled) || !overrides.disabled.includes(name)) return false;
-  if (SECURITY_HOOKS.has(name)) {
-    process.stderr.write(`[orchestkit] WARNING: cannot disable security hook "${name}" via hook-overrides.json — override ignored\n`);
-    return false;
-  }
-  return true;
-}
+// SECURITY_HOOKS, loadOverrides, isHookDisabled — hoisted above bundle
+// loading. See the docstrings near line 169.
 
 // =============================================================================
 // HOOK TRACKING (Issue #245: Multi-User Intelligent Decision Capture)
