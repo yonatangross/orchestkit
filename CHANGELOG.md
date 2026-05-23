@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.3.0](https://github.com/yonatangross/orchestkit/compare/v8.2.1...v8.3.0) (2026-05-23)
+
+
+### Features
+
+* **skills:** pilot visual-style on explore, assess, brainstorm ([#1955](https://github.com/yonatangross/orchestkit/issues/1955)) ([fd3095d](https://github.com/yonatangross/orchestkit/commit/fd3095dd62035616f67a6712df181783b3d81f74))
+* **visual-style:** lint PR titles + bodies + code comments ([#1960](https://github.com/yonatangross/orchestkit/issues/1960)) ([9830e2e](https://github.com/yonatangross/orchestkit/commit/9830e2e771e5cbc2ece28dcf4bd0ff07a354bd6f))
+
+
+### Documentation
+
+* **milestones:** draft M170 spec — skill auto-eval vs latest CC ([#1961](https://github.com/yonatangross/orchestkit/issues/1961)) ([e332e1b](https://github.com/yonatangross/orchestkit/commit/e332e1b9e60bee8548235fadb1bc757a89445840))
+
 ## [8.2.1](https://github.com/yonatangross/orchestkit/compare/v8.2.0...v8.2.1) (2026-05-22)
 
 
