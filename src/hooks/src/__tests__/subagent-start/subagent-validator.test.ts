@@ -813,6 +813,54 @@ describe('subagentValidator', () => {
       // Act & Assert - should not throw
       expect(() => subagentValidator(input)).not.toThrow();
     });
+
+    test('rotates spawn log when it exceeds 500KB (issue #1956)', async () => {
+      // Arrange — make existsSync claim the file exists and statSync
+      // report a size above the 500KB rotation threshold.
+      const fs = await import('node:fs');
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (fs.statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 600 * 1024 });
+      (fs.renameSync as ReturnType<typeof vi.fn>).mockClear();
+
+      const input = createToolInput({
+        tool_input: {
+          subagent_type: 'general-purpose',
+          description: 'Task',
+        },
+      });
+
+      // Act
+      subagentValidator(input);
+
+      // Assert
+      expect(fs.renameSync).toHaveBeenCalled();
+      const renameCall = (fs.renameSync as ReturnType<typeof vi.fn>).mock.calls[0];
+      // First arg = original log path containing the JSONL name.
+      expect(renameCall[0]).toContain('subagent-spawns.jsonl');
+      // Second arg = rotated name with a .old.<ts> suffix.
+      expect(renameCall[1]).toMatch(/subagent-spawns\.jsonl\.old\..+/);
+    });
+
+    test('does not rotate when spawn log is under threshold', async () => {
+      // Arrange — file exists but small.
+      const fs = await import('node:fs');
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (fs.statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 100 * 1024 });
+      (fs.renameSync as ReturnType<typeof vi.fn>).mockClear();
+
+      const input = createToolInput({
+        tool_input: {
+          subagent_type: 'general-purpose',
+          description: 'Task',
+        },
+      });
+
+      // Act
+      subagentValidator(input);
+
+      // Assert
+      expect(fs.renameSync).not.toHaveBeenCalled();
+    });
   });
 
   // -----------------------------------------------------------------------

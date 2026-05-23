@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.3.0",
+    "date": "2026-05-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** pilot visual-style on explore, assess, brainstorm ([#1955](https://github.com/yonatangross/orchestkit/issues/1955)) ([fd3095d](https://github.com/yonatangross/orchestkit/commit/fd3095dd62035616f67a6712df181783b3d81f74))",
+          "**visual-style:** lint PR titles + bodies + code comments ([#1960](https://github.com/yonatangross/orchestkit/issues/1960)) ([9830e2e](https://github.com/yonatangross/orchestkit/commit/9830e2e771e5cbc2ece28dcf4bd0ff07a354bd6f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**milestones:** draft M170 spec — skill auto-eval vs latest CC ([#1961](https://github.com/yonatangross/orchestkit/issues/1961)) ([e332e1b](https://github.com/yonatangross/orchestkit/commit/e332e1b9e60bee8548235fadb1bc757a89445840))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.2.1",
     "date": "2026-05-22",
     "compareUrl": "",
