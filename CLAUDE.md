@@ -12,7 +12,7 @@ No sugarcoat. Failed = failed; blocked = blocked. Rule: `shared/rules/anti-sycop
 
 ## Visuals
 
-ASCII art and 12 semantic emojis encouraged in chat output. Rule: `src/rules/visual-style.md`.
+ASCII art and 12 semantic emojis encouraged in chat output. Rule: `src/rules/visual-style.md`. CI lints PR titles+bodies; `visual-style-override` label bypasses.
 
 ## Project Overview
 

@@ -197,7 +197,10 @@ describe('hooks.json wiring E2E', () => {
       //                          stop/goal-convergence-emitter (events.jsonl
       //                          Layer 3 event-log at
       //                          ~/.local/state/orchestkit/events.jsonl).
-      expect(hooksConfig.description).toContain('207 total');
+      // 207 -> 208: visual-style lint extension — posttool/code-comment-glyph-warn
+      //                          (advisory PostToolUse Edit/Write hook that scans
+      //                          code comments for glyphs outside the 12-vocab).
+      expect(hooksConfig.description).toContain('208 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
