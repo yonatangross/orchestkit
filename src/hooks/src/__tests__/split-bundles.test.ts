@@ -391,7 +391,10 @@ describe('Cross-Bundle Consistency', () => {
     //              Cross-session append-only JSONL bus at
     //              ~/.local/state/orchestkit/events.jsonl with POSIX O_APPEND
     //              atomicity + cursor-based reads + 10MB rotation.
-    expect(totalHooks).toBe(241);
+    // 241 -> 242: visual-style lint extension — posttool/code-comment-glyph-warn
+    //              advisory hook (Edit/Write) that scans code comments for
+    //              glyphs outside the 12-vocab from src/rules/visual-style.md.
+    expect(totalHooks).toBe(242);
   });
 });
 

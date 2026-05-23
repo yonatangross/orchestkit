@@ -146,7 +146,9 @@ describe('Async Hooks Registry', () => {
       //           events.jsonl event-log (Layer 3 coordination):
       //           - posttool/chain-staleness-checker (PostToolUse, async, 3s)
       //           - stop/goal-convergence-emitter   (Stop,         async, 3s)
-      expect(asyncHooks.length, 'Should have exactly 95 async hooks').toBe(95);
+      // 95 -> 96: visual-style lint extension — posttool/code-comment-glyph-warn
+      //           advisory hook (PostToolUse Edit/Write, async, 5s).
+      expect(asyncHooks.length, 'Should have exactly 96 async hooks').toBe(96);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
