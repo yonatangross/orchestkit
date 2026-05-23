@@ -1,7 +1,7 @@
 ---
 name: design-to-code
 license: MIT
-compatibility: "Claude Code 2.1.75+. Optional: stitch (official Google Stitch), 21st-dev-magic, storybook-mcp (@storybook/addon-mcp) MCP servers."
+compatibility: "Claude Code 2.1.139+. Optional: stitch (official Google Stitch), 21st-dev-magic, storybook-mcp (@storybook/addon-mcp) MCP servers."
 description: "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts screenshots, descriptions, or URLs as input and produces production-ready React components. Checks existing Storybook components before generating, orchestrates design extraction via Stitch MCP, component matching via 21st.dev registry, adaptation to project design tokens, and self-healing verification via run-story-tests. Use when converting visual designs to code, implementing UI from mockups, or building components from screenshots."
 argument-hint: "[screenshot-path | description | url]"
 tags: [design-to-code, stitch, 21st-dev, ui-generation, mockup, component, react, frontend]

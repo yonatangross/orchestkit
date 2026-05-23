@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.139+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
 argument-hint: "[issue-number]"
 context: fork

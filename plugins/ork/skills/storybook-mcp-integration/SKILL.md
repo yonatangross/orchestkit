@@ -1,7 +1,7 @@
 ---
 name: storybook-mcp-integration
 license: MIT
-compatibility: "Claude Code 2.1.76+. Optional: @storybook/addon-mcp (Storybook 10.3+, Vite-based only)."
+compatibility: "Claude Code 2.1.139+. Optional: @storybook/addon-mcp (Storybook 10.3+, Vite-based only)."
 description: "Storybook MCP server integration for component-aware AI development. Covers 6 tools across 3 toolsets (dev, docs, testing): component discovery via list-all-documentation/get-documentation, story previews via preview-stories, and automated testing via run-story-tests. Use when generating components that should reuse existing Storybook components, running component tests via MCP, or previewing stories in chat."
 tags: [storybook, mcp, component-discovery, story-preview, component-testing, a11y, design-system, react]
 context: fork

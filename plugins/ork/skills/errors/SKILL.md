@@ -1,7 +1,7 @@
 ---
 name: errors
 license: MIT
-compatibility: "Claude Code 2.1.76+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.139+. Requires memory MCP server."
 description: "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues."
 context: inherit
 agent: debug-investigator
