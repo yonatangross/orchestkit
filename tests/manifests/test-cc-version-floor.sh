@@ -18,9 +18,9 @@
 # scripts/stamp-cc-support.mjs (or edits a derived file manually), leaving
 # users running CC < floor silently bypassing feature gates.
 #
-# SKILL.md mode: WARN-only by default. Set SKILL_COMPAT_STRICT=1 to escalate
-# below-floor skill compatibility fields to failures. Strict mode is intended
-# to flip on once the adoption-sweep PR brings all skills to the SoT floor.
+# SKILL.md mode: STRICT by default (post adoption-sweep). Below-floor skill
+# compatibility fields fail the test. Override with SKILL_COMPAT_STRICT=0 if
+# you have a legitimate temporary need to ship a skill above the floor.
 #
 # Issues: #1765 (M137) | #1963 (extended SKILL.md check)
 # ============================================================================
@@ -97,7 +97,7 @@ fi
 # in WARN mode (the default) — they surface count + names of below-floor skills
 # without blocking CI. Set SKILL_COMPAT_STRICT=1 to escalate below-floor skills
 # to fails (intended to flip on after the adoption-sweep PR brings them up).
-SKILL_COMPAT_STRICT="${SKILL_COMPAT_STRICT:-0}"
+SKILL_COMPAT_STRICT="${SKILL_COMPAT_STRICT:-1}"
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
 if [[ -d "$SKILLS_DIR" ]]; then
     total=0

@@ -1,5 +1,6 @@
 ---
 name: competitive-analysis
+compatibility: "Claude Code 2.1.139+"
 description: "Strategic analysis frameworks including Porter's Five Forces (industry attractiveness), SWOT (internal positioning), and competitive landscape mapping with battlecard generation. Produces competitor profiles, feature gap analysis, and positioning recommendations. Use when analyzing market position, evaluating threats, or building sales battlecards."
 version: 1.0.0
 author: OrchestKit

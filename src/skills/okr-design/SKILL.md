@@ -1,5 +1,6 @@
 ---
 name: okr-design
+compatibility: "Claude Code 2.1.139+"
 description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting team goals, defining success metrics, building measurement frameworks, or designing A/B experiment guardrails."
 tags: [okr, kpi, north-star, metrics, experiment, goal-setting, leading-lagging, instrumentation]
 context: fork

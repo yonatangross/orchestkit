@@ -1,5 +1,6 @@
 ---
 name: business-case
+compatibility: "Claude Code 2.1.139+"
 description: "Business case analysis with ROI, NPV, IRR, payback period, and TCO calculations for investment decisions. Use when building financial justification, cost-benefit analysis, build-vs-buy comparisons, or sensitivity analysis."
 version: 1.0.0
 author: OrchestKit
