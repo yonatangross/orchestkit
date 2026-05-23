@@ -320,7 +320,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           SQLite Layer 1 session registry — replaces broken agent-watchdog (#1830).
       // 93 -> 95: M168 Phase 3 (#1913) — posttool/chain-staleness-checker (PostToolUse, 3s) +
       //           stop/goal-convergence-emitter (Stop, 3s). Layer 3 events.jsonl event-log.
-      expect(asyncHooks.length, 'Should have exactly 95 async hooks').toBe(95);
+      expect(asyncHooks.length, 'Should have exactly 96 async hooks').toBe(96);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -433,7 +433,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //           posttool/heartbeat. Replaces broken agent-watchdog (#1830) liveness.
       // 93 -> 95: M168 Phase 3 (#1913) — two new async hooks for Layer 3 events.jsonl
       //           event-log: posttool/chain-staleness-checker + stop/goal-convergence-emitter.
-      expect(asyncCount).toBe(95);
+      expect(asyncCount).toBe(96);
     });
 
     it('should have hooks for all critical security operations', () => {
