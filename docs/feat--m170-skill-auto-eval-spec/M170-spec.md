@@ -18,7 +18,7 @@ OrchestKit ships **111 skills** with hand-maintained `compatibility:` floors in 
 
 The result: skill frontmatter rots silently.
 
-## 📊 Evidence — current state of 92 skills with `compatibility:` floors
+## 📜 Evidence — current state of 92 skills with `compatibility:` floors
 
 ```
 floor      count  status
@@ -31,8 +31,8 @@ floor      count  status
 2.1.86       1   🔴
 2.1.91       1   🔴
 2.1.98       4   🔴 (implement, verify)
-2.1.108      2   🟠 (brainstorm)
-2.1.111      1   🟠
+2.1.108      2   🟡 (brainstorm)
+2.1.111      1   🟡
 2.1.139      2   🟢 at floor
 2.1.142      1   🟢 above floor
 ─────────  ─── 
@@ -42,7 +42,7 @@ Below floor 88 (96%)
 
 19 skills have no `compatibility:` field at all → silent failure mode.
 
-## 🎁 Why Now
+## 🔥 Why Now
 
 CC 2.1.140 → 2.1.146 shipped concrete adoption opportunities (cf. project memory
 on `shared/cc-snapshots/`):
@@ -58,7 +58,7 @@ on `shared/cc-snapshots/`):
 
 A linter can catch all of these mechanically.
 
-## 📐 Scope
+## 🎯 Scope
 
 ### In scope
 1. **Static linter** — scan `src/skills/*/SKILL.md` frontmatter `compatibility:` field;
@@ -78,7 +78,7 @@ A linter can catch all of these mechanically.
 - Subagent compatibility (separate workstream — `src/agents/*.md` has no `compatibility:` field).
 - LLM-based evaluation (deterministic rules only in v1).
 
-## 🧱 Proposed Child Issues
+## 📜 Proposed Child Issues
 
 ```
 #  Title                                       Size  Depends on
@@ -109,7 +109,7 @@ A linter can catch all of these mechanically.
 - [ ] Adoption sweep applied — no skill below current project floor.
 - [ ] `CONTRIBUTING-SKILLS.md` documents the compat policy + how to bump.
 
-## 🚫 Non-Goals (explicitly)
+## ❌ Non-Goals (explicitly)
 
 - **No LLM-graded skill quality assessment.** Keep v1 deterministic — version
   strings, regex, file presence. LLM grading is a future milestone (M???).
@@ -117,13 +117,13 @@ A linter can catch all of these mechanically.
   carry `compatibility:`. Add later if needed.
 - **No automatic body edits.** `--fix` touches only the floor string in frontmatter.
 
-## 🔗 Related Memory
+## 📜 Related Memory
 
 - `feedback_release_please_extra_files.md` — version files are governed by config,
   do not hand-edit. M170 linter touches `compatibility:` not anchor versions, so safe.
 - Stored decision: "auto evaluate skills against latest cc" — direct source.
 
-## 🧮 Risks
+## ⚠️ Risks
 
 | Risk | Likelihood | Mitigation |
 |------|------------|------------|
@@ -132,7 +132,7 @@ A linter can catch all of these mechanically.
 | `--fix` mode mass-touches all 111 skills → noisy PR | M | One PR per ~20 skills; or per-tier batches |
 | Snapshot drift if `shared/cc-snapshots/` lags upstream | M | Existing `cc-watch` pipeline already snapshots |
 
-## 📅 Sequencing
+## ⏸ Sequencing
 
 ```
 Week 1: #1 #2 #3 #4          (linter + data layer)
@@ -140,7 +140,7 @@ Week 2: #5 #6 #9             (CI integration + docs)
 Week 3: #7 #8                (auto-fix + adoption sweep)
 ```
 
-## 🎬 Out
+## 📜 Out
 
 Once M170 ships, the **same linter framework** can extend to:
 - Subagent (`src/agents/*.md`) frontmatter validation
