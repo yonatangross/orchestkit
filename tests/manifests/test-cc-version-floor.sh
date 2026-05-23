@@ -12,12 +12,17 @@
 #   - src/hooks/src/lib/cc-version-matrix.ts   (MIN_CC_VERSION constant)
 #   - CLAUDE.md                                (Version section)
 #   - src/skills/doctor/references/version-compatibility.md (overview)
+#   - src/skills/*/SKILL.md                    (compatibility: frontmatter, #1963)
 #
 # Failure mode caught: someone bumps cc-support.json but forgets to run
 # scripts/stamp-cc-support.mjs (or edits a derived file manually), leaving
 # users running CC < floor silently bypassing feature gates.
 #
-# Issue: #1765 (M137)
+# SKILL.md mode: WARN-only by default. Set SKILL_COMPAT_STRICT=1 to escalate
+# below-floor skill compatibility fields to failures. Strict mode is intended
+# to flip on once the adoption-sweep PR brings all skills to the SoT floor.
+#
+# Issues: #1765 (M137) | #1963 (extended SKILL.md check)
 # ============================================================================
 set -euo pipefail
 
@@ -86,7 +91,60 @@ if [[ -f "$DOCTOR_MD" ]]; then
     fi
 fi
 
-# 4. Idempotence: stamper should produce zero mutations on an already-stamped tree.
+# 4. src/skills/*/SKILL.md :: compatibility: frontmatter field (#1963)
+#
+# Scans all skill SKILL.md files. Per-skill compatibility floors are advisory
+# in WARN mode (the default) — they surface count + names of below-floor skills
+# without blocking CI. Set SKILL_COMPAT_STRICT=1 to escalate below-floor skills
+# to fails (intended to flip on after the adoption-sweep PR brings them up).
+SKILL_COMPAT_STRICT="${SKILL_COMPAT_STRICT:-0}"
+SKILLS_DIR="$PROJECT_ROOT/src/skills"
+if [[ -d "$SKILLS_DIR" ]]; then
+    total=0
+    below=0
+    missing=0
+    below_names=()
+    IFS='.' read -r sot_maj sot_min sot_pat <<< "$SOT"
+    for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
+        [[ -f "$skill_md" ]] || continue
+        total=$((total + 1))
+        skill_name=$(basename "$(dirname "$skill_md")")
+        # silent: best-effort  no-match exit-1 expected; handled by empty branch below
+        compat_line=$(grep -m1 -E "^compatibility:" "$skill_md" || true)
+        if [[ -z "$compat_line" ]]; then
+            missing=$((missing + 1))
+            continue
+        fi
+        if [[ "$compat_line" =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+            sk_maj="${BASH_REMATCH[1]}"; sk_min="${BASH_REMATCH[2]}"; sk_pat="${BASH_REMATCH[3]}"
+            if (( sk_maj < sot_maj )) || \
+               (( sk_maj == sot_maj && sk_min < sot_min )) || \
+               (( sk_maj == sot_maj && sk_min == sot_min && sk_pat < sot_pat )); then
+                below=$((below + 1))
+                below_names+=("$skill_name@${sk_maj}.${sk_min}.${sk_pat}")
+            fi
+        fi
+    done
+
+    if [[ $missing -gt 0 ]]; then
+        log_pass "SKILL.md compatibility: $missing of $total skills missing field (WARN-only)"
+    fi
+    if [[ $below -gt 0 ]]; then
+        if [[ "$SKILL_COMPAT_STRICT" == "1" ]]; then
+            log_fail "SKILL.md compatibility floors" "$below of $total skills below SoT ($SOT)"
+            printf '      below-floor: %s\n' "${below_names[@]:0:5}"
+            if (( below > 5 )); then
+                echo "      ... and $((below - 5)) more"
+            fi
+        else
+            log_pass "SKILL.md compatibility: $below of $total skills below SoT ($SOT) — WARN-only (SKILL_COMPAT_STRICT=1 to fail)"
+        fi
+    else
+        log_pass "SKILL.md compatibility: all $total skills at or above SoT ($SOT)"
+    fi
+fi
+
+# 5. Idempotence: stamper should produce zero mutations on an already-stamped tree.
 set +e
 STAMP_OUT=$(node "$PROJECT_ROOT/scripts/stamp-cc-support.mjs" 2>&1)
 STAMP_RC=$?
