@@ -1,9 +1,30 @@
 [
   {
-    "version": "2.1.146",
+    "version": "2.1.147",
     "parse_failed": true,
     "features": [],
-    "raw_bullets_count": 16,
-    "failed_at": "2026-05-21T15:07:53.749Z"
+    "raw_bullets_count": 33,
+    "failed_at": "2026-05-23T14:32:31.305Z"
+  },
+  {
+    "version": "2.1.148",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 1,
+    "failed_at": "2026-05-23T14:32:36.349Z"
+  },
+  {
+    "version": "2.1.149",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 26,
+    "failed_at": "2026-05-23T14:32:41.747Z"
+  },
+  {
+    "version": "2.1.150",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 1,
+    "failed_at": "2026-05-23T14:32:49.432Z"
   }
 ]
