@@ -1,6 +1,62 @@
 # M170 — Skill Auto-Eval Against Latest CC
 
-**Status**: Draft · **Owner**: @yonatangross · **Drafted**: 2026-05-23
+**Status**: ⚠️ **SUPERSEDED** · **Owner**: @yonatangross · **Drafted**: 2026-05-23 · **Superseded**: 2026-05-23
+
+---
+
+## ⚠️ SUPERSEDED — 85% redundant with existing infrastructure
+
+A `/ork:assess` pass after this spec was merged in #1961 surfaced significant
+prior art that was missed during drafting. Filing M170 as proposed would
+duplicate work already shipped under M120 / M130 / M137:
+
+| Prior-art component                                  | What it does                                                          |
+|------------------------------------------------------|-----------------------------------------------------------------------|
+| `shared/cc-support.json`                             | Single source of truth for the CC supported floor                     |
+| `scripts/stamp-cc-support.mjs`                       | Stamps SoT to derived files                                           |
+| `tests/manifests/test-cc-version-floor.sh` (#1765)   | CI test asserting derived files agree with SoT (CLAUDE.md, hooks, doctor) |
+| `scripts/cc-release-watch.mjs` (#1486)               | Pulls CC CHANGELOG, drops snapshots, emits gap report                 |
+| `scripts/cc-triage.mjs` (#1486)                      | LLM-extracts CCFeature[] per snapshot                                 |
+| `scripts/cc-file-adoption-issues.sh`                 | Auto-files adoption issues                                            |
+| `.github/workflows/cc-support-window-bump.yml`       | Automated support window bump                                         |
+| `docs/docs--cc-adoption-bundle-2.1.140-148/`         | In-progress adoption bundle for the exact CC range cited below        |
+
+### The single real gap
+
+`test-cc-version-floor.sh` validates 3 derived sites (`cc-version-matrix.ts`,
+`CLAUDE.md`, `doctor/version-compatibility.md`). It does **not** check the
+111 `src/skills/*/SKILL.md` frontmatter `compatibility:` fields. Closing that
+gap is roughly 30 lines of bash — not a milestone with 9 issues.
+
+### Follow-up issues filed instead
+
+Both filed under **GH#152 "CC 2.1.148 adoption"** (the active CC adoption
+milestone, where the 88-skill sweep belongs by convention):
+
+- **Issue A** — Extend `test-cc-version-floor.sh` to check SKILL.md
+  `compatibility:` fields against the SoT. Size XS.
+- **Issue B** — Extend `scripts/cc-triage.mjs` to flag skills missing
+  newly-introduced CC features as adoption candidates. Size S.
+
+### Why this happened
+
+The spec was drafted without searching for `tests/manifests/test-cc-*` or
+`scripts/cc-*` files. Lesson captured in memory as
+`feedback_grep_prior_art_before_milestone.md`.
+
+### What still has value here
+
+The interactive **playground** (`playground.html`) is genuinely useful for
+visualizing the compat-floor histogram and gut-checking proposed floor
+settings — it can stay as a reference, regardless of the spec being superseded.
+
+---
+
+## 📜 Original spec below (kept for history)
+
+The sections below are the original draft as merged in #1961. They no longer
+reflect the path forward — see the SUPERSEDED block above.
+
 **Source preference**: User feedback recorded in `.claude/rules/recent-decisions.md`:
 > "i want to create a way for us to auto evalulate all of our skills and subagents
 >  whether they are up to stanrd with latest cc stuff"
