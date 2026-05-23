@@ -195,12 +195,15 @@ describe('hooks.json wiring E2E', () => {
       //                          broken agent-watchdog #1830 liveness semantics).
       // 205 -> 207: M168 Phase 3 (#1913) — posttool/chain-staleness-checker,
       //                          stop/goal-convergence-emitter (events.jsonl
-      //                          Layer 3 event-log at
-      //                          ~/.local/state/orchestkit/events.jsonl).
-      // 207 -> 208: visual-style lint extension — posttool/code-comment-glyph-warn
-      //                          (advisory PostToolUse Edit/Write hook that scans
-      //                          code comments for glyphs outside the 12-vocab).
-      expect(hooksConfig.description).toContain('208 total');
+      //                          Layer 3 event-log).
+      // 207 -> 208: visual-style lint extension — posttool/code-comment-glyph-warn.
+      // 208 -> 212: M168 Phase 4 (#1914) — worktree/enter-registrar,
+      //                          worktree/exit-finalizer, pretool/settings-override-resolver,
+      //                          plus a lifecycle/webhook-forwarder entry on the new
+      //                          PreToolUse group (coverage required by
+      //                          webhook-forwarder-coverage.test.ts).
+      //                          (Layer 4 worktree advisory + per-session settings overrides).
+      expect(hooksConfig.description).toContain('212 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

@@ -148,7 +148,14 @@ describe('Async Hooks Registry', () => {
       //           - stop/goal-convergence-emitter   (Stop,         async, 3s)
       // 95 -> 96: visual-style lint extension — posttool/code-comment-glyph-warn
       //           advisory hook (PostToolUse Edit/Write, async, 5s).
-      expect(asyncHooks.length, 'Should have exactly 96 async hooks').toBe(96);
+      // 96 -> 100: M168 Phase 4 (#1914) — three new async hooks for Layer 4
+      //            worktree advisory + per-session settings overrides, plus
+      //            one new webhook-forwarder entry on the new PreToolUse group:
+      //            - worktree/enter-registrar           (WorktreeCreate, async, 5s)
+      //            - worktree/exit-finalizer            (WorktreeRemove, async, 5s)
+      //            - pretool/settings-override-resolver (PreToolUse,     async, 3s)
+      //            - lifecycle/webhook-forwarder        (PreToolUse new group, async, 5s)
+      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
