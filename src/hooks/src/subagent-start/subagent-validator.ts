@@ -9,7 +9,7 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, readdirSync, renameSync, statSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -258,6 +258,12 @@ function getPermissionProfile(agentType: string, tools: string[]): string {
 ${hasBash ? '> This agent requests Bash access. Review commands carefully.\n' : ''}`;
 }
 
+// Rotation threshold for the spawn log. 500KB ≈ ~4,000 entries — well
+// above any single session's churn, comfortably below the 850KB+ growth
+// observed in #1956 (7,213 accumulated entries before first rotation).
+// Matches the order-of-magnitude of the hooks.log rotation in lib/log.ts.
+const SPAWN_LOG_ROTATE_BYTES = 500 * 1024;
+
 function logSpawn(subagentType: string, description: string, sessionId: string): void {
   const trackingLog = getTrackingLog();
   const dir = dirname(trackingLog);
@@ -266,6 +272,18 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
     mkdirSync(dir, { recursive: true });
   } catch {
     // Ignore
+  }
+
+  // Rotate the spawn log when it grows past the threshold. Best-effort,
+  // swallow all errors — this hook is informational and must never block
+  // an Agent dispatch. See #1956.
+  try {
+    if (existsSync(trackingLog) && statSync(trackingLog).size > SPAWN_LOG_ROTATE_BYTES) {
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      renameSync(trackingLog, `${trackingLog}.old.${ts}`);
+    }
+  } catch {
+    // Ignore — rotation is opportunistic.
   }
 
   const entry = {
