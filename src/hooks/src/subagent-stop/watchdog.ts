@@ -103,9 +103,18 @@ export function agentWatchdog(input: HookInput, ctx: HookContext = NOOP_CTX): Ho
     // Session-scope filter: only warn about agents spawned in THIS session.
     // Cross-session zombies (terminal closed, OOM, /clear) are someone else's
     // problem and pollute output of the current session otherwise.
-    // Spawns without a session_id are pre-filter entries — let the 24h cap
-    // handle them.
-    if (currentSessionId && spawn.session_id && spawn.session_id !== currentSessionId) continue;
+    //
+    // When the spawn has a session_id, drop it if it doesn't match ours OR if
+    // ours is unknown — an environment without CLAUDE_SESSION_ID still means
+    // entries from a tagged-as-different session are cross-session by
+    // definition. Without this, the 24h cap is the only guard, and the
+    // overnight gap between sessions (~17-18h) fits under it, so previous-
+    // day spawn entries fire CRITICAL noise. Root cause of pre-#1967 phantom-
+    // agent storm; see watchdog-24h-cap-skip in memory.
+    //
+    // Spawns without a session_id remain pre-filter entries — let the 24h
+    // cap handle them.
+    if (spawn.session_id && (!currentSessionId || spawn.session_id !== currentSessionId)) continue;
 
     if (!spawn.timestamp) continue;
     const elapsed = now - new Date(spawn.timestamp).getTime();

@@ -241,6 +241,63 @@ describe('agentWatchdog', () => {
     }
   });
 
+  // ─── Session-id filter when CLAUDE_SESSION_ID is unset ────────────────
+  // Root cause of the pre-#1967 phantom-agent storm: when
+  // process.env.CLAUDE_SESSION_ID was undefined, the old filter logic
+  // (currentSessionId && spawn.session_id && spawn.session_id !== currentSessionId)
+  // short-circuited to a no-op and the 24h cap became the only guard. Since
+  // the overnight gap between sessions (~17-18h) fits under 24h, previous-
+  // day spawn entries fired CRITICAL. Fix: drop tagged spawns even when we
+  // don't know our own session_id.
+
+  it('drops cross-session spawn even when CLAUDE_SESSION_ID is unset', () => {
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    const prevEnv = process.env.CLAUDE_SESSION_ID;
+    delete process.env.CLAUDE_SESSION_ID;
+
+    try {
+      vi.mocked(existsSync).mockReturnValue(true);
+      // Spawn has session_id but we don't know ours — by definition cross-session
+      vi.mocked(readFileSync).mockReturnValue(
+        JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'yesterday', subagent_type: 'ghost', session_id: 'prev-day-session' })
+      );
+
+      const result = agentWatchdog(makeInput(), testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.systemMessage).toBeUndefined();
+    } finally {
+      if (prevEnv === undefined) delete process.env.CLAUDE_SESSION_ID;
+      else process.env.CLAUDE_SESSION_ID = prevEnv;
+    }
+  });
+
+  it('still warns for current-session spawn when CLAUDE_SESSION_ID is unset and spawn lacks session_id', () => {
+    // Belt-and-braces: an env without CLAUDE_SESSION_ID + a spawn entry
+    // without session_id (pre-filter legacy log line) should still fire if
+    // it's under the 24h cap. This preserves the existing legacy-agent test
+    // case under the new filter logic.
+    const elevenMinAgo = new Date(Date.now() - 11 * 60 * 1000).toISOString();
+    const prevEnv = process.env.CLAUDE_SESSION_ID;
+    delete process.env.CLAUDE_SESSION_ID;
+
+    try {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(readFileSync).mockReturnValue(
+        JSON.stringify({ timestamp: elevenMinAgo, agent_id: 'no-id-but-hung', subagent_type: 'legacy' })
+      );
+
+      const result = agentWatchdog(makeInput(), testCtx);
+
+      expect(result.systemMessage).toContain('CRITICAL');
+      expect(result.systemMessage).toContain('legacy');
+    } finally {
+      if (prevEnv === undefined) delete process.env.CLAUDE_SESSION_ID;
+      else process.env.CLAUDE_SESSION_ID = prevEnv;
+    }
+  });
+
   // ─── CC 2.1.145 background_tasks cross-reference ──────────────────────
   // When CC ships an authoritative live-task list, treat IT as truth and
   // drop spawn entries not in it. Cures the phantom-agent noise that the
