@@ -97,6 +97,33 @@ describe('cleanupEnvelopeCorruption (#1826)', () => {
     expect(existsSync(join(sessionsDir, `${ENVELOPE}.md`))).toBe(true);
   });
 
+  it('quarantines a corrupt entry at the PROJECT ROOT (#1978)', () => {
+    // The client-at-private.ai.remoteicu case: the envelope leaked to the repo
+    // root, not under .worktrees. The original mitigation missed this.
+    mkdirSync(join(fakeProject, ENVELOPE), { recursive: true });
+    mkdirSync(join(fakeProject, 'app'), { recursive: true });
+    writeFileSync(join(fakeProject, 'package.json'), '{}');
+
+    cleanupEnvelopeCorruption({ hook_event: 'SessionStart' } as never, NOOP_CTX);
+
+    expect(existsSync(join(fakeProject, ENVELOPE))).toBe(false);
+    expect(existsSync(join(fakeProject, 'app'))).toBe(true);
+    expect(existsSync(join(fakeProject, 'package.json'))).toBe(true);
+  });
+
+  it('catches a root-level recurrence even AFTER the done-marker exists (#1978)', () => {
+    // First run writes the marker (idempotence for the slow sessions/ sweep).
+    cleanupEnvelopeCorruption({ hook_event: 'SessionStart' } as never, NOOP_CTX);
+    expect(existsSync(join(fakeHome, '.claude', __internals.DONE_MARKER_FILENAME))).toBe(true);
+
+    // A NEW envelope leaks at the project root after the marker is set.
+    mkdirSync(join(fakeProject, ENVELOPE), { recursive: true });
+
+    // The root sweep is NOT marker-gated, so the second run still cleans it.
+    cleanupEnvelopeCorruption({ hook_event: 'SessionStart' } as never, NOOP_CTX);
+    expect(existsSync(join(fakeProject, ENVELOPE))).toBe(false);
+  });
+
   it('returns silent success even when nothing is corrupt', () => {
     const result = cleanupEnvelopeCorruption(
       { hook_event: 'SessionStart' } as never,

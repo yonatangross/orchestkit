@@ -94,37 +94,43 @@ export function cleanupEnvelopeCorruption(
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
   const home = getHomeDir();
-  const marker = join(home, '.claude', DONE_MARKER_FILENAME);
-  if (existsSync(marker)) {
-    return outputSilentSuccess();
-  }
-
-  const parents = [
-    join(home, '.claude', 'hooks', 'sessions'),
-    join(getProjectDir(), '.worktrees'),
-  ];
-
+  const projectDir = getProjectDir();
   let totalMoved = 0;
-  for (const parent of parents) {
+
+  // Always-on, cheap sweep (#1978): the harness can leak a new envelope-named
+  // entry at any time, so these targets are scanned EVERY SessionStart — they
+  // are NOT gated by the done-marker. The project ROOT is the case the original
+  // mitigation missed (client at private.ai.remoteicu had the entry at top-level,
+  // not under .worktrees). Each is a single readdir of a small directory.
+  for (const parent of [projectDir, join(projectDir, '.worktrees')]) {
     totalMoved += sweepParent(parent, ctx);
   }
 
-  // Write the marker only if we got far enough to scan — silent failure
-  // (e.g. read-only home) shouldn't gate the marker, since retrying every
-  // session is pointless if we can't write at all.
-  try {
-    const markerDir = join(home, '.claude');
-    if (!existsSync(markerDir)) safeMkdirSync(markerDir, { recursive: true });
-    writeFileSync(
-      marker,
-      JSON.stringify({
-        completed_at: new Date().toISOString(),
-        moved: totalMoved,
-        issue: 'orchestkit#1826',
-      }, null, 2),
-    );
-  } catch (err) {
-    ctx.log(HOOK_NAME, `marker write failed: ${(err as Error).message}`);
+  // One-time historical sweep of ~/.claude/hooks/sessions — this directory can
+  // be large (one entry per session), so the done-marker keeps us from
+  // re-scanning it every SessionStart. New leaks no longer hide behind this
+  // marker because the always-on sweep above covers the live cases.
+  const marker = join(home, '.claude', DONE_MARKER_FILENAME);
+  if (!existsSync(marker)) {
+    totalMoved += sweepParent(join(home, '.claude', 'hooks', 'sessions'), ctx);
+
+    // Write the marker only if we got far enough to scan — silent failure
+    // (e.g. read-only home) shouldn't gate the marker, since retrying the
+    // historical sweep every session is pointless if we can't write at all.
+    try {
+      const markerDir = join(home, '.claude');
+      if (!existsSync(markerDir)) safeMkdirSync(markerDir, { recursive: true });
+      writeFileSync(
+        marker,
+        JSON.stringify({
+          completed_at: new Date().toISOString(),
+          moved: totalMoved,
+          issue: 'orchestkit#1978',
+        }, null, 2),
+      );
+    } catch (err) {
+      ctx.log(HOOK_NAME, `marker write failed: ${(err as Error).message}`);
+    }
   }
 
   if (totalMoved > 0) {
