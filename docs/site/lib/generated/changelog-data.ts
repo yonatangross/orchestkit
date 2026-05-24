@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.5.0",
+    "date": "2026-05-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** M168 Phase 4 — Layer 4 worktree + settings overrides ([#1969](https://github.com/yonatangross/orchestkit/issues/1969)) ([094f595](https://github.com/yonatangross/orchestkit/commit/094f595a641f2c69aae21870e1220db330dfafc5))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** emit security-hook override warning before bundle load ([#1974](https://github.com/yonatangross/orchestkit/issues/1974)) ([d846f99](https://github.com/yonatangross/orchestkit/commit/d846f996a393a6f04dadf46969e5ed4a0fa544cf))",
+          "**hooks:** tighten watchdog session-id filter ([#1971](https://github.com/yonatangross/orchestkit/issues/1971)) ([a434421](https://github.com/yonatangross/orchestkit/commit/a43442176fc23e92451ea9948c40102fc30fa2c6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.150) ([#1973](https://github.com/yonatangross/orchestkit/issues/1973)) ([cb7113f](https://github.com/yonatangross/orchestkit/commit/cb7113f7e2f783f59730a121cf2e1449dd69060a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.4.0",
     "date": "2026-05-23",
     "compareUrl": "",
