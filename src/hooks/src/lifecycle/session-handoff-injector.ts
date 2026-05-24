@@ -19,6 +19,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
+import { outputSessionStartContext } from '../lib/output.js';
 import { hashProject } from '../lib/analytics.js';
 import { getHomeDir, joinPath } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -71,13 +72,10 @@ export function sessionHandoffInjector(input: HookInput, ctx: HookContext = NOOP
     const context = `[Previous Session Handoff]\n${yaml}\n[End Handoff]`;
     ctx.log(HOOK_NAME, `Injecting handoff context for project ${projectHash}`);
 
-    return {
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: {
-        additionalContext: context,
-      },
-    };
+    // CC >=2.1.150 rejects SessionStart hookSpecificOutput without hookEventName.
+    // outputSessionStartContext stamps hookEventName:'SessionStart' and drops
+    // empty context — behavior-equivalent here (context is always non-empty).
+    return outputSessionStartContext(context);
   } catch (err) {
     ctx.log(HOOK_NAME, `Failed to inject handoff: ${err instanceof Error ? err.message : String(err)}`, 'warn');
     return outputSilentSuccess();
