@@ -36,6 +36,8 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` read
 | Share preview with stakeholder | `/ork:dev --share` (tailnet) or `/ork:dev --funnel` (public) |
 | Time-boxed live demo | `/ork:dev --live 4` (public funnel, 4-hour expiry) |
 
+> **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg` — use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
+
 ## Modes (M127)
 
 | Flag | Wraps | Reach | Tailscale CLI |

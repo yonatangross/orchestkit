@@ -286,6 +286,12 @@ Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, 
 
 Mirrors the `/ork:brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
 
+## Notes for long explorations
+
+> **Oversized reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` truncated first page (not a hard error) when a whole-file read exceeds the token limit. When traversing large files, detect that notice and re-read with explicit `offset`/`limit` to page through the rest — never treat the partial as the full file.
+
+> **When context fills (CC 2.1.141+):** Use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent context, instead of restarting. Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so a second mid-turn pass is rare.
+
 ## Common Exploration Queries
 
 - "How does authentication work?"

@@ -63,6 +63,14 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
 4. Trigger a manual run with `inputs.dry_run = true` to validate the wiring.
 5. Once a dry-run posts no comments and looks healthy in the job summary, let the hourly cron take over.
 
+### Running locally as a background session
+
+If you run the sentinel locally via `claude --bg` instead of the workflow:
+
+> **Pin it (CC 2.1.147+):** Press `Ctrl+T` in `claude agents` to pin the session. Pinned background sessions stay alive when idle (no silent reaping between hourly runs), restart in place to apply CC updates rather than dying, and under memory pressure are shed only after non-pinned sessions.
+
+> **Resume it (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` marked `bg` — recover a crashed sentinel directly through `/resume` instead of the agent view.
+
 ## Configuration
 
 The workflow is intentionally configured via in-file env vars (not workflow inputs) so a fork stays self-contained:

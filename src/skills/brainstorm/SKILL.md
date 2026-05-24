@@ -391,7 +391,9 @@ ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 
 > **Partial results (CC 2.1.76):** Background agents that are killed (timeout, context limit) return responses tagged with `[PARTIAL RESULT]`. When collecting Phase 2 divergent ideas, check each agent's output for this tag. If present, include the partial ideas but note them as incomplete in Phase 3 feasibility. Prefer synthesizing partial results over re-spawning agents.
 
-> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table).
+> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table). Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so mid-turn stalls are rare — no need to expect a second pass.
+
+> **When context fills (CC 2.1.141+):** Instead of ending the session, use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent context intact — a deliberate compaction point that pairs with the improved reactive compaction above.
 
 > **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 

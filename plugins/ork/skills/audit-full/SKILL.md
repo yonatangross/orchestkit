@@ -39,6 +39,8 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 
 > **Effort (CC 2.1.111+):** `xhigh` (Opus 4.7 only) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
 
+> **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
+
 ---
 
 ## STEP 0: Verify User Intent with AskUserQuestion
@@ -181,6 +183,14 @@ Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
 | Codebase > 125K LOC (exceeds 1M) | `/ork:verify` (chunked approach) |
+
+---
+
+## Notes for whole-codebase passes
+
+> **Oversized reads (CC 2.1.144+):** When loading large files, Read returns a `[PARTIAL view]` truncated first page instead of a hard error if the whole-file read exceeds the token limit. Detect that notice and re-read with explicit `offset`/`limit` to page through the rest — a partial read silently omits code an audit must not miss.
+
+> **When context fills (CC 2.1.141+):** Use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent findings, instead of restarting the audit. Reactive compaction (CC 2.1.142+) sizes the first summarize to the actual overflow, so a wasted second pass mid-turn is now rare.
 
 ---
 

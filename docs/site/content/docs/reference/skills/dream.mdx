@@ -32,6 +32,8 @@ Memory files accumulate across sessions. Over time they develop problems:
 
 This skill fixes all four problems using deterministic checks only.
 
+> **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate" — consolidation is no longer needed to head off compaction inefficiency.
+
 ---
 
 ## STEP 1: Discover Memory Files
