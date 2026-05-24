@@ -36,7 +36,7 @@
  *
  * Issue: #1486 (M130), #1964 (CC 2.1.148). Prompt design: ork:llm-integrator.
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, appendFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -504,6 +504,25 @@ function main() {
   // freshly-extracted) features. Always refreshes shared/cc-skill-gaps.json so
   // a no-token CI step or local run keeps the per-skill report current.
   writeSkillGaps(computeSkillGaps(gaps));
+
+  // #1985 — emit a signal the cron's Step 4 fallback can gate on. Before this
+  // fix, a version that hit a transient LLM blip got `parse_failed: true` and
+  // then vanished: Step 3 needs gap_score >= 10 (impossible with features:[])
+  // and Step 4 only fired when triage was *skipped* (token absent), not when
+  // triage ran-but-failed. Surfacing the sentinel here lets Step 4 still file
+  // a manual-triage issue so the stuck version stays visible.
+  if (process.env.GITHUB_OUTPUT) {
+    const stuck = gaps.filter((e) => e?.parse_failed === true);
+    if (stuck.length > 0) {
+      try {
+        appendFileSync(process.env.GITHUB_OUTPUT, 'parse_failed=true\n');
+        console.log(`cc-triage: ${stuck.length} parse_failed entries — emitted parse_failed=true for Step 4 fallback`);
+      } catch (err) {
+        // Best-effort: never fail the script over an output-channel write.
+        console.error(`cc-triage: could not write GITHUB_OUTPUT: ${err.message}`);
+      }
+    }
+  }
 }
 
 main();

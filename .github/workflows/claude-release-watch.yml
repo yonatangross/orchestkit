@@ -108,10 +108,17 @@ jobs:
       # Step 2 — soft LLM dependency. If no token, skip extraction; the fallback
       # below still files something so the human triage step is visible.
       # Auth env is hoisted to job-level (see top of `watch:` job).
+      #
+      # --retry-failed (#1985): the flag is idempotent — only re-attempts entries
+      # already marked parse_failed, leaving healthy entries untouched. Without
+      # it, a single transient LLM blip during a previous run leaves the version
+      # permanently stuck (no retry, no issue, no fallback — see #1985). Running
+      # the flag on every cron tick costs at most 2 attempts per stuck version,
+      # which is the desired self-heal.
       - name: LLM-assisted feature extraction (optional)
         id: triage
         if: ${{ env.CLAUDE_CODE_OAUTH_TOKEN != '' }}
-        run: node scripts/cc-triage.mjs
+        run: node scripts/cc-triage.mjs --retry-failed
 
       # Step 3 — file issues for gaps with score >= 10, dedup against open `cc-adoption` issues.
       # Extracted to scripts/cc-file-adoption-issues.sh so the loop is testable in
@@ -128,8 +135,14 @@ jobs:
       # always writes `[]\n` (or content) before exiting, so `hashFiles` is
       # permanently truthy after the first run — that would file a fallback
       # issue every day forever once the LLM is skipped.
+      # #1985: also fire when triage ran but left entries parse_failed (sentinel).
+      # Before this fix, a transient LLM blip → parse_failed → outcome=='success'
+      # (script exits 0 after writing the sentinel) → fallback never fired →
+      # the version vanished silently. Now any stuck sentinel surfaces an issue
+      # so the human triage step is visible. `outputs.parse_failed` is emitted
+      # by cc-triage.mjs when gaps contain any parse_failed entry.
       - name: Fallback manual-triage issue
-        if: ${{ steps.triage.outcome == 'skipped' }}
+        if: ${{ steps.triage.outcome == 'skipped' || steps.triage.outputs.parse_failed == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
