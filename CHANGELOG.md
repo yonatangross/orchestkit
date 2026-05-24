@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.6.0](https://github.com/yonatangross/orchestkit/compare/v8.5.0...v8.6.0) (2026-05-23)
+
+
+### Features
+
+* **scripts:** cc-triage skill-feature gap pass (closes [#1964](https://github.com/yonatangross/orchestkit/issues/1964)) ([#1975](https://github.com/yonatangross/orchestkit/issues/1975)) ([99b3165](https://github.com/yonatangross/orchestkit/commit/99b3165fb972582a0ecf98e05a1dab8fdd41acc8))
+
 ## [8.5.0](https://github.com/yonatangross/orchestkit/compare/v8.4.0...v8.5.0) (2026-05-23)
 
 
