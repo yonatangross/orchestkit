@@ -538,6 +538,61 @@ else
   log_fail "skill-gap schema" "expected documented fields present, got $SCHEMA_OK"
 fi
 
+# ============================================================================
+# Test 11: #1985 parse_failed signal — surfaces stuck sentinels to Step 4
+# Without this signal the cron's Step 4 fallback only fires on triage `skipped`
+# (token absent), so versions that ran-but-failed (parse_failed) vanished.
+# cc-triage.mjs writes parse_failed=true to $GITHUB_OUTPUT when any gap has the
+# sentinel, letting the workflow surface a manual-triage issue instead.
+# ============================================================================
+# 11a. With a parse_failed entry → signal IS emitted.
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.999", "parse_failed": true, "failed_at": "2026-05-24T00:00:00.000Z", "features": [], "raw_bullets_count": 2 }
+]
+EOF
+TEST_OUTPUT=$(mktemp /tmp/cc-triage-gho-XXXXXX)
+# silent: known-noise (unset of an unset var is a no-op, not a real failure)
+unset CLAUDE_CODE_OAUTH_TOKEN || true
+GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+if grep -qF "parse_failed=true" "$TEST_OUTPUT"; then
+  log_pass "#1985 signal: parse_failed=true emitted to GITHUB_OUTPUT when gaps contain a sentinel"
+else
+  log_fail "#1985 signal emit" "expected parse_failed=true in GITHUB_OUTPUT, got: $(cat "$TEST_OUTPUT")"
+fi
+rm -f "$TEST_OUTPUT"
+
+# 11b. With NO parse_failed entry → signal NOT emitted.
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.999", "parse_failed": false, "features": [], "raw_bullets_count": 2 }
+]
+EOF
+TEST_OUTPUT=$(mktemp /tmp/cc-triage-gho-XXXXXX)
+GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+if ! grep -qF "parse_failed=true" "$TEST_OUTPUT"; then
+  log_pass "#1985 signal: parse_failed NOT emitted when no sentinels exist"
+else
+  log_fail "#1985 signal false-positive" "parse_failed=true written without sentinels: $(cat "$TEST_OUTPUT")"
+fi
+rm -f "$TEST_OUTPUT"
+
+# 11c. Without GITHUB_OUTPUT set (local dev) → no crash, no spurious file.
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.999", "parse_failed": true, "failed_at": "2026-05-24T00:00:00.000Z", "features": [], "raw_bullets_count": 2 }
+]
+EOF
+# silent: known-noise (unset of an unset var is a no-op, not a real failure)
+unset GITHUB_OUTPUT || true
+EXIT=0
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ]; then
+  log_pass "#1985 signal: no GITHUB_OUTPUT env (local dev) — exit 0, no crash"
+else
+  log_fail "#1985 signal local-dev" "expected exit 0 without GITHUB_OUTPUT, got $EXIT"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
