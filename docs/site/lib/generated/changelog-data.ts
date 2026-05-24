@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.6.0",
+    "date": "2026-05-23",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**scripts:** cc-triage skill-feature gap pass (closes [#1964](https://github.com/yonatangross/orchestkit/issues/1964)) ([#1975](https://github.com/yonatangross/orchestkit/issues/1975)) ([99b3165](https://github.com/yonatangross/orchestkit/commit/99b3165fb972582a0ecf98e05a1dab8fdd41acc8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.5.0",
     "date": "2026-05-23",
     "compareUrl": "",
