@@ -1,7 +1,7 @@
 ---
 name: design-import
 license: MIT
-compatibility: "Claude Code 2.1.139+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
+compatibility: "Claude Code 2.1.148+. Requires: claude-design-orchestrator agent. Optional: stitch, 21st-dev-magic, storybook-mcp MCP servers (used transitively via design-to-code)."
 description: "Imports a Claude Design (claude.ai/design) handoff bundle and scaffolds the proposed components into the project. Accepts a bundle URL or local file, parses and validates the schema, deduplicates components against the existing codebase via component-search, then pipes the survivors through the design-to-code pipeline. Writes provenance metadata so future imports can detect drift between design versions. Use after exporting a handoff bundle from claude.ai/design — this is the entry point that turns a design into code."
 argument-hint: "<handoff-url | path-to-bundle.json>"
 tags: [claude-design, handoff, design-import, design-to-code, bundle, scaffold, frontend]

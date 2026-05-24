@@ -1,7 +1,7 @@
 ---
 name: visualize-plan
 license: MIT
-compatibility: "Claude Code 2.1.139+."
+compatibility: "Claude Code 2.1.148+."
 description: "Renders planned changes as ASCII visualizations with risk heat maps, execution order diagrams, dependency graphs, impact metrics, and before/after architecture comparisons. Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
 argument-hint: "[plan-or-issue]"
 context: fork

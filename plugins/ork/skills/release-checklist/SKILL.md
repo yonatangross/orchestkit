@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-compatibility: "Claude Code 2.1.139+"
+compatibility: "Claude Code 2.1.148+"
 description: "Sequential release gate validating build success, test suite, security checks, type checking, manifest counts consistency, and changelog presence. Each step reports pass/fail with remediation guidance. Manages version bumping, staging, and pre-push confirmation. Use when preparing a release."
 tags: [release, checklist, orchestkit]
 version: 2.0.0

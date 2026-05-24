@@ -1,13 +1,13 @@
 {
   "$schema": "./cc-support.schema.json",
-  "latest": "2.1.139",
-  "supported_floor": "2.1.139",
-  "drop_after": "2.1.138",
+  "latest": "2.1.148",
+  "supported_floor": "2.1.148",
+  "drop_after": "2.1.147",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {
-    "reason": "M137 bump (2026-05-12) — gates on 2.1.139 /goal for unattended skills (audit-full/brainstorm/explore/dev), PostToolUse continueOnBlock for advisory hooks, and CLAUDE_PROJECT_DIR for per-project MCP memory. The 2.1.139 `claude agents` CLI is also used directly (no wrapper skill). Auto-bump policy resumes after expires.",
-    "expires": "2026-08-12"
+    "reason": "#1945 ladder capstone (2026-05-23) — bumps the floor to 2.1.148 to consolidate the 2.1.140-2.1.148 adoption ladder. 2.1.148 is a hard correctness floor: it fixes the 2.1.147 regression where the Bash tool returned exit 127 on every command. Lets downstream skill/hook adoption assume the fix without re-checking version guards. Newest catalogued feature is 2.1.145; 2.1.146-148 are fixes. Auto-bump policy resumes after expires.",
+    "expires": "2026-08-23"
   },
   "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. Updated by .github/workflows/cc-support-window-bump.yml when cc-version-matrix.ts gains a new entry."
 }
