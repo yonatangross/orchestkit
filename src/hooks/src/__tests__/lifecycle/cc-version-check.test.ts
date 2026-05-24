@@ -83,8 +83,9 @@ describe('cc-version-check', () => {
     // or latest moves: M128 set 2.1.122 floor, M131 set 2.1.125 floor /
     // 2.1.128 latest, 2026-05-07 bolder bump set 2.1.132 floor / latest,
     // M134 W4 closeout (2026-05-10) bumped to 2.1.138 floor / latest,
-    // M137 (2026-05-12) bumped to 2.1.139 floor / latest.
-    process.env.CLAUDE_CODE_VERSION = '2.1.139';
+    // M137 (2026-05-12) bumped to 2.1.139 floor / latest,
+    // #1945 (2026-05-24) ladder capstone bumped to 2.1.148 floor / latest.
+    process.env.CLAUDE_CODE_VERSION = '2.1.148';
     const result = ccVersionCheck(makeInput('in-range-test'), createTestContext());
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeUndefined();
