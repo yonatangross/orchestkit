@@ -17,11 +17,12 @@ import {
 
 describe('cc-version-matrix', () => {
   describe('MIN_CC_VERSION', () => {
-    test('is 2.1.139', () => {
-      // 2026-05-12 M137 floor bump: 2.1.138 -> 2.1.139 (agent view + /goal + hook args[]/
-      // continueOnBlock + MCP CLAUDE_PROJECT_DIR + agent-id telemetry). Versions 134/135 never
-      // released upstream. Manual_override from 2026-05-07 still in force (expires 2026-08-07).
-      expect(MIN_CC_VERSION).toBe('2.1.139');
+    test('is 2.1.148', () => {
+      // 2026-05-24 #1945 ladder capstone: 2.1.139 -> 2.1.148. 2.1.148 is a hard
+      // correctness floor (fixes the 2.1.147 Bash exit-127 regression) and
+      // consolidates the 2.1.140-2.1.148 adoption cycle. Stamped from
+      // shared/cc-support.json by scripts/stamp-cc-support.mjs.
+      expect(MIN_CC_VERSION).toBe('2.1.148');
     });
   });
 
