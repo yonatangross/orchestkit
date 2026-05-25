@@ -12,7 +12,7 @@ author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
-skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember, playground]
+skills: [ascii-visualizer, explore, architecture-decision-record, memory, remember]
 complexity: medium
 persuasion-type: guidance
 hooks:
