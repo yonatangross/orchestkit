@@ -30,6 +30,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.18",
+    "better-sqlite3": "^12.10.0",
     "esbuild": "^0.27.2",
     "fast-check": "^4.7.0",
     "typescript": "^5.6.0",
@@ -43,7 +44,5 @@
     "orchestkit"
   ],
   "license": "MIT",
-  "dependencies": {
-    "better-sqlite3": "^12.10.0"
-  }
+  "dependencies": {}
 }

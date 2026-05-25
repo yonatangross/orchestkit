@@ -2,41 +2,21 @@
 // Created: 2026-05-22
 
 /**
- * Session Registry — M168 Phase 2 (#1912)
+ * Session Registry — M168 Layer 1 (#1912). Coordination DB at
+ * ~/.local/state/orchestkit/sessions.db, shared across all CC sessions.
+ * Tables (sqlite-migrations/001-initial.sql): sessions, locks,
+ * settings_overrides, worktree_links. Reads are lock-free (WAL); writes
+ * serialize via BEGIN IMMEDIATE + writeWithRetry on SQLITE_BUSY.
  *
- * Layer 1 of the 4-layer coordination architecture (#1908). Wraps
- * better-sqlite3 with WAL pragmas, a write retry helper (BEGIN IMMEDIATE
- * + jittered backoff), and schema migrations.
- *
- * The DB lives at ~/.local/state/orchestkit/sessions.db and is shared
- * across every Claude Code session on the machine. Reads are lock-free
- * (WAL allows concurrent readers + one writer); writes serialize through
- * BEGIN IMMEDIATE and recover from SQLITE_BUSY via writeWithRetry.
- *
- * Tables (see sqlite-migrations/001-initial.sql):
- *   sessions             — per-session row, status + heartbeat
- *   locks                — named locks, holder_sid + expires_at
- *   settings_overrides   — per-session settings overrides
- *   worktree_links       — parent/child worktree session graph
- *
- * Pragmas (set on every open):
- *   journal_mode=WAL          — concurrent readers + one writer
- *   synchronous=NORMAL        — fsync on commit (not every page)
- *   busy_timeout=5000         — 5s wait before SQLITE_BUSY
- *   foreign_keys=ON           — enforce REFERENCES, CASCADE on delete
- *   temp_store=MEMORY         — temp tables in RAM
- *   cache_size=-16000         — ~16 MB page cache
- *   wal_autocheckpoint=100    — checkpoint WAL every 100 pages
- *   mmap_size=268435456       — 256 MB mmap for reads
+ * Engine (#2003/#2005): hooks ship as esbuild bundles WITHOUT node_modules, so
+ * this MUST NOT use a native npm dep — the old top-level `better-sqlite3` import
+ * threw ERR_MODULE_NOT_FOUND at load and killed every hook in the bundle. Uses
+ * the built-in `node:sqlite` (Node >=22.5, no flag), loaded lazily + guarded so
+ * the bundle still loads on older Node (registry no-ops there).
  */
 
-// TYPE-ONLY import — erased by esbuild, so the bundle has NO static reference
-// to the native `better-sqlite3` package. The constructor is loaded lazily at
-// runtime via newDatabase() below. This is what keeps lifecycle/pretool/posttool
-// bundles loadable in the shipped plugin (no node_modules) — a top-level value
-// import here throws ERR_MODULE_NOT_FOUND at load and kills every hook in the
-// bundle (#2003). See sqlite-migrations/index.ts (already type-only).
-import type Database from 'better-sqlite3';
+// TYPE-ONLY import — erased by esbuild. Value loaded lazily in newDatabase().
+import type { DatabaseSync } from 'node:sqlite';
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -45,35 +25,37 @@ import { runMigrations } from './sqlite-migrations/index.js';
 
 const _require = createRequire(import.meta.url);
 
+// Drop the one-time "SQLite is an experimental feature" warning (stderr noise);
+// we pin to the stable exec/prepare surface. Every other warning passes through.
+const _emitWarning = process.emitWarning.bind(process);
+(process as { emitWarning: typeof process.emitWarning }).emitWarning = ((w: string | Error, ...a: unknown[]) => {
+  const msg = typeof w === 'string' ? w : w?.message;
+  if (msg && msg.includes('SQLite is an experimental feature')) return;
+  (_emitWarning as (w: string | Error, ...a: unknown[]) => void)(w, ...a);
+}) as typeof process.emitWarning;
+
 /**
- * Raised when the SQLite engine can't be loaded at runtime (e.g. the shipped
- * plugin has no node_modules, so `better-sqlite3` isn't resolvable). Callers
- * (session-registrar, heartbeat, finalizers) treat this as "registry
- * unavailable" and no-op rather than crash — the bundle still loads and every
- * other hook in it runs normally.
+ * Raised when `node:sqlite` can't be loaded (Node < 22.5). Callers treat it as
+ * "registry unavailable" and no-op rather than crash, so the bundle still loads.
  */
 export class SqliteUnavailableError extends Error {
   constructor(cause: unknown) {
-    super('SQLite engine unavailable (better-sqlite3 not resolvable at runtime)');
+    super('SQLite engine unavailable (node:sqlite requires Node >= 22.5)');
     this.name = 'SqliteUnavailableError';
     (this as { cause?: unknown }).cause = cause;
   }
 }
 
-/**
- * Lazily construct a Database. The require() is dynamic (via createRequire), so
- * esbuild does NOT statically link better-sqlite3 into the bundle — the module
- * loads even when the package is absent, and only callers that actually open
- * the DB hit SqliteUnavailableError.
- */
-function newDatabase(dbPath: string): Database.Database {
-  let Ctor: new (path: string) => Database.Database;
+/** Lazily construct a DB via built-in node:sqlite (dynamic require → not bundled). */
+function newDatabase(dbPath: string): DatabaseSync {
   try {
-    Ctor = _require('better-sqlite3') as new (path: string) => Database.Database;
+    const { DatabaseSync: DB } = _require('node:sqlite') as {
+      DatabaseSync: new (path: string) => DatabaseSync;
+    };
+    return new DB(dbPath);
   } catch (err) {
     throw new SqliteUnavailableError(err);
   }
-  return new Ctor(dbPath);
 }
 
 /** Per-row types matching the schema in 001-initial.sql. */
@@ -133,30 +115,32 @@ function resolveDbDir(dbPath: string): string {
   return dbPath.slice(0, idx) || '/';
 }
 
-/** Apply the canonical pragma set to a freshly opened DB. */
-function applyPragmas(db: Database.Database): void {
-  db.pragma('journal_mode = WAL');
-  db.pragma('synchronous = NORMAL');
-  db.pragma('busy_timeout = 5000');
-  db.pragma('foreign_keys = ON');
-  db.pragma('temp_store = MEMORY');
-  db.pragma('cache_size = -16000');
-  db.pragma('wal_autocheckpoint = 100');
-  db.pragma('mmap_size = 268435456');
+/** Apply the canonical pragma set. node:sqlite has no .pragma() — use exec(). */
+function applyPragmas(db: DatabaseSync): void {
+  // busy_timeout MUST be set first: unlike better-sqlite3, node:sqlite has no
+  // default busy handling, so switching journal_mode=WAL under concurrency
+  // throws "database is locked" immediately unless a timeout is already armed.
+  db.exec('PRAGMA busy_timeout = 5000');
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec('PRAGMA synchronous = NORMAL');
+  db.exec('PRAGMA foreign_keys = ON');
+  db.exec('PRAGMA temp_store = MEMORY');
+  db.exec('PRAGMA cache_size = -16000');
+  db.exec('PRAGMA wal_autocheckpoint = 100');
+  db.exec('PRAGMA mmap_size = 268435456');
 }
 
 /**
  * Run PRAGMA integrity_check; quarantine the DB if it returns anything other
- * than the single-row "ok" result. The caller is expected to re-open after.
- * Returns true if the DB was quarantined (caller must reopen).
+ * than the single-row "ok" result. Returns true if quarantined (caller reopens).
  */
-function checkIntegrityOrQuarantine(db: Database.Database, dbPath: string): boolean {
+function checkIntegrityOrQuarantine(db: DatabaseSync, dbPath: string): boolean {
   let rows: unknown[];
   try {
-    rows = db.pragma('integrity_check') as unknown[];
+    // node:sqlite reads a pragma result via a prepared statement, not .pragma().
+    rows = db.prepare('PRAGMA integrity_check').all() as unknown[];
   } catch {
-    // Integrity check itself crashed — treat as corrupt.
-    rows = [];
+    rows = []; // integrity check itself crashed — treat as corrupt
   }
   const ok = rows.length === 1
     && typeof rows[0] === 'object'
@@ -169,12 +153,10 @@ function checkIntegrityOrQuarantine(db: Database.Database, dbPath: string): bool
   } catch {
     /* ignore */
   }
-  const ts = Date.now();
-  const corrupt = `${dbPath}.corrupt-${ts}`;
+  const corrupt = `${dbPath}.corrupt-${Date.now()}`;
   try {
     if (existsSync(dbPath)) renameSync(dbPath, corrupt);
-    // WAL + SHM sidecars may also be hosed — drag them along.
-    for (const sfx of ['-wal', '-shm']) {
+    for (const sfx of ['-wal', '-shm']) { // WAL + SHM sidecars may also be hosed
       const side = dbPath + sfx;
       if (existsSync(side)) renameSync(side, corrupt + sfx);
     }
@@ -185,50 +167,41 @@ function checkIntegrityOrQuarantine(db: Database.Database, dbPath: string): bool
 }
 
 /**
- * Open (or create) the session DB at ~/.local/state/orchestkit/sessions.db,
- * apply pragmas, run integrity check (with auto-quarantine on failure),
- * and run pending migrations. Returns a fresh handle every call — prefer
- * getOrCreateDb() for the long-lived singleton.
+ * Open (or create) the session DB, apply pragmas, run integrity check (with
+ * auto-quarantine), and run pending migrations. Prefer getOrCreateDb().
  */
-export function openDb(): Database.Database {
+export function openDb(): DatabaseSync {
   const dbPath = resolveDbPath();
   const dbDir = resolveDbDir(dbPath);
   if (!existsSync(dbDir)) {
     mkdirSync(dbDir, { recursive: true, mode: 0o700 });
   }
 
-  // First open attempt.
   let db = newDatabase(dbPath);
   applyPragmas(db);
 
-  // Skip integrity check on a brand-new (zero-byte) DB — there's nothing to
-  // corrupt yet, and the check on a fresh file is just overhead.
+  // Skip integrity check on a brand-new (zero-byte) DB — nothing to corrupt.
   let isFresh = true;
   try {
     isFresh = statSync(dbPath).size === 0;
   } catch {
     isFresh = true;
   }
-  if (!isFresh) {
-    const quarantined = checkIntegrityOrQuarantine(db, dbPath);
-    if (quarantined) {
-      // Re-open on a fresh file.
-      db = newDatabase(dbPath);
-      applyPragmas(db);
-    }
+  if (!isFresh && checkIntegrityOrQuarantine(db, dbPath)) {
+    db = newDatabase(dbPath); // re-open on a fresh file
+    applyPragmas(db);
   }
 
   runMigrations(db);
   return db;
 }
 
-// Module-scoped singleton — opened lazily, reused across calls in the same
-// hook invocation. Each hook process is short-lived so we don't need to
-// worry about long-term GC.
-let _db: Database.Database | null = null;
+// Module-scoped singleton — opened lazily, reused within a (short-lived) hook
+// process, so no long-term GC concern.
+let _db: DatabaseSync | null = null;
 
 /** Lazily open + cache the DB handle for the current process. */
-export function getOrCreateDb(): Database.Database {
+export function getOrCreateDb(): DatabaseSync {
   if (_db === null) {
     _db = openDb();
   }
@@ -247,15 +220,24 @@ export function __resetDbForTests(): void {
   }
 }
 
+/** SQLITE_BUSY extended result codes that mean "retry the write". */
+const SQLITE_BUSY = 5;
+const SQLITE_BUSY_SNAPSHOT = 261;
+
+/** True if `err` is a transient SQLITE_BUSY worth retrying. */
+function isBusyError(err: unknown): boolean {
+  // node:sqlite throws with numeric .errcode; keep legacy string .code too.
+  const e = err as { errcode?: number; code?: string };
+  if (e?.errcode === SQLITE_BUSY || e?.errcode === SQLITE_BUSY_SNAPSHOT) return true;
+  return e?.code === 'SQLITE_BUSY' || e?.code === 'SQLITE_BUSY_SNAPSHOT';
+}
+
 /**
- * Wrap a write operation in BEGIN IMMEDIATE with jittered backoff on
- * SQLITE_BUSY. Up to 15 retries with delays 20-150ms (uniformly jittered);
- * total worst-case wait is ~1.3s. Any non-busy error re-throws immediately.
- *
- * BEGIN IMMEDIATE acquires the RESERVED lock up front, so writers see
- * SQLITE_BUSY at BEGIN time (predictable) rather than mid-transaction.
+ * Wrap a write in BEGIN IMMEDIATE with jittered backoff on SQLITE_BUSY (15
+ * retries, 20-150ms each, ~1.3s worst case). Non-busy errors re-throw.
+ * BEGIN IMMEDIATE takes the RESERVED lock up front so busy surfaces at BEGIN.
  */
-export function writeWithRetry<T>(fn: (db: Database.Database) => T): T {
+export function writeWithRetry<T>(fn: (db: DatabaseSync) => T): T {
   const db = getOrCreateDb();
   const MAX_RETRIES = 15;
   let lastErr: unknown;
@@ -272,28 +254,22 @@ export function writeWithRetry<T>(fn: (db: Database.Database) => T): T {
       }
     } catch (err) {
       lastErr = err;
-      const code = (err as { code?: string })?.code;
-      if (code !== 'SQLITE_BUSY' && code !== 'SQLITE_BUSY_SNAPSHOT') {
-        throw err;
-      }
-      // Jittered backoff: 20-150ms.
-      const delay = 20 + Math.floor(Math.random() * 130);
-      const end = Date.now() + delay;
-      // Synchronous sleep — hooks are sync; better-sqlite3 is sync.
+      if (!isBusyError(err)) throw err;
+      // Synchronous jittered backoff (20-150ms) — hooks + DatabaseSync are sync.
+      const end = Date.now() + 20 + Math.floor(Math.random() * 130);
       while (Date.now() < end) {
         /* spin */
       }
     }
   }
-  throw lastErr instanceof Error
-    ? lastErr
-    : new Error('writeWithRetry: exhausted retries');
+  throw lastErr instanceof Error ? lastErr : new Error('writeWithRetry: exhausted retries');
 }
 
 /** Exposed for tests. */
 export const __internals = {
   applyPragmas,
   checkIntegrityOrQuarantine,
+  isBusyError,
   resolveDbPath,
   resolveDbDir,
 };
