@@ -30,11 +30,51 @@
  *   mmap_size=268435456       — 256 MB mmap for reads
  */
 
-import Database from 'better-sqlite3';
+// TYPE-ONLY import — erased by esbuild, so the bundle has NO static reference
+// to the native `better-sqlite3` package. The constructor is loaded lazily at
+// runtime via newDatabase() below. This is what keeps lifecycle/pretool/posttool
+// bundles loadable in the shipped plugin (no node_modules) — a top-level value
+// import here throws ERR_MODULE_NOT_FOUND at load and kills every hook in the
+// bundle (#2003). See sqlite-migrations/index.ts (already type-only).
+import type Database from 'better-sqlite3';
+import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { getHomeDir } from './paths.js';
 import { runMigrations } from './sqlite-migrations/index.js';
+
+const _require = createRequire(import.meta.url);
+
+/**
+ * Raised when the SQLite engine can't be loaded at runtime (e.g. the shipped
+ * plugin has no node_modules, so `better-sqlite3` isn't resolvable). Callers
+ * (session-registrar, heartbeat, finalizers) treat this as "registry
+ * unavailable" and no-op rather than crash — the bundle still loads and every
+ * other hook in it runs normally.
+ */
+export class SqliteUnavailableError extends Error {
+  constructor(cause: unknown) {
+    super('SQLite engine unavailable (better-sqlite3 not resolvable at runtime)');
+    this.name = 'SqliteUnavailableError';
+    (this as { cause?: unknown }).cause = cause;
+  }
+}
+
+/**
+ * Lazily construct a Database. The require() is dynamic (via createRequire), so
+ * esbuild does NOT statically link better-sqlite3 into the bundle — the module
+ * loads even when the package is absent, and only callers that actually open
+ * the DB hit SqliteUnavailableError.
+ */
+function newDatabase(dbPath: string): Database.Database {
+  let Ctor: new (path: string) => Database.Database;
+  try {
+    Ctor = _require('better-sqlite3') as new (path: string) => Database.Database;
+  } catch (err) {
+    throw new SqliteUnavailableError(err);
+  }
+  return new Ctor(dbPath);
+}
 
 /** Per-row types matching the schema in 001-initial.sql. */
 export interface SessionRow {
@@ -158,7 +198,7 @@ export function openDb(): Database.Database {
   }
 
   // First open attempt.
-  let db = new Database(dbPath);
+  let db = newDatabase(dbPath);
   applyPragmas(db);
 
   // Skip integrity check on a brand-new (zero-byte) DB — there's nothing to
@@ -173,7 +213,7 @@ export function openDb(): Database.Database {
     const quarantined = checkIntegrityOrQuarantine(db, dbPath);
     if (quarantined) {
       // Re-open on a fresh file.
-      db = new Database(dbPath);
+      db = newDatabase(dbPath);
       applyPragmas(db);
     }
   }
