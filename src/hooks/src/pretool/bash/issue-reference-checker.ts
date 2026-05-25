@@ -4,15 +4,23 @@
 /**
  * Issue Reference Checker Hook
  * Reminds Claude to include issue number in commit messages when on an issue branch.
- * PreToolUse hook for Bash(git commit*) — soft advisory, never blocks.
+ * PreToolUse hook for Bash — only fires on actual `git commit` commands.
+ *
+ * Fixes applied (2026-05-25):
+ * - Bug C: guards on `\bgit\s+commit\b` so commands like `curl -m 8` do not match
+ *   the `-m <val>` commit-message regex.
+ * - Bug A: resolves the branch from a leading `cd <path>` in the command so that
+ *   git worktrees report the correct branch instead of the primary-tree branch stored
+ *   in `ctx.branch` (which is pinned to CLAUDE_PROJECT_DIR at session start).
+ * - Bug B: returns a non-blocking dispatcher-mergeable result with the reminder in
+ *   `additionalContext`; never calls outputStderrWarning / process.exit inside the
+ *   syncBashDispatcher (which would crash the dispatcher process).
  */
 
-import type { HookInput, HookResult , HookContext} from '../../types.js';
-import {
-  outputSilentSuccess,
-  outputStderrWarning,
-} from '../../lib/common.js';
+import type { HookInput, HookResult, HookContext } from '../../types.js';
+import { outputSilentSuccess } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { getCurrentBranch } from '../../lib/git.js';
 
 /**
  * Extract the commit message from a git commit command string.
@@ -48,19 +56,60 @@ function messageReferencesIssue(message: string, issueNum: string): boolean {
 }
 
 /**
+ * Extract a leading `cd <path>` from a chained command so we resolve the branch
+ * in the dir the git commit will actually run in (worktree-aware).
+ *
+ * Handles:
+ *   cd /some/path && git commit ...
+ *   cd "/quoted path" && git commit ...
+ *   cd '~/path' && git commit ...
+ */
+function extractLeadingCd(command: string): string | null {
+  const m = command.match(/^\s*cd\s+(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))/);
+  let p = m ? (m[1] ?? m[2] ?? m[3] ?? '') : '';
+  if (!p) return null;
+  // Expand leading ~ to $HOME
+  if (p === '~' || p.startsWith('~/')) {
+    p = (process.env.HOME || '') + p.slice(1);
+  }
+  return p;
+}
+
+/**
+ * Resolve the current branch from the command's effective cwd (worktree-aware).
+ * Falls back to ctx.branch when no leading `cd` is present or when the git call
+ * returns 'unknown'.
+ */
+function resolveBranch(command: string, ctxBranch: string): string {
+  const cwd = extractLeadingCd(command);
+  if (cwd) {
+    const b = getCurrentBranch(cwd);
+    if (b && b !== 'unknown') return b;
+  }
+  return ctxBranch;
+}
+
+/**
  * Issue reference checker — reminds to include issue number in commit messages.
+ *
+ * Non-blocking: returns additionalContext (merged by syncBashDispatcher) instead
+ * of calling outputStderrWarning, which would process.exit(2) and crash the
+ * dispatcher.
  */
 export function issueReferenceChecker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   try {
     const command = input.tool_input.command || '';
     if (!command) return outputSilentSuccess();
 
-    // Extract commit message
+    // Bug C: only act on actual `git commit` commands, not any command with -m <val>
+    if (!/\bgit\s+commit\b/.test(command)) return outputSilentSuccess();
+
+    // Extract commit message from the -m flag
     const commitMessage = extractCommitMessage(command);
     if (!commitMessage) return outputSilentSuccess();
 
-    // Get current branch
-    const branch = ctx.branch;
+    // Bug A: resolve branch from the command's cwd (worktree-aware), fall back to ctx.branch
+    const branch = resolveBranch(command, ctx.branch);
     if (!branch || branch === 'unknown') return outputSilentSuccess();
 
     // Extract issue number from branch name
@@ -72,10 +121,16 @@ export function issueReferenceChecker(input: HookInput, ctx: HookContext = NOOP_
       return outputSilentSuccess();
     }
 
-    // Issue number found in branch but not in commit message — remind via stderr (0 tokens, user-visible)
-    outputStderrWarning(
-      `Reminder: You're on branch \`${branch}\` — include #${issueNum} in the commit message to link it to the issue.`
-    );
+    // Bug B: return a non-blocking dispatcher-mergeable result via additionalContext
+    // (never call outputStderrWarning inside syncBashDispatcher — process.exit crashes it)
+    return {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: `Reminder: you're on branch \`${branch}\` — include #${issueNum} in the commit message to link it to the issue.`,
+      },
+    };
   } catch {
     // Never block on errors
     return outputSilentSuccess();
