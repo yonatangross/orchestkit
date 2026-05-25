@@ -40,6 +40,7 @@ jobs:
         with:
           build-plugins: 'true'
           run-ci-setup: 'false'
+          install-hooks-deps: 'true'  # #2003: install src/hooks deps BEFORE build so hook dist is rebuilt into the shared artifact
 
       - name: Validate no symlinks
         run: |
