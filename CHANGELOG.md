@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.7.0](https://github.com/yonatangross/orchestkit/compare/v8.6.6...v8.7.0) (2026-05-25)
+
+
+### Features
+
+* **hooks:** migrate session registry to node:sqlite ([#2005](https://github.com/yonatangross/orchestkit/issues/2005)) ([#2008](https://github.com/yonatangross/orchestkit/issues/2008)) ([d8f88b5](https://github.com/yonatangross/orchestkit/commit/d8f88b55f88e74da865c15cb35f5c00e413885d0))
+* **visualize-plan:** format front-door + before/after arch ([#2002](https://github.com/yonatangross/orchestkit/issues/2002)) ([42f9ede](https://github.com/yonatangross/orchestkit/commit/42f9ede056d2fa3310d395dbd6bac7b10b0ed999))
+
+
+### Documentation
+
+* **cc-2147:** /code-review rename + multi-Agent tools guard ([#1999](https://github.com/yonatangross/orchestkit/issues/1999)) ([19230b9](https://github.com/yonatangross/orchestkit/commit/19230b9d868d2fd1a9edc89bd91cda08ecaa0798))
+
 ## [8.6.6](https://github.com/yonatangross/orchestkit/compare/v8.6.5...v8.6.6) (2026-05-25)
 
 
