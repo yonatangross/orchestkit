@@ -272,7 +272,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '22']
+        # node:sqlite (M168 session registry, #2005) requires Node >= 22.5, so
+        # hooks no longer support Node 20. Matrix dropped to 22+ accordingly.
+        node-version: ['22']
         shard: ['1/4', '2/4', '3/4', '4/4']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2

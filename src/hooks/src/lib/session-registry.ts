@@ -30,7 +30,7 @@ const _require = createRequire(import.meta.url);
 const _emitWarning = process.emitWarning.bind(process);
 (process as { emitWarning: typeof process.emitWarning }).emitWarning = ((w: string | Error, ...a: unknown[]) => {
   const msg = typeof w === 'string' ? w : w?.message;
-  if (msg && msg.includes('SQLite is an experimental feature')) return;
+  if (msg?.includes('SQLite is an experimental feature')) return;
   (_emitWarning as (w: string | Error, ...a: unknown[]) => void)(w, ...a);
 }) as typeof process.emitWarning;
 

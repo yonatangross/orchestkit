@@ -1,5 +1,5 @@
 // OrchestKit Hooks - setup bundle
-// Generated: 2026-05-25T20:09:56.719Z
+// Generated: 2026-05-25T20:26:02.638Z
 
 function po(t){return typeof t.command=="string"}function lo(t){return typeof t.file_path=="string"&&typeof t.content=="string"}function fo(t){return typeof t.file_path=="string"&&typeof t.old_string=="string"&&typeof t.new_string=="string"}function go(t){return typeof t.file_path=="string"&&t.content===void 0}function d(){return{continue:!0,suppressOutput:!0}}function se(){return{continue:!0,suppressOutput:!0,hookSpecificOutput:{permissionDecision:"allow"}}}function ce(t){return{continue:!1,stopReason:t,hookSpecificOutput:{permissionDecision:"deny",permissionDecisionReason:t}}}function m(t){return t?.trim()?{continue:!0,suppressOutput:!0,hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:t}}:d()}function Ot(t,e){if(e<=0||!t)return t;let n=[];for(let o of t.split(`
 `)){if(o.length<=e){n.push(o);continue}let r=o.split(/(\s+)/),i="";for(let s of r)if(i.length+s.length<=e)i+=s;else if(i.length>0&&n.push(i.replace(/\s+$/,"")),s.length>e){let c=s;for(;c.length>e;)n.push(c.slice(0,e)),c=c.slice(e);i=c}else i=s.replace(/^\s+/,"");i.length>0&&n.push(i.replace(/\s+$/,""))}return n.join(`
