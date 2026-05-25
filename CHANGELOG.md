@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.6.6](https://github.com/yonatangross/orchestkit/compare/v8.6.5...v8.6.6) (2026-05-25)
+
+
+### Bug Fixes
+
+* **hooks:** hook bundles load without node_modules (lazy better-sqlite3) ([#2003](https://github.com/yonatangross/orchestkit/issues/2003)) ([294471e](https://github.com/yonatangross/orchestkit/commit/294471e505cf0ad566dafdd64cb0574f2411cb5a))
+
+
+### CI/CD
+
+* bump actions/download-artifact from 4.3.0 to 8.0.1 ([#1993](https://github.com/yonatangross/orchestkit/issues/1993)) ([bd855b3](https://github.com/yonatangross/orchestkit/commit/bd855b3b248a0d8040b3e0853d0849007f510816))
+* bump actions/setup-node from 4 to 6 ([#1995](https://github.com/yonatangross/orchestkit/issues/1995)) ([74f819e](https://github.com/yonatangross/orchestkit/commit/74f819e2e95e41415fa9aba1909117ad695a970b))
+* bump anthropics/claude-code-action from 1.0.123 to 1.0.133 ([#1992](https://github.com/yonatangross/orchestkit/issues/1992)) ([7fb1619](https://github.com/yonatangross/orchestkit/commit/7fb1619f394bc33c9f9063c1b7c9a5df642c1f97))
+* bump github/codeql-action from 4.35.5 to 4.36.0 ([#1994](https://github.com/yonatangross/orchestkit/issues/1994)) ([53abe17](https://github.com/yonatangross/orchestkit/commit/53abe172ee9350dc16368f51883082a9152259ea))
+* bump pypa/gh-action-pypi-publish from 1.12.4 to 1.14.0 ([#1991](https://github.com/yonatangross/orchestkit/issues/1991)) ([de2400e](https://github.com/yonatangross/orchestkit/commit/de2400eed40d1e306f65017856520c45b5b969ff))
+
 ## [8.6.5](https://github.com/yonatangross/orchestkit/compare/v8.6.4...v8.6.5) (2026-05-25)
 
 
