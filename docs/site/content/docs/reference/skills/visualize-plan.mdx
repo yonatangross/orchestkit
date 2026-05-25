@@ -1,6 +1,6 @@
 ---
 title: "Visualize Plan"
-description: "Renders planned changes as ASCII visualizations with risk heat maps, execution order diagrams, dependency graphs, impact metrics, and before/after architecture comparisons. Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
+description: "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -45,7 +45,7 @@ TaskCreate(subject="Visualize plan: {PLAN_INPUT}", description="Plan visualizati
 TaskCreate(subject="Detect or clarify plan context", activeForm="Detecting plan context")          # id=2
 TaskCreate(subject="Gather data and explore architecture", activeForm="Gathering plan data")       # id=3
 TaskCreate(subject="Render tier 1 header", activeForm="Rendering header")                          # id=4
-TaskCreate(subject="Render requested sections", activeForm="Rendering sections")                   # id=5
+TaskCreate(subject="Render sections + dispatch to chosen format(s)", activeForm="Rendering sections") # id=5
 TaskCreate(subject="Offer actions and store in memory", activeForm="Finalizing visualization")     # id=6
 
 # 3. Set dependencies for sequential phases
@@ -102,6 +102,39 @@ AskUserQuestion(
 
 ---
 
+## STEP 0.5: Choose Output Format (Front Door)
+
+Decide **how** to render before gathering data. First **probe capabilities**, then ask only for what's available. Full procedure: `Read("$\{CLAUDE_SKILL_DIR\}/references/format-dispatch.md")`.
+
+Use the established MCP-probe pattern — `Read("$\{CLAUDE_SKILL_DIR\}/../chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
+
+```python
+# infographic is available IFF the notebooklm studio tool resolves:
+ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")
+```
+
+Gate the options: **ascii** always (the floor); **playground** if the `playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above (server reachable + `nlm login` done). If only ASCII is available, skip the question.
+
+If only ASCII is available, **skip the question** and render ASCII. Otherwise ask (hide ungated options, surface a one-line install/auth hint instead):
+
+```python
+AskUserQuestion(questions=[{
+  "question": "How should I render this plan?",
+  "header": "Format",
+  "options": [
+    {"label": "ASCII + emojis (Recommended)", "description": "Fast, in-chat, zero-dependency. Always the floor — rendered first even if you also pick a richer format."},
+    {"label": "Interactive playground", "description": "Single-file HTML explorer written to docs/<branch-dir>/plan-viz.html (also satisfies the PR Playground gate). Delegates to the playground skill."},
+    {"label": "NotebookLM infographic", "description": "Stakeholder-ready infographic/slides via notebooklm studio_create. Async — fired and notified, never blocks."},
+    {"label": "All available", "description": "ASCII inline now + the richer formats linked as they finish."}
+  ],
+  "multiSelect": false
+}])
+```
+
+**ASCII floor rule:** always render ASCII first/inline regardless of choice — never `await` the async NotebookLM job. Record the chosen format(s) as `FORMATS` for STEP 4 dispatch.
+
+---
+
 ## STEP 1: Gather Data
 
 Run `scripts/analyze-impact.sh` for precise counts:
@@ -112,15 +145,19 @@ bash "$SKILL_DIR/scripts/analyze-impact.sh"
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
 
-For architecture-level understanding, spawn an Explore agent on the affected directories:
+For architecture-level understanding **and the default before/after section [0]**, spawn an Explore agent that maps the component graph at BOTH the base and the head:
 
 ```python
 Agent(
   subagent_type="Explore",
-  prompt="Explore the architecture of {affected_directories}. Return: component diagram, key data flows, health scores per module. Use the ascii-visualizer skill for diagrams.",
+  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the ascii-visualizer skill for diagrams.",
   model="haiku"
 )
 ```
+
+If the diff touches frontend (`*.tsx`/`*.css`/route files), also run a `design-context-extract` pass so the design surface is part of before/after. Patterns: `Read("$\{CLAUDE_SKILL_DIR\}/references/before-after-arch-patterns.md")`.
+
+Build a compact **plan brief** (markdown) from this data — the single interchange every non-ASCII format consumes (see `format-dispatch.md`).
 
 ---
 
@@ -133,12 +170,14 @@ PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files 
 Risk: {risk_level}  |  Confidence: {confidence}  |  Reversible until {last_safe_phase}
 Branch: {branch} -> {base_branch}
 
-[1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
+[0] Before/After  [1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
 ```
 
 ---
 
 ## STEP 3: Ask Which Sections to Expand
+
+**Section [0] Before/After is rendered automatically as the lead** whenever the Explore map shows structural changes (skipped with a one-line note otherwise) — so it is never buried behind a picker choice. The options below select among the remaining sections [1]–[5]; "All sections" includes [0].
 
 ```python
 AskUserQuestion(
@@ -146,7 +185,7 @@ AskUserQuestion(
     "question": "Which sections to render?",
     "header": "Sections",
     "options": [
-      {"label": "All sections", "description": "Full visualization with all 5 core sections", "markdown": "```\n[1] Change Manifest   [A]/[M]/[D] file tree\n[2] Execution         Swimlane with phases\n[3] Risks             Dashboard + pre-mortems\n[4] Decisions         ADR-lite decision log\n[5] Impact            Lines, tests, API, deps\n```"},
+      {"label": "All sections", "description": "Full visualization with all 6 core sections", "markdown": "```\n[0] Before/After      Arch diff (base vs head)\n[1] Change Manifest   [A]/[M]/[D] file tree\n[2] Execution         Swimlane with phases\n[3] Risks             Dashboard + pre-mortems\n[4] Decisions         ADR-lite decision log\n[5] Impact            Lines, tests, API, deps\n```"},
       {"label": "Changes + Execution", "description": "File diff tree and execution swimlane", "markdown": "```\n[1] Change Manifest\n    [M] src/auth.ts         +45 -12\n    [A] src/oauth.ts        +89\n\n[2] Execution Swimlane\n    Phase 1 ====[auth]========▶\n    Phase 2 ----[blocked]--===▶\n```"},
       {"label": "Risks + Decisions", "description": "Risk dashboard and decision log", "markdown": "```\n[3] Risk Dashboard\n    MEDIUM ██░░ migration reversible\n    HIGH   ███░ API breaking change\n    Pre-mortem: \"What if auth fails?\"\n\n[4] Decision Log\n    D1: OAuth2 over JWT (security)\n    D2: Postgres over Redis (durability)\n```"},
       {"label": "Impact only", "description": "Just the numbers: files, lines, tests, API surface", "markdown": "```\n[5] Impact Summary\n    ┌──────────┬─────┬───────┐\n    │ Metric   │Count│ Delta │\n    ├──────────┼─────┼───────┤\n    │ Files    │  12 │  +3   │\n    │ Lines    │ 450 │ +127  │\n    │ Tests    │   8 │  +4   │\n    │ API sfc  │   3 │  +1   │\n    └──────────┴─────┴───────┘\n```"}
@@ -164,11 +203,27 @@ Render each requested section following `$\{CLAUDE_SKILL_DIR\}/rules/section-ren
 
 | Section | Reference | Key Convention |
 |---------|-----------|----------------|
+| [0] Before/After Arch | (load `$\{CLAUDE_SKILL_DIR\}/references/before-after-arch-patterns.md`) | Side-by-side base vs head; mark `[+]`/`[~]`/`[-]`; skip if nothing structural changed |
 | [1] Change Manifest | (load `$\{CLAUDE_SKILL_DIR\}/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
 | [2] Execution Swimlane | (load `$\{CLAUDE_SKILL_DIR\}/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
 | [3] Risk Dashboard | (load `$\{CLAUDE_SKILL_DIR\}/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
 | [4] Decision Log | (load `$\{CLAUDE_SKILL_DIR\}/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
 | [5] Impact Summary | (load `$\{CLAUDE_SKILL_DIR\}/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
+
+---
+
+## STEP 4b: Dispatch to Format(s)
+
+Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII always renders first/inline** — the other formats consume the same plan brief. Full table + delegation patterns: `Read("$\{CLAUDE_SKILL_DIR\}/references/format-dispatch.md")`.
+
+| Format | Action |
+|--------|--------|
+| ASCII | Native render (above) — always, the floor |
+| Playground | Hand the plan brief to the `playground` skill → write `docs/&lt;branch-dir&gt;/plan-viz.html`, link it |
+| Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
+| All | ASCII inline now + the rest linked as they finish |
+
+`&lt;branch-dir&gt;` = branch with `/` → `--` (same path the PR Playground gate checks).
 
 ---
 
@@ -191,6 +246,8 @@ AskUserQuestion(
   }]
 )
 ```
+
+**Progressive upgrade:** if ASCII-only was rendered and a richer format is still available (per the STEP 0.5 probe), replace the "Done" option with "Upgrade to playground / infographic" — it reuses the plan brief, no recomputation (see `references/format-dispatch.md`).
 
 **Write to file:** Save full report to `designs/\{branch-name\}.md` using `assets/plan-report.md` template.
 
@@ -240,7 +297,7 @@ Available when user selects "Drill deeper". Load `Read("$\{CLAUDE_SKILL_DIR\}/re
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| section-rendering (load `$\{CLAUDE_SKILL_DIR\}/rules/section-rendering.md`) | HIGH | Rendering conventions for all 5 core sections |
+| section-rendering (load `$\{CLAUDE_SKILL_DIR\}/rules/section-rendering.md`) | HIGH | Rendering conventions for all 6 core sections ([0]–[5]) |
 | ASCII diagrams | MEDIUM | Via `ascii-visualizer` skill (box-drawing, file trees, workflows) |
 
 ## References
@@ -255,6 +312,8 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 | `decision-log-patterns.md` | Decision log ASCII patterns |
 | `blast-radius-patterns.md` | Blast radius ASCII patterns |
 | `deep-dives.md` | Cross-layer consistency and migration checklist |
+| `format-dispatch.md` | Output-format capability probe, ASCII-floor rule, delegation to playground/notebooklm |
+| `before-after-arch-patterns.md` | Section [0] before/after architecture per output format |
 
 ## Assets
 
@@ -345,7 +404,65 @@ Summary: +107 -8 | 1 new | 1 modified | 0 deleted
 
 ---
 
-## References (7)
+## References (9)
+
+### Before/After Architecture Patterns
+
+
+# Before/After Architecture — Section [0]
+
+The default lead section. Answers the reviewer's first question: **"what does this change about the shape of the system?"** Computed once in STEP 1 from the Explore agent's component map (pre-diff `git stash`/base vs post-diff working tree), reused by every format.
+
+## Data source
+
+```python
+Agent(subagent_type="Explore", model="haiku", prompt="""
+Map the component architecture of {affected_dirs} at TWO points:
+  (a) base = origin/main (pre-plan)
+  (b) head = working tree (post-plan)
+Return for each: components, their dependencies, and what MOVED/ADDED/REMOVED between (a) and (b).
+Mark new components [+], removed [-], changed [~].
+""")
+```
+
+If the plan touches **frontend** (detected via changed `*.tsx`/`*.css`/route files), also fire a `design-context-extract` pass so the design surface (tokens, key screens) is part of before/after — not just the module graph. Backend-only plans get architecture only.
+
+## ASCII format (the floor)
+
+Side-by-side, base on the left, head on the right, deltas marked:
+
+```
+BEFORE (origin/main)            AFTER (this plan)
+─────────────────────           ─────────────────────
+  ┌──────────┐                    ┌──────────┐
+  │  API     │                    │  API     │
+  └────┬─────┘                    └────┬─────┘
+       │                               │
+  ┌────▼─────┐                    ┌────▼─────┐   ┌───────────┐
+  │ Auth     │                    │ Auth     │──▶│ OAuth svc │ [+]
+  └────┬─────┘                    └────┬─────┘   └───────────┘
+       │                               │
+  ┌────▼─────┐                    ┌────▼─────┐
+  │ Postgres │                    │ Postgres │
+  └──────────┘                    └──────────┘
+                                  [+] new   [~] changed   [-] removed
+```
+
+Keep both columns to the same component set so the eye diffs by position. Annotate only what changed; don't redraw-for-decoration.
+
+## Playground (HTML) format
+
+Render the two graphs as a side-by-side Mermaid `flowchart`, with changed nodes class-styled (`classDef added`, `removed`, `changed`) and a toggle to overlay only the delta. The `playground` skill wraps it in the standard single-file explorer. Write to `docs/&lt;branch-dir&gt;/plan-viz.html`.
+
+## NotebookLM infographic format
+
+Feed the before/after brief (module lists + deltas + the one-line "why") as a source doc, then `studio_create(artifact_type=infographic)`. The infographic is for **stakeholders** — lead with the delta narrative ("3 services become 4; auth gains an OAuth dependency"), not the full graph.
+
+## Anti-slop
+
+- No before/after when nothing structural changed (pure refactor within a module) — say so in one line and skip the section.
+- Don't invent components to fill symmetry. If the plan only touches one module, show that module's internal before/after, not a fake system map.
+
 
 ### Blast Radius Patterns
 
@@ -868,6 +985,75 @@ When phases have success/failure branches:
 ```
 
 
+### Format Dispatch
+
+
+# Format Dispatch
+
+The format front-door (STEP 0.5) picks **how** to render; STEP 2 picks **which** sections. Dispatch maps the one plan-viz model to the chosen surface(s). ASCII is the floor — always rendered first, never blocked on an async job.
+
+## Capability probe (run once, before the front-door question)
+
+Gate the format options by what's actually available, so the picker never offers a path that will fail:
+
+Use the established MCP-probe pattern (`Read("$\{CLAUDE_SKILL_DIR\}/../chain-patterns/references/mcp-detection.md")`) — not invented helpers:
+
+```python
+ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")   # infographic gate
+```
+
+- **ascii** — always available (the floor).
+- **playground** — available if the `playground` skill is installed (ships with ork).
+- **infographic** — available if `mcp__notebooklm-mcp__studio_create` resolved via the `ToolSearch` above. If the server is undefined in `.mcp.json` or `nlm login` hasn't run, the tool won't resolve — treat infographic as unavailable.
+
+Hide unavailable options from the AskUserQuestion list and add a one-line install/auth hint instead of failing:
+
+| Unavailable | Hint to surface |
+|-------------|-----------------|
+| playground | "Playground needs the `playground` skill (ships with ork) — falling back to ASCII." |
+| infographic | "NotebookLM infographic needs the notebooklm MCP server reachable + `nlm login` — falling back to ASCII." |
+
+`All available` = the union of whatever passed the probe. If only ASCII passed, skip the question entirely and render ASCII.
+
+## Dispatch table
+
+| Format | How | Output | Blocks? |
+|--------|-----|--------|---------|
+| ASCII + emojis | Native — render sections per `rules/section-rendering.md` | In chat | n/a (always first) |
+| Interactive playground | Build the plan brief, hand to the `playground` skill | `docs/&lt;branch-dir&gt;/plan-viz.html` | No — write then link |
+| NotebookLM infographic/slides | Build a source doc, run the notebooklm `studio_create(artifact_type=infographic\|slides)` flow | `.png`/slides artifact | **No — fire-and-notify** |
+| All available | Fan out: ASCII inline now + the others as they finish | all of the above | No |
+
+`&lt;branch-dir&gt;` = current branch with `/` → `--` (matches the PR Playground CI gate path, so the playground also satisfies that gate for free).
+
+## The plan brief (shared interchange, v1)
+
+All non-ASCII renderers consume the same compact markdown brief built in STEP 1 — one source of truth, no per-format recomputation:
+
+```
+# Plan: <name> (<issue_ref>)
+Risk: <level> | Confidence: <conf> | Reversible until <phase>
+
+## Before/After Architecture
+<pre-diff component map>  →  <post-diff component map>
+
+## Sections
+[selected sections, each as a short titled block]
+```
+
+> v2 (separate follow-up issue): replace this markdown brief with a json-render plan-viz Zod catalog so ASCII / HTML / PDF / OG-image render from one typed spec with parity (mirrors `assess`'s `assess-dashboard.json`). The markdown brief is a stable v1 interface, not a throwaway — v2 adds a typed layer behind it.
+
+## ASCII floor rule
+
+Always render the ASCII view **first and inline**, even when a richer format is selected. Rationale:
+- NotebookLM `studio_create` is async — never `await` it inside the skill. Kick it off, then poll `studio_status` on a **bounded budget: up to 10 checks at 30s intervals** (~5 min ceiling). On `complete`, surface the artifact link via a hook `terminalSequence` (CC 2.1.141+ — the no-round-trip path, preferred) or `PushNotification`; on timeout, surface a "still rendering — open it in NotebookLM directly" link instead of hanging. The user already has the ASCII answer, so this never blocks.
+- If a richer renderer fails mid-flight, the user still has a complete visualization.
+
+## Progressive upgrade (STEP 5 action)
+
+After ASCII renders, offer "upgrade this to [playground | infographic]" so format is also a *post-hoc* choice, not only a front-door one. Reuses the same plan brief — no recomputation.
+
+
 ### Risk Dashboard Patterns
 
 # Risk Dashboard Patterns
@@ -1042,7 +1228,7 @@ PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files 
 Risk: {risk_level}  |  Confidence: {confidence}  |  Reversible until {last_safe_phase}
 Branch: {branch} -> {base_branch}
 
-[1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
+[0] Before/After  [1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
 ```
 
 ### Computing Header Fields
@@ -1053,10 +1239,11 @@ Branch: {branch} -> {base_branch}
 
 ## Tier 2: Core Sections (On Request)
 
-Five numbered sections, each answering a specific reviewer question:
+Six numbered sections, each answering a specific reviewer question. Section [0] is the default lead:
 
 | Section | Question Answered | Pattern Reference |
 |---------|------------------|-------------------|
+| [0] Before/After Arch | What changes about the shape of the system? | `before-after-arch-patterns.md` |
 | [1] Change Manifest | What files change and how? | `change-manifest-patterns.md` |
 | [2] Execution Swimlane | What runs in parallel? What blocks what? | `execution-swimlane-patterns.md` |
 | [3] Risk Dashboard | What can go wrong? When is it irreversible? | `risk-dashboard-patterns.md` |
