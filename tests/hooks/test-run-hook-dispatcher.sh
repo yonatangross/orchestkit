@@ -327,6 +327,57 @@ else
 fi
 
 # =============================================================================
+echo ""
+echo "7. WorktreeCreate path-channel (#1990)"
+echo "--------------------------------------"
+
+# CC reads a command-type WorktreeCreate/WorktreeRemove hook's STDOUT as the
+# worktree directory path. An observability hook that emits the
+# {"continue":true,"suppressOutput":true} envelope makes CC misread the JSON as
+# a path ("returned a path that is not a directory") and abort every
+# Agent(isolation:"worktree") spawn. run-hook.mjs must emit EMPTY stdout here.
+
+# 7a. command-type WorktreeCreate → empty stdout (CC uses its default path).
+run_hook "worktree/worktree-lifecycle-logger" \
+  "{\"hook_event\":\"WorktreeCreate\",\"name\":\"feature-test\",\"type\":\"command\",\"project_dir\":\"$PROJECT_ROOT\"}" \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+if [[ -z "$LAST_STDOUT" ]]; then
+  pass "WorktreeCreate (command): empty stdout — envelope not misread as a path"
+else
+  fail "WorktreeCreate command stdout not empty: '$LAST_STDOUT'"
+fi
+
+# 7b. WorktreeRemove → also empty stdout.
+run_hook "worktree/worktree-lifecycle-logger" \
+  "{\"hook_event\":\"WorktreeRemove\",\"worktree_path\":\"/tmp/wt-test\",\"project_dir\":\"$PROJECT_ROOT\"}" \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+if [[ -z "$LAST_STDOUT" ]]; then
+  pass "WorktreeRemove: empty stdout"
+else
+  fail "WorktreeRemove stdout not empty: '$LAST_STDOUT'"
+fi
+
+# 7c. http-type WorktreeCreate → a legit worktreePath IS still emitted.
+run_hook "worktree/worktree-lifecycle-logger" \
+  "{\"hook_event\":\"WorktreeCreate\",\"name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$PROJECT_ROOT\"}" \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+if echo "$LAST_STDOUT" | grep -q "worktreePath"; then
+  pass "WorktreeCreate (http): worktreePath preserved (path-providing hooks unaffected)"
+else
+  fail "WorktreeCreate http dropped worktreePath: '$LAST_STDOUT'"
+fi
+
+# 7d. Regression guard — a normal event still emits the continue envelope.
+run_hook "pretool/bash/dangerous-command-blocker" \
+  "{\"tool_input\":{\"command\":\"echo hi\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$PROJECT_ROOT\"}" \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+if echo "$LAST_STDOUT" | grep -q '"continue"'; then
+  pass "PreToolUse still emits envelope (suppression scoped to worktree events)"
+else
+  fail "PreToolUse envelope over-suppressed: '$LAST_STDOUT'"
+fi
+
+# =============================================================================
 # Summary
 echo ""
 echo "================================="
