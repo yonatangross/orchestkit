@@ -17,6 +17,64 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.6.4",
+    "date": "2026-05-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-watch:** give parse_failed an escape hatch (closes [#1985](https://github.com/yonatangross/orchestkit/issues/1985)) ([#1988](https://github.com/yonatangross/orchestkit/issues/1988)) ([bbd3c28](https://github.com/yonatangross/orchestkit/commit/bbd3c2856f6ab0ddfe80fbf6f2aacb6e8b2ab53f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.6.3",
+    "date": "2026-05-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** SessionStart output missing hookEventName (closes [#1983](https://github.com/yonatangross/orchestkit/issues/1983)) ([#1984](https://github.com/yonatangross/orchestkit/issues/1984)) ([b4eeeab](https://github.com/yonatangross/orchestkit/commit/b4eeeabe4ea8e9a3bc4f5bf792015c77d30fa9a1))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.6.2",
+    "date": "2026-05-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** adopt CC 2.1.140-2.1.148 long/bg-session features ([#1981](https://github.com/yonatangross/orchestkit/issues/1981)) ([7d94722](https://github.com/yonatangross/orchestkit/commit/7d947225989d7b6a715b6a8aaf8bea7eaa506d4b))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.6.1",
+    "date": "2026-05-24",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** sweep project root for envelope corruption (closes [#1978](https://github.com/yonatangross/orchestkit/issues/1978)) ([#1979](https://github.com/yonatangross/orchestkit/issues/1979)) ([a7335f1](https://github.com/yonatangross/orchestkit/commit/a7335f13141add3a4b897b4e4f59f27beab4cd03))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump CC floor to 2.1.148 (closes [#1945](https://github.com/yonatangross/orchestkit/issues/1945)) ([#1977](https://github.com/yonatangross/orchestkit/issues/1977)) ([8c0c493](https://github.com/yonatangross/orchestkit/commit/8c0c4939529d839b0e8fb7404f3fea296bc386b1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.6.0",
     "date": "2026-05-23",
     "compareUrl": "",
