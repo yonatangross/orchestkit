@@ -222,6 +222,21 @@ if (!hookName) {
   process.exit(0);
 }
 
+// #1990: CC reads a command-type WorktreeCreate/WorktreeRemove hook's STDOUT as
+// the worktree directory path. `worktree/*` hooks fire on those events, so they
+// must NOT print the {"continue":true,...} envelope — CC misreads the JSON as a
+// path ("returned a path that is not a directory") and aborts every
+// Agent(isolation:"worktree") spawn. The early-exit paths below (bundle
+// missing, hook not in registry, etc.) run BEFORE stdin is parsed, so they
+// can't see hook_event — key off the hook NAME instead. silentExit() emits
+// EMPTY for worktree hooks (CC then provisions at its default path) and the
+// normal envelope for every other hook.
+const IS_WORKTREE_PATH_HOOK = hookName.startsWith('worktree/');
+function silentExit() {
+  if (!IS_WORKTREE_PATH_HOOK) console.log(SILENT_OK);
+  process.exit(0);
+}
+
 // Early security-hook override probe — emits the stderr warning even when
 // the bundle can't load. See SECURITY_HOOKS docstring above.
 try {
@@ -299,16 +314,14 @@ try {
 } catch (err) {
   // Bundle not found - likely not built yet
   // Output silent success to not block Claude Code
-  console.log(SILENT_OK);
-  process.exit(0);
+  silentExit();
 }
 
 /** t1: after bundle import */
 const t1 = process.hrtime.bigint();
 
 if (!hooks) {
-  console.log(SILENT_OK);
-  process.exit(0);
+  silentExit();
 }
 
 // Get the hook function from the registry
@@ -316,8 +329,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
-  console.log(SILENT_OK);
-  process.exit(0);
+  silentExit();
 }
 
 // Read stdin with timeout to prevent hanging
@@ -514,6 +526,34 @@ function validateInput(input, hookName) {
 }
 
 /**
+ * Events whose hook STDOUT is read by CC as the worktree directory path
+ * (not the standard continue/suppressOutput envelope). A `command`-type hook
+ * on these events must echo a bare directory path — or nothing at all, in
+ * which case CC provisions the worktree at its own default location.
+ *
+ * #1990: OrchestKit's WorktreeCreate hooks are observability-only (logging +
+ * a deferred sparse-paths advisory) — they do NOT provision worktrees, so they
+ * have no path to contribute. Printing the `{"continue":true,...}` envelope
+ * here makes CC misread the JSON as the path ("returned a path that is not a
+ * directory") and aborts every Agent(isolation:"worktree") spawn. Emitting
+ * EMPTY stdout lets CC fall back to its default worktree creation. HTTP-type
+ * hooks that legitimately set `hookSpecificOutput.worktreePath` still emit it.
+ * Recurrence of #1794/#1797 (the original "WorktreeCreate output shape" fix).
+ */
+const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
+
+/**
+ * Write a hook result to stdout, honoring the WorktreeCreate/WorktreeRemove
+ * path-channel contract. For those events with no `worktreePath`, emit nothing.
+ */
+function emitHookResult(result, firingEvent) {
+  if (WORKTREE_PATH_EVENTS.has(firingEvent) && !result?.hookSpecificOutput?.worktreePath) {
+    return; // empty stdout — CC uses its default worktree path
+  }
+  console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
+}
+
+/**
  * Execute the hook and output result
  */
 async function runHook(parsedInput) {
@@ -553,7 +593,7 @@ async function runHook(parsedInput) {
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
-    console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
+    emitHookResult(result, firingEvent);
   } catch (err) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
@@ -563,10 +603,10 @@ async function runHook(parsedInput) {
     // sanitizeOutput is a no-op here — but we call it consistently so that
     // any future mutation of the error shape is also guarded.
     const firingEvent = parsedInput?.hook_event || '';
-    console.log(JSON.stringify(sanitizeOutput({
+    emitHookResult({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
-    }, firingEvent)));
+    }, firingEvent);
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;
