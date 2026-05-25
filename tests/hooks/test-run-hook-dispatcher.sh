@@ -365,6 +365,12 @@ if echo "$LAST_STDOUT" | grep -q "worktreePath"; then
   pass "WorktreeCreate (http): worktreePath preserved (path-providing hooks unaffected)"
 else
   fail "WorktreeCreate http dropped worktreePath: '$LAST_STDOUT'"
+  # DEBUG (#2003): this case passes locally but fails on ubuntu CI. Dump the
+  # hook's exit code + stderr to reveal whether the logger throws before its
+  # http branch (catch then emits empty for WorktreeCreate). Remove once fixed.
+  echo "    [debug 7c] exit=$LAST_EXIT"
+  echo "    [debug 7c] stdout=[$LAST_STDOUT]"
+  echo "    [debug 7c] stderr=[$LAST_STDERR]"
 fi
 
 # 7d. Regression guard — a normal event still emits the continue envelope.
