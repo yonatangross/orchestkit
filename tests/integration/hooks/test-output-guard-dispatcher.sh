@@ -84,22 +84,34 @@ run_dispatcher() {
 # ---------------------------------------------------------------------------
 # Test 1: WorktreeCreate command-type returns silent success (no envelope)
 # ---------------------------------------------------------------------------
-echo "Test 1: WorktreeCreate command-type — symptom regression for #1794"
+echo "Test 1: WorktreeCreate command-type — empty stdout (#1996 path-channel)"
 INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-001","tool_input":{},"name":"feature-auth","project_dir":"/tmp/test-project"}'
 OUT=$(run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
-assert_field_equals "continue is true"   "$OUT" ".continue"       "true"
-assert_no_field     "no leaked hookEventName"     "$OUT" "hookEventName"
-assert_no_field     "no leaked additionalContext" "$OUT" "additionalContext"
+# #1996: command-type WorktreeCreate must emit EMPTY stdout — CC reads stdout as
+# the worktree path, so the {"continue":...} envelope would be misread as a path
+# and abort every Agent(isolation:"worktree") spawn. Empty ⇒ CC uses its default.
+if [[ -z "$OUT" ]]; then
+  printf "  %s command-type — empty stdout (envelope not misread as a path)\n" "$(green PASS)"
+  PASS=$((PASS + 1))
+else
+  printf "  %s command-type — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
+  FAIL=$((FAIL + 1))
+fi
 
 # ---------------------------------------------------------------------------
 # Test 2: WorktreeRemove (sibling symptom)
 # ---------------------------------------------------------------------------
-echo "Test 2: WorktreeRemove — sibling regression"
+echo "Test 2: WorktreeRemove — empty stdout (sibling of #1996 path-channel)"
 INPUT='{"hook_event":"WorktreeRemove","tool_name":"","session_id":"itest-002","tool_input":{},"worktree_path":"/tmp/test-wt","project_dir":"/tmp/test-project"}'
 OUT=$(run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
-assert_field_equals "continue is true"            "$OUT" ".continue" "true"
-assert_no_field     "no leaked hookEventName"     "$OUT" "hookEventName"
-assert_no_field     "no leaked additionalContext" "$OUT" "additionalContext"
+# WorktreeRemove is in the same path-channel family as WorktreeCreate — empty stdout.
+if [[ -z "$OUT" ]]; then
+  printf "  %s WorktreeRemove — empty stdout\n" "$(green PASS)"
+  PASS=$((PASS + 1))
+else
+  printf "  %s WorktreeRemove — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
+  FAIL=$((FAIL + 1))
+fi
 
 # ---------------------------------------------------------------------------
 # Test 3: UserPromptSubmit emits valid JSON (positive control — no over-strip)
@@ -130,8 +142,12 @@ assert_no_field "no leaked hookEventName even on http-type" "$OUT" "hookEventNam
 # Test 5: Opt-out env var doesn't break the happy path
 # ---------------------------------------------------------------------------
 echo "Test 5: ORCHESTKIT_DISABLE_OUTPUT_GUARD=1 — escape hatch valid JSON"
-INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-005","tool_input":{},"name":"feature-bypass","project_dir":"/tmp/test-project"}'
-OUT=$(ORCHESTKIT_DISABLE_OUTPUT_GUARD=1 run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
+# The opt-out gates sanitizeOutput stripping ONLY — it does NOT (and must not)
+# bypass the WorktreeCreate/Remove empty-stdout contract (#1996), since a
+# non-empty envelope there re-breaks Agent(isolation:"worktree") (#1990). So
+# exercise the guard's actual happy path on a normal (non-path-channel) event.
+INPUT='{"hook_event":"UserPromptSubmit","tool_name":"","session_id":"itest-005","tool_input":{},"prompt":"/goal ship #1794","project_dir":"/tmp/test-project"}'
+OUT=$(ORCHESTKIT_DISABLE_OUTPUT_GUARD=1 run_dispatcher "prompt/goal-tracker" "$INPUT")
 assert_field_equals "opt-out still emits valid JSON" "$OUT" ".continue" "true"
 
 # ---------------------------------------------------------------------------

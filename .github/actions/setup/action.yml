@@ -87,6 +87,17 @@ runs:
           ${{ runner.os }}-vitest-${{ inputs.node-version }}-
           ${{ runner.os }}-vitest-
 
+    # Install hook deps BEFORE building: build-plugins.sh [1.5/10] only rebuilds
+    # src/hooks/dist when src/hooks/node_modules exists, else it ships whatever
+    # stale dist is committed. Running this after the build (the previous order)
+    # meant CI always skipped the rebuild → plugins/ork/hooks/dist diverged →
+    # test-run-hook-dispatcher.sh failed on every PR. See #2003.
+    - name: Install hook dependencies
+      if: inputs.install-hooks-deps == 'true'
+      shell: bash
+      working-directory: src/hooks
+      run: npm ci
+
     - name: Build plugins
       if: inputs.build-plugins == 'true'
       shell: bash
@@ -105,9 +116,3 @@ runs:
         find src/hooks -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
         chmod +x bin/*.sh 2>/dev/null || true
         chmod +x scripts/ci/*.sh 2>/dev/null || true
-
-    - name: Install hook dependencies
-      if: inputs.install-hooks-deps == 'true'
-      shell: bash
-      working-directory: src/hooks
-      run: npm ci

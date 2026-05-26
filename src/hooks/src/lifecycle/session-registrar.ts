@@ -129,7 +129,7 @@ function getCcVersion(): string | null {
  * Sweep stale sessions + expired locks. Runs inside the hook's write
  * transaction. Pure SQL — no JS allocation per row.
  */
-function sweep(db: import('better-sqlite3').Database, nowSec: number): void {
+function sweep(db: import('node:sqlite').DatabaseSync, nowSec: number): void {
   const cutoff = nowSec - SECONDS_PER_DAY;
   db.prepare(
     `UPDATE sessions SET status = 'crashed'
@@ -143,7 +143,7 @@ function sweep(db: import('better-sqlite3').Database, nowSec: number): void {
  * Idempotent on sid: re-running just refreshes started_at + heartbeat.
  */
 function register(
-  db: import('better-sqlite3').Database,
+  db: import('node:sqlite').DatabaseSync,
   row: {
     sid: string;
     pid: number;

@@ -77,5 +77,5 @@ export function listOverrides(sid: string): SettingsOverrideEntry[] {
   const db = getOrCreateDb();
   return db
     .prepare('SELECT key, value FROM settings_overrides WHERE sid = ? ORDER BY key')
-    .all(sid) as SettingsOverrideEntry[];
+    .all(sid) as unknown as SettingsOverrideEntry[];
 }

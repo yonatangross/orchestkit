@@ -4,9 +4,9 @@
 /**
  * Tests for Session Registry — M168 Phase 2 (#1912)
  *
- * Real SQLite, fresh per-test DB under tmpdir. Each test sets
- * ORK_SESSION_DB to an isolated path so the singleton handle inside
- * session-registry.ts opens against the fixture, not the real shared
+ * Real SQLite (built-in node:sqlite, #2005), fresh per-test DB under tmpdir.
+ * Each test sets ORK_SESSION_DB to an isolated path so the singleton handle
+ * inside session-registry.ts opens against the fixture, not the real shared
  * sessions.db at ~/.local/state/orchestkit/.
  *
  * Covers:
@@ -19,17 +19,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, unlinkSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
-import Database from 'better-sqlite3';
+import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { Worker } from 'node:worker_threads';
-import { fileURLToPath } from 'node:url';
-
-// Worker script lives next to this test file so node's ESM resolver finds
-// the better-sqlite3 module via the package's node_modules. Putting it
-// under tmpdir() makes the import resolve from /tmp, which doesn't have
-// a node_modules tree.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 import {
   openDb,
@@ -38,6 +30,12 @@ import {
   __internals,
 } from '../../lib/session-registry.js';
 import { runMigrations } from '../../lib/sqlite-migrations/index.js';
+
+/** Read a scalar PRAGMA the node:sqlite way (no .pragma() helper). */
+function readPragma(db: DatabaseSync, name: string): unknown {
+  const row = db.prepare(`PRAGMA ${name}`).get() as Record<string, unknown> | undefined;
+  return row?.[name];
+}
 
 describe('session-registry (#1912)', () => {
   let workDir: string;
@@ -63,12 +61,9 @@ describe('session-registry (#1912)', () => {
     const db = openDb();
     try {
       expect(existsSync(dbPath)).toBe(true);
-      const mode = db.pragma('journal_mode', { simple: true });
-      expect(mode).toBe('wal');
-      const fk = db.pragma('foreign_keys', { simple: true });
-      expect(fk).toBe(1);
-      const userVersion = db.pragma('user_version', { simple: true });
-      expect(userVersion).toBe(1);
+      expect(readPragma(db, 'journal_mode')).toBe('wal');
+      expect(readPragma(db, 'foreign_keys')).toBe(1);
+      expect(readPragma(db, 'user_version')).toBe(1);
       // All four tables created.
       const tables = db
         .prepare(
@@ -88,12 +83,12 @@ describe('session-registry (#1912)', () => {
 
   it('migrations are idempotent — second open is a no-op', () => {
     const db1 = openDb();
-    const v1 = db1.pragma('user_version', { simple: true });
+    const v1 = readPragma(db1, 'user_version');
     db1.close();
     __resetDbForTests();
 
     const db2 = openDb();
-    const v2 = db2.pragma('user_version', { simple: true });
+    const v2 = readPragma(db2, 'user_version');
     // Re-running the runner against an already-migrated DB should be a no-op.
     const applied = runMigrations(db2);
     expect(applied).toBe(0);
@@ -120,23 +115,25 @@ describe('session-registry (#1912)', () => {
     async () => {
       // Spawn 50 worker_threads, each inserts a unique session row using the
       // same retry loop semantics as writeWithRetry. We confirm all 50 rows
-      // exist + no error escaped. The worker source is assembled from string
-      // parts to keep the silent-failure linter happy (otherwise the empty
-      // ROLLBACK catch inside the literal trips the detector).
+      // exist + no error escaped. node:sqlite is a builtin, so the worker has
+      // no node_modules dependency and can live under tmpdir(). The worker
+      // source is assembled from string parts to keep the silent-failure
+      // linter happy (the empty ROLLBACK catch would otherwise trip it).
       const workerLines: string[] = [
         "import { parentPort, workerData } from 'node:worker_threads';",
-        "import Database from 'better-sqlite3';",
+        "import { DatabaseSync } from 'node:sqlite';",
         "const { dbPath, sid } = workerData;",
-        "const db = new Database(dbPath);",
-        "db.pragma('journal_mode = WAL');",
-        "db.pragma('busy_timeout = 5000');",
-        "db.pragma('foreign_keys = ON');",
+        "const db = new DatabaseSync(dbPath);",
+        "db.exec('PRAGMA busy_timeout = 5000');", // first: node:sqlite has no default busy handling
+        "db.exec('PRAGMA journal_mode = WAL');",
+        "db.exec('PRAGMA foreign_keys = ON');",
         "const MAX = 15;",
         "let result = 'ok';",
         "function rollback() {",
         "  // silent: post-cleanup",
         "  try { db.exec('ROLLBACK'); } catch (_) { /* best-effort */ }",
         "}",
+        "function isBusy(e) { return e && (e.errcode === 5 || e.errcode === 261 || e.code === 'SQLITE_BUSY'); }",
         "for (let attempt = 0; attempt < MAX; attempt++) {",
         "  try {",
         "    db.exec('BEGIN IMMEDIATE');",
@@ -151,8 +148,7 @@ describe('session-registry (#1912)', () => {
         "      throw e;",
         "    }",
         "  } catch (e) {",
-        "    const code = e && e.code;",
-        "    if (code !== 'SQLITE_BUSY' && code !== 'SQLITE_BUSY_SNAPSHOT') {",
+        "    if (!isBusy(e)) {",
         "      result = 'err:' + (e && e.message);",
         "      break;",
         "    }",
@@ -171,11 +167,7 @@ describe('session-registry (#1912)', () => {
       bootstrap.close();
       __resetDbForTests();
 
-      // Place the worker beside this test file (inside src/hooks/src/__tests__/lib/)
-      // so node's ESM resolver finds better-sqlite3 via the package's
-      // node_modules walk-up. A worker under tmpdir() would fail with
-      // ERR_MODULE_NOT_FOUND.
-      const workerFile = join(__dirname, `_test-worker-${process.pid}-${Date.now()}.mjs`);
+      const workerFile = join(workDir, `_test-worker-${process.pid}-${Date.now()}.mjs`);
       writeFileSync(workerFile, workerSrc);
 
       try {
@@ -185,6 +177,7 @@ describe('session-registry (#1912)', () => {
             new Promise<string>((resolve, reject) => {
               const w = new Worker(workerFile, {
                 workerData: { dbPath, sid: `w-${i}` },
+                execArgv: ['--no-warnings'], // silence node:sqlite experimental warning
               });
               w.on('message', resolve);
               w.on('error', reject);
@@ -198,7 +191,7 @@ describe('session-registry (#1912)', () => {
         const failures = results.filter(r => r !== 'ok');
         expect(failures).toEqual([]);
 
-        const db = new Database(dbPath, { readonly: true });
+        const db = new DatabaseSync(dbPath, { readOnly: true });
         const { count } = db
           .prepare('SELECT COUNT(*) AS count FROM sessions')
           .get() as { count: number };
@@ -213,18 +206,20 @@ describe('session-registry (#1912)', () => {
   );
 
   it('auto-quarantines a corrupt DB on integrity_check failure', () => {
-    // Exercise checkIntegrityOrQuarantine directly with a pragma stub that
+    // Exercise checkIntegrityOrQuarantine directly with a prepare() stub that
     // reports failure. Writing genuine corrupt bytes is unreliable across
     // SQLite versions (the file may be rejected at open time, before the
     // integrity check ever runs).
     const realDb = openDb();
     const stub = {
-      pragma: (q: string) => {
-        if (q === 'integrity_check') return [{ integrity_check: 'page 5 missing' }];
-        return realDb.pragma(q as never);
+      prepare: (sql: string) => {
+        if (sql.includes('integrity_check')) {
+          return { all: () => [{ integrity_check: 'page 5 missing' }] };
+        }
+        return realDb.prepare(sql);
       },
       close: () => realDb.close(),
-    } as unknown as Database.Database;
+    } as unknown as DatabaseSync;
 
     const quarantined = __internals.checkIntegrityOrQuarantine(stub, dbPath);
     expect(quarantined).toBe(true);

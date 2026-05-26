@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hook storage engine — why node:sqlite</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--p2:#1c2230;--bd:#30363d;--fg:#e6edf3;--mut:#9da7b3;--ac:#58a6ff;--ok:#3fb950;--err:#f85149;--warn:#d29922;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:23px;margin:0 0 4px}
+  .sub{color:var(--mut);margin:0 0 24px;font-size:14px;max-width:74ch}
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:20px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
+  .seg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+  .seg button{background:var(--p2);color:var(--fg);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font:12px var(--mono);cursor:pointer}
+  .seg button.on{background:rgba(88,166,255,.2);border-color:var(--ac);color:#cfe6ff}
+  .opt{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .opt label{font-size:14px;flex:1}
+  .switch{position:relative;width:40px;height:22px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--p2);border:1px solid var(--bd);border-radius:22px;cursor:pointer;transition:.15s}
+  .slider:before{content:"";position:absolute;height:14px;width:14px;left:3px;top:3px;background:var(--mut);border-radius:50%;transition:.15s}
+  input:checked + .slider{background:rgba(63,185,80,.25);border-color:var(--ok)}
+  input:checked + .slider:before{transform:translateX(18px);background:var(--ok)}
+  .verdict{font:13px var(--mono);padding:10px 12px;border-radius:8px;margin:4px 0 12px;border:1px solid var(--bd)}
+  .v-ok{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.4);color:var(--ok)}
+  .v-bad{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.5);color:var(--err)}
+  .v-warn{background:rgba(210,153,34,.1);border-color:rgba(210,153,34,.4);color:var(--warn)}
+  .why{color:var(--mut);font-size:13.5px;border-left:2px solid var(--bd);padding-left:12px;margin-top:8px}
+  pre{background:#010409;border:1px solid var(--bd);border-radius:8px;padding:12px;font:12px/1.5 var(--mono);overflow:auto;margin:0}
+  .chain{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px var(--mono);margin-top:14px}
+  .chain .n{padding:5px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--p2)}
+  .chain .done{color:var(--ok);border-color:rgba(63,185,80,.4)}
+  .chain .now{color:var(--ac);border-color:var(--ac)}
+  .chain .next{color:var(--mut)}
+  footer{color:var(--mut);font-size:12px;margin-top:26px;text-align:center}
+  code{font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>OrchestKit hook storage engine — why <code>node:sqlite</code></h1>
+  <p class="sub">CC hooks ship as esbuild bundles with <b>no node_modules</b>. That single constraint decides which SQLite engine the M168 session registry can use. Pick an engine × runtime and see whether the bundle loads and the registry works.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>SQLite engine</h2>
+      <div class="seg" id="eng">
+        <button data-e="better" class="on">better-sqlite3</button>
+        <button data-e="node">node:sqlite</button>
+        <button data-e="jsonl">JSONL files</button>
+      </div>
+      <h2>Runtime</h2>
+      <div class="opt"><label>shipped plugin <br><span style="color:var(--mut);font-size:12px">(no node_modules)</span></label>
+        <span class="switch"><input type="checkbox" id="shipped" checked><span class="slider"></span></span></div>
+      <div class="opt"><label>Node &ge; 22.5 <br><span style="color:var(--mut);font-size:12px">(node:sqlite available)</span></label>
+        <span class="switch"><input type="checkbox" id="node225" checked><span class="slider"></span></span></div>
+    </div>
+
+    <div class="card">
+      <h2>Bundle load</h2>
+      <div class="verdict" id="vLoad"></div>
+      <h2>Registry works?</h2>
+      <div class="verdict" id="vReg"></div>
+      <div class="why" id="why"></div>
+      <h2 style="margin-top:16px">In session-registry.ts</h2>
+      <pre id="code"></pre>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h2>The dependency chain</h2>
+    <div class="chain">
+      <span class="n done">#2003 bundle LOADS (lazy import)</span> <span>→</span>
+      <span class="n now">#2005 registry WORKS (node:sqlite)</span> <span>→</span>
+      <span class="n next">#2006 analytics: skill suggested→taken</span>
+    </div>
+    <p class="why" style="margin-top:12px">#2006 (capture which suggested skills get used) writes to this very registry — so it was blocked until #2005 made the registry actually function in the shipped plugin. Right tool per layer: SQLite where you need locks/queries (Layer 1), JSONL for append-only event logs (Layer 3, #1948).</p>
+  </div>
+
+  <footer>OrchestKit · branch <code>feat/2005-node-sqlite</code> · M168 session registry engine.</footer>
+</div>
+
+<script>
+  const el=id=>document.getElementById(id);
+  let eng="better";
+  el("eng").addEventListener("click",e=>{
+    if(e.target.tagName!=="BUTTON")return; eng=e.target.dataset.e;
+    [...el("eng").children].forEach(b=>b.classList.toggle("on",b===e.target)); render();
+  });
+  ["shipped","node225"].forEach(id=>el(id).addEventListener("change",render));
+
+  function render(){
+    const shipped=el("shipped").checked, n225=el("node225").checked;
+    let load, loadCls, reg, regCls, why, code;
+
+    if(eng==="better"){
+      // native module — esbuild can't bundle; needs node_modules at runtime
+      if(shipped){ load="✗ FAILS — ERR_MODULE_NOT_FOUND"; loadCls="v-bad";
+        reg="✗ dead (whole bundle silentExits)"; regCls="v-bad";
+        why="better-sqlite3 is a NATIVE .node module — esbuild leaves it a bare import. With no node_modules the bundle can't even load, killing every hook in it. This is the #2003 bug."; }
+      else { load="✓ loads (node_modules present)"; loadCls="v-ok";
+        reg="✓ works"; regCls="v-ok";
+        why="Works in dev where node_modules exists — which is exactly why the bug passed locally and failed in CI / the shipped plugin."; }
+      code="import Database from 'better-sqlite3'; // ✗ native, top-level";
+    } else if(eng==="node"){
+      // builtin — bundle-safe; needs Node >=22.5
+      load="✓ loads (lazy require, no static import)"; loadCls="v-ok";
+      if(!n225){ load="✓ loads (guarded)"; loadCls="v-ok";
+        reg="○ no-ops (Node < 22.5 — graceful degrade)"; regCls="v-warn";
+        why="node:sqlite needs Node ≥ 22.5. The lazy guard means the bundle still loads on older Node; the registry just no-ops instead of crashing."; }
+      else { reg="✓ works — even with no node_modules"; regCls="v-ok";
+        why="node:sqlite is BUILT INTO Node — zero native dep, nothing to install. Keeps the full relational schema (sessions/locks/overrides/worktree_links) + WAL concurrency. This is #2005."; }
+      code="import type { DatabaseSync } from 'node:sqlite';\n// value loaded lazily: createRequire(...)('node:sqlite')";
+    } else {
+      load="✓ loads (pure JS)"; loadCls="v-ok";
+      reg="△ works but loses locks/queries"; regCls="v-warn";
+      why="JSONL is bundle-safe and great for append-only event logs (Layer 3). But the registry needs atomic cross-session LOCKS + relational queries — append-only files can't give you that without races.";
+      code="// append-only JSONL — no SQL, no atomic locks";
+    }
+    el("vLoad").className="verdict "+loadCls; el("vLoad").textContent=load;
+    el("vReg").className="verdict "+regCls; el("vReg").textContent=reg;
+    el("why").textContent=why; el("code").textContent=code;
+  }
+  render();
+</script>
+</body>
+</html>
