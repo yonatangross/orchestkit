@@ -265,6 +265,25 @@ export function writeWithRetry<T>(fn: (db: DatabaseSync) => T): T {
   throw lastErr instanceof Error ? lastErr : new Error('writeWithRetry: exhausted retries');
 }
 
+/**
+ * Record a skill invocation for usage analytics (#2010). Best-effort: every
+ * failure is swallowed — SqliteUnavailableError on Node < 22.5, a missing
+ * sessions row (FK), or exhausted retries — so a hook never crashes because
+ * analytics couldn't write. No-ops on an empty sessionId/skill.
+ */
+export function recordInvocation(sessionId: string, skill: string, invokedAt: number = Date.now()): void {
+  if (!sessionId || !skill) return;
+  try {
+    writeWithRetry(db =>
+      db
+        .prepare('INSERT INTO skill_invocation (session_id, skill, invoked_at) VALUES (?, ?, ?)')
+        .run(sessionId, skill, invokedAt),
+    );
+  } catch {
+    /* best-effort analytics — never propagate */
+  }
+}
+
 /** Exposed for tests. */
 export const __internals = {
   applyPragmas,

@@ -25,7 +25,9 @@ import { Worker } from 'node:worker_threads';
 
 import {
   openDb,
+  getOrCreateDb,
   writeWithRetry,
+  recordInvocation,
   __resetDbForTests,
   __internals,
 } from '../../lib/session-registry.js';
@@ -63,8 +65,8 @@ describe('session-registry (#1912)', () => {
       expect(existsSync(dbPath)).toBe(true);
       expect(readPragma(db, 'journal_mode')).toBe('wal');
       expect(readPragma(db, 'foreign_keys')).toBe(1);
-      expect(readPragma(db, 'user_version')).toBe(1);
-      // All four tables created.
+      expect(readPragma(db, 'user_version')).toBe(2);
+      // All five tables created (skill_invocation added by 002, #2010).
       const tables = db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
@@ -74,6 +76,7 @@ describe('session-registry (#1912)', () => {
         'locks',
         'sessions',
         'settings_overrides',
+        'skill_invocation',
         'worktree_links',
       ]);
     } finally {
@@ -108,6 +111,44 @@ describe('session-registry (#1912)', () => {
     const row = db.prepare('SELECT * FROM sessions WHERE sid=?').get('s-1');
     expect(row).toBeTruthy();
     db.close();
+  });
+
+  // ── #2010 skill_invocation: usage analytics via recordInvocation ──
+  function seedSession(sid: string): void {
+    writeWithRetry(db => {
+      db.prepare(
+        `INSERT INTO sessions (sid, pid, cwd, repo_hash, repo_path, started_at, last_heartbeat)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).run(sid, 1, '/tmp', 'h', '/tmp', 1, 1);
+    });
+  }
+
+  it('recordInvocation writes a skill_invocation row', () => {
+    seedSession('rec-1');
+    recordInvocation('rec-1', 'ork:assess', 1000);
+    const db = getOrCreateDb();
+    const rows = db
+      .prepare('SELECT session_id, skill, invoked_at FROM skill_invocation')
+      .all() as { session_id: string; skill: string; invoked_at: number }[];
+    expect(rows).toEqual([{ session_id: 'rec-1', skill: 'ork:assess', invoked_at: 1000 }]);
+  });
+
+  it('recordInvocation no-ops on an empty sessionId or skill', () => {
+    seedSession('rec-1');
+    recordInvocation('', 'ork:assess');
+    recordInvocation('rec-1', '');
+    const db = getOrCreateDb();
+    const n = (db.prepare('SELECT COUNT(*) AS c FROM skill_invocation').get() as { c: number }).c;
+    expect(n).toBe(0);
+  });
+
+  it('recordInvocation swallows a missing-session FK violation (best-effort)', () => {
+    // No session seeded → foreign_keys=ON makes the INSERT fail. Must not throw
+    // and must not insert — analytics is best-effort and never breaks a hook.
+    expect(() => recordInvocation('ghost', 'ork:verify')).not.toThrow();
+    const db = getOrCreateDb();
+    const n = (db.prepare('SELECT COUNT(*) AS c FROM skill_invocation').get() as { c: number }).c;
+    expect(n).toBe(0);
   });
 
   it(

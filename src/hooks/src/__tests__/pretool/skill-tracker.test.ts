@@ -6,8 +6,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
-const { mockAppendFileSync } = vi.hoisted(() => ({
+const { mockAppendFileSync, mockRecordInvocation } = vi.hoisted(() => ({
   mockAppendFileSync: vi.fn(),
+  mockRecordInvocation: vi.fn(),
 }));
 
 // Mock dependencies before imports
@@ -32,6 +33,13 @@ vi.mock('node:path', () => {
   const named = { join: vi.fn((...args: string[]) => args.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), basename: vi.fn((p: string) => p.split('/').pop() || ''), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
   return { ...named, default: named };
 });
+
+// #2010: stub the registry so this UNIT test asserts the wiring without opening
+// the real shared sessions.db. Real recordInvocation behavior lives in
+// __tests__/lib/session-registry.test.ts (isolated via ORK_SESSION_DB).
+vi.mock('../../lib/session-registry.js', () => ({
+  recordInvocation: (...args: unknown[]) => mockRecordInvocation(...args),
+}));
 
 import { skillTracker } from '../../pretool/skill/skill-tracker.js';
 import type { HookInput } from '../../types.js';
@@ -101,5 +109,20 @@ describe('skill-tracker', () => {
 
     const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[1])).toContain('no args');
+  });
+
+  it('records the invocation to the coordination DB (#2010)', () => {
+    skillTracker(createSkillInput('unit-testing'), testCtx);
+
+    expect(mockRecordInvocation).toHaveBeenCalledWith('test-session-123', 'unit-testing');
+  });
+
+  it('does not record when the skill name is empty', () => {
+    skillTracker(
+      { tool_name: 'Skill', session_id: 'test-session-123', project_dir: '/test/project', tool_input: {} },
+      testCtx,
+    );
+
+    expect(mockRecordInvocation).not.toHaveBeenCalled();
   });
 });

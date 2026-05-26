@@ -16,6 +16,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
+import { recordInvocation } from '../../lib/session-registry.js';
 
 /**
  * Ensure directory exists
@@ -60,6 +61,11 @@ export function skillTracker(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   const usageLog = join(projectDir, '.claude', 'logs', 'skill-usage.log');
   const timestamp = new Date().toISOString();
   appendSafe(usageLog, `${timestamp} | ${skillName} | ${skillArgs || 'no args'}\n`);
+
+  // #2010: also record to the coordination DB (sessions.db) for queryable
+  // usage analytics. Guarded + best-effort — the plaintext log above is the
+  // fallback, and recordInvocation never throws.
+  recordInvocation(input.session_id, skillName);
 
   ctx.log('skill-tracker', `Skill usage logged for ${skillName}`);
 
