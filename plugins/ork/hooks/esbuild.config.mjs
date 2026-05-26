@@ -7,7 +7,8 @@
  */
 
 import { build, context } from 'esbuild';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const isWatch = process.argv.includes('--watch');
 const useSplitBundles = process.argv.includes('--split') || !process.argv.includes('--single');
@@ -173,6 +174,26 @@ async function buildSingleBundle() {
   }
 }
 
+/**
+ * Ship migration SQL next to the bundles (#2012). The migration runner reads
+ * .sql from its own directory (import.meta.url) at runtime; in the distributed
+ * plugin that directory is dist/, and build-plugins.sh rsyncs dist/ into the
+ * plugin. The source .sql live under src/lib/sqlite-migrations/, which rsync
+ * EXCLUDES (--exclude='src') — so without this copy runMigrations() finds zero
+ * files and NO tables are ever created in the installed plugin (silent no-op).
+ */
+function copyMigrations() {
+  const srcDir = './src/lib/sqlite-migrations';
+  let copied = 0;
+  for (const f of readdirSync(srcDir)) {
+    if (/^\d{3}-.+\.sql$/.test(f)) {
+      copyFileSync(join(srcDir, f), join('./dist', f));
+      copied++;
+    }
+  }
+  console.log(`Copied ${copied} migration .sql → dist/ (ship next to bundles, #2012)`);
+}
+
 async function main() {
   mkdirSync('./dist', { recursive: true });
 
@@ -195,6 +216,9 @@ async function main() {
   } else {
     await buildSingleBundle();
   }
+
+  // #2012: migrations must travel with the bundles (see copyMigrations).
+  copyMigrations();
 }
 
 main().catch((err) => {

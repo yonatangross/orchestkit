@@ -1,5 +1,5 @@
 // OrchestKit Hooks - lifecycle bundle
-// Generated: 2026-05-26T06:17:21.351Z
+// Generated: 2026-05-26T09:18:59.696Z
 
 function o_(e){return typeof e.command=="string"}function i_(e){return typeof e.file_path=="string"&&typeof e.content=="string"}function s_(e){return typeof e.file_path=="string"&&typeof e.old_string=="string"&&typeof e.new_string=="string"}function a_(e){return typeof e.file_path=="string"&&e.content===void 0}function u(){return{continue:!0,suppressOutput:!0}}function bs(){return{continue:!0,suppressOutput:!0,hookSpecificOutput:{permissionDecision:"allow"}}}function de(e){return{continue:!1,stopReason:e,hookSpecificOutput:{permissionDecision:"deny",permissionDecisionReason:e}}}function w(e){return e?.trim()?{continue:!0,suppressOutput:!0,hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:e}}:u()}function jn(e,t){if(t<=0||!e)return e;let n=[];for(let r of e.split(`
 `)){if(r.length<=t){n.push(r);continue}let o=r.split(/(\s+)/),i="";for(let s of o)if(i.length+s.length<=t)i+=s;else if(i.length>0&&n.push(i.replace(/\s+$/,"")),s.length>t){let a=s;for(;a.length>t;)n.push(a.slice(0,t)),a=a.slice(t);i=a}else i=s.replace(/^\s+/,"");i.length>0&&n.push(i.replace(/\s+$/,""))}return n.join(`
