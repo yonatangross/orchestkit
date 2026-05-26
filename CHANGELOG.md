@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.8.0](https://github.com/yonatangross/orchestkit/compare/v8.7.1...v8.8.0) (2026-05-26)
+
+
+### Features
+
+* **hooks:** M168 skill_invocation table for usage analytics ([#2015](https://github.com/yonatangross/orchestkit/issues/2015)) ([bc1e1bb](https://github.com/yonatangross/orchestkit/commit/bc1e1bba9b2301cabf9c2a687219024aad20fa46)), closes [#2010](https://github.com/yonatangross/orchestkit/issues/2010)
+
+
+### Bug Fixes
+
+* **hooks:** ship SQLite migrations into the bundle dir (closes [#2012](https://github.com/yonatangross/orchestkit/issues/2012)) ([#2013](https://github.com/yonatangross/orchestkit/issues/2013)) ([09b9565](https://github.com/yonatangross/orchestkit/commit/09b9565b33a1617b1b87b6552108f58ee8b393e0))
+
+
+### Miscellaneous
+
+* **hooks:** M168 SQLite test/build cleanup + ci-report Node 22 ([#2018](https://github.com/yonatangross/orchestkit/issues/2018)) ([73cefe3](https://github.com/yonatangross/orchestkit/commit/73cefe3d9a77683a69fd0dc37538168a1dc049ac)), closes [#2017](https://github.com/yonatangross/orchestkit/issues/2017)
+
 ## [8.7.1](https://github.com/yonatangross/orchestkit/compare/v8.7.0...v8.7.1) (2026-05-26)
 
 
