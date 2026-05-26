@@ -134,7 +134,7 @@ Not OrchestKit skills — these are Claude Code built-ins:
 
 | Command | Description | Since |
 |---------|-------------|-------|
-| `/simplify` | Review changed code for quality, then fix | CC 2.1.63 |
+| `/code-review` | Review changed code for correctness bugs at a chosen effort level; `--comment` posts inline PR comments (renamed from `/simplify` in 2.1.146; the old cleanup-and-fix behavior was removed) | CC 2.1.146 |
 | `/help` | Claude Code built-in help | CC 2.1.0+ |
 | `/config` | Claude Code configuration | CC 2.1.0+ |
 | `/clear` | Clear conversation (preserves background agents) | CC 2.1.72 |

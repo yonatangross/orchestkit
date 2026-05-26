@@ -73,7 +73,7 @@ export function exitFinalizer(
              AND result_status IS NULL`,
         )
         .run(resultPayload, worktreePath);
-      return info.changes;
+      return Number(info.changes); // node:sqlite returns changes as number|bigint
     });
   } catch (err) {
     ctx.log(HOOK_NAME, `worktree_links update failed: ${(err as Error).message}`);

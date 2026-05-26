@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Review Command Chooser — /code-review vs /ork:review-pr</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#30363d;
+    --fg:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; --accent2:#3fb950;
+    --warn:#d29922; --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:24px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+  .ctl{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--border)}
+  .ctl:last-child{border-bottom:0}
+  .ctl label{font-size:14px}
+  .ctl small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  select,input[type=range]{accent-color:var(--accent)}
+  select{background:var(--panel2);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font:13px var(--mono)}
+  .switch{position:relative;width:44px;height:24px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:var(--panel2);border:1px solid var(--border);border-radius:24px;transition:.15s;cursor:pointer}
+  .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.15s}
+  input:checked + .slider{background:rgba(63,185,80,.25);border-color:var(--accent2)}
+  input:checked + .slider:before{transform:translateX(20px);background:var(--accent2)}
+  .verdict{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:20px}
+  .verdict .cmd{font:18px var(--mono);color:var(--accent2);font-weight:600}
+  .verdict .why{color:var(--muted);font-size:14px;margin-top:8px}
+  .copybox{display:flex;gap:8px;margin-top:14px}
+  .copybox code{flex:1;background:#010409;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:14px var(--mono);color:var(--fg);overflow:auto;white-space:nowrap}
+  button.copy{background:var(--accent);color:#08111f;border:0;border-radius:6px;padding:0 16px;font-weight:600;cursor:pointer}
+  button.copy:active{transform:translateY(1px)}
+  .bars{margin-top:14px}
+  .bar{display:flex;align-items:center;gap:10px;margin:6px 0;font:13px var(--mono)}
+  .bar .track{flex:1;height:10px;background:var(--panel2);border-radius:5px;overflow:hidden}
+  .bar .fill{height:100%;border-radius:5px}
+  .sweep li{margin:6px 0;font-size:13.5px}
+  .tag{font:11px var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border)}
+  .ok{color:var(--accent2);border-color:rgba(63,185,80,.4)}
+  .clean{color:var(--muted)}
+  footer{color:var(--muted);font-size:12px;margin-top:28px;text-align:center}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Review Command Chooser</h1>
+  <p class="sub">CC 2.1.146 renamed <code>/simplify</code> → <code>/code-review</code>, which now overlaps with <code>/ork:review-pr</code>. Toggle your PR's shape to see which one fits — and copy the invocation.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Your PR</h2>
+      <div class="ctl">
+        <label>Diff size
+          <small id="sizeLbl">~120 lines</small></label>
+        <input type="range" id="size" min="0" max="3" step="1" value="1" />
+      </div>
+      <div class="ctl">
+        <label>Domains touched
+          <small id="domLbl">1 (e.g. just frontend)</small></label>
+        <input type="range" id="dom" min="1" max="4" step="1" value="1" />
+      </div>
+      <div class="ctl">
+        <label>Post inline PR comments?
+          <small>both can; built-in uses <code>--comment</code></small></label>
+        <span class="switch"><input type="checkbox" id="comment" /><span class="slider"></span></span>
+      </div>
+      <div class="ctl">
+        <label>Security / auth-sensitive?
+          <small>secrets, authn/z, input handling</small></label>
+        <span class="switch"><input type="checkbox" id="sec" /><span class="slider"></span></span>
+      </div>
+      <div class="ctl">
+        <label>Need an approve / request-changes verdict?
+          <small>pre-merge gate decision</small></label>
+        <span class="switch"><input type="checkbox" id="verdict" /><span class="slider"></span></span>
+      </div>
+      <div class="ctl">
+        <label>Effort level
+          <small>built-in <code>/code-review</code> only</small></label>
+        <select id="effort">
+          <option value="low">low</option>
+          <option value="medium" selected>medium</option>
+          <option value="high">high</option>
+          <option value="max">max</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Fit score</h2>
+      <div class="bars">
+        <div class="bar"><span style="width:120px">/code-review</span>
+          <div class="track"><div class="fill" id="fillA" style="background:var(--accent)"></div></div>
+          <span id="scoreA">0</span></div>
+        <div class="bar"><span style="width:120px">/ork:review-pr</span>
+          <div class="track"><div class="fill" id="fillB" style="background:var(--accent2)"></div></div>
+          <span id="scoreB">0</span></div>
+      </div>
+      <h2 style="margin-top:22px">CC 2.1.147 sweep — verified</h2>
+      <ul class="sweep" style="list-style:none;padding:0;margin:0">
+        <li><span class="tag ok">#1937</span> 6 stale <code>/simplify</code> refs → <code>/code-review</code></li>
+        <li><span class="tag ok">#1942</span> guard test: 5 multi-Agent agents' tools resolve</li>
+        <li><span class="tag clean">#1943</span> counts 111/37 already correct + CI-guarded</li>
+        <li><span class="tag clean">#1944</span> 0 SKILL.md paste-workarounds — nothing to remove</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="cmd" id="cmd">/code-review medium</div>
+    <div class="why" id="why">A small single-domain diff — the fast single-pass correctness gate is the right call.</div>
+    <div class="copybox">
+      <code id="copyCmd">/code-review medium</code>
+      <button class="copy" id="copyBtn">Copy</button>
+    </div>
+  </div>
+
+  <footer>
+    OrchestKit · branch <code>fix/cc-2147-verification-sweep</code> · interactive playground.
+    Heuristic recommender — judgment still yours.
+  </footer>
+</div>
+
+<script>
+  const sizeLabels = ["~30 lines","~120 lines","~400 lines","800+ lines"];
+  const el = id => document.getElementById(id);
+  const ids = ["size","dom","comment","sec","verdict","effort"];
+
+  function compute(){
+    const size = +el("size").value;        // 0..3
+    const dom = +el("dom").value;           // 1..4
+    const comment = el("comment").checked;
+    const sec = el("sec").checked;
+    const verdict = el("verdict").checked;
+    const effort = el("effort").value;
+
+    el("sizeLbl").textContent = sizeLabels[size];
+    el("domLbl").textContent = dom + (dom===1 ? " (e.g. just frontend)" : " domains (cross-cutting)");
+
+    // Scoring: built-in favors small/single-pass; ork favors breadth + gate semantics.
+    let a = 6 - size*1.2 - (dom-1)*1.0 - (sec?2:0) - (verdict?2.5:0) + (comment?0.5:0);
+    let b = 2 + size*1.3 + (dom-1)*1.3 + (sec?3:0) + (verdict?3:0);
+    a = Math.max(0, Math.min(10, a));
+    b = Math.max(0, Math.min(10, b));
+
+    el("scoreA").textContent = a.toFixed(1);
+    el("scoreB").textContent = b.toFixed(1);
+    el("fillA").style.width = (a*10)+"%";
+    el("fillB").style.width = (b*10)+"%";
+
+    const pickOrk = b >= a;
+    let cmd, why;
+    if(pickOrk){
+      cmd = "/ork:review-pr";
+      const reasons = [];
+      if(sec) reasons.push("security-sensitive → you want the dedicated security pass");
+      if(verdict) reasons.push("you need an approve / request-changes verdict");
+      if(dom>1) reasons.push(dom+" domains → parallel specialist agents pay off");
+      if(size>=2) reasons.push("large diff → multi-agent coverage matters");
+      why = "Reach for the full multi-agent audit: " + (reasons.join("; ") || "breadth outweighs a single-pass check") + ".";
+    } else {
+      cmd = "/code-review " + effort + (comment ? " --comment" : "");
+      why = "A " + (size<=1?"small":"moderate") + " " + (dom===1?"single-domain":"focused") +
+            " diff — the fast single-pass correctness gate is the right call" +
+            (comment ? ", posting findings inline." : ".");
+    }
+    el("cmd").textContent = cmd;
+    el("why").textContent = why;
+    el("copyCmd").textContent = cmd;
+  }
+
+  ids.forEach(id => el(id).addEventListener("input", compute));
+  el("copyBtn").addEventListener("click", () => {
+    navigator.clipboard.writeText(el("copyCmd").textContent).then(()=>{
+      const b = el("copyBtn"); b.textContent = "Copied"; setTimeout(()=>b.textContent="Copy",1200);
+    });
+  });
+  compute();
+</script>
+</body>
+</html>

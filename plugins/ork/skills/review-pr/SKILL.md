@@ -475,6 +475,12 @@ For complex PRs (> 500 lines, 3+ domains), use mesh topology so reviewers can ch
 - `ork:create-pr`: Create PRs for review
 - `slack-integration`: Team notifications for review events
 
+### vs. the built-in `/code-review` (CC 2.1.146+)
+
+CC bundles `/code-review` (renamed from `/simplify`): a **single-pass** correctness-bug check at a chosen effort level, with `--comment` to post findings as inline PR comments. Use it for a fast, focused "are there bugs in this diff?" pass.
+
+Reach for `/ork:review-pr` instead when you want the **full multi-agent review** — parallel code-quality, security, testing, architecture, and performance passes synthesized into conventional comments with an approve / request-changes verdict. They are complementary, not redundant: `/code-review` is the quick correctness gate; `/ork:review-pr` is the thorough pre-merge audit.
+
 ## References
 
 Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:

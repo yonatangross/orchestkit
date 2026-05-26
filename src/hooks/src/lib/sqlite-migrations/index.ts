@@ -14,7 +14,7 @@
  * Idempotent: re-running with no new files is a no-op.
  */
 
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,8 +53,10 @@ function listMigrations(): MigrationFile[] {
  * Apply any pending migrations to the open DB. Returns the count of applied
  * migrations. No-op if the DB is already at the latest version.
  */
-export function runMigrations(db: Database.Database): number {
-  const current = (db.pragma('user_version', { simple: true }) as number) ?? 0;
+export function runMigrations(db: DatabaseSync): number {
+  // node:sqlite has no .pragma() — read the scalar via a prepared statement.
+  const row = db.prepare('PRAGMA user_version').get() as { user_version?: number } | undefined;
+  const current = row?.user_version ?? 0;
   const pending = listMigrations().filter(m => m.version > current);
   if (pending.length === 0) return 0;
   for (const m of pending) {

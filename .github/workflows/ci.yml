@@ -40,6 +40,7 @@ jobs:
         with:
           build-plugins: 'true'
           run-ci-setup: 'false'
+          install-hooks-deps: 'true'  # #2003: install src/hooks deps BEFORE build so hook dist is rebuilt into the shared artifact
 
       - name: Validate no symlinks
         run: |
@@ -271,7 +272,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '22']
+        # node:sqlite (M168 session registry, #2005) requires Node >= 22.5, so
+        # hooks no longer support Node 20. Matrix dropped to 22+ accordingly.
+        node-version: ['22']
         shard: ['1/4', '2/4', '3/4', '4/4']
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -487,6 +490,13 @@ jobs:
         with:
           build-plugins: 'false'
           run-ci-setup: 'false'
+          # tests/hooks loads the compiled bundles, and lifecycle.mjs statically
+          # imports better-sqlite3. Without hook deps the bundle import throws
+          # ERR_MODULE_NOT_FOUND and the dispatcher silent-exits to empty stdout,
+          # which fails test-run-hook-dispatcher.sh 7c (http WorktreeCreate must
+          # emit worktreePath). The build-plugins job already installs these;
+          # this job runs the dispatcher tests directly, so it needs them too. (#2003)
+          install-hooks-deps: 'true'
 
       - name: Run manifest tests
         run: bash scripts/ci/run-tests.sh tests/manifests --verbose

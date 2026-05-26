@@ -16,7 +16,7 @@ PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files 
 Risk: {risk_level}  |  Confidence: {confidence}  |  Reversible until {last_safe_phase}
 Branch: {branch} -> {base_branch}
 
-[1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
+[0] Before/After  [1] Changes  [2] Execution  [3] Risks  [4] Decisions  [5] Impact  [all]
 ```
 
 ### Computing Header Fields
@@ -27,10 +27,11 @@ Branch: {branch} -> {base_branch}
 
 ## Tier 2: Core Sections (On Request)
 
-Five numbered sections, each answering a specific reviewer question:
+Six numbered sections, each answering a specific reviewer question. Section [0] is the default lead:
 
 | Section | Question Answered | Pattern Reference |
 |---------|------------------|-------------------|
+| [0] Before/After Arch | What changes about the shape of the system? | `before-after-arch-patterns.md` |
 | [1] Change Manifest | What files change and how? | `change-manifest-patterns.md` |
 | [2] Execution Swimlane | What runs in parallel? What blocks what? | `execution-swimlane-patterns.md` |
 | [3] Risk Dashboard | What can go wrong? When is it irreversible? | `risk-dashboard-patterns.md` |
