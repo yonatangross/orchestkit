@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 
 import { heartbeat, __internals } from '../../posttool/heartbeat.js';
 import { openDb, __resetDbForTests } from '../../lib/session-registry.js';
@@ -65,7 +65,7 @@ describe('posttool/heartbeat (#1912)', () => {
     const res = heartbeat(makeInput('s-beat'), NOOP_CTX);
     expect(res.continue).toBe(true);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT last_heartbeat FROM sessions WHERE sid=?')
       .get('s-beat') as { last_heartbeat: number };
@@ -86,7 +86,7 @@ describe('posttool/heartbeat (#1912)', () => {
     // Immediately call again — should be skipped, sentinel remains.
     heartbeat(makeInput('s-beat'), NOOP_CTX);
 
-    const dbRO = new Database(dbPath, { readonly: true });
+    const dbRO = new DatabaseSync(dbPath, { readOnly: true });
     const row = dbRO
       .prepare('SELECT last_heartbeat FROM sessions WHERE sid=?')
       .get('s-beat') as { last_heartbeat: number };
@@ -103,7 +103,7 @@ describe('posttool/heartbeat (#1912)', () => {
     const before = Math.floor(Date.now() / 1000);
     heartbeat(makeInput('s-beat'), NOOP_CTX);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT last_heartbeat FROM sessions WHERE sid=?')
       .get('s-beat') as { last_heartbeat: number };

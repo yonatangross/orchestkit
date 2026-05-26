@@ -40,18 +40,11 @@ const commonBuildOptions = {
   minify: !isWatch,
   sourcemap: true,
   metafile: true,
-  // M168 Phase 2 (#1912): better-sqlite3 is a native C++ addon with
-  // CommonJS dynamic require()s for fs/path/bindings. Bundling it via
-  // esbuild's ESM bundler emits `var I=(t=>typeof require<"u"?require:...)`
-  // shims that throw `Dynamic require of "fs" is not supported` at load
-  // time. The whole bundle then crashes on first import — silently caught
-  // by run-hook.mjs's try/catch around loadBundle(), which swallows the
-  // throw and writes `{continue:true, suppressOutput:true}` to stdout.
-  // The hook never runs (root cause of #1920's hook-runner integration
-  // failure: state file never written because the hook bundle never loaded).
-  // Solution: mark better-sqlite3 external so Node's CJS loader resolves
-  // it natively at runtime (node_modules is shipped alongside dist/).
-  external: ['better-sqlite3'],
+  // No `external` deps (#2017): hooks ship WITHOUT node_modules, so every dep
+  // must be inlined or a node: builtin — an external would throw
+  // ERR_MODULE_NOT_FOUND in the installed plugin. The SQLite engine is the
+  // built-in `node:sqlite` (lazily loaded in session-registry.ts since #2005),
+  // not the old native `better-sqlite3`; nothing in shipped code imports it.
   drop: isWatch ? [] : ['debugger'],
   define: {
     'process.env.NODE_ENV': isWatch ? '"development"' : '"production"',

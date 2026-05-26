@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 
 import { sessionFinalizer } from '../../lifecycle/session-finalizer.js';
 import { openDb, __resetDbForTests } from '../../lib/session-registry.js';
@@ -63,7 +63,7 @@ describe('lifecycle/session-finalizer (#1912)', () => {
     const res = sessionFinalizer(makeInput('s-end'), NOOP_CTX);
     expect(res.continue).toBe(true);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT status, ended_at FROM sessions WHERE sid=?')
       .get('s-end') as { status: string; ended_at: number };
@@ -76,7 +76,7 @@ describe('lifecycle/session-finalizer (#1912)', () => {
     const res = sessionFinalizer(makeInput('s-unknown'), NOOP_CTX);
     expect(res.continue).toBe(true);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT status FROM sessions WHERE sid=?')
       .get('s-end') as { status: string };

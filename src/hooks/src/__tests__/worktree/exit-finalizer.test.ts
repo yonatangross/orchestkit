@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 
 import { exitFinalizer } from '../../worktree/exit-finalizer.js';
 import { NOOP_CTX } from '../../lib/context.js';
@@ -84,7 +84,7 @@ describe('worktree/exit-finalizer (#1914)', () => {
     const res = exitFinalizer(makeInput('s-parent', projectDir, worktreePath), NOOP_CTX);
     expect(res.continue).toBe(true);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT result_status, result_payload FROM worktree_links WHERE child_sid = ?')
       .get('s-child') as { result_status: string; result_payload: string };
@@ -162,7 +162,7 @@ describe('worktree/exit-finalizer (#1914)', () => {
     // Second call should NOT overwrite (WHERE result_status IS NULL filter).
     exitFinalizer(makeInput('s-parent', projectDir, worktreePath), NOOP_CTX);
 
-    const db2 = new Database(dbPath, { readonly: true });
+    const db2 = new DatabaseSync(dbPath, { readOnly: true });
     const row = db2
       .prepare('SELECT result_payload FROM worktree_links WHERE child_sid = ?')
       .get('s-child-d') as { result_payload: string };

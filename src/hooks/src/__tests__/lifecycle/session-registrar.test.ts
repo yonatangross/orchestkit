@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 
 import { sessionRegistrar } from '../../lifecycle/session-registrar.js';
 import { openDb, __resetDbForTests } from '../../lib/session-registry.js';
@@ -57,7 +57,7 @@ describe('lifecycle/session-registrar (#1912)', () => {
     const result = sessionRegistrar(input, NOOP_CTX);
     expect(result.continue).toBe(true);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const row = db
       .prepare('SELECT sid, status, pid FROM sessions WHERE sid=?')
       .get('s-fresh') as { sid: string; status: string; pid: number } | undefined;
@@ -72,7 +72,7 @@ describe('lifecycle/session-registrar (#1912)', () => {
     __resetDbForTests();
     sessionRegistrar(makeInput('s-dup', workDir), NOOP_CTX);
 
-    const db = new Database(dbPath, { readonly: true });
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     const { count } = db
       .prepare("SELECT COUNT(*) AS count FROM sessions WHERE sid='s-dup'")
       .get() as { count: number };
@@ -94,7 +94,7 @@ describe('lifecycle/session-registrar (#1912)', () => {
     // Run the registrar — its sweep should mark s-stale as crashed.
     sessionRegistrar(makeInput('s-active', workDir), NOOP_CTX);
 
-    const db2 = new Database(dbPath, { readonly: true });
+    const db2 = new DatabaseSync(dbPath, { readOnly: true });
     const staleRow = db2
       .prepare('SELECT status FROM sessions WHERE sid=?')
       .get('s-stale') as { status: string };
@@ -127,7 +127,7 @@ describe('lifecycle/session-registrar (#1912)', () => {
 
     sessionRegistrar(makeInput('s-new', workDir), NOOP_CTX);
 
-    const db2 = new Database(dbPath, { readonly: true });
+    const db2 = new DatabaseSync(dbPath, { readOnly: true });
     const names = (db2
       .prepare('SELECT name FROM locks ORDER BY name')
       .all() as { name: string }[]).map(r => r.name);
