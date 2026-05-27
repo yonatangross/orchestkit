@@ -593,6 +593,48 @@ else
   log_fail "#1985 signal local-dev" "expected exit 0 without GITHUB_OUTPUT, got $EXIT"
 fi
 
+# ============================================================================
+# Test 12: auth failure (401) → distinct auth_failed signal, not just parse_failed.
+# Guards the 2.1.152 misdiagnosis: an expired token must surface as a loud
+# token-rotation signal, while still leaving the entry retryable.
+# ============================================================================
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-401.txt
+cat > "$FIXTURE" <<'EOF'
+Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","message":"Invalid bearer token"}}
+EOF
+AUTH_OUT=/tmp/cc-triage-authout.txt
+: > "$AUTH_OUT"
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+CC_TRIAGE_FIXTURE_STATUS=1 \
+GITHUB_OUTPUT="$AUTH_OUT" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "Auth 401: script exits 0 (degrades gracefully)"
+else
+  log_fail "Auth 401 exit" "expected 0, got $EXIT"
+fi
+if grep -qF "auth_failed=true" "$AUTH_OUT"; then
+  log_pass "Auth 401: distinct auth_failed=true signal emitted"
+else
+  log_fail "auth_failed signal" "expected auth_failed=true in GITHUB_OUTPUT, got: $(cat "$AUTH_OUT")"
+fi
+if grep -qiF "auth failure detected" /tmp/cc-triage-out.txt; then
+  log_pass "Auth 401: loud auth-failure log line present"
+else
+  log_fail "auth log" "no 'auth failure detected' in stdout"
+fi
+PF=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$PF" = "true" ]; then
+  log_pass "Auth 401: parse_failed sentinel still set (retryable after token fix)"
+else
+  log_fail "auth retryable" "expected parse_failed=true, got '$PF'"
+fi
+rm -f "$AUTH_OUT"
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"

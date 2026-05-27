@@ -141,6 +141,16 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: bash scripts/cc-consolidate-milestones.sh
 
+      # Step 3c — flag below-floor cc-adoption issues `cc-stale` so the rolling
+      # umbrella stays bounded (moot items become queryable/separable). Labels
+      # only — never closes (issues close via PR per policy). Idempotent: a
+      # steady state is a no-op, safe on every tick.
+      - name: Flag below-floor CC issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/cc-stale-belowfloor.sh
+
       # Step 4 — fallback issue when LLM extraction was skipped AND there are unfiled gaps.
       #
       # NOTE: gate on `jq 'length > 0'` not `hashFiles != ''`. cc-release-watch.mjs
@@ -154,7 +164,7 @@ jobs:
       # so the human triage step is visible. `outputs.parse_failed` is emitted
       # by cc-triage.mjs when gaps contain any parse_failed entry.
       - name: Fallback manual-triage issue
-        if: ${{ steps.triage.outcome == 'skipped' || steps.triage.outputs.parse_failed == 'true' }}
+        if: ${{ (steps.triage.outcome == 'skipped' || steps.triage.outputs.parse_failed == 'true') && steps.triage.outputs.auth_failed != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -187,6 +197,39 @@ jobs:
               --milestone "$MS"
           else
             echo "Fallback issue already exists for $KEY."
+          fi
+
+      # Step 4b — LOUD token-rotation issue when triage hit an AUTH failure
+      # (expired/invalid CLAUDE_CODE_OAUTH_TOKEN → 401), distinct from the
+      # generic manual-triage fallback above (suppressed when auth_failed fires)
+      # so the operator gets ONE accurate, actionable issue. This is the signal
+      # that would have collapsed the multi-hour 2.1.152 misdiagnosis (a 401
+      # masquerading as parse_failed) into a one-glance CI error.
+      - name: Token rotation needed
+        if: ${{ steps.triage.outputs.auth_failed == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%Y-%m-%d)
+          KEY="token-rotation+$DATE"
+          # Dedup via exact body marker (label-scoped + in:body), same as Step 4.
+          EXISTING=$(gh issue list --label cc-adoption --state open \
+            --search "\"Key: \\\`$KEY\\\`\" in:body" \
+            --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            MS="CC adoption"
+            if [ -s shared/gh-issue-args.json ]; then
+              MS=$(jq -r '.milestone // "CC adoption"' shared/gh-issue-args.json)
+            fi
+            gh issue create \
+              --title "🚨 CLAUDE_CODE_OAUTH_TOKEN invalid/expired — rotate to unblock CC triage" \
+              --body "cc-triage hit an authentication failure (401 / invalid bearer token), so CC feature extraction is blocked until the token is rotated. Key: \`$KEY\`. Fix: run \`claude setup-token\`, then \`gh secret set CLAUDE_CODE_OAUTH_TOKEN -R ${{ github.repository }}\`. Stuck versions are carried forward (parse_failed) and retry automatically on the next cron tick once the token is valid." \
+              --label cc-adoption,automation \
+              --milestone "$MS"
+            echo "Filed token-rotation issue for $KEY."
+          else
+            echo "Token-rotation issue already exists for $KEY."
           fi
 
       # Step 5 — open PR with new snapshot files. Earlier version pushed

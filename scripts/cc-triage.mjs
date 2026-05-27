@@ -172,8 +172,20 @@ function readFixtureClaudeOutput() {
     console.error(`cc-triage: CC_TRIAGE_FIXTURE not found: ${path}`);
     return { stdout: '', status: 1 };
   }
-  return { stdout: readFileSync(path, 'utf8'), status: 0 };
+  // CC_TRIAGE_FIXTURE_STATUS lets a test simulate a non-zero `claude` exit
+  // (e.g. an auth 401 emitted on stdout) so the auth-detection path is
+  // exercisable. Defaults to 0 (the happy path).
+  const status = process.env.CC_TRIAGE_FIXTURE_STATUS ? Number(process.env.CC_TRIAGE_FIXTURE_STATUS) : 0;
+  return { stdout: readFileSync(path, 'utf8'), status };
 }
+
+// Auth failures (expired/invalid CLAUDE_CODE_OAUTH_TOKEN) surface as a non-zero
+// `claude` exit with a 401 / authentication_error on stdout — NOT as a parse
+// error. Detecting them distinctly lets the workflow file a loud "rotate token"
+// issue instead of a generic "manual triage" one (the misdiagnosis that ate a
+// whole session on 2.1.152). Module-level so main() can read it after extraction.
+const AUTH_ERROR_RE = /\b(401|authentication_error|invalid bearer token|unauthorized)\b/i;
+let authFailureDetail = null;
 
 const CLAUDE_CALL_TIMEOUT_MS = 60_000;
 
@@ -255,6 +267,14 @@ function callClaude(prompt) {
         const stdoutSlice = (res.stdout || '').slice(0, 500).trim();
         const detail = stderrSlice || stdoutSlice || '(no output captured)';
         const channel = stderrSlice ? 'stderr' : (stdoutSlice ? 'stdout' : 'silent');
+        // Distinguish an auth failure (expired/invalid token) from any other
+        // exit. This is NOT a parse failure — surface it as a token-rotation
+        // signal so the operator fixes the credential instead of chasing a
+        // phantom parser bug.
+        if (AUTH_ERROR_RE.test(detail)) {
+          authFailureDetail = detail;
+          console.error(`cc-triage: 🚨 auth failure detected — CLAUDE_CODE_OAUTH_TOKEN looks invalid/expired: ${detail}`);
+        }
         lastReason = `claude exit ${res.status} [${channel}]: ${detail}`;
         console.error(lastReason);
         if (attempt === 2) return null;
@@ -513,14 +533,21 @@ function main() {
   // a manual-triage issue so the stuck version stays visible.
   if (process.env.GITHUB_OUTPUT) {
     const stuck = gaps.filter((e) => e?.parse_failed === true);
-    if (stuck.length > 0) {
-      try {
+    try {
+      if (stuck.length > 0) {
         appendFileSync(process.env.GITHUB_OUTPUT, 'parse_failed=true\n');
         console.log(`cc-triage: ${stuck.length} parse_failed entries — emitted parse_failed=true for Step 4 fallback`);
-      } catch (err) {
-        // Best-effort: never fail the script over an output-channel write.
-        console.error(`cc-triage: could not write GITHUB_OUTPUT: ${err.message}`);
       }
+      // Distinct signal: an auth failure means "rotate the token", not "manual
+      // triage". The workflow gates a loud token-rotation issue on this and
+      // suppresses the generic fallback so the operator gets one accurate issue.
+      if (authFailureDetail) {
+        appendFileSync(process.env.GITHUB_OUTPUT, 'auth_failed=true\n');
+        console.error('cc-triage: 🚨 emitted auth_failed=true — CLAUDE_CODE_OAUTH_TOKEN needs rotation');
+      }
+    } catch (err) {
+      // Best-effort: never fail the script over an output-channel write.
+      console.error(`cc-triage: could not write GITHUB_OUTPUT: ${err.message}`);
     }
   }
 }
