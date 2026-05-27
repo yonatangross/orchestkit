@@ -247,9 +247,9 @@ Telling Claude what NOT to do is as important as telling it what to do:
 | Storing passwords as MD5 | bcrypt with cost 12 | MD5 is cryptographically broken |
 ```
 
-### Use AskUserQuestion with Markdown Previews
+### Use AskUserQuestion with Option Previews
 
-For command skills that offer mode selection, use `AskUserQuestion` with `markdown` preview panes. This gives users a side-by-side view of what each option does:
+For command skills that offer mode selection, use `AskUserQuestion` with `preview` panes. This gives users a side-by-side view of what each option does:
 
 ```python
 AskUserQuestion(
@@ -260,18 +260,30 @@ AskUserQuestion(
       {
         "label": "Full analysis (Recommended)",
         "description": "All dimensions scored",
-        "markdown": "```\nFull Analysis\n────────────\n  Phase 1: Gather context\n  Phase 2: Score dimensions\n  Phase 3: Generate report\n  Agents: 4 parallel\n```"
+        "preview": "```\nFull Analysis\n────────────\n  Phase 1: Gather context\n  Phase 2: Score dimensions\n  Phase 3: Generate report\n  Agents: 4 parallel\n```"
       },
       {
         "label": "Quick check",
         "description": "Single-pass brief output",
-        "markdown": "```\nQuick Check\n───────────\n  Single pass, 2 min\n  Score + top 3 issues\n  No agent spawning\n```"
+        "preview": "```\nQuick Check\n───────────\n  Single pass, 2 min\n  Score + top 3 issues\n  No agent spawning\n```"
       }
     ],
     "multiSelect": false
   }]
 )
 ```
+
+<Callout type="warn">
+The `AskUserQuestion` schema is strict and a violation makes the picker silently fail to render (it looks "stuck"). Stay inside these limits:
+
+- **2-4 options per question** (`minItems: 2`, `maxItems: 4`) — need more? split into multiple questions or merge options.
+- **1-4 questions per call.**
+- **Option fields are exactly `label`, `description`, `preview`** (`additionalProperties: false`). The preview field is `preview`, never `markdown` — `markdown` is rejected.
+- **`preview` renders on single-select only** — do not add it to a `multiSelect: true` question.
+- **No free-text questions** (min 2 options) — ask in plain prose instead.
+
+`tests/skills/structure/test-askuserquestion-schema.sh` (in `npm run test:skills`) enforces all of these.
+</Callout>
 
 Use `multiSelect: true` when options can be combined (e.g., "which checks to run?" where a user might want both tests and security). Keep `multiSelect: false` for mutually exclusive modes (e.g., "full" vs "quick").
 
