@@ -185,17 +185,9 @@ AskUserQuestion(questions=[{
 
 ### If "Full streaming"
 
-1. Ask for webhook URL:
-```python
-AskUserQuestion(questions=[{
-  "question": "What is your webhook endpoint URL?",
-  "header": "Webhook URL",
-  "options": [
-    {"label": "Custom URL", "description": "Enter your API endpoint (e.g., https://api.example.com/hooks)"}
-  ],
-  "multiSelect": false
-}])
-```
+1. Ask for the webhook URL in plain text — AskUserQuestion needs ≥2 options (CC schema `minItems: 2`) and can't capture a free-form URL, so prompt directly:
+
+   > What is your webhook endpoint URL? Reply with the full URL (e.g., `https://api.example.com/hooks`).
 
 2. Run the HTTP hook generator:
 ```bash
