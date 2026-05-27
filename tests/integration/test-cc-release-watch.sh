@@ -110,10 +110,20 @@ fi
 
 if [ -f shared/gh-issue-args.json ]; then
   TITLE=$(jq -r '.milestone' shared/gh-issue-args.json)
-  if [ "$TITLE" = "CC 2.1.148 adoption" ]; then
-    log_pass "gh-issue-args milestone title = 'CC 2.1.148 adoption'"
+  # Single rolling umbrella: the milestone title is now CONSTANT across
+  # versions ("CC adoption"), not "CC X.Y.Z adoption" per version.
+  if [ "$TITLE" = "CC adoption" ]; then
+    log_pass "gh-issue-args milestone title = 'CC adoption' (single rolling umbrella)"
   else
-    log_fail "milestone title" "expected 'CC 2.1.148 adoption', got '$TITLE'"
+    log_fail "milestone title" "expected 'CC adoption', got '$TITLE'"
+  fi
+  # Per-version traceability is preserved in latest_new_version even though
+  # the milestone no longer encodes the version.
+  LATEST=$(jq -r '.latest_new_version' shared/gh-issue-args.json)
+  if [ "$LATEST" = "2.1.148" ]; then
+    log_pass "gh-issue-args latest_new_version = 2.1.148 (per-version trace kept)"
+  else
+    log_fail "latest_new_version" "expected 2.1.148, got '$LATEST'"
   fi
 else
   log_fail "gh-issue-args.json missing" "expected emitted by watch script"

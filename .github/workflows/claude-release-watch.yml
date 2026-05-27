@@ -129,6 +129,18 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: bash scripts/cc-file-adoption-issues.sh
 
+      # Step 3b — consolidate stray per-version "CC X.Y.Z adoption" milestones
+      # into the single "CC adoption" umbrella and close the emptied ones.
+      # Idempotent self-heal: a steady state is a no-op, so it's safe on every
+      # tick. Migrates pre-existing per-version milestones on first run and
+      # collapses any that reappear. Extracted to a script so it's testable in
+      # isolation (tests/integration/test-cc-consolidate-milestones.sh).
+      - name: Consolidate CC milestones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/cc-consolidate-milestones.sh
+
       # Step 4 — fallback issue when LLM extraction was skipped AND there are unfiled gaps.
       #
       # NOTE: gate on `jq 'length > 0'` not `hashFiles != ''`. cc-release-watch.mjs

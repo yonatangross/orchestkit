@@ -202,12 +202,20 @@ function main() {
   console.log(`  wrote ${GAPS_PATH} (${gaps.length} version entries)`);
 
   // Pre-compute milestone title for the workflow's filer step.
-  // Latest new version drives the milestone name: "M{auto} — CC X.Y.Z adoption".
-  // The workflow itself decides the M-number (or auto-creates).
+  // SINGLE ROLLING UMBRELLA: every CC version files into one permanent
+  // "CC adoption" milestone instead of one milestone per version (which
+  // produced 8+ near-empty milestones). Per-version traceability is
+  // unaffected — it lives in the `Key: <slug>+<version>` issue body marker
+  // (cc-file-adoption-issues.sh) and shared/cc-snapshots/<version>.md, both
+  // version-keyed and independent of the milestone. To keep a cluster as a
+  // human bundle, rename its milestone out of the "CC X.Y.Z adoption" shape
+  // (e.g. "M146 — CC 2.1.143 hardening"); cc-consolidate-milestones.sh then
+  // leaves it alone. `latest_new_version` is still emitted so the snapshot
+  // PR title stays unique per release (#1697).
   const latestNew = newVersions[newVersions.length - 1].version;
-  const milestoneTitle = `CC ${latestNew} adoption`;
+  const milestoneTitle = 'CC adoption';
   writeFileSync(ISSUE_ARGS_PATH, JSON.stringify({ milestone: milestoneTitle, latest_new_version: latestNew }, null, 2) + '\n');
-  console.log(`  wrote ${ISSUE_ARGS_PATH} (milestone="${milestoneTitle}")`);
+  console.log(`  wrote ${ISSUE_ARGS_PATH} (milestone="${milestoneTitle}", latest=${latestNew})`);
 
   console.log('cc-release-watch: done.');
 }
