@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.9.0](https://github.com/yonatangross/orchestkit/compare/v8.8.0...v8.9.0) (2026-05-27)
+
+
+### Features
+
+* **cc-watch:** loud auth-failure signal + below-floor cc-stale sweep ([#2035](https://github.com/yonatangross/orchestkit/issues/2035)) ([65fba9b](https://github.com/yonatangross/orchestkit/commit/65fba9b531504f594417af22cb11d14f15363f50))
+
+
+### Bug Fixes
+
+* **cc-watch:** preserve parse_failed gaps + umbrella the fallback issue ([#2034](https://github.com/yonatangross/orchestkit/issues/2034)) ([3a381b5](https://github.com/yonatangross/orchestkit/commit/3a381b5eea44797f1d4c14f2b82addf40a304153))
+* **skills:** conform AskUserQuestion calls to CC 2.1.152 schema ([#2023](https://github.com/yonatangross/orchestkit/issues/2023)) ([19d42c8](https://github.com/yonatangross/orchestkit/commit/19d42c8dc36220a8b97134b1ff3cc7b3e25961e4))
+
+
+### Miscellaneous
+
+* **cc-watch:** collapse per-version milestones into rolling umbrella ([#2019](https://github.com/yonatangross/orchestkit/issues/2019)) ([e24aa5d](https://github.com/yonatangross/orchestkit/commit/e24aa5d4f51497bdc0be5570a7544c352423e009))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2022](https://github.com/yonatangross/orchestkit/issues/2022)) ([388b725](https://github.com/yonatangross/orchestkit/commit/388b725d04cd88a6627a06bd3433c06a70b36726))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2024](https://github.com/yonatangross/orchestkit/issues/2024)) ([8f48559](https://github.com/yonatangross/orchestkit/commit/8f485599291aaf596a6e437e76b9e0c76ec348ca))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2033](https://github.com/yonatangross/orchestkit/issues/2033)) ([2fe2a08](https://github.com/yonatangross/orchestkit/commit/2fe2a0828c2ff39a80d2be3abc6d9828c9d4b5ea))
+
 ## [8.8.0](https://github.com/yonatangross/orchestkit/compare/v8.7.1...v8.8.0) (2026-05-26)
 
 
