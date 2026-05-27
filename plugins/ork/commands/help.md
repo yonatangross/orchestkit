@@ -81,11 +81,26 @@ For the selected category, render the skill table from the data gathered in STEP
 
 ### Category-to-Skill Mapping
 
-| Bucket (picker) | Skills |
-|-----------------|--------|
-| Build & ship | implement, brainstorm, cover, verify, commit, create-pr, review-pr, fix-issue |
-| Plan & assess | write-prd, visualize-plan, assess, review-pr |
-| Explore & operate | explore, memory, remember, setup, doctor, configure |
+Granular categories (used by the CLI args `build`, `git`, … from STEP 1):
+
+| Category | Skills |
+|----------|--------|
+| BUILD | implement, brainstorm, cover, verify |
+| GIT | commit, create-pr, review-pr, fix-issue |
+| PLAN | visualize-plan, write-prd, assess |
+| MEMORY | remember, memory |
+| QUALITY | assess, review-pr, doctor |
+| CONFIG | setup, doctor, configure |
+| EXPLORE | explore |
+
+The STEP 0 picker only offers **3 buckets** (the AskUserQuestion schema caps a
+question at 4 options) — each bucket renders the union of its categories:
+
+| Picker bucket | Renders categories |
+|---------------|--------------------|
+| Build & ship | BUILD + GIT |
+| Plan & assess | PLAN + QUALITY |
+| Explore & operate | MEMORY + CONFIG + EXPLORE |
 
 For each skill in the category, render:
 
