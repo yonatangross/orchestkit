@@ -172,10 +172,19 @@ jobs:
             --json number --jq 'length')
           if [ "$EXISTING" -eq 0 ]; then
             VERSIONS=$(jq -r 'map(.version) | join(", ")' "$GAPS")
+            # Land the fallback in the rolling umbrella too. Without --milestone
+            # it was milestone-less and escaped "CC adoption" (unlike the main
+            # filer, which assigns it). Default when the watch step didn't emit
+            # gh-issue-args.json (e.g. a carried-failed-only run with no new versions).
+            MS="CC adoption"
+            if [ -s shared/gh-issue-args.json ]; then
+              MS=$(jq -r '.milestone // "CC adoption"' shared/gh-issue-args.json)
+            fi
             gh issue create \
               --title "CC adoption: manual triage needed for $VERSIONS" \
-              --body "LLM extraction skipped (CLAUDE_CODE_OAUTH_TOKEN unset). Key: \`$KEY\`. See \`shared/cc-snapshots/\` and \`shared/cc-adoption-gaps.json\` on main for raw diff." \
-              --label cc-adoption,automation
+              --body "LLM feature extraction was skipped or failed (no/expired CLAUDE_CODE_OAUTH_TOKEN, or a parse failure). Key: \`$KEY\`. Check the triage step log for the exact reason; see \`shared/cc-snapshots/\` and \`shared/cc-adoption-gaps.json\` on main for the raw diff." \
+              --label cc-adoption,automation \
+              --milestone "$MS"
           else
             echo "Fallback issue already exists for $KEY."
           fi

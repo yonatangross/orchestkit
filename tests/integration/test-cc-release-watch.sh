@@ -342,6 +342,48 @@ else
   fi
 fi
 
+# ============================================================================
+# Test 9: carry-forward (nothing-new path) — a pre-existing parse_failed entry
+# survives a run that finds no new versions. Regression guard for the gaps
+# overwrite that made `cc-triage --retry-failed` a no-op for already-snapshotted
+# versions (the bug that stranded 2.1.152).
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138 2.1.148; do
+  echo "# Claude Code $v (placeholder)" > "shared/cc-snapshots/$v.md"
+done
+echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-carry1.txt 2>&1
+CARRIED=$(jq -r '[.[] | select(.version=="2.1.901" and .parse_failed==true)] | length' shared/cc-adoption-gaps.json)
+if [ "$CARRIED" = "1" ]; then
+  log_pass "carry-forward (nothing-new): parse_failed entry preserved for retry"
+else
+  log_fail "carry-forward (nothing-new)" "expected 2.1.901 preserved, got $CARRIED (see /tmp/watch-carry1.txt)"
+fi
+
+# ============================================================================
+# Test 10: carry-forward (new-version path) — a stuck entry rides alongside a
+# freshly-discovered version instead of being overwritten away.
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138; do
+  echo "# Claude Code $v (placeholder)" > "shared/cc-snapshots/$v.md"
+done
+echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-carry2.txt 2>&1
+NEWN=$(jq -r '[.[] | select(.version=="2.1.148")] | length' shared/cc-adoption-gaps.json)
+CARRIED2=$(jq -r '[.[] | select(.version=="2.1.901" and .parse_failed==true)] | length' shared/cc-adoption-gaps.json)
+if [ "$NEWN" = "1" ] && [ "$CARRIED2" = "1" ]; then
+  log_pass "carry-forward (new-version): stuck entry rides alongside new 2.1.148"
+else
+  log_fail "carry-forward (new-version)" "expected new 2.1.148 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see /tmp/watch-carry2.txt)"
+fi
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
