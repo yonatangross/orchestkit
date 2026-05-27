@@ -164,10 +164,35 @@ function main() {
     .filter((v) => reissueSet.has(v.version) || !snapshotted.has(v.version))
     .sort((a, b) => compareSemver(a.version, b.version));
 
+  // Carry forward STUCK (parse_failed) entries from the existing gaps file.
+  // Without this, cc-release-watch overwrites the gaps file with only the
+  // newly-discovered versions, silently wiping any parse_failed entry for an
+  // already-snapshotted version — which made `cc-triage --retry-failed` a
+  // no-op (it found "gaps file empty") and left the version recoverable only
+  // via a manual `--reissue-existing`. Versions being re-emitted this run are
+  // excluded (their fresh entry supersedes the stuck one).
+  const existingGaps = (() => {
+    if (!existsSync(GAPS_PATH)) return [];
+    try {
+      const g = JSON.parse(readFileSync(GAPS_PATH, 'utf8'));
+      return Array.isArray(g) ? g : [];
+    } catch {
+      return [];
+    }
+  })();
+  const newVersionSet = new Set(newVersions.map((v) => v.version));
+  const carriedFailed = existingGaps.filter((e) => e?.parse_failed === true && !newVersionSet.has(e.version));
+
   if (newVersions.length === 0) {
-    console.log('cc-release-watch: nothing new.');
-    // Clear stale gaps file so re-runs are deterministic.
-    if (existsSync(GAPS_PATH)) writeFileSync(GAPS_PATH, '[]\n');
+    // Preserve stuck entries so --retry-failed still has something to retry;
+    // only fully clear the file when there are none.
+    if (carriedFailed.length > 0) {
+      writeFileSync(GAPS_PATH, JSON.stringify(carriedFailed, null, 2) + '\n');
+      console.log(`cc-release-watch: nothing new; preserved ${carriedFailed.length} parse_failed entr(ies) for retry.`);
+    } else {
+      if (existsSync(GAPS_PATH)) writeFileSync(GAPS_PATH, '[]\n');
+      console.log('cc-release-watch: nothing new.');
+    }
     process.exit(0);
   }
 
@@ -198,8 +223,11 @@ function main() {
     features: [], // filled in by triage; if empty after triage, a manual-triage issue is filed by the workflow
     raw_bullets_count: v.body.split('\n').filter((l) => l.trim().startsWith('-')).length,
   }));
-  writeFileSync(GAPS_PATH, JSON.stringify(gaps, null, 2) + '\n');
-  console.log(`  wrote ${GAPS_PATH} (${gaps.length} version entries)`);
+  // Append carried-forward parse_failed entries (computed above) so a stuck
+  // version survives this overwrite and stays retryable by cc-triage.
+  const allGaps = [...gaps, ...carriedFailed];
+  writeFileSync(GAPS_PATH, JSON.stringify(allGaps, null, 2) + '\n');
+  console.log(`  wrote ${GAPS_PATH} (${gaps.length} new + ${carriedFailed.length} carried parse_failed)`);
 
   // Pre-compute milestone title for the workflow's filer step.
   // SINGLE ROLLING UMBRELLA: every CC version files into one permanent
