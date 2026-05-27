@@ -17,10 +17,9 @@ AskUserQuestion(questions=[
       {"label": "Skill issue", "description": "A skill (/ork:*) didn't work as expected"},
       {"label": "Agent issue", "description": "A spawned agent produced wrong results or failed"},
       {"label": "Hook issue", "description": "A hook blocked something it shouldn't, or missed something"},
-      {"label": "Build/install issue", "description": "Plugin build, installation, or setup problem"},
-      {"label": "Other", "description": "Something else went wrong"}
+      {"label": "Build/install issue", "description": "Plugin build, installation, or setup problem"}
     ],
-    "multiSelect": false
+    "multiSelect": false  # AskUserQuestion always appends an "Other" choice automatically
   }
 ])
 ```

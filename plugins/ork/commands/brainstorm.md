@@ -63,10 +63,10 @@ AskUserQuestion(questions=[{
   "question": "What kind of project is this?",
   "header": "Project tier",
   "options": [
-    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture", "markdown": "```\nTier 1: Interview / Take-Home\n─────────────────────────────\nFiles:    8-15 max\nLOC:      200-600\nArch:     Flat structure, no abstractions\nPatterns: Direct imports, inline logic\nTests:    Unit only, co-located\n```"},
-    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast", "markdown": "```\nTier 3: Startup / MVP\n─────────────────────\nArch:     MVC monolith\nDB:       Managed (RDS/Supabase)\nCI:       GitHub Actions (1-2 workflows)\nPatterns: Service layer, repository pattern\nDeploy:   Vercel / Railway / Fly.io\n```"},
-    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability", "markdown": "```\nTier 4-5: Growth / Enterprise\n─────────────────────────────\nArch:     Modular monolith or DDD\nInfra:    K8s, Terraform, Redis, queues\nCI:       Multi-stage pipelines\nPatterns: Hexagonal, CQRS, event-driven\nObserve:  Structured logging, tracing\n```"},
-    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests", "markdown": "```\nTier 6: Open Source Library\n──────────────────────────\nAPI:      Minimal public surface\nTests:    100% coverage, property-based\nDocs:     README, API docs, examples\nCI:       Matrix builds, release automation\nPatterns: Semver, CONTRIBUTING.md\n```"}
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture", "preview": "```\nTier 1: Interview / Take-Home\n─────────────────────────────\nFiles:    8-15 max\nLOC:      200-600\nArch:     Flat structure, no abstractions\nPatterns: Direct imports, inline logic\nTests:    Unit only, co-located\n```"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast", "preview": "```\nTier 3: Startup / MVP\n─────────────────────\nArch:     MVC monolith\nDB:       Managed (RDS/Supabase)\nCI:       GitHub Actions (1-2 workflows)\nPatterns: Service layer, repository pattern\nDeploy:   Vercel / Railway / Fly.io\n```"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability", "preview": "```\nTier 4-5: Growth / Enterprise\n─────────────────────────────\nArch:     Modular monolith or DDD\nInfra:    K8s, Terraform, Redis, queues\nCI:       Multi-stage pipelines\nPatterns: Hexagonal, CQRS, event-driven\nObserve:  Structured logging, tracing\n```"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests", "preview": "```\nTier 6: Open Source Library\n──────────────────────────\nAPI:      Minimal public surface\nTests:    100% coverage, property-based\nDocs:     README, API docs, examples\nCI:       Matrix builds, release automation\nPatterns: Semver, CONTRIBUTING.md\n```"}
   ],
   "multiSelect": false
 }])
@@ -82,18 +82,22 @@ AskUserQuestion(questions=[{
 **Clarify brainstorming constraints:**
 
 ```python
+# NOTE: AskUserQuestion caps each question at 4 options (CC schema: minItems 2,
+# maxItems 4) and the preview field is `preview`, never `markdown`. The 6 legacy
+# modes are split across 3 valid questions: Q1 = exploration flow, Q2 folds the
+# old "Constrained design" mode into constraints, Q3 carries the orthogonal
+# "Plan first" preamble (it composes with any Q1 mode — it was never mutually
+# exclusive). "Quick ideation" + STEP 0c /effort=low overlap; both downscale.
 AskUserQuestion(
   questions=[
     {
       "question": "What type of design exploration?",
-      "header": "Type",
+      "header": "Mode",
       "options": [
-        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3", "markdown": "```\nOpen Exploration (7 phases)\n──────────────────────────\n  Diverge        Evaluate       Synthesize\n  ┌─────┐       ┌─────┐       ┌─────┐\n  │ 10+ │──────▶│Rate │──────▶│Top 3│\n  │ideas│       │0-10 │       │picks│\n  └─────┘       └─────┘       └─────┘\n  3-5 agents    Devil's        Trade-off\n  in parallel   advocate       table\n```"},
-        {"label": "Constrained design", "description": "I have specific requirements to work within", "markdown": "```\nConstrained Design\n──────────────────\n  Requirements ──▶ Feasibility ──▶ Design\n  ┌──────────┐    ┌──────────┐    ┌──────┐\n  │ Fixed    │    │ Check    │    │ Best │\n  │ bounds   │    │ fit      │    │ fit  │\n  └──────────┘    └──────────┘    └──────┘\n  Skip divergent phase, focus on\n  feasibility within constraints\n```"},
-        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "markdown": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
-        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "markdown": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
-        {"label": "Plan first", "description": "Structured exploration before generating ideas", "markdown": "```\nPlan Mode Exploration\n─────────────────────\n  1. EnterPlanMode($TOPIC)\n  2. Analyze constraints\n  3. Research precedents\n  4. Map solution space\n  5. ExitPlanMode → options\n  6. User picks direction\n  7. Deep dive on chosen path\n\n  Best for: Architecture,\n  design systems, trade-offs\n```"},
-        {"label": "Iterative optimization", "description": "Try, measure, keep/discard, repeat (autoresearch-style)", "markdown": "```\nIterative Optimization (autoresearch-style)\n───────────────────────────────────────────\n  ┌──────────┐\n  │ Baseline │──measure──┐\n  └──────────┘           │\n       ┌─────────────────┘\n       ▼\n  ┌─────────┐  ┌─────────┐  ┌──────────┐\n  │ Try     │─▶│ Measure │─▶│ Keep or  │─┐\n  │ variant │  │ metric  │  │ Discard  │ │\n  └─────────┘  └─────────┘  └──────────┘ │\n       ▲                                 │\n       └─────────────────────────────────┘\n  Requires: one command + one metric\n  Runs until: user interrupts or plateau\n```"}
+        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3", "preview": "```\nOpen Exploration (7 phases)\n──────────────────────────\n  Diverge        Evaluate       Synthesize\n  ┌─────┐       ┌─────┐       ┌─────┐\n  │ 10+ │──────▶│Rate │──────▶│Top 3│\n  │ideas│       │0-10 │       │picks│\n  └─────┘       └─────┘       └─────┘\n  3-5 agents    Devil's        Trade-off\n  in parallel   advocate       table\n```"},
+        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "preview": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
+        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "preview": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
+        {"label": "Iterative optimization", "description": "Try, measure, keep/discard, repeat (autoresearch-style)", "preview": "```\nIterative Optimization (autoresearch-style)\n───────────────────────────────────────────\n  ┌──────────┐\n  │ Baseline │──measure──┐\n  └──────────┘           │\n       ┌─────────────────┘\n       ▼\n  ┌─────────┐  ┌─────────┐  ┌──────────┐\n  │ Try     │─▶│ Measure │─▶│ Keep or  │─┐\n  │ variant │  │ metric  │  │ Discard  │ │\n  └─────────┘  └─────────┘  └──────────┘ │\n       ▲                                 │\n       └─────────────────────────────────┘\n  Requires: one command + one metric\n  Runs until: user interrupts or plateau\n```"}
       ],
       "multiSelect": false
     },
@@ -104,7 +108,16 @@ AskUserQuestion(
         {"label": "None", "description": "Explore all possibilities"},
         {"label": "Use existing patterns", "description": "Prefer patterns already in codebase"},
         {"label": "Minimize complexity", "description": "Favor simpler solutions"},
-        {"label": "I'll specify", "description": "Let me provide specific constraints"}
+        {"label": "Fixed requirements (constrained)", "description": "Hard requirements to work within — skip divergent phase, focus on feasibility (old 'Constrained design' mode)"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "question": "Research before ideating?",
+      "header": "Plan-first",
+      "options": [
+        {"label": "No — dive straight in (Recommended)", "description": "Go directly to ideation"},
+        {"label": "Yes — plan first", "description": "Read-only research (EnterPlanMode): scan codebase, map the solution space, then ExitPlanMode for approval before Phase 1 (old 'Plan first' mode)"}
       ],
       "multiSelect": false
     }
@@ -112,7 +125,7 @@ AskUserQuestion(
 )
 ```
 
-**If 'Plan first' selected:**
+**If Q3 = 'Yes — plan first' (composes with any Q1 mode):**
 
 ```python
 # 1. Enter read-only plan mode
@@ -136,11 +149,11 @@ ExitPlanMode()
 ```
 
 **Based on answers, adjust workflow:**
-- **Open exploration**: Full 7-phase process with all agents
-- **Constrained design**: Skip divergent phase, focus on feasibility
-- **Comparison**: Skip ideation, jump to evaluation phase
-- **Quick ideation**: Generate ideas, skip deep evaluation
-- **Iterative optimization**: Skip phases 2-6, enter autoresearch-style loop (see below)
+- **Open exploration** (Q1): Full 7-phase process with all agents
+- **Comparison** (Q1): Skip ideation, jump to evaluation phase
+- **Quick ideation** (Q1): Generate ideas, skip deep evaluation
+- **Iterative optimization** (Q1): Skip phases 2-6, enter autoresearch-style loop (see below)
+- **Constrained design** (Q2 = "Fixed requirements"): Skip divergent phase, focus on feasibility within the stated requirements — composes with any Q1 mode
 
 **If 'Iterative optimization' selected:** skip Phases 2-6 and enter the autoresearch-style metric-driven loop.
 
@@ -405,7 +418,7 @@ Stops when: 2+ ranked design options presented and the user selects one (or afte
 
 ## Picker fallback (#1795)
 
-If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number. Hook propagates globally — no per-skill edit needed once set.
+The picker stall reported in orchestkit#1795 was a **schema break, not a CC input bug**: questions with >4 options or a `markdown` field (instead of `preview`) fail `AskUserQuestion` validation, so the picker never renders. All skill questions now conform to the schema (2–4 options, `preview` field, no `preview` on multiSelect), enforced by `tests/skills/structure/test-askuserquestion-schema.sh`. If you still hit a stall on a future CC build, `ORK_ASK_FALLBACK=text` remains as a defensive opt-in: the `lifecycle/ask-fallback-injector` hook then tells the assistant to pose options inline as a numbered list. Hook propagates globally — no per-skill edit needed.
 
 ## References
 

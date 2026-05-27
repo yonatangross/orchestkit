@@ -85,17 +85,17 @@ AskUserQuestion(questions=[{
     {
       "label": "main, master (Recommended)",
       "description": "Standard Git Flow defaults. Feature work goes on branches.",
-      "markdown": "```\nORCHESTKIT_PROTECTED_BRANCHES=main,master\n\nBlocked:  git commit on main/master\n          git push to main/master\nAllowed:  feature/, fix/, issue/ branches\n```"
+      "preview": "```\nORCHESTKIT_PROTECTED_BRANCHES=main,master\n\nBlocked:  git commit on main/master\n          git push to main/master\nAllowed:  feature/, fix/, issue/ branches\n```"
     },
     {
       "label": "main, master, dev",
       "description": "Adds dev as a protected integration branch.",
-      "markdown": "```\nORCHESTKIT_PROTECTED_BRANCHES=main,master,dev\n\nBlocked:  git commit on main/master/dev\nAllowed:  feature/, fix/, issue/ branches\nBest for: teams with a long-lived dev branch\n```"
+      "preview": "```\nORCHESTKIT_PROTECTED_BRANCHES=main,master,dev\n\nBlocked:  git commit on main/master/dev\nAllowed:  feature/, fix/, issue/ branches\nBest for: teams with a long-lived dev branch\n```"
     },
     {
       "label": "main only",
       "description": "Minimal protection — only main is locked.",
-      "markdown": "```\nORCHESTKIT_PROTECTED_BRANCHES=main\n\nBlocked:  git commit on main\nAllowed:  master, dev, feature/ branches\nBest for: simple solo projects\n```"
+      "preview": "```\nORCHESTKIT_PROTECTED_BRANCHES=main\n\nBlocked:  git commit on main\nAllowed:  master, dev, feature/ branches\nBest for: simple solo projects\n```"
     },
     {
       "label": "Custom",
@@ -120,17 +120,17 @@ AskUserQuestion(questions=[{
     {
       "label": "Optional scope (Recommended)",
       "description": "Both `feat: msg` and `feat(scope): msg` are valid.",
-      "markdown": "```\nORCHESTKIT_COMMIT_SCOPE=optional\n\nValid:    feat: Add login\n          feat(auth): Add login\n          fix(#123): Resolve crash\nBlocked:  bad commit message\n```"
+      "preview": "```\nORCHESTKIT_COMMIT_SCOPE=optional\n\nValid:    feat: Add login\n          feat(auth): Add login\n          fix(#123): Resolve crash\nBlocked:  bad commit message\n```"
     },
     {
       "label": "Required scope",
       "description": "Every commit must include a scope: `type(scope): msg`",
-      "markdown": "```\nORCHESTKIT_COMMIT_SCOPE=required\n\nValid:    feat(auth): Add login\n          fix(#123): Resolve crash\nBlocked:  feat: Add login  ← no scope!\nBest for: large teams, monorepos\n```"
+      "preview": "```\nORCHESTKIT_COMMIT_SCOPE=required\n\nValid:    feat(auth): Add login\n          fix(#123): Resolve crash\nBlocked:  feat: Add login  ← no scope!\nBest for: large teams, monorepos\n```"
     },
     {
       "label": "Scope disabled",
       "description": "Only type+colon required. Scopes ignored in validation.",
-      "markdown": "```\nORCHESTKIT_COMMIT_SCOPE=none\n\nValid:    feat: Anything\n          fix: Short message\nBlocked:  bad commit message (no type)\nBest for: solo projects, quick iteration\n```"
+      "preview": "```\nORCHESTKIT_COMMIT_SCOPE=none\n\nValid:    feat: Anything\n          fix: Short message\nBlocked:  bad commit message (no type)\nBest for: solo projects, quick iteration\n```"
     }
   ],
   "multiSelect": false
@@ -149,12 +149,12 @@ AskUserQuestion(questions=[{
     {
       "label": "Yes, allow *.localhost (Recommended)",
       "description": "RFC 6761 reserved TLD — cannot route to external hosts. Enables visual verification of local dev servers.",
-      "markdown": "```\nORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=1\n\nAllowed:  hq-web.localhost:1355\n          app.localhost:3000\nBlocked:  localhost (bare, no subdomain)\n          127.0.0.1\nSafe:     *.localhost can't reach internet\n```"
+      "preview": "```\nORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=1\n\nAllowed:  hq-web.localhost:1355\n          app.localhost:3000\nBlocked:  localhost (bare, no subdomain)\n          127.0.0.1\nSafe:     *.localhost can't reach internet\n```"
     },
     {
       "label": "No, block all localhost",
       "description": "Stricter mode — blocks *.localhost AND bare localhost. Use for enterprise/sandboxed environments.",
-      "markdown": "```\nORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=0\n\nBlocked:  all localhost variants\n          hq-web.localhost (even subdomains)\nBest for: enterprise, air-gapped, or\n          regulated environments\n```"
+      "preview": "```\nORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=0\n\nBlocked:  all localhost variants\n          hq-web.localhost (even subdomains)\nBest for: enterprise, air-gapped, or\n          regulated environments\n```"
     }
   ],
   "multiSelect": false
@@ -173,12 +173,12 @@ AskUserQuestion(questions=[{
     {
       "label": "Yes, enable perf snapshots (Recommended)",
       "description": "Writes ~/.claude/perf/snap-YYYY-MM-DD-HH.json. Used by /ork:assess and perf-compare.sh.",
-      "markdown": "```\nORCHESTKIT_PERF_SNAPSHOT_ENABLED=1\n\nWrites:   ~/.claude/perf/snap-<bucket>.json\nContains: total tokens, top hooks, by-category\nUsed by:  scripts/perf-compare.sh (before/after)\n          /ork:assess (performance dimension)\n```"
+      "preview": "```\nORCHESTKIT_PERF_SNAPSHOT_ENABLED=1\n\nWrites:   ~/.claude/perf/snap-<bucket>.json\nContains: total tokens, top hooks, by-category\nUsed by:  scripts/perf-compare.sh (before/after)\n          /ork:assess (performance dimension)\n```"
     },
     {
       "label": "No, disable perf snapshots",
       "description": "Skip writing snapshot files. Useful in CI or shared environments.",
-      "markdown": "```\nORCHESTKIT_PERF_SNAPSHOT_ENABLED=0\n\nNo files written at session end.\nBest for: CI pipelines, shared accounts,\n          disk-constrained environments\n```"
+      "preview": "```\nORCHESTKIT_PERF_SNAPSHOT_ENABLED=0\n\nNo files written at session end.\nBest for: CI pipelines, shared accounts,\n          disk-constrained environments\n```"
     }
   ],
   "multiSelect": false
@@ -197,17 +197,17 @@ AskUserQuestion(questions=[{
     {
       "label": "warn — quiet (Recommended)",
       "description": "Only warnings and errors. Minimal noise.",
-      "markdown": "```\nORCHESTKIT_LOG_LEVEL=warn\n\nShows:   Warnings, errors\nHides:   Debug traces, info messages\nBest for: daily use, production\n```"
+      "preview": "```\nORCHESTKIT_LOG_LEVEL=warn\n\nShows:   Warnings, errors\nHides:   Debug traces, info messages\nBest for: daily use, production\n```"
     },
     {
       "label": "info — moderate",
       "description": "Key events logged. Good for onboarding.",
-      "markdown": "```\nORCHESTKIT_LOG_LEVEL=info\n\nShows:   Warnings, errors, key events\nHides:   Debug traces\nBest for: onboarding, monitoring behaviour\n```"
+      "preview": "```\nORCHESTKIT_LOG_LEVEL=info\n\nShows:   Warnings, errors, key events\nHides:   Debug traces\nBest for: onboarding, monitoring behaviour\n```"
     },
     {
       "label": "debug — verbose",
       "description": "Full trace of every hook decision.",
-      "markdown": "```\nORCHESTKIT_LOG_LEVEL=debug\n\nShows:   Everything\nBest for: troubleshooting, bug reports\nNote:    Use /ork:doctor for health checks\n```"
+      "preview": "```\nORCHESTKIT_LOG_LEVEL=debug\n\nShows:   Everything\nBest for: troubleshooting, bug reports\nNote:    Use /ork:doctor for health checks\n```"
     }
   ],
   "multiSelect": false
@@ -228,12 +228,12 @@ AskUserQuestion(questions=[{
     {
       "label": "Yes, enable webhooks",
       "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json.",
-      "markdown": "```\nWebhook Telemetry\n-----------------\nWrites: .claude/settings.local.json\nEvents: All 19 CC hook types\nAuth:   Bearer $ORCHESTKIT_HOOK_TOKEN\n\nRequires:\n  1. A webhook URL (e.g. https://api.example.com/api/hooks)\n  2. ORCHESTKIT_HOOK_TOKEN env var set in your shell\n\nData sent: event type, session_id, tool_name,\n           cwd, model, timestamps\nNo secrets or file contents are sent.\n```"
+      "preview": "```\nWebhook Telemetry\n-----------------\nWrites: .claude/settings.local.json\nEvents: All 19 CC hook types\nAuth:   Bearer $ORCHESTKIT_HOOK_TOKEN\n\nRequires:\n  1. A webhook URL (e.g. https://api.example.com/api/hooks)\n  2. ORCHESTKIT_HOOK_TOKEN env var set in your shell\n\nData sent: event type, session_id, tool_name,\n           cwd, model, timestamps\nNo secrets or file contents are sent.\n```"
     },
     {
       "label": "No, skip webhooks (Recommended for most users)",
       "description": "No HTTP hooks. All hook processing stays local.",
-      "markdown": "```\nNo Webhook Telemetry\n--------------------\nHooks run locally only (command hooks).\nNo data sent to external APIs.\nDefault and recommended for most users.\n```"
+      "preview": "```\nNo Webhook Telemetry\n--------------------\nHooks run locally only (command hooks).\nNo data sent to external APIs.\nDefault and recommended for most users.\n```"
     }
   ],
   "multiSelect": false

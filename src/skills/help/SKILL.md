@@ -81,14 +81,12 @@ AskUserQuestion(
   questions=[{
     "question": "What type of task are you working on?",
     "header": "Category",
+    # 4-option cap (CC schema): the 7 categories are grouped into 3 buckets +
+    # "Show all". STEP 2 renders the constituent categories for the picked bucket.
     "options": [
-      {"label": "BUILD", "description": "Implement features, brainstorm, verify", "markdown": "```\nBUILD — Feature Development\n───────────────────────────\n/ork:implement     Full-power implementation\n/ork:brainstorm    Design exploration\n/ork:verify        Test & grade changes\n```"},
-      {"label": "GIT", "description": "Commits, PRs, issues, branches", "markdown": "```\nGIT — Version Control\n─────────────────────\n/ork:commit        Conventional commits\n/ork:create-pr     PR with validation\n/ork:review-pr     6-agent PR review\n/ork:fix-issue     Debug + fix + PR\n```"},
-      {"label": "PLAN", "description": "PRDs, plan visualization, assessment", "markdown": "```\nPLAN — Design & Strategy\n────────────────────────\n/ork:visualize-plan  ASCII plan rendering\n/ork:write-prd       Product requirements\n/ork:assess          Rate 0-10 + report\n```"},
-      {"label": "MEMORY", "description": "Store decisions, search, recall", "markdown": "```\nMEMORY — Knowledge Persistence\n──────────────────────────────\n/ork:remember  Store decisions/patterns\n/ork:memory    Search, recall, visualize\n```"},
-      {"label": "QUALITY", "description": "Assess, review, diagnose", "markdown": "```\nQUALITY — Assessment & Health\n─────────────────────────────\n/ork:assess     Rate quality 0-10\n/ork:review-pr  6-agent PR review\n/ork:doctor     Plugin health check\n```"},
-      {"label": "CONFIG", "description": "Setup, diagnostics", "markdown": "```\nCONFIG — Setup & Operations\n───────────────────────────\n/ork:setup         Onboarding wizard\n/ork:doctor        Health diagnostics\n/ork:configure     Plugin settings\n```"},
-      {"label": "EXPLORE", "description": "Codebase exploration and analysis", "markdown": "```\nEXPLORE — Codebase Analysis\n───────────────────────────\n/ork:explore  Multi-angle exploration\n              4 parallel agents\n              Architecture visualization\n```"},
+      {"label": "Build & ship", "description": "Implement, brainstorm, test, commit, PR, fix issues", "preview": "```\nBUILD & SHIP\n────────────\n/ork:implement   Full-power implementation\n/ork:brainstorm  Design exploration\n/ork:cover       Generate test suites\n/ork:verify      Test & grade changes\n/ork:commit      Conventional commits\n/ork:create-pr   PR with validation\n/ork:fix-issue   Debug + fix + PR\n```"},
+      {"label": "Plan & assess", "description": "PRDs, plan visualization, quality assessment, PR review", "preview": "```\nPLAN & ASSESS\n─────────────\n/ork:write-prd       Product requirements\n/ork:visualize-plan  ASCII plan rendering\n/ork:assess          Rate 0-10 + report\n/ork:review-pr       6-agent PR review\n```"},
+      {"label": "Explore & operate", "description": "Codebase exploration, memory, setup, diagnostics", "preview": "```\nEXPLORE & OPERATE\n─────────────────\n/ork:explore   Multi-angle exploration\n/ork:memory    Search, recall, visualize\n/ork:remember  Store decisions/patterns\n/ork:setup     Onboarding wizard\n/ork:doctor    Health diagnostics\n/ork:configure Plugin settings\n```"},
       {"label": "Show all", "description": "List every user-invocable skill"}
     ],
     "multiSelect": false
@@ -104,15 +102,26 @@ For the selected category, render the skill table from the data gathered in STEP
 
 ### Category-to-Skill Mapping
 
+Granular categories (used by the CLI args `build`, `git`, … from STEP 1):
+
 | Category | Skills |
 |----------|--------|
-| BUILD | implement, brainstorm, verify |
+| BUILD | implement, brainstorm, cover, verify |
 | GIT | commit, create-pr, review-pr, fix-issue |
 | PLAN | visualize-plan, write-prd, assess |
 | MEMORY | remember, memory |
 | QUALITY | assess, review-pr, doctor |
 | CONFIG | setup, doctor, configure |
 | EXPLORE | explore |
+
+The STEP 0 picker only offers **3 buckets** (the AskUserQuestion schema caps a
+question at 4 options) — each bucket renders the union of its categories:
+
+| Picker bucket | Renders categories |
+|---------------|--------------------|
+| Build & ship | BUILD + GIT |
+| Plan & assess | PLAN + QUALITY |
+| Explore & operate | MEMORY + CONFIG + EXPLORE |
 
 For each skill in the category, render:
 

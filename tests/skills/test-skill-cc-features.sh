@@ -5,7 +5,7 @@
 # ============================================================================
 # Skill CC Feature Validation Test
 # ============================================================================
-# Validates CC feature usage in skills: AUQ markdown previews, multiSelect,
+# Validates CC feature usage in skills: AUQ option previews (preview field), multiSelect,
 # EnterPlanMode integration, and argument-hint + $ARGUMENTS consistency.
 # ============================================================================
 
@@ -34,10 +34,14 @@ warn() { echo -e "  ${YELLOW}WARN${NC} $1"; TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1
 echo -e "${BLUE}Skill CC Feature Validation${NC}"
 echo "========================================"
 
-# --- Test 1: AUQ markdown previews have matching option count ---
-echo -e "\n${CYAN}Test 1: AUQ Markdown Preview Consistency${NC}"
+# --- Test 1: AUQ option previews use the valid `preview` field ---
+# The CC AskUserQuestion schema names the option-preview field `preview`, NOT
+# `markdown` (additionalProperties:false rejects markdown). Schema conformance
+# itself is enforced by structure/test-askuserquestion-schema.sh; this check
+# tracks adoption of rich previews across skills using the correct field.
+echo -e "\n${CYAN}Test 1: AUQ Preview Adoption (preview field)${NC}"
 
-auq_skills_with_markdown=0
+auq_skills_with_preview=0
 auq_skills_without=0
 
 for skill_dir in "$SKILLS_DIR"/*/; do
@@ -45,36 +49,39 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     skill_file="$skill_dir/SKILL.md"
     [[ -f "$skill_file" ]] || continue
 
-    # Check if skill has AUQ options blocks
+    # grep -c exits 1 on zero matches (expected); guarded reads on a file we
+    # already [[ -f ]]-checked, so suppressed stderr is benign.
+    # silent: known-noise
     has_options=$(grep -c '"options"' "$skill_file" 2>/dev/null || true)
-    has_markdown=$(grep -c '"markdown"' "$skill_file" 2>/dev/null || true)
+    has_preview=$(grep -c '"preview"' "$skill_file" 2>/dev/null || true)  # silent: known-noise
 
-    if [[ "$has_options" -gt 0 && "$has_markdown" -gt 0 ]]; then
-        auq_skills_with_markdown=$((auq_skills_with_markdown + 1))
-    elif [[ "$has_options" -gt 0 && "$has_markdown" -eq 0 ]]; then
+    if [[ "$has_options" -gt 0 && "$has_preview" -gt 0 ]]; then
+        auq_skills_with_preview=$((auq_skills_with_preview + 1))
+    elif [[ "$has_options" -gt 0 && "$has_preview" -eq 0 ]]; then
         # Check rules/ subdirectory too
-        _rules_matches=$(grep -rl '"markdown"' "$skill_dir/rules/" 2>/dev/null || true)
-        rules_markdown=0
+        _rules_matches=$(grep -rl '"preview"' "$skill_dir/rules/" 2>/dev/null || true)  # silent: known-noise
+        rules_preview=0
         if [[ -n "$_rules_matches" ]]; then
-            rules_markdown=$(echo "$_rules_matches" | wc -l | tr -d ' ')
+            rules_preview=$(echo "$_rules_matches" | wc -l | tr -d ' ')
         fi
-        if [[ "$rules_markdown" -gt 0 ]]; then
-            auq_skills_with_markdown=$((auq_skills_with_markdown + 1))
+        if [[ "$rules_preview" -gt 0 ]]; then
+            auq_skills_with_preview=$((auq_skills_with_preview + 1))
         else
-            # Only warn for user-invocable skills
-            is_invocable=$(grep -c 'user-invocable: true' "$skill_file" || true)
+            # Only warn for user-invocable skills (simple preference questions
+            # legitimately need no preview, so this is advisory only)
+            is_invocable=$(grep -c 'user-invocable: true' "$skill_file" || true)  # silent: known-noise
             if [[ "$is_invocable" -gt 0 ]]; then
-                warn "$skill_name: has AUQ options but no markdown previews"
+                warn "$skill_name: has AUQ options but no preview field"
             fi
             auq_skills_without=$((auq_skills_without + 1))
         fi
     fi
 done
 
-if [[ "$auq_skills_with_markdown" -ge 10 ]]; then
-    pass "AUQ markdown previews: $auq_skills_with_markdown skills have previews"
+if [[ "$auq_skills_with_preview" -ge 10 ]]; then
+    pass "AUQ previews: $auq_skills_with_preview skills use the preview field"
 else
-    fail "AUQ markdown previews: only $auq_skills_with_markdown skills (expected >=10)"
+    fail "AUQ previews: only $auq_skills_with_preview skills (expected >=10)"
 fi
 
 # --- Test 2: multiSelect usage validation ---
