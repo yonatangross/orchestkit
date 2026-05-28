@@ -82,5 +82,9 @@ export function enterRegistrar(
     ctx.log(HOOK_NAME, `pending marker write failed: ${(err as Error).message}`);
   }
 
+  // NOTE (#2016): the runner (run-hook.mjs emitHookResult/silentExit, #1990)
+  // suppresses this envelope for WorktreeCreate and emits EMPTY stdout — CC
+  // reads a WorktreeCreate hook's stdout as the worktree path. Don't change
+  // this to emit empty here; suppression is centralized in the runner.
   return outputSilentSuccess();
 }
