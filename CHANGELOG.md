@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.9.3](https://github.com/yonatangross/orchestkit/compare/v8.9.2...v8.9.3) (2026-05-28)
+
+
+### Bug Fixes
+
+* **hooks:** add hookEventName to permission output envelopes ([#1910](https://github.com/yonatangross/orchestkit/issues/1910)) ([#2052](https://github.com/yonatangross/orchestkit/issues/2052)) ([5773311](https://github.com/yonatangross/orchestkit/commit/577331135f26dad8a4e44f102bd9ed25e63dfb91))
+
 ## [8.9.2](https://github.com/yonatangross/orchestkit/compare/v8.9.1...v8.9.2) (2026-05-28)
 
 
