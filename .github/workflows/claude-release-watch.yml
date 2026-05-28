@@ -120,6 +120,20 @@ jobs:
         if: ${{ env.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: node scripts/cc-triage.mjs --retry-failed
 
+      # Step 2.9 — backfill the stable `Changelog-Ref:` dedup marker onto any
+      # open cc-adoption issue that predates it (#2041). MUST run before the filer:
+      # the filer now dedups on the changelog-line hash, and without the marker the
+      # pre-existing issues would look "new" → duplicate storm. Idempotent no-op
+      # once all issues are marked.
+      # FAIL-CLOSED (intentional): a transient gh error here aborts the job (set -e)
+      # BEFORE the filer runs — better to file nothing this tick than to dedup against
+      # un-backfilled issues and storm. The next tick retries.
+      - name: Backfill Changelog-Ref markers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: bash scripts/cc-backfill-changelog-ref.sh
+
       # Step 3 — file issues for gaps with score >= 10, dedup against open `cc-adoption` issues.
       # Extracted to scripts/cc-file-adoption-issues.sh so the loop is testable in
       # isolation (#1696, W1e). Tests live in tests/integration/test-cc-release-watch-step3.sh.

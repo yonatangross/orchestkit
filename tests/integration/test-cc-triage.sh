@@ -635,6 +635,29 @@ else
 fi
 rm -f "$AUTH_OUT"
 
+# ============================================================================
+# Test 13: refline dedup (#2041) — two features with the SAME changelog line but
+# DIFFERENT slugs → validateAndScore keeps exactly one (the slug drift that filed
+# duplicate issues can no longer produce two features).
+# ============================================================================
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-refdup.txt
+cat > "$FIXTURE" <<'EOF'
+[
+  {"feature_slug": "marketplace_remove_scope_flag", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "marketplace remove now accepts --scope"},
+  {"feature_slug": "marketplace_remove_scope", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "marketplace remove now accepts --scope"}
+]
+EOF
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+NFEAT=$(jq -r '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$NFEAT" = "1" ]; then
+  log_pass "refline dedup: same changelog line, drifted slugs → 1 feature kept"
+else
+  log_fail "refline dedup" "expected 1 feature, got $NFEAT (exit=$EXIT)"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"

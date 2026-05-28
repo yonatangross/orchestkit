@@ -209,11 +209,18 @@ else
 fi
 
 # ============================================================================
-# Case 5: dedup — Key already exists → 0 creates
+# Case 5: dedup — an issue with the same Changelog-Ref already exists → 0 creates.
+# #2041: the dedup key is now sha256(reference_changelog_line), NOT slug+version,
+# so the "existing" marker the mock matches is the hash of the feature's ref line.
 # ============================================================================
-HIT=$(feat "already-filed" 15)
+HIT=$(feat "already-filed" 15)   # reference_changelog_line defaults to "- foo"
 GAPS=$(jq -nc --argjson f "$HIT" '[{version: "2.1.999", features: [$f]}]')
-run_case "case5-dedup" 0 "$GAPS" "already-filed+2.1.999"
+# Mirror the filer's normalize_ref ∘ sha256_hex: strip the leading "- " bullet,
+# collapse whitespace, then hash (so "- foo" → hash of "foo").
+REF_HASH=$(printf '%s' '- foo' \
+  | sed -E 's/^[[:space:]]*[-*+][[:space:]]+//; s/[[:space:]]+/ /g; s/^[[:space:]]+//; s/[[:space:]]+$//' \
+  | { if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi; } | cut -d' ' -f1)
+run_case "case5-dedup" 0 "$GAPS" "$REF_HASH"
 
 if grep -qF 'issue|list' "$MOCK_LOG"; then
   log_pass "case 5: dedup probe (issue list) was invoked"

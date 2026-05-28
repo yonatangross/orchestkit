@@ -311,6 +311,7 @@ function validateAndScore(features) {
   // Drop malformed items, normalize gap_score to canonical (model can't drift it).
   const clean = [];
   const seenSlugs = new Set();
+  const seenRefs = new Set(); // #2041: the changelog line is the stable identity
   for (const f of features) {
     if (typeof f !== 'object' || f === null) continue;
     if (typeof f.feature_slug !== 'string') continue;
@@ -318,7 +319,13 @@ function validateAndScore(features) {
     if (typeof f.description !== 'string') continue;
     const slug = sanitizeSlug(f.feature_slug);
     if (!slug || seenSlugs.has(slug)) continue;
+    // The verbatim changelog line is immutable; the LLM's slug drifts run-to-run.
+    // Dedup on the ref so one upstream bullet can't yield two features (the root of
+    // the duplicate-issue bug #2041). Downstream the filer keys the issue on its hash.
+    const ref = (typeof f.reference_changelog_line === 'string' ? f.reference_changelog_line : '').trim();
+    if (ref && seenRefs.has(ref)) continue;
     seenSlugs.add(slug);
+    if (ref) seenRefs.add(ref);
     clean.push({
       feature_slug: slug,
       category: f.category,
@@ -327,7 +334,7 @@ function validateAndScore(features) {
       affected_skills: Array.isArray(f.affected_skills)
         ? f.affected_skills.filter((s) => typeof s === 'string').slice(0, 10)
         : [],
-      reference_changelog_line: typeof f.reference_changelog_line === 'string' ? f.reference_changelog_line : '',
+      reference_changelog_line: ref,
     });
   }
   return clean.sort((a, b) => b.gap_score - a.gap_score).slice(0, 20);

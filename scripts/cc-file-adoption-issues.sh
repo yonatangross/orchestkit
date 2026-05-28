@@ -28,6 +28,22 @@ GAPS_FILE="${GAPS_FILE:-shared/cc-adoption-gaps.json}"
 ISSUE_ARGS_FILE="${ISSUE_ARGS_FILE:-shared/gh-issue-args.json}"
 MIN_GAP_SCORE="${MIN_GAP_SCORE:-10}"
 
+# Portable sha256 of stdin → bare hex (Linux sha256sum, macOS shasum). Used for
+# the stable Changelog-Ref dedup key (#2041).
+sha256_hex() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum | cut -d' ' -f1; else shasum -a 256 | cut -d' ' -f1; fi
+}
+
+# Normalize a changelog line before hashing so minor LLM re-emission drift can't
+# split the dedup key: strip a leading bullet marker (the snapshot has "- ", the
+# LLM-copied ref often doesn't) and collapse/trim whitespace. MUST stay byte-identical
+# to cc-backfill-changelog-ref.sh's copy, or pre-existing issues won't dedup (#2041).
+# (Residual: a genuine prose REWORD by the model would still drift — see the follow-up
+# note in the PR to anchor the key to the deterministic snapshot bullet instead.)
+normalize_ref() {
+  sed -E 's/^[[:space:]]*[-*+][[:space:]]+//; s/[[:space:]]+/ /g; s/^[[:space:]]+//; s/[[:space:]]+$//'
+}
+
 if [ ! -s "$GAPS_FILE" ] || [ "$(jq 'length' "$GAPS_FILE")" = "0" ]; then
   echo "No gaps to triage."
   exit 0
@@ -70,18 +86,24 @@ jq -c --argjson floor "$MIN_GAP_SCORE" \
       SCORE=$(echo "$feat" | jq -r '.gap_score')
       REF=$(echo "$feat" | jq -r '.reference_changelog_line')
       AFFECTED=$(echo "$feat" | jq -r '.affected_skills | join(", ")')
-      KEY="${SLUG}+${VERSION}"
+      KEY="${SLUG}+${VERSION}"   # legacy marker, kept in the body for human readability
 
-      # Dedup via exact body marker. The earlier full-text search
-      # `\"$KEY\"` was lossy — GH's `+` operator inside a quoted
-      # phrase can tokenize unpredictably and slug substrings collide.
-      # We embed `**Key:** \`<KEY>\`` in the body and grep that line
-      # in `in:body`, which is exact and label-scoped.
+      # #2041: dedup on a hash of the VERBATIM changelog line, not slug+version.
+      # The LLM's feature_slug drifts run-to-run (marketplace_remove_scope_flag vs
+      # marketplace_remove_scope), so the old KEY filed duplicates on re-triage. The
+      # changelog line is immutable + 1:1 with a feature. Pre-existing issues are
+      # migrated to carry this marker by cc-backfill-changelog-ref.sh (a workflow
+      # step that runs BEFORE this filer). Degenerate fallback: a feature with no
+      # ref keys on the legacy slug+version so filing never silently breaks.
+      REF_KEY="$REF"
+      if [ -z "$REF" ] || [ "$REF" = "null" ]; then REF_KEY="$KEY"; fi
+      REF_HASH=$(printf '%s' "$REF_KEY" | normalize_ref | sha256_hex)
+
       EXISTING=$(gh issue list --label cc-adoption --state open \
-        --search "\"Key: \\\`$KEY\\\`\" in:body" \
+        --search "\"Changelog-Ref: \\\`$REF_HASH\\\`\" in:body" \
         --json number --jq 'length')
       if [ "$EXISTING" -gt 0 ]; then
-        echo "Skip (exists): $KEY"
+        echo "Skip (exists): $REF_HASH ($KEY)"
         continue
       fi
 
@@ -94,6 +116,7 @@ jq -c --argjson floor "$MIN_GAP_SCORE" \
         "**Auto-filed by cc-release-watch** — see [shared/cc-adoption-gaps.json](../blob/main/shared/cc-adoption-gaps.json) for the source data." \
         "" \
         "**Key:** \`${KEY}\`" \
+        "**Changelog-Ref:** \`${REF_HASH}\`" \
         "**Category:** \`${CAT}\` (gap_score=${SCORE})" \
         "**Affected skills:** ${AFFECTED:-(none detected)}" \
         "" \
