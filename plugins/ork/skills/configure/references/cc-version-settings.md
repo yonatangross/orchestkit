@@ -857,3 +857,13 @@ AskUserQuestion({
 ```
 
 **Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork:elicit` flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.
+
+## CC 2.1.152 Settings
+
+### `--fallback-model` Now Switches for the Whole Session
+
+When the primary model is not found (e.g. a pinned model ID that no longer resolves, or a gateway that dropped it), CC 2.1.152 switches to your configured `--fallback-model` for the **rest of the session** instead of erroring on every request. Previously a missing primary model failed each request individually.
+
+**Action for OrchestKit**: Set a `--fallback-model` (or the `ANTHROPIC_SMALL_FAST_MODEL` / model settings your gateway supports) so a renamed or de-listed primary degrades gracefully rather than bricking the session. Pairs with the gateway model-discovery note above — if `/model` lists fewer models than expected, a fallback keeps long `ork:implement`/`ork:brainstorm` runs alive. No plugin-side change required.
+
+> **Related 2.1.152 items** (full table in `${CLAUDE_SKILL_DIR}/../doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).

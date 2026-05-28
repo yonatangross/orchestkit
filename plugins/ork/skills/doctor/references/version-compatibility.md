@@ -372,6 +372,10 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `/reload-skills` command | 2.1.152 | Re-scans skill directories without restarting; `SessionStart` hooks can return `reloadSkills: true` to expose hook-installed skills the same session | Restart required to pick up new/edited skills |
 | `marketplace remove --scope` | 2.1.152 | `claude plugin marketplace remove` accepts `--scope user\|project\|local`, matching `add`/`install`/`uninstall` | `remove` had no scope selector |
 | `disallowed-tools` frontmatter | 2.1.152 | Skills/slash commands can set `disallowed-tools` to remove tools while active (ork uses `allowed-tools` allowlists instead) | Tool restriction only via allowlist |
+| `--fallback-model` session switch | 2.1.152 | When the primary model is not found, CC switches to the configured `--fallback-model` for the rest of the session instead of failing every request | Every request errored on a missing primary model |
+| auto mode no consent | 2.1.152 | `permissionMode: "auto"` no longer requires opt-in consent before the classifier approves tools | Auto mode gated behind a one-time consent prompt |
+| sandbox warning in condensed layout | 2.1.152 | The sandbox-enabled warning now shows in every startup layout — previously missing in condensed mode | Sandbox warning hidden in condensed startup |
+| `MessageDisplay` hook event | 2.1.152 | New hook event: hooks can transform or hide assistant message text as it is displayed. ork has no MessageDisplay hook (recognized in the `HookEvent` type union for future use; not in the curated hook-contract spec) | No hook-point for displayed assistant text |
 
 ## Prompt Caching Recommendation
 
