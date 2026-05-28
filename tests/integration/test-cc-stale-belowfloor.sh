@@ -52,8 +52,12 @@ printf '%s\n' "$*" >> "$MOCK_LOG"
 case "$1" in
   label)
     case "$2" in
-      list) printf '%s\n' "${MOCK_LABELS:-}" ;;
-      create) : ;;
+      list)
+        if [ "${MOCK_LABEL_LIST_FAIL:-0}" = "1" ]; then echo "gh: HTTP 403 secondary rate limit" >&2; exit 1; fi
+        printf '%s\n' "${MOCK_LABELS:-}"; exit 0 ;;
+      create)
+        if [ "${MOCK_LABEL_CREATE_EXISTS:-0}" = "1" ]; then echo "GraphQL: Name has already been taken (createLabel)" >&2; exit 1; fi
+        exit 0 ;;
     esac
     exit 0
     ;;
@@ -159,6 +163,35 @@ if [ "$EXIT" = "0" ] && grep -q "no supported_floor" /tmp/stale-6.out; then
   log_pass "no floor → graceful no-op"
 else
   log_fail "no-floor" "expected graceful no-op (see /tmp/stale-6.out)"
+fi
+
+# ============================================================================
+# Case 7: gh label list fails (transient 403) → propagate exit 1, no cascade.
+# Regression guard for the cron-tick death that occurred at the LIST stage.
+# ============================================================================
+: > "$MOCK_LOG"
+EXIT=0
+MOCK_LABEL_LIST_FAIL=1 MOCK_ISSUES_TSV="$ISSUES" \
+  GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
+  bash "$SCRIPT" >/tmp/stale-7.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "1" ] && grep -qE "gh label list.* failed" /tmp/stale-7.out && [ "$(count_calls "$EDIT_RE")" = "0" ]; then
+  log_pass "list 403: propagates exit 1 loudly, no cascade to create/edit"
+else
+  log_fail "list-fail resilience" "expected exit 1 + no edits (see /tmp/stale-7.out)"
+fi
+
+# ============================================================================
+# Case 8: gh label create races ("Name has already been taken") → tolerated.
+# ============================================================================
+: > "$MOCK_LOG"
+EXIT=0
+MOCK_LABELS=$'cc-adoption' MOCK_LABEL_CREATE_EXISTS=1 MOCK_ISSUES_TSV="$ISSUES" SLEEP_BETWEEN=0 \
+  GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
+  bash "$SCRIPT" >/tmp/stale-8.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qi "already exists (race)" /tmp/stale-8.out && [ "$(count_calls "$EDIT_RE")" = "1" ]; then
+  log_pass "create race: tolerated, run continues to label the below-floor issue"
+else
+  log_fail "create-race resilience" "expected exit 0 + race-tolerated + 1 edit (see /tmp/stale-8.out)"
 fi
 
 echo "========================================================="
