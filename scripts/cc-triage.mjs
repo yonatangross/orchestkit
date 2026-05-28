@@ -307,7 +307,63 @@ function sanitizeSlug(raw) {
   return String(raw).toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 40);
 }
 
-function validateAndScore(features) {
+// #2045: parse a snapshot's deterministic bullets (the `- ` lines produced by
+// cc-release-watch.mjs, no LLM in the path). Returned bullet-stripped + trimmed
+// to match the LLM's "verbatim, trimmed" convention for reference_changelog_line.
+function parseSnapshotBullets(snapshotText) {
+  return normalizeBullets(snapshotText)
+    .split('\n')
+    .filter((l) => /^\s*-\s+/.test(l))
+    .map((l) => l.replace(/^\s*-\s+/, '').trim())
+    .filter(Boolean);
+}
+
+// Normalization for MATCHING only (not the dedup hash — that stays in the shell
+// normalize_ref). Lowercase, drop a leading bullet, strip md emphasis, collapse
+// whitespace. Aggressive on purpose so a reworded ref still lands on its bullet.
+function normForMatch(s) {
+  return String(s)
+    .toLowerCase()
+    .replace(/^\s*-\s+/, '')
+    .replace(/[`*_]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const SNAP_THRESHOLD = 0.6; // min token-Jaccard to accept a fuzzy snap
+
+function jaccard(a, b) {
+  const A = new Set(normForMatch(a).split(' ').filter(Boolean));
+  const B = new Set(normForMatch(b).split(' ').filter(Boolean));
+  if (A.size === 0 || B.size === 0) return 0;
+  let inter = 0;
+  for (const t of A) if (B.has(t)) inter++;
+  return inter / (A.size + B.size - inter);
+}
+
+// #2045: anchor the dedup identity to the deterministic snapshot bullet instead
+// of the LLM-reconstructed ref. The LLM is told to copy "verbatim, trimmed", so
+// most refs exact-match a bullet (no-op); a genuine reword fuzzy-matches the
+// closest bullet so the downstream hash stops drifting run-to-run. Below the
+// threshold we keep the LLM ref unchanged — same bounded fallback as before, no
+// forced bad match.
+function snapRefToSnapshot(ref, bullets) {
+  if (!ref || !bullets || bullets.length === 0) return ref;
+  const nr = normForMatch(ref);
+  for (const b of bullets) if (normForMatch(b) === nr) return b; // exact (verbatim)
+  let best = null;
+  let score = 0;
+  for (const b of bullets) {
+    const s = jaccard(ref, b);
+    if (s > score) {
+      score = s;
+      best = b;
+    }
+  }
+  return score >= SNAP_THRESHOLD ? best : ref;
+}
+
+function validateAndScore(features, bullets = []) {
   // Drop malformed items, normalize gap_score to canonical (model can't drift it).
   const clean = [];
   const seenSlugs = new Set();
@@ -322,7 +378,11 @@ function validateAndScore(features) {
     // The verbatim changelog line is immutable; the LLM's slug drifts run-to-run.
     // Dedup on the ref so one upstream bullet can't yield two features (the root of
     // the duplicate-issue bug #2041). Downstream the filer keys the issue on its hash.
-    const ref = (typeof f.reference_changelog_line === 'string' ? f.reference_changelog_line : '').trim();
+    const ref0 = (typeof f.reference_changelog_line === 'string' ? f.reference_changelog_line : '').trim();
+    // #2045: snap to the deterministic snapshot bullet so dedup identity (and the
+    // downstream Changelog-Ref hash) no longer drifts on LLM rewording. Snapping
+    // before seenRefs also collapses two reworded refs that map to one bullet.
+    const ref = snapRefToSnapshot(ref0, bullets);
     if (ref && seenRefs.has(ref)) continue;
     seenSlugs.add(slug);
     if (ref) seenRefs.add(ref);
@@ -492,7 +552,7 @@ function runExtraction(gaps, retryFailed) {
       entry.failed_at = new Date().toISOString();
       console.error(`cc-triage: ${entry.version} — both attempts failed; sentinel written.`);
     } else {
-      entry.features = validateAndScore(result);
+      entry.features = validateAndScore(result, parseSnapshotBullets(snapText));
       console.log(`cc-triage: ${entry.version} — extracted ${entry.features.length} feature(s).`);
     }
     updated++;
