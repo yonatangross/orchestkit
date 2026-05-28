@@ -132,6 +132,13 @@ export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOO
     // CC WorktreeCreate command-type does not consume additionalContext.
     // Returning a UserPromptSubmit envelope here would make CC misread stdout
     // as a chdir target (see #1794). Advisory delivery is deferred above.
+    //
+    // NOTE (#2016): this return value is NOT what reaches CC's stdout. The
+    // runner (run-hook.mjs emitHookResult/silentExit, #1990) suppresses the
+    // envelope for WorktreeCreate/WorktreeRemove and emits EMPTY stdout, so CC
+    // provisions at its default path. Don't "fix" this line to return empty —
+    // the suppression is centralized in the runner; guard:
+    // __tests__/integration/worktree-create-stdout.test.ts.
     return outputSilentSuccess();
   }
 
