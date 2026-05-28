@@ -50,13 +50,39 @@ if [ -z "$FLOOR" ]; then
 fi
 note "supported_floor = ${FLOOR}"
 
-# Ensure the label exists (idempotent — explicit check, no error-masking).
-if [ "$DRY_RUN" != "1" ]; then
-  if ! gh label list -R "$GH_REPO" --json name --jq '.[].name' | grep -qx "$STALE_LABEL"; then
-    gh label create "$STALE_LABEL" -R "$GH_REPO" --color BFBFBF \
-      --description "CC-adoption item below the support floor — moot, candidate for close"
-    note "created label ${STALE_LABEL}"
+# Ensure the label exists, resiliently. The old `gh label list | grep -qx … && create`
+# pipeline died under `set -e` when `gh label list` hit a transient 403 (the LIST
+# stage failed → the script aborted before reaching create — issue #2036 sibling).
+# Here we (1) propagate a genuine list failure LOUDLY so the run can retry, (2) skip
+# when present, (3) tolerate the create-race where another run made the label first
+# (gh exits non-zero with "already exists" on stderr — NOT a magic exit code).
+ensure_label() {
+  local existing
+  if ! existing=$(gh label list -R "$GH_REPO" --json name --jq '.[].name'); then
+    echo "[cc-stale] ERROR: 'gh label list' failed (transient gh/network/403?) — aborting so the run retries." >&2
+    return 1
   fi
+  if printf '%s\n' "$existing" | grep -qx "$STALE_LABEL"; then
+    return 0
+  fi
+  local out
+  if out=$(gh label create "$STALE_LABEL" -R "$GH_REPO" --color BFBFBF \
+        --description "CC-adoption item below the support floor — moot, candidate for close" 2>&1); then
+    note "created label ${STALE_LABEL}"
+    return 0
+  fi
+  # gh's duplicate-label error is GraphQL "Name has already been taken"; REST/other
+  # paths say "already exists". Match both so the race is tolerated either way.
+  if printf '%s' "$out" | grep -qiE 'already (exists|been taken)'; then
+    note "label ${STALE_LABEL} already exists (race) — continuing"
+    return 0
+  fi
+  echo "[cc-stale] ERROR: 'gh label create' failed: ${out}" >&2
+  return 1
+}
+
+if [ "$DRY_RUN" != "1" ]; then
+  ensure_label || exit 1
 fi
 
 labeled=0
