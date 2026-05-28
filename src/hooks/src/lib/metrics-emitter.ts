@@ -50,8 +50,7 @@ function flushMetrics(): void {
   flushScheduled = false;
   if (counters.size === 0) return;
   const ts = new Date().toISOString();
-  const lines =
-    Array.from(counters, ([metric, count]) => JSON.stringify({ ts, metric, count })).join('\n') + '\n';
+  const lines = Array.from(counters, ([metric, count]) => `${JSON.stringify({ ts, metric, count })}\n`).join('');
   counters.clear();
   void mkdir(METRICS_DIR, { recursive: true, mode: 0o700 })
     .then(() => appendFile(METRICS_PATH, lines, 'utf8'))
