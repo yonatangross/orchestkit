@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.9.1](https://github.com/yonatangross/orchestkit/compare/v8.9.0...v8.9.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* **cc-watch:** dedup on changelog-ref hash, not LLM slug ([#2041](https://github.com/yonatangross/orchestkit/issues/2041)) ([#2044](https://github.com/yonatangross/orchestkit/issues/2044)) ([d0765f4](https://github.com/yonatangross/orchestkit/commit/d0765f43e6ff770d1b4d2d4fbf749883dfd9ff0f))
+* **cc-watch:** resilient cc-stale label-ensure (don't die on a 403) ([#2040](https://github.com/yonatangross/orchestkit/issues/2040)) ([1b8f56e](https://github.com/yonatangross/orchestkit/commit/1b8f56ee750456c846bb100f429090d460e151c9))
+* **ci:** build hooks from source in Manifests job ([#2042](https://github.com/yonatangross/orchestkit/issues/2042)) ([295589a](https://github.com/yonatangross/orchestkit/commit/295589a435ed84a61b342c1c665cbb2ae78b3738))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2037](https://github.com/yonatangross/orchestkit/issues/2037)) ([d99fc5f](https://github.com/yonatangross/orchestkit/commit/d99fc5fef0195194fe49f5c7a21c7d0ca93fed87))
+
 ## [8.9.0](https://github.com/yonatangross/orchestkit/compare/v8.8.0...v8.9.0) (2026-05-27)
 
 
