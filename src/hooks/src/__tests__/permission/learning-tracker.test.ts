@@ -496,7 +496,12 @@ describe('learningTracker', () => {
       // Assert - CC 2.1.6 compliant shape
       expect(result).toHaveProperty('continue', true);
       expect(result).toHaveProperty('suppressOutput', true);
-      expect(result.hookSpecificOutput).toEqual({ permissionDecision: 'allow' });
+      // #1910: hookSpecificOutput must carry hookEventName ('PreToolUse' for a
+      // permission hook), else CC's envelope validator rejects it.
+      expect(result.hookSpecificOutput).toEqual({
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'allow',
+      });
     });
 
     test('silentSuccess output has correct shape', () => {

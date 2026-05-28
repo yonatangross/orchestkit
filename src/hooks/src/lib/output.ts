@@ -22,27 +22,39 @@ export function outputSilentSuccess(): HookResult {
 }
 
 /**
- * Output silent allow - permission hook approves silently
+ * Output silent allow - permission hook approves silently.
+ * #1910: all callers are PreToolUse permission hooks, so hookEventName is
+ * 'PreToolUse'. Without it CC's envelope validator rejects the hookSpecificOutput
+ * ("missing required field hookEventName") and drops the decision silently.
  */
 export function outputSilentAllow(): HookResult {
   return {
     continue: true,
     suppressOutput: true,
-    hookSpecificOutput: { permissionDecision: 'allow' },
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'allow',
+    },
   };
 }
 
 /**
- * Output block - stops the operation with an error
+ * Output block - hard-stops the operation (valid on EVERY hook event).
+ *
+ * #1910: this is a generic blocker used across 8 event types (PostToolUse,
+ * SubagentStop, Elicitation, UserPromptSubmit, ConfigChange, PreToolUse, …).
+ * It previously emitted a `permissionDecision` hookSpecificOutput — PreToolUse-
+ * only semantics — WITHOUT hookEventName, so CC's validator rejected the envelope
+ * on every caller (noisy per-event). The block itself rode on top-level
+ * `continue:false` + `stopReason`, which is valid on all events, so functionality
+ * was never affected. We now return only those top-level fields: no envelope, no
+ * validator error, no event mismatch. PreToolUse hooks that want the structured
+ * permission-deny UI should use `outputDeny()` (which carries the correct shape).
  */
 export function outputBlock(reason: string): HookResult {
   return {
     continue: false,
     stopReason: reason,
-    hookSpecificOutput: {
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
   };
 }
 

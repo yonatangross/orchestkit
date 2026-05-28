@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-05-26T19:28:50.030Z",
-  "buildTimeMs": 366,
+  "generatedAt": "2026-05-28T12:27:21.231Z",
+  "buildTimeMs": 427,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 27389,
-      "sizeKB": "26.75",
+      "size": 27342,
+      "sizeKB": "26.70",
       "exports": 66
     },
     "pretool": {
-      "size": 113647,
-      "sizeKB": "110.98",
+      "size": 113600,
+      "sizeKB": "110.94",
       "exports": 81
     },
     "posttool": {
-      "size": 127221,
-      "sizeKB": "124.24",
+      "size": 127174,
+      "sizeKB": "124.19",
       "exports": 64
     },
     "prompt": {
-      "size": 49063,
-      "sizeKB": "47.91",
+      "size": 49016,
+      "sizeKB": "47.87",
       "exports": 106
     },
     "lifecycle": {
-      "size": 205420,
-      "sizeKB": "200.61",
+      "size": 205373,
+      "sizeKB": "200.56",
       "exports": 64
     },
     "stop": {
-      "size": 55604,
-      "sizeKB": "54.30",
+      "size": 55557,
+      "sizeKB": "54.25",
       "exports": 49
     },
     "subagent": {
-      "size": 83699,
-      "sizeKB": "81.74",
+      "size": 83652,
+      "sizeKB": "81.69",
       "exports": 82
     },
     "notification": {
@@ -44,29 +44,29 @@
       "exports": 4
     },
     "setup": {
-      "size": 38013,
-      "sizeKB": "37.12",
+      "size": 37966,
+      "sizeKB": "37.08",
       "exports": 49
     },
     "skill": {
-      "size": 74699,
-      "sizeKB": "72.95",
+      "size": 74652,
+      "sizeKB": "72.90",
       "exports": 64
     },
     "agent": {
-      "size": 20586,
-      "sizeKB": "20.10",
+      "size": 20539,
+      "sizeKB": "20.06",
       "exports": 66
     },
     "hooks": {
-      "size": 368414,
-      "sizeKB": "359.78",
+      "size": 368367,
+      "sizeKB": "359.73",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 806040,
-  "totalSizeKB": "787.15",
+  "totalSize": 805570,
+  "totalSizeKB": "786.69",
   "inputs": 107,
-  "avgBundleSizeKB": "71.56"
+  "avgBundleSizeKB": "71.52"
 }

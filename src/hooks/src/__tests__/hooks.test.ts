@@ -21,8 +21,13 @@ import { decisionProcessor } from '../skill/decision-processor.js';
 // Import utilities
 import {
   outputSilentSuccess,
+  outputSilentAllow,
   outputBlock,
   outputDeny,
+  outputAsk,
+  outputDefer,
+  outputWithContext,
+  outputAllowWithContext,
   normalizeCommand,
 } from '../lib/common.js';
 import {
@@ -549,12 +554,40 @@ describe('lib/common.ts', () => {
   });
 
   describe('outputBlock', () => {
-    test('returns block with reason', () => {
+    test('returns a top-level hard block with NO hookSpecificOutput (#1910)', () => {
       const result = outputBlock('Test block reason');
       expect(result.continue).toBe(false);
       expect(result.stopReason).toBe('Test block reason');
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
-      expect(result.hookSpecificOutput?.permissionDecisionReason).toBe('Test block reason');
+      // #1910: outputBlock is event-agnostic (used on PostToolUse, SubagentStop,
+      // Elicitation, UserPromptSubmit, ConfigChange, PreToolUse, …). It must NOT
+      // emit a permissionDecision envelope (PreToolUse-only, and it was missing
+      // hookEventName → CC validator rejected it on every event). The block rides
+      // on continue:false. Structured PreToolUse denial → outputDeny().
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
+  });
+
+  // #1910 — envelope invariant: any helper that emits hookSpecificOutput MUST
+  // include hookEventName, or CC's validator rejects the envelope ("missing
+  // required field hookEventName") and drops it silently. outputSilentAllow and
+  // outputBlock were the two outliers; this sweep guards the whole class.
+  describe('#1910 hookSpecificOutput envelope invariant', () => {
+    const cases: Array<[string, ReturnType<typeof outputSilentAllow>]> = [
+      ['outputSilentAllow', outputSilentAllow()],
+      ['outputWithContext', outputWithContext('ctx')],
+      ['outputAllowWithContext', outputAllowWithContext('ctx')],
+      ['outputDeny', outputDeny('reason')],
+      ['outputAsk', outputAsk('reason')],
+      ['outputDefer', outputDefer('reason')],
+    ];
+    test.each(cases)('%s — hookSpecificOutput carries hookEventName', (_name, result) => {
+      if (result.hookSpecificOutput) {
+        expect(result.hookSpecificOutput.hookEventName).toBeTruthy();
+      }
+    });
+
+    test('outputBlock emits no hookSpecificOutput (event-agnostic hard block)', () => {
+      expect(outputBlock('x').hookSpecificOutput).toBeUndefined();
     });
   });
 
