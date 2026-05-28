@@ -473,30 +473,24 @@ jobs:
     name: Manifests & Schemas
     permissions:
       contents: read
-    needs: [build-plugins]
+    # No `needs: [build-plugins]` and no artifact download (#2036): this job BUILDS
+    # plugins fresh from its OWN checkout so src/ and the compiled dist/ are
+    # guaranteed in sync. Trusting the built-plugins artifact let a stale dist
+    # (built from a commit predating a src change) fail tests/hooks
+    # test-run-hook-dispatcher.sh 7c DETERMINISTICALLY — the recurring family
+    # #1794/#1797/#1990/#2003. (The old comment here blamed a better-sqlite3 static
+    # import; that was the pre-#2003 failure mode, not this src↔dist divergence.)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-      - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
-        with:
-          name: built-plugins
-          path: plugins/
-
-      - name: Setup environment
+      - name: Setup environment (build plugins fresh from source)
         uses: ./.github/actions/setup
         with:
-          build-plugins: 'false'
+          build-plugins: 'true'   # rebuild plugins/ from this checkout's src/ (not a stale artifact)
           run-ci-setup: 'false'
-          # tests/hooks loads the compiled bundles, and lifecycle.mjs statically
-          # imports better-sqlite3. Without hook deps the bundle import throws
-          # ERR_MODULE_NOT_FOUND and the dispatcher silent-exits to empty stdout,
-          # which fails test-run-hook-dispatcher.sh 7c (http WorktreeCreate must
-          # emit worktreePath). The build-plugins job already installs these;
-          # this job runs the dispatcher tests directly, so it needs them too. (#2003)
-          install-hooks-deps: 'true'
+          install-hooks-deps: 'true'  # npm ci in src/hooks BEFORE build → src/hooks/dist rebuilt from src
 
       - name: Run manifest tests
         run: bash scripts/ci/run-tests.sh tests/manifests --verbose
