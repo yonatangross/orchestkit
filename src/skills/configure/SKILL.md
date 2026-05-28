@@ -225,6 +225,8 @@ Covers Agentation UI annotation tool (npm install, MCP config, component scaffol
 ## Step 12: Preview & Save
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
+>
+> **Tip (CC 2.1.152+):** If you edited or added **skills** in a skill directory (personal `~/.claude/skills/` or project `.claude/skills/` — not plugin-packaged ones), run `/reload-skills` to re-scan and pick them up in the same session. A `SessionStart` hook can do the same by returning `reloadSkills: true`.
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 

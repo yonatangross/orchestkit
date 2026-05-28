@@ -82,6 +82,8 @@ bash src/skills/audit-skills/scripts/run-audit.sh
 
 Or invoke manually — Claude scans `src/skills/`, applies checks, and renders the summary table.
 
+> **CC 2.1.152+:** After fixing SKILL.md files surfaced by the audit, run `/reload-skills` to re-scan skill directories and pick up the changes in-session (no restart). For plugin-packaged skills, rebuild + `/reload-plugins` instead.
+
 ## Key Decisions
 
 | Decision | Recommendation |

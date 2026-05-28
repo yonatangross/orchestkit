@@ -204,6 +204,18 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/conventional-comments.md")` for the f
 
 ---
 
+## CC Built-in Review Commands (2.1.152+)
+
+This playbook is the manual framework; Claude Code ships built-in commands that automate parts of it:
+
+- **`/code-review`** — reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
+- **`/code-review --fix`** (CC 2.1.152+) — applies the review findings to your working tree after the review, surfacing reuse, simplification, and efficiency suggestions. **`/simplify` now invokes `/code-review --fix`.**
+- **`/code-review --comment`** — posts findings as inline PR comments.
+
+Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture). See #1940 for the overlap analysis between `/code-review --comment` and `ork:review-pr`.
+
+---
+
 **Skill Version**: 2.0.0
 **Last Updated**: 2026-01-08
 **Maintained by**: AI Agent Hub Team

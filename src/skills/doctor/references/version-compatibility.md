@@ -369,6 +369,9 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `cleanupPeriodDays` expansion | 2.1.117 | Retention sweep now covers `~/.claude/tasks/`, `~/.claude/shell-snapshots/`, `~/.claude/backups/` | Tasks/snapshots/backups retained indefinitely |
 | Native `bfs`/`ugrep` | 2.1.117 | Native builds replace Glob/Grep tools with embedded `bfs` and `ugrep` via Bash | Slower tree-traversal on native builds |
 | Opus 4.7 `/context` fix | 2.1.117 | `/context` correctly computes against 1M window (was showing inflated 200K percentage) | Early autocompact on Opus 4.7 1M sessions |
+| `/reload-skills` command | 2.1.152 | Re-scans skill directories without restarting; `SessionStart` hooks can return `reloadSkills: true` to expose hook-installed skills the same session | Restart required to pick up new/edited skills |
+| `marketplace remove --scope` | 2.1.152 | `claude plugin marketplace remove` accepts `--scope user\|project\|local`, matching `add`/`install`/`uninstall` | `remove` had no scope selector |
+| `disallowed-tools` frontmatter | 2.1.152 | Skills/slash commands can set `disallowed-tools` to remove tools while active (ork uses `allowed-tools` allowlists instead) | Tool restriction only via allowlist |
 
 ## Prompt Caching Recommendation
 

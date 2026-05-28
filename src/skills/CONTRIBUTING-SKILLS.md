@@ -96,7 +96,11 @@ context: fork            # Run in isolated subagent
 agent: backend-system-architect  # Which subagent type (requires context: fork)
 disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
 disable-model-invocation: false  # CC auto-selects via description matching
-allowed-tools: Read, Grep, Glob  # Restrict tools when active
+allowed-tools: Read, Grep, Glob  # Restrict tools when active (allowlist — ork convention)
+disallowed-tools: Write, Edit    # CC 2.1.152+: denylist alternative. ork standardizes on
+                                 # allowed-tools allowlists (strictly tighter than a denylist);
+                                 # reach for disallowed-tools only when a skill must inherit the
+                                 # full toolset minus a few specific tools.
 model: opus              # Model override
 targets:                 # Library version ranges — warns on mismatch (CC 2.1.80+)
   - library: next.js
