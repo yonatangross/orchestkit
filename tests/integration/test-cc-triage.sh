@@ -658,6 +658,49 @@ else
   log_fail "refline dedup" "expected 1 feature, got $NFEAT (exit=$EXIT)"
 fi
 
+# ============================================================================
+# Test 14: snapshot-anchored dedup (#2045) — a REWORDED LLM ref snaps to the
+# deterministic snapshot bullet, so the stored reference_changelog_line (and the
+# downstream Changelog-Ref hash) stops drifting run-to-run on LLM rewording.
+# Snapshot 2.1.999.md bullet: "`claude project purge` removes orphan project metadata"
+# ============================================================================
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-snap.txt
+cat > "$FIXTURE" <<'EOF'
+[
+  {"feature_slug": "purge_reworded", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "removes orphan project metadata via claude project purge"}
+]
+EOF
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+SNAPPED=$(jq -r '.[0].features[0].reference_changelog_line' shared/cc-adoption-gaps.json)
+EXPECTED='`claude project purge` removes orphan project metadata'
+if [ "$EXIT" = "0" ] && [ "$SNAPPED" = "$EXPECTED" ]; then
+  log_pass "snap (#2045): reworded ref anchored to deterministic snapshot bullet"
+else
+  log_fail "snap #2045" "expected '$EXPECTED', got '$SNAPPED' (exit=$EXIT)"
+fi
+
+# A ref with no plausible snapshot match stays UNCHANGED (bounded fallback — the
+# snap never forces a bad match, preserving today's behaviour for unmatched refs).
+write_gaps
+FIXTURE=/tmp/cc-triage-fixture-nosnap.txt
+cat > "$FIXTURE" <<'EOF'
+[
+  {"feature_slug": "unrelated_feature", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "completely unrelated changelog text about networking timeouts"}
+]
+EOF
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+UNSNAPPED=$(jq -r '.[0].features[0].reference_changelog_line' shared/cc-adoption-gaps.json)
+if [ "$EXIT" = "0" ] && [ "$UNSNAPPED" = "completely unrelated changelog text about networking timeouts" ]; then
+  log_pass "snap (#2045): below-threshold ref left unchanged (no forced match)"
+else
+  log_fail "snap #2045 fallback" "expected ref unchanged, got '$UNSNAPPED' (exit=$EXIT)"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
