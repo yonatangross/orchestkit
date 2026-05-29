@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "orchestkit-hook-contract"
-version = "0.1.0"
+version = "0.1.1"
 description = "Hook event contract for OrchestKit — Pydantic models, JSON schemas, and a thin validation helper. Zero runtime deps beyond pydantic."
 readme = "README.md"
 requires-python = ">=3.11"

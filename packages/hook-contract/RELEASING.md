@@ -47,6 +47,12 @@ If a `git push --tags` lands the tag on origin but the push event no-ops, run
 the workflow manually: Actions → "Publish @orchestkit/hook-contract" →
 Run workflow → `tag = hook-contract-npm/vX.Y.Z`.
 
+> **Caveat with the `npm` environment's tag restriction:** the environment limits
+> deployments to the tag pattern `hook-contract-npm/v*`. A `workflow_dispatch`
+> recovery run must therefore be launched **from the tag ref** — pick the tag in
+> the "Use workflow from" dropdown — not from `main`, or the environment blocks
+> the publish job. Normal tag-push releases are unaffected.
+
 ## CI publishes are provenanced
 
 CI runs `npm publish --provenance` via OIDC, so every release after the manual
