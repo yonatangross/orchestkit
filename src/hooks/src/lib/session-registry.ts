@@ -22,6 +22,7 @@ import { existsSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { getHomeDir } from './paths.js';
 import { runMigrations } from './sqlite-migrations/index.js';
+import { incrementMetric } from './metrics-emitter.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -247,6 +248,9 @@ export function writeWithRetry<T>(fn: (db: DatabaseSync) => T): T {
       try {
         const result = fn(db);
         db.exec('COMMIT');
+        // M168 Phase 5 (#1915): async fire-and-forget write counter. O(1) sync +
+        // a deferred setImmediate flush — never blocks this hot path.
+        incrementMetric('sessions_db_write');
         return result;
       } catch (err) {
         try { db.exec('ROLLBACK'); } catch { /* ignore */ }

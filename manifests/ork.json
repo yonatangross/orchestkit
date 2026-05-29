@@ -22,9 +22,6 @@
   "skills": "all",
   "agents": "all",
   "hooks": "all",
-  "experimental": {
-    "monitors": "./monitors/monitors.json"
-  },
   "userConfig": {
     "webhookUrl": {
       "type": "string",

@@ -37,6 +37,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 3. **Schema lock status** — which files have validators in `lib/telemetry-schemas.ts`
 4. **Orphan detection** — files on disk under `.claude/{telemetry,logs,state,feedback}/` that aren't in the registry (possible stale writer or new file needing schema)
 5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
+6. **Coordination layer (M168)** — live counts from `sessions.db` (running sessions, held locks, pending worktree links, skill invocations) plus write throughput from `coordination-metrics.jsonl`
 
 ## Usage
 
@@ -94,6 +95,36 @@ Summary
 5. **Render report** — ASCII table by default, JSON if `--json` argument passed.
 
 Core logic is deterministic + read-only. Do NOT write to any telemetry file — this skill is an observer.
+
+## Coordination layer (M168 #1915)
+
+The SQLite coordination layer lives **outside `.claude/`**, at `~/.local/state/orchestkit/`:
+
+| Source | What it tells you |
+|--------|-------------------|
+| `sessions.db` | live session / lock / worktree state (SQLite) |
+| `events.jsonl` | coordination event stream (goal_converged, chain_stale, …) |
+| `coordination-metrics.jsonl` | `sessions.db` write throughput counters (#1915) |
+
+**Live counts** — the DB file is a standard SQLite database; read it with `sqlite3` (read-only SELECTs only):
+
+```bash
+DB="$HOME/.local/state/orchestkit/sessions.db"
+[ -f "$DB" ] || echo "coordination layer idle (no multi-session activity yet)"
+sqlite3 "$DB" "SELECT COUNT(*) FROM sessions WHERE status='running'"                  # live sessions
+sqlite3 "$DB" "SELECT COUNT(*) FROM locks WHERE expires_at > strftime('%s','now')"    # held locks
+sqlite3 "$DB" "SELECT COUNT(*) FROM worktree_links WHERE result_status IS NULL"       # pending worktrees
+sqlite3 "$DB" "SELECT COUNT(*) FROM skill_invocation"                                 # skill invocations
+```
+
+**Write throughput** — `coordination-metrics.jsonl` is append-only `{ts, metric, count}` lines emitted async by `lib/metrics-emitter.ts` on every `sessions.db` write. Event rate ≈ recent `sessions_db_write` lines:
+
+```bash
+M="$HOME/.local/state/orchestkit/coordination-metrics.jsonl"
+[ -f "$M" ] && tail -200 "$M" | grep -c '"sessions_db_write"'
+```
+
+Degrade gracefully: if `sqlite3` is absent or the DB / metrics file doesn't exist, report **"coordination layer idle"** — never error. Like the rest of this skill, these are **read-only** observations.
 
 ## Upstream OTel metric notes
 
