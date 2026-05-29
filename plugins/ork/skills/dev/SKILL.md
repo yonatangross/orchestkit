@@ -42,6 +42,8 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` read
 | Time-boxed live demo | `/ork:dev --live 4` (public funnel, 4-hour expiry) |
 
 > **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg` — use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
+>
+> **Background shell sessions (CC 2.1.154+):** In `claude agents`, type `! <command>` to run a shell command as a backgrounded session you can attach to and detach from — also available as `claude --bg --exec '<command>'`. Useful for long dev-loop processes (watchers, builds, servers) you want to monitor without holding a terminal.
 
 ## Modes (M127)
 

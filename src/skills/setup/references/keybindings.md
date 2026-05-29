@@ -38,3 +38,4 @@ If the file already exists, **merge** — read existing entries, add only keybin
 ## CC built-in keys worth knowing (CC 2.1.129+)
 
 - **Ctrl+R** opens the reverse-search history picker. As of CC 2.1.129 it defaults to **all prompts across all projects** (matching pre-2.1.124 behavior). Press **Ctrl+S** while the picker is open to narrow to the current project / session. Avoid binding `Ctrl+R` or `Ctrl+S` in user keybindings — both are reserved.
+- **`/model` picker — `s` for session-only (CC 2.1.153+, BREAKING):** `/model` now saves your selection as the **default for new sessions** (matching the IDE); press **`s`** in the picker to scope the change to the current session only. The old `d` action was **renamed** — if your `keybindings.json` customized `modelPicker:setAsDefault`, rename it to **`modelPicker:thisSessionOnly`** or the binding silently stops working.

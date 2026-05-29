@@ -381,6 +381,11 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `/simplify` cleanup-only | 2.1.154 | `/simplify` now runs a cleanup-only review (reuse, simplification, efficiency, altitude) and applies fixes — it **no longer** invokes the full `/code-review --fix` bug-hunt | ork's code-review-playbook briefly documented the old behavior (fixed) |
 | subagent worktree-isolation guard | 2.1.154 | Subagents in background sessions no longer bypass the worktree-isolation guard / write to the shared checkout; `worktree.baseRef:"head"` resolves the current worktree's HEAD when spawning from a linked worktree | `Agent(isolation:"worktree")` thrashed the shared checkout; manual pre-create workaround needed |
 | `/effort` label rename | 2.1.154 | `/effort` slider labels renamed "Speed"/"Intelligence" → "Faster"/"Smarter" | Old labels |
+| `! <command>` bg shell | 2.1.154 | `claude agents` runs a shell command as an attach/detachable background session via `! <command>` (or `claude --bg --exec`) — documented in `ork:dev` | No backgrounded shell from the agents view |
+| multiple-choice reserved | 2.1.154 | CC reserves the multiple-choice prompt for decisions it genuinely can't make itself; don't gate orchestration on resolvable `AskUserQuestion`s (`agent-orchestration`) | Asked even when context sufficed |
+| `/model` default persist | 2.1.153 | `/model` saves the selection as the default for new sessions; press `s` for session-only. **BREAKING:** keybinding `modelPicker:setAsDefault` renamed to `modelPicker:thisSessionOnly` (documented in `setup/references/keybindings.md`) | `d` set default; old binding name silently dead |
+| subagent MCP policy + strict-config fixes | 2.1.153 | Subagent frontmatter `mcpServers` now honor `--strict-mcp-config`/`--bare`/managed-MCP allow-deny; `--strict-mcp-config` no longer strips inline `mcpServers` from explicit `--agents` defs. ork agents declaring `mcpServers` inherit policy correctly — no ork change | Subagent MCP servers bypassed managed policy |
+| OAuth gateway credential fix | 2.1.153 | Fixed a custom API gateway receiving the user's Anthropic OAuth credential instead of the gateway's own token (security). CC-internal; no ork surface | Gateway could receive the wrong credential |
 
 ## Prompt Caching Recommendation
 

@@ -28,6 +28,8 @@ allowed-tools:
 Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Each category has individual rule files in `rules/` loaded on-demand.
 
 > **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
+>
+> **Ask only when genuinely blocked (CC 2.1.154):** CC now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, rather than asking when it already has enough context to proceed. When orchestrating agents, don't gate progress on an `AskUserQuestion` the lead can resolve from available context — reserve prompts for true branch points (irreversible actions, missing requirements). This complements ork's voice-friendly decision guidance.
 
 ## Quick Reference
 
