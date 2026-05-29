@@ -250,7 +250,11 @@ jobs:
           tgz_files=(tarball/*.tgz)
           TGZ="${tgz_files[0]}"
           [[ -n "$TGZ" ]] || { echo "::error::no tarball artifact found in tarball/"; exit 1; }
-          npm publish "$TGZ" --provenance --access public
+          # Absolute path: npm parses a bare `tarball/foo.tgz` as a
+          # `github:owner/repo` spec (it ran `git ls-remote ssh://git@github.com/
+          # tarball/...tgz.git` and failed Permission denied on the 0.1.1 release).
+          # The `./`/absolute form forces file interpretation. Matches the smoke step.
+          npm publish "$GITHUB_WORKSPACE/$TGZ" --provenance --access public
 
   github-release:
     name: GitHub Release with assets

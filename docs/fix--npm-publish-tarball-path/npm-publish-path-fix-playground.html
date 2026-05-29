@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>npm publish tarball-path fix — playground</title>
+    <style>
+      :root{--bg:#0d1117;--panel:#161b22;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;--green:#3fb950;--red:#f85149;--mono:ui-monospace,Menlo,monospace}
+      *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);line-height:1.55}
+      .wrap{max-width:820px;margin:0 auto;padding:32px 20px 80px}h1{font-size:21px;margin:0 0 4px}
+      h2{font-size:15px;margin:26px 0 10px;color:#58a6ff;border-bottom:1px solid var(--border);padding-bottom:6px}
+      p,li{font-size:13.5px}.sub{color:var(--muted);font-size:13px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin:12px 0}
+      pre{background:#0a0d12;border:1px solid var(--border);border-radius:6px;padding:12px;overflow-x:auto;font-size:12px;color:#c9d1d9}code{color:#d29922}
+      input{width:320px;background:#0a0d12;border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:var(--mono);padding:6px 8px}
+      .verdict{font-size:14px;font-weight:700;margin-top:10px}.ok{color:var(--green)}.bad{color:var(--red)}
+      footer{margin-top:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:14px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>npm publish tarball-path fix 🔥</h1>
+      <p class="sub">The 0.1.1 release's <code>publish-npm</code> job failed; PyPI shipped 0.1.1 but npm didn't → registries split. One-line root cause.</p>
+
+      <h2>What happened</h2>
+      <div class="panel">
+        <pre>npm error command git ls-remote ssh://git@github.com/tarball/orchestkit-hook-contract-0.1.1.tgz.git
+npm error git@github.com: Permission denied (publickey).</pre>
+        <p>The step ran <code>npm publish "$TGZ"</code> with <code>$TGZ = tarball/orchestkit-hook-contract-0.1.1.tgz</code> — a <b>bare relative path</b>. npm's spec parser saw <code>owner/repo</code> shape and treated it as a <b>GitHub git dependency</b>, not a file → tried to clone it over SSH → denied. The smoke-install step worked because it used the absolute <code>$GITHUB_WORKSPACE/$TGZ</code>.</p>
+      </div>
+
+      <h2>The fix</h2>
+      <div class="panel">
+        <pre>- npm publish "$TGZ" --provenance --access public
++ npm publish "$GITHUB_WORKSPACE/$TGZ" --provenance --access public</pre>
+        <p class="sub">Absolute (or <code>./</code>-prefixed) path forces npm to treat it as a file, not a <code>github:owner/repo</code> spec.</p>
+      </div>
+
+      <h2>Try it — does npm see a FILE or a git spec?</h2>
+      <div class="panel">
+        <input id="spec" type="text" value="tarball/orchestkit-hook-contract-0.1.1.tgz" />
+        <div id="v" class="verdict"></div>
+        <p class="sub" style="margin-top:8px">Try prefixing <code>./</code> or <code>$GITHUB_WORKSPACE/</code>.</p>
+      </div>
+
+      <footer>OrchestKit · fix/npm-publish-tarball-path · single-file playground, no external deps.</footer>
+    </div>
+    <script>
+      const s = document.getElementById('spec'), v = document.getElementById('v');
+      function classify(x) {
+        x = x.trim();
+        if (x.startsWith('./') || x.startsWith('../') || x.startsWith('/') || x.startsWith('~')) return 'FILE';
+        // npm github-shorthand: owner/repo (optionally owner/repo#ref), no leading path marker
+        if (/^[\w.-]+\/[\w.-]+$/.test(x)) return 'GIT_SPEC';
+        return 'FILE';
+      }
+      function render() {
+        const k = classify(s.value);
+        if (k === 'FILE') { v.textContent = 'FILE ✅ — npm publishes the local tarball'; v.className = 'verdict ok'; }
+        else { v.textContent = 'GIT SPEC ✗ — npm tries `git ls-remote owner/repo` → SSH denied (the bug)'; v.className = 'verdict bad'; }
+      }
+      s.addEventListener('input', render); render();
+    </script>
+  </body>
+</html>
