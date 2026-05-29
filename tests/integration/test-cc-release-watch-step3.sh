@@ -305,6 +305,31 @@ else
   log_fail "case 10" "exit=$EXIT, calls=$CALLS"
 fi
 
+# ============================================================================
+# Case 11: stamp — after filing, every non-parse_failed entry gets
+# `issues_filed_at` (so cc-release-watch prunes it from carry-forward next run,
+# keeping the file bounded + never re-filing adopted/closed issues), while a
+# parse_failed entry is left UNSTAMPED so it stays carried for --retry-failed.
+# ============================================================================
+: > "$MOCK_LOG"
+HIT=$(feat "stamp-me" 15)
+jq -nc --argjson f "$HIT" \
+  '[{version: "2.1.997", features: [$f]}, {version: "2.1.996", parse_failed: true, features: []}]' \
+  > "$WORK/shared/cc-adoption-gaps.json"
+echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
+pushd "$WORK" >/dev/null
+EXIT=0
+MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
+  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > /tmp/step3-stamp.out 2>&1 || EXIT=$?
+popd >/dev/null
+STAMPED=$(jq -r '[.[] | select(.version=="2.1.997" and has("issues_filed_at"))] | length' "$WORK/shared/cc-adoption-gaps.json")
+UNSTAMPED=$(jq -r '[.[] | select(.version=="2.1.996" and (has("issues_filed_at")|not))] | length' "$WORK/shared/cc-adoption-gaps.json")
+if [ "$EXIT" = "0" ] && [ "$STAMPED" = "1" ] && [ "$UNSTAMPED" = "1" ]; then
+  log_pass "case 11: filer stamps issues_filed_at on filed entry, leaves parse_failed unstamped"
+else
+  log_fail "case 11: stamp" "exit=$EXIT stamped=$STAMPED unstamped=$UNSTAMPED (see /tmp/step3-stamp.out)"
+fi
+
 echo ""
 echo "========================================================="
 echo "  Results: $PASS passed, $FAIL failed"

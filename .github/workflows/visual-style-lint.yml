@@ -55,103 +55,21 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check out repo (for the shared validator)
+        if: steps.bot-check.outputs.skip == 'false'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
       - name: Check PR title for any emoji
         if: steps.bot-check.outputs.skip == 'false'
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          # Per visual-style.md, PR titles must be plain ASCII. Use Python
-          # for reliable Unicode property classification (vs ad-hoc regex).
-          violations=$(python3 - <<'PY'
-          import os, sys, unicodedata
-          title = os.environ.get("PR_TITLE", "")
-          found = []
-          for ch in title:
-              cat = unicodedata.category(ch)
-              # 'So' = Symbol, other (emoji-like). Skip common ASCII punctuation.
-              if cat == 'So' or ord(ch) >= 0x1F000:
-                  found.append(ch)
-          if found:
-              print("|".join(sorted(set(found))))
-              sys.exit(0)
-          PY
-          )
-
-          if [[ -n "$violations" ]]; then
-            echo "::error::PR title contains emoji (forbidden by visual-style.md)"
-            echo "::error::Title: $PR_TITLE"
-            echo "::error::Violating glyphs: $violations"
-            echo "::error::Strip the emoji. PR titles are plain ASCII. The"
-            echo "::error::visual-style rule allows emoji in chat output and"
-            echo "::error::limited SKILL.md/agent.md headings — but not titles."
-            exit 1
-          fi
-          echo "::notice::PR title clean"
+        # Single source of truth: the same validator the local pre-flight
+        # (bin/check-pr-visual-style.sh) runs, so "clean locally" == "clean in
+        # CI". --env avoids interpolating the title into the shell command.
+        run: python3 bin/validate-visual-style.py --mode title --env PR_TITLE
 
       - name: Check PR body for non-vocabulary emoji
         if: steps.bot-check.outputs.skip == 'false'
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          # The 12-glyph vocabulary plus pair-only risk/ranking glyphs
-          # from src/rules/visual-style.md. Any emoji outside this set
-          # fails the lint.
-          violations=$(python3 - <<'PY'
-          import os, sys, unicodedata
-          body = os.environ.get("PR_BODY", "") or ""
-          VOCAB = {
-              # Core 12
-              '✅',         # ✅
-              '❌',         # ❌
-              '⚠',         # ⚠ (also matches ⚠️ via FE0F)
-              '\U0001F504',     # 🔄
-              '⏸',         # ⏸
-              '\U0001F4A1',     # 💡
-              '\U0001F6A8',     # 🚨
-              '\U0001F3AF',     # 🎯
-              '\U0001F525',     # 🔥
-              '\U0001F4DC',     # 📜
-              '\U0001F916',     # 🤖
-              '⚡',         # ⚡
-              # Risk pair
-              '\U0001F7E2',     # 🟢
-              '\U0001F7E1',     # 🟡
-              '\U0001F534',     # 🔴
-              # Ranking pair
-              '\U0001F947',     # 🥇
-              '\U0001F948',     # 🥈
-              '\U0001F949',     # 🥉
-              # VS16 variation selector (used to render ⚠ as ⚠️)
-              '️',
-              # ZWJ for combined emoji
-              '‍',
-          }
-          found = set()
-          for ch in body:
-              if ch in VOCAB:
-                  continue
-              cat = unicodedata.category(ch)
-              # 'So' = Symbol, other; ord >= 0x1F000 catches most emoji
-              if cat == 'So' or ord(ch) >= 0x1F000:
-                  found.add(ch)
-          if found:
-              print("|".join(sorted(found)))
-              sys.exit(0)
-          PY
-          )
-
-          if [[ -n "$violations" ]]; then
-            echo "::error::PR body contains emoji outside the 12-glyph vocabulary"
-            echo "::error::Violating glyphs: $violations"
-            echo ""
-            echo "::error::Allowed vocabulary (semantic only):"
-            echo "::error::  Core:  white check, red X, warning, refresh, pause,"
-            echo "::error::         light-bulb, siren, target, fire, scroll,"
-            echo "::error::         robot, lightning bolt"
-            echo "::error::  Pair:  green/yellow/red circles, gold/silver/bronze medal"
-            echo ""
-            echo "::error::See src/rules/visual-style.md for full vocabulary."
-            echo "::error::For legitimate exceptions, apply 'visual-style-override' label."
-            exit 1
-          fi
-          echo "::notice::PR body clean"
+        run: python3 bin/validate-visual-style.py --mode body --env PR_BODY

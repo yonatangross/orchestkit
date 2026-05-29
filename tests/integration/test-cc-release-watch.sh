@@ -141,10 +141,20 @@ else
   log_fail "Idempotent check" "expected 'nothing new', got: $(tail -2 /tmp/watch-out2.txt)"
 fi
 
-if [ -f shared/cc-adoption-gaps.json ] && [ "$(jq 'length' shared/cc-adoption-gaps.json)" = "0" ]; then
-  log_pass "Gaps JSON cleared to [] on no-op run"
-else
-  log_fail "Idempotent gaps clear" "expected length 0 after no-op"
+# After Test 1, the 2.1.148 gap entry is un-triaged (empty features) and
+# UN-stamped (no issues_filed_at) — i.e. un-filed work. The carry-forward fix
+# (#2084 follow-up) intentionally PRESERVES such entries across a no-op run
+# instead of clearing them: the old "clear to []" behavior silently dropped
+# un-filed work, which is the straggler class this fix closes. In production the
+# filer stamps issues_filed_at before the next watch run, so a fully-processed
+# entry IS still pruned — proven by Test 12 below.
+if [ -f shared/cc-adoption-gaps.json ]; then
+  KEPT=$(jq -r '[.[] | select(.version=="2.1.148" and (has("issues_filed_at")|not))] | length' shared/cc-adoption-gaps.json)
+  if [ "$KEPT" = "1" ]; then
+    log_pass "No-op run preserves un-filed (un-stamped) gap entry (carry-forward, #2084 fix)"
+  else
+    log_fail "Idempotent gaps carry" "expected un-stamped 2.1.148 preserved on no-op run, got $KEPT"
+  fi
 fi
 
 # ============================================================================
@@ -381,6 +391,52 @@ if [ "$NEWN" = "1" ] && [ "$CARRIED2" = "1" ]; then
   log_pass "carry-forward (new-version): stuck entry rides alongside new 2.1.148"
 else
   log_fail "carry-forward (new-version)" "expected new 2.1.148 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see /tmp/watch-carry2.txt)"
+fi
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+
+# ============================================================================
+# Test 11: carry-forward (triaged-but-unfiled) — an entry triage populated
+# (features[] non-empty, parse_failed false) but the filer has NOT yet stamped
+# `issues_filed_at` must survive a new-version run, features intact. THIS is the
+# #2084 straggler class: triage succeeded for 2.1.153/154, filing didn't, and
+# the old parse_failed-only carry-forward dropped them on the next run.
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138; do
+  echo "# Claude Code $v (placeholder)" > "shared/cc-snapshots/$v.md"
+done
+# 2.1.902: triaged (parse_failed false, one feature), NOT yet filed (no issues_filed_at).
+echo '[{"version":"2.1.902","parse_failed":false,"features":[{"feature_slug":"x","gap_score":20}],"raw_bullets_count":1}]' > shared/cc-adoption-gaps.json
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-carry3.txt 2>&1
+SURVIVED=$(jq -r '[.[] | select(.version=="2.1.902")] | length' shared/cc-adoption-gaps.json)
+FEATS=$(jq -r '[.[] | select(.version=="2.1.902") | .features[]] | length' shared/cc-adoption-gaps.json)
+if [ "$SURVIVED" = "1" ] && [ "$FEATS" = "1" ]; then
+  log_pass "carry-forward (triaged-unfiled): un-stamped triaged entry + features survive new version (#2084 regression)"
+else
+  log_fail "carry-forward (triaged-unfiled)" "expected 2.1.902 + 1 feature preserved, got survived=$SURVIVED feats=$FEATS (see /tmp/watch-carry3.txt)"
+fi
+
+# ============================================================================
+# Test 12: prune-filed — an entry the filer stamped `issues_filed_at` is DROPPED
+# on a new-version run, so the gaps file stays bounded and the filer never
+# re-scans every historical version (gh secondary rate-limit) or re-files an
+# adopted/closed issue (the filer dedups against OPEN issues only).
+# ============================================================================
+rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
+mkdir -p shared/cc-snapshots
+for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138; do
+  echo "# Claude Code $v (placeholder)" > "shared/cc-snapshots/$v.md"
+done
+echo '[{"version":"2.1.903","parse_failed":false,"features":[{"feature_slug":"y","gap_score":20}],"issues_filed_at":"2026-05-29T00:00:00Z","raw_bullets_count":1}]' > shared/cc-adoption-gaps.json
+CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
+  node scripts/cc-release-watch.mjs > /tmp/watch-carry4.txt 2>&1
+PRUNED=$(jq -r '[.[] | select(.version=="2.1.903")] | length' shared/cc-adoption-gaps.json)
+if [ "$PRUNED" = "0" ]; then
+  log_pass "prune-filed: issues_filed_at-stamped entry dropped on new-version run (bounded + no re-file)"
+else
+  log_fail "prune-filed" "expected 2.1.903 pruned, got $PRUNED (see /tmp/watch-carry4.txt)"
 fi
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
