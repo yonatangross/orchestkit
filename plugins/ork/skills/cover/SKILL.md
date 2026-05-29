@@ -83,7 +83,7 @@ Read `${CLAUDE_EFFORT}` (CC 2.1.120+) first; explicit `--effort=` token wins as 
 | **low** | Unit only | 1 agent | 1 max |
 | **medium** | Unit + Integration | 2 agents | 2 max |
 | **high** (default) | Unit + Integration + E2E | 3 agents | 3 max |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
 
 > **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
 

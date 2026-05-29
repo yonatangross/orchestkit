@@ -64,7 +64,7 @@ for token in "$ARGUMENTS".split():
 
 Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
-> **Opus 4.7**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
+> **Opus 4.8**: Agents use native adaptive thinking (no MCP sequential-thinking needed); defaults to `high` effort (CC 2.1.154+). Extended 128K output supports comprehensive verification reports.
 
 ---
 
@@ -77,7 +77,7 @@ Scale verification depth based on `/effort` level:
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
 | **medium** | Tests + code quality + security | 3 agents | Score + top issues |
 | **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 

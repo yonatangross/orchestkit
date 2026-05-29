@@ -60,7 +60,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
-14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.7 (silent fallback otherwise)
+14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.8 (silent fallback otherwise)
 
 ## When to Use
 
@@ -127,25 +127,25 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `${CLAUDE_SKILL_DIR}/rules/mcp-status-checks.md` + `${CLAUDE_SKILL_DIR}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.7 — see below | inline |
+| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.8 — see below | inline |
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
-CC 2.1.111 added `xhigh` effort (Opus 4.7 only). Using it with any other model silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
+CC 2.1.111 added `xhigh` effort (Opus 4.8; since CC 2.1.154 it defaults to `high` and takes `xhigh` for the hardest tasks). Using it with a model that doesn't support it silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
 
 **Detection**:
-- If the active model is NOT Opus 4.7, check whether `/effort` is set to `xhigh`:
+- If the active model does NOT support `xhigh` (i.e. not Opus 4.8), check whether `/effort` is set to `xhigh`:
   - Read `.claude/settings.json` → `effort` field
   - Read `$ORCHESTKIT_EFFORT` env var (populated by the effort-detector hook)
 - Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-4.7 model in scope
 
 **Warning format**:
 ```
-WARNING: xhigh effort requires Opus 4.7.
+WARNING: xhigh effort requires Opus 4.8.
   Current model: <model-id>
   Configured effort: xhigh
   Impact: Skills fall back to high — xhigh's extra deepening pass is lost silently.
-  Fix: Either switch to Opus 4.7 (`claude --model opus-4.7`) or lower effort to `high`.
+  Fix: Either switch to Opus 4.8 (`claude --model opus-4-8`) or lower effort to `high`.
 ```
 
 **Exit code**: Non-zero in `--json` mode; soft warning in interactive mode.

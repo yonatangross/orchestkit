@@ -209,8 +209,9 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/conventional-comments.md")` for the f
 This playbook is the manual framework; Claude Code ships built-in commands that automate parts of it:
 
 - **`/code-review`** — reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
-- **`/code-review --fix`** (CC 2.1.152+) — applies the review findings to your working tree after the review, surfacing reuse, simplification, and efficiency suggestions. **`/simplify` now invokes `/code-review --fix`.**
+- **`/code-review --fix`** (CC 2.1.152+) — runs the review then applies the findings to your working tree (a bug-hunting review covering correctness plus reuse/simplification/efficiency).
 - **`/code-review --comment`** — posts findings as inline PR comments.
+- **`/simplify`** — **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes — it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
 
 Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture). See #1940 for the overlap analysis between `/code-review --comment` and `ork:review-pr`.
 

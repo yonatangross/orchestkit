@@ -26,9 +26,9 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 |---|---|
 | `low` / `medium` | Subset of dimensions, faster turnaround |
 | `high` (default) | All six dimensions with pros/cons |
-| `xhigh` (Opus 4.7 only) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+| `xhigh` (Opus 4.8) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
-> `xhigh` silently falls back to `high` on non-Opus-4.7 models. `/ork:doctor` warns when `xhigh` is used without Opus 4.7.
+> `xhigh` silently falls back to `high` on models that don't support it (Opus 4.8 do). `/ork:doctor` warns when `xhigh` is used without Opus 4.8.
 
 
 ## Argument Resolution
@@ -63,7 +63,7 @@ for token in "$ARGUMENTS".split():
 EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
 
 
 ## STEP -1: MCP Probe + Resume Check
@@ -300,7 +300,7 @@ The created entity has:
 Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#1886 (post-synthesis podcast) pattern. Unblocked by `Yonatan-HQ/core#993` (yg-mcp-core 0.3.0).
 
 
-## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
+## Self-Reported Uncertainty (Opus 4.8, `xhigh` effort)
 
 Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
 

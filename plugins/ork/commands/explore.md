@@ -38,9 +38,9 @@ EFFORT = EFFORT or "high"  # default
 | `low` | 1 (structure-only) | 1, 2, 8 | ~1 min |
 | `medium` | 2 (structure + data flow) | 1, 2, 3 (subset), 8 | ~3 min |
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
-| `xhigh` (Opus 4.7 only) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
+| `xhigh` (Opus 4.8) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `${CLAUDE_EFFORT}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
+**Override gate:** if the user passes `--effort=high` explicitly while `${CLAUDE_EFFORT}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
 
 
 ## STEP 0: Verify User Intent with AskUserQuestion

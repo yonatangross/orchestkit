@@ -63,7 +63,7 @@ for batch in chunks(files, size=5):
 
 - `low` / `medium`: batch size 3–5 (default).
 - `high`: batch size 5.
-- `xhigh` (Opus 4.7): batch size 5 with an extra validation pass per batch — re-read the just-edited files and verify the change matches the migration intent before running tests. Catches LLM-introduced inconsistencies the linter doesn't see.
+- `xhigh` (Opus 4.8): batch size 5 with an extra validation pass per batch — re-read the just-edited files and verify the change matches the migration intent before running tests. Catches LLM-introduced inconsistencies the linter doesn't see.
 
 ## Argument
 

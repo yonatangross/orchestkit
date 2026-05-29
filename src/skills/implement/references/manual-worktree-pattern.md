@@ -1,7 +1,17 @@
 # Manual Pre-Create Worktree Pattern
 
-**Workaround for the broken `Agent(isolation="worktree")` behavior in
-CC Opus 4.7 (Nov 2026 — Apr 2026).** Tracked at
+> **⚠ SUPERSEDED by CC 2.1.154.** Upstream fixed the root cause: *"subagents in
+> background sessions bypassing the worktree-isolation guard and writing to the
+> shared checkout"* (CC 2.1.154 changelog). On CC ≥ 2.1.154 you can use
+> `Agent(isolation="worktree")` directly — parallel spawns each get a real
+> isolated worktree, no HEAD thrash. 2.1.154 also fixed `worktree.baseRef:"head"`
+> resolving to the main checkout's HEAD instead of the current worktree's when
+> spawning from inside a linked worktree. **Prefer `isolation="worktree"` now;**
+> the manual pre-create pattern below is retained only for CC ≤ 2.1.153 and as a
+> record of the original failure.
+
+**Original context — workaround for the broken `Agent(isolation="worktree")`
+behavior in CC ≤ 2.1.153.** Tracked at
 [Yonatan-HQ/platform#3224](https://github.com/Yonatan-HQ/platform/issues/3224).
 
 ## TL;DR

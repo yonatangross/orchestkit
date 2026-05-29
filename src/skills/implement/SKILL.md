@@ -145,7 +145,7 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 | **low** | 1 (Discovery) → 5 (Implement) → 10 (Reflect) | 2 max | ~50K |
 | **medium** | 1 → 2 → 5 → 7 (Scope Creep) → 10 | 3 max | ~150K |
 | **high** (default) | All 10 phases | 4-7 | ~400K |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
 
 > **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level.
 

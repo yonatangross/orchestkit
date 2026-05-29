@@ -376,6 +376,11 @@ skill is no longer marked `experimental:` in its frontmatter.
 | auto mode no consent | 2.1.152 | `permissionMode: "auto"` no longer requires opt-in consent before the classifier approves tools | Auto mode gated behind a one-time consent prompt |
 | sandbox warning in condensed layout | 2.1.152 | The sandbox-enabled warning now shows in every startup layout — previously missing in condensed mode | Sandbox warning hidden in condensed startup |
 | `MessageDisplay` hook event | 2.1.152 | New hook event: hooks can transform or hide assistant message text as it is displayed. ork has no MessageDisplay hook (recognized in the `HookEvent` type union for future use; not in the curated hook-contract spec) | No hook-point for displayed assistant text |
+| Opus 4.8 + default effort | 2.1.154 | Opus 4.8 launches; **defaults to `high` effort**, `xhigh` for the hardest tasks. Lean system prompt is now default for all models except Haiku/Sonnet/Opus ≤ 4.7 | Opus 4.7 was the newest; `xhigh` framed as 4.7-only |
+| Dynamic workflows / `/workflows` | 2.1.154 | Ask Claude to create a workflow; it orchestrates tens-to-hundreds of agents in the background. `/workflows` lists runs. ork treats it as complementary to its foreground Agent Teams patterns (see `agent-orchestration`, `swarm-migrate`) | No native large-scale background orchestration |
+| `/simplify` cleanup-only | 2.1.154 | `/simplify` now runs a cleanup-only review (reuse, simplification, efficiency, altitude) and applies fixes — it **no longer** invokes the full `/code-review --fix` bug-hunt | ork's code-review-playbook briefly documented the old behavior (fixed) |
+| subagent worktree-isolation guard | 2.1.154 | Subagents in background sessions no longer bypass the worktree-isolation guard / write to the shared checkout; `worktree.baseRef:"head"` resolves the current worktree's HEAD when spawning from a linked worktree | `Agent(isolation:"worktree")` thrashed the shared checkout; manual pre-create workaround needed |
+| `/effort` label rename | 2.1.154 | `/effort` slider labels renamed "Speed"/"Intelligence" → "Faster"/"Smarter" | Old labels |
 
 ## Prompt Caching Recommendation
 

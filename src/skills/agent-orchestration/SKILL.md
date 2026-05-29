@@ -27,6 +27,8 @@ allowed-tools:
 
 Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Each category has individual rule files in `rules/` loaded on-demand.
 
+> **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |

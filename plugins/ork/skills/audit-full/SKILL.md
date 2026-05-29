@@ -37,7 +37,7 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` (Opus 4.7 only) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` (Opus 4.8) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 
