@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.10.0](https://github.com/yonatangross/orchestkit/compare/v8.9.3...v8.10.0) (2026-05-29)
+
+
+### Features
+
+* **hooks:** finish M168 coordination + subagent budget signal ([#2054](https://github.com/yonatangross/orchestkit/issues/2054)) ([a8313f3](https://github.com/yonatangross/orchestkit/commit/a8313f3aa1d449cbc5fd0c9a9fd6908db619110c))
+
+
+### Documentation
+
+* **skills:** adopt CC 2.1.153 tail + close 2.1.153/154 issue sweep ([#2083](https://github.com/yonatangross/orchestkit/issues/2083)) ([112fd32](https://github.com/yonatangross/orchestkit/commit/112fd32505c19798504335793d06a74291975400))
+* **skills:** adopt CC 2.1.154 (Opus 4.8, /simplify, worktree) ([#2058](https://github.com/yonatangross/orchestkit/issues/2058)) ([fc76fa5](https://github.com/yonatangross/orchestkit/commit/fc76fa58a592846aa3bf51cec4d4a1e4cdfc267a))
+
 ## [8.9.3](https://github.com/yonatangross/orchestkit/compare/v8.9.2...v8.9.3) (2026-05-28)
 
 
