@@ -75,7 +75,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yonatangross/orchestkit.git",
+    "url": "git+https://github.com/yonatangross/orchestkit.git",
     "directory": "packages/hook-contract"
   },
   "publishConfig": {
