@@ -260,6 +260,13 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     # Must fail CI: regression here means the auto-adoption pipeline broke.
     run_test "CC Release Watch (M130)" "$SCRIPT_DIR/integration/test-cc-release-watch.sh"
 
+    # Step 3 issue-filer (cc-file-adoption-issues.sh) — was authored (#1696) but
+    # never registered in the runner; activates it + the issues_filed_at stamp guard.
+    run_test "CC Release Watch Step 3 (M134)" "$SCRIPT_DIR/integration/test-cc-release-watch-step3.sh"
+
+    # Visual-style validator + local pre-flight (shared engine with the CI lint).
+    run_test "Visual-Style Validator" "$SCRIPT_DIR/integration/test-visual-style-validator.sh"
+
     # M130 #1488 — CC support-window stamper idempotence and propagation.
     run_test "CC Support Stamper (M130)" "$SCRIPT_DIR/integration/test-cc-support-stamper.sh"
 

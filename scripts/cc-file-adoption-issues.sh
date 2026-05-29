@@ -140,3 +140,20 @@ jq -c --argjson floor "$MIN_GAP_SCORE" \
         --milestone "$MILESTONE_TITLE"
       echo "Filed: $KEY"
     done
+
+# Stamp every fully-processed (non-stuck) entry with `issues_filed_at` so the
+# next cc-release-watch run can PRUNE it from its carry-forward. Without this
+# stamp the watcher cannot tell a triaged-but-unfiled entry (must survive) from
+# a triaged-and-filed one (safe to drop), so it must keep everything forever:
+# the file grows unbounded, the filer re-scans every historical version each run
+# (→ gh secondary rate-limit), and adopted/closed features get re-filed because
+# the dedup above only searches OPEN issues. parse_failed entries are left
+# UNSTAMPED so they stay carried for `cc-triage --retry-failed`. Reaching this
+# line means the loop completed (set -e aborts on any gh error), i.e. every
+# feature >= floor was filed or dedup-skipped — a true "processed" marker.
+TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+TMP_GAPS="$(mktemp)"
+jq --arg ts "$TS" \
+  'map(if (.parse_failed // false) == true then . else . + {issues_filed_at: $ts} end)' \
+  "$GAPS_FILE" > "$TMP_GAPS" && mv "$TMP_GAPS" "$GAPS_FILE"
+echo "Stamped issues_filed_at=$TS on filed entries (parse_failed entries left for retry)."
