@@ -1,9 +1,10 @@
 <!--
   Issue close-out hygiene (per CLAUDE.md + #1554):
   If this PR ships work for a tracked issue, include `Closes #NNN`
-  on its own line so GitHub auto-closes the issue when the PR merges.
-  Multiple issues: one `Closes #N` line per issue, OR
-  `Closes #1, #2, #3` on a single line.
+  so GitHub auto-closes the issue when the PR merges.
+  Multiple issues: REPEAT the keyword for each — `Closes #1, closes #2, closes #3`.
+  A bare list (`Closes #1, #2, #3`) closes ONLY #1; #2 and #3 stay open — the
+  exact silent-drift class this template exists to prevent.
 -->
 
 ## Summary
@@ -30,7 +31,8 @@
 
 ## Issue close-out
 
-<!-- Replace the placeholder with real issue numbers, or delete the section if this PR doesn't close any. -->
+<!-- Replace the placeholder with real issue numbers, or delete the section if this PR doesn't close any.
+     Multiple: `Closes #1, closes #2` (repeat the keyword — a bare `#1, #2` list only closes #1). -->
 
 Closes #
 

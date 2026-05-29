@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Closes-N drift — interactive playground</title>
+    <style>
+      :root {
+        --bg:#0d1117; --panel:#161b22; --border:#30363d; --fg:#e6edf3; --muted:#8b949e;
+        --green:#3fb950; --red:#f85149; --yellow:#d29922; --blue:#58a6ff;
+        --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);line-height:1.55}
+      .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+      h1{font-size:22px;margin:0 0 4px}
+      h2{font-size:15px;margin:30px 0 12px;color:var(--blue);border-bottom:1px solid var(--border);padding-bottom:6px}
+      p,li{font-size:13.5px}
+      .sub{color:var(--muted);font-size:13px;margin:0 0 8px}
+      .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin:14px 0}
+      textarea{width:100%;height:120px;background:#0a0d12;border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:var(--mono);font-size:13px;padding:10px;resize:vertical}
+      pre{background:#0a0d12;border:1px solid var(--border);border-radius:6px;padding:12px;overflow-x:auto;font-size:12px;color:#c9d1d9}
+      code{color:var(--yellow)}
+      .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;margin:3px 5px 3px 0}
+      .chip.close{background:rgba(63,185,80,.16);color:var(--green);border:1px solid var(--green)}
+      .chip.stay{background:rgba(248,81,73,.14);color:var(--red);border:1px solid var(--red)}
+      .legend{font-size:12px;color:var(--muted);margin-top:8px}
+      .danger{color:var(--red)} .ok{color:var(--green)}
+      footer{margin-top:40px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding-top:16px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Closes-N drift 🎯</h1>
+      <p class="sub">
+        Issue #1554 — paste a PR body and see which issues GitHub would
+        <span class="ok">actually close</span> on merge vs which <span class="danger">silently stay open</span>.
+      </p>
+
+      <h2>The trap</h2>
+      <div class="panel">
+        <p>GitHub only links an issue when a <b>close keyword</b> immediately precedes the number. A bare comma list does <b>not</b> distribute the keyword:</p>
+        <pre>Closes #1, #2, #3      →  closes ONLY #1   (#2, #3 stay open — silent drift)
+Closes #1, closes #2   →  closes #1 AND #2  (repeat the keyword)</pre>
+        <p class="legend">Keywords: close / closes / closed / fix / fixes / fixed / resolve / resolves / resolved.</p>
+      </div>
+
+      <h2>Try it</h2>
+      <div class="panel">
+        <textarea id="body" spellcheck="false">Implements the new flow.
+
+Closes #1, #2, #3
+Also fixes #42. Resolves #7 too.
+See #99 for background context.</textarea>
+        <div style="margin-top:12px">
+          <div class="sub">GitHub will close:</div>
+          <div id="closeChips"></div>
+          <div class="sub" style="margin-top:10px">Referenced but NOT closed (drift risk):</div>
+          <div id="stayChips"></div>
+        </div>
+        <div id="verdict" class="legend"></div>
+      </div>
+
+      <h2>What this PR ships (#1554)</h2>
+      <div class="panel">
+        <p>1. <b>PR template fix</b> — the template literally recommended the broken <code>Closes #1, #2, #3</code> form. Corrected to <code>Closes #1, closes #2</code> + a warning about the bare list.</p>
+        <p>2. <b>pr-body-lint.yml</b> — advisory (never-failing) check: if a PR title references <code>#N</code> but the body has no close keyword, it emits a <code>::warning::</code> nudge.</p>
+        <p class="legend">Out of scope (per the issue): heuristic auto-closing — false-closes create their own drift. The one-time sweep of ~50 stale issues is tracked separately.</p>
+      </div>
+
+      <footer>OrchestKit · chore/1554-closes-drift · single-file playground, no external deps.</footer>
+    </div>
+
+    <script>
+      // Mirror GitHub's linked-issue parser: a keyword must immediately precede each #N.
+      const KW = /\b(close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b\s+#(\d+)/gi;
+      const REF = /#(\d+)/g;
+
+      const bodyEl = document.getElementById('body');
+      const closeEl = document.getElementById('closeChips');
+      const stayEl = document.getElementById('stayChips');
+      const verdict = document.getElementById('verdict');
+
+      function render() {
+        const text = bodyEl.value;
+        const closed = new Set();
+        let m;
+        KW.lastIndex = 0;
+        while ((m = KW.exec(text)) !== null) closed.add(m[2]);
+        const allRefs = new Set();
+        REF.lastIndex = 0;
+        while ((m = REF.exec(text)) !== null) allRefs.add(m[1]);
+        const stay = [...allRefs].filter((n) => !closed.has(n));
+
+        closeEl.innerHTML = closed.size
+          ? [...closed].sort((a, b) => a - b).map((n) => `<span class="chip close">#${n} ✅</span>`).join('')
+          : '<span class="legend">(none)</span>';
+        stayEl.innerHTML = stay.length
+          ? stay.sort((a, b) => a - b).map((n) => `<span class="chip stay">#${n}</span>`).join('')
+          : '<span class="legend">(none)</span>';
+
+        verdict.innerHTML = stay.length
+          ? `<span class="danger">${stay.length} referenced issue(s) would stay open.</span> If any ship in this PR, prefix each with a keyword.`
+          : `<span class="ok">No drift — every referenced issue is keyword-linked.</span>`;
+      }
+      bodyEl.addEventListener('input', render);
+      render();
+    </script>
+  </body>
+</html>
