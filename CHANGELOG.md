@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.11.1](https://github.com/yonatangross/orchestkit/compare/v8.11.0...v8.11.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* **ci:** npm publish tarball must use an absolute path ([#2098](https://github.com/yonatangross/orchestkit/issues/2098)) ([4b6d22b](https://github.com/yonatangross/orchestkit/commit/4b6d22b9860bdb6a72cada0bde9a737a5a653d1b))
+
 ## [8.11.0](https://github.com/yonatangross/orchestkit/compare/v8.10.2...v8.11.0) (2026-05-29)
 
 
