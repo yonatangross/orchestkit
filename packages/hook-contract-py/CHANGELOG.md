@@ -2,7 +2,12 @@
 
 All notable changes to `orchestkit-hook-contract` are documented here.
 
-## Unreleased — release-flow scaffolding + HMAC signing
+## 0.1.1 — 2026-05-30
+
+First lockstep release with the npm sibling (`@orchestkit/hook-contract@0.1.1`).
+Ships the HMAC signing module — previously unreleased on PyPI — and the OIDC
+release pipeline. `0.1.0` (2026-05-18) predated signing; `0.1.1` brings PyPI to
+content + version parity with npm, both cut from `spec/hook-events.spec.yml`.
 
 ### Added
 
@@ -11,9 +16,9 @@ All notable changes to `orchestkit-hook-contract` are documented here.
 - `.github/workflows/publish-hook-contract-py.yml` — tag-driven PyPI release pipeline. Triggers on `hook-contract-py/v*` tags. Pipeline: preflight → build → test → publish-testpypi → smoke-testpypi → publish-pypi → github-release. Pattern adapted from Yonatan-HQ/core; uses public PyPI + OIDC trusted publishing.
 - `packages/hook-contract-py/RELEASING.md` — release-flow documentation including the one-time Trusted Publisher setup on pypi.org and test.pypi.org.
 
-### Not Yet
+### Released
 
-- v0.1.0 is not yet on PyPI. After this PR merges and the Trusted Publisher entries are registered, `git tag hook-contract-py/v0.1.0 && git push origin hook-contract-py/v0.1.0` cuts the first release.
+- v0.1.0 is live on PyPI (manual bootstrap lineage). v0.1.1 is the first release cut via the OIDC pipeline, tagged alongside the npm sibling: `git tag hook-contract-py/v0.1.1 hook-contract-npm/v0.1.1 && git push origin --tags`.
 
 ## 0.1.0 — 2026-05-18
 

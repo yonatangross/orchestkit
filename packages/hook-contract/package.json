@@ -1,6 +1,6 @@
 {
   "name": "@orchestkit/hook-contract",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hook event contract for OrchestKit — types, JSON schemas, and a thin validation helper. Zero runtime deps.",
   "type": "module",
   "main": "./dist/cjs/index.js",

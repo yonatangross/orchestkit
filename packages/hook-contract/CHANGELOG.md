@@ -2,9 +2,23 @@
 
 All notable changes to `@orchestkit/hook-contract` are documented here.
 
-## Unreleased — M141-4 (#1805)
+## 0.1.1 — 2026-05-30
 
-### Added
+First release cut through the OIDC publish pipeline (#2096). `0.1.0` was a manual
+bootstrap publish to create the package; from `0.1.1` on, npm and PyPI ship in
+lockstep off `spec/hook-events.spec.yml` via tag-triggered OIDC workflows, and
+this version brings both registries to content + version parity.
+
+### Release infrastructure
+
+- `.github/workflows/publish-hook-contract-npm.yml` — tag-driven npm release
+  (version-parity preflight → build → vitest → pack-smoke → `npm publish
+  --provenance` via OIDC trusted publishing → GitHub release). A symmetric parity
+  assert was added to the PyPI workflow so the two registries can never drift.
+- `packages/hook-contract/RELEASING.md` — release procedure + one-time setup.
+- `repository.url` normalized to `git+https://…` (npm publish hygiene).
+
+### M141-4 — HMAC signing (#1805)
 
 - `docs/signing-rfc.md` — HMAC-SHA256 signing protocol RFC. Stripe-style `X-CC-Hooks-Signature: t=<unix>,v1=<hex>` header, 300s replay window, multi-scheme key rotation, stable `Reason` enum (`ok | missing_header | malformed_header | stale | signature_mismatch | weak_secret`). Language-neutral spec — npm and PyPI implementations MUST match byte-for-byte.
 - `src/signing.ts` — pure verifier (`verify`) + signer (`sign`) using `node:crypto` (`createHmac`, `timingSafeEqual`). Multi-secret rotation support; never throws on bad header input — every failure maps to a `Reason`. Constant-time compare on equal-length buffers only.
@@ -26,9 +40,7 @@ All notable changes to `@orchestkit/hook-contract` are documented here.
 - Platform consumer (`yonatan-hq/platform`) currently uses a non-conforming header (`X-CC-Hooks-Signature: sha256=<hex>` with no replay protection); migration is M141-8 (#1809). The RFC appendix captures the gap analysis.
 - `@types/node` added as a devDependency for `node:crypto` types — still zero runtime deps.
 
-## Unreleased — M141-2 step 1 (#1864)
-
-### Added
+### M141-2 — per-event JSON schemas, step 1 (#1864)
 
 - `spec/hook-events.spec.yml` — single source of truth for the 19 hook events. Per-event payload fields will be filled in by M141-2 steps 3-4.
 - `packages/hook-contract/scripts/codegen.mjs` — node-only emitter (zero deps). Reads the spec, writes `events.generated.ts` + `schemas.generated.ts`. `--check` mode is the drift gate.
