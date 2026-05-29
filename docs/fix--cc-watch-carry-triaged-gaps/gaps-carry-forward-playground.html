@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cc-watch gaps carry-forward — interactive playground</title>
+    <style>
+      :root {
+        --bg: #0d1117; --panel: #161b22; --border: #30363d; --fg: #e6edf3;
+        --muted: #8b949e; --green: #3fb950; --red: #f85149; --yellow: #d29922;
+        --blue: #58a6ff; --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--mono); line-height: 1.55; }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      h2 { font-size: 15px; margin: 32px 0 12px; color: var(--blue); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+      p, li { color: var(--fg); font-size: 13.5px; }
+      .muted { color: var(--muted); }
+      .sub { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+      .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin: 14px 0; }
+      .row { display: flex; flex-wrap: wrap; gap: 18px; }
+      .col { flex: 1 1 380px; }
+      table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+      th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted); font-weight: 600; }
+      .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+      .pill.carry { background: rgba(63,185,80,.16); color: var(--green); border: 1px solid var(--green); }
+      .pill.prune { background: rgba(248,81,73,.14); color: var(--red); border: 1px solid var(--red); }
+      label.tog { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; user-select: none; font-size: 13px; }
+      input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); }
+      .verdict { font-size: 15px; font-weight: 700; margin-top: 10px; }
+      .verdict.carry { color: var(--green); }
+      .verdict.prune { color: var(--red); }
+      .reason { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+      pre { background: #0a0d12; border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 12px; color: #c9d1d9; }
+      code { color: var(--yellow); }
+      .legend { font-size: 12px; color: var(--muted); }
+      .danger { color: var(--red); }
+      .ok { color: var(--green); }
+      footer { margin-top: 40px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); padding-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>cc-watch gaps carry-forward 🔄</h1>
+      <p class="sub">
+        Interactive explorer for <code>fix/cc-watch-carry-triaged-gaps</code> — why triaged CC-adoption
+        features got dropped (the #2084 straggler class) and how the fix decides <b>carry</b> vs <b>prune</b>.
+      </p>
+
+      <h2>The pipeline</h2>
+      <div class="panel">
+        <pre>cc-release-watch.mjs  →  cc-triage.mjs --retry-failed  →  cc-file-adoption-issues.sh  →  commit/PR
+   (writes gaps)            (fills features[])              (files issues + STAMPS               (next run reads
+                                                             issues_filed_at)                     the gaps file)</pre>
+        <p class="muted">
+          Each new <code>cc-release-watch</code> run rebuilds the gaps file from scratch, then re-appends
+          surviving older entries (<i>carry-forward</i>). The bug was in <b>which</b> entries survived.
+        </p>
+      </div>
+
+      <h2>Try it — toggle one gap entry's state</h2>
+      <div class="row">
+        <div class="col panel">
+          <p class="sub">An already-snapshotted version sits in the gaps file. A NEW version just appeared, so the watcher rebuilds. Does this entry survive?</p>
+          <label class="tog"><input type="checkbox" id="parseFailed" /> <span><code>parse_failed: true</code> — triage couldn't parse the changelog (stuck, needs <code>--retry-failed</code>)</span></label>
+          <label class="tog"><input type="checkbox" id="hasFeatures" checked /> <span><code>features[]</code> populated — triage extracted adoptable features</span></label>
+          <label class="tog"><input type="checkbox" id="filed" /> <span><code>issues_filed_at</code> stamped — the filer finished creating issues for it</span></label>
+          <div class="legend" style="margin-top:10px">Default state = the exact 2.1.153/154 straggler: triaged, not yet filed.</div>
+        </div>
+        <div class="col panel">
+          <p class="sub">Watcher carry-forward decision</p>
+          <div id="verdict" class="verdict">—</div>
+          <div id="reason" class="reason"></div>
+          <hr style="border-color:var(--border);margin:14px 0" />
+          <p class="sub" style="margin-bottom:4px">Old code (parse_failed-only) would have:</p>
+          <div id="oldVerdict" class="verdict">—</div>
+          <div id="oldReason" class="reason"></div>
+        </div>
+      </div>
+
+      <h2>Truth table</h2>
+      <div class="panel">
+        <table>
+          <thead><tr><th>parse_failed</th><th>features[]</th><th>issues_filed_at</th><th>OLD behavior</th><th>NEW (fixed)</th><th>Correct?</th></tr></thead>
+          <tbody id="ttBody"></tbody>
+        </table>
+        <p class="legend" style="margin-top:10px">
+          The two <span class="danger">red OLD cells</span> are the data-loss bug: triaged-but-unfiled work
+          silently dropped. The fix carries them; once the filer stamps <code>issues_filed_at</code>, they prune
+          (keeps the file bounded → no <code>gh</code> secondary rate-limit, and never re-files a closed issue).
+        </p>
+      </div>
+
+      <h2>The one-line rule</h2>
+      <div class="panel">
+        <pre>// cc-release-watch.mjs — carry forward anything still representing PENDING work
+const carriedPending = existingGaps.filter(
+  (e) =&gt; e?.version
+      &amp;&amp; !newVersionSet.has(e.version)          // not superseded by a fresh entry this run
+      &amp;&amp; (e.parse_failed === true || !e.issues_filed_at),  // stuck OR triaged-but-unfiled
+);</pre>
+        <pre># cc-file-adoption-issues.sh — stamp processed entries so they prune next run
+jq --arg ts "$TS" \
+  'map(if (.parse_failed // false) == true then . else . + {issues_filed_at: $ts} end)' \
+  "$GAPS_FILE"</pre>
+      </div>
+
+      <h2>Bonus: the visual-style pre-flight (same PR)</h2>
+      <div class="panel">
+        <p class="sub">Type a PR body line; the classic trap is <code>✓</code>/<code>✗</code> (U+2713/U+2717), not in the 12-glyph vocabulary.</p>
+        <input id="vsInput" type="text" value="done ✓ shipped 🎯" style="width:100%;padding:8px;background:#0a0d12;border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:var(--mono)" />
+        <div id="vsResult" class="verdict" style="margin-top:10px">—</div>
+        <div class="legend" style="margin-top:6px">Allowed: ✅ ❌ ⚠ 🔄 ⏸ 💡 🚨 🎯 🔥 📜 🤖 ⚡ + 🟢🟡🔴 🥇🥈🥉. <code>bin/check-pr-visual-style.sh</code> runs this engine before <code>gh pr create</code>.</div>
+      </div>
+
+      <footer>
+        OrchestKit · fix/cc-watch-carry-triaged-gaps · single-file playground, no external deps.
+      </footer>
+    </div>
+
+    <script>
+      const VOCAB = new Set(['✅','❌','⚠','🔄','⏸','💡','🚨','🎯','🔥','📜','🤖','⚡','🟢','🟡','🔴','🥇','🥈','🥉','️','‍']);
+      // NEW rule: carry if stuck OR not-yet-filed.
+      function newCarry(pf, filed) { return pf === true || !filed; }
+      // OLD rule: carry only if stuck.
+      function oldCarry(pf) { return pf === true; }
+
+      const els = {
+        pf: document.getElementById('parseFailed'),
+        feat: document.getElementById('hasFeatures'),
+        filed: document.getElementById('filed'),
+        verdict: document.getElementById('verdict'),
+        reason: document.getElementById('reason'),
+        oldVerdict: document.getElementById('oldVerdict'),
+        oldReason: document.getElementById('oldReason'),
+      };
+
+      function render() {
+        const pf = els.pf.checked, feat = els.feat.checked, filed = els.filed.checked;
+        const nc = newCarry(pf, filed), oc = oldCarry(pf);
+        els.verdict.textContent = nc ? 'CARRY FORWARD ✅' : 'PRUNE';
+        els.verdict.className = 'verdict ' + (nc ? 'carry' : 'prune');
+        els.reason.textContent = pf
+          ? 'parse_failed → stuck, kept for --retry-failed.'
+          : (!filed
+            ? 'Not yet stamped issues_filed_at → still pending; the filer may not have created its issues yet.'
+            : 'Stamped issues_filed_at → fully processed; safe to drop (bounded file, no re-file of closed issues).');
+        els.oldVerdict.textContent = oc ? 'carry forward' : 'DROP';
+        els.oldVerdict.className = 'verdict ' + (oc ? 'carry' : 'prune');
+        const dataLoss = !oc && feat && !filed;
+        els.oldReason.innerHTML = dataLoss
+          ? '<span class="danger">DATA LOSS — triaged features silently dropped (the #2084 straggler bug).</span>'
+          : (oc ? 'parse_failed entry preserved.' : 'dropped (no features at risk here).');
+      }
+      [els.pf, els.feat, els.filed].forEach((e) => e.addEventListener('change', render));
+      render();
+
+      // Truth table
+      const rows = [
+        [true, false, false], [true, false, true],
+        [false, true, false], [false, true, true],
+        [false, false, false], [false, false, true],
+      ];
+      const tt = document.getElementById('ttBody');
+      const yn = (b) => (b ? '✅' : '—');
+      for (const [pf, feat, filed] of rows) {
+        const oc = oldCarry(pf), nc = newCarry(pf, filed);
+        const dataLoss = !oc && feat && !filed;
+        const correct = nc === (pf || !filed);
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${yn(pf)}</td><td>${yn(feat)}</td><td>${yn(filed)}</td>` +
+          `<td class="${dataLoss ? 'danger' : ''}">${oc ? 'carry' : (dataLoss ? 'DROP ✗' : 'drop')}</td>` +
+          `<td><span class="pill ${nc ? 'carry' : 'prune'}">${nc ? 'carry' : 'prune'}</span></td>` +
+          `<td class="ok">${correct ? '✓' : ''}</td>`;
+        tt.appendChild(tr);
+      }
+
+      // Visual-style mini-demo
+      const vsIn = document.getElementById('vsInput'), vsOut = document.getElementById('vsResult');
+      function isEmoji(ch) { const c = ch.codePointAt(0); return c >= 0x1F000 || /\p{So}/u.test(ch); }
+      function checkVS() {
+        const bad = [];
+        for (const ch of vsIn.value) { if (VOCAB.has(ch)) continue; if (isEmoji(ch)) bad.push(ch); }
+        if (bad.length === 0) { vsOut.textContent = 'CLEAN ✅ — passes the lint'; vsOut.className = 'verdict carry'; }
+        else { vsOut.textContent = 'VIOLATION — ' + [...new Set(bad)].join(' '); vsOut.className = 'verdict prune'; }
+      }
+      vsIn.addEventListener('input', checkVS);
+      checkVS();
+    </script>
+  </body>
+</html>

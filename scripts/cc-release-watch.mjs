@@ -164,13 +164,22 @@ function main() {
     .filter((v) => reissueSet.has(v.version) || !snapshotted.has(v.version))
     .sort((a, b) => compareSemver(a.version, b.version));
 
-  // Carry forward STUCK (parse_failed) entries from the existing gaps file.
-  // Without this, cc-release-watch overwrites the gaps file with only the
-  // newly-discovered versions, silently wiping any parse_failed entry for an
-  // already-snapshotted version — which made `cc-triage --retry-failed` a
-  // no-op (it found "gaps file empty") and left the version recoverable only
-  // via a manual `--reissue-existing`. Versions being re-emitted this run are
-  // excluded (their fresh entry supersedes the stuck one).
+  // Carry forward every existing entry that still represents PENDING work:
+  //   1. STUCK entries (parse_failed === true) awaiting `cc-triage --retry-failed`.
+  //   2. TRIAGED-but-unfiled entries — features[] populated but the filer
+  //      (cc-file-adoption-issues.sh) has not yet stamped `issues_filed_at`.
+  // The old `parse_failed === true`-only filter silently wiped class 2 on the
+  // next watch run, which is the #2084 straggler class: triage populated the
+  // 2.1.153/154 features, the filer died/rate-limited before creating the
+  // issues, and the next run dropped the entries — recoverable only via a
+  // manual `--reissue-existing` + hand data-restore.
+  //
+  // Entries the filer HAS stamped `issues_filed_at` are PRUNED here so the
+  // file stays bounded (else the filer re-scans every historical version each
+  // run → gh secondary rate-limit) and adopted (closed) issues are never
+  // re-filed — the filer dedups against OPEN issues only, so a re-scanned
+  // closed feature would be filed again. Versions being re-emitted this run
+  // are excluded too (their fresh entry supersedes the old one).
   const existingGaps = (() => {
     if (!existsSync(GAPS_PATH)) return [];
     try {
@@ -181,14 +190,16 @@ function main() {
     }
   })();
   const newVersionSet = new Set(newVersions.map((v) => v.version));
-  const carriedFailed = existingGaps.filter((e) => e?.parse_failed === true && !newVersionSet.has(e.version));
+  const carriedPending = existingGaps.filter(
+    (e) => e?.version && !newVersionSet.has(e.version) && (e.parse_failed === true || !e.issues_filed_at),
+  );
 
   if (newVersions.length === 0) {
-    // Preserve stuck entries so --retry-failed still has something to retry;
-    // only fully clear the file when there are none.
-    if (carriedFailed.length > 0) {
-      writeFileSync(GAPS_PATH, JSON.stringify(carriedFailed, null, 2) + '\n');
-      console.log(`cc-release-watch: nothing new; preserved ${carriedFailed.length} parse_failed entr(ies) for retry.`);
+    // Preserve pending (stuck + triaged-unfiled) entries so --retry-failed and
+    // the filer still have work; only fully clear the file when there are none.
+    if (carriedPending.length > 0) {
+      writeFileSync(GAPS_PATH, JSON.stringify(carriedPending, null, 2) + '\n');
+      console.log(`cc-release-watch: nothing new; preserved ${carriedPending.length} pending entr(ies) (stuck + triaged-unfiled).`);
     } else {
       if (existsSync(GAPS_PATH)) writeFileSync(GAPS_PATH, '[]\n');
       console.log('cc-release-watch: nothing new.');
@@ -223,11 +234,12 @@ function main() {
     features: [], // filled in by triage; if empty after triage, a manual-triage issue is filed by the workflow
     raw_bullets_count: v.body.split('\n').filter((l) => l.trim().startsWith('-')).length,
   }));
-  // Append carried-forward parse_failed entries (computed above) so a stuck
-  // version survives this overwrite and stays retryable by cc-triage.
-  const allGaps = [...gaps, ...carriedFailed];
+  // Append carried-forward pending entries (computed above) so stuck AND
+  // triaged-but-unfiled versions survive this overwrite and stay retryable by
+  // cc-triage / fileable by cc-file-adoption-issues.sh.
+  const allGaps = [...gaps, ...carriedPending];
   writeFileSync(GAPS_PATH, JSON.stringify(allGaps, null, 2) + '\n');
-  console.log(`  wrote ${GAPS_PATH} (${gaps.length} new + ${carriedFailed.length} carried parse_failed)`);
+  console.log(`  wrote ${GAPS_PATH} (${gaps.length} new + ${carriedPending.length} carried pending)`);
 
   // Pre-compute milestone title for the workflow's filer step.
   // SINGLE ROLLING UMBRELLA: every CC version files into one permanent
