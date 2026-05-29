@@ -71,21 +71,21 @@ export function safelyMatches(
  *   3. Update the playground/changelog if user-visible.
  */
 export const TOOL_INVOCATION_RULES: ToolInvocationRule[] = [
-  // ─── #1883 — Agent(isolation:"worktree") thrashes primary HEAD ───
-  // The built-in Agent tool param doesn't actually call `git worktree
-  // add`; it flips primary HEAD and races node_modules. Operators
-  // (and AI) keep reaching for it because the tool description
-  // suggests it works. The manual pre-create pattern is documented in
-  // /ork:cover and /ork:implement (M167.4 / PR #1835).
+  // ─── #1883 — Agent(isolation:"worktree"); FIXED in CC 2.1.154 ───
+  // On CC ≤ 2.1.153 the built-in Agent param flipped primary HEAD and raced
+  // node_modules (it didn't truly `git worktree add`). CC 2.1.154 fixed
+  // subagent worktree-isolation. Our support floor is 2.1.148, so the bug
+  // still bites 2.1.148–2.1.153 — keep the warning but make it version-aware.
+  // The manual pre-create pattern is documented in /ork:cover and /ork:implement.
   {
     id: 'agent-isolation-worktree',
     tool_name: 'Agent',
     predicate: (input) => input.isolation === 'worktree',
     severity: 'warn',
     message:
-      "Agent(isolation:'worktree') is known broken — it flips primary HEAD and races node_modules. " +
-      'Use the manual pre-create pattern: `git worktree add ../<repo>-<task> -b <branch> origin/main` ' +
-      "BEFORE the Agent call, then prefix the agent's prompt with `FIRST: cd <path>`.",
-    see: 'docs/parallel-primitives.md + #1883',
+      "Agent(isolation:'worktree') was broken on CC ≤ 2.1.153 (flipped primary HEAD, raced node_modules) but is FIXED in CC 2.1.154+. " +
+      'On CC 2.1.154+ use it directly. On 2.1.148–2.1.153, use the manual pre-create pattern: ' +
+      '`git worktree add ../<repo>-<task> -b <branch> origin/main` BEFORE the Agent call, then prefix the prompt with `FIRST: cd <path>`.',
+    see: 'docs/parallel-primitives.md + #1883 (fixed CC 2.1.154)',
   },
 ];

@@ -1,6 +1,6 @@
 ---
 name: multimodal-specialist
-description: "Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.7, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, multimodal RAG."
+description: "Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, Grok 4, Kling 3.0, Sora 2, Veo 3.1, and Runway Gen-4.5 for image analysis, transcription, AI video generation, multimodal RAG."
 category: llm
 model: sonnet
 maxTurns: 30
@@ -77,7 +77,7 @@ Before completing, store significant patterns:
 
 ## Concrete Objectives
 
-1. Integrate vision APIs (GPT-5, Claude Opus 4.7, Gemini 2.5/3, Grok 4)
+1. Integrate vision APIs (GPT-5, Claude Opus 4.8, Gemini 2.5/3, Grok 4)
 2. Implement audio transcription (Whisper, AssemblyAI, Deepgram)
 3. Set up text-to-speech pipelines (OpenAI TTS, ElevenLabs)
 4. Build multimodal RAG with CLIP/Voyage embeddings
@@ -95,7 +95,7 @@ Return structured integration report:
   "integration": {
     "modalities": ["vision", "audio"],
     "providers": ["openai", "anthropic", "google"],
-    "models": ["gpt-5", "claude-opus-4-7", "gemini-2.5-pro"]
+    "models": ["gpt-5", "claude-opus-4-8", "gemini-2.5-pro"]
   },
   "endpoints_created": [
     {"path": "/api/v1/analyze-image", "method": "POST"},
@@ -154,7 +154,7 @@ Return structured integration report:
 ### Vision Models
 | Task | Recommended Model |
 |------|-------------------|
-| Highest accuracy | Claude Opus 4.7, GPT-5 |
+| Highest accuracy | Claude Opus 4.8, GPT-5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M) |
 | Real-time + X data | Grok 4 with DeepSearch |
