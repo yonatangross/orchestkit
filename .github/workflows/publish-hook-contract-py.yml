@@ -91,6 +91,15 @@ jobs:
             echo "::error::Fix: bump pyproject.toml first, then tag."
             exit 1
           fi
+          # Lockstep parity (approach E): the contract ships as ONE version across
+          # both registries. Refuse a PyPI release whose version differs from npm.
+          # Mirrors the same assert in publish-hook-contract-npm.yml.
+          NPM_VERSION=$(jq -r .version packages/hook-contract/package.json)
+          if [[ "$PY_VERSION" != "$NPM_VERSION" ]]; then
+            echo "::error::LOCKSTEP VIOLATION: PyPI $PY_VERSION != npm $NPM_VERSION (packages/hook-contract/package.json)."
+            echo "::error::Bump both to the same version, then tag both hook-contract-py/v$PY_VERSION and hook-contract-npm/v$PY_VERSION."
+            exit 1
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::Preflight OK — releasing $TAG as version $VERSION"
