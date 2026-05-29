@@ -2,20 +2,349 @@
   {
     "version": "2.1.154",
     "parse_failed": false,
-    "features": [],
+    "features": [
+      {
+        "feature_slug": "subagent_worktree_isolation_fix",
+        "category": "breaking",
+        "description": "Subagents in background sessions no longer bypass worktree-isolation guard, preventing shared checkout writes",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "swarm-migrate"
+        ],
+        "reference_changelog_line": "Fixed subagents in background sessions bypassing the worktree-isolation guard and writing to the shared checkout"
+      },
+      {
+        "feature_slug": "rm_rf_home_trailing_slash_fix",
+        "category": "breaking",
+        "description": "rm -rf $HOME now blocked as dangerous path even when HOME has trailing slash",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed `rm -rf $HOME` not being blocked as a dangerous path when `HOME` has a trailing slash"
+      },
+      {
+        "feature_slug": "tmpdir_sandbox_consistency_fix",
+        "category": "breaking",
+        "description": "$TMPDIR now resolves consistently across sandboxed and unsandboxed Bash commands in same session",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed `$TMPDIR` resolving to different directories in sandboxed vs unsandboxed Bash commands within the same session"
+      },
+      {
+        "feature_slug": "auto_mode_exfiltration_detection",
+        "category": "breaking",
+        "description": "Auto-mode classifier improved at detecting data exfiltration, especially bulk repo content transfers",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Improved the auto-mode classifier's detection of data exfiltration, particularly bulk transfers of repository contents"
+      },
+      {
+        "feature_slug": "managed_settings_mcp_policy_fix",
+        "category": "breaking",
+        "description": "Invalid allowedMcpServers/deniedMcpServers entry no longer discards entire managed-settings policy",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed a single invalid `allowedMcpServers`/`deniedMcpServers` entry in managed settings discarding all managed-settings policy; the bad entry is now dropped with a `claude doctor` warning"
+      },
+      {
+        "feature_slug": "mcp_pending_approval_display",
+        "category": "breaking",
+        "description": "claude mcp list/get shows unapproved .mcp.json servers as Pending approval instead of auto-approving",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "`claude mcp list`/`get` now show unapproved `.mcp.json` servers as `⏸ Pending approval` instead of auto-approving and connecting when output is piped"
+      },
+      {
+        "feature_slug": "lean_system_prompt_default",
+        "category": "breaking",
+        "description": "Lean system prompt now default for all models except Haiku, Sonnet, and Opus 4.7 and earlier",
+        "gap_score": 20,
+        "affected_skills": [
+          "upgrade-assessment",
+          "claude-api"
+        ],
+        "reference_changelog_line": "The lean system prompt is now the default for all models except Haiku, Sonnet, and Opus 4.7 and earlier"
+      },
+      {
+        "feature_slug": "simplify_cleanup_only_review",
+        "category": "breaking",
+        "description": "/simplify now runs cleanup-only review instead of full /code-review --fix bug-hunting",
+        "gap_score": 20,
+        "affected_skills": [
+          "simplify",
+          "code-review-playbook"
+        ],
+        "reference_changelog_line": "`/simplify` now runs a cleanup-only review (reuse, simplification, efficiency, altitude) and applies the fixes, instead of running the full `/code-review --fix` bug-hunting review"
+      },
+      {
+        "feature_slug": "streaming_tool_exec_always_on",
+        "category": "breaking",
+        "description": "Streaming tool execution always enabled, including telemetry-disabled and Bedrock/Vertex/Foundry",
+        "gap_score": 20,
+        "affected_skills": [
+          "monitoring-observability",
+          "telemetry-inspect"
+        ],
+        "reference_changelog_line": "Streaming tool execution is now always enabled, including when telemetry is disabled or on Bedrock/Vertex/Foundry (previously behind a feature flag)"
+      },
+      {
+        "feature_slug": "multiple_choice_prompt_reserved",
+        "category": "breaking",
+        "description": "Claude reserves multiple-choice question prompt for decisions it genuinely cannot make itself",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Claude now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, instead of asking when it already has enough context to proceed"
+      },
+      {
+        "feature_slug": "workflows_command",
+        "category": "new_command",
+        "description": "/workflows command launches dynamic workflows orchestrating tens to hundreds of background agents",
+        "gap_score": 15,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "Introducing dynamic workflows: ask Claude to create a workflow and it orchestrates work across tens to hundreds of agents in the background, so you can take on larger, more complex tasks. Run `/workflows` to view your runs"
+      },
+      {
+        "feature_slug": "claude_agents_bg_shell",
+        "category": "new_command",
+        "description": "claude agents: type ! <command> to run shell command as attachable background session, also via --bg --exec",
+        "gap_score": 15,
+        "affected_skills": [
+          "agent-orchestration",
+          "dev"
+        ],
+        "reference_changelog_line": "`claude agents`: type `! <command>` to run a shell command as a background session you can attach to and detach from. Also available as `claude --bg --exec '<command>'`"
+      },
+      {
+        "feature_slug": "effort_xhigh_command",
+        "category": "new_command",
+        "description": "Opus 4.8 defaults to high effort; /effort xhigh available for hardest tasks",
+        "gap_score": 15,
+        "affected_skills": [
+          "claude-api",
+          "upgrade-assessment"
+        ],
+        "reference_changelog_line": "Opus 4.8 is here! Now defaults to high effort · /effort xhigh for your hardest tasks"
+      },
+      {
+        "feature_slug": "chrome_browser_selection",
+        "category": "new_command",
+        "description": "/chrome → Select browser… picks connected browser for Claude in Chrome actions",
+        "gap_score": 15,
+        "affected_skills": [
+          "browser-tools"
+        ],
+        "reference_changelog_line": "Claude in Chrome: pick which connected browser to use via `/chrome` → \"Select browser…\", or in-chat when a browser action runs with multiple connected"
+      },
+      {
+        "feature_slug": "opus_4_6_fast_override_deprecation",
+        "category": "deprecation",
+        "description": "CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE deprecated, removal on 06/01; use /model + /fast on instead",
+        "gap_score": 8,
+        "affected_skills": [
+          "claude-api",
+          "upgrade-assessment"
+        ],
+        "reference_changelog_line": "Deprecated `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE` (will be removed on 06/01). To use fast mode on Opus 4.6, switch with `/model claude-opus-4-6[1m]` and then `/fast on`"
+      },
+      {
+        "feature_slug": "plugin_default_enabled_false",
+        "category": "new_field",
+        "description": "Plugins can declare defaultEnabled: false in plugin.json or marketplace entry, enable via /plugin",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "setup"
+        ],
+        "reference_changelog_line": "Plugins can now declare `defaultEnabled: false` in `plugin.json` or a marketplace entry; enable them with `/plugin` or `claude plugin enable`. Dependencies of enabled plugins are still enabled automatically"
+      },
+      {
+        "feature_slug": "mcp_subprocess_session_env",
+        "category": "new_field",
+        "description": "Stdio MCP server subprocesses receive CLAUDE_CODE_SESSION_ID and CLAUDECODE=1 in environment",
+        "gap_score": 5,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Stdio MCP server subprocesses now receive `CLAUDE_CODE_SESSION_ID` and `CLAUDECODE=1` in their environment"
+      },
+      {
+        "feature_slug": "plugin_discover_directory_pin",
+        "category": "new_attr",
+        "description": "/plugin Discover tab pins plugins matching current directory with suggested for this directory annotation",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "setup"
+        ],
+        "reference_changelog_line": "The `/plugin` Discover tab now pins plugins whose relevance signals match the current directory with a \"suggested for this directory\" annotation"
+      }
+    ],
     "raw_bullets_count": 44
   },
   {
     "version": "2.1.156",
-    "parse_failed": false,
+    "parse_failed": true,
     "features": [],
-    "raw_bullets_count": 1
+    "raw_bullets_count": 1,
+    "failed_at": "2026-05-29T09:59:12.667Z"
   },
   {
     "version": "2.1.153",
-    "parse_failed": true,
-    "features": [],
-    "raw_bullets_count": 36,
-    "failed_at": "2026-05-28T15:10:45.223Z"
+    "features": [
+      {
+        "feature_slug": "oauth_credential_leak_to_gateway_fix",
+        "category": "breaking",
+        "description": "Custom API gateway no longer receives the user's Anthropic OAuth credential instead of its own token.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Fixed a regression where a custom API gateway could receive the user's Anthropic OAuth credential instead of the gateway's own token"
+      },
+      {
+        "feature_slug": "subagent_mcp_policy_bypass_fix",
+        "category": "breaking",
+        "description": "Subagent frontmatter MCP servers now honor --strict-mcp-config, --bare, remote mode, and managed allow/deny policies.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "agent-orchestration",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed subagent (Agent tool) frontmatter MCP servers ignoring `--strict-mcp-config`, `--bare`, remote mode, enterprise managed MCP config, and managed-settings MCP server allow/deny policies"
+      },
+      {
+        "feature_slug": "strict_mcp_config_preserves_inline",
+        "category": "breaking",
+        "description": "--strict-mcp-config preserves inline mcpServers in explicit agent definitions and warns on blocked subagent MCP servers.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "`--strict-mcp-config` no longer strips inline `mcpServers` from explicitly-passed agent definitions (`--agents` / SDK `agents`), and blocked subagent MCP servers now surface a visible warning"
+      },
+      {
+        "feature_slug": "agent_claude_worktree_discard_fix",
+        "category": "breaking",
+        "description": "Agent tool with subagent_type 'claude' no longer runs in a hidden worktree that silently discarded gitignored outputs.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "swarm-migrate",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed `Agent` tool with `subagent_type: 'claude'` running in an undocumented temporary worktree, which could silently discard outputs written to gitignored paths"
+      },
+      {
+        "feature_slug": "bg_continues_in_progress_response",
+        "category": "breaking",
+        "description": "/bg invoked mid-response now continues the response in the background session instead of dropping it.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "`/bg` while Claude is responding now continues the response in the background session instead of dropping it"
+      },
+      {
+        "feature_slug": "bg_job_dir_no_sensitive_prompt",
+        "category": "breaking",
+        "description": "Background sessions writing to $CLAUDE_JOB_DIR no longer trigger the sensitive-file permission prompt.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed background sessions writing temp files to `$CLAUDE_JOB_DIR` triggering a \"sensitive file\" permission prompt"
+      },
+      {
+        "feature_slug": "model_selection_default_persist",
+        "category": "breaking",
+        "description": "/model now persists selection as the default for new sessions; press s to scope choice to current session only.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "setup"
+        ],
+        "reference_changelog_line": "`/model` now saves your selection as the default for new sessions (matching the IDE). Press `s` in the picker to switch models for the current session only."
+      },
+      {
+        "feature_slug": "macos_bg_agents_privacy_identity",
+        "category": "new_perm",
+        "description": "macOS background agents now run as 'Claude Code' in Privacy & Security and retain permission grants across upgrades.",
+        "gap_score": 12,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "macOS: background agents now appear as \"Claude Code\" in Privacy & Security and keep their permission grants across upgrades"
+      },
+      {
+        "feature_slug": "model_picker_keybinding_rename",
+        "category": "deprecation",
+        "description": "modelPicker:setAsDefault keybinding is replaced by modelPicker:thisSessionOnly (action `d` becomes `s`).",
+        "gap_score": 8,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "If you customized the `modelPicker:setAsDefault` keybinding, rename it to `modelPicker:thisSessionOnly` in keybindings.json (the `d` action was replaced by `s`)"
+      },
+      {
+        "feature_slug": "marketplace_skip_lfs_option",
+        "category": "new_field",
+        "description": "skipLfs option for github/git plugin marketplace sources skips Git LFS downloads during clone and update.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "github-operations"
+        ],
+        "reference_changelog_line": "Added `skipLfs` option to `github`/`git` plugin marketplace sources to skip Git LFS downloads during clone and update"
+      },
+      {
+        "feature_slug": "statusline_columns_lines_env",
+        "category": "new_field",
+        "description": "Status line commands now receive COLUMNS and LINES env vars so scripts can size output to the terminal width.",
+        "gap_score": 5,
+        "affected_skills": [
+          "ascii-visualizer",
+          "ci-debug"
+        ],
+        "reference_changelog_line": "Status line commands now receive `COLUMNS` and `LINES` environment variables so scripts can size output to the terminal width"
+      },
+      {
+        "feature_slug": "agents_dispatch_autocomplete_expanded",
+        "category": "new_attr",
+        "description": "claude agents dispatch input autocomplete now suggests native slash commands and bundled skills, not just project skills",
+        "gap_score": 5,
+        "affected_skills": [
+          "agent-orchestration",
+          "help"
+        ],
+        "reference_changelog_line": "`claude agents`: autocomplete in the dispatch input now suggests native slash commands and bundled skills, not just project skills"
+      }
+    ],
+    "raw_bullets_count": 36
   }
 ]
