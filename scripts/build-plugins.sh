@@ -283,9 +283,25 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Build MCP server if source exists
     if [[ -d "$SRC_DIR/mcp-server" ]] && [[ -f "$SRC_DIR/mcp-server/package.json" ]]; then
         pushd "$SRC_DIR/mcp-server" > /dev/null
-        if [[ ! -d "node_modules" ]]; then
-            # Use npm ci for deterministic installs (Scorecard #129)
-            npm ci --ignore-scripts 2>/dev/null
+        # Reinstall when the lockfile changed since the last install — NOT just
+        # when node_modules is absent. The old `[[ ! -d node_modules ]]` guard
+        # skipped `npm ci` on a warm checkout after a dependency bump, so esbuild
+        # bundled STALE deps and the committed server.mjs drifted from a fresh CI
+        # build (CI always installs into a clean tree). That mismatch is #1796.
+        if command -v sha256sum > /dev/null 2>&1; then
+            lock_hash="$(sha256sum package-lock.json | cut -d' ' -f1)"
+        else
+            lock_hash="$(shasum -a 256 package-lock.json | cut -d' ' -f1)"
+        fi
+        stamp="node_modules/.ork-lockhash"
+        stamp_val=""
+        [[ -f "$stamp" ]] && stamp_val="$(cat "$stamp")"
+        if [[ ! -d "node_modules" ]] || [[ "$stamp_val" != "$lock_hash" ]]; then
+            # npm ci for deterministic installs (Scorecard #129). Errors surface
+            # (no stderr suppression) — a silent install failure here is exactly
+            # what let stale deps reach the bundle before #1796.
+            npm ci --ignore-scripts
+            printf '%s\n' "$lock_hash" > "$stamp"
         fi
         node esbuild.config.mjs
         popd > /dev/null
