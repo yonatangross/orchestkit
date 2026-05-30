@@ -34,7 +34,9 @@ const config = {
           key: "Content-Security-Policy",
           value: [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'",
+            // 'unsafe-eval' only in dev — Turbopack/React dev mode needs eval();
+            // production stays strict (no eval, React never uses it in prod).
+            `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: https:",
             "font-src 'self' data:",
