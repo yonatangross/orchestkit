@@ -208,19 +208,13 @@ test_demo_gallery_uses_video_cdn() {
     fi
 }
 
-test_homepage_uses_cdn_thumbnail() {
-    local homepage="${PROJECT_ROOT}/docs/site/app/(home)/page.tsx"
-    if grep -q "thumbnailCdn" "$homepage"; then
-        log_pass "homepage uses thumbnailCdn for demo showcase"
-    else
-        log_fail "homepage does not use thumbnailCdn — showcase always uses local thumbnails"
-    fi
-}
+# (removed) test_homepage_uses_cdn_thumbnail — the homepage demo showcase was
+# removed (no demo videos on the landing page). The CDN-thumbnail guard is still
+# enforced where the showcase now lives: test_demo_gallery_uses_cdn_thumbnail.
 
 test_demo_gallery_has_video_element
 test_demo_gallery_uses_cdn_thumbnail
 test_demo_gallery_uses_video_cdn
-test_homepage_uses_cdn_thumbnail
 
 test_demo_gallery_has_production_state() {
     local gallery="${PROJECT_ROOT}/docs/site/components/demo-gallery.tsx"
