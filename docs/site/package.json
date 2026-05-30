@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "node ../../scripts/generate-docs-data.js",
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "git fetch --unshallow 2>/dev/null || true; next build --webpack",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "test": "vitest run -c vitest.site.config.ts",
@@ -19,14 +19,14 @@
     "@xyflow/react": "^12.10.1",
     "@yonatan-hq/analytics": "^1.0.3",
     "esbuild": "^0.27.4",
-    "fumadocs-core": "^16.5.0",
-    "fumadocs-mdx": "^14.0.0",
-    "fumadocs-ui": "^16.5.0",
+    "fumadocs-core": "^16.9.3",
+    "fumadocs-mdx": "^15.0.10",
+    "fumadocs-ui": "^16.9.3",
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.475.0",
     "next": "^16.2.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@mdx-js/mdx": "^3.1.1",

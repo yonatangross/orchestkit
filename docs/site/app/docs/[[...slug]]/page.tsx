@@ -1,4 +1,5 @@
 import { source } from "@/lib/source";
+import { findNeighbour } from "fumadocs-core/page-tree";
 import {
   DocsPage,
   DocsBody,
@@ -26,6 +27,10 @@ export default async function Page(props: {
     page.data.lastModified instanceof Date
       ? page.data.lastModified
       : undefined;
+  // Restore Fumadocs' built-in prev/next footer nav: the flux DocsPage `footer`
+  // does NOT auto-derive neighbours — they must be passed explicitly. The old
+  // `footer={{ children }}` override silently dropped prev/next site-wide.
+  const neighbours = findNeighbour(source.pageTree, page.url);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -45,7 +50,9 @@ export default async function Page(props: {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
+      breadcrumb={{ enabled: true }}
       footer={{
+        items: neighbours,
         children: (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <EditOnGitHub

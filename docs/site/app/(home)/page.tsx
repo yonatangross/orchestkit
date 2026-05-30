@@ -3,8 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { formatStars } from "@/lib/format-stars";
-import { COMPOSITIONS } from "@/lib/generated/compositions-data";
-import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
 import { AnimateOnView } from "@/components/animate-on-view";
 
 async function getStarCount(): Promise<number | null> {
@@ -366,59 +364,6 @@ export default async function HomePage() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ DEMO SHOWCASE (kept from prior landing) ============ */}
-      <section aria-labelledby="demos-heading" className="border-b border-fd-border">
-        <div className="mx-auto max-w-[1200px] px-7 py-16">
-          <div className="mb-[18px] flex items-baseline justify-between gap-4">
-            <div>
-              <span className="inline-flex items-center gap-2.5 font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
-                <span aria-hidden="true" className="h-px w-2.5 bg-fd-muted-foreground opacity-50" />
-                Demos
-              </span>
-              <h2
-                id="demos-heading"
-                className="mt-2 text-2xl font-semibold tracking-[-0.015em] text-fd-foreground"
-              >
-                See it in action
-              </h2>
-            </div>
-            <Link
-              href="/docs/reference"
-              className="font-mono text-[13px] text-fd-primary transition-colors hover:text-[var(--color-fd-primary-50)]"
-            >
-              View all →
-            </Link>
-          </div>
-          <div className="flex gap-[14px] overflow-x-auto pb-4">
-            {COMPOSITIONS.filter((c) => c.format === "landscape" && c.videoCdn)
-              .slice(0, 6)
-              .map((comp) => (
-                <Link
-                  key={comp.id}
-                  href="/docs/reference"
-                  className="group w-[260px] flex-none overflow-hidden rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
-                >
-                  <div className="relative aspect-video bg-fd-background">
-                    <OptimizedThumbnail
-                      src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
-                      alt={`${comp.id.replace(/([A-Z])/g, " $1").trim()} — ${comp.durationSeconds}s demo`}
-                    />
-                    <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] font-medium text-white">
-                      {comp.durationSeconds}s
-                    </span>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-sm font-medium text-fd-foreground">
-                      {comp.id.replace(/([A-Z])/g, " $1").trim()}
-                    </h3>
-                    <p className="mt-0.5 font-mono text-[11px] text-fd-muted-foreground">{comp.command}</p>
-                  </div>
-                </Link>
-              ))}
           </div>
         </div>
       </section>

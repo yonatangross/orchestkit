@@ -16,7 +16,11 @@ export function CopyInstallButton() {
         setTimeout(() => setCopied(false), 2000);
       }}
       className="group/copy inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 font-mono text-sm text-fd-muted-foreground transition-colors hover:border-fd-muted-foreground/40 hover:text-fd-foreground"
-      aria-label={copied ? "Copied install command to clipboard" : "Copy install command to clipboard"}
+      aria-label={
+        copied
+          ? `Copied ${SITE.installCommand} to clipboard`
+          : `Copy ${SITE.installCommand} to clipboard`
+      }
     >
       <span className="text-fd-muted-foreground" aria-hidden="true">$</span>
       <span>{SITE.installCommand}</span>

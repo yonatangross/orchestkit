@@ -30,7 +30,7 @@
   --color-fd-card: oklch(0.975 0.005 250);             /* #f3f6f8 */
   --color-fd-card-foreground: oklch(0.208 0.042 265);  /* #0f172a */
   --color-fd-border: oklch(0.929 0.013 255);           /* #e2e8f0 */
-  --color-fd-primary: oklch(0.596 0.145 163);          /* #059669 */
+  --color-fd-primary: oklch(0.527 0.118 162);          /* #047857 emerald-700 — darkened from #059669 for WCAG AA on white (link text was ~3.6:1) */
   --color-fd-primary-foreground: oklch(1.0 0 0);       /* #ffffff */
   --color-fd-secondary: oklch(0.968 0.007 250);        /* #f1f5f9 */
   --color-fd-secondary-foreground: oklch(0.208 0.042 265); /* #0f172a */
@@ -64,7 +64,7 @@
   --color-fd-background: oklch(0.165 0.022 265);       /* #0c0f14 */
   --color-fd-foreground: oklch(0.929 0.013 255);       /* #e2e8f0 */
   --color-fd-muted: oklch(0.254 0.030 260);            /* #1c2436 */
-  --color-fd-muted-foreground: oklch(0.704 0.022 255); /* #94a3b8 */
+  --color-fd-muted-foreground: oklch(0.769 0.020 255); /* #b1bccb — lifted from 0.704 for WCAG AA contrast on small labels */
   --color-fd-popover: oklch(0.192 0.025 260);          /* #111621 */
   --color-fd-popover-foreground: oklch(0.929 0.013 255); /* #e2e8f0 */
   --color-fd-card: oklch(0.192 0.025 260);             /* #111621 */
