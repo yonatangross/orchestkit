@@ -25,7 +25,7 @@ Evaluate platform upgrade readiness for Claude model transitions, Claude Code ve
 
 ## When to Use
 
-- Before upgrading the Claude model (e.g., Sonnet 4 to Opus 4.6)
+- Before upgrading the Claude model (e.g., Sonnet 4 to Opus 4.8)
 - Before upgrading Claude Code to a new major/minor version
 - Before upgrading OrchestKit to a new major version
 - When evaluating whether a team environment is ready for a platform change
@@ -50,7 +50,7 @@ Determine the assessment scope before scanning. Ask the user:
 
 > What type of upgrade are you assessing?
 > 1. **Full platform** - Model + CC version + OrchestKit (comprehensive)
-> 2. **Model only** - Switching Claude model (e.g., Sonnet 4.5 to Opus 4.6)
+> 2. **Model only** - Switching Claude model (e.g., Sonnet 4.5 to Opus 4.8)
 > 3. **CC version only** - Claude Code version bump (e.g., 2.1.32 to 2.1.33)
 > 4. **OrchestKit only** - Plugin version upgrade (e.g., 5.x to 6.x)
 

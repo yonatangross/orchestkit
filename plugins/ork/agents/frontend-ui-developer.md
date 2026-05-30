@@ -107,9 +107,9 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
 - `21st-dev-magic` - Search 21st.dev registry for production-ready React components. Prefer registry components over generating from scratch when a good match exists.
-- **Opus 4.6 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
+- **Opus 4.8 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete component families (components + hooks + schemas + tests + stories) in a single pass.
 With 128K output, build entire feature pages without splitting across responses.
 

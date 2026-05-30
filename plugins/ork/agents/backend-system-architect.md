@@ -106,9 +106,9 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic
-- **Opus 4.6 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
+- **Opus 4.8 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete API implementations (routes + models + schemas + tests) in a single pass.
 Prefer comprehensive single-response output over multiple incremental generations.
 

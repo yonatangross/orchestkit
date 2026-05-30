@@ -30,7 +30,7 @@ describe('cc-version-matrix', () => {
     // Single canary: bump this number when adding entries.
     // Drop check belongs here too — if anyone removes an entry the count regresses.
     test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(447);
+      expect(CC_FEATURE_MATRIX.length).toBe(459);
     });
 
     test('is sorted by version ascending', () => {

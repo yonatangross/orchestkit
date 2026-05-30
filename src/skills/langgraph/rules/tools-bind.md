@@ -38,7 +38,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email sent to {to}"
 
 tools = [search_database, send_email]
-model = ChatAnthropic(model="claude-sonnet-4-20250514")
+model = ChatAnthropic(model="claude-sonnet-4-6")
 model_with_tools = model.bind_tools(tools)
 
 def agent_node(state):

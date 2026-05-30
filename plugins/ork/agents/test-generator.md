@@ -97,7 +97,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete test suites (unit + integration + fixtures + MSW handlers) in a single pass.
 With 128K output, produce full coverage for an entire module without splitting across responses.
 

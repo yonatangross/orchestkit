@@ -21,7 +21,8 @@ Model ID format changed from `claude-{version}-{variant}` to `claude-{variant}-{
 | `claude-opus-4-20250514` | `claude-opus-4-6-20260115` | +1M context, +128K output, +files API |
 | `claude-opus-4-6-20260115` | `claude-opus-4-6` | Opus 4.6 1M context GA (no premium, no beta header) |
 | `claude-opus-4-6` | `claude-opus-4-7` | Opus 4.7 — xhigh effort (CC 2.1.111+), 3× vision resolution (2,576 px), substantially better filesystem memory + instruction following, updated tokenizer (same pricing as 4.6) |
-| `claude-sonnet-4-5-20250929` | `claude-sonnet-4-6` | Sonnet 4.6 (current latest — aliases to this automatically) |
+| `claude-opus-4-7` | `claude-opus-4-8` | Opus 4.8 (current latest Opus) — defaults to high effort, xhigh for hardest tasks, lean system prompt (CC 2.1.154) |
+| `claude-sonnet-4-5-20250929` | `claude-sonnet-4-6` | Sonnet 4.6 (current latest Sonnet — aliases to this automatically) |
 
 ### Common Breaking Changes
 

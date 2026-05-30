@@ -24,7 +24,7 @@ for msg, meta in graph.stream(inputs, stream_mode="messages"):
 
 **Filtered by tags (more flexible):**
 ```python
-model = init_chat_model("claude-sonnet-4-20250514", tags=["main_response"])
+model = init_chat_model("claude-sonnet-4-6", tags=["main_response"])
 
 for msg, meta in graph.stream(inputs, stream_mode="messages"):
     if "main_response" in meta.get("tags", []):

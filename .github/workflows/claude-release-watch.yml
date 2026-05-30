@@ -78,7 +78,7 @@ jobs:
       - name: Install Claude Code CLI
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.122 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
 

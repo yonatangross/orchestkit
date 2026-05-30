@@ -219,7 +219,7 @@ async def multi_context_analysis(content: str, analysis_id: str):
 
     # Retrieval LLM
     retrieval_llm = ChatAnthropic(
-        model="claude-haiku-4-5-20251101",  # Faster, cheaper for retrieval
+        model="claude-haiku-4-5-20251001",  # Faster, cheaper for retrieval
         callbacks=[retrieval_handler],
     )
 
