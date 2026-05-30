@@ -129,7 +129,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-7` (2,576 px, 3× Opus 4.6) or `gpt-5.2` |
+| High accuracy vision | `claude-opus-4-8` (2,576 px, 3× Opus 4.6) or `gpt-5.2` |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
@@ -158,7 +158,7 @@ with open("image.png", "rb") as f:
     b64 = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-opus-4-7",
+    model="claude-opus-4-8",
     max_tokens=1024,
     messages=[{"role": "user", "content": [
         {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},

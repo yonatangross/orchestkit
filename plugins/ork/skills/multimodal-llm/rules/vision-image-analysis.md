@@ -48,7 +48,7 @@ response = client.chat.completions.create(
 **Claude — different content structure (type: "image", not "image_url"):**
 ```python
 response = client.messages.create(
-    model="claude-opus-4-7",
+    model="claude-opus-4-8",
     max_tokens=4096,
     messages=[{
         "role": "user",
@@ -79,7 +79,7 @@ for img_path in images:
     b64, mt = encode_image(img_path)
     content.append({"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}})
 content.append({"type": "text", "text": "Compare these images..."})
-response = client.messages.create(model="claude-opus-4-7", max_tokens=8192, messages=[{"role": "user", "content": content}])
+response = client.messages.create(model="claude-opus-4-8", max_tokens=8192, messages=[{"role": "user", "content": content}])
 ```
 
 **Object detection with bounding boxes (Gemini 2.5+):**

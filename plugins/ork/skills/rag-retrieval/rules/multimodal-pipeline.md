@@ -39,7 +39,7 @@ class MultimodalRAG:
 
 **Multimodal Generation:**
 ```python
-async def generate_with_context(query: str, chunks: list[Chunk], model: str = "claude-opus-4-7") -> str:
+async def generate_with_context(query: str, chunks: list[Chunk], model: str = "claude-opus-4-8") -> str:
     content = []
     # Add images first (attention positioning)
     for chunk in chunks:
