@@ -253,7 +253,7 @@ Before marking complete:
 - [ ] Hook text is compelling
 - [ ] Duration matches content density
 
-## Opus 4.6: 128K Output
+## Opus 4.8: 128K Output
 
 With 128K output tokens, generate complete artifacts in a single pass. Do not split large outputs across multiple responses — deliver comprehensive results at once.
 

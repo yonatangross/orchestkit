@@ -386,6 +386,10 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `/model` default persist | 2.1.153 | `/model` saves the selection as the default for new sessions; press `s` for session-only. **BREAKING:** keybinding `modelPicker:setAsDefault` renamed to `modelPicker:thisSessionOnly` (documented in `setup/references/keybindings.md`) | `d` set default; old binding name silently dead |
 | subagent MCP policy + strict-config fixes | 2.1.153 | Subagent frontmatter `mcpServers` now honor `--strict-mcp-config`/`--bare`/managed-MCP allow-deny; `--strict-mcp-config` no longer strips inline `mcpServers` from explicit `--agents` defs. ork agents declaring `mcpServers` inherit policy correctly — no ork change | Subagent MCP servers bypassed managed policy |
 | OAuth gateway credential fix | 2.1.153 | Fixed a custom API gateway receiving the user's Anthropic OAuth credential instead of the gateway's own token (security). CC-internal; no ork surface | Gateway could receive the wrong credential |
+| `/usage` per-category breakdown | 2.1.149 | `/usage` breaks cost down per skill, subagent, plugin, and per-MCP-server — complements `claude plugin details ork` for ork cost audits | Aggregate usage only |
+| internal infra + thinking-block fix | 2.1.155–2.1.156 | 2.1.155 is internal infrastructure only; 2.1.156 fixes a client crash where modified thinking blocks on Opus 4.8 caused API errors. No ork surface | — |
+| `.claude/skills` autoload + `plugin init` | 2.1.157 | Plugins under `.claude/skills` auto-load without a marketplace; `claude plugin init <name>` scaffolds a plugin; `EnterWorktree` switches worktree mid-session; `OTEL_LOG_TOOL_DETAILS=1` adds `tool_parameters` spans; `/config` toggles the Workflow keyword trigger. ork: no adoption yet (local-skills autoload could simplify dev installs) | Plugins required a marketplace; no mid-session worktree switch |
+| auto mode on cloud providers | 2.1.158 | `CLAUDE_CODE_ENABLE_AUTO_MODE=1` enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC (2026-05-30). No ork surface | Auto mode was first-party API only |
 
 ## Prompt Caching Recommendation
 

@@ -43,7 +43,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 /ork:explore authentication
 ```
 
-> **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
+> **Opus 4.8**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
 
 ---
 

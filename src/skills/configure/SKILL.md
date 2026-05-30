@@ -134,7 +134,7 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
 | agentation | UI annotation tool | enabled | `npm install agentation-mcp` |
 
-> **Why all enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.6 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why all enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 

@@ -279,7 +279,7 @@ async function condenseQuestion(
   }
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo', // Cheaper model for this task
+    model: 'gpt-5.2-mini', // Cheaper model for this task
     messages: [
       {
         role: 'system',

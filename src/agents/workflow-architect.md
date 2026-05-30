@@ -84,11 +84,11 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 6. Check `TaskList` before starting to see pending work
 
 ## MCP Tools (Optional — skip if not configured)
-- **Opus 4.6 adaptive thinking** — Complex workflow reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
+- **Opus 4.8 adaptive thinking** — Complex workflow reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete workflow graphs, state schemas, and node implementations in a single pass.
 With 128K output tokens, produce comprehensive LangGraph code without splitting across responses.
 

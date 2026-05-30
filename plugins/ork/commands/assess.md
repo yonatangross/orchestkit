@@ -302,7 +302,7 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ## Self-Reported Uncertainty (Opus 4.8, `xhigh` effort)
 
-Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
+Opus 4.8 is materially better than older tiers at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
 
 Output schema per dimension (JSON):
 

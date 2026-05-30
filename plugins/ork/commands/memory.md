@@ -11,7 +11,7 @@ allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nod
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
-> **Cross-session read strategy (Opus 4.7 / CC 2.1.111+):** Opus 4.7 reads filesystem memory more reliably than 4.6. When loading context at session start, prefer the layered read order:
+> **Cross-session read strategy (Opus 4.8 / CC 2.1.111+):** Opus 4.8 reads filesystem memory more reliably than older tiers. When loading context at session start, prefer the layered read order:
 > 1. `~/.claude/projects/<slug>/memory/MEMORY.md` (durable index — load first, always)
 > 2. `.claude/chain/state.json` + most recent `NN-*.json` handoff (session continuation)
 > 3. MCP `mcp__memory__search_nodes` for anything the filesystem index doesn't answer (typed graph traversal)

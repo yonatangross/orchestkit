@@ -104,9 +104,9 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
 - `stitch` — Extract design context from screenshots/URLs via official Google Stitch MCP. Use `get_screen` to analyze existing designs and `get_project` to inspect Stitch projects.
-- **Opus 4.6 adaptive thinking** — Complex token hierarchy decisions, theming strategy evaluation. Native feature for multi-step reasoning — no MCP calls needed.
+- **Opus 4.8 adaptive thinking** — Complex token hierarchy decisions, theming strategy evaluation. Native feature for multi-step reasoning — no MCP calls needed.
 
-## Opus 4.6: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete token systems (global + alias + component tokens + theme config + Style Dictionary config) in a single pass.
 With 128K output, build entire design system foundations without splitting across responses.
 

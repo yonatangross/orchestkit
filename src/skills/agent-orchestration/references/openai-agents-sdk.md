@@ -451,7 +451,7 @@ from agents.extensions.litellm import LiteLLMModel
 agent = Agent(
     name="claude_agent",
     instructions="You are helpful.",
-    model=LiteLLMModel(model="anthropic/claude-sonnet-4-20250514")
+    model=LiteLLMModel(model="anthropic/claude-sonnet-4-6")
 )
 ```
 
