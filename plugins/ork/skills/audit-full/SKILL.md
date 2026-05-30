@@ -2,7 +2,7 @@
 name: audit-full
 license: MIT
 compatibility: "Claude Code 2.1.148+. Requires memory MCP server."
-description: "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
+description: "Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 argument-hint: "[scope]"
 context: fork
 version: 1.2.0
@@ -22,7 +22,7 @@ metadata:
 
 # Full-Codebase Audit
 
-Single-pass whole-project analysis leveraging Opus 4.6's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
+Single-pass whole-project analysis leveraging Opus 4.8's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
 
 ## Quick Start
 
@@ -33,11 +33,11 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 /ork:audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 4.6 / 4.7**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss. On Opus 4.7, prefers `xhigh` effort for one additional cross-file pattern sweep.
+> **Opus 4.8**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss. Opus 4.8 defaults to `high` effort; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` (Opus 4.8) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Opus 4.8 defaults to `high` (CC 2.1.154) and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 

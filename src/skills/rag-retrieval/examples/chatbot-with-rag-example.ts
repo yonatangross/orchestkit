@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 async function shouldUseRAG(message: string, _history: unknown[]): Promise<boolean> {
   // Use a cheap model to determine if RAG is needed
   const response = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-5.2-mini',
     messages: [
       {
         role: 'system',

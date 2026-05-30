@@ -110,9 +110,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("${CLAUDE_SKILL_DIR}/rules/batch-governance.md")`.
 
-### Budget Awareness (Opus 4.7 task budgets, public beta)
+### Budget Awareness (Opus 4.8 task budgets, public beta)
 
-Opus 4.7 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+Opus 4.8 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
 
 ```python
 # At end of every phase, estimate remaining budget:
@@ -398,7 +398,7 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 - **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("${CLAUDE_PLUGIN_ROOT}/agents/shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
-- **Output limits (CC 2.1.77+):** Opus 4.7 defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
+- **Output limits (CC 2.1.77+):** Opus 4.8 defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
 - **Micro-plan before implementing** — scope boundaries, file list, acceptance criteria
 - **Detect scope creep** (phase 7) — score 0-10, split PR if significant
 - **Real services when available** — if docker-compose/testcontainers exist, use them in Phase 6

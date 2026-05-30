@@ -25,7 +25,8 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.91 compliant: MCP `_meta["anthropic/maxResultSizeChars"]` respected by mcp-output-transform, `disableSkillShellExecution` awareness
 - CC 2.1.98 compliant: Monitor tool in workflow skills, SCRIPT_CAPS enforcement, bg subagent partial progress handling, hook stderr display awareness
 - CC 2.1.101 compliant: 253-entry version matrix, deny-overrides-ask in dangerous-command-blocker, 26 skill frontmatter corrections (context/agent fields now enforced), dynamic MCP inheritance for subagents
-- Event coverage: 24/26 CC events hooked; CwdChanged + FileChanged deliberately unhooked (no use case)
+- CC 2.1.158 compliant: 460-entry version matrix (catalogued through 2.1.158 — MessageDisplay 2.1.152, dynamic workflows + Opus 4.8 2.1.154, .claude/skills autoload 2.1.157), `MessageDisplay` event in the HookEventName union, `disallowed-tools` frontmatter. Counts: `claude plugin details ork` is the source of truth.
+- Event coverage: CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---
 

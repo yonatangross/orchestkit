@@ -8,7 +8,7 @@ Use this structure for all audit reports.
 # Audit Report: {project-name}
 
 **Date:** {YYYY-MM-DD}
-**Auditor:** Claude Opus 4.6 via /ork:audit-full
+**Auditor:** Claude Opus 4.8 via /ork:audit-full
 **Mode:** {Full | Security | Architecture | Dependencies}
 **Scope:** {Entire codebase | Directory: path/ | Changed files only}
 
@@ -110,7 +110,7 @@ Violations: {list any dependency direction violations}
 {list of all files loaded into context}
 
 ### Methodology
-- Single-pass analysis using Opus 4.6 1M context (GA)
+- Single-pass analysis using Opus 4.8 1M context (GA)
 - Cross-file data flow tracing
 - OWASP Top 10 mapping
 - Clean architecture layering check

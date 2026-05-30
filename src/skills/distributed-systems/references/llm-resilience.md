@@ -357,7 +357,7 @@ class CostCircuitBreaker:
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
             "gpt-5.2": {"input": 2.5, "output": 10.0},
             "gpt-5.2-mini": {"input": 0.15, "output": 0.60},
-            "claude-haiku-4-5-20251101": {"input": 0.80, "output": 4.0},
+            "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.0},
         }
 
         prices = PRICING.get(model, {"input": 1.0, "output": 3.0})

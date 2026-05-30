@@ -52,7 +52,7 @@ Unsure OR mixed concerns?      → workflow-architect
 | `ui-feedback` | frontend | sonnet | low | UI annotation and feedback processor. Watches for new annotations from agentation, maps element paths to so… |
 | `git-operations-engineer` | git | haiku | low | Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. |
 | `llm-integrator` | llm | sonnet | medium | LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost op… |
-| `multimodal-specialist` | llm | sonnet | medium | Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.6, GPT-5… |
+| `multimodal-specialist` | llm | sonnet | medium | Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5… |
 | `workflow-architect` | llm | opus | high | Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration. |
 | `market-intelligence` | product | haiku | low | Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis. |
 | `product-strategist` | product | inherit | medium | Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, … |

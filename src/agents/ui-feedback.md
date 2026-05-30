@@ -122,7 +122,7 @@ Map annotated UI elements back to source files using these strategies:
 - Search for unique text content visible in the annotation screenshot
 - Search for nearby ARIA labels or data-testid attributes
 
-### Vision note (Opus 4.8 / CC 2.1.111+)
+### Vision note (Opus 4.8 / CC 2.1.154+)
 Annotation screenshots up to **2,576 px on the long edge** (~3.75 MP, 3× Opus 4.6) are read natively — text inside small UI chrome (tooltip labels, status chips, dense table cells) that previously blurred is now legible. When an annotation comes in at native Retina resolution (e.g. 2,880 px screenshots of a 1,440 px viewport), prefer reading at full size over downscaling.
 
 ## Task Management
