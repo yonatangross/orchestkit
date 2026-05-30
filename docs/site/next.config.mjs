@@ -16,12 +16,21 @@ const config = {
       destination: "/docs/foundations/overview",
       permanent: false,
     },
+    {
+      // 301 the bare Vercel host onto the canonical brand domain (orchestkit.yonyon.ai).
+      // Preview deployments (orchestkit-<hash>.vercel.app) don't match this exact host,
+      // so they stay reachable; only the production alias is redirected.
+      source: "/:path*",
+      has: [{ type: "host", value: "orchestkit.vercel.app" }],
+      destination: "https://orchestkit.yonyon.ai/:path*",
+      statusCode: 301,
+    },
   ],
   headers: async () => [
     {
       source: "/(.*)",
       headers: [
-        { key: "Access-Control-Allow-Origin", value: "https://orchestkit.vercel.app" },
+        { key: "Access-Control-Allow-Origin", value: "https://orchestkit.yonyon.ai" },
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

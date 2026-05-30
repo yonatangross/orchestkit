@@ -8,7 +8,7 @@ import { TOTALS, MIN_CC_VERSION } from "./generated/shared-data";
 export const SITE = {
   name: "OrchestKit",
   version: orkManifest.version,
-  domain: "https://orchestkit.vercel.app",
+  domain: "https://orchestkit.yonyon.ai",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
   ccVersion: `${MIN_CC_VERSION}+`,

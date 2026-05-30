@@ -25,7 +25,7 @@ vi.mock("..//lib/constants", () => ({
   SITE: {
     name: "OrchestKit",
     version: "6.3.0",
-    domain: "https://orchestkit.vercel.app",
+    domain: "https://orchestkit.yonyon.ai",
     github: "https://github.com/yonatangross/orchestkit",
     installCommand: "claude install orchestkit/ork",
   },
