@@ -1,0 +1,6 @@
+# Modern evergreen targets — drops Next.js's legacy-browser polyfill bundle
+# (~41KB on the homepage). Covers ~96% of global users; docs readers are devs.
+chrome >= 111
+edge >= 111
+firefox >= 111
+safari >= 16.4
