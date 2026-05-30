@@ -17,7 +17,7 @@
 ---
 
 <p align="center">
-  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a> ·
+  <a href="https://orchestkit.yonyon.ai/"><strong>Explore the Docs →</strong></a> ·
   <a href="https://chat.whatsapp.com/Krraz7LhB951K7nQfC08B2"><strong>OrchestKit Users Group →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
@@ -68,7 +68,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
 
-**[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
+**[Browse everything in the Docs →](https://orchestkit.yonyon.ai/docs/skills/overview)**
 
 ---
 
@@ -137,7 +137,7 @@ To install beta or alpha:
 /plugin install ork@orchestkit-alpha
 ```
 
-Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.vercel.app/docs/getting-started/release-channels).
+Run `/ork:doctor` to check which channel you're on. [Full docs](https://orchestkit.yonyon.ai/docs/getting-started/release-channels).
 
 ---
 
@@ -227,7 +227,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **shadcn/ui v4 styles** — 6 styles across 7 design skills
 - **CC 2.1.90 integration** — format-on-save, offline resilience, `/powerup` onboarding
 
-[Full Changelog →](https://orchestkit.vercel.app/docs/changelog)
+[Full Changelog →](https://orchestkit.yonyon.ai/docs/changelog)
 
 ---
 
@@ -246,7 +246,7 @@ Join the **Code with Yonatan** community for AI dev tips, OrchestKit support, an
 
 <div align="center">
 
-**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
+**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://chat.whatsapp.com/IKgu1xuvKNXHikJ4Qeotpk)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 
