@@ -207,9 +207,10 @@ describe("SetupWizard", () => {
   it("recommends ork by default", () => {
     render(<SetupWizard />);
 
-    // Preview panel should show ork (the single unified plugin)
+    // Preview panel should show ork (the single unified plugin).
+    // The "Full toolkit" label is the ork-specific descriptor next to the badge.
     expect(screen.getByText("ork")).toBeInTheDocument();
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
   });
 
   it("recommends ork regardless of stack selection", () => {
@@ -218,7 +219,7 @@ describe("SetupWizard", () => {
     fireEvent.click(screen.getByRole("button", { name: /python/i }));
 
     // v7: always recommends ork (single plugin)
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
     expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
   });
 
@@ -228,7 +229,7 @@ describe("SetupWizard", () => {
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
     fireEvent.click(screen.getByText("AI / LLM"));
 
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
   });
 
   it("recommends ork when Security focus is selected", () => {
@@ -239,7 +240,7 @@ describe("SetupWizard", () => {
     const securityBtn = screen.getByRole("button", { name: /security/i });
     fireEvent.click(securityBtn);
 
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
   });
 
   it("shows plugin skill count in stats", () => {
@@ -279,7 +280,7 @@ describe("SetupWizard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Backend" }));
 
     // v7: all presets recommend ork (single unified plugin)
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
   });
 
   it("applies AI preset and recommends ork", () => {
@@ -287,7 +288,7 @@ describe("SetupWizard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "AI" }));
 
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
     expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
   });
 
@@ -297,7 +298,7 @@ describe("SetupWizard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Everything" }));
 
     // v7: single ork plugin for everything
-    expect(screen.getByText("The complete AI development toolkit")).toBeInTheDocument();
+    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
   });
 
   it("shows active preset button as pressed", () => {
@@ -328,9 +329,10 @@ describe("SetupWizard", () => {
   it("shows rationale for ork recommendation", () => {
     render(<SetupWizard />);
 
-    // v7: ork is always recommended — rationale reflects unified plugin
+    // v7: ork is always recommended — default rationale (no stack/focus chosen)
+    // points at the full skill toolkit with specialized patterns.
     expect(
-      screen.getByText(/covers your needs/i),
+      screen.getByText(/full .*-skill toolkit with specialized patterns/i),
     ).toBeInTheDocument();
   });
 

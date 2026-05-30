@@ -9,6 +9,7 @@ vi.mock("next/link", () => ({
 // Mock lucide-react
 vi.mock("lucide-react", () => ({
   ChevronRight: () => <span data-testid="chevron" />,
+  ArrowRight: () => <span data-testid="arrow" />,
 }));
 
 // Mock internal components
@@ -83,8 +84,10 @@ describe("getStarCount", () => {
     const result = await HomePage();
     render(result);
 
+    // Hero proof strip renders the formatted count and a "stars" label in
+    // adjacent spans inside the stargazers link.
     expect(screen.getByText("142")).toBeTruthy();
-    expect(screen.getByText(/stars on GitHub/)).toBeTruthy();
+    expect(screen.getByText("stars")).toBeTruthy();
   });
 
   it("renders gracefully when API fails", async () => {
@@ -94,8 +97,8 @@ describe("getStarCount", () => {
     const result = await HomePage();
     render(result);
 
-    // Should still show "stars on GitHub" text without a number
-    expect(screen.getByText(/stars on GitHub/)).toBeTruthy();
+    // When the count is null the link falls back to "Star on GitHub"
+    expect(screen.getByText("Star on GitHub")).toBeTruthy();
   });
 
   it("renders gracefully when fetch throws", async () => {
@@ -105,7 +108,7 @@ describe("getStarCount", () => {
     const result = await HomePage();
     render(result);
 
-    expect(screen.getByText(/stars on GitHub/)).toBeTruthy();
+    expect(screen.getByText("Star on GitHub")).toBeTruthy();
   });
 });
 
@@ -123,8 +126,22 @@ describe("landing page content", () => {
     const result = await HomePage();
     render(result);
 
-    // Hero text uses COUNTS
-    expect(screen.getByText(/69 skills, 38 agents, and 95 hooks/)).toBeTruthy();
+    // Hero proof line renders each count in its own span (mock COUNTS:
+    // 69 skills / 38 agents / 96 hooks). Match the paragraph that contains
+    // all three fragments via its combined textContent.
+    expect(
+      screen.getByText(
+        (_content, el) => {
+          const text = el?.textContent ?? "";
+          return (
+            el?.tagName === "P" &&
+            text.includes("69 skills") &&
+            text.includes("38 agents") &&
+            text.includes("96 hooks")
+          );
+        },
+      ),
+    ).toBeTruthy();
   });
 
   it("has Star on GitHub button linking to repo", async () => {
@@ -132,10 +149,15 @@ describe("landing page content", () => {
     const result = await HomePage();
     render(result);
 
-    const starButton = screen.getByLabelText("Star OrchestKit on GitHub");
-    expect(starButton).toBeTruthy();
-    expect(starButton.getAttribute("href")).toBe("https://github.com/yonatangross/orchestkit");
-    expect(starButton.getAttribute("rel")).toContain("noopener");
+    // The star link wraps the count/"stars" label. With the API mocked to 86
+    // it renders a "stars" label; climb to the anchor and verify it targets
+    // the stargazers page and opens safely.
+    const starLink = screen.getByText("stars").closest("a");
+    expect(starLink).toBeTruthy();
+    expect(starLink?.getAttribute("href")).toBe(
+      "https://github.com/yonatangross/orchestkit/stargazers",
+    );
+    expect(starLink?.getAttribute("rel")).toContain("noopener");
   });
 
   it("has stargazers link in social proof section", async () => {
@@ -143,7 +165,7 @@ describe("landing page content", () => {
     const result = await HomePage();
     render(result);
 
-    const stargazersLink = screen.getByText(/stars on GitHub/).closest("a");
+    const stargazersLink = screen.getByText("stars").closest("a");
     expect(stargazersLink?.getAttribute("href")).toBe(
       "https://github.com/yonatangross/orchestkit/stargazers",
     );
@@ -168,8 +190,12 @@ describe("landing page content", () => {
     const { container } = render(result);
     const text = container.textContent ?? "";
 
-    expect(text).toMatch(/stars on GitHub/);
-    expect(text).toMatch(/Open source/);
-    expect(text).toMatch(/Community-driven/);
+    // Redesigned hero proof strip: live GitHub stars (count + "stars" label
+    // from the API), the MIT license, and the minimum Claude Code version.
+    // The old "Open source" / "Community-driven" copy was removed in the
+    // redesign, so those assertions are gone with it.
+    expect(text).toMatch(/stars/);
+    expect(text).toMatch(/MIT license/);
+    expect(text).toMatch(/Claude Code/);
   });
 });
