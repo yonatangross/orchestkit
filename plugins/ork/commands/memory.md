@@ -47,10 +47,10 @@ AskUserQuestion(
     "question": "What memory operation do you need?",
     "header": "Operation",
     "options": [
-      {"label": "search", "description": "Search decisions and patterns in knowledge graph", "preview": "```\nSearch Knowledge Graph\n──────────────────────\n  query ──▶ mcp__memory ──▶ results\n\n  Flags:\n  --category  Filter by type\n  --agent     Scope to agent\n  --limit N   Max results\n  --global    Cross-project\n```"},
-      {"label": "load", "description": "Load relevant context for this session", "preview": "```\nLoad Session Context\n────────────────────\n  Auto-detect project ──▶\n  ┌────────────────────┐\n  │ Recent decisions   │\n  │ Active patterns    │\n  │ Project entities   │\n  └────────────────────┘\n  Flags: --project, --global\n```"},
-      {"label": "history", "description": "Decision timeline + knowledge-graph viz (--mermaid)", "preview": "```\nDecision Timeline & Graph Viz\n─────────────────────────────\n  ┌──── Feb 28 ────────────┐\n  │ Used Postgres over Mongo│\n  ├──── Feb 27 ────────────┤\n  │ Adopted MVC pattern     │\n  └────────────────────────┘\n  --mermaid ──▶ [Project]──uses──▶[Postgres]\n```"},
-      {"label": "status", "description": "Check memory system health", "preview": "```\nMemory Health Check\n───────────────────\n  ┌─────────────────────┐\n  │ MCP server    ✓/✗   │\n  │ Entity count  N     │\n  │ Relation count N    │\n  │ Last write    date  │\n  │ Graph size    N KB  │\n  └─────────────────────┘\n```"}
+      {"label": "search", "description": "Search decisions and patterns in knowledge graph"},
+      {"label": "load", "description": "Load relevant context for this session"},
+      {"label": "history", "description": "Decision timeline + knowledge-graph viz (--mermaid)"},
+      {"label": "status", "description": "Check memory system health"}
     ],
     "multiSelect": false
   }]

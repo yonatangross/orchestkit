@@ -84,10 +84,10 @@ AskUserQuestion(
     "question": "What should I visualize?",
     "header": "Source",
     "options": [
-      {"label": "Current branch changes (Recommended)", "description": "Auto-detect from git diff against main", "preview": "```\nBranch Diff Analysis\n────────────────────\n$ git diff main...HEAD\n\n→ File change manifest (+A, M, -D)\n→ Execution swimlane by phase\n→ Risk dashboard + pre-mortems\n→ Impact summary (lines, tests, API)\n```"},
-      {"label": "Describe the plan", "description": "I'll explain what I'm planning to change", "preview": "```\nPlan Description\n────────────────\nYou describe → I visualize:\n\n→ Before/after architecture diagrams\n→ Execution order with dependencies\n→ Risk analysis per component\n→ Decision log (ADR-lite format)\n```"},
-      {"label": "GitHub issue", "description": "Pull plan from a specific issue number", "preview": "```\nGitHub Issue Source\n───────────────────\n$ gh issue view #N\n\n→ Extract requirements from body\n→ Map to file-level changes\n→ Generate execution phases\n→ Link back to issue for tracking\n```"},
-      {"label": "Quick file diff only", "description": "Just show the change manifest, skip analysis", "preview": "```\nQuick File Diff\n───────────────\n[A] src/new-file.ts        +120\n[M] src/existing.ts    +15  -8\n[D] src/old-file.ts        -45\n─────────────────────────────\nNET: +82 lines, 3 files\n\nNo risk analysis or swimlanes\n```"}
+      {"label": "Current branch changes (Recommended)", "description": "Auto-detect from git diff against main"},
+      {"label": "Describe the plan", "description": "I'll explain what I'm planning to change"},
+      {"label": "GitHub issue", "description": "Pull plan from a specific issue number"},
+      {"label": "Quick file diff only", "description": "Just show the change manifest, skip analysis"}
     ],
     "multiSelect": false
   }]
@@ -175,10 +175,10 @@ AskUserQuestion(
     "question": "Which sections to render?",
     "header": "Sections",
     "options": [
-      {"label": "All sections", "description": "Full visualization with all 6 core sections", "preview": "```\n[0] Before/After      Arch diff (base vs head)\n[1] Change Manifest   [A]/[M]/[D] file tree\n[2] Execution         Swimlane with phases\n[3] Risks             Dashboard + pre-mortems\n[4] Decisions         ADR-lite decision log\n[5] Impact            Lines, tests, API, deps\n```"},
-      {"label": "Changes + Execution", "description": "File diff tree and execution swimlane", "preview": "```\n[1] Change Manifest\n    [M] src/auth.ts         +45 -12\n    [A] src/oauth.ts        +89\n\n[2] Execution Swimlane\n    Phase 1 ====[auth]========▶\n    Phase 2 ----[blocked]--===▶\n```"},
-      {"label": "Risks + Decisions", "description": "Risk dashboard and decision log", "preview": "```\n[3] Risk Dashboard\n    MEDIUM ██░░ migration reversible\n    HIGH   ███░ API breaking change\n    Pre-mortem: \"What if auth fails?\"\n\n[4] Decision Log\n    D1: OAuth2 over JWT (security)\n    D2: Postgres over Redis (durability)\n```"},
-      {"label": "Impact only", "description": "Just the numbers: files, lines, tests, API surface", "preview": "```\n[5] Impact Summary\n    ┌──────────┬─────┬───────┐\n    │ Metric   │Count│ Delta │\n    ├──────────┼─────┼───────┤\n    │ Files    │  12 │  +3   │\n    │ Lines    │ 450 │ +127  │\n    │ Tests    │   8 │  +4   │\n    │ API sfc  │   3 │  +1   │\n    └──────────┴─────┴───────┘\n```"}
+      {"label": "All sections", "description": "Full visualization with all 6 core sections"},
+      {"label": "Changes + Execution", "description": "File diff tree and execution swimlane"},
+      {"label": "Risks + Decisions", "description": "Risk dashboard and decision log"},
+      {"label": "Impact only", "description": "Just the numbers: files, lines, tests, API surface"}
     ],
     "multiSelect": false
   }]
@@ -224,9 +224,9 @@ AskUserQuestion(
     "question": "What next?",
     "header": "Actions",
     "options": [
-      {"label": "Write to designs/", "description": "Save as designs/{branch}.md for PR review", "preview": "```\nSave to File\n────────────\ndesigns/\n  └── feat-billing-redesign.md\n      ├── Header + metadata\n      ├── All rendered sections\n      └── Ready for PR description\n```"},
-      {"label": "Generate GitHub issues", "description": "Create issues from execution phases with labels and milestones", "preview": "```\nGitHub Issues\n─────────────\n#101 [billing] Phase 1: Schema migration\n     labels: component:billing, risk:medium\n#102 [billing] Phase 2: API endpoints\n     labels: component:billing, risk:low\n     blocked-by: #101\n```"},
-      {"label": "Drill deeper", "description": "Expand blast radius, cross-layer check, or migration checklist", "preview": "```\nDeep Dive Options\n─────────────────\n[6] Blast Radius\n    direct → transitive → test impact\n[7] Cross-Layer Consistency\n    Frontend ↔ Backend endpoint gaps\n[8] Migration Checklist\n    Ordered runbook with time estimates\n```"},
+      {"label": "Write to designs/", "description": "Save as designs/{branch}.md for PR review"},
+      {"label": "Generate GitHub issues", "description": "Create issues from execution phases with labels and milestones"},
+      {"label": "Drill deeper", "description": "Expand blast radius, cross-layer check, or migration checklist"},
       {"label": "Done", "description": "Plan visualization complete"}
     ],
     "multiSelect": false

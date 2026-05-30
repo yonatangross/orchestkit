@@ -89,10 +89,10 @@ AskUserQuestion(
       "question": "What test tiers should I generate?",
       "header": "Test Tiers",
       "options": [
-        {"label": "Full coverage (Recommended)", "description": "Unit + Integration (real services) + E2E", "preview": "```\nFull Coverage\n─────────────\n  Unit            Integration       E2E\n  ┌─────────┐    ┌─────────────┐  ┌──────────┐\n  │ AAA     │    │ Real DB     │  │Playwright│\n  │ Mocks   │    │ Real APIs   │  │Page obj  │\n  │ Factory │    │ Testcontain │  │A11y      │\n  └─────────┘    └─────────────┘  └──────────┘\n  3 parallel test-generator agents\n```"},
-        {"label": "Unit + Integration", "description": "Skip E2E, focus on logic and service boundaries", "preview": "```\nUnit + Integration\n──────────────────\n  Unit tests for business logic\n  Integration tests at API boundaries\n  Real services if docker-compose found\n  Skip: browser automation\n```"},
-        {"label": "Unit only", "description": "Fast isolated tests for business logic", "preview": "```\nUnit Only (~2 min)\n──────────────────\n  AAA pattern tests\n  MSW/VCR mocking\n  Factory-based data\n  Coverage gap analysis\n  Skip: real services, browser\n```"},
-        {"label": "E2E only", "description": "Playwright browser tests", "preview": "```\nE2E Only\n────────\n  Playwright page objects\n  User flow tests\n  Visual regression\n  Accessibility (axe-core)\n```"}
+        {"label": "Full coverage (Recommended)", "description": "Unit + Integration (real services) + E2E"},
+        {"label": "Unit + Integration", "description": "Skip E2E, focus on logic and service boundaries"},
+        {"label": "Unit only", "description": "Fast isolated tests for business logic"},
+        {"label": "E2E only", "description": "Playwright browser tests"}
       ],
       "multiSelect": false
     },

@@ -24,8 +24,7 @@ if not SKIP_REVIEW:  # -y flag bypasses
         "options": [
             {
                 "label": "Run (Recommended)",
-                "description": f"{step_count} steps, ~{estimated_time}s",
-                "preview": test_plan_preview  # First 20 lines of the plan
+                "description": f"{step_count} steps, ~{estimated_time}s"
             },
             {
                 "label": "Edit plan",

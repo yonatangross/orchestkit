@@ -17,10 +17,10 @@ AskUserQuestion(
     "question": "What approach for this fix?",
     "header": "Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations", "preview": "```\nProper Fix (11 phases)\n──────────────────────\n  Issue ──▶ RCA ──▶ Fix ──▶ Prevent\n  ┌─────┐  ┌─────┐  ┌─────┐  ┌───────┐\n  │Read │  │5-Why│  │Code │  │Tests  │\n  │issue│  │Fish │  │impl │  │Runbook│\n  │+hist│  │bone │  │+test│  │Lessons│\n  └─────┘  └─────┘  └─────┘  └───────┘\n  5 parallel agents for RCA\n  Regression test BEFORE fix\n  Prevention + lessons learned\n```"},
-      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue", "preview": "```\nQuick Fix (phases 1-7)\n──────────────────────\n  Issue ──▶ Diagnose ──▶ Fix\n  ┌─────┐   ┌────────┐  ┌─────┐\n  │Read │   │Focused │  │Code │\n  │issue│   │RCA     │  │+test│\n  └─────┘   └────────┘  └─────┘\n  Skip: prevention, runbook,\n  lessons learned phases\n  Still requires regression test\n```"},
-      {"label": "Investigate first (plan mode)", "description": "RCA in read-only plan mode, then ExitPlanMode with a fix plan for approval — no code until approved", "preview": "```\nInvestigate First (plan mode)\n─────────────────────────────\n  EnterPlanMode → research:\n  Issue ──▶ Search ──▶ Trace ──▶ RCA\n  ┌─────┐  ┌──────┐  ┌─────┐  ┌────┐\n  │Read │  │Find  │  │Code │  │Rank│\n  │+repro│ │similar│ │paths│  │conf│\n  └─────┘  └──────┘  └─────┘  └────┘\n  ExitPlanMode → fix plan\n  NO code until approved\n  Best for: complex/multi-file bugs\n```"},
-      {"label": "Hotfix", "description": "Emergency patch, minimal testing", "preview": "```\nHotfix (minimal)\n────────────────\n  Issue ──▶ Fix ──▶ Ship\n  ┌─────┐  ┌────┐  ┌────┐\n  │Skim │  │Min │  │Push│\n  │issue│  │fix │  │now │\n  └─────┘  └────┘  └────┘\n  Skip: similar issue search,\n  deep RCA, prevention\n  ⚠ Follow up with proper fix\n```"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations"},
+      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue"},
+      {"label": "Investigate first (plan mode)", "description": "RCA in read-only plan mode, then ExitPlanMode with a fix plan for approval — no code until approved"},
+      {"label": "Hotfix", "description": "Emergency patch, minimal testing"}
     ],
     "multiSelect": false
   }]

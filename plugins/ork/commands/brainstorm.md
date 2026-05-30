@@ -63,10 +63,10 @@ AskUserQuestion(questions=[{
   "question": "What kind of project is this?",
   "header": "Project tier",
   "options": [
-    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture", "preview": "```\nTier 1: Interview / Take-Home\n─────────────────────────────\nFiles:    8-15 max\nLOC:      200-600\nArch:     Flat structure, no abstractions\nPatterns: Direct imports, inline logic\nTests:    Unit only, co-located\n```"},
-    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast", "preview": "```\nTier 3: Startup / MVP\n─────────────────────\nArch:     MVC monolith\nDB:       Managed (RDS/Supabase)\nCI:       GitHub Actions (1-2 workflows)\nPatterns: Service layer, repository pattern\nDeploy:   Vercel / Railway / Fly.io\n```"},
-    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability", "preview": "```\nTier 4-5: Growth / Enterprise\n─────────────────────────────\nArch:     Modular monolith or DDD\nInfra:    K8s, Terraform, Redis, queues\nCI:       Multi-stage pipelines\nPatterns: Hexagonal, CQRS, event-driven\nObserve:  Structured logging, tracing\n```"},
-    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests", "preview": "```\nTier 6: Open Source Library\n──────────────────────────\nAPI:      Minimal public surface\nTests:    100% coverage, property-based\nDocs:     README, API docs, examples\nCI:       Matrix builds, release automation\nPatterns: Semver, CONTRIBUTING.md\n```"}
+    {"label": "Interview / take-home", "description": "8-15 files, 200-600 LOC, simple architecture"},
+    {"label": "Startup / MVP", "description": "MVC monolith, managed services, ship fast"},
+    {"label": "Growth / enterprise", "description": "Modular monolith or DDD, full observability"},
+    {"label": "Open source library", "description": "Minimal API surface, exhaustive tests"}
   ],
   "multiSelect": false
 }])
@@ -83,7 +83,10 @@ AskUserQuestion(questions=[{
 
 ```python
 # NOTE: AskUserQuestion caps each question at 4 options (CC schema: minItems 2,
-# maxItems 4) and the preview field is `preview`, never `markdown`. The 6 legacy
+# maxItems 4). Use plain `label` + `description` only — the schema permits a
+# `preview` field, but on current CC it forces a side-by-side picker layout with
+# dead up/down keyboard nav (confirmed 2026-05-28), so skills no longer use it
+# (`markdown` was never valid). The 6 legacy
 # modes are split across 3 valid questions: Q1 = exploration flow, Q2 folds the
 # old "Constrained design" mode into constraints, Q3 carries the orthogonal
 # "Plan first" preamble (it composes with any Q1 mode — it was never mutually
@@ -94,10 +97,10 @@ AskUserQuestion(
       "question": "What type of design exploration?",
       "header": "Mode",
       "options": [
-        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3", "preview": "```\nOpen Exploration (7 phases)\n──────────────────────────\n  Diverge        Evaluate       Synthesize\n  ┌─────┐       ┌─────┐       ┌─────┐\n  │ 10+ │──────▶│Rate │──────▶│Top 3│\n  │ideas│       │0-10 │       │picks│\n  └─────┘       └─────┘       └─────┘\n  3-5 agents    Devil's        Trade-off\n  in parallel   advocate       table\n```"},
-        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind", "preview": "```\nComparison Mode\n───────────────\n  Approach A ──┐\n  Approach B ──┼──▶ Rate 0-10 ──▶ Winner\n  Approach C ──┘    (6 dims)\n\n  Skip ideation, jump straight\n  to evaluation + trade-off table\n```"},
-        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation", "preview": "```\nQuick Ideation\n──────────────\n  Braindump ──▶ Light filter ──▶ List\n  ┌────────┐   ┌────────────┐   ┌────┐\n  │ 10+    │   │ Viable?    │   │ 5-7│\n  │ ideas  │   │ Y/N only   │   │ out│\n  └────────┘   └────────────┘   └────┘\n  Fast pass, no deep scoring\n```"},
-        {"label": "Iterative optimization", "description": "Try, measure, keep/discard, repeat (autoresearch-style)", "preview": "```\nIterative Optimization (autoresearch-style)\n───────────────────────────────────────────\n  ┌──────────┐\n  │ Baseline │──measure──┐\n  └──────────┘           │\n       ┌─────────────────┘\n       ▼\n  ┌─────────┐  ┌─────────┐  ┌──────────┐\n  │ Try     │─▶│ Measure │─▶│ Keep or  │─┐\n  │ variant │  │ metric  │  │ Discard  │ │\n  └─────────┘  └─────────┘  └──────────┘ │\n       ▲                                 │\n       └─────────────────────────────────┘\n  Requires: one command + one metric\n  Runs until: user interrupts or plateau\n```"}
+        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3"},
+        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind"},
+        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation"},
+        {"label": "Iterative optimization", "description": "Try, measure, keep/discard, repeat (autoresearch-style)"}
       ],
       "multiSelect": false
     },
@@ -418,7 +421,7 @@ Stops when: 2+ ranked design options presented and the user selects one (or afte
 
 ## Picker fallback (#1795)
 
-The picker stall reported in orchestkit#1795 was a **schema break, not a CC input bug**: questions with >4 options or a `markdown` field (instead of `preview`) fail `AskUserQuestion` validation, so the picker never renders. All skill questions now conform to the schema (2–4 options, `preview` field, no `preview` on multiSelect), enforced by `tests/skills/structure/test-askuserquestion-schema.sh`. If you still hit a stall on a future CC build, `ORK_ASK_FALLBACK=text` remains as a defensive opt-in: the `lifecycle/ask-fallback-injector` hook then tells the assistant to pose options inline as a numbered list. Hook propagates globally — no per-skill edit needed.
+The picker stall reported in orchestkit#1795 was a **schema break, not a CC input bug**: questions with >4 options or a `markdown` field (the `markdown` key is not valid — the schema field is `preview`) fail `AskUserQuestion` validation, so the picker never renders. All skill questions conform to the schema (2–4 options, no `preview` on multiSelect), enforced by `tests/skills/structure/test-askuserquestion-schema.sh`. Separately, although the schema *permits* a `preview` field, current CC renders any question that uses one in a side-by-side picker layout where ↑/↓ keyboard navigation is dead (confirmed 2026-05-28). So skills now standardize on plain `label` + `description` only and no longer set `preview`. If you still hit a stall on a future CC build, `ORK_ASK_FALLBACK=text` remains as a defensive opt-in: the `lifecycle/ask-fallback-injector` hook then tells the assistant to pose options inline as a numbered list. Hook propagates globally — no per-skill edit needed.
 
 ## References
 

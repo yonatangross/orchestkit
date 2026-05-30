@@ -193,10 +193,10 @@ AskUserQuestion(questions=[{
   "question": "Output format for extracted tokens?",
   "header": "Format",
   "options": [
-    {"label": "Tailwind config (Recommended)", "description": "tailwind.config.ts with extracted theme values", "preview": "```\ntailwind.config.ts\n──────────────────\nexport default {\n  theme: {\n    extend: {\n      colors: {\n        primary: '#0F172A',\n        accent:  '#3B82F6',\n      },\n      fontFamily: {\n        sans: ['Inter', 'sans-serif'],\n      }\n    }\n  }\n}\n```"},
-    {"label": "W3C Design Tokens", "description": "design-tokens.json following W3C DTCG spec", "preview": "```\ndesign-tokens.json\n──────────────────\n{\n  \"$schema\": \"...\",\n  \"color\": {\n    \"primary\": { \"$value\": \"#0F172A\" },\n    \"accent\":  { \"$value\": \"#3B82F6\" }\n  },\n  \"typography\": {\n    \"sans\": { \"$value\": \"Inter\" }\n  }\n}\n```"},
-    {"label": "CSS Variables", "description": "tokens.css with CSS custom properties", "preview": "```\ntokens.css\n──────────\n:root {\n  --color-primary: #0F172A;\n  --color-accent:  #3B82F6;\n  --font-sans: Inter, sans-serif;\n  --space-md: 1rem;\n  --radius-sm: 4px;\n}\n```"},
-    {"label": "Markdown spec", "description": "Human-readable design specification document", "preview": "```\nDESIGN_SPEC.md\n──────────────\n# Design Tokens\n\n## Colors\n  primary  #0F172A  (slate-900)\n  accent   #3B82F6  (blue-500)\n\n## Typography\n  sans  Inter, sans-serif\n  mono  JetBrains Mono\n\n## Spacing\n  md   1rem (16px)\n```"}
+    {"label": "Tailwind config (Recommended)", "description": "tailwind.config.ts with extracted theme values"},
+    {"label": "W3C Design Tokens", "description": "design-tokens.json following W3C DTCG spec"},
+    {"label": "CSS Variables", "description": "tokens.css with CSS custom properties"},
+    {"label": "Markdown spec", "description": "Human-readable design specification document"}
   ],
   "multiSelect": false
 }])
