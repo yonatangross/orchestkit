@@ -518,6 +518,30 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'stop_hook_session_crons',                 minVersion: '2.1.145', description: 'Stop and SubagentStop hook input now includes session_crons[] — active cron schedules at hook fire time. Available for hooks that want to suppress action during cron ticks.' },
   { feature: 'otel_agent_id_tool_spans',                minVersion: '2.1.145', description: 'claude_code.tool OTEL spans gain agent_id + parent_agent_id attributes; trace parenting fixed so background subagent spans nest under the dispatching Agent tool span.' },
   { feature: 'agents_json_listing',                     minVersion: '2.1.145', description: 'claude agents --json lists live sessions as JSON for scripting (tmux-resurrect, status bars, session pickers).' },
+
+  // 2.1.149 (2026-05-21) — /usage per-category cost breakdown, /diff scrollable detail, GFM task-list rendering
+  { feature: 'usage_per_category_breakdown',            minVersion: '2.1.149', description: '/usage breaks cost down per skill, subagent, plugin, and per-MCP-server. Complements claude plugin details ork (2.1.139) for OrchestKit per-session cost audits.' },
+
+  // 2.1.152 (2026-05-25) — MessageDisplay hook event, disallowed-tools frontmatter, /reload-skills, SessionStart sessionTitle, /code-review --fix
+  { feature: 'message_display_hook_event',              minVersion: '2.1.152', description: 'MessageDisplay hook event can transform/hide assistant message text before render. Present in OrchestKit HookEventName union (src/hooks/src/types.ts).' },
+  { feature: 'disallowed_tools_frontmatter',            minVersion: '2.1.152', description: 'Skills and slash-commands can set disallowed-tools in frontmatter. Adopted across ork agents (eval-runner, security-auditor, code-quality-reviewer, ai-safety-auditor).' },
+  { feature: 'reload_skills',                           minVersion: '2.1.152', description: '/reload-skills command + SessionStart hook reloadSkills:true re-scan skills mid-session. Documented in configure/doctor; not yet emitted by an ork hook.' },
+  { feature: 'session_start_session_title',             minVersion: '2.1.152', description: 'SessionStart hook can set the session title via hookSpecificOutput.sessionTitle. Used by ork subagent-start/agent-view-titler and prompt/unified-dispatcher.' },
+  { feature: 'code_review_fix_fallback_model',          minVersion: '2.1.152', description: '/code-review --fix applies findings to the working tree; --fallback-model switches model for the whole session. Documented in configure/cc-version-settings.md.' },
+
+  // 2.1.153 (2026-05-27) — agents autocomplete, statusline COLUMNS/LINES, skipLfs marketplace sources
+  { feature: 'agents_command_autocomplete',             minVersion: '2.1.153', description: 'claude agents autocompletes native slash-commands and bundled skills; statusline scripts receive COLUMNS/LINES; marketplace sources support skipLfs.' },
+
+  // 2.1.154 (2026-05-28) — dynamic workflows (Workflow tool), Opus 4.8, /simplify cleanup-only, streaming tool execution
+  { feature: 'dynamic_workflows',                       minVersion: '2.1.154', description: 'Background multi-agent orchestration via the Workflow tool / /workflows. OrchestKit USEs this directly (workflow-architect, swarm-migrate, verify, dev) rather than wrapping it.' },
+  { feature: 'opus_4_8',                                minVersion: '2.1.154', description: 'claude-opus-4-8: defaults to high effort, /effort xhigh for hardest tasks, fast mode at 2x rate, lean system prompt default. Current apex Opus tier (supersedes 4.6/4.7).' },
+  { feature: 'simplify_cleanup_only',                   minVersion: '2.1.154', description: '/simplify becomes cleanup-only (applies fixes, no bug-hunt); /code-review owns bug-hunting. plugins defaultEnabled:false; streaming tool execution always-on; stdio MCP servers get CLAUDE_CODE_SESSION_ID + CLAUDECODE=1.' },
+
+  // 2.1.157 (2026-05-29) — .claude/skills autoload, claude plugin init, mid-session EnterWorktree, OTEL tool_parameters, Workflow keyword-trigger toggle
+  { feature: 'local_skills_autoload',                   minVersion: '2.1.157', description: 'Plugins in .claude/skills auto-load without a marketplace; claude plugin init <name> scaffolds a plugin; EnterWorktree switches worktree mid-session; OTEL_LOG_TOOL_DETAILS=1 adds tool_parameters spans; /config toggles Workflow keyword-trigger.' },
+
+  // 2.1.158 (2026-05-30) — auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8
+  { feature: 'auto_mode_cloud_providers',               minVersion: '2.1.158', description: 'CLAUDE_CODE_ENABLE_AUTO_MODE=1 enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC version as of 2026-05-30.' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

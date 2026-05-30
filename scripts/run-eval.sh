@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OrchestKit Eval Script — wraps claude -p --bare for skill evaluation
+# OrchestKit Eval Script — wraps claude -p for skill evaluation
 # Usage: scripts/run-eval.sh [--scope full|skills-only|hooks-only|changed]
 
 set -euo pipefail
@@ -104,7 +104,7 @@ echo "Structure: ${STRUCT_PASS} pass, ${STRUCT_FAIL} fail"
 # Quality eval with Claude (if available)
 if [ "$CLAUDE_AVAILABLE" = true ] && [ "$SCOPE_VALUE" != "hooks-only" ]; then
   echo ""
-  echo "=== Phase 3: LLM Quality Eval (claude -p --bare) ==="
+  echo "=== Phase 3: LLM Quality Eval (claude -p) ==="
   echo "Evaluating skill descriptions for clarity and trigger accuracy..."
 
   # Sample 5 skills for quality check (to stay within budget)
@@ -116,8 +116,10 @@ if [ "$CLAUDE_AVAILABLE" = true ] && [ "$SCOPE_VALUE" != "hooks-only" ]; then
 
     echo "  Evaluating: ${skill_name}..."
 
-    # Use --bare mode for fast, isolated eval
-    EVAL_RESULT=$(claude -p --bare "Rate this AI skill description 1-10 for clarity and specificity. Reply with ONLY a number 1-10 and one sentence why. Description: '${description}'" 2>/dev/null || echo "N/A")
+    # Plain `claude -p` (NOT --bare: bare mode ignores ANTHROPIC_API_KEY/apiKeyHelper
+    # and fails headless — see feedback_cc_bare_auth_broken). Surface failures loudly
+    # instead of masking them as a benign-looking "N/A".
+    EVAL_RESULT=$(claude -p "Rate this AI skill description 1-10 for clarity and specificity. Reply with ONLY a number 1-10 and one sentence why. Description: '${description}'" 2>&1 || echo "EVAL_FAILED (claude -p returned non-zero)")
 
     echo "    Score: ${EVAL_RESULT}"
   done

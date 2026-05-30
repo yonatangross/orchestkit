@@ -87,7 +87,7 @@ jobs:
         # fast-fail with "claude native binary not installed."
         run: |
           set -euo pipefail
-          npm install -g @anthropic-ai/claude-code@2.1.105 --ignore-scripts
+          npm install -g @anthropic-ai/claude-code@2.1.148 --ignore-scripts
           node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           claude --version
         env:
