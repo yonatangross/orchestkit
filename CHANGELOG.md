@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.12.3](https://github.com/yonatangross/orchestkit/compare/v8.12.2...v8.12.3) (2026-05-30)
+
+
+### Miscellaneous
+
+* **deps:** major bumps esbuild 0.28, @types/node 24, lucide 1.x ([#2115](https://github.com/yonatangross/orchestkit/issues/2115)) ([500e238](https://github.com/yonatangross/orchestkit/commit/500e238def21fb7328e79a6f58be2e2781fecae4))
+* **marketplace:** align engine floor to &gt;=2.1.148 ([#2116](https://github.com/yonatangross/orchestkit/issues/2116)) ([260c5da](https://github.com/yonatangross/orchestkit/commit/260c5da971bfb0657423cdae3906947f32203be9))
+* **skills:** preview-strip + 4.8 model bump + doctor count refresh ([#2118](https://github.com/yonatangross/orchestkit/issues/2118)) ([4777cee](https://github.com/yonatangross/orchestkit/commit/4777cee8b86a984b1b7bca1111e707389a62ab4b))
+
+
+### Documentation
+
+* **site:** uplift — IA, fumadocs 15, perf, a11y + stale-content sweep ([#2117](https://github.com/yonatangross/orchestkit/issues/2117)) ([2c6cd11](https://github.com/yonatangross/orchestkit/commit/2c6cd1143723f6618f90b95e51c4c4fabf270b8c))
+
 ## [8.12.2](https://github.com/yonatangross/orchestkit/compare/v8.12.1...v8.12.2) (2026-05-30)
 
 
