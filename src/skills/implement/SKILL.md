@@ -166,9 +166,9 @@ AskUserQuestion(questions=[{
   "question": "Isolate this feature in a git worktree?",
   "header": "Isolation",
   "options": [
-    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion", "preview": "```\nWorktree Isolation\n──────────────────\nmain ─────────────────────────────▶\n  \\                              /\n   └─ feat-{slug} (worktree) ───┘\n      ├── Isolated directory\n      ├── Own branch + index\n      └── Auto-merge on completion\n\nSafe: main stays untouched until done\n```"},
-    {"label": "No — work in-place", "description": "Edit files directly in current branch", "preview": "```\nIn-Place Editing\n────────────────\nmain ──[edit]──[edit]──[edit]───▶\n       ▲       ▲       ▲\n       │       │       │\n     direct modifications\n\nFast: no branch overhead\nRisk: changes visible immediately\n```"},
-    {"label": "Plan first", "description": "Research and design in plan mode before writing code", "preview": "```\nPlan Mode Flow\n──────────────\n  1. EnterPlanMode($ARGUMENTS)\n  2. Read existing code\n  3. Research patterns\n  4. Design approach\n  5. ExitPlanMode → plan\n  6. User approves plan\n  7. Execute implementation\n\n  Best for: Large features,\n  unfamiliar codebases,\n  architectural decisions\n```"}
+    {"label": "Yes — worktree (Recommended)", "description": "Creates isolated branch via EnterWorktree, merges back on completion"},
+    {"label": "No — work in-place", "description": "Edit files directly in current branch"},
+    {"label": "Plan first", "description": "Research and design in plan mode before writing code"}
   ],
   "multiSelect": false
 }])

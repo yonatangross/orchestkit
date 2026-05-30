@@ -165,10 +165,10 @@ AskUserQuestion(
     "question": "How do you want to approach this fix?",
     "header": "Fix Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, regression test, prevention plan", "preview": "```\nProper Fix (11 phases)\n──────────────────────\n  Understand ──▶ Hypothesize ──▶ RCA\n       │              │           │\n       ▼              ▼           ▼\n  5 parallel     Ranked       Confirmed\n  agents         hypotheses   root cause\n       │\n       ▼\n  Fix ──▶ Validate ──▶ Prevent ──▶ PR\n  + regression test   + runbook\n```"},
-      {"label": "Quick fix", "description": "Minimal investigation, fix and test", "preview": "```\nQuick Fix (~10 min)\n───────────────────\n  Read issue ──▶ Fix ──▶ Test ──▶ PR\n\n  Skip: full RCA, prevention plan,\n  runbook, lessons learned\n  Keep: regression test (mandatory)\n```"},
-      {"label": "Investigate first", "description": "Deep analysis before deciding on approach", "preview": "```\nInvestigate First\n─────────────────\n  Read issue ──▶ 5 parallel agents ──▶ Report\n\n  Output: Root cause analysis\n  + hypothesis ranking\n  + recommended approach\n  No code changes yet\n```"},
-      {"label": "Hotfix", "description": "Emergency fix, minimal process", "preview": "```\nHotfix (emergency)\n──────────────────\n  Read issue ──▶ Fix ──▶ Push\n\n  Skip: agents, RCA, prevention\n  Keep: basic test verification\n  Post-fix: schedule proper RCA\n```"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, regression test, prevention plan"},
+      {"label": "Quick fix", "description": "Minimal investigation, fix and test"},
+      {"label": "Investigate first", "description": "Deep analysis before deciding on approach"},
+      {"label": "Hotfix", "description": "Emergency fix, minimal process"}
     ],
     "multiSelect": false
   }]
@@ -197,9 +197,9 @@ AskUserQuestion(questions=[{
   "question": "Before push?",
   "header": "Local CI",
   "options": [
-    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures", "preview": "```\nPush + Remote CI\n────────────────\n  fix ──▶ commit ──▶ push ──▶ CI\n                                │\n                                v\n                            5-15 min\n  + fastest local turnaround\n  - failures discovered remotely\n  - rebase if CI red on main move\n```"},
-    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push", "preview": "```\nLocal Full Suite + Push\n───────────────────────\n  fix ──▶ commit ──▶ npm test ──▶ push\n                       │\n                       v\n                   ~2-3 min\n  + catches all CI failures locally\n  - slower per-iteration\n  recommended when issue label =\n  security | data-loss\n```"},
-    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns", "preview": "```\nSecurity-only + Push\n────────────────────\n  fix ──▶ commit ──▶ test:security ──▶ push\n                          │\n                          v\n                       ~30s\n  + catches secrets/deps/owasp\n  + faster than full suite\n  - misses lint/type/unit issues\n```"}
+    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures"},
+    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push"},
+    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns"}
   ]
 }])
 ```

@@ -84,9 +84,9 @@ AskUserQuestion(
     # 4-option cap (CC schema): the 7 categories are grouped into 3 buckets +
     # "Show all". STEP 2 renders the constituent categories for the picked bucket.
     "options": [
-      {"label": "Build & ship", "description": "Implement, brainstorm, test, commit, PR, fix issues", "preview": "```\nBUILD & SHIP\n────────────\n/ork:implement   Full-power implementation\n/ork:brainstorm  Design exploration\n/ork:cover       Generate test suites\n/ork:verify      Test & grade changes\n/ork:commit      Conventional commits\n/ork:create-pr   PR with validation\n/ork:fix-issue   Debug + fix + PR\n```"},
-      {"label": "Plan & assess", "description": "PRDs, plan visualization, quality assessment, PR review", "preview": "```\nPLAN & ASSESS\n─────────────\n/ork:write-prd       Product requirements\n/ork:visualize-plan  ASCII plan rendering\n/ork:assess          Rate 0-10 + report\n/ork:review-pr       6-agent PR review\n```"},
-      {"label": "Explore & operate", "description": "Codebase exploration, memory, setup, diagnostics", "preview": "```\nEXPLORE & OPERATE\n─────────────────\n/ork:explore   Multi-angle exploration\n/ork:memory    Search, recall, visualize\n/ork:remember  Store decisions/patterns\n/ork:setup     Onboarding wizard\n/ork:doctor    Health diagnostics\n/ork:configure Plugin settings\n```"},
+      {"label": "Build & ship", "description": "Implement, brainstorm, test, commit, PR, fix issues"},
+      {"label": "Plan & assess", "description": "PRDs, plan visualization, quality assessment, PR review"},
+      {"label": "Explore & operate", "description": "Codebase exploration, memory, setup, diagnostics"},
       {"label": "Show all", "description": "List every user-invocable skill"}
     ],
     "multiSelect": false

@@ -23,9 +23,9 @@ AskUserQuestion(
       "question": "What should be audited?",
       "header": "Scope",
       "options": [
-        {"label": "Entire codebase", "description": "Load all source files into context", "preview": "```\nEntire Codebase\n───────────────\n  Load ALL source files\n  into 1M context window\n\n  Best for: first audit,\n  full security review,\n  architecture assessment\n  ⚠ Requires Tier 4+ API\n```"},
-        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)", "preview": "```\nSpecific Directory\n──────────────────\n  Load one subtree:\n  src/api/ or src/auth/\n\n  Best for: targeted review,\n  post-change validation,\n  smaller context budget\n```"},
-        {"label": "Changed files only", "description": "Audit only files changed vs main branch", "preview": "```\nChanged Files Only\n──────────────────\n  git diff main...HEAD\n  Load only modified files\n\n  Best for: pre-merge check,\n  PR-scoped audit,\n  incremental review\n```"}
+        {"label": "Entire codebase", "description": "Load all source files into context"},
+        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)"},
+        {"label": "Changed files only", "description": "Audit only files changed vs main branch"}
       ],
       "multiSelect": false
     }

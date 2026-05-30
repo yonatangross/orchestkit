@@ -67,10 +67,10 @@ AskUserQuestion(
     "question": "What type of PR is this?",
     "header": "PR Type",
     "options": [
-      {"label": "Feature (Recommended)", "description": "Full validation: security + quality + tests", "preview": "```\nFeature PR\n──────────\n  Pre-flight ──▶ 3 agents ──▶ Tests ──▶ PR\n  ┌────────────┐ ┌─────────────────────┐\n  │ Branch OK? │ │ security-auditor    │\n  │ Clean tree?│ │ test-generator      │\n  │ Remote?    │ │ code-quality-review │\n  └────────────┘ └─────────────────────┘\n  Full validation, ~5 min\n```"},
-      {"label": "Bug fix", "description": "Focus on test verification", "preview": "```\nBug Fix PR\n──────────\n  Pre-flight ──▶ test-generator ──▶ Tests ──▶ PR\n\n  Agent: test-generator only\n  Verifies regression test exists\n  ~2 min\n```"},
-      {"label": "Refactor", "description": "Code quality review, skip security", "preview": "```\nRefactor PR\n───────────\n  Pre-flight ──▶ code-quality ──▶ Tests ──▶ PR\n\n  Agent: code-quality-reviewer only\n  Checks: no behavior change,\n  complexity reduction, patterns\n  ~2 min\n```"},
-      {"label": "Quick", "description": "Skip validation, just create PR", "preview": "```\nQuick PR (~30s)\n───────────────\n  Pre-flight ──▶ PR\n\n  No agents, no tests\n  Just create the PR\n```"}
+      {"label": "Feature (Recommended)", "description": "Full validation: security + quality + tests"},
+      {"label": "Bug fix", "description": "Focus on test verification"},
+      {"label": "Refactor", "description": "Code quality review, skip security"},
+      {"label": "Quick", "description": "Skip validation, just create PR"}
     ],
     "multiSelect": false
   }]

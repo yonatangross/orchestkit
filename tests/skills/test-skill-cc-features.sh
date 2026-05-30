@@ -78,11 +78,11 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     fi
 done
 
-if [[ "$auq_skills_with_preview" -ge 10 ]]; then
-    pass "AUQ previews: $auq_skills_with_preview skills use the preview field"
-else
-    fail "AUQ previews: only $auq_skills_with_preview skills (expected >=10)"
-fi
+# AUQ preview adoption is NO LONGER required. The preview field forces a side-by-side
+# picker layout where up/down nav is dead on current CC (confirmed 2026-05-28), so skills
+# standardize on plain label+description. The schema still PERMITS preview (enforced by
+# structure/test-askuserquestion-schema.sh) — this is now an informational count, not a gate.
+pass "AUQ previews: $auq_skills_with_preview skills use the preview field (informational; not required since the 2026-05-28 nav-bug strip)"
 
 # --- Test 2: multiSelect usage validation ---
 echo -e "\n${CYAN}Test 2: multiSelect Validation${NC}"

@@ -9,14 +9,21 @@
 # Claude Code tool schema. A schema-invalid call causes an InputValidationError
 # at the harness — the picker never renders and the skill stalls ("stuck"),
 # which is exactly the failure misdiagnosed as a "CC 2.1.139 input bug" in
-# orchestkit#1795. The real cause was schema drift: `markdown` previews and
-# >4-option questions. This test prevents regression.
+# orchestkit#1795. The real cause was schema drift: a `markdown` key (invalid)
+# and >4-option questions. This test prevents regression.
+#
+# NOTE: the `preview` field is still ALLOWED by the schema (rule 3 keeps it in
+# the permitted set), but skills no longer USE it: on current CC, a `preview`
+# forces a side-by-side picker layout where up/down keyboard nav is dead
+# (confirmed 2026-05-28), so skills standardize on plain label + description.
+# These tests intentionally do NOT forbid `preview` — the schema permits it; we
+# just stopped authoring it. Rules below stay as schema-conformance gates.
 #
 # Rules enforced (per https://code.claude.com/docs/en/agent-sdk/user-input):
 #   1. Each question has 2-4 options          (minItems 2, maxItems 4)
 #   2. Each call has 1-4 questions             (maxItems 4)
 #   3. Option fields ⊆ {label, description, preview}  (additionalProperties:false)
-#      → the legacy `markdown` key is invalid; the field is `preview`
+#      → the legacy `markdown` key is invalid; `preview` is permitted but unused
 #   4. No `preview` on a multiSelect question  (previews are single-select only)
 #
 # Usage: ./test-askuserquestion-schema.sh [--verbose]
