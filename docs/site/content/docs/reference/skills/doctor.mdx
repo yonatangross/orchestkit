@@ -61,11 +61,11 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version & Channel** - Validates CC >= 2.1.111, detects release channel (stable/beta/alpha), recommends 2.1.111+ for `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
+10. **Claude Code Version & Channel** - Validates CC >= 2.1.148 (supported floor), detects release channel (stable/beta/alpha), recommends 2.1.154+ for Opus 4.8 / `xhigh` effort, `/ultrareview`, stream-json `plugin_errors`
 11. **External Dependencies** - Checks optional tool availability (agent-browser)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
-14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.7 (silent fallback otherwise)
+14. **Effort/Model Compatibility** - Warns when `xhigh` effort is requested without Opus 4.8 (silent fallback otherwise)
 
 ## When to Use
 
@@ -132,25 +132,25 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **11. External Deps** | Optional tools (agent-browser, portless) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
 | **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `$\{CLAUDE_SKILL_DIR\}/rules/mcp-status-checks.md` + `$\{CLAUDE_SKILL_DIR\}/references/mcp-pinning-check.md` |
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `$\{CLAUDE_SKILL_DIR\}/rules/diagnostic-checks.md` |
-| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.7 — see below | inline |
+| **14. Effort/Model** | Detects `xhigh` effort configured without Opus 4.8 — see below | inline |
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
-CC 2.1.111 added `xhigh` effort (Opus 4.7 only). Using it with any other model silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
+CC 2.1.111 added `xhigh` effort (Opus 4.8; since CC 2.1.154 it defaults to `high` and takes `xhigh` for the hardest tasks). Using it with a model that doesn't support it silently falls back to `high` — producing no error but losing the extra deepening pass documented in the affected skills.
 
 **Detection**:
-- If the active model is NOT Opus 4.7, check whether `/effort` is set to `xhigh`:
+- If the active model does NOT support `xhigh` (i.e. not Opus 4.8), check whether `/effort` is set to `xhigh`:
   - Read `.claude/settings.json` → `effort` field
   - Read `$ORCHESTKIT_EFFORT` env var (populated by the effort-detector hook)
 - Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-4.7 model in scope
 
 **Warning format**:
 ```
-WARNING: xhigh effort requires Opus 4.7.
+WARNING: xhigh effort requires Opus 4.8.
   Current model: <model-id>
   Configured effort: xhigh
   Impact: Skills fall back to high — xhigh's extra deepening pass is lost silently.
-  Fix: Either switch to Opus 4.7 (`claude --model opus-4.7`) or lower effort to `high`.
+  Fix: Either switch to Opus 4.8 (`claude --model opus-4-8`) or lower effort to `high`.
 ```
 
 **Exit code**: Non-zero in `--json` mode; soft warning in interactive mode.
@@ -168,6 +168,8 @@ WARNING: xhigh effort requires Opus 4.7.
 > **CC 2.1.69+**: Run `/reload-plugins` to activate plugin changes in the current session without restarting.
 >
 > **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
+>
+> **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting — the skill analogue of `/reload-plugins`.
 
 ## Related Skills
 
@@ -695,7 +697,7 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ```
 Installed Plugins: 1
-- ork: 103 skills, 36 agents, 173 hook entries
+- ork: 111 skills, 37 agents, 173 hook entries
 ```
 
 ## Skills Validation
@@ -1386,7 +1388,7 @@ claude plugin validate
 
 ### "Stale plugin paths in PATH"
 
-CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.138). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC &lt; 2.1.128, upgrade.
+CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.148). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC &lt; 2.1.128, upgrade.
 
 ### "Auto mode unable to evaluate"
 
@@ -1403,7 +1405,7 @@ Pick whichever applies — `/compact` if context is full, `--debug` to see the c
 
 If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race — concurrent wake-time refreshes invalidated the active token across every running session.
 
-**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.138, so anyone on the supported window is already fixed). Recover the session with:
+**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.148, so anyone on the supported window is already fixed). Recover the session with:
 
 ```bash
 claude /login
@@ -1417,7 +1419,7 @@ If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race
 
 If you had multiple CC sessions open (worktree-isolated agents, parallel `/ork:implement` chains, multi-tab work) and every one of them dead-ended at `401 Unauthorized` at the same instant — that is the pre-2.1.133 parallel-session refresh-token race. A refresh-token rotation fired in one session, the other sessions raced against it, and they all wound up holding the now-invalidated old token.
 
-**Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.138, so the supported window is already past this). Recover the stuck sessions with:
+**Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.148, so the supported window is already past this). Recover the stuck sessions with:
 
 ```bash
 claude /login
@@ -1645,7 +1647,7 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
 
 ## Overview
 
-OrchestKit includes 103 skills validated against frontmatter requirements and content standards.
+OrchestKit includes 111 skills validated against frontmatter requirements and content standards.
 
 ## Skill Types
 
@@ -2109,6 +2111,27 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `cleanupPeriodDays` expansion | 2.1.117 | Retention sweep now covers `~/.claude/tasks/`, `~/.claude/shell-snapshots/`, `~/.claude/backups/` | Tasks/snapshots/backups retained indefinitely |
 | Native `bfs`/`ugrep` | 2.1.117 | Native builds replace Glob/Grep tools with embedded `bfs` and `ugrep` via Bash | Slower tree-traversal on native builds |
 | Opus 4.7 `/context` fix | 2.1.117 | `/context` correctly computes against 1M window (was showing inflated 200K percentage) | Early autocompact on Opus 4.7 1M sessions |
+| `/reload-skills` command | 2.1.152 | Re-scans skill directories without restarting; `SessionStart` hooks can return `reloadSkills: true` to expose hook-installed skills the same session | Restart required to pick up new/edited skills |
+| `marketplace remove --scope` | 2.1.152 | `claude plugin marketplace remove` accepts `--scope user\|project\|local`, matching `add`/`install`/`uninstall` | `remove` had no scope selector |
+| `disallowed-tools` frontmatter | 2.1.152 | Skills/slash commands can set `disallowed-tools` to remove tools while active (ork uses `allowed-tools` allowlists instead) | Tool restriction only via allowlist |
+| `--fallback-model` session switch | 2.1.152 | When the primary model is not found, CC switches to the configured `--fallback-model` for the rest of the session instead of failing every request | Every request errored on a missing primary model |
+| auto mode no consent | 2.1.152 | `permissionMode: "auto"` no longer requires opt-in consent before the classifier approves tools | Auto mode gated behind a one-time consent prompt |
+| sandbox warning in condensed layout | 2.1.152 | The sandbox-enabled warning now shows in every startup layout — previously missing in condensed mode | Sandbox warning hidden in condensed startup |
+| `MessageDisplay` hook event | 2.1.152 | New hook event: hooks can transform or hide assistant message text as it is displayed. ork has no MessageDisplay hook (recognized in the `HookEvent` type union for future use; not in the curated hook-contract spec) | No hook-point for displayed assistant text |
+| Opus 4.8 + default effort | 2.1.154 | Opus 4.8 launches; **defaults to `high` effort**, `xhigh` for the hardest tasks. Lean system prompt is now default for all models except Haiku/Sonnet/Opus ≤ 4.7 | Opus 4.7 was the newest; `xhigh` framed as 4.7-only |
+| Dynamic workflows / `/workflows` | 2.1.154 | Ask Claude to create a workflow; it orchestrates tens-to-hundreds of agents in the background. `/workflows` lists runs. ork treats it as complementary to its foreground Agent Teams patterns (see `agent-orchestration`, `swarm-migrate`) | No native large-scale background orchestration |
+| `/simplify` cleanup-only | 2.1.154 | `/simplify` now runs a cleanup-only review (reuse, simplification, efficiency, altitude) and applies fixes — it **no longer** invokes the full `/code-review --fix` bug-hunt | ork's code-review-playbook briefly documented the old behavior (fixed) |
+| subagent worktree-isolation guard | 2.1.154 | Subagents in background sessions no longer bypass the worktree-isolation guard / write to the shared checkout; `worktree.baseRef:"head"` resolves the current worktree's HEAD when spawning from a linked worktree | `Agent(isolation:"worktree")` thrashed the shared checkout; manual pre-create workaround needed |
+| `/effort` label rename | 2.1.154 | `/effort` slider labels renamed "Speed"/"Intelligence" → "Faster"/"Smarter" | Old labels |
+| `! &lt;command&gt;` bg shell | 2.1.154 | `claude agents` runs a shell command as an attach/detachable background session via `! &lt;command&gt;` (or `claude --bg --exec`) — documented in `ork:dev` | No backgrounded shell from the agents view |
+| multiple-choice reserved | 2.1.154 | CC reserves the multiple-choice prompt for decisions it genuinely can't make itself; don't gate orchestration on resolvable `AskUserQuestion`s (`agent-orchestration`) | Asked even when context sufficed |
+| `/model` default persist | 2.1.153 | `/model` saves the selection as the default for new sessions; press `s` for session-only. **BREAKING:** keybinding `modelPicker:setAsDefault` renamed to `modelPicker:thisSessionOnly` (documented in `setup/references/keybindings.md`) | `d` set default; old binding name silently dead |
+| subagent MCP policy + strict-config fixes | 2.1.153 | Subagent frontmatter `mcpServers` now honor `--strict-mcp-config`/`--bare`/managed-MCP allow-deny; `--strict-mcp-config` no longer strips inline `mcpServers` from explicit `--agents` defs. ork agents declaring `mcpServers` inherit policy correctly — no ork change | Subagent MCP servers bypassed managed policy |
+| OAuth gateway credential fix | 2.1.153 | Fixed a custom API gateway receiving the user's Anthropic OAuth credential instead of the gateway's own token (security). CC-internal; no ork surface | Gateway could receive the wrong credential |
+| `/usage` per-category breakdown | 2.1.149 | `/usage` breaks cost down per skill, subagent, plugin, and per-MCP-server — complements `claude plugin details ork` for ork cost audits | Aggregate usage only |
+| internal infra + thinking-block fix | 2.1.155–2.1.156 | 2.1.155 is internal infrastructure only; 2.1.156 fixes a client crash where modified thinking blocks on Opus 4.8 caused API errors. No ork surface | — |
+| `.claude/skills` autoload + `plugin init` | 2.1.157 | Plugins under `.claude/skills` auto-load without a marketplace; `claude plugin init &lt;name&gt;` scaffolds a plugin; `EnterWorktree` switches worktree mid-session; `OTEL_LOG_TOOL_DETAILS=1` adds `tool_parameters` spans; `/config` toggles the Workflow keyword trigger. ork: no adoption yet (local-skills autoload could simplify dev installs) | Plugins required a marketplace; no mid-session worktree switch |
+| auto mode on cloud providers | 2.1.158 | `CLAUDE_CODE_ENABLE_AUTO_MODE=1` enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC (2026-05-30). No ork surface | Auto mode was first-party API only |
 
 ## Prompt Caching Recommendation
 

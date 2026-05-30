@@ -18,7 +18,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 >
 > | Provider | Model IDs |
 > |----------|-----------|
-> | Anthropic | `claude-opus-4-7` (latest), `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
+> | Anthropic | `claude-opus-4-8` (latest), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
 > | OpenAI    | `gpt-5.2` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
@@ -117,7 +117,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-7` (2,576 px, 3× Opus 4.6) or `gpt-5.2` |
+| High accuracy vision | `claude-opus-4-8` (2,576 px, 3× Opus 4.6) or `gpt-5.2` |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
@@ -146,7 +146,7 @@ with open("image.png", "rb") as f:
     b64 = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-opus-4-7",
+    model="claude-opus-4-8",
     max_tokens=1024,
     messages=[{"role": "user", "content": [
         {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},
@@ -813,7 +813,7 @@ response = client.chat.completions.create(
 **Claude — different content structure (type: "image", not "image_url"):**
 ```python
 response = client.messages.create(
-    model="claude-opus-4-7",
+    model="claude-opus-4-8",
     max_tokens=4096,
     messages=[{
         "role": "user",
@@ -844,7 +844,7 @@ for img_path in images:
     b64, mt = encode_image(img_path)
     content.append({"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}})
 content.append({"type": "text", "text": "Compare these images..."})
-response = client.messages.create(model="claude-opus-4-7", max_tokens=8192, messages=[{"role": "user", "content": content}])
+response = client.messages.create(model="claude-opus-4-8", max_tokens=8192, messages=[{"role": "user", "content": content}])
 ```
 
 **Object detection with bounding boxes (Gemini 2.5+):**
