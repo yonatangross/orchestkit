@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.12.7](https://github.com/yonatangross/orchestkit/compare/v8.12.6...v8.12.7) (2026-05-31)
+
+
+### Bug Fixes
+
+* **skills:** residual library-currency sweep (16 skills) ([#2145](https://github.com/yonatangross/orchestkit/issues/2145)) ([f32cfd7](https://github.com/yonatangross/orchestkit/commit/f32cfd750da87714c776d04bc85dae89c14b367d))
+
 ## [8.12.6](https://github.com/yonatangross/orchestkit/compare/v8.12.5...v8.12.6) (2026-05-31)
 
 
