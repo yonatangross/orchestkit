@@ -66,7 +66,6 @@ import { imageRegistry } from './registries/image'
 
 // SVG (smaller file size, scalable)
 const svg = await renderToSvg(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -74,7 +73,6 @@ const svg = await renderToSvg(spec, {
 
 // PNG (universal compatibility)
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,

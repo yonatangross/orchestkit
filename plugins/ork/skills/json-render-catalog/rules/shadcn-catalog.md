@@ -15,17 +15,20 @@ tags: [json-render, shadcn, components, catalog, pre-built]
 import { defineCatalog } from '@json-render/core'
 import { z } from 'zod'
 
-const catalog = defineCatalog({
-  // Reimplementing what shadcn already has
-  Alert: {
-    props: z.object({
-      title: z.string(),
-      description: z.string(),
-      variant: z.enum(['default', 'destructive']),
-    }),
-    children: false,
+import { schema } from '@json-render/react/schema'
+const catalog = defineCatalog(schema, {
+  components: {
+    // Reimplementing what shadcn already has
+    Alert: {
+      props: z.object({
+        title: z.string(),
+        description: z.string(),
+        variant: z.enum(['default', 'destructive']),
+      }),
+      children: false,
+    },
+    // ... 35 more hand-rolled components
   },
-  // ... 35 more hand-rolled components
 })
 ```
 
@@ -36,7 +39,9 @@ import { mergeCatalogs } from '@json-render/core'
 import { z } from 'zod'
 
 // Use shadcn as-is for standard components
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+import { Renderer, defineRegistry } from '@json-render/shadcn'
+const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={registry} />
 
 // Extend with domain-specific components only
 const appCatalog = mergeCatalogs(shadcnCatalog, {
@@ -125,7 +130,8 @@ When your project uses a shadcn v4 style, the default `shadcnComponents` use gen
 **Incorrect — using default components in a Luma project:**
 ```typescript
 // Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+const { registry: defaultRegistry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={defaultRegistry} />
 ```
 
 **Correct — overriding implementations for project's v4 style:**

@@ -77,24 +77,27 @@ Convert loosely-typed props to Zod schemas:
 
 // After: Zod-constrained catalog
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    props: z.object({
-      title: z.string().max(100),
-      description: z.string().max(500).optional(),
-      elevated: z.boolean().default(false),
-    }),
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string().max(50),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-      // Note: onClick is NOT in the catalog — use on.press instead
-    }),
-    children: false,
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({
+        title: z.string().max(100),
+        description: z.string().max(500).optional(),
+        elevated: z.boolean().default(false),
+      }),
+      children: true,
+    },
+    Button: {
+      props: z.object({
+        label: z.string().max(50),
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+        // Note: onClick is NOT in the catalog — use on.press instead
+      }),
+      children: false,
+    },
   },
 })
 ```
@@ -189,6 +192,6 @@ Include the catalog schema in the system prompt so the AI knows which types and 
 - [ ] Replaced event handler props with `on` field actions
 - [ ] Wrapped existing component implementations with catalog types
 - [ ] Updated AI system prompts to generate flat-tree specs
-- [ ] Added runtime validation via `<Render catalog={...}>` component
+- [ ] Added runtime validation via `<Renderer spec={...} registry={...} />` component
 - [ ] Tested with existing specs to verify backward compatibility
 - [ ] Enabled streaming support if using progressive rendering

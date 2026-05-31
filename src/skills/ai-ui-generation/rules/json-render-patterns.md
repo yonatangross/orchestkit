@@ -39,9 +39,12 @@ const CLICard = ({ title, body }) => chalk.bold(title) + '\n' + body;
 **Correct:**
 ```tsx
 // Single json-render catalog with per-platform registries
-// 1. Define once
-const catalog = defineCatalog({
-  Card: { props: { title: 'string', body: 'string' } },
+// 1. Define once — defineCatalog is two-arg in @json-render 0.19 (schema, { components })
+import { schema } from '@json-render/react/schema';
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: { props: { title: 'string', body: 'string' } },
+  },
 });
 
 // 2. AI generates a spec

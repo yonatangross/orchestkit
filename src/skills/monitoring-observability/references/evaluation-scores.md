@@ -29,7 +29,7 @@ async def analyze_and_score(query: str):
 
 
 # Or score by trace_id directly
-langfuse.score(
+langfuse.create_score(
     trace_id="trace_123",
     name="factuality",
     value=0.92,
@@ -44,7 +44,7 @@ In v3, each evaluator run creates its own inspectable trace:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     """Each evaluator call creates an inspectable trace in Langfuse."""
     score = await llm_judge.evaluate(
@@ -89,13 +89,13 @@ Configure score types and ranges in Langfuse settings:
 # In Langfuse UI: Settings → Score Configs
 
 # Numeric scores
-langfuse.score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
+langfuse.create_score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
 
 # Categorical scores
-langfuse.score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
+langfuse.create_score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
 
 # Boolean scores
-langfuse.score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
+langfuse.create_score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
 ```
 
 ## Automated Scoring with G-Eval
@@ -202,7 +202,7 @@ Common score types:
 ## Best Practices
 
 1. **Score all production traces** for quality monitoring
-2. **Use evaluator type** (`@observe(type="evaluator")`) for inspectable judge traces
+2. **Use evaluator type** (`@observe(as_type="evaluator")`) for inspectable judge traces
 3. **Use consistent criteria** across all evaluations
 4. **Automate scoring** with G-Eval or similar
 5. **Set quality thresholds** (e.g., avg_relevance > 0.7)

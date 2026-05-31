@@ -31,8 +31,8 @@ async def analyze_and_score(query: str):
     )
     return response
 
-# Or score by trace_id directly (still supported)
-langfuse.score(
+# Or score by trace_id directly (v4: create_score replaces the removed .score())
+langfuse.create_score(
     trace_id="trace_123",
     name="factuality",
     value=0.92,
@@ -44,13 +44,13 @@ langfuse.score(
 
 ```python
 # Numeric scores (0-1 range)
-langfuse.score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
+langfuse.create_score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
 
 # Categorical scores
-langfuse.score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
+langfuse.create_score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
 
 # Boolean scores
-langfuse.score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
+langfuse.create_score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
 ```
 
 ## Evaluator Execution Tracing

@@ -32,15 +32,17 @@ import { dashboardCatalog } from './catalog'
 import bundledHtml from './app.html'
 
 // Creates McpServer + registers the json-render tool automatically
-const app = createMcpApp({
-  catalog: dashboardCatalog,  // Zod-typed component schemas
-  html: bundledHtml,          // pre-built iframe app as a single HTML string
-  name: 'dashboard-server',   // optional: MCP server name
-  version: '1.0.0',           // optional: MCP server version
+const server = await createMcpApp({
+  name: 'dashboard-server',           // required: MCP server name
+  version: '1.0.0',                   // required: MCP server version
+  catalog: dashboardCatalog,          // Zod-typed component schemas
+  html: bundledHtml,                  // pre-built iframe app as a single HTML string
+  tool: {
+    name: 'render',                   // required: name of the render tool
+    description: 'Render dashboard',  // required: description shown to the AI
+  },
 })
-
-// Supports any MCP transport
-app.start()  // stdio by default
+// server is a McpServer — connect a transport directly, no .start()
 ```
 
 **Correct -- registerJsonRenderTool() for an existing server:**
@@ -60,14 +62,19 @@ server.tool('search', { query: z.string() }, async ({ query }) => ({
 // Add visual output alongside existing tools
 registerJsonRenderTool(server, {
   catalog: dashboardCatalog,
+  name: 'render',                               // required: tool name
+  title: 'Render interactive dashboard',        // required: display title
+  description: 'Render interactive dashboard',  // required: description shown to the AI
+  resourceUri: 'json-render://dashboard',       // required: URI for the UI resource
   html: bundledHtml,
-  toolName: 'render',       // optional: defaults to 'json-render'
-  toolDescription: 'Render interactive dashboard',  // optional
 })
 ```
 
 **Key rules:**
 - Always provide both `catalog` and `html` -- the catalog defines what the AI can generate, the html renders it
+- `createMcpApp()` is async and returns `McpServer` directly — there is no `.start()` method; connect a transport after awaiting
+- `createMcpApp()` requires `name`, `version`, and `tool: { name, description }` — all are required in 0.19
+- `registerJsonRenderTool()` requires `catalog`, `name`, `title`, `description`, and `resourceUri` — all required in 0.19
 - The html bundle must be a self-contained single-file app (all JS/CSS inlined) because it loads inside a sandboxed iframe with no external script access by default
 - Use `createMcpApp()` when building a server whose primary purpose is visual output
 - Use `registerJsonRenderTool()` when adding visual output to a server that already has text-based tools

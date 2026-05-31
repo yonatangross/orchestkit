@@ -6,23 +6,25 @@ Full API for integrating json-render visual output with MCP servers.
 
 ### `createMcpApp(config)`
 
-Creates a new MCP server with json-render visual output built in.
+Creates a new MCP server with json-render visual output built in. Async — returns `McpServer` directly.
 
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
 
-const app = createMcpApp({
+const server = await createMcpApp({
+  name: string,                  // required: MCP server name
+  version: string,               // required: MCP server version
   catalog: CatalogDefinition,    // required: component schemas (defineCatalog output)
   html: string,                  // required: bundled iframe app as HTML string
-  name?: string,                 // MCP server name (default: 'json-render-app')
-  version?: string,              // MCP server version (default: '1.0.0')
+  tool: {
+    name: string,                // required: name of the render tool
+    description: string,         // required: description shown to the AI
+  },
   csp?: CspConfig,               // CSP domain declarations
-  toolName?: string,             // name of the render tool (default: 'json-render')
-  toolDescription?: string,      // description shown to the AI
 })
 ```
 
-**Returns:** `McpApp` instance with `.start()`, `.server` (underlying McpServer), and `.close()`.
+**Returns:** `McpServer` — connect a transport directly, no `.start()` method.
 
 ### `registerJsonRenderTool(server, config)`
 
@@ -33,10 +35,12 @@ import { registerJsonRenderTool } from '@json-render/mcp'
 
 registerJsonRenderTool(server, {
   catalog: CatalogDefinition,    // required
-  html: string,                  // required
+  name: string,                  // required: tool name
+  title: string,                 // required: display title
+  description: string,           // required: description shown to the AI
+  resourceUri: string,           // required: URI for the UI resource
+  html: string,                  // required: bundled iframe app as HTML string
   csp?: CspConfig,               // CSP domain declarations
-  toolName?: string,             // default: 'json-render'
-  toolDescription?: string,      // default: auto-generated from catalog
 })
 ```
 
@@ -87,18 +91,21 @@ import { Renderer } from '@json-render/react'
 />
 ```
 
-### `defineCatalog(components)`
+### `defineCatalog(schema, options)`
 
 Defines a type-safe component catalog using Zod schemas.
 
 ```typescript
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-const catalog = defineCatalog({
-  ComponentName: {
-    props: z.object({ ... }),       // Zod schema for component props
-    children: boolean | z.ZodType,  // false = no children, true = any, or typed
+const catalog = defineCatalog(schema, {
+  components: {
+    ComponentName: {
+      props: z.object({ ... }),       // Zod schema for component props
+      children: boolean | z.ZodType,  // false = no children, true = any, or typed
+    },
   },
 })
 ```
@@ -138,15 +145,19 @@ const catalog = defineCatalog({
 
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 
-const app = createMcpApp({ catalog, html: bundledHtml })
-
-// For remote deployment, use Streamable HTTP transport
-app.start({
-  transport: 'http',
-  port: 3001,
-  path: '/mcp',
+const server = await createMcpApp({
+  name: 'dashboard',
+  version: '1.0.0',
+  catalog,
+  html: bundledHtml,
+  tool: { name: 'render', description: 'Render dashboard' },
 })
+
+// For remote deployment, connect Streamable HTTP transport directly
+const transport = new StreamableHTTPServerTransport({ port: 3001, path: '/mcp' })
+await server.connect(transport)
 ```
 
 ## Spec Format

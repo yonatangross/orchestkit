@@ -9,10 +9,9 @@ import { Renderer } from '@json-render/react'
 
 <Renderer
   spec={spec}                    // JsonRenderSpec — flat-tree JSON/YAML
-  catalog={catalog}              // Catalog from defineCatalog()
-  registry={registry}            // CatalogComponents<typeof catalog>
-  fallback={<Loading />}         // Optional: shown during streaming
-  onError={(err) => log(err)}    // Optional: error callback
+  registry={registry}            // DefineRegistryResult from defineRegistry()
+  loading={isLoading}            // Optional: boolean, shows fallback while true
+  fallback={<Loading />}         // Optional: shown during streaming or loading
 />
 ```
 
@@ -36,7 +35,6 @@ Renders spec to an in-memory PDF buffer.
 import { renderToBuffer } from '@json-render/react-pdf'
 
 const buffer = await renderToBuffer(spec, {
-  catalog,
   registry: pdfRegistry,
   pageSize: 'A4',               // Optional: 'A4' | 'LETTER' | { width, height }
   orientation: 'portrait',      // Optional: 'portrait' | 'landscape'
@@ -52,7 +50,6 @@ Renders spec directly to a PDF file on disk.
 import { renderToFile } from '@json-render/react-pdf'
 
 await renderToFile(spec, './output/report.pdf', {
-  catalog,
   registry: pdfRegistry,
   pageSize: 'A4',
 })
@@ -65,7 +62,7 @@ Renders spec to a readable stream for piping to HTTP responses.
 ```typescript
 import { renderToStream } from '@json-render/react-pdf'
 
-const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+const stream = await renderToStream(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"')
 stream.pipe(res)
@@ -83,7 +80,6 @@ Renders spec to an HTML string optimized for email clients.
 import { renderToHtml } from '@json-render/react-email'
 
 const html = await renderToHtml(spec, {
-  catalog,
   registry: emailRegistry,
   preview: 'Your weekly report is ready', // Optional: email preview text
   theme: 'light',                          // Optional: 'light' | 'dark'
@@ -97,7 +93,7 @@ Renders spec to plain text (for text/plain multipart emails).
 ```typescript
 import { renderToPlainText } from '@json-render/react-email'
 
-const text = await renderToPlainText(spec, { catalog, registry: emailRegistry })
+const text = await renderToPlainText(spec, { registry: emailRegistry })
 ```
 
 ---
@@ -112,7 +108,6 @@ Renders spec to an SVG string using Satori.
 import { renderToSvg } from '@json-render/image'
 
 const svg = await renderToSvg(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,              // Required
   height: 630,              // Required
@@ -133,7 +128,6 @@ Renders spec to a PNG buffer (SVG -> PNG via Resvg).
 import { renderToPng } from '@json-render/image'
 
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,

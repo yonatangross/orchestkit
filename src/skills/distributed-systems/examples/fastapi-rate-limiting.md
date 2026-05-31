@@ -307,12 +307,12 @@ async def bulk_process(request: Request):
 ```python
 # tests/test_rate_limiting.py
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_rate_limit_enforced():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Make requests up to limit
         for _ in range(10):
             response = await client.post("/analyses")
@@ -325,7 +325,7 @@ async def test_rate_limit_enforced():
 
 @pytest.mark.asyncio
 async def test_rate_limit_headers():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/analyses")
 
         assert "X-RateLimit-Limit" in response.headers

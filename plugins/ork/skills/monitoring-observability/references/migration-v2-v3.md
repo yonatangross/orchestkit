@@ -9,7 +9,7 @@
 | `from langfuse.decorators import observe` | `from langfuse import observe` |
 | `from langfuse.decorators import langfuse_context` | `from langfuse import get_client` |
 | `from langfuse import Langfuse` | `from langfuse import Langfuse` (unchanged) |
-| `from langfuse.callback import CallbackHandler` | `from langfuse.callback import CallbackHandler` (unchanged) |
+| `from langfuse.callback import CallbackHandler` | `from langfuse.langchain import CallbackHandler` (moved in v3) |
 
 ### API Changes
 
@@ -103,7 +103,7 @@ langfuse = Langfuse()
 
 # Creating datasets, scoring, experiments — same API
 dataset = langfuse.create_dataset(name="golden-v1")
-langfuse.score(trace_id="...", name="quality", value=0.85)
+langfuse.create_score(trace_id="...", name="quality", value=0.85)
 ```
 
 ## Python SDK: v3 → v4
@@ -395,7 +395,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 - [ ] Remove explicit `langfuse.trace()` calls where `@observe()` creates auto-traces
 - [ ] Update trace ID handling if relying on UUID format (now W3C)
 - [ ] Add `type=` parameter to `@observe()` for new observation types
-- [ ] Update `requirements.txt`: `langfuse>=3.13.0`
+- [ ] Update `requirements.txt`: `langfuse>=4.0.0`
 
 ### JavaScript v3 → v4
 

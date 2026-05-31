@@ -99,7 +99,7 @@ async def generate(user_query: str) -> str:
 
     # Schema validation — deterministic, must be code
     is_valid_json = _try_parse_json(response)
-    lf.score(trace_id=trace_id, name="schema_valid", value=1.0 if is_valid_json else 0.0)
+    lf.create_score(trace_id=trace_id, name="schema_valid", value=1.0 if is_valid_json else 0.0)
 
     # Langfuse online evaluator scores "quality" asynchronously — no code needed here
 

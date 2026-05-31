@@ -13,8 +13,9 @@ Checkpointer = short-term (thread-scoped). Store = long-term (cross-thread, name
 ```python
 # User preferences stored in thread-1 state
 # When user starts thread-2, preferences are lost!
-checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
-app = workflow.compile(checkpointer=checkpointer)
+with PostgresSaver.from_conn_string(DATABASE_URL) as checkpointer:
+    checkpointer.setup()
+    app = workflow.compile(checkpointer=checkpointer)
 ```
 
 **Correct — Store for cross-thread memory:**
@@ -22,14 +23,18 @@ app = workflow.compile(checkpointer=checkpointer)
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.store.postgres import PostgresStore
 
+# from_conn_string is a @contextmanager — setup() MUST be called once
 # Checkpointer = SHORT-TERM (thread-scoped)
-checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
-
 # Store = LONG-TERM (cross-thread, namespaced)
-store = PostgresStore.from_conn_string(DATABASE_URL)
+with (
+    PostgresSaver.from_conn_string(DATABASE_URL) as checkpointer,
+    PostgresStore.from_conn_string(DATABASE_URL) as store,
+):
+    checkpointer.setup()
+    store.setup()
 
-# Compile with BOTH
-app = workflow.compile(checkpointer=checkpointer, store=store)
+    # Compile with BOTH
+    app = workflow.compile(checkpointer=checkpointer, store=store)
 ```
 
 **Using Store in nodes:**

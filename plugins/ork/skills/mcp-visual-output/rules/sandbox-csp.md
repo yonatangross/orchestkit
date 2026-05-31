@@ -13,9 +13,12 @@ MCP visual output renders inside sandboxed iframes. The host (Claude Desktop, Cu
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
 
-const app = createMcpApp({
+const server = await createMcpApp({
+  name: 'dashboard',
+  version: '1.0.0',
   catalog,
   html: bundledHtml,
+  tool: { name: 'render', description: 'Render dashboard' },
   csp: {
     // BAD: wildcard allows any domain -- data exfiltration risk
     connectDomains: ['*'],
@@ -29,9 +32,12 @@ const app = createMcpApp({
 
 **Incorrect -- no CSP at all (default blocks everything):**
 ```typescript
-const app = createMcpApp({
+const server = await createMcpApp({
+  name: 'dashboard',
+  version: '1.0.0',
   catalog,
   html: bundledHtml,
+  tool: { name: 'render', description: 'Render dashboard' },
   // No csp config -- iframe cannot fetch any external resources.
   // Images, fonts, API calls all fail silently.
 })
@@ -41,9 +47,12 @@ const app = createMcpApp({
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
 
-const app = createMcpApp({
+const server = await createMcpApp({
+  name: 'dashboard',
+  version: '1.0.0',
   catalog,
   html: bundledHtml,
+  tool: { name: 'render', description: 'Render dashboard' },
   csp: {
     // Only the API your dashboard actually calls
     connectDomains: ['https://api.example.com'],
@@ -59,6 +68,10 @@ const app = createMcpApp({
 ```typescript
 registerJsonRenderTool(server, {
   catalog,
+  name: 'render',
+  title: 'Render dashboard',
+  description: 'Render interactive dashboard',
+  resourceUri: 'json-render://dashboard',
   html: bundledHtml,
   csp: {
     connectDomains: ['https://api.internal.com'],

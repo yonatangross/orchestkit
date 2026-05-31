@@ -67,23 +67,20 @@ Langfuse v3 uses W3C Trace Context format for trace IDs:
 For custom OTEL integration or forwarding traces to multiple backends:
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-# Langfuse as OTEL SpanProcessor
-langfuse_processor = LangfuseSpanProcessor(
+# v4: span filtering is a client kwarg (no LangfuseSpanProcessor module).
+# The Langfuse client installs its own OTEL processor internally.
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     host="https://cloud.langfuse.com",
+    should_export_span=is_default_export_span,  # drop noisy infra spans
 )
 
-# Add to OTEL tracer provider
-provider = TracerProvider()
-provider.add_span_processor(langfuse_processor)
-
-# Now all OTEL spans are sent to Langfuse
-# Works with any OTEL-instrumented library
+# All OTEL spans the client captures are sent to Langfuse.
+# Works with any OTEL-instrumented library.
 ```
 
 ## New Observation Types (v3)
@@ -93,38 +90,38 @@ Beyond `generation` and `span`, v3 adds typed observations for Agent Graph rende
 ```python
 from langfuse import observe, get_client
 
-@observe(type="agent", name="supervisor")
+@observe(as_type="agent", name="supervisor")
 async def supervisor(query: str):
     """Agent type — shows as agent node in graph."""
     intent = await classify(query)
     return await route_to_specialist(intent, query)
 
-@observe(type="tool", name="web_search")
+@observe(as_type="tool", name="web_search")
 async def search(query: str):
     """Tool type — shows as tool call in graph."""
     return await tavily.search(query)
 
-@observe(type="retriever", name="vector_search")
+@observe(as_type="retriever", name="vector_search")
 async def retrieve(query: str):
     """Retriever type — shows retrieval step in graph."""
     return await vector_db.search(query, top_k=5)
 
-@observe(type="chain", name="prompt_chain")
+@observe(as_type="chain", name="prompt_chain")
 async def chain(inputs: dict):
     """Chain type — shows sequential processing."""
     return await run_chain(inputs)
 
-@observe(type="guardrail", name="pii_check")
+@observe(as_type="guardrail", name="pii_check")
 async def check_pii(text: str):
     """Guardrail type — shows safety check in graph."""
     return detect_and_mask_pii(text)
 
-@observe(type="embedding", name="embed")
+@observe(as_type="embedding", name="embed")
 async def embed(text: str):
     """Embedding type — shows vector generation."""
     return await embeddings.embed(text)
 
-@observe(type="evaluator", name="quality_judge")
+@observe(as_type="evaluator", name="quality_judge")
 async def evaluate(output: str):
     """Evaluator type — creates inspectable trace."""
     return await llm_judge.score(output)
@@ -162,7 +159,7 @@ async def run_content_analysis(analysis_id: str, content: str):
 For LangChain/LangGraph applications, use the CallbackHandler:
 
 ```python
-from langfuse.callback import CallbackHandler
+from langfuse.langchain import CallbackHandler
 
 langfuse_handler = CallbackHandler(
     public_key=settings.LANGFUSE_PUBLIC_KEY,

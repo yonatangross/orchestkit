@@ -13,7 +13,7 @@ persuasion-type: guidance
 metadata:
   category: mcp
   upstream-package: "@json-render/mcp"
-  upstream-version-tested: "0.17.0"
+  upstream-version-tested: "0.19.0"
 ---
 
 # MCP Visual Output
@@ -70,17 +70,26 @@ The AI never writes HTML or CSS. It produces a structured JSON spec that referen
 
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { catalog } from './catalog'
 import bundledHtml from './app.html'
 
-// 1. Create the MCP app (wraps McpServer + registers the render tool)
-const app = createMcpApp({
+// 1. Create the MCP app (async; returns an McpServer, no .start()/.close()).
+//    name + version are required; tool config nests under `tool`
+//    (default tool name is 'render-ui'). There is no top-level `csp`.
+const server = await createMcpApp({
+  name: 'my-app',
+  version: '1.0.0',
   catalog,           // component schemas the AI can use
   html: bundledHtml, // pre-built iframe app (single HTML file)
+  tool: {
+    name: 'render-dashboard',
+    description: 'Render an interactive dashboard from a json-render spec',
+  },
 })
 
-// 2. Start -- works with stdio, Streamable HTTP, or any MCP transport
-app.start()
+// 2. Connect a transport -- stdio, Streamable HTTP, or any MCP transport
+await server.connect(new StdioServerTransport())
 ```
 
 ## Quick Start -- Enhance Existing Server with Visual Output
@@ -93,11 +102,21 @@ import bundledHtml from './app.html'
 
 const server = new McpServer({ name: 'my-server', version: '1.0.0' })
 
-// Register the render tool (lets the model return specs)
-registerJsonRenderTool(server, { catalog })
+const resourceUri = 'ui://my-server/dashboard'
 
-// Serve the bundled HTML iframe app as a resource (new in 0.15)
-registerJsonRenderResource(server, { html: bundledHtml })
+// Register the render tool (lets the model return specs).
+// name, title, description, and resourceUri are all required.
+registerJsonRenderTool(server, {
+  catalog,
+  name: 'render-dashboard',
+  title: 'Render Dashboard',
+  description: 'Render an interactive dashboard from a json-render spec',
+  resourceUri,
+})
+
+// Serve the bundled HTML iframe app as a resource (new in 0.15).
+// resourceUri must match the tool's resourceUri.
+registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 ```
 
 `registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported.
@@ -124,33 +143,36 @@ Catalogs define what components the AI can use. Each component has typed props v
 
 ```typescript
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const dashboardCatalog = defineCatalog({
-  StatGrid: {
-    props: z.object({
-      items: z.array(z.object({
+export const dashboardCatalog = defineCatalog(schema, {
+  components: {
+    StatGrid: {
+      props: z.object({
+        items: z.array(z.object({
+          label: z.string(),
+          value: z.string(),
+          trend: z.enum(['up', 'down', 'flat']).optional(),
+          color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
+        })),
+      }),
+      children: false,
+    },
+    StatusBadge: {
+      props: z.object({
         label: z.string(),
-        value: z.string(),
-        trend: z.enum(['up', 'down', 'flat']).optional(),
-        color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
-      })),
-    }),
-    children: false,
-  },
-  StatusBadge: {
-    props: z.object({
-      label: z.string(),
-      status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
-    }),
-    children: false,
-  },
-  DataTable: {
-    props: z.object({
-      columns: z.array(z.object({ key: z.string(), label: z.string() })),
-      rows: z.array(z.record(z.string())),
-    }),
-    children: false,
+        status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
+      }),
+      children: false,
+    },
+    DataTable: {
+      props: z.object({
+        columns: z.array(z.object({ key: z.string(), label: z.string() })),
+        rows: z.array(z.record(z.string())),
+      }),
+      children: false,
+    },
   },
 })
 ```

@@ -11,7 +11,7 @@ Agent Graphs provide visual execution flow for multi-agent systems. Langfuse aut
 ```python
 from langfuse import observe, get_client
 
-@observe(type="agent", name="supervisor")
+@observe(as_type="agent", name="supervisor")
 async def supervisor_agent(query: str):
     """Supervisor agent that routes to specialists."""
     get_client().update_current_observation(
@@ -28,14 +28,14 @@ async def supervisor_agent(query: str):
         return await general_agent(query)
 
 
-@observe(type="agent", name="code_review")
+@observe(as_type="agent", name="code_review")
 async def code_review_agent(query: str):
     """Specialist agent for code review."""
     context = await retrieve_context(query)
     return await generate_review(context)
 
 
-@observe(type="agent", name="security_audit")
+@observe(as_type="agent", name="security_audit")
 async def security_audit_agent(query: str):
     """Specialist agent for security auditing."""
     vulnerabilities = await scan_code(query)
@@ -79,7 +79,7 @@ Langfuse v3 adds 7 observation types beyond `generation` and `span`:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="retriever", name="vector_search")
+@observe(as_type="retriever", name="vector_search")
 async def retrieve_context(query: str):
     """Retrieve relevant context from vector DB."""
     results = await vector_db.search(query, top_k=5)
@@ -93,7 +93,7 @@ async def retrieve_context(query: str):
     return results
 
 
-@observe(type="tool", name="web_search")
+@observe(as_type="tool", name="web_search")
 async def search_web(query: str):
     """Execute web search tool."""
     results = await tavily.search(query)
@@ -105,7 +105,7 @@ async def search_web(query: str):
     return results
 
 
-@observe(type="guardrail", name="pii_filter")
+@observe(as_type="guardrail", name="pii_filter")
 async def check_pii(text: str):
     """Check for PII before sending to LLM."""
     has_pii = detect_pii(text)
@@ -119,7 +119,7 @@ async def check_pii(text: str):
     return text
 
 
-@observe(type="embedding", name="embed_query")
+@observe(as_type="embedding", name="embed_query")
 async def embed_query(text: str):
     """Generate embedding for query."""
     embedding = await embeddings.embed(text)
@@ -132,7 +132,7 @@ async def embed_query(text: str):
     return embedding
 
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     """Evaluate response relevance with LLM judge."""
     score = await llm_judge.evaluate(
@@ -153,7 +153,7 @@ async def evaluate_relevance(query: str, response: str):
 In v3, tool calls within generations are rendered inline in the trace view:
 
 ```python
-@observe(type="agent")
+@observe(as_type="agent")
 async def coding_agent(task: str):
     response = await client.messages.create(
         model="claude-sonnet-4-6",
@@ -200,7 +200,7 @@ The Trace Log View provides a chronological log of all events within a trace, us
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="langgraph_supervisor")
+@observe(as_type="agent", name="langgraph_supervisor")
 async def run_langgraph_workflow(query: str):
     """LangGraph workflow with automatic Langfuse tracing."""
     from langgraph.graph import StateGraph
@@ -220,7 +220,7 @@ async def run_langgraph_workflow(query: str):
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="crewai_crew")
+@observe(as_type="agent", name="crewai_crew")
 async def run_crew(task: str):
     """CrewAI crew with Langfuse tracing."""
     from crewai import Crew, Agent, Task
@@ -241,7 +241,7 @@ async def run_crew(task: str):
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="openai_agent")
+@observe(as_type="agent", name="openai_agent")
 async def run_openai_agent(query: str):
     """OpenAI Agents SDK with Langfuse tracing."""
     from openai_agents import Agent, Runner

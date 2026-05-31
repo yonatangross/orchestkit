@@ -25,12 +25,14 @@ memory = MemorySaver()
 app = workflow.compile(checkpointer=memory)
 
 # Production: PostgreSQL (shared, durable)
-checkpointer = PostgresSaver.from_conn_string("postgresql://...")
-app = workflow.compile(checkpointer=checkpointer)
+# from_conn_string is a @contextmanager — setup() MUST be called once
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()
+    app = workflow.compile(checkpointer=checkpointer)
 
-# Invoke with thread_id for resumability
-config = {"configurable": {"thread_id": "analysis-123"}}
-result = app.invoke(initial_state, config=config)
+    # Invoke with thread_id for resumability
+    config = {"configurable": {"thread_id": "analysis-123"}}
+    result = app.invoke(initial_state, config=config)
 ```
 
 **Key rules:**
