@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.12.6](https://github.com/yonatangross/orchestkit/compare/v8.12.5...v8.12.6) (2026-05-31)
+
+
+### Bug Fixes
+
+* **skills:** Lane 1 library hard-breaks across 11 skills ([#2142](https://github.com/yonatangross/orchestkit/issues/2142)) ([ac9a7b8](https://github.com/yonatangross/orchestkit/commit/ac9a7b8ac20902a116dc96bdbbc7f67d146ed2e6))
+* **skills:** Lane 2+3 library remediation (12 clusters) ([#2143](https://github.com/yonatangross/orchestkit/issues/2143)) ([e4854df](https://github.com/yonatangross/orchestkit/commit/e4854df83b88d01ef901b384512cefea104b8689))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.158) ([#2127](https://github.com/yonatangross/orchestkit/issues/2127)) ([34f14a1](https://github.com/yonatangross/orchestkit/commit/34f14a133cc5f21ec498ef0ab0ad16a1b196dbf3))
+
 ## [8.12.5](https://github.com/yonatangross/orchestkit/compare/v8.12.4...v8.12.5) (2026-05-31)
 
 
