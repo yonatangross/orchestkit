@@ -30,15 +30,17 @@ logger = logging.getLogger(__name__)
 
 class TruncationStrategy(Enum):
     """Strategy for truncating content that exceeds budget."""
-    TRUNCATE_END = "truncate_end"      # Cut from the end
+
+    TRUNCATE_END = "truncate_end"  # Cut from the end
     TRUNCATE_START = "truncate_start"  # Cut from the start
-    SUMMARIZE = "summarize"            # Summarize content
+    SUMMARIZE = "summarize"  # Summarize content
     SLIDING_WINDOW = "sliding_window"  # Keep most recent
 
 
 @dataclass
 class BudgetAllocation:
     """Token budget allocation by category."""
+
     system_prompt: int = 2000
     conversation: int = 20000
     retrieved_docs: int = 8000
@@ -48,17 +50,18 @@ class BudgetAllocation:
     @property
     def total_budget(self) -> int:
         return (
-            self.system_prompt +
-            self.conversation +
-            self.retrieved_docs +
-            self.output_reserve +
-            self.safety_margin
+            self.system_prompt
+            + self.conversation
+            + self.retrieved_docs
+            + self.output_reserve
+            + self.safety_margin
         )
 
 
 @dataclass
 class TokenUsage:
     """Track token usage by category."""
+
     system_prompt: int = 0
     conversation: int = 0
     retrieved_docs: int = 0
@@ -69,6 +72,7 @@ class TokenUsage:
 @dataclass
 class BudgetStats:
     """Statistics for token budget usage."""
+
     total_requests: int = 0
     truncations: int = 0
     summarizations: int = 0
@@ -85,8 +89,7 @@ class TokenBudgetError(Exception):
         self.required = required
         self.available = available
         super().__init__(
-            f"Token budget exceeded for {category}: "
-            f"required {required}, available {available}"
+            f"Token budget exceeded for {category}: required {required}, available {available}"
         )
 
 
@@ -100,8 +103,8 @@ class TokenCounter:
     # Model to encoding mapping
     MODEL_ENCODINGS = {
         "gpt-4": "cl100k_base",
-        "gpt-5.2": "o200k_base",
-        "gpt-5.2-mini": "o200k_base",
+        "gpt-5.5": "o200k_base",
+        "gpt-5-mini": "o200k_base",
         "gpt-3.5-turbo": "cl100k_base",
         "text-embedding-3-small": "cl100k_base",
         "text-embedding-3-large": "cl100k_base",
@@ -119,9 +122,7 @@ class TokenCounter:
 
             # Try model-specific encoding
             if self.model in self.MODEL_ENCODINGS:
-                self._encoding = tiktoken.get_encoding(
-                    self.MODEL_ENCODINGS[self.model]
-                )
+                self._encoding = tiktoken.get_encoding(self.MODEL_ENCODINGS[self.model])
             else:
                 # Try to get encoding for model directly
                 try:
@@ -129,9 +130,7 @@ class TokenCounter:
                 except KeyError:
                     # Fall back to cl100k_base for unknown models
                     self._encoding = tiktoken.get_encoding("cl100k_base")
-                    logger.warning(
-                        f"Unknown model '{self.model}', using cl100k_base encoding"
-                    )
+                    logger.warning(f"Unknown model '{self.model}', using cl100k_base encoding")
 
         except ImportError:
             logger.warning("tiktoken not available, using approximation")
@@ -350,8 +349,7 @@ class TokenBudgetGuard:
         self.stats.total_tokens_saved += tokens_saved
 
         logger.info(
-            f"Truncated messages from {current_tokens} to {used} tokens "
-            f"(saved {tokens_saved})"
+            f"Truncated messages from {current_tokens} to {used} tokens (saved {tokens_saved})"
         )
 
         return fitted
@@ -411,16 +409,15 @@ class TokenBudgetGuard:
         PRICING = {
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
             "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.0},
-            "gpt-5.2": {"input": 2.5, "output": 10.0},
-            "gpt-5.2-mini": {"input": 0.15, "output": 0.60},
+            "gpt-5.5": {"input": 2.5, "output": 10.0},
+            "gpt-5-mini": {"input": 0.15, "output": 0.60},
         }
 
         prices = PRICING.get(self.model, {"input": 1.0, "output": 3.0})
 
-        return (
-            (input_tokens / 1_000_000) * prices["input"] +
-            (output_tokens / 1_000_000) * prices["output"]
-        )
+        return (input_tokens / 1_000_000) * prices["input"] + (output_tokens / 1_000_000) * prices[
+            "output"
+        ]
 
     def get_stats(self) -> dict:
         """Get budget guard statistics."""

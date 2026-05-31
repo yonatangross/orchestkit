@@ -288,7 +288,7 @@ crew = Crew(
     agents=[manager, researcher, writer],
     tasks=[research_task, write_task, review_task],
     process=Process.hierarchical,
-    manager_llm="gpt-4o",  # Required for hierarchical
+    manager_llm="gpt-5.5",  # Required for hierarchical
     memory=True,
     verbose=True
 )
@@ -308,8 +308,8 @@ agent = Agent(
     backstory="Expert with 10 years experience",
 
     # LLM configuration
-    llm="gpt-4o",
-    function_calling_llm="gpt-4o-mini",  # Cheaper model for tools
+    llm="gpt-5.5",
+    function_calling_llm="gpt-5-mini",  # Cheaper model for tools
     use_system_prompt=True,
 
     # Execution control
@@ -709,7 +709,7 @@ class ReviewFlow(Flow):
     @human_feedback(
         message="Do you approve this content?",
         emit=["approved", "rejected"],
-        llm="gpt-4o-mini"
+        llm="gpt-5-mini"
     )
     def generate_content(self):
         return "Content for human review..."

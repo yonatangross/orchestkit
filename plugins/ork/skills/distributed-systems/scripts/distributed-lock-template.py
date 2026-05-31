@@ -9,13 +9,15 @@ Requirements:
     # Or use uuid4 fallback (less optimal for time-ordering)
 """
 
+import asyncio
+import hashlib
+import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import AsyncGenerator, Protocol
+from typing import Protocol
 from uuid import uuid4
-import asyncio
-import hashlib
 
 # UUIDv7 preferred for time-ordered IDs (better for indexes)
 # Falls back to uuid4 if uuid-utils not installed
@@ -119,11 +121,7 @@ class RedisDistributedLock(DistributedLock):
     async def acquire(self, timeout: timedelta | None = None) -> bool:
         """Acquire lock with retry logic."""
         ttl_ms = int(self._config.ttl.total_seconds() * 1000)
-        deadline = (
-            asyncio.get_event_loop().time() + timeout.total_seconds()
-            if timeout
-            else None
-        )
+        deadline = time.monotonic() + timeout.total_seconds() if timeout else None
 
         for attempt in range(self._config.retry_count):
             result = await self._client.eval(
@@ -139,11 +137,11 @@ class RedisDistributedLock(DistributedLock):
                 self._start_auto_extend()
                 return True
 
-            if deadline and asyncio.get_event_loop().time() >= deadline:
+            if deadline and time.monotonic() >= deadline:
                 return False
 
             # Exponential backoff with jitter
-            delay = self._config.retry_delay.total_seconds() * (2 ** attempt)
+            delay = self._config.retry_delay.total_seconds() * (2**attempt)
             jitter = delay * 0.1
             await asyncio.sleep(delay + jitter)
 
@@ -267,9 +265,7 @@ class PostgresAdvisoryLock(DistributedLock):
         else:
             # Blocking with statement timeout
             timeout_ms = int(timeout.total_seconds() * 1000) if timeout else 10000
-            await self._session.execute(
-                text(f"SET LOCAL statement_timeout = {timeout_ms}")
-            )
+            await self._session.execute(text(f"SET LOCAL statement_timeout = {timeout_ms}"))
             try:
                 await self._session.execute(
                     text(f"SELECT {func}(:lock_id)"),
@@ -279,9 +275,7 @@ class PostgresAdvisoryLock(DistributedLock):
             except Exception:
                 self._acquired = False
             finally:
-                await self._session.execute(
-                    text("SET LOCAL statement_timeout = 0")
-                )
+                await self._session.execute(text("SET LOCAL statement_timeout = 0"))
 
         return self._acquired
 
@@ -357,7 +351,7 @@ async def distributed_lock(
     name: str,
     client,  # Redis client or SQLAlchemy session
     config: LockConfig | None = None,
-) -> AsyncGenerator[DistributedLock, None]:
+) -> AsyncGenerator[DistributedLock]:
     """Factory for distributed locks.
 
     Args:

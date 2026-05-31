@@ -20,7 +20,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="assistant",
     instructions="You are a helpful assistant that answers questions.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 # Synchronous run
@@ -44,7 +44,7 @@ session = SQLiteSession(db_path="conversations.db")
 agent = Agent(
     name="assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 runner = Runner()
@@ -98,7 +98,7 @@ billing_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You handle billing inquiries. Check account status and payment issues.
 Hand back to triage when billing issue is resolved.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 support_agent = Agent(
@@ -106,7 +106,7 @@ support_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You handle technical support. Troubleshoot issues and provide solutions.
 Hand back to triage when support issue is resolved.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 # Triage agent with handoffs
@@ -117,7 +117,7 @@ You are the first point of contact. Determine the nature of inquiries.
 - Billing questions: hand off to billing
 - Technical issues: hand off to support
 - General questions: answer directly""",
-    model="gpt-5.2",
+    model="gpt-5.5",
     handoffs=[
         handoff(agent=billing_agent),
         handoff(agent=support_agent)
@@ -205,7 +205,7 @@ async with MCPServerManager() as manager:
     agent = Agent(
         name="mcp_agent",
         instructions="Use available tools to help the user.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         mcp_servers=[filesystem_server, api_server]
     )
 
@@ -228,7 +228,7 @@ async with MCPServerStdio(
     agent = Agent(
         name="file_agent",
         instructions="Help with file operations.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         mcp_servers=[server]
     )
     result = await runner.run(agent, "What files are available?")
@@ -256,7 +256,7 @@ def create_ticket(title: str, description: str, priority: str) -> str:
 support_agent = Agent(
     name="support",
     instructions="Help users with technical issues. Search knowledge base first.",
-    model="gpt-5.2",
+    model="gpt-5.5",
     tools=[search_knowledge_base, create_ticket]
 )
 ```
@@ -285,7 +285,7 @@ class ResponseValidator(OutputGuardrail):
 agent = Agent(
     name="safe_assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.2",
+    model="gpt-5.5",
     input_guardrails=[ContentFilter()],
     output_guardrails=[ResponseValidator()]
 )
@@ -346,7 +346,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="streamer",
     instructions="Provide detailed explanations.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 runner = Runner()
@@ -428,7 +428,7 @@ config = RunConfig(
 agent = Agent(
     name="assistant",
     instructions="You are helpful.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 result = await runner.run(agent, "Complex task", run_config=config)

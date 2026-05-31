@@ -55,7 +55,7 @@ crew = Crew(
     agents=[manager, researcher, writer],
     tasks=[project_task],
     process=Process.hierarchical,
-    manager_llm="gpt-5.2",
+    manager_llm="gpt-5.5",
     memory=True,
     verbose=True
 )
@@ -224,6 +224,6 @@ crew = Crew(
     agents=[manager, researcher, writer, reviewer],
     tasks=[project_task],
     process=Process.hierarchical,  # Manager delegates dynamically
-    manager_llm="gpt-5.2"
+    manager_llm="gpt-5.5"
 )
 ```

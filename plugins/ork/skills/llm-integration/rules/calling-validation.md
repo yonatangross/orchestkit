@@ -69,7 +69,7 @@ class ToolRegistry:
 async def run_tool_loop(
     registry: ToolRegistry,
     user_message: str,
-    model: str = "gpt-5.2",
+    model: str = "gpt-5.5",
     max_iterations: int = 10
 ) -> str:
     """Run tool execution loop with iteration guard."""

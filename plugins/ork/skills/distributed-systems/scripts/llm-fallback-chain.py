@@ -10,7 +10,7 @@ Multi-model fallback implementation with:
 Usage:
     chain = LLMFallbackChain(
         primary=LLMProvider("claude-sonnet-4-6"),
-        fallbacks=[LLMProvider("gpt-5.2-mini")],
+        fallbacks=[LLMProvider("gpt-5-mini")],
         cache=semantic_cache,
     )
 
@@ -32,6 +32,7 @@ T = TypeVar("T")
 
 class ResponseSource(Enum):
     """Source of the LLM response."""
+
     PRIMARY = "primary"
     FALLBACK = "fallback"
     CACHE = "cache"
@@ -41,6 +42,7 @@ class ResponseSource(Enum):
 @dataclass
 class LLMResponse:
     """Response from LLM with metadata."""
+
     content: str
     source: ResponseSource
     model: str | None = None
@@ -60,6 +62,7 @@ class LLMResponse:
 @dataclass
 class LLMConfig:
     """Configuration for an LLM provider."""
+
     name: str
     model: str
     api_key: str | None = None
@@ -118,6 +121,7 @@ class SemanticCache(ABC):
 @dataclass
 class FallbackChainStats:
     """Statistics for fallback chain."""
+
     total_calls: int = 0
     primary_successes: int = 0
     fallback_successes: int = 0
@@ -309,9 +313,7 @@ class LLMFallbackChain:
                 else 0
             ),
             "cache_hit_rate": (
-                self.stats.cache_hits / self.stats.total_calls
-                if self.stats.total_calls > 0
-                else 0
+                self.stats.cache_hits / self.stats.total_calls if self.stats.total_calls > 0 else 0
             ),
         }
 
@@ -357,7 +359,9 @@ class QualityAwareFallbackChain(LLMFallbackChain):
 
         for attempt in range(self.max_quality_retries + 1):
             # Get response from chain
-            response = await super().complete(prompt, use_cache=use_cache, cache_result=cache_result, **kwargs)
+            response = await super().complete(
+                prompt, use_cache=use_cache, cache_result=cache_result, **kwargs
+            )
 
             # If no quality evaluator, return immediately
             if not self.quality_evaluator:
@@ -397,6 +401,7 @@ class QualityAwareFallbackChain(LLMFallbackChain):
 
 class AllModelsFailedError(Exception):
     """Raised when all LLM models in the chain fail."""
+
     pass
 
 
@@ -438,6 +443,7 @@ class MockLLMProvider(LLMProvider):
 
 # Example usage
 if __name__ == "__main__":
+
     async def main():
         # Create providers
         primary = MockLLMProvider(
@@ -453,7 +459,7 @@ if __name__ == "__main__":
         fallback = MockLLMProvider(
             LLMConfig(
                 name="fallback",
-                model="gpt-5.2-mini",
+                model="gpt-5-mini",
                 cost_per_million_input=0.15,
                 cost_per_million_output=0.60,
             ),
@@ -472,9 +478,11 @@ if __name__ == "__main__":
         print("Testing fallback chain:")
         for i in range(10):
             response = await chain.complete(f"Test prompt {i}")
-            print(f"  {i+1}. Source: {response.source.value}, "
-                  f"Model: {response.model}, "
-                  f"Degraded: {response.is_degraded}")
+            print(
+                f"  {i + 1}. Source: {response.source.value}, "
+                f"Model: {response.model}, "
+                f"Degraded: {response.is_degraded}"
+            )
 
         print(f"\nStats: {chain.get_stats()}")
 

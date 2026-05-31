@@ -13,17 +13,17 @@ Context-aware recommendations for ORM, auth, error handling, and testing by proj
 ```python
 # MVP with 0 users, building custom JWT from scratch
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["argon2"])
 
 def create_access_token(user_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.now(UTC) + timedelta(minutes=15)
     return jwt.encode({"sub": user_id, "exp": expire}, SECRET_KEY)
 
 def create_refresh_token(user_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(days=7)
+    expire = datetime.now(UTC) + timedelta(days=7)
     return jwt.encode({"sub": user_id, "exp": expire, "type": "refresh"}, SECRET_KEY)
 
 # +200 LOC for token rotation, revocation, middleware...

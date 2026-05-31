@@ -28,7 +28,7 @@ def get_llm_provider(task_type: str = "general"):
     else:
         # Fall back to cloud API
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model="gpt-5.2")
+        return ChatOpenAI(model="gpt-5.5")
 
 # Usage
 llm = get_llm_provider(task_type="coding")
@@ -109,7 +109,7 @@ async def prewarm_models() -> None:
 ```python
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-5.2")  # Always uses cloud, ignores local setup
+llm = ChatOpenAI(model="gpt-5.5")  # Always uses cloud, ignores local setup
 response = await llm.ainvoke("Generate code...")
 ```
 
@@ -122,7 +122,7 @@ from langchain_openai import ChatOpenAI
 def get_llm_provider(task_type: str = "general"):
     if os.getenv("OLLAMA_ENABLED") == "true":
         return ChatOllama(model="qwen2.5-coder:32b", keep_alive="5m")
-    return ChatOpenAI(model="gpt-5.2")
+    return ChatOpenAI(model="gpt-5.5")
 
 llm = get_llm_provider(task_type="coding")
 ```

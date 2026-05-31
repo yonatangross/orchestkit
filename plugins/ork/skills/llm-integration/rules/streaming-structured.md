@@ -13,7 +13,7 @@ tags: [streaming, tool-calls, partial-json, chunk-accumulation, structured]
 async def stream_with_tools(messages: list, tools: list):
     """Handle streaming responses that include tool calls."""
     stream = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=messages,
         tools=tools,
         stream=True

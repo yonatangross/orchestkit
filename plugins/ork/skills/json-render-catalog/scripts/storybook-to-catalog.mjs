@@ -83,7 +83,7 @@ function argToZod(argType) {
     case 'color':
       return { zod: 'z.string().regex(/^#[0-9a-fA-F]{6}$/)' }
     case 'date':
-      return { zod: 'z.string().datetime()' }
+      return { zod: 'z.iso.datetime()' }
     case 'array': {
       const max = argType.max ?? 20
       return { zod: `z.array(z.string()).max(${max})` }

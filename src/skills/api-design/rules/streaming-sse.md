@@ -54,7 +54,7 @@ export async function GET(req: Request) {
 ```typescript
 export async function POST(req: Request) {
   const { messages } = await req.json()
-  const stream = await openai.chat.completions.create({ model: 'gpt-5.2', messages, stream: true })
+  const stream = await openai.chat.completions.create({ model: 'gpt-5.5', messages, stream: true })
   const encoder = new TextEncoder()
 
   return new Response(

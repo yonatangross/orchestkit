@@ -36,7 +36,7 @@ export const appRouter = t.router({
     }),
 
   createUser: t.procedure
-    .input(z.object({ email: z.string().email(), name: z.string() }))
+    .input(z.object({ email: z.email(), name: z.string() }))
     .mutation(async ({ input }) => {
       return await db.user.create({ data: input })
     })

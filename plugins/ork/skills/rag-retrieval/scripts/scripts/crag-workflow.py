@@ -27,12 +27,12 @@ import logging
 import operator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Annotated, Literal, Protocol
+from typing import Annotated, Protocol
 
 from langchain_core.documents import Document
 from langchain_core.runnables import Runnable
 from langgraph.graph import END, START, StateGraph
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -135,8 +135,7 @@ class CRAGState(BaseModel):
     max_retries: int = 2
     used_web_search: bool = False
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 # =============================================================================
@@ -270,9 +269,7 @@ async def grade_documents(state: CRAGState, config: CRAGConfig) -> dict:
     for i, doc in enumerate(state.documents):
         doc_id = doc.metadata.get("id", f"doc_{i}")
 
-        result = await grader.ainvoke(
-            {"question": state.question, "document": doc.page_content}
-        )
+        result = await grader.ainvoke({"question": state.question, "document": doc.page_content})
 
         grading_results[doc_id] = result
 
@@ -336,7 +333,7 @@ async def rewrite_query(state: CRAGState, config: CRAGConfig) -> dict:
     # Provide context about what was retrieved
     ambiguous_topics = [doc.page_content[:100] for doc in state.ambiguous_docs[:3]]
     context = (
-        f"\n\nPrevious retrieval returned these partially relevant topics:\n"
+        "\n\nPrevious retrieval returned these partially relevant topics:\n"
         + "\n".join(ambiguous_topics)
         if ambiguous_topics
         else ""
@@ -369,9 +366,7 @@ async def web_search(state: CRAGState, config: CRAGConfig) -> dict:
     # Use original question for web search (more natural phrasing)
     query = state.original_question or state.question
 
-    web_docs = await searcher.search(
-        query, max_results=config.web_search_max_results
-    )
+    web_docs = await searcher.search(query, max_results=config.web_search_max_results)
 
     # Add to correct docs (web results assumed relevant)
     combined_correct = state.correct_docs + web_docs
@@ -517,9 +512,7 @@ async def crag_query(
     Returns:
         Dict with generation, sources_used, and metadata
     """
-    config = CRAGConfig(
-        retriever=retriever, llm=llm, tavily_api_key=tavily_api_key
-    )
+    config = CRAGConfig(retriever=retriever, llm=llm, tavily_api_key=tavily_api_key)
 
     graph = build_crag(config)
     result = await graph.ainvoke({"question": question})
@@ -541,11 +534,11 @@ async def crag_query(
 
 async def example_usage():
     """Example of using CRAG workflow."""
-    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
     from langchain_community.vectorstores import FAISS
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
     # Setup components
-    llm = ChatOpenAI(model="gpt-5.2-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
 
     # Create a simple retriever
     embeddings = OpenAIEmbeddings()
@@ -577,10 +570,7 @@ async def example_usage():
     print(f"\nSources: {result['sources_used']}")
     print(f"Retries: {result['retry_count']}")
     print(f"Web search used: {result['used_web_search']}")
-    print(
-        f"Docs: {len(result['correct_docs'])} correct, "
-        f"{len(result['ambiguous_docs'])} ambiguous"
-    )
+    print(f"Docs: {len(result['correct_docs'])} correct, {len(result['ambiguous_docs'])} ambiguous")
 
 
 if __name__ == "__main__":

@@ -52,7 +52,7 @@ The script applies a deterministic mapping. Anything outside this list is **drop
 | `{ control: 'select', options: [...] }` | `z.enum([...])` | Best case — fully constrained |
 | `{ control: 'radio', options: [...] }` | `z.enum([...])` | Same |
 | `{ control: 'color' }` | `z.string().regex(/^#[0-9a-fA-F]{6}$/)` | Hex only |
-| `{ control: 'date' }` | `z.string().datetime()` | ISO-8601 |
+| `{ control: 'date' }` | `z.iso.datetime()` | ISO-8601 |
 | `{ control: 'object' }` | **DROPPED** | Too open-ended for AI safety; add manually with explicit shape |
 | `{ control: 'array' }` | `z.array(z.string()).max(20)` | Length cap; assumed string elements |
 | TypeScript `ReactNode` | `children: 'allowed'` | Marks the catalog entry as a container |

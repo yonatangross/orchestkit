@@ -176,7 +176,7 @@ async def generate_preference_pairs(
     for prompt in prompts:
         # Generate good response
         good = await client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-5.5",
             messages=[
                 {"role": "system", "content": "Provide a helpful, accurate response."},
                 {"role": "user", "content": prompt}
@@ -185,7 +185,7 @@ async def generate_preference_pairs(
 
         # Generate bad response
         bad = await client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-5.5",
             messages=[
                 {"role": "system", "content": "Provide a response that is vague, "
                  "unhelpful, or slightly incorrect."},

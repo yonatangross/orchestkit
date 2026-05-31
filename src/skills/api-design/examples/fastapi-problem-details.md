@@ -6,7 +6,7 @@ Complete example implementing RFC 9457 Problem Details in FastAPI.
 
 ```python
 # app/core/exceptions.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -36,8 +36,8 @@ class ProblemDetail(BaseModel):
     trace_id: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "type": "https://api.orchestkit.dev/problems/validation-error",
                 "title": "Validation Error",
@@ -48,6 +48,7 @@ class ProblemDetail(BaseModel):
                 "timestamp": "2026-01-07T10:30:00Z",
             }
         }
+    )
 
 
 class ValidationProblem(ProblemDetail):

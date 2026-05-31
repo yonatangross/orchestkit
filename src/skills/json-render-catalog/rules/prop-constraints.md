@@ -65,7 +65,7 @@ GoodComponent: {
 | Numeric | `z.number()` | `z.number().int().min(0).max(100)` |
 | Boolean flags | (no constraint) | `z.boolean().default(false)` |
 | Freeform object | `z.record(z.any())` | `z.object({ specific: z.string() })` |
-| URL/image | `z.string()` | `z.string().url().max(2048)` |
+| URL/image | `z.string()` | `z.url().max(2048)` |
 
 ### Refinements for Complex Validation
 

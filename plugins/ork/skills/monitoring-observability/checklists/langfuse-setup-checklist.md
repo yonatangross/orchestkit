@@ -141,15 +141,14 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 **Python (backend/app/core/config.py):**
 ```python
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     LANGFUSE_PUBLIC_KEY: str
     LANGFUSE_SECRET_KEY: str
     LANGFUSE_HOST: str = "https://cloud.langfuse.com"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
 ```
@@ -311,7 +310,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
 
 ```python
 @observe(name="llm_call")
-async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
+async def call_openai(prompt: str, model: str = "gpt-5.5") -> str:
     """Call OpenAI with cost tracking."""
 
     get_client().update_current_observation(
@@ -324,7 +323,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    # OpenAI pricing (gpt-5.2: $2.50/MTok input, $10/MTok output)
+    # OpenAI pricing (gpt-5.5: $2.50/MTok input, $10/MTok output)
     input_tokens = response.usage.prompt_tokens
     output_tokens = response.usage.completion_tokens
     cost_usd = (input_tokens / 1_000_000) * 2.50 + (output_tokens / 1_000_000) * 10.00

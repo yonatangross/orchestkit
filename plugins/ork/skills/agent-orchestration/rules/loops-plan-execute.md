@@ -84,7 +84,7 @@ When done: Answer: [Final answer]`;
 
   for (let i = 0; i < maxIterations; i++) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.2', messages, temperature: 0.1
+      model: 'gpt-5.5', messages, temperature: 0.1
     });
 
     const content = response.choices[0].message.content!;
@@ -135,7 +135,7 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
   let iteration = 0;
   while (iteration < 10) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.2', messages, tools: openaiTools
+      model: 'gpt-5.5', messages, tools: openaiTools
     });
 
     const message = response.choices[0].message;

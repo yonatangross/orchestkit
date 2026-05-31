@@ -21,7 +21,7 @@ tags: input-validation, zod, pydantic, schema-validation, allowlist
 import { z } from 'zod';
 
 const UserSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   age: z.coerce.number().int().min(0).max(150),
   role: z.enum(['user', 'admin']).default('user'),
@@ -135,7 +135,7 @@ if (email.includes('@')) {
 **Correct — Server-side schema validation with Zod ensures all input is validated:**
 ```typescript
 app.post('/api/users', validateBody(z.object({
-  email: z.string().email(),
+  email: z.email(),
 })), async (req, res) => {
   // req.body.email is validated regardless of client
 });

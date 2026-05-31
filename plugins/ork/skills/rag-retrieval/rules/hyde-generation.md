@@ -31,7 +31,7 @@ async def generate_hyde(
 ) -> HyDEResult:
     """Generate hypothetical document and embed it."""
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content":
                 "Write a short paragraph that would answer this query. "
@@ -66,7 +66,7 @@ async def generate_hyde(
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[{"role": "user", "content": query}],
         max_tokens=150
     )
@@ -79,7 +79,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Write a short paragraph that would answer this query."},
             {"role": "user", "content": query}
@@ -96,7 +96,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
-- Use fast/cheap model (gpt-5.2-mini, claude-haiku-4-5) for generation
+- Use fast/cheap model (gpt-5-mini, claude-haiku-4-5) for generation
 - Temperature 0.3 for consistent, factual hypothetical docs
 - Keep hypothetical docs concise: 100-200 tokens
 - Adds ~500ms latency — always implement with timeout fallback

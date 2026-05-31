@@ -29,7 +29,7 @@ const FormSchema = z.object({
   fullName: z.string().min(1, 'Name is required'),
 
   // Email input
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
 
   // Phone input with custom validation
   phone: z

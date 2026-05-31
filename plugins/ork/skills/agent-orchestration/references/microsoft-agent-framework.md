@@ -10,7 +10,7 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 # Create model client
 model_client = OpenAIChatCompletionClient(
-    model="gpt-5.2",
+    model="gpt-5.5",
     api_key=os.environ["OPENAI_API_KEY"]
 )
 

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Residual Deprecation Sweep — closing the audit</title>
+<style>
+  :root{--bg:#0a0d12;--panel:#12171f;--panel2:#1a212c;--border:#2a323d;--fg:#e6edf3;--muted:#8b98a9;--green:#3fb950;--high:#ff8c42;--accent:#bc8cff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14.5px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:26px 26px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0e131a,var(--bg))}
+  h1{margin:0 0 6px;font-size:22px}.sub{color:var(--muted);font-size:13.5px;max-width:920px}
+  main{max-width:1040px;margin:0 auto;padding:24px 26px 70px}section{margin-bottom:30px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;margin:0 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase}code{font-family:var(--mono);font-size:11.5px;background:var(--panel2);padding:1px 5px;border-radius:4px}
+  .g{color:var(--green)}.h{color:var(--high)}
+  .note{background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.3);border-radius:9px;padding:13px 15px;color:#bfe9cf;font-size:13px}
+  .leave{background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.3);border-radius:9px;padding:13px 15px;color:#f0d9c9;font-size:13px}
+  footer{color:var(--muted);font-size:11.5px;border-top:1px solid var(--border);padding:18px 26px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Residual Deprecation Sweep — closing the 2026-05-31 audit 🧹</h1>
+  <div class="sub">The deferred proliferation from Lanes 1–3: the same deprecated patterns in <b>non-audited skills</b>. 16 default sub-agents, one per skill, <b>judgment-aware</b> (no blind replace) + an aggregate gap-sweep. Off fresh <code>main</code> (both lanes merged).</div>
+</header>
+<main>
+  <section>
+    <h2>What changed</h2>
+    <div class="note">68 files across 16 skills. Mechanical fixes applied everywhere they were real code; model-id modernization applied only to plain "use this model" defaults; everything specialized or deliberate was <b>left and logged</b>.</div>
+    <table><thead><tr><th>pattern</th><th>fix</th><th>result</th></tr></thead><tbody>
+      <tr><td><code>gpt-5.2</code> (plain default)</td><td>→ <code>gpt-5.5</code></td><td class="g">0 plain remaining</td></tr>
+      <tr><td><code>gpt-4o</code> (plain default)</td><td>→ <code>gpt-5.5</code></td><td class="g">0 remaining</td></tr>
+      <tr><td><code>gpt-5.2-mini</code> / <code>gpt-4o-mini</code></td><td>→ <code>gpt-5-mini</code></td><td class="g">cheap-tier preserved</td></tr>
+      <tr><td><code>z.string().email()/.uuid()/.url()/.datetime()</code></td><td>→ <code>z.email()</code> / <code>z.uuid()</code> / <code>z.url()</code> / <code>z.iso.datetime()</code></td><td class="g">0 (3 left are migration-doc comments)</td></tr>
+      <tr><td><code>asyncio.get_event_loop()</code></td><td>→ <code>get_running_loop()</code> / <code>time.monotonic()</code></td><td class="g">0 remaining</td></tr>
+      <tr><td>Pydantic <code>class Config:</code></td><td>→ <code>model_config = SettingsConfigDict / ConfigDict</code> (per base class)</td><td class="g">0 remaining</td></tr>
+      <tr><td><code>datetime.utcnow()</code></td><td>→ <code>datetime.now(UTC)</code></td><td class="g">0 remaining</td></tr>
+    </tbody></table>
+  </section>
+  <section>
+    <h2>Left intentionally (judgment, not laziness)</h2>
+    <div class="leave">
+      <ul style="margin:0;padding-left:18px">
+        <li><code>gpt-5.2-codex</code> ×20 (dedicated <code>gpt-5-2-codex.md</code> + its sibling rows) — specialized model; deferred to a separate codex-lineup pass rather than create an incoherent "gpt-5.5 standard beside gpt-5.2-codex" doc.</li>
+        <li><code>gpt-5.2-realtime</code> / <code>gpt-4o-transcribe</code> ×2 — current specialized voice/transcription models; mapping them to <code>gpt-5.5</code> would strip the capability.</li>
+        <li><code>gpt-3.5-turbo</code> ×1 — a deliberate cheap/legacy fallback-tier cost illustration in a token-budget script.</li>
+        <li>3× <code>z.string().email</code> in <code>zod-v4-api.md</code> — these are <em>comments</em> documenting what the new form replaced (the code is already <code>z.email()</code>).</li>
+      </ul>
+    </div>
+  </section>
+  <section>
+    <h2>Heaviest skills</h2>
+    <table><thead><tr><th>skill</th><th>residual fixed</th></tr></thead><tbody>
+      <tr><td>agent-orchestration</td><td>38× gpt-5.2→5.5, 2× *-mini→gpt-5-mini (codex file left)</td></tr>
+      <tr><td>rag-retrieval</td><td>gpt ids + gpt-5.2-mini→gpt-5-mini + class Config</td></tr>
+      <tr><td>security-patterns</td><td>Zod 4 across 6 files (SKILL/validation rules/examples/script)</td></tr>
+      <tr><td>distributed-systems / architecture-patterns</td><td>get_event_loop→get_running_loop, utcnow→now(UTC), gpt ids</td></tr>
+      <tr><td>api-design / monitoring-observability</td><td>class Config→ConfigDict, gpt ids</td></tr>
+    </tbody></table>
+  </section>
+  <section>
+    <h2>Audit status after this</h2>
+    <div class="note">Lane 1 (#2142) + Lane 2/3 (#2143) + this residual sweep = the entire 2026-05-31 library-currency audit remediated. Only the explicitly-deferred <b>codex/realtime model-lineup verification</b> remains (its own small pass).</div>
+  </section>
+</main>
+<footer>OrchestKit · fix/lib-currency-residual (off main) · 16 default sub-agents + aggregate gap-sweep · judgment-aware, leave-logged · closes the audit (modulo codex pass)</footer>
+</body>
+</html>

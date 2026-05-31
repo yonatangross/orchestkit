@@ -21,7 +21,7 @@ Online evaluators are LLM-as-judge rules configured in the Langfuse UI that run 
 3. Configure:
    - **Name** — e.g., `response-quality`, `safety-check`, `hallucination-detector`
    - **Evaluator type** — select **LLM-as-judge**
-   - **Model** — e.g., `claude-sonnet-4-6`, `gpt-4o`
+   - **Model** — e.g., `claude-sonnet-4-6`, `gpt-5.5`
    - **Score name** — the key stored on the trace (e.g., `quality`, `safety`)
    - **Filter** — which traces to evaluate (by tag, model, metadata field, etc.)
    - **Sampling rate** — evaluate 100% or a random sample (e.g., 10% for high-volume endpoints)

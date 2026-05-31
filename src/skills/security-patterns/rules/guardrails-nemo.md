@@ -21,7 +21,7 @@ return response  # Raw, unvalidated output!
 models:
   - type: main
     engine: openai
-    model: gpt-5.2
+    model: gpt-5.5
 
 rails:
   config:
@@ -81,7 +81,7 @@ if not input_result.validation_passed:
     return "Invalid input"
 
 llm_output = llm.generate(input_result.validated_output)
-output_result = guard(llm_api=openai.chat.completions.create, model="gpt-5.2",
+output_result = guard(llm_api=openai.chat.completions.create, model="gpt-5.5",
                       messages=[{"role": "user", "content": user_input}])
 
 if output_result.validation_passed:

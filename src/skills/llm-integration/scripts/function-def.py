@@ -18,6 +18,7 @@ from openai import AsyncOpenAI
 
 # --- Tool Registry ---
 
+
 class ToolRegistry:
     """Registry for managing tool definitions and execution."""
 
@@ -52,9 +53,9 @@ class ToolRegistry:
                     "type": "object",
                     "properties": properties,
                     "required": list(properties.keys()),
-                    "additionalProperties": False
-                }
-            }
+                    "additionalProperties": False,
+                },
+            },
         }
 
     def _python_to_json_type(self, hint) -> str:
@@ -73,11 +74,9 @@ class ToolRegistry:
 
 # --- Tool Execution Loop ---
 
+
 async def run_tool_loop(
-    registry: ToolRegistry,
-    user_message: str,
-    model: str = "gpt-5.2",
-    max_iterations: int = 10
+    registry: ToolRegistry, user_message: str, model: str = "gpt-5.5", max_iterations: int = 10
 ) -> str:
     """Run tool execution loop until completion."""
     client = AsyncOpenAI()
@@ -88,7 +87,7 @@ async def run_tool_loop(
             model=model,
             messages=messages,
             tools=registry.schemas,
-            parallel_tool_calls=False  # Required for strict mode
+            parallel_tool_calls=False,  # Required for strict mode
         )
 
         message = response.choices[0].message
@@ -100,14 +99,11 @@ async def run_tool_loop(
 
         for tool_call in message.tool_calls:
             result = await registry.execute(
-                tool_call.function.name,
-                json.loads(tool_call.function.arguments)
+                tool_call.function.name, json.loads(tool_call.function.arguments)
             )
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": json.dumps(result)
-            })
+            messages.append(
+                {"role": "tool", "tool_call_id": tool_call.id, "content": json.dumps(result)}
+            )
 
     raise RuntimeError("Max iterations reached")
 

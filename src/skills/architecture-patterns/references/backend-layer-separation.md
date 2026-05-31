@@ -195,7 +195,7 @@ async def get_user(user_id: int) -> User:
 
 # For unavoidable sync code, use run_in_executor
 async def process_file(file_path: str) -> bytes:
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         None,
         lambda: open(file_path, 'rb').read()

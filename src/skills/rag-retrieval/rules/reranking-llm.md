@@ -15,7 +15,7 @@ async def llm_rerank(query: str, documents: list[dict], llm: AsyncOpenAI, top_k:
     docs_text = "\n\n".join([f"[Doc {i+1}]\n{doc['content'][:300]}..." for i, doc in enumerate(documents)])
 
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Rate each document's relevance to the query (0.0-1.0).\nOutput one score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
@@ -62,7 +62,7 @@ async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
     scores = []
     for doc in documents:  # Sequential LLM calls!
         response = await llm.chat.completions.create(
-            model="gpt-5.2-mini",
+            model="gpt-5-mini",
             messages=[{"role": "user", "content": f"Rate relevance (0-1):\nQuery: {query}\nDoc: {doc['content']}"}]
         )
         scores.append(float(response.choices[0].message.content))
@@ -79,7 +79,7 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
     ])
 
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}

@@ -77,7 +77,7 @@ async def run_openai_agents(query: str):
     agent = Agent(
         name="research_agent",
         instructions="You are a research assistant.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         tools=[search_docs],
     )
 
@@ -86,7 +86,7 @@ async def run_openai_agents(query: str):
 
     get_client().update_current_observation(
         output=result.final_output,
-        metadata={"agent": "research_agent", "model": "gpt-5.2"},
+        metadata={"agent": "research_agent", "model": "gpt-5.5"},
     )
     return result.final_output
 ```
@@ -217,7 +217,7 @@ async def run_voice_agent(session_id: str):
     assistant = VoiceAssistant(
         vad=silero.VAD.load(),
         stt=openai.STT(),
-        llm=openai.LLM(model="gpt-5.2"),
+        llm=openai.LLM(model="gpt-5.5"),
         tts=openai.TTS(),
     )
 

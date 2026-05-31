@@ -11,13 +11,12 @@ Features:
 """
 
 import json
-import os
 from typing import Any
 
 import structlog
 from crewai import Agent, Crew, Process, Task
 from crewai.tools import tool
-from langfuse import observe, get_client
+from langfuse import get_client, observe
 
 logger = structlog.get_logger()
 
@@ -25,6 +24,7 @@ logger = structlog.get_logger()
 # ============================================================================
 # CUSTOM TOOLS
 # ============================================================================
+
 
 @tool("Search Database")
 def search_database(query: str) -> str:
@@ -52,11 +52,9 @@ def analyze_data(data: str, analysis_type: str) -> str:
     """
     logger.info("Analyzing data", analysis_type=analysis_type)
     # Replace with actual analysis logic
-    return json.dumps({
-        "analysis_type": analysis_type,
-        "findings": ["Finding 1", "Finding 2"],
-        "confidence": 0.85
-    })
+    return json.dumps(
+        {"analysis_type": analysis_type, "findings": ["Finding 1", "Finding 2"], "confidence": 0.85}
+    )
 
 
 @tool("Generate Report")
@@ -79,6 +77,7 @@ def generate_report(title: str, sections: str) -> str:
 # AGENT DEFINITIONS
 # ============================================================================
 
+
 def create_manager_agent() -> Agent:
     """Create the project manager agent that coordinates the team."""
     return Agent(
@@ -92,7 +91,7 @@ def create_manager_agent() -> Agent:
         memory=True,
         verbose=True,
         max_iter=15,  # Maximum iterations for task completion
-        max_retry_limit=2  # Retries on failure
+        max_retry_limit=2,  # Retries on failure
     )
 
 
@@ -108,7 +107,7 @@ def create_researcher_agent() -> Agent:
         memory=True,
         verbose=True,
         tools=[search_database],
-        max_iter=10
+        max_iter=10,
     )
 
 
@@ -124,7 +123,7 @@ def create_analyst_agent() -> Agent:
         memory=True,
         verbose=True,
         tools=[analyze_data],
-        max_iter=10
+        max_iter=10,
     )
 
 
@@ -140,13 +139,14 @@ def create_writer_agent() -> Agent:
         memory=True,
         verbose=True,
         tools=[generate_report],
-        max_iter=10
+        max_iter=10,
     )
 
 
 # ============================================================================
 # TASK DEFINITIONS
 # ============================================================================
+
 
 def create_research_task(researcher: Agent, topic: str) -> Task:
     """Create the research gathering task."""
@@ -166,7 +166,7 @@ def create_research_task(researcher: Agent, topic: str) -> Task:
         - Key findings organized by theme
         - Supporting data and sources
         - Initial observations""",
-        agent=researcher
+        agent=researcher,
     )
 
 
@@ -188,7 +188,7 @@ def create_analysis_task(analyst: Agent, research_task: Task) -> Task:
         - Top 3-5 recommendations
         - Confidence scores for findings""",
         agent=analyst,
-        context=[research_task]  # Receives research output
+        context=[research_task],  # Receives research output
     )
 
 
@@ -210,13 +210,14 @@ def create_report_task(writer: Agent, analysis_task: Task, topic: str) -> Task:
         - Recommendations with priorities
         - Appendix with supporting data""",
         agent=writer,
-        context=[analysis_task]  # Receives analysis output
+        context=[analysis_task],  # Receives analysis output
     )
 
 
 # ============================================================================
 # CREW ASSEMBLY
 # ============================================================================
+
 
 @observe()
 def create_research_crew(topic: str) -> tuple[Crew, list[Task]]:
@@ -240,11 +241,11 @@ def create_research_crew(topic: str) -> tuple[Crew, list[Task]]:
         agents=[manager, researcher, analyst, writer],
         tasks=tasks,
         process=Process.hierarchical,
-        manager_llm="gpt-5.2",  # Manager uses GPT-5.2 for coordination
+        manager_llm="gpt-5.5",  # Manager uses GPT-5.5 for coordination
         memory=True,  # Enable shared memory
         verbose=True,
         max_rpm=20,  # Rate limit API calls
-        share_crew=False  # Don't share crew state between runs
+        share_crew=False,  # Don't share crew state between runs
     )
 
     return crew, tasks
@@ -253,6 +254,7 @@ def create_research_crew(topic: str) -> tuple[Crew, list[Task]]:
 # ============================================================================
 # EXECUTION
 # ============================================================================
+
 
 @observe()
 def run_research_crew(topic: str) -> dict[str, Any]:
@@ -264,10 +266,7 @@ def run_research_crew(topic: str) -> dict[str, Any]:
     Returns:
         Dictionary with crew results and metadata
     """
-    get_client().update_current_trace(
-        name="crewai_research",
-        metadata={"topic": topic}
-    )
+    get_client().update_current_trace(name="crewai_research", metadata={"topic": topic})
 
     logger.info("Starting research crew", topic=topic)
 
@@ -282,43 +281,34 @@ def run_research_crew(topic: str) -> dict[str, Any]:
         for task in tasks:
             task_outputs[task.agent.role] = task.output.raw if task.output else None
 
-        logger.info(
-            "Research crew completed",
-            topic=topic,
-            tasks_completed=len(tasks)
-        )
+        logger.info("Research crew completed", topic=topic, tasks_completed=len(tasks))
 
         get_client().update_current_observation(
-            output={"status": "success", "tasks_completed": len(tasks)},
-            metadata={"topic": topic}
+            output={"status": "success", "tasks_completed": len(tasks)}, metadata={"topic": topic}
         )
 
         return {
             "status": "success",
             "topic": topic,
-            "final_report": result.raw if hasattr(result, 'raw') else str(result),
+            "final_report": result.raw if hasattr(result, "raw") else str(result),
             "task_outputs": task_outputs,
-            "tokens_used": result.token_usage if hasattr(result, 'token_usage') else None
+            "tokens_used": result.token_usage if hasattr(result, "token_usage") else None,
         }
 
     except Exception as e:
         logger.error("Research crew failed", topic=topic, error=str(e))
 
         get_client().update_current_observation(
-            output={"status": "error", "error": str(e)},
-            level="error"
+            output={"status": "error", "error": str(e)}, level="error"
         )
 
-        return {
-            "status": "error",
-            "topic": topic,
-            "error": str(e)
-        }
+        return {"status": "error", "topic": topic, "error": str(e)}
 
 
 # ============================================================================
 # ASYNC EXECUTION (Alternative)
 # ============================================================================
+
 
 @observe()
 async def run_research_crew_async(topic: str) -> dict[str, Any]:
@@ -341,16 +331,12 @@ async def run_research_crew_async(topic: str) -> dict[str, Any]:
         return {
             "status": "success",
             "topic": topic,
-            "final_report": result.raw if hasattr(result, 'raw') else str(result)
+            "final_report": result.raw if hasattr(result, "raw") else str(result),
         }
 
     except Exception as e:
         logger.error("Async research crew failed", error=str(e))
-        return {
-            "status": "error",
-            "topic": topic,
-            "error": str(e)
-        }
+        return {"status": "error", "topic": topic, "error": str(e)}
 
 
 # ============================================================================

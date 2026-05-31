@@ -14,7 +14,7 @@ tags: file-validation, discriminated-unions, magic-bytes, upload-security
 const NotificationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('email'),
-    email: z.string().email(),
+    email: z.email(),
     subject: z.string().min(1),
     body: z.string().min(1),
   }),
@@ -63,8 +63,7 @@ function validateFileContent(buffer: Buffer, mimeType: string): boolean {
 ```typescript
 const ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com'] as const;
 
-const SafeUrlSchema = z.string()
-  .url()
+const SafeUrlSchema = z.url()
   .refine(
     (url) => {
       const { hostname, protocol } = new URL(url);
@@ -82,7 +81,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const SignupSchema = z.object({
-  email: z.string().email('Invalid email'),
+  email: z.email('Invalid email'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase')

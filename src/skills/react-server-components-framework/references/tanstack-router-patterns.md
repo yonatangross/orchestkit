@@ -115,7 +115,7 @@ import { useActionState, use } from 'react'
 import { z } from 'zod'
 
 const UrlSchema = z.object({
-  url: z.string().url('Please enter a valid URL'),
+  url: z.url('Please enter a valid URL'),
 })
 
 async function submitUrl(

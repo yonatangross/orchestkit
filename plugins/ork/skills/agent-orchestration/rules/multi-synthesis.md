@@ -50,7 +50,7 @@ export async function multiAgentCollaboration(
 
   // 1. Coordinator plans the task
   const planResponse = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     messages: [
       {
         role: 'system',
@@ -70,7 +70,7 @@ Provide a numbered plan with agent assignments.`
   const agentResults = await Promise.all(
     agents.map(async (agent) => {
       const response = await openai.chat.completions.create({
-        model: 'gpt-5.2',
+        model: 'gpt-5.5',
         messages: [
           { role: 'system', content: agent.systemPrompt },
           { role: 'user', content: `Task: ${task}\n\nPlan:\n${plan}\n\nComplete your part.` }
@@ -82,7 +82,7 @@ Provide a numbered plan with agent assignments.`
 
   // 3. Synthesize results
   const synthesisResponse = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     messages: [
       { role: 'system', content: 'Synthesize agent results into a coherent final answer.' },
       { role: 'user', content: `Task: ${task}\n\nAgent Results:\n${JSON.stringify(agentResults, null, 2)}` }
