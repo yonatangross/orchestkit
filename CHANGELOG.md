@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.12.4](https://github.com/yonatangross/orchestkit/compare/v8.12.3...v8.12.4) (2026-05-31)
+
+
+### Bug Fixes
+
+* **cost-estimator:** add claude-opus-4-8 pricing row + repoint `opus` alias; ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))
+* post-ship 8.12.3 hardening (doc counts, AUQ guard, CI, pricing) ([#2121](https://github.com/yonatangross/orchestkit/issues/2121)) ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))
+
+
+### Documentation
+
+* **generator:** _build-docs-generate.py counted every skill dir (incl ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))
+* **troubleshooting:** bump stale CC floor 2.1.34 -&gt; 2.1.148. ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))
+
+
+### CI/CD
+
+* **release-please-guard:** trigger on labeled/unlabeled so a ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))
+
 ## [8.12.3](https://github.com/yonatangross/orchestkit/compare/v8.12.2...v8.12.3) (2026-05-30)
 
 
