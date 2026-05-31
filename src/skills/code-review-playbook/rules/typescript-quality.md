@@ -33,8 +33,8 @@ const data = await response.json() as User;  // Type assertion, not validation
 // CORRECT: Validate at boundary
 import { z } from 'zod';
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),       // z.guid() for the permissive (non-RFC9562) variant
+  email: z.email(),
   role: z.enum(['admin', 'user']),
 });
 const data = UserSchema.parse(await response.json());
@@ -102,8 +102,8 @@ import { z } from 'zod';
 
 // Proper types
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
 });
 function processData(data: z.infer<typeof UserSchema>) { return data.email; }
 

@@ -211,8 +211,8 @@ import { revalidateTag } from 'next/cache'
 export async function updateProduct(id: string, data: ProductData) {
   await db.product.update({ where: { id }, data })
 
-  revalidateTag('products')        // Invalidate all products
-  revalidateTag(`product-${id}`)   // Invalidate specific product
+  revalidateTag('products', 'max')        // Invalidate all products
+  revalidateTag(`product-${id}`, 'max')   // Invalidate specific product
 }
 ```
 
@@ -225,7 +225,7 @@ import { updateTag, revalidateTag } from 'next/cache'
 updateTag('cart')
 
 // Stale-while-revalidate - serves stale, revalidates in background
-revalidateTag('posts')
+revalidateTag('posts', 'max')
 ```
 
 ---
@@ -328,9 +328,9 @@ async function getData() {
   return fetch('/api/data')
 }
 
-// Server Action (same API)
+// Server Action (v16 requires a cacheLife profile as the 2nd arg)
 import { revalidateTag } from 'next/cache'
-revalidateTag('my-tag')
+revalidateTag('my-tag', 'max')
 ```
 
 ---
@@ -573,13 +573,13 @@ async function getProduct(id: string) {
 }
 
 // Invalidate all products
-revalidateTag('products')
+revalidateTag('products', 'max')
 
 // Invalidate one product
-revalidateTag('product-123')
+revalidateTag('product-123', 'max')
 
 // Invalidate by category
-revalidateTag('category-electronics')
+revalidateTag('category-electronics', 'max')
 ```
 
 ### 4. Combine with Suspense for Mixed Content

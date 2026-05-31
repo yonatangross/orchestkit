@@ -49,17 +49,18 @@ async def run_red_team_audit(target_model: callable, attacks_per_vulnerability: 
     }
 ```
 
-**OWASP Top 10 for LLMs mapping:**
+**OWASP Top 10 for LLMs (2025) mapping:**
 
 | OWASP LLM Risk | Guardrail Solution |
 |----------------|-------------------|
 | LLM01: Prompt Injection | NeMo input rails, Guardrails AI validators |
-| LLM02: Insecure Output | Output rails, structured validation |
-| LLM04: Model Denial of Service | Rate limiting, token budgets, timeout rails |
-| LLM06: Sensitive Info Disclosure | PII detection, context separation |
-| LLM07: Insecure Plugin Design | Tool validation, permission boundaries |
-| LLM08: Excessive Agency | Human-in-loop rails, action confirmation |
-| LLM09: Overreliance | Factuality checking, confidence thresholds |
+| LLM02: Sensitive Information Disclosure | PII detection, context separation |
+| LLM05: Improper Output Handling | Output rails, structured validation |
+| LLM06: Excessive Agency | Human-in-loop rails, action confirmation |
+| LLM07: System Prompt Leakage | Tool validation, permission boundaries |
+| LLM08: Vector and Embedding Weaknesses | Embedding access controls, tenant isolation |
+| LLM09: Misinformation | Factuality checking, confidence thresholds |
+| LLM10: Unbounded Consumption | Rate limiting, token budgets, timeout rails |
 
 **Framework comparison:**
 

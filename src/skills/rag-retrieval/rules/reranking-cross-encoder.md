@@ -14,7 +14,7 @@ Re-score retrieved documents with cross-encoder for higher precision.
 from sentence_transformers import CrossEncoder
 
 class CrossEncoderReranker:
-    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
+    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L6-v2"):
         self.model = CrossEncoder(model_name)
 
     def rerank(self, query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
@@ -29,9 +29,9 @@ class CrossEncoderReranker:
 
 | Model | Latency | Cost | Quality |
 |-------|---------|------|---------|
-| `cross-encoder/ms-marco-MiniLM-L-6-v2` | ~50ms | Free | Good |
+| `cross-encoder/ms-marco-MiniLM-L6-v2` | ~50ms | Free | Good |
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
-| `cohere rerank-english-v3.0` | ~200ms | $1/1K | Best |
+| `cohere rerank-v4.0-pro` | ~200ms | $1/1K | Best |
 
 **Incorrect — retrieving few, no reranking:**
 ```python
@@ -59,5 +59,5 @@ async def search_with_reranking(query: str) -> list[dict]:
 **Key rules:**
 - Retrieve many (50-100), rerank to few (10) — "retrieve more, rerank less"
 - Cross-encoder processes query+doc pair together (slow but accurate)
-- Default model: `ms-marco-MiniLM-L-6-v2` (good quality, free, ~50ms)
+- Default model: `ms-marco-MiniLM-L6-v2` (good quality, free, ~50ms)
 - Truncate document content to 200-400 chars for reranking efficiency

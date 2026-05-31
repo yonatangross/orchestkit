@@ -39,17 +39,20 @@ result = {
 
 **Gemini — best for long-form audio (up to 9.5 hours):**
 ```python
-import google.generativeai as genai
-model = genai.GenerativeModel("gemini-2.5-pro")
+from google import genai
+client = genai.Client()
 
-audio_file = genai.upload_file(audio_path)
-response = model.generate_content([
-    audio_file,
-    """Transcribe with:
+audio_file = client.files.upload(file=audio_path)
+response = client.models.generate_content(
+    model="gemini-2.5-pro",
+    contents=[
+        audio_file,
+        """Transcribe with:
     1. Speaker labels (Speaker 1, Speaker 2)
     2. Timestamps: [HH:MM:SS]
-    3. Punctuation and formatting"""
-])
+    3. Punctuation and formatting""",
+    ],
+)
 ```
 
 **AssemblyAI — best feature set (diarization + sentiment + entities):**

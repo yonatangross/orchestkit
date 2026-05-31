@@ -39,7 +39,7 @@ response = await client.messages.create(
 # OpenAI: automatic prefix caching (no markers needed)
 # Just ensure static content comes first in messages array
 response = await openai.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.5",
     messages=[
         {"role": "system", "content": long_system_prompt},  # Cached automatically
         {"role": "user", "content": user_question},

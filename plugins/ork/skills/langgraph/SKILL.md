@@ -34,8 +34,8 @@ Comprehensive patterns for building production LangGraph workflows. **LangGraph 
 
 > **LangGraph 1.2 (Q1 2026) — new in this bump:**
 >
-> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes for the current super-step have completed, which makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
-> - **Pre/post model hooks** on `create_react_agent(...)` and `ToolNode` — inject compression, summarization, or PII redaction without subclassing.
+> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes have completed, so its execution is deferred until the run is about to end. This makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
+> - **Model middleware** (`before_model` / `after_model`) on `create_agent(...)` (from `langchain.agents`) — inject compression, summarization, or PII redaction without subclassing. Note: the legacy `pre_model_hook` / `post_model_hook` params only existed on the now-deprecated `create_react_agent`; the current equivalent is middleware on `create_agent`.
 > - **Node-level caching** via `CachePolicy(ttl=..., key_func=...)` with `SqliteCache` and `RedisCache` backends (pluggable via `graph.compile(cache=...)`). Idempotent nodes skip recomputation on replay.
 
 ## Quick Reference
@@ -140,20 +140,23 @@ compiled = graph.compile(cache=SqliteCache("cache.db"))
 
 Use when a node is idempotent and expensive (embeddings, external APIs). Do **not** use for nodes whose output depends on wall-clock time or mutable external state unless `key_func` captures that variance.
 
-## Deferred Nodes & Model Hooks (1.2+)
+## Deferred Nodes & Model Middleware (1.2+)
 
 ```python
-# defer=True — node waits for every other upstream node at this super-step
+# defer=True — node execution is deferred until the run is about to end,
+# i.e. after every other upstream node has completed
 graph.add_node("aggregate", aggregate_fn, defer=True)
 
-# Pre/post model hooks — no subclassing required
-from langgraph.prebuilt import create_react_agent
+# Model middleware — no subclassing required.
+# create_react_agent is @deprecated since v1.0; use create_agent from langchain.agents.
+# The legacy pre_model_hook/post_model_hook are now before_model/after_model middleware.
+from langchain.agents import create_agent
 
-agent = create_react_agent(
+agent = create_agent(
     model=model,
     tools=tools,
-    pre_model_hook=compress_history,   # e.g. summarize if > N tokens
-    post_model_hook=redact_pii,        # e.g. scrub emails/SSNs before persist
+    middleware=[compress_history, redact_pii],  # before_model / after_model hooks
+    system_prompt="...",                          # prompt= renamed to system_prompt
 )
 ```
 

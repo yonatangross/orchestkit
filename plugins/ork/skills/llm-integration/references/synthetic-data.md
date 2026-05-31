@@ -27,7 +27,7 @@ async def generate_training_example(
 ) -> dict:
     """Generate a single training example."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate a training example for a {style} AI assistant.
@@ -120,7 +120,7 @@ async def generate_conversation(
 ) -> list[dict]:
     """Generate multi-turn conversation examples."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate a realistic {num_turns}-turn conversation between a user and AI assistant about {topic}.
@@ -253,7 +253,7 @@ async def generate_code_examples(
 ) -> list[dict]:
     """Generate coding instruction-response pairs."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate {num_examples} {language} coding examples at {difficulty} level.
@@ -282,7 +282,7 @@ async def generate_domain_examples(
 ) -> list[dict]:
     """Generate domain-specific training data."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate training examples for a {domain} expert assistant.

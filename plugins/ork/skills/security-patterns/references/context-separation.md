@@ -1,5 +1,7 @@
 # Context Separation Pattern
 
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM07: System Prompt Leakage** — keeping identifiers and internal context out of prompts prevents the model from echoing or leaking system-level data.
+
 ## The Problem
 
 When identifiers appear in LLM prompts, several security issues arise:

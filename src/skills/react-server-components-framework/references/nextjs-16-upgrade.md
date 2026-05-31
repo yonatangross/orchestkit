@@ -88,6 +88,47 @@ export async function generateMetadata({
 }
 ```
 
+**Metadata image routes (`opengraph-image`, `icon`, `apple-icon`, etc.)**
+
+These now receive `params` **and** `id` as Promises that must be awaited:
+
+```tsx
+// app/posts/[slug]/opengraph-image.tsx
+export default async function Image({
+  params,
+  id,
+}: {
+  params: Promise<{ slug: string }>
+  id: Promise<string>
+}) {
+  const { slug } = await params
+  const imageId = await id // present when generateImageMetadata yields variants
+  const post = await getPost(slug)
+  return new ImageResponse(<div>{post.title}</div>)
+}
+```
+
+**`generateSitemaps`**
+
+The `id` passed to the `sitemap` function is now a Promise:
+
+```tsx
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }]
+}
+
+export default async function sitemap({
+  id,
+}: {
+  id: Promise<number>
+}): Promise<MetadataRoute.Sitemap> {
+  const sitemapId = await id
+  const start = sitemapId * 50_000
+  const products = await getProducts({ offset: start, limit: 50_000 })
+  return products.map((p) => ({ url: `https://acme.com/product/${p.id}` }))
+}
+```
+
 ---
 
 ### 2. Async Request APIs
@@ -173,16 +214,17 @@ export const config = {
 
 ```tsx
 // proxy.ts
-import { type ProxyRequest, type ProxyResponse, redirect, next } from 'next/proxy'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export default function proxy(request: ProxyRequest): ProxyResponse {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('token')
 
-  if (!token && request.pathname.startsWith('/dashboard')) {
-    return redirect('/login')
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return next()
+  return NextResponse.next()
 }
 
 export const config = {
@@ -192,9 +234,10 @@ export const config = {
 
 **Key changes:**
 - File renamed from `middleware.ts` to `proxy.ts`
-- Import from `next/proxy` instead of `next/server`
-- Use `redirect()` and `next()` helpers instead of `NextResponse` methods
-- `request.nextUrl.pathname` simplified to `request.pathname`
+- Export a named `proxy` function instead of `middleware`
+- Imports stay the same: `NextResponse` and `NextRequest` from `next/server` (there is no `next/proxy` module)
+- The function body is unchanged — same `NextResponse` API and `request.nextUrl.pathname`
+- Edge runtime is **not** supported in `proxy.ts` (Node.js runtime only)
 
 ---
 
@@ -222,14 +265,27 @@ export default async function ProductsPage() {
 
 **After (Next.js 16)**
 
+Enable Cache Components in `next.config.ts`, then mark cacheable functions
+with the `'use cache'` directive (there is no `cache()` wrapper imported
+from `next/cache`):
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const config: NextConfig = {
+  cacheComponents: true, // replaces the experimental_ppr flag
+}
+
+export default config
+```
+
 ```tsx
 // app/products/page.tsx
-import { cache } from 'next/cache'
-
-// Wrap static content in cache()
-const CachedHeader = cache(async () => {
+async function CachedHeader() {
+  'use cache'
   return <StaticHeader />
-})
+}
 
 export default async function ProductsPage() {
   return (
@@ -243,28 +299,29 @@ export default async function ProductsPage() {
 }
 ```
 
-**Cache Components with options**
+**Cache Components with lifetime and tags**
+
+Use the `cacheLife()` and `cacheTag()` helpers from `next/cache` inside a
+`'use cache'` function (the `unstable_` prefix was dropped in 16.2):
 
 ```tsx
-import { cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 // Cache with revalidation
-const CachedSidebar = cache(
-  async () => {
-    const categories = await getCategories()
-    return <Sidebar categories={categories} />
-  },
-  { revalidate: 3600 } // 1 hour
-)
+async function CachedSidebar() {
+  'use cache'
+  cacheLife('hours') // named profile (minutes | hours | days | max | ...)
+  const categories = await getCategories()
+  return <Sidebar categories={categories} />
+}
 
 // Cache with tags
-const CachedProductList = cache(
-  async () => {
-    const products = await getProducts()
-    return <ProductList products={products} />
-  },
-  { tags: ['products'] }
-)
+async function CachedProductList() {
+  'use cache'
+  cacheTag('products')
+  const products = await getProducts()
+  return <ProductList products={products} />
+}
 ```
 
 ---
@@ -511,7 +568,14 @@ export function RefreshButton() {
 
 ### New revalidateTag() Signature
 
-The `revalidateTag()` function now accepts options:
+The `revalidateTag()` function now **requires** a second argument naming the
+cacheLife profile to revalidate against. The single-argument form is
+deprecated and produces a TypeScript error.
+
+```ts
+// Signature
+revalidateTag(tag: string, profile: string | { expire?: number }): void
+```
 
 **Before (Next.js 15)**
 
@@ -526,20 +590,25 @@ revalidateTag('products')
 ```tsx
 import { revalidateTag } from 'next/cache'
 
-// Simple revalidation (same as before)
-revalidateTag('products')
+// Named cacheLife profile (most common)
+revalidateTag('products', 'max')
 
-// With options
-revalidateTag('products', {
-  type: 'layout', // Revalidate layouts using this tag
-})
+// Custom expiry in seconds
+revalidateTag('products', { expire: 3600 })
 
-revalidateTag('products', {
-  type: 'page', // Revalidate only pages (default)
-})
+// Revalidate several tags — one call per tag (no array overload exists)
+for (const tag of ['products', 'categories']) {
+  revalidateTag(tag, 'max')
+}
+```
 
-// Revalidate multiple tags
-revalidateTag(['products', 'categories'])
+For read-your-writes consistency (refresh in the same request), use
+`updateTag()` instead of `revalidateTag()`:
+
+```tsx
+import { updateTag } from 'next/cache'
+
+updateTag('products')
 ```
 
 ---
@@ -616,7 +685,7 @@ npx @next/codemod@latest async-dynamic-apis .
 |-------|-------|-----|
 | `params is not defined` | Missing await | Add `await params` |
 | `cookies is not a function` | Sync usage | Add `await cookies()` |
-| `Cannot find module 'next/server'` in middleware | Old imports | Rename to `proxy.ts`, use `next/proxy` |
+| `middleware` export not picked up | File still named `middleware.ts` | Rename to `proxy.ts` and export a named `proxy` function (imports stay `next/server`) |
 | `experimental_ppr is not a valid export` | Removed feature | Use Cache Components |
 | `Missing default.js in parallel route` | New requirement | Add `default.tsx` returning `null` |
 | `Cannot resolve '~package'` in Sass | Turbopack | Remove `~` prefix |

@@ -28,7 +28,28 @@ CREATE INDEX idx_products_current ON products (id) WHERE is_current = TRUE;
 CREATE INDEX idx_products_temporal ON products (id, valid_from, valid_to);
 ```
 
-## Temporal Tables (PostgreSQL 15+)
+## Temporal Tables
+
+### PG18 Native Temporal Constraints (uniqueness + referential integrity only)
+
+PG18 adds native `PRIMARY KEY ... WITHOUT OVERLAPS` and `FOREIGN KEY ... PERIOD` for temporal uniqueness and referential integrity. These are GiST-backed; combine with `CREATE EXTENSION btree_gist` when mixing a range column with scalar PK columns. They do NOT provide system-versioned history — use the `temporal_tables` extension (below) for full history.
+
+```sql
+-- Requires btree_gist when combining range + scalar columns in PK
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+CREATE TABLE product_prices (
+    product_id UUID NOT NULL,
+    valid_period TSTZRANGE NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    -- Temporal uniqueness: no two rows for same product overlap in time
+    PRIMARY KEY (product_id, valid_period WITHOUT OVERLAPS)
+);
+```
+
+### temporal_tables extension (system-versioned history)
+
+Use this for full system-versioned history with automatic trigger-based row capture.
 
 ```sql
 -- Enable temporal tables extension

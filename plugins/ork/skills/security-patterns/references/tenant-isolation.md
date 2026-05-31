@@ -1,5 +1,7 @@
 # Tenant Isolation Patterns
 
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM08: Vector and Embedding Weaknesses** — without per-tenant filtering, shared embedding/vector stores leak one tenant's data into another tenant's retrieval results.
+
 ## The Golden Rule
 
 > **Every database query MUST include a tenant filter. There is no "global" query.**

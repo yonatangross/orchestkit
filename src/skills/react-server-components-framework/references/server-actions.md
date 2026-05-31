@@ -160,7 +160,7 @@ import { z } from 'zod'
 const CreatePostSchema = z.object({
   title: z.string().min(1).max(100),
   content: z.string().min(10),
-  categoryId: z.string().uuid()
+  categoryId: z.uuid()
 })
 
 export async function createPost(formData: FormData) {
@@ -173,7 +173,9 @@ export async function createPost(formData: FormData) {
   const result = CreatePostSchema.safeParse(rawData)
 
   if (!result.success) {
-    return { error: result.error.flatten().fieldErrors }
+    // z.treeifyError() replaces deprecated .flatten() (Zod 4); per-field
+    // messages move to tree.properties[field].errors
+    return { error: z.treeifyError(result.error).properties }
   }
 
   const post = await db.post.create({ data: result.data })

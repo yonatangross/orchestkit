@@ -7,7 +7,7 @@ tags: routing, cross-graph, command, parent, sibling, subgraphs, handoff
 
 ## Cross-Graph Navigation
 
-Use `Command(graph=Command.PARENT)` to navigate from a subgraph node to the parent graph. Use `Command(graph="sibling_name")` for cross-graph routing between sibling subgraphs. Available in LangGraph v0.2.58+.
+Use `Command(graph=Command.PARENT)` to navigate from a subgraph node to the parent graph. Use `Command(graph="sibling_name")` for cross-graph routing between sibling subgraphs.
 
 **Incorrect — routing stays within subgraph:**
 ```python
@@ -101,7 +101,7 @@ def researcher_node(state: ResearcherState) -> Command[Literal["writer"]]:
 - Shared state keys updated via `Command.PARENT` **must** have reducers in parent state
 - State types can differ between parent and child — map values at the boundary
 - Use cases: escalation, delegation, multi-agent handoff, error propagation
-- Requires LangGraph v0.2.58+ (stable in v0.3+)
+- Stable API in LangGraph 1.x
 - Do not wrap `Command` returns in try/except — it uses exceptions internally
 
 Reference: [Cross-graph navigation](https://langchain-ai.github.io/langgraph/how-tos/command/#navigate-to-a-node-in-a-parent-graph)

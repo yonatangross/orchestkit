@@ -28,6 +28,9 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "types": "recommended"
+    },
     "rules": {
       "recommended": true,
       "correctness": {
@@ -36,9 +39,6 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
       },
       "suspicious": {
         "noExplicitAny": "warn"
-      },
-      "nursery": {
-        "noFloatingPromises": "error"
       }
     }
   },
@@ -53,7 +53,7 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
 
 **Biome 2.0+ type inference features:**
 - Reads `.d.ts` from node_modules for type-aware rules
-- `noFloatingPromises`: Catches unhandled promises (previously required tsconfig)
+- `noFloatingPromises`: Catches unhandled promises — Biome 2.4 moved this to the `types` domain, so set `linter.domains.types: "recommended"` or the rule silently under-functions
 - Multi-file analysis: Cross-module diagnostics
 
 **Correct — CI integration (GitHub Actions):**

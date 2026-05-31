@@ -126,7 +126,7 @@ class Analysis(BaseModel):
 
 # OpenAI structured output
 response = await client.beta.chat.completions.parse(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": "Analyze this text..."}],
     response_format=Analysis
 )

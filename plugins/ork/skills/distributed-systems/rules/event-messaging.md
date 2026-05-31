@@ -15,7 +15,7 @@ Reliable event publishing with transactional outbox, saga orchestration, and mes
 async def create_order(order: Order):
     await db.insert(order)              # Step 1: succeeds
     await message_broker.publish(        # Step 2: might fail!
-        "order.created", order.dict()
+        "order.created", order.model_dump()
     )
     # If publish fails: order exists but no event was sent
     # Downstream services never know about the order
@@ -31,8 +31,8 @@ async def create_order(order: Order, db: AsyncSession):
         db.add(OutboxEvent(
             aggregate_id=order.id,
             event_type="order.created",
-            payload=order.dict(),
-            created_at=datetime.utcnow(),
+            payload=order.model_dump(),
+            created_at=datetime.now(datetime.UTC),
         ))
 
 # Outbox publisher (separate process, polls for unsent events)
@@ -48,7 +48,7 @@ async def publish_outbox_events(db: AsyncSession, broker: MessageBroker):
             )
             for event in events.scalars():
                 await broker.publish(event.event_type, event.payload)
-                event.published_at = datetime.utcnow()
+                event.published_at = datetime.now(datetime.UTC)
         await asyncio.sleep(1)
 ```
 
@@ -89,7 +89,7 @@ async def handle_event(event: Event, db: AsyncSession):
         await process_order(event.payload)
 
         # Mark as processed
-        db.add(ProcessedEvent(event_id=event.id, processed_at=datetime.utcnow()))
+        db.add(ProcessedEvent(event_id=event.id, processed_at=datetime.now(datetime.UTC)))
 ```
 
 **Key rules:**

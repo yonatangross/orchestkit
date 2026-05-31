@@ -230,7 +230,9 @@ class TokenBucketAgent(Task):
     bucket_size=100,
 )
 def charge_customer(self, customer_id: str, amount: int):
-    return stripe.PaymentIntent.create(customer=customer_id, amount=amount, currency="usd")
+    return StripeClient().v1.payment_intents.create(
+        params={"customer": customer_id, "amount": amount, "currency": "usd"}
+    )
 ```
 
 ## Rate Limit Patterns Summary

@@ -71,8 +71,11 @@ The AI never writes HTML or CSS. It produces a structured JSON spec that referen
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { buildAppHtml } from '@json-render/mcp/app'
 import { catalog } from './catalog'
-import bundledHtml from './app.html'
+
+// Generate the iframe HTML from the bundled JS/CSS (docs-prescribed generator).
+const bundledHtml = buildAppHtml({ entry: './app.tsx' })
 
 // 1. Create the MCP app (async; returns an McpServer, no .start()/.close()).
 //    name + version are required; tool config nests under `tool`
@@ -97,10 +100,13 @@ await server.connect(new StdioServerTransport())
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { registerJsonRenderTool, registerJsonRenderResource } from '@json-render/mcp'
+import { buildAppHtml } from '@json-render/mcp/app'
 import { catalog } from './catalog'
-import bundledHtml from './app.html'
 
 const server = new McpServer({ name: 'my-server', version: '1.0.0' })
+
+// Generate the iframe HTML from the bundled JS/CSS (docs-prescribed generator).
+const bundledHtml = buildAppHtml({ entry: './app.tsx' })
 
 const resourceUri = 'ui://my-server/dashboard'
 

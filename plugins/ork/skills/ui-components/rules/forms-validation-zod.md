@@ -27,7 +27,7 @@ import { z } from 'zod';
 
 export const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
+  email: z.email('Please enter a valid email'),
   message: z.string().min(10, 'Message must be at least 10 characters'),
 });
 
@@ -48,7 +48,10 @@ export async function submitContact(formData: FormData) {
   });
 
   if (!result.success) {
-    return { errors: result.error.flatten().fieldErrors };
+    // z.treeifyError() replaces deprecated .flatten() (Zod 4).
+    // Shape differs: per-field messages live at tree.properties[field].errors
+    const tree = z.treeifyError(result.error);
+    return { errors: tree.properties };
   }
 
   await saveContact(result.data);
@@ -66,13 +69,13 @@ function ContactForm() {
   return (
     <form action={formAction}>
       <input name="name" />
-      {state?.errors?.name && <span role="alert">{state.errors.name[0]}</span>}
+      {state?.errors?.name && <span role="alert">{state.errors.name.errors[0]}</span>}
 
       <input name="email" />
-      {state?.errors?.email && <span role="alert">{state.errors.email[0]}</span>}
+      {state?.errors?.email && <span role="alert">{state.errors.email.errors[0]}</span>}
 
       <textarea name="message" />
-      {state?.errors?.message && <span role="alert">{state.errors.message[0]}</span>}
+      {state?.errors?.message && <span role="alert">{state.errors.message.errors[0]}</span>}
 
       <button type="submit" disabled={isPending}>
         {isPending ? 'Sending...' : 'Send'}
@@ -107,7 +110,7 @@ const priceSchema = z.object({
 // Discriminated union for conditional fields
 const paymentSchema = z.discriminatedUnion('method', [
   z.object({ method: z.literal('card'), cardNumber: z.string().length(16) }),
-  z.object({ method: z.literal('paypal'), paypalEmail: z.string().email() }),
+  z.object({ method: z.literal('paypal'), paypalEmail: z.email() }),
 ]);
 ```
 

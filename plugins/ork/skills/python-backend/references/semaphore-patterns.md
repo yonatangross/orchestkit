@@ -4,6 +4,8 @@
 
 ```python
 import asyncio
+import time
+
 import aiohttp
 
 class RateLimitedClient:
@@ -39,12 +41,12 @@ class AsyncRateLimiter:
     def __init__(self, rate: float):
         self._rate = rate
         self._tokens = rate
-        self._last_update = asyncio.get_event_loop().time()
+        self._last_update = time.monotonic()
         self._lock = asyncio.Lock()
 
     async def acquire(self):
         async with self._lock:
-            now = asyncio.get_event_loop().time()
+            now = time.monotonic()
             self._tokens = min(
                 self._rate,
                 self._tokens + (now - self._last_update) * self._rate

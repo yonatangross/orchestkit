@@ -246,6 +246,8 @@ async def send_webhook(payload: dict):
 
 ```python
 import asyncio
+import time
+
 from prometheus_client import Gauge, Counter, Histogram
 from sqlalchemy import event, text
 
@@ -276,12 +278,12 @@ def setup_pool_monitoring(engine):
 
     @event.listens_for(engine.sync_engine, "checkout")
     def on_checkout(dbapi_conn, connection_record, connection_proxy):
-        connection_record.info["checkout_time"] = asyncio.get_event_loop().time()
+        connection_record.info["checkout_time"] = time.monotonic()
 
     @event.listens_for(engine.sync_engine, "checkin")
     def on_checkin(dbapi_conn, connection_record):
         if "checkout_time" in connection_record.info:
-            duration = asyncio.get_event_loop().time() - connection_record.info["checkout_time"]
+            duration = time.monotonic() - connection_record.info["checkout_time"]
             pool_checkout_time.observe(duration)
 
     @event.listens_for(engine.sync_engine, "connect")

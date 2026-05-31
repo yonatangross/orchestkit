@@ -71,3 +71,33 @@ LIMIT 10;
 - m=16, ef_construction=64 are good defaults for most workloads
 - Set `hnsw.ef_search = 40` at query time for production recall
 - Use `iterative_scan = 'relaxed_order'` for filtered vector queries
+
+## Storage Reduction — halfvec & Binary Quantization (pgvector 0.7+)
+
+For high-dimensional embeddings (e.g. 3072-dim `gemini-embedding-001` / `text-embedding-3-large`), full `vector` storage and HNSW graphs get expensive. pgvector 0.7+ offers two reductions:
+
+**halfvec — 16-bit floats (~50% storage, negligible recall loss):**
+```sql
+ALTER TABLE chunks ALTER COLUMN embedding TYPE halfvec(3072);
+CREATE INDEX ON chunks USING hnsw (embedding halfvec_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+**Binary quantization — bit vectors for a coarse first pass (~32x smaller), then exact rerank:**
+```sql
+CREATE INDEX ON chunks
+    USING hnsw ((binary_quantize(embedding)::bit(3072)) bit_hamming_ops);
+
+-- two-phase: cheap Hamming shortlist, then exact cosine rerank
+SELECT * FROM (
+    SELECT * FROM chunks
+    ORDER BY binary_quantize(embedding)::bit(3072) <~> binary_quantize($1)::bit(3072)
+    LIMIT 200
+) shortlist
+ORDER BY embedding <=> $1
+LIMIT 10;
+```
+
+**When to use:**
+- `halfvec`: sensible default for any 1536+ dim embedding — ~50% smaller index, recall within ~0.5%
+- `binary_quantize` + rerank: 3072-dim at very large scale where even halfvec HNSW is too big; expect a recall hit unless you rerank the shortlist exactly

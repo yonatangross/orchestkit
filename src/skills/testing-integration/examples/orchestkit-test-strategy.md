@@ -23,7 +23,7 @@ OrchestKit uses a comprehensive testing strategy with a focus on **unit tests** 
 
 | Layer | Framework | Purpose |
 |-------|-----------|---------|
-| **Backend** | pytest 9.0.1 | Unit & integration tests |
+| **Backend** | pytest 9.0.3 | Unit & integration tests |
 | **Frontend** | Vitest + React Testing Library | Component & hook tests |
 | **E2E** | Playwright (future) | Critical user flows |
 | **Coverage** | pytest-cov, Vitest coverage | Track test coverage |

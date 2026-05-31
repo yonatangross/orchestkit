@@ -42,8 +42,8 @@ export async function createPost(formData: FormData) {
   // Revalidate specific path
   revalidatePath('/posts')
 
-  // Revalidate all data with 'posts' tag
-  revalidateTag('posts')
+  // Revalidate all data with 'posts' tag (v16: cacheLife profile required)
+  revalidateTag('posts', 'max')
 }
 ```
 

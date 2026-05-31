@@ -1,10 +1,10 @@
 {
-  "version": "2.0.0",
+  "version": "2.2.0",
   "organization": "OrchestKit",
   "date": "February 2026",
   "abstract": "LangGraph workflow patterns covering state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API.",
-  "ruleCount": 32,
-  "categories": 10,
+  "ruleCount": 37,
+  "categories": 11,
   "consolidatedFrom": [
     "langgraph-state",
     "langgraph-routing",
@@ -17,5 +17,5 @@
     "langgraph-subgraphs",
     "langgraph-functional"
   ],
-  "langgraphVersion": "1.0.7+"
+  "langgraphVersion": ">=1.2.0"
 }

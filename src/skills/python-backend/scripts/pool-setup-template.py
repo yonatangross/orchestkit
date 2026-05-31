@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -47,8 +47,7 @@ class DatabaseSettings(BaseSettings):
     # Monitoring
     ECHO_SQL: bool = False  # Log SQL queries
 
-    class Config:
-        env_prefix = "DB_"
+    model_config = SettingsConfigDict(env_prefix="DB_")
 
 
 settings = DatabaseSettings()

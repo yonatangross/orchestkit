@@ -28,8 +28,11 @@ server.tool('show-dashboard', {}, async () => ({
 **Correct -- createMcpApp() for a new server:**
 ```typescript
 import { createMcpApp } from '@json-render/mcp'
+import { buildAppHtml } from '@json-render/mcp/app'
 import { dashboardCatalog } from './catalog'
-import bundledHtml from './app.html'
+
+// Generate the iframe HTML from the bundled JS/CSS (docs-prescribed generator).
+const bundledHtml = buildAppHtml({ entry: './app.tsx' })
 
 // Creates McpServer + registers the json-render tool automatically
 const server = await createMcpApp({
@@ -49,10 +52,13 @@ const server = await createMcpApp({
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { registerJsonRenderTool } from '@json-render/mcp'
+import { buildAppHtml } from '@json-render/mcp/app'
 import { dashboardCatalog } from './catalog'
-import bundledHtml from './app.html'
 
 const server = new McpServer({ name: 'my-server', version: '1.0.0' })
+
+// Generate the iframe HTML from the bundled JS/CSS (docs-prescribed generator).
+const bundledHtml = buildAppHtml({ entry: './app.tsx' })
 
 // Your existing tools remain unchanged
 server.tool('search', { query: z.string() }, async ({ query }) => ({

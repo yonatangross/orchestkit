@@ -52,6 +52,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 ```python
 # app/api/v1/routes/users.py
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -63,10 +64,13 @@ from app.schemas.user import UserResponse, UserCreate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ) -> UserResponse:
     result = await db.execute(
         select(User)
@@ -81,7 +85,7 @@ async def get_user(
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: UserCreate,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ) -> UserResponse:
     user = User(**user_in.model_dump())
     db.add(user)
@@ -124,11 +128,11 @@ class UserService:
         await self.db.flush()
         return user
 
-# Usage in route
+# Usage in route (SessionDep = Annotated[AsyncSession, Depends(get_db)])
 @router.post("/")
 async def create_user(
     user_in: UserCreate,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ):
     service = UserService(db)
     if await service.get_by_email(user_in.email):
@@ -143,7 +147,7 @@ async def create_user(
 @router.post("/transfer")
 async def transfer_funds(
     transfer: TransferRequest,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,  # SessionDep = Annotated[AsyncSession, Depends(get_db)]
 ):
     async with db.begin():  # Explicit transaction
         from_account = await db.get(Account, transfer.from_id, with_for_update=True)

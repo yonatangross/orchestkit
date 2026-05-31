@@ -53,7 +53,7 @@ class RequestContext:
 
 ```python
 from fastapi import Request, Depends
-from jose import jwt
+import jwt  # PyJWT
 
 async def get_request_context(request: Request) -> RequestContext:
     """FastAPI dependency that creates RequestContext from JWT"""
@@ -66,7 +66,7 @@ async def get_request_context(request: Request) -> RequestContext:
     token = auth_header[7:]
     try:
         claims = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(401, "Invalid token")
 
     # 2. Build immutable context
