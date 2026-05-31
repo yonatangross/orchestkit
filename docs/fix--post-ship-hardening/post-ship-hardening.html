@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit 8.12.3 — Post-Ship Verification &amp; Hardening Playground</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2330; --border: #30363d;
+    --fg: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --amber: #d29922; --red: #f85149; --purple: #bc8cff; --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 28px 24px 18px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #11161d, var(--bg)); }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  h1 .ver { color: var(--green); font-family: var(--mono); }
+  .sub { color: var(--muted); font-size: 14px; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px; }
+  section { margin-bottom: 34px; }
+  h2 { font-size: 16px; border-left: 3px solid var(--accent); padding-left: 10px; margin: 0 0 14px; }
+  .grid { display: grid; gap: 12px; }
+  .scorecard { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .card .score { font-size: 30px; font-weight: 700; font-family: var(--mono); }
+  .bar { height: 8px; border-radius: 5px; background: var(--panel2); overflow: hidden; margin-top: 8px; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--accent)); }
+  .verdicts { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .verdicts th, .verdicts td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .verdicts th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  .pill { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .ok { background: rgba(63,185,80,.15); color: var(--green); }
+  .partial { background: rgba(210,153,34,.16); color: var(--amber); }
+  .adv { background: rgba(188,140,255,.15); color: var(--purple); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .toolbar button { background: var(--panel2); color: var(--fg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+  .toolbar button.active { border-color: var(--accent); color: var(--accent); }
+  .fix { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+  .fix > summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 10px; }
+  .fix > summary::-webkit-details-marker { display: none; }
+  .fix > summary .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+  .fix .body { padding: 0 16px 16px; border-top: 1px solid var(--border); }
+  .fix .root { color: var(--muted); margin: 12px 0; }
+  pre { background: #0a0e14; border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; margin: 8px 0; }
+  .del { color: var(--red); } .add { color: var(--green); } .file { color: var(--purple); }
+  .files { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); padding: 16px 24px; text-align: center; }
+  .note { background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.25); border-radius: 8px; padding: 12px 14px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>OrchestKit <span class="ver">8.12.3</span> — Post-Ship Verification &amp; Hardening</h1>
+  <div class="sub">Independent verify + assess of the 5 PRs shipped to <code>main</code> @ <code>0d787d196</code>, then 4 bundled low-severity follow-ups. Interactive playground for the <code>fix/post-ship-hardening</code> PR.</div>
+</header>
+<main>
+
+  <section>
+    <h2>Verification verdict</h2>
+    <div class="note">
+      Ran an <b>independent</b> fresh build + drift + typecheck + skill/agent validation on a clean <code>main</code> worktree (not CI's word), and adversarially verified each handoff claim against the merged diffs.
+      Result: <b>7/9 claims confirmed, 2 partial (both low-sev), 0 refuted</b>. <code>plugins/</code> drift-free, all suites green. The ship holds.
+    </div>
+  </section>
+
+  <section>
+    <h2>Quality assessment (/ork:assess dimensions)</h2>
+    <div class="grid scorecard">
+      <div class="card"><div class="label">Correctness</div><div class="score">9<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="bar"><i style="width:90%"></i></div></div>
+      <div class="card"><div class="label">Root-cause discipline</div><div class="score">9<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="bar"><i style="width:90%"></i></div></div>
+      <div class="card"><div class="label">Security / hygiene</div><div class="score">9<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="bar"><i style="width:90%"></i></div></div>
+      <div class="card"><div class="label">Preview-reversal call</div><div class="score">8<span style="font-size:15px;color:var(--muted)">/10</span></div><div class="bar"><i style="width:80%"></i></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Claim-by-claim</h2>
+    <table class="verdicts">
+      <thead><tr><th>Claim</th><th>Verdict</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>#2118 doctor counts 111 skills / 37 agents</td><td><span class="pill ok">confirmed</span></td><td>shared/ &amp; README excluded → 111 / 37</td></tr>
+        <tr><td>#2118 model bump → Opus 4.8 (5 spots)</td><td><span class="pill ok">confirmed</span></td><td>no @ts-ignore / silencing</td></tr>
+        <tr><td>#2115 dep majors + TS6 drop w/ RCA</td><td><span class="pill ok">confirmed</span></td><td>esbuild 0.28 · @types/node 24 · lucide 1.x</td></tr>
+        <tr><td>#2116 marketplace engine floor &gt;=2.1.148</td><td><span class="pill ok">confirmed</span></td><td>no leftover 2.1.113</td></tr>
+        <tr><td>#2118 AskUserQuestion preview-strip</td><td><span class="pill ok">confirmed</span></td><td>92 keys removed, 0 remain</td></tr>
+        <tr><td>#5 ci-report "//0" = div-by-zero?</td><td><span class="pill ok">confirmed</span></td><td>jq default-operator, not division</td></tr>
+        <tr><td>#2116 override label = admin-bypass? <span class="pill adv">adversarial</span></td><td><span class="pill ok">confirmed</span></td><td>NO bypass — sanctioned label, all required checks green</td></tr>
+        <tr><td>#2118 retired preview assertion = silencing? <span class="pill adv">adversarial</span></td><td><span class="pill partial">partial</span></td><td>not silencing — but no replacement guard (this PR adds it)</td></tr>
+        <tr><td>#2117 docs floor + counts (hand-authored)</td><td><span class="pill partial">partial</span></td><td>headline fix holds; stragglers in adjacent pages</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>The 4 bundled fixes</h2>
+    <div class="toolbar" id="filter">
+      <button data-sev="all" class="active">All</button>
+      <button data-sev="docs">Docs</button>
+      <button data-sev="test">Test guard</button>
+      <button data-sev="ci">CI</button>
+      <button data-sev="cost">Pricing</button>
+    </div>
+
+    <details class="fix" data-sev="docs" open>
+      <summary><span class="tag">#1</span> Doc straggler floor + count root-cause</summary>
+      <div class="body">
+        <p class="root"><b>Root cause:</b> the docs generator counted <i>all</i> dirs (incl. <code>src/skills/shared/</code> with no SKILL.md) and globbed <code>README.md</code> as an agent — publishing 112 skills / 38 agents and emitting a bogus <code>reference/agents/README.mdx</code>. Plus a hand-authored troubleshooting page still cited a stale CC floor.</p>
+        <pre><span class="file">scripts/_build-docs-generate.py</span>
+<span class="del">- skill_dirs = sorted(d for d in skills_dir.iterdir() if d.is_dir())</span>
+<span class="add">+ skill_dirs = sorted(d for d in skills_dir.iterdir()</span>
+<span class="add">+     if d.is_dir() and (d / "SKILL.md").exists())   # 112 → 111</span>
+<span class="del">- agent_files = sorted(agents_dir.glob("*.md"))</span>
+<span class="add">+ agent_files = sorted(f for f in agents_dir.glob("*.md")</span>
+<span class="add">+     if f.stem.lower() != "readme")                 # 38 → 37, drops README.mdx</span>
+
+<span class="file">docs/site/content/docs/troubleshooting/index.mdx</span>
+<span class="del">- requires &gt;= 2.1.34</span>   <span class="add">+ requires &gt;= 2.1.148</span></pre>
+        <p class="note">Deferred (not a number-swap): <code>skills/reference-skills.mdx</code> lists 160 distinct slugs (only 16 are real reference skills) while claiming "61" — deep content rot, filed as a separate audit issue rather than papered over here.</p>
+      </div>
+    </details>
+
+    <details class="fix" data-sev="test">
+      <summary><span class="tag">#2</span> AskUserQuestion preview regression guard</summary>
+      <div class="body">
+        <p class="root"><b>Root cause:</b> #2118 stripped all <code>preview</code> fields (CC side-by-side nav bug, 2026-05-28) but downgraded the test to an unconditional pass and left <code>preview</code> in the permitted-key set — a future skill could silently re-add it. This adds a real guard + a re-enable tripwire.</p>
+        <pre><span class="file">tests/skills/structure/test-askuserquestion-schema.sh</span>
+<span class="del">- VALID_OPTION_KEYS = {"label", "description", "preview"}</span>
+<span class="add">+ VALID_OPTION_KEYS = {"label", "description"}   # preview FORBIDDEN (nav bug)</span>
+<span class="add">+ if "preview" in keys: violations.append(... forbidden: dead up/down nav ...)</span>
+
+<span class="file">tests/skills/test-skill-cc-features.sh</span>
+<span class="del">- pass "AUQ previews: N skills use preview (informational)"</span>
+<span class="add">+ if auq_skills_with_preview == 0: pass ... else: FAIL (regression)</span></pre>
+      </div>
+    </details>
+
+    <details class="fix" data-sev="ci">
+      <summary><span class="tag">#3</span> release-please-guard self-clears on override</summary>
+      <div class="body">
+        <p class="root"><b>Root cause:</b> the guard fires only on <code>opened/synchronize/reopened</code>, so a <code>release-please-override</code> label applied <i>after</i> a failing run never re-dispatched it — leaving a stale red check on the merge commit that reads like an admin bypass.</p>
+        <pre><span class="file">.github/workflows/release-please-guard.yml</span>
+<span class="del">- types: [opened, synchronize, reopened]</span>
+<span class="add">+ types: [opened, synchronize, reopened, labeled, unlabeled]</span></pre>
+      </div>
+    </details>
+
+    <details class="fix" data-sev="cost">
+      <summary><span class="tag">#4</span> cost-estimator: Opus 4.8 pricing + alias</summary>
+      <div class="body">
+        <p class="root"><b>Root cause:</b> no <code>claude-opus-4-8</code> pricing row existed and the <code>opus</code> alias still pointed at 4.7 — a session reported by full id <code>claude-opus-4-8</code> missed exact+partial match and fell back to <b>Sonnet</b> pricing (under-counted cost).</p>
+        <pre><span class="file">src/hooks/src/lib/cost-estimator.ts</span>
+<span class="add">+ 'claude-opus-4-8': { input 5.0, output 25.0, cache_read 0.5, cache_write 6.25 }</span>
+<span class="del">- opus: 'claude-opus-4-7'</span>   <span class="add">+ opus: 'claude-opus-4-8'</span></pre>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>Independent build evidence</h2>
+    <pre>npm run build → git diff --quiet -- plugins/   <span class="add">exit 0 (NO drift)</span>
+npm run typecheck (tsc --noEmit)               <span class="add">clean</span>
+npm run test:skills (632 rules · 111 skills)   <span class="add">pass</span>
+npm run test:agents (37 agents)                <span class="add">pass</span>
+AUQ guard: 0 skills author a preview field     <span class="add">guard holds</span></pre>
+  </section>
+
+</main>
+<footer>OrchestKit · fix/post-ship-hardening · verify → assess → harden · self-contained playground (no external deps)</footer>
+
+<script>
+  // Fix-filter
+  const buttons = document.querySelectorAll('#filter button');
+  const fixes = document.querySelectorAll('.fix');
+  buttons.forEach(b => b.addEventListener('click', () => {
+    buttons.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const sev = b.dataset.sev;
+    fixes.forEach(f => { f.style.display = (sev === 'all' || f.dataset.sev === sev) ? '' : 'none'; });
+  }));
+</script>
+</body>
+</html>

@@ -262,7 +262,11 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
     index_rows = []
     slugs = []
 
-    skill_dirs = sorted(d for d in skills_dir.iterdir() if d.is_dir())
+    # Only count dirs that actually carry a SKILL.md — `src/skills/shared/` is a
+    # shared-helpers dir with no SKILL.md and must not inflate the published count.
+    skill_dirs = sorted(
+        d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists()
+    )
     count = len(skill_dirs)
     print(f"Generating {count} skill pages...")
 
@@ -444,7 +448,11 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
     project_root = os.environ.get("PROJECT_ROOT", "")
     agent_hooks_map = build_agent_hooks_map(project_root) if project_root else {}
 
-    agent_files = sorted(agents_dir.glob("*.md"))
+    # Exclude README.md — it documents the agents dir, it is not an agent. Counting
+    # it inflates the published agent count (38 vs 37) and emits a bogus README.mdx.
+    agent_files = sorted(
+        f for f in agents_dir.glob("*.md") if f.stem.lower() != "readme"
+    )
     count = len(agent_files)
     print(f"Generating {count} agent pages...")
 
