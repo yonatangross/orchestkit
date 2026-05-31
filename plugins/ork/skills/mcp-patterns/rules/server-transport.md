@@ -89,9 +89,9 @@ app = Starlette(routes=[
 
 **Correct -- Streamable HTTP server (Python, recommended):**
 ```python
-from mcp.server.mcpserver import MCPServer
+from mcp.server.fastmcp import FastMCP
 
-mcp = MCPServer("my-tools")
+mcp = FastMCP("my-tools")
 
 @mcp.tool()
 def greet(name: str = "World") -> str:
@@ -108,15 +108,15 @@ if __name__ == "__main__":
 **Correct -- Streamable HTTP server (TypeScript, recommended):**
 ```typescript
 import { createServer } from "node:http";
-import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
-import { McpServer } from "@modelcontextprotocol/server";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const server = new McpServer({ name: "my-tools", version: "1.0.0" });
 
 // Register handlers...
 
 createServer(async (req, res) => {
-  const transport = new NodeStreamableHTTPServerTransport({
+  const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless; use () => randomUUID() for sessions
   });
   await server.connect(transport);
@@ -125,8 +125,8 @@ createServer(async (req, res) => {
 ```
 
 **Migrating SSE → Streamable HTTP:**
-- Python: Replace `SseServerTransport` with `MCPServer.run(transport="streamable-http")`
-- TypeScript: Replace `SSEServerTransport` with `NodeStreamableHTTPServerTransport`
+- Python: Replace `SseServerTransport` with `FastMCP.run(transport="streamable-http")`
+- TypeScript: Replace `SSEServerTransport` with `StreamableHTTPServerTransport`
 - Client endpoint changes from `/sse` + `/messages` to single `/mcp` path
 - Streamable HTTP supports both stateless (scalable) and stateful (session) modes
 

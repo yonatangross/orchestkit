@@ -39,13 +39,13 @@ vectors = [item.embedding for item in response.data]
 | `voyage-3` | 1024 | $0.06/1M | Production (OrchestKit default) |
 | `voyage-3-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
 | `voyage-3-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
-| `text-embedding-004` (Gemini) | 768 | $0.025/1M | Google stack / multilingual (MRL-truncatable) |
+| `gemini-embedding-001` (Gemini) | 3072 (MRL: 768/1536/3072) | $0.025/1M | Google stack / multilingual (MRL-truncatable) |
 | `nomic-embed-text` (Ollama) | 768 | Free | Local/CI |
 
 Guidance:
 - Default to `voyage-3` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
 - `text-embedding-3-large` is still the strongest OpenAI option when you need Matryoshka dim reduction (3072 → 1536) without retraining.
-- `text-embedding-004` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage.
+- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536) — set the output dimensionality explicitly if you need the smaller footprint that `text-embedding-004` used to give.
 
 **Similarity Calculation:**
 ```python

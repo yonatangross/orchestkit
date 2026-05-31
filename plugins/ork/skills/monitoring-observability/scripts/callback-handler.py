@@ -8,7 +8,7 @@ without modifying existing LangChain code.
 from app.core.config import settings
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
-from langfuse.callback import CallbackHandler
+from langfuse.langchain import CallbackHandler
 
 
 def create_langfuse_handler(
@@ -96,9 +96,7 @@ async def run_langgraph_workflow(content: str, analysis_id: str):
     )
 
     # Create LLMs with shared handler
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6", callbacks=[langfuse_handler]
-    )
+    llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[langfuse_handler])
 
     # Define nodes
     async def security_node(state):
@@ -187,9 +185,7 @@ async def batch_analyze_with_tracing(items: list[str], batch_id: str):
             tags=["batch", "production"],
         )
 
-        llm = ChatAnthropic(
-            model="claude-sonnet-4-6", callbacks=[item_handler]
-        )
+        llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[item_handler])
 
         messages = [HumanMessage(content=f"Analyze: {item}")]
         response = await llm.ainvoke(messages)
@@ -254,9 +250,7 @@ async def high_throughput_analysis(items: list[str]):
         sample_rate=0.2,
     )
 
-    llm = ChatAnthropic(
-        model="claude-sonnet-4-6", callbacks=[langfuse_handler]
-    )
+    llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[langfuse_handler])
 
     results = []
     for item in items:

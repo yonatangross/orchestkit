@@ -26,34 +26,39 @@ function Dashboard({ spec }) {
 
 **Correct — using the Renderer component:**
 ```tsx
-import { Renderer } from '@json-render/react'
+import { Renderer, defineRegistry } from '@json-render/react'
 import { catalog } from './catalog'
-import { webRegistry } from './registries/web'
+import { webComponents } from './registries/web'
+
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function Dashboard({ spec }) {
   return (
     <Renderer
       spec={spec}
-      catalog={catalog}
       registry={webRegistry}
       fallback={<LoadingSkeleton />}
-      onError={(err) => console.error('Render error:', err)}
     />
   )
 }
 ```
 
 **Key rules:**
-- Always pass `catalog` to `<Renderer>` — it validates that spec types exist in the catalog and props match Zod schemas
+- Build the registry with `defineRegistry(catalog, { components })` — this binds catalog validation to the registry; `<Renderer>` receives only `spec` and `registry` (no `catalog` prop in 0.19)
+- `RendererProps` is `{ spec, registry, loading?, fallback? }` — no `catalog`, `components`, `directives`, or `onError` at top level
 - Use `fallback` prop for loading states during progressive streaming
-- Use `onError` callback or wrap in an error boundary for graceful degradation
+- Wrap in a React error boundary for graceful degradation
 - For streaming specs (AI generating in real-time), the Renderer updates progressively as elements arrive
 - The registry maps catalog types to React components — keep it separate from the catalog definition
 
 ### Progressive Streaming Pattern
 
 ```tsx
-import { Renderer, useStreamingSpec } from '@json-render/react'
+import { Renderer, defineRegistry, useStreamingSpec } from '@json-render/react'
+import { catalog } from './catalog'
+import { webComponents } from './registries/web'
+
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function StreamingDashboard({ specStream }) {
   const spec = useStreamingSpec(specStream) // updates as patches arrive
@@ -61,7 +66,6 @@ function StreamingDashboard({ specStream }) {
   return (
     <Renderer
       spec={spec}
-      catalog={catalog}
       registry={webRegistry}
       fallback={<Skeleton />}
     />

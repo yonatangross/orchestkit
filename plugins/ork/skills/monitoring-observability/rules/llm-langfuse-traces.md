@@ -129,7 +129,7 @@ DB drivers, DNS) are exported to Langfuse. Use `should_export_span` to keep
 only the spans you care about:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
 def span_filter(span) -> bool:
     """Only export LLM and application spans, skip infra noise."""
@@ -137,28 +137,28 @@ def span_filter(span) -> bool:
     lib = span.attributes.get("otel.library.name", "")
     return lib not in dominated_libs
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: should_export_span is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     should_export_span=span_filter,
 )
 ```
 
-## OpenTelemetry SpanProcessor
+## OpenTelemetry Integration
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+# v4: the Langfuse client installs its own OTEL span processor internally,
+# so there is no LangfuseSpanProcessor to add to a TracerProvider.
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-langfuse_processor = LangfuseSpanProcessor(
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     host="https://cloud.langfuse.com",
+    should_export_span=is_default_export_span,
 )
-
-provider = TracerProvider()
-provider.add_span_processor(langfuse_processor)
 ```
 
 ## JavaScript/TypeScript Setup

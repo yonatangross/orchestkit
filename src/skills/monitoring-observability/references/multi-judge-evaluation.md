@@ -56,7 +56,7 @@ from langfuse import observe, get_client, Langfuse
 langfuse = Langfuse()
 
 
-@observe(type="evaluator", name="depth_judge")
+@observe(as_type="evaluator", name="depth_judge")
 async def depth_evaluator(trace_id: str, output: str) -> float:
     """Depth evaluator — creates its own inspectable trace."""
     score = await g_eval.evaluate(criterion="depth", output=output)
@@ -68,7 +68,7 @@ async def depth_evaluator(trace_id: str, output: str) -> float:
     )
 
     # Record score on the original trace
-    langfuse.score(
+    langfuse.create_score(
         trace_id=trace_id,
         name="g_eval_depth",
         value=score,
@@ -98,9 +98,9 @@ langfuse = Langfuse()
 def create_g_eval_evaluator(criterion: str):
     """
     Create a Langfuse evaluator for a G-Eval criterion.
-    Each evaluator creates an inspectable trace via @observe(type="evaluator").
+    Each evaluator creates an inspectable trace via @observe(as_type="evaluator").
     """
-    @observe(type="evaluator", name=f"g_eval_{criterion}")
+    @observe(as_type="evaluator", name=f"g_eval_{criterion}")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         # Run G-Eval for this criterion
         score = await g_eval.evaluate(
@@ -115,7 +115,7 @@ def create_g_eval_evaluator(criterion: str):
         )
 
         # Record score in Langfuse
-        langfuse.score(
+        langfuse.create_score(
             trace_id=trace_id,
             name=f"g_eval_{criterion}",
             value=score,
@@ -139,7 +139,7 @@ def create_g_eval_overall_evaluator():
         "usefulness": 0.10,
     }
 
-    @observe(type="evaluator", name="g_eval_overall")
+    @observe(as_type="evaluator", name="g_eval_overall")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         scores = {}
 
@@ -162,7 +162,7 @@ def create_g_eval_overall_evaluator():
         )
 
         # Record in Langfuse
-        langfuse.score(
+        langfuse.create_score(
             trace_id=trace_id,
             name="g_eval_overall",
             value=overall,
@@ -265,7 +265,7 @@ async def run_quality_experiment(dataset_name: str):
 # BAD: Single judge decides everything
 score = await evaluate(output)
 
-# GOOD: Multiple judges with @observe(type="evaluator"), aggregate
+# GOOD: Multiple judges with @observe(as_type="evaluator"), aggregate
 scores = await asyncio.gather(
     depth_judge(output),
     accuracy_judge(output),
@@ -278,18 +278,18 @@ overall = weighted_average(scores, weights)
 
 ```python
 # BAD: Only log final score
-langfuse.score(trace_id=trace_id, name="quality", value=0.85)
+langfuse.create_score(trace_id=trace_id, name="quality", value=0.85)
 
 # GOOD: Log individual + aggregate
 for criterion, score in scores.items():
-    langfuse.score(
+    langfuse.create_score(
         trace_id=trace_id,
         name=f"g_eval_{criterion}",
         value=score,
         comment=f"G-Eval {criterion}",
     )
 
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="g_eval_overall",
     value=overall,
@@ -301,7 +301,7 @@ langfuse.score(
 
 ```python
 # If you have ground truth (golden dataset)
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="human_verified",
     value=ground_truth_score,
@@ -314,7 +314,7 @@ langfuse.score(
 ```python
 # Measure inter-judge agreement
 agreement = calculate_agreement(scores)
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="judge_agreement",
     value=agreement,

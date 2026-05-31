@@ -115,7 +115,7 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 ### Node.js (Express/Next.js)
 
 - [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
-- [ ] Add to package.json: `"@langfuse/core": "^4.0.0"` and `"@langfuse/otel": "^4.0.0"`
+- [ ] Add to package.json: `"@langfuse/core": "^5.0.0"` and `"@langfuse/otel": "^5.0.0"`
 
 ## Phase 3: Configuration
 
@@ -368,7 +368,7 @@ async def evaluate_response(query: str, response: str) -> dict:
     lf = get_client()
     trace_id = lf.get_current_trace_id()
     for criterion, score in scores.items():
-        lf.score(
+        lf.create_score(
             trace_id=trace_id,
             name=criterion,
             value=score,
@@ -377,7 +377,7 @@ async def evaluate_response(query: str, response: str) -> dict:
 
     # Add overall score
     overall = sum(scores.values()) / len(scores)
-    lf.score(
+    lf.create_score(
         trace_id=trace_id,
         name="overall_quality",
         value=overall,
@@ -404,18 +404,22 @@ from app.shared.services.langfuse.client import langfuse_client
 async def test_langfuse_trace_creation():
     """Verify Langfuse traces are created."""
 
-    trace = langfuse_client.trace(
+    trace = langfuse_client.start_observation(
         name="test_trace",
+        as_type="span",
         metadata={"test": True}
     )
 
-    generation = trace.generation(
+    generation = trace.start_observation(
         name="test_generation",
+        as_type="generation",
         model="claude-sonnet-4-6",
         input="Test prompt",
         output="Test response",
-        usage={"input": 10, "output": 5, "unit": "TOKENS"}
+        usage_details={"input": 10, "output": 5}
     )
+    generation.end()
+    trace.end()
 
     # Flush to ensure data is sent
     langfuse_client.flush()

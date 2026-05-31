@@ -11,7 +11,8 @@ Set up MCP clients with proper session management, error handling, and reconnect
 
 **Incorrect -- no error handling, no cleanup:**
 ```typescript
-import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const client = new Client({ name: "app", version: "1.0.0" });
 const transport = new StreamableHTTPClientTransport(new URL("http://localhost:3000/mcp"));
@@ -35,7 +36,8 @@ print(result.content[0].text)  # No type check, no error handling
 
 **Correct -- TypeScript client with reconnection and capability negotiation:**
 ```typescript
-import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const transport = new StreamableHTTPClientTransport(
   new URL("http://localhost:3000/mcp"),
@@ -96,7 +98,7 @@ async def run_stdio_client():
                     print(content.text)
 
 async def run_http_client():
-    async with streamable_http_client("http://localhost:8000/mcp") as (read, write):
+    async with streamable_http_client("http://localhost:8000/mcp") as (read, write, get_session_id):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await session.list_tools()

@@ -471,13 +471,13 @@ async def cleanup_redis_idempotency_keys(redis_client, pattern: str = "idem:*"):
 
 ```python
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.mark.asyncio
 async def test_idempotent_request_returns_same_response():
     """Same idempotency key returns cached response."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         idempotency_key = str(uuid.uuid4())
 
         # First request
@@ -503,7 +503,7 @@ async def test_idempotent_request_returns_same_response():
 @pytest.mark.asyncio
 async def test_different_keys_process_independently():
     """Different idempotency keys process as separate requests."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response1 = await client.post(
             "/api/orders",
             json={"product": "widget", "quantity": 1},
@@ -521,7 +521,7 @@ async def test_different_keys_process_independently():
 @pytest.mark.asyncio
 async def test_mismatched_body_rejected():
     """Reusing key with different body is rejected."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         idempotency_key = str(uuid.uuid4())
 
         await client.post(

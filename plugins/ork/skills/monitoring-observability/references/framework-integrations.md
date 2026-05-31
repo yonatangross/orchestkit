@@ -8,7 +8,7 @@ Langfuse v3 integrates with modern AI frameworks via OpenTelemetry. Each integra
 # pip install anthropic langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="claude_agent")
+@observe(as_type="agent", name="claude_agent")
 async def run_claude_agent(task: str):
     """Claude Agent SDK with Langfuse tracing."""
     import anthropic
@@ -64,7 +64,7 @@ claude_agent (agent, 4.2s, $0.08)
 # pip install openai-agents langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="openai_agents_workflow")
+@observe(as_type="agent", name="openai_agents_workflow")
 async def run_openai_agents(query: str):
     """OpenAI Agents SDK with Langfuse tracing via OTEL."""
     from agents import Agent, Runner, function_tool
@@ -105,7 +105,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="x-langfuse-public-key=pk-...,x-langfuse-secre
 # pip install pydantic-ai langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="pydantic_ai_agent")
+@observe(as_type="agent", name="pydantic_ai_agent")
 async def run_pydantic_agent(query: str):
     """Pydantic AI agent with Langfuse tracing."""
     from pydantic_ai import Agent
@@ -143,7 +143,7 @@ async def run_pydantic_agent(query: str):
 # pip install crewai langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="crewai_workflow")
+@observe(as_type="agent", name="crewai_workflow")
 async def run_crew(task_description: str):
     """CrewAI crew with Langfuse tracing."""
     from crewai import Crew, Agent, Task
@@ -207,7 +207,7 @@ os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
 # pip install livekit-agents langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="livekit_voice_agent")
+@observe(as_type="agent", name="livekit_voice_agent")
 async def run_voice_agent(session_id: str):
     """LiveKit voice agent with Langfuse tracing."""
     from livekit.agents import AutoSubscribe, JobContext, WorkerOptions
@@ -248,7 +248,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="x-langfuse-public-key=pk-...,x-langfuse-secre
 # pip install boto3 langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="bedrock_agent")
+@observe(as_type="agent", name="bedrock_agent")
 async def run_bedrock_agent(query: str):
     """Amazon Bedrock AgentCore with Langfuse tracing."""
     import boto3
@@ -279,11 +279,12 @@ async def run_bedrock_agent(query: str):
 
 ```python
 # Bedrock traces via AWS X-Ray → OTEL → Langfuse
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+# v4: no LangfuseSpanProcessor module — the client installs its own OTEL
+# processor and span filtering is a client kwarg.
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-processor = LangfuseSpanProcessor()
-# Add to your OTEL tracer provider
+langfuse = Langfuse(should_export_span=is_default_export_span)
 ```
 
 ## JavaScript/TypeScript Integration

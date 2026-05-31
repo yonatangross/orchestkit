@@ -183,7 +183,7 @@ def mock_repository():
 @pytest.fixture
 async def client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
     app.dependency_overrides.clear()
 ```

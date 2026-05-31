@@ -21,6 +21,7 @@ const ogImage = buildCanvasImage(data)             // manual canvas drawing
 **Correct — one catalog, one spec, multiple registries:**
 ```typescript
 import { catalog } from './catalog'
+import { defineRegistry } from '@json-render/react'
 
 // Same spec, different renderers
 import { Renderer } from '@json-render/react'           // web
@@ -28,11 +29,13 @@ import { renderToBuffer } from '@json-render/react-pdf' // pdf
 import { renderToHtml } from '@json-render/react-email' // email
 import { renderToPng } from '@json-render/image'        // og image
 
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
+
 // Each renderer uses the same catalog + spec, different registry
-const webUi = <Renderer spec={spec} catalog={catalog} registry={webRegistry} />
-const pdf = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
-const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
-const png = await renderToPng(spec, { catalog, registry: imageRegistry, width: 1200, height: 630 })
+const webUi = <Renderer spec={spec} registry={webRegistry} />
+const pdf = await renderToBuffer(spec, { registry: pdfRegistry })
+const html = await renderToHtml(spec, { registry: emailRegistry })
+const png = await renderToPng(spec, { registry: imageRegistry, width: 1200, height: 630 })
 ```
 
 **Key rules:**

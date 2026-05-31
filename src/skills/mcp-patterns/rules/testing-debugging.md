@@ -24,7 +24,7 @@ def search(query: str) -> str:
 **Correct -- unit tests with in-process Client:**
 ```python
 import pytest
-from mcp import Client
+from fastmcp import Client  # in-process harness lives in the separate `fastmcp` package
 from mcp.types import CallToolResult, TextContent
 from server import app
 

@@ -334,7 +334,7 @@ async def track_connections(request: Request, call_next):
 ```python
 # tests/conftest.py
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from app.main import app
@@ -351,7 +351,7 @@ async def client():
     app.state.redis = FakeRedis()
     app.state.task_queue = FakeTaskQueue()
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
 

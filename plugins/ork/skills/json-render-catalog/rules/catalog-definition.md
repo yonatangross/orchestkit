@@ -28,42 +28,47 @@ function App({ spec }) {
 import { defineCatalog } from '@json-render/core'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    // props: Zod schema validates every prop AI generates
-    props: z.object({
-      title: z.string().max(100),
-      description: z.string().max(500).optional(),
-      elevated: z.boolean().default(false),
-    }),
-    // children: true = accepts child elements, false = leaf node
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string().max(50),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-      size: z.enum(['sm', 'md', 'lg']).default('md'),
-      disabled: z.boolean().default(false),
-    }),
-    children: false,
-  },
-  DataTable: {
-    props: z.object({
-      columns: z.array(z.object({
-        key: z.string(),
-        label: z.string(),
-        sortable: z.boolean().default(false),
-      })).min(1).max(12),
-      rows: z.array(z.record(z.string())).max(100),
-    }),
-    children: false,
+import { schema } from '@json-render/react/schema'
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      // props: Zod schema validates every prop AI generates
+      props: z.object({
+        title: z.string().max(100),
+        description: z.string().max(500).optional(),
+        elevated: z.boolean().default(false),
+      }),
+      // children: true = accepts child elements, false = leaf node
+      children: true,
+    },
+    Button: {
+      props: z.object({
+        label: z.string().max(50),
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+        size: z.enum(['sm', 'md', 'lg']).default('md'),
+        disabled: z.boolean().default(false),
+      }),
+      children: false,
+    },
+    DataTable: {
+      props: z.object({
+        columns: z.array(z.object({
+          key: z.string(),
+          label: z.string(),
+          sortable: z.boolean().default(false),
+        })).min(1).max(12),
+        rows: z.array(z.record(z.string())).max(100),
+      }),
+      children: false,
+    },
   },
 })
 
 // Type-safe rendering with catalog validation
-import { Render } from '@json-render/react'
-<Render catalog={catalog} components={components} spec={spec} />
+import { Renderer, defineRegistry } from '@json-render/react'
+const { registry } = defineRegistry(catalog, { components })
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### Children Types

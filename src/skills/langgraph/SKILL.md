@@ -125,7 +125,8 @@ Independent of checkpointing. Cache individual node output so re-runs with ident
 
 ```python
 from langgraph.graph import StateGraph
-from langgraph.cache import CachePolicy, SqliteCache
+from langgraph.types import CachePolicy
+from langgraph.cache.sqlite import SqliteCache
 
 graph = StateGraph(State)
 graph.add_node(
@@ -240,7 +241,7 @@ app = graph.compile()
 - **Streaming v2 (LG 1.1)**: Use `version="v2"` for type-safe streaming — fully typed `stream()` and `astream()` returns. Default remains `"v1"` for backwards compat.
 - **Command API**: Use `Command(update=..., goto=...)` when updating state AND routing together
 - **context_schema**: Pass runtime config (temperature, provider) without polluting state
-- **CachePolicy**: Cache expensive node results with TTL via `InMemoryCache`
+- **CachePolicy**: Cache expensive node results with TTL via `SqliteCache` (prod) or `InMemoryCache` from `langgraph.cache.memory` (dev)
 - **RemainingSteps**: Proactively handle recursion limits
 - **Store**: Cross-thread memory separate from Checkpointer (thread-scoped)
 - **interrupt()**: Dynamic interrupts inside node logic (replaces `interrupt_before` for conditional cases)

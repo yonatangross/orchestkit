@@ -68,28 +68,31 @@ The script emits two files:
 // Source: storybook-manifest.json (sha-1: <hash>)
 // Generated: 2026-04-28T05:00:00Z
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    description: 'Card component with optional title and elevation',
-    props: z.object({
-      title: z.string().max(500).optional(),
-      elevation: z.enum(['flat', 'low', 'high']),
-    }),
-    children: 'allowed',
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      description: 'Card component with optional title and elevation',
+      props: z.object({
+        title: z.string().max(500).optional(),
+        elevation: z.enum(['flat', 'low', 'high']),
+      }),
+      children: 'allowed',
+    },
+    Button: {
+      description: 'Button with size and variant',
+      props: z.object({
+        label: z.string().max(500),
+        size: z.enum(['sm', 'md', 'lg']),
+        variant: z.enum(['primary', 'secondary', 'ghost']),
+        disabled: z.boolean().optional(),
+      }),
+      children: false,
+    },
+    // ...
   },
-  Button: {
-    description: 'Button with size and variant',
-    props: z.object({
-      label: z.string().max(500),
-      size: z.enum(['sm', 'md', 'lg']),
-      variant: z.enum(['primary', 'secondary', 'ghost']),
-      disabled: z.boolean().optional(),
-    }),
-    children: false,
-  },
-  // ...
 })
 ```
 

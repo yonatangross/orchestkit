@@ -120,8 +120,13 @@ Connect json-render state to your app's state management:
 ```typescript
 // Zustand adapter
 import { createZustandAdapter } from '@json-render/zustand'
+import { Renderer, defineRegistry } from '@json-render/react'
+import { JSONUIProvider } from '@json-render/react'
 const adapter = createZustandAdapter(useAppStore)
-<Render catalog={catalog} components={components} spec={spec} stateAdapter={adapter} />
+const { registry } = defineRegistry(catalog, { components })
+<JSONUIProvider registry={registry} directives={{ stateAdapter: adapter }}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 
 // Redux adapter
 import { createReduxAdapter } from '@json-render/redux'

@@ -15,7 +15,7 @@ from deepeval.metrics import (
     FaithfulnessMetric,
     ContextualPrecisionMetric,
     ContextualRecallMetric,
-    GEvalMetric,
+    GEval,
     SummarizationMetric,
     HallucinationMetric,
 )
@@ -38,7 +38,7 @@ from deepeval.metrics import AnswerRelevancyMetric
 
 metric = AnswerRelevancyMetric(
     threshold=0.7,
-    model="gpt-5.2-mini",
+    model="gpt-5-mini",
     include_reason=True,
 )
 
@@ -54,7 +54,7 @@ from deepeval.metrics import FaithfulnessMetric
 
 metric = FaithfulnessMetric(
     threshold=0.8,
-    model="gpt-5.2-mini",
+    model="gpt-5-mini",
 )
 
 # Measures if output is faithful to the context
@@ -76,17 +76,19 @@ recall_metric = ContextualRecallMetric(threshold=0.7)
 ### G-Eval (Custom Criteria)
 
 ```python
-from deepeval.metrics import GEvalMetric
+from deepeval.metrics import GEval
+from deepeval.test_case import LLMTestCaseParams
 
-# Custom evaluation criteria
-coherence_metric = GEvalMetric(
+# Custom evaluation criteria.
+# evaluation_params is required. Pass EITHER criteria OR evaluation_steps — not both.
+coherence_metric = GEval(
     name="Coherence",
-    criteria="Determine if the response is logically coherent and well-structured.",
     evaluation_steps=[
         "Check if ideas flow logically",
         "Verify sentence structure is clear",
         "Assess overall organization",
     ],
+    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
     threshold=0.7,
 )
 ```
@@ -98,7 +100,7 @@ from deepeval.metrics import HallucinationMetric
 
 hallucination_metric = HallucinationMetric(
     threshold=0.5,  # Lower is better (0 = no hallucination)
-    model="gpt-5.2-mini",
+    model="gpt-5-mini",
 )
 
 test_case = LLMTestCase(
@@ -118,7 +120,7 @@ from deepeval.metrics import SummarizationMetric
 
 metric = SummarizationMetric(
     threshold=0.7,
-    model="gpt-5.2-mini",
+    model="gpt-5-mini",
     assessment_questions=[
         "Does the summary capture the main points?",
         "Is the summary concise?",
@@ -136,76 +138,64 @@ pip install ragas
 ### Core Metrics
 
 ```python
-from ragas import evaluate
+from ragas import evaluate, EvaluationDataset
 from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_precision,
-    context_recall,
-    answer_similarity,
-    answer_correctness,
+    Faithfulness,
+    LLMContextRecall,
+    FactualCorrectness,
 )
-from datasets import Dataset
 
-# Prepare dataset
-data = {
-    "question": ["What is the capital of France?"],
-    "answer": ["The capital of France is Paris."],
-    "contexts": [["France is a country in Europe. Its capital is Paris."]],
-    "ground_truth": ["Paris is the capital of France."],
-}
+# Prepare dataset (class-based API: EvaluationDataset.from_list)
+dataset = EvaluationDataset.from_list([
+    {
+        "user_input": "What is the capital of France?",
+        "retrieved_contexts": ["France is a country in Europe. Its capital is Paris."],
+        "response": "The capital of France is Paris.",
+        "reference": "Paris is the capital of France.",
+    },
+])
 
-dataset = Dataset.from_dict(data)
-
-# Evaluate
+# Evaluate (instantiate metric classes; llm= is optional)
 result = evaluate(
     dataset,
     metrics=[
-        faithfulness,
-        answer_relevancy,
-        context_precision,
-        context_recall,
+        Faithfulness(),
+        LLMContextRecall(),
+        FactualCorrectness(),
     ],
 )
 
 print(result)
-# {'faithfulness': 0.95, 'answer_relevancy': 0.88, ...}
+# {'faithfulness': 0.95, 'context_recall': 0.88, ...}
 ```
 
 ### Faithfulness (RAGAS)
 
 ```python
-from ragas.metrics import faithfulness
+from ragas.metrics import Faithfulness
 
-# Measures factual consistency between answer and context
+metric = Faithfulness()
+# Measures factual consistency between response and retrieved_contexts
 # Score 0-1, higher is better
 ```
 
-### Answer Relevancy (RAGAS)
+### Context Recall (RAGAS)
 
 ```python
-from ragas.metrics import answer_relevancy
+from ragas.metrics import LLMContextRecall
 
-# Measures how relevant the answer is to the question
-# Penalizes incomplete or redundant answers
+metric = LLMContextRecall()
+# Measures coverage of the reference by the retrieved_contexts
 ```
 
-### Context Precision & Recall
+### Factual Correctness
 
 ```python
-from ragas.metrics import context_precision, context_recall
+from ragas.metrics import FactualCorrectness
 
-# Precision: relevance of retrieved contexts
-# Recall: coverage of ground truth by contexts
-```
-
-### Answer Correctness
-
-```python
-from ragas.metrics import answer_correctness
-
-# Combines semantic similarity with factual correctness
-# Requires ground_truth in dataset
+metric = FactualCorrectness()
+# Compares response against reference for factual overlap
+# Requires reference in the dataset
 ```
 
 ## pytest Integration
@@ -239,9 +229,8 @@ async def test_answer_relevancy():
 ```python
 # test_rag.py
 import pytest
-from ragas import evaluate
-from ragas.metrics import faithfulness, answer_relevancy
-from datasets import Dataset
+from ragas import evaluate, EvaluationDataset
+from ragas.metrics import Faithfulness, LLMContextRecall
 
 @pytest.mark.asyncio
 async def test_rag_pipeline():
@@ -250,16 +239,18 @@ async def test_rag_pipeline():
     contexts = await retriever.retrieve(question)
     answer = await generator.generate(question, contexts)
 
-    dataset = Dataset.from_dict({
-        "question": [question],
-        "answer": [answer],
-        "contexts": [contexts],
-    })
+    dataset = EvaluationDataset.from_list([
+        {
+            "user_input": question,
+            "retrieved_contexts": contexts,
+            "response": answer,
+        },
+    ])
 
-    result = evaluate(dataset, metrics=[faithfulness, answer_relevancy])
+    result = evaluate(dataset, metrics=[Faithfulness(), LLMContextRecall()])
 
     assert result["faithfulness"] >= 0.7
-    assert result["answer_relevancy"] >= 0.7
+    assert result["context_recall"] >= 0.7
 ```
 
 ## Batch Evaluation

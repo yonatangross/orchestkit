@@ -69,8 +69,10 @@ elements:
       variant: ghost`
 
 // Parse YAML spec before rendering
+import { Renderer, defineRegistry } from '@json-render/react'
 const spec = parseYamlSpec(yamlString)
-<Render catalog={catalog} components={components} spec={spec} />
+const { registry } = defineRegistry(catalog, { components })
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### Format Selection Criteria

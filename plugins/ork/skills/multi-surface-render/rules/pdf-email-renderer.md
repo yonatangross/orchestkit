@@ -31,13 +31,13 @@ import { catalog } from './catalog'
 import { pdfRegistry } from './registries/pdf'
 
 // Buffer — for HTTP responses, S3 upload, attachments
-const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 
 // File — direct disk write
-await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+await renderToFile(spec, './output/report.pdf', { registry: pdfRegistry })
 
 // Stream — for large documents, pipe to HTTP response
-const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+const stream = await renderToStream(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 stream.pipe(res)
 ```
@@ -54,7 +54,7 @@ import { renderToHtml } from '@json-render/react-email'
 import { catalog } from './catalog'
 import { emailRegistry } from './registries/email'
 
-const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+const html = await renderToHtml(spec, { registry: emailRegistry })
 await transporter.sendMail({ to: user.email, subject: 'Report', html })
 ```
 

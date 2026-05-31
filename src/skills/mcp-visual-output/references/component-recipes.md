@@ -9,32 +9,35 @@ Display skill evaluation results with pass rates, scores, and per-skill breakdow
 ### Catalog
 
 ```typescript
-const evalCatalog = defineCatalog({
-  StatGrid: {
-    props: z.object({
-      items: z.array(z.object({
+import { schema } from '@json-render/react/schema'
+const evalCatalog = defineCatalog(schema, {
+  components: {
+    StatGrid: {
+      props: z.object({
+        items: z.array(z.object({
+          label: z.string(),
+          value: z.string(),
+          trend: z.enum(['up', 'down', 'flat']).optional(),
+          color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
+        })),
+      }),
+      children: false,
+    },
+    DataTable: {
+      props: z.object({
+        columns: z.array(z.object({ key: z.string(), label: z.string() })),
+        rows: z.array(z.record(z.string())),
+        sortable: z.boolean().optional(),
+      }),
+      children: false,
+    },
+    StatusBadge: {
+      props: z.object({
         label: z.string(),
-        value: z.string(),
-        trend: z.enum(['up', 'down', 'flat']).optional(),
-        color: z.enum(['green', 'red', 'yellow', 'blue']).optional(),
-      })),
-    }),
-    children: false,
-  },
-  DataTable: {
-    props: z.object({
-      columns: z.array(z.object({ key: z.string(), label: z.string() })),
-      rows: z.array(z.record(z.string())),
-      sortable: z.boolean().optional(),
-    }),
-    children: false,
-  },
-  StatusBadge: {
-    props: z.object({
-      label: z.string(),
-      status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
-    }),
-    children: false,
+        status: z.enum(['success', 'warning', 'error', 'info', 'pending']),
+      }),
+      children: false,
+    },
   },
 })
 ```

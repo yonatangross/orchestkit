@@ -54,7 +54,7 @@ that inflate Langfuse ingestion costs without adding LLM-relevant insight.
 Use `should_export_span` to filter out noisy spans:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
 def cost_relevant_only(span) -> bool:
     """Only export spans that contribute to LLM cost attribution."""
@@ -62,7 +62,8 @@ def cost_relevant_only(span) -> bool:
     lib = span.attributes.get("otel.library.name", "")
     return lib not in skip_libs
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: should_export_span is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     should_export_span=cost_relevant_only,
@@ -76,9 +77,10 @@ Configure a sample rate to trace a percentage of requests while preserving
 accurate cost estimates via extrapolation:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: sample_rate is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     sample_rate=0.1,  # Trace 10% of requests, extrapolate costs

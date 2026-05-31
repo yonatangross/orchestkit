@@ -56,8 +56,8 @@ Directives are the safe escape hatch for computed values. AI emits a `$`-prefixe
 
 ### Registration
 
-```ts
-import { Render } from '@json-render/react'
+```tsx
+import { defineRegistry, JSONUIProvider, Renderer } from '@json-render/react'
 import { standardDirectives, createI18nDirective } from '@json-render/directives'
 
 const directives = [
@@ -69,7 +69,12 @@ const directives = [
   }),
 ]
 
-<Render catalog={catalog} components={components} spec={spec} directives={directives} />
+const { registry } = defineRegistry(catalog, { components })
+
+// directives register on the provider (RendererProps has no directives prop)
+<JSONUIProvider registry={registry} directives={directives}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 ```
 
 ### The seven prebuilt directives
@@ -123,7 +128,7 @@ Spread into the renderer alongside `standardDirectives`: `directives={[...standa
 
 1. **Developer defines a catalog** — Zod-typed component definitions with constrained props
 2. **AI generates a spec** — flat-tree JSON/YAML referencing only catalog components
-3. **Runtime renders the spec** — `<Render>` component validates and renders each element
+3. **Runtime renders the spec** — `<Renderer>` component validates and renders each element
 
 The catalog is the safety boundary. AI can only reference types that exist in the catalog, and props are validated against Zod schemas at runtime. This prevents hallucinated components and invalid props from reaching the UI.
 
@@ -133,32 +138,35 @@ The catalog is the safety boundary. AI can only reference types that exist in th
 
 ```typescript
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    props: z.object({
-      title: z.string(),
-      description: z.string().optional(),
-    }),
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string(),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-    }),
-    children: false,
-  },
-  StatGrid: {
-    props: z.object({
-      items: z.array(z.object({
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+      }),
+      children: true,
+    },
+    Button: {
+      props: z.object({
         label: z.string(),
-        value: z.string(),
-        trend: z.enum(['up', 'down', 'flat']).optional(),
-      })).max(20),
-    }),
-    children: false,
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+      }),
+      children: false,
+    },
+    StatGrid: {
+      props: z.object({
+        items: z.array(z.object({
+          label: z.string(),
+          value: z.string(),
+          trend: z.enum(['up', 'down', 'flat']).optional(),
+        })).max(20),
+      }),
+      children: false,
+    },
   },
 })
 ```
@@ -207,12 +215,15 @@ export const components: CatalogComponents<typeof catalog> = {
 ### Step 3: Render a Spec
 
 ```tsx
-import { Render } from '@json-render/react'
+import { defineRegistry, Renderer } from '@json-render/react'
 import { catalog } from './catalog'
 import { components } from './components'
 
+// defineRegistry returns DefineRegistryResult — destructure `registry`
+const { registry } = defineRegistry(catalog, { components })
+
 function App({ spec }: { spec: JsonRenderSpec }) {
-  return <Render catalog={catalog} components={components} spec={spec} />
+  return <Renderer spec={spec} registry={registry} />
 }
 ```
 
@@ -296,12 +307,14 @@ The `@json-render/shadcn` package provides a production-ready catalog of 36 comp
 
 > **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
-```typescript
+```tsx
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { defineRegistry, Renderer } from '@json-render/react'
 import { mergeCatalogs } from '@json-render/core'
 
 // Use as-is
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={registry} />
 
 // Or merge with custom components
 const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
