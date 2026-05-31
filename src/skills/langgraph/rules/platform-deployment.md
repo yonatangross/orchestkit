@@ -47,13 +47,13 @@ client = get_client(url="http://localhost:2024")
 # Create assistants with different configs from the same graph
 creative = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.9, "model": "claude-sonnet-4-5-20250929"}},
+    config={"configurable": {"temperature": 0.9, "model": "claude-sonnet-4-6"}},
     name="creative-writer",
 )
 
 precise = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.1, "model": "claude-sonnet-4-5-20250929"}},
+    config={"configurable": {"temperature": 0.1, "model": "claude-sonnet-4-6"}},
     name="precise-analyst",
 )
 ```

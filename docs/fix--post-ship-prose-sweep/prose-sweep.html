@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Post-ship prose sweep — stale model sample + floor cites</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:26px 24px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#11161d,var(--bg))}
+  h1{margin:0 0 6px;font-size:21px}.sub{color:var(--muted);font-size:14px}
+  main{max-width:940px;margin:0 auto;padding:24px}section{margin-bottom:28px}
+  h2{font-size:16px;border-left:3px solid var(--accent);padding-left:10px;margin:0 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase}
+  code{font-family:var(--mono);font-size:12px;background:var(--panel2);padding:1px 5px;border-radius:4px}
+  .fix{color:var(--green);font-family:var(--mono)}.del{color:var(--red);font-family:var(--mono)}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px}
+  .e{background:rgba(63,185,80,.15);color:var(--green)}.l{background:rgba(210,153,34,.16);color:var(--amber)}
+  .note{background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.25);border-radius:8px;padding:12px 14px;color:var(--muted);font-size:13px;margin-top:12px}
+  pre{background:#0a0e14;border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12px;margin:8px 0}
+  footer{color:var(--muted);font-size:12px;border-top:1px solid var(--border);padding:16px 24px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Post-ship prose sweep</h1>
+  <div class="sub">The last residuals from the 8.12.3 verify+assess — stale model id in a code sample + two stale CC-floor prose cites. Each verified in context before touching.</div>
+</header>
+<main>
+  <section>
+    <h2>Edited (3)</h2>
+    <table>
+      <thead><tr><th>Location</th><th>Was</th><th>Now</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>langgraph/rules/platform-deployment.md</code> ×2</td><td class="del">claude-sonnet-4-5-20250929</td><td class="fix">claude-sonnet-4-6</td><td>stale model id in a LangGraph config code sample</td></tr>
+        <tr><td><code>cookbook/claude-design-handoff.mdx:35</code></td><td class="del">CC 2.1.78 or later</td><td class="fix">CC 2.1.148 or later</td><td>plugin-prereq floor (real floor is 2.1.148)</td></tr>
+        <tr><td><code>getting-started/release-channels.mdx:57</code></td><td class="del">&gt;= 2.1.80</td><td class="fix">&gt;= 2.1.148</td><td>stable-channel compat floor</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Verified in context, left alone</h2>
+    <table>
+      <thead><tr><th>Cite</th><th>Class</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td><code>doctor.mdx</code> / <code>workflow-architect.mdx</code> "CC &gt;= 2.1.77"</td><td><span class="pill e">per-feature gate</span></td><td>plugin-validate / 128k tokens introduced then — legit + generated</td></tr>
+        <tr><td><code>ai-llm.mdx</code> "CC 2.1.71 pipelines"</td><td><span class="pill e">feature fact</span></td><td>skill description, historically accurate + generated</td></tr>
+        <tr><td><code>upgrade-assessment/knowledge-compatibility.md</code></td><td><span class="pill e">migration table</span></td><td>old→new model mappings must keep old ids</td></tr>
+        <tr><td><code>cost-estimator.ts</code> sonnet-4-5 pricing</td><td><span class="pill e">historical pricing</span></td><td>replays old sessions accurately (kept intentionally)</td></tr>
+        <tr><td><code>release-channels.mdx</code> :41/:73/:100 "CC &lt; 2.1.80: marketplace add"</td><td><span class="pill l">vestigial</span></td><td>install-METHOD legacy, not a floor — flagged, out of scope for this sweep</td></tr>
+      </tbody>
+    </table>
+    <div class="note">The discipline here is the point: a "2.1.78" can be a stale floor <b>or</b> a legit per-feature minimum — opposite handling. Each cite was read in context; only the 3 genuine floor/sample staleness items were changed.</div>
+  </section>
+</main>
+<footer>OrchestKit · fix/post-ship-prose-sweep · final residuals from the 8.12.3 verify+assess · self-contained playground</footer>
+</body>
+</html>
