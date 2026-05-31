@@ -4,6 +4,8 @@ Comprehensive guide to automated and manual accessibility testing tools.
 
 ## jest-axe Configuration
 
+> `jest-axe` 10.0.0 is current and maintained — use it for component-level a11y unit tests. Do NOT migrate to `vitest-axe`, which is abandoned (stuck at 0.1.0). For E2E, use `@axe-core/playwright` 4.11.3 (`AxeBuilder` API unchanged).
+
 ### Installation
 
 ```bash
@@ -53,7 +55,7 @@ test('Form meets WCAG 2.1 Level AA', async () => {
   const results = await axe(container, {
     runOnly: {
       type: 'tag',
-      values: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+      values: ['wcag2a', 'wcag2aa', 'wcag22aa'],
     },
   });
   expect(results).toHaveNoViolations();
@@ -92,7 +94,7 @@ export const test = base.extend<{ makeAxeBuilder: () => AxeBuilder }>({
   makeAxeBuilder: async ({ page }, use) => {
     const makeAxeBuilder = () =>
       new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
         .exclude('#third-party-widget');
     await use(makeAxeBuilder);
   },
@@ -345,7 +347,7 @@ axe http://localhost:3000 --save results.json
 axe http://localhost:3000 \
     http://localhost:3000/dashboard \
     http://localhost:3000/profile \
-    --tags wcag21aa
+    --tags wcag22aa
 ```
 
 ## Common Pitfalls

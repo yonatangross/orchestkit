@@ -207,7 +207,7 @@ Test in multiple browsers and assistive tech combinations:
 ## Compliance Verification
 
 - [ ] **WCAG 2.1 Level AA**
-  - [ ] Automated tests pass for wcag2a, wcag2aa, wcag21aa tags
+  - [ ] Automated tests pass for wcag2a, wcag2aa, wcag22aa tags
   - [ ] Manual testing confirms keyboard accessibility
   - [ ] Manual testing confirms screen reader accessibility
   - [ ] Color contrast verified

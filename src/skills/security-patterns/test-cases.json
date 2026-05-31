@@ -190,7 +190,7 @@
       "expectedBehavior": [
         "Uses DeepTeam red_team function with vulnerability categories including prompt injection and jailbreaking",
         "Tests multi-turn jailbreaking attacks using GOAT-style conversation manipulation techniques",
-        "Maps vulnerabilities to OWASP Top 10 for LLMs including LLM01 Prompt Injection and LLM06 Sensitive Info",
+        "Maps vulnerabilities to OWASP Top 10 for LLMs including LLM01 Prompt Injection and LLM02 Sensitive Information Disclosure",
         "Recommends pre-release and quarterly red-teaming frequency for ongoing security validation"
       ]
     },

@@ -164,6 +164,7 @@ app = FastAPI(
 ## Accessing App State in Routes
 
 ```python
+from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -217,7 +218,7 @@ async def create_analysis(
     queue=Depends(get_task_queue),
 ):
     # Create record
-    analysis = AnalysisModel(**request.dict())
+    analysis = AnalysisModel(**request.model_dump())
     db.add(analysis)
     await db.commit()
 

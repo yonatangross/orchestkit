@@ -50,9 +50,9 @@ export async function createResource(formData: FormData) {
       data: validated.data
     })
 
-    // 3. Revalidate cached data
+    // 3. Revalidate cached data (v16: revalidateTag requires a cacheLife profile)
     revalidatePath('/resources')
-    revalidateTag('resources')
+    revalidateTag('resources', 'max')
 
     // 4. Redirect to new resource
     redirect(`/resources/${resource.id}`)
@@ -226,9 +226,9 @@ export async function revalidateAllResources() {
   revalidatePath('/resources', 'layout') // Revalidates layout + all children
 }
 
-// Revalidate by tag
+// Revalidate by tag (v16: revalidateTag requires a cacheLife profile)
 export async function revalidateResourceTag() {
-  revalidateTag('resources')
+  revalidateTag('resources', 'max')
 }
 
 // Clear all cache and force dynamic

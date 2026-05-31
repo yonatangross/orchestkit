@@ -14,7 +14,7 @@ st.decimals(min_value=0, max_value=1000)   # Decimal precision
 # Strings
 st.text()                                  # Any unicode
 st.text(min_size=1, max_size=100)          # Bounded length
-st.text(alphabet=st.characters(whitelist_categories=('L', 'N')))  # Alphanumeric
+st.text(alphabet=st.characters(categories=('L', 'N')))  # Alphanumeric
 st.from_regex(r"[a-z]+@[a-z]+\.[a-z]{2,}")  # Email-like
 
 # Collections

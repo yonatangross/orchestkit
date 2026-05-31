@@ -10,11 +10,11 @@ Type-safe API consumption with runtime validation.
 import { z } from 'zod'
 
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   name: z.string(),
   role: z.enum(['admin', 'developer', 'viewer']),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 })
 
 const UsersResponseSchema = z.object({

@@ -32,7 +32,9 @@ CREATE INDEX idx_orders_customer_status ON orders(customer_id, status);
 
 -- Uses index: WHERE customer_id = 123 AND status = 'pending'
 -- Uses index: WHERE customer_id = 123 (leftmost prefix)
--- Does NOT use index: WHERE status = 'pending' (not leftmost)
+-- Typically skips index: WHERE status = 'pending' (not leftmost)
+--   PG18 B-tree skip scan may use it when customer_id has few distinct values,
+--   but leftmost-first remains the correct design heuristic.
 ```
 
 **Rule:** Put most selective column first, or most frequently queried alone.
@@ -129,5 +131,5 @@ CREATE INDEX idx_orders_customer ON orders(customer_id);
 
 - **Over-indexing:** Every index slows writes. Only index actual query patterns.
 - **Missing FK indexes:** Causes slow joins and cascading deletes.
-- **Wrong column order:** Composite indexes only use leftmost prefix.
+- **Wrong column order:** Composite indexes primarily benefit leftmost prefix queries; PG18 skip scan can help non-leftmost queries when the leading column has few distinct values, but leftmost-first is still the correct design heuristic.
 - **FLOAT for money:** Use DECIMAL(10, 2) for financial values.

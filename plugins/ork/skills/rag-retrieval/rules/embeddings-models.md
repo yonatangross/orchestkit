@@ -30,22 +30,22 @@ response = client.embeddings.create(
 vectors = [item.embedding for item in response.data]
 ```
 
-**Model Selection (2026-Q2):**
+**Model Selection (2026-Q2 — verified current):**
 
 | Model | Dims | Cost | Use Case |
 |-------|------|------|----------|
 | `text-embedding-3-small` | 1536 | $0.02/1M | General purpose (OpenAI) |
 | `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy (OpenAI) — Matryoshka-truncatable |
-| `voyage-3` | 1024 | $0.06/1M | Production (OrchestKit default) |
-| `voyage-3-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
-| `voyage-3-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
-| `gemini-embedding-001` (Gemini) | 3072 (MRL: 768/1536/3072) | $0.025/1M | Google stack / multilingual (MRL-truncatable) |
+| `voyage-3.5` | 1024 | $0.06/1M | Production (OrchestKit default, launched 2025-05-20) |
+| `voyage-3.5-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
+| `voyage-3.5-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
+| `gemini-embedding-001` (Gemini) | 3072 (MRL: 768/1536/3072) | $0.025/1M | Google stack / multilingual (GA 2025-07-14) |
 | `nomic-embed-text` (Ollama) | 768 | Free | Local/CI |
 
 Guidance:
-- Default to `voyage-3` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
+- Default to `voyage-3.5` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
 - `text-embedding-3-large` is still the strongest OpenAI option when you need Matryoshka dim reduction (3072 → 1536) without retraining.
-- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536) — set the output dimensionality explicitly if you need the smaller footprint that `text-embedding-004` used to give.
+- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536) — set the output dimensionality explicitly if you need cost savings.
 
 **Similarity Calculation:**
 ```python

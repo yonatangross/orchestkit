@@ -161,7 +161,7 @@ async def rag_query(question: str, top_k: int = 5) -> dict:
 
 | Decision | Recommendation |
 |----------|----------------|
-| Embedding model | `text-embedding-3-small` (general), `voyage-3` (production) |
+| Embedding model | `text-embedding-3-small` (general), `voyage-3.5` (production) |
 | Chunk size | 256-1024 tokens (512 typical) |
 | Hybrid weight | 40% BM25 / 60% vector |
 | Top-k | 3-10 documents |

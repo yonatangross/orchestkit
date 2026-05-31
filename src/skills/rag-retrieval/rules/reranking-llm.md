@@ -45,12 +45,13 @@ import cohere
 
 class CohereReranker:
     def __init__(self, api_key: str):
-        self.client = cohere.Client(api_key)
+        self.client = cohere.ClientV2(api_key=api_key)
 
     def rerank(self, query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
         results = self.client.rerank(
-            model="rerank-english-v3.0", query=query,
-            documents=[doc["content"] for doc in documents], top_n=top_k
+            model="rerank-v4.0-pro", query=query,
+            documents=[{"type": "text", "text": doc["content"]} for doc in documents],
+            top_n=top_k, max_tokens_per_doc=4096
         )
         return [{**documents[r.index], "score": r.relevance_score} for r in results.results]
 ```
@@ -95,5 +96,6 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
 - Batch all docs in one LLM call (reduces latency vs per-doc calls)
 - Truncate to 200-400 chars per doc for LLM reranking
 - Parse scores defensively (default 0.5 on parse error)
-- LLM reranking at ~500ms, Cohere at ~200ms
+- LLM reranking at ~500ms, Cohere ClientV2/rerank-v4.0-pro at ~200ms
 - Set timeout with fallback to base ranking
+- Use ClientV2 (deprecated Client) and rerank-v4.0-pro (deprecated v3.0) models

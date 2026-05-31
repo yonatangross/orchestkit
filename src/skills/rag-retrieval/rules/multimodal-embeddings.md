@@ -13,7 +13,7 @@ Embed images and text in the same vector space for cross-modal retrieval.
 
 | Model | Context | Modalities | Best For |
 |-------|---------|------------|----------|
-| **Voyage multimodal-3** | 32K tokens | Text + Image | Long documents |
+| **Voyage multimodal-3.5** | 32K tokens | Text + Image | Long documents |
 | **SigLIP 2** | Standard | Text + Image | Large-scale retrieval |
 | **CLIP ViT-L/14** | 77 tokens | Text + Image | General purpose |
 | **ImageBind** | Standard | 6 modalities | Audio/video included |
@@ -57,7 +57,7 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
             with open(path, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
                 inputs.append({"type": "image", "content": f"data:image/png;base64,{b64}"})
-    return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3").embeddings
+    return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3.5").embeddings
 ```
 
 **Incorrect — using text-only embeddings for images:**
@@ -81,6 +81,6 @@ def embed_image(image_path: str) -> list[float]:
 
 **Key rules:**
 - Normalize embeddings for cosine similarity (CLIP already normalized)
-- Voyage multimodal-3 for long documents (32K context)
+- Voyage multimodal-3.5 for long documents (32K context, released 2025-05-20)
 - SigLIP 2 for large-scale production retrieval
 - Always embed both images AND captions for maximum coverage

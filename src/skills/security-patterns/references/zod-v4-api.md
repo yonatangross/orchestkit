@@ -21,9 +21,9 @@ const bigintSchema = z.bigint();
 // String validations
 z.string().min(1)           // Non-empty
 z.string().max(100)         // Max length
-z.string().email()          // Email format
-z.string().url()            // URL format
-z.string().uuid()           // UUID format
+z.email()                   // Email format (top-level in v4; z.string().email() removed)
+z.url()                     // URL format (top-level in v4; z.string().url() removed)
+z.uuid()                    // UUID format (top-level in v4; z.string().uuid() removed)
 z.string().regex(/pattern/) // Custom pattern
 z.string().trim()           // Trim whitespace
 z.string().toLowerCase()    // Lowercase
@@ -72,8 +72,8 @@ bigintSchema.parse("9007199254740991"); // BigInt
 
 ```typescript
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   age: z.number().int().positive().optional(),
   role: z.enum(['user', 'admin', 'moderator']),
@@ -91,7 +91,7 @@ const result = UserSchema.safeParse(data);
 if (result.success) {
   console.log(result.data);
 } else {
-  console.log(result.error.errors);
+  console.log(result.error.issues);  // .errors removed in v4 — use .issues
 }
 ```
 
@@ -147,7 +147,7 @@ const jsonSchema = z.string().transform((str, ctx) => {
     return JSON.parse(str);
   } catch {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",  // v4: ZodIssueCode enum removed (codes live on z.core)
       message: "Invalid JSON",
     });
     return z.NEVER;
@@ -179,7 +179,7 @@ const formSchema = z.object({
 }).superRefine((data, ctx) => {
   if (data.password !== data.confirmPassword) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",  // v4: ZodIssueCode enum removed (codes live on z.core)
       message: "Passwords don't match",
       path: ["confirmPassword"],
     });
@@ -228,15 +228,22 @@ try {
   }
 }
 
-// Custom error map
-const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-  if (issue.code === z.ZodIssueCode.invalid_type) {
-    return { message: `Expected ${issue.expected}, received ${issue.received}` };
-  }
-  return { message: ctx.defaultError };
-};
+// Custom errors (v4: z.setErrorMap / ZodErrorMap removed — use the unified `error` param)
+// Per-schema: pass `error` directly on the schema
+const ageSchema = z.number({
+  error: (issue) =>
+    issue.code === "invalid_type"  // issue codes live on z.core in v4
+      ? `Expected ${issue.expected}, received ${typeof issue.input}`
+      : undefined, // fall back to the default message
+});
 
-z.setErrorMap(customErrorMap);
+// Global: configure a custom error map for all schemas
+z.config({
+  customError: (issue) =>
+    issue.code === "invalid_type"
+      ? `Expected ${issue.expected}, received ${typeof issue.input}`
+      : undefined,
+});
 ```
 
 ## React Hook Form Integration
@@ -246,7 +253,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const FormSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 

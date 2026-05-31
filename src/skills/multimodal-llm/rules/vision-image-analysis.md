@@ -13,7 +13,7 @@ Encode images correctly and structure multi-modal messages for each provider.
 ```python
 # OpenAI — image silently ignored
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": f"Describe this image: {base64_data}"}]
 )
 ```
@@ -30,7 +30,7 @@ def encode_image(path: str) -> tuple[str, str]:
 # OpenAI (GPT-5, GPT-4o)
 base64_data, mime_type = encode_image(image_path)
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     max_tokens=4096,  # Required for vision — omitting truncates response
     messages=[{
         "role": "user",
@@ -67,9 +67,14 @@ response = client.messages.create(
 **Gemini — uses PIL Image directly:**
 ```python
 from PIL import Image
-model = genai.GenerativeModel("gemini-2.5-pro")
+from google import genai
+
+client = genai.Client()
 image = Image.open(image_path)
-response = model.generate_content([prompt, image])
+response = client.models.generate_content(
+    model="gemini-2.5-pro",
+    contents=[prompt, image],
+)
 ```
 
 **Multi-image comparison (Claude supports up to 100):**

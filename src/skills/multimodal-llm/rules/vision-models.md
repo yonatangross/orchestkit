@@ -13,8 +13,8 @@ Choose the right vision provider based on accuracy, cost, and context needs.
 
 | Model | Context | Strengths | Max Images |
 |-------|---------|-----------|------------|
-| **GPT-5.2** | 128K | Best general reasoning | 10/request |
-| **Claude Opus 4.6** | 1M | Best coding, sustained agent tasks | 600/request |
+| **GPT-5.5** | 128K | Best general reasoning | 10/request |
+| **Claude Opus 4.8** | 1M | Best coding, sustained agent tasks | 600/request |
 | **Gemini 2.5 Pro** | 1M+ | Longest context, native video | 3,600/request |
 | **Gemini 3 Pro** | 1M | Deep Think, enhanced segmentation | 3,600/request |
 | **Grok 4** | 2M | Real-time X integration | Limited |
@@ -32,7 +32,7 @@ Choose the right vision provider based on accuracy, cost, and context needs.
 ```python
 # Wastes tokens: high detail + large model for yes/no
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": [
         {"type": "text", "text": "Is there a person? Reply: yes/no"},
         {"type": "image_url", "image_url": {"url": img_url, "detail": "high"}}
@@ -43,7 +43,7 @@ response = client.chat.completions.create(
 **Correct — cost-optimized for simple tasks:**
 ```python
 response = client.chat.completions.create(
-    model="gpt-5.2-mini",  # Cheaper model
+    model="gpt-5.5-mini",  # Cheaper model
     messages=[{"role": "user", "content": [
         {"type": "text", "text": "Is there a person? Reply: yes/no"},
         {"type": "image_url", "image_url": {"url": img_url, "detail": "low"}}  # 65 tokens
@@ -64,7 +64,7 @@ response = client.chat.completions.create(
 
 | Scenario | Recommendation |
 |----------|----------------|
-| High accuracy | Claude Opus 4.6 or GPT-5 |
+| High accuracy | Claude Opus 4.8 or GPT-5.5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M tokens) |
 | Real-time/X data | Grok 4 with DeepSearch |

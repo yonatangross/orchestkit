@@ -1,6 +1,6 @@
-# OWASP Top 10 - Vulnerable vs Secure Code
+# OWASP Top 10 (2025) - Vulnerable vs Secure Code
 
-Real examples showing vulnerable code and their secure alternatives.
+Real examples showing vulnerable code and their secure alternatives. Categories follow the OWASP Top 10:2025 ordering.
 
 ## A01: Broken Access Control
 
@@ -22,7 +22,31 @@ def get_document(doc_id: int, current_user: User = Depends(get_current_user)):
     return doc
 ```
 
-## A02: Cryptographic Failures
+## A02: Security Misconfiguration
+
+### ❌ Vulnerable: Debug in Production
+```python
+app = Flask(__name__)
+app.run(debug=True)  # Exposes debugger, allows code execution
+```
+
+### ✅ Secure: Environment-based Config
+```python
+app = Flask(__name__)
+app.run(debug=os.getenv("FLASK_ENV") == "development")
+```
+
+### ❌ Vulnerable: CORS Allow All
+```python
+CORS(app, origins="*", allow_credentials=True)
+```
+
+### ✅ Secure: Explicit Origins
+```python
+CORS(app, origins=["https://app.example.com"], allow_credentials=True)
+```
+
+## A04: Cryptographic Failures
 
 ### ❌ Vulnerable: Weak Hashing
 ```python
@@ -37,7 +61,9 @@ password_hash = argon2.hash(password)
 # Verify: argon2.verify(password, password_hash)
 ```
 
-## A03: Injection
+## A05: Injection
+
+In OWASP Top 10:2025, Cross-Site Scripting (XSS) is folded into the Injection category.
 
 ### ❌ Vulnerable: SQL Injection
 ```python
@@ -64,33 +90,7 @@ import subprocess
 subprocess.run(["convert", filename, "output.png"], check=True)
 ```
 
-## A05: Security Misconfiguration
-
-### ❌ Vulnerable: Debug in Production
-```python
-app = Flask(__name__)
-app.run(debug=True)  # Exposes debugger, allows code execution
-```
-
-### ✅ Secure: Environment-based Config
-```python
-app = Flask(__name__)
-app.run(debug=os.getenv("FLASK_ENV") == "development")
-```
-
-### ❌ Vulnerable: CORS Allow All
-```python
-CORS(app, origins="*", allow_credentials=True)
-```
-
-### ✅ Secure: Explicit Origins
-```python
-CORS(app, origins=["https://app.example.com"], allow_credentials=True)
-```
-
-## A07: XSS (Cross-Site Scripting)
-
-### ❌ Vulnerable: Unescaped Output
+### ❌ Vulnerable: XSS — Unescaped Output
 ```javascript
 element.innerHTML = userInput;  // userInput = "<script>stealCookies()</script>"
 ```
@@ -111,7 +111,9 @@ element.innerHTML = DOMPurify.sanitize(userInput);
 <div dangerouslySetInnerHTML={{__html: userInput}} />
 ```
 
-## A08: Insecure Deserialization
+## A08: Software or Data Integrity Failures
+
+Insecure deserialization is classified here in OWASP Top 10:2025.
 
 ### ❌ Vulnerable: Pickle from Untrusted Source
 ```python

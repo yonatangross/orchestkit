@@ -239,17 +239,11 @@ npx playwright init-agents --loop=opencode  # For OpenCode
 
 ### Configuration
 
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  use: {
-    aiAgents: {
-      enabled: true,
-      model: 'claude-sonnet-4-6',  // or local Ollama
-      autoHeal: true,              // Auto-repair on CI failures
-    }
-  }
-});
+There is no `aiAgents` key in Playwright `TestOptions` — agents are CLI-only. Initialize them with:
+
+```bash
+# Generates .github/ agent definitions; no playwright.config.ts change needed
+npx playwright init-agents --loop=claude
 ```
 
 ## Authentication State

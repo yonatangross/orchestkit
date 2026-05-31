@@ -80,7 +80,7 @@ describe('LoginForm Accessibility', () => {
     const results = await axe(container, {
       runOnly: {
         type: 'tag',
-        values: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+        values: ['wcag2a', 'wcag2aa', 'wcag22aa'],
       },
     });
     expect(results).toHaveNoViolations();
@@ -218,7 +218,7 @@ test.describe('Homepage Accessibility', () => {
     await page.goto('/');
 
     const accessibilityScanResults = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
       .analyze();
 
     expect(accessibilityScanResults.violations).toEqual([]);

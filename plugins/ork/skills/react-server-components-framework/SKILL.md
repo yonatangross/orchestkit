@@ -14,9 +14,9 @@ complexity: medium
 persuasion-type: reference
 targets:
   - library: next.js
-    version: ">=16.2.3"
+    version: ">=16.2.6"
   - library: react
-    version: ">=19.2.0"
+    version: ">=19.2.6"
 metadata:
   category: document-asset-creation
 allowed-tools:
@@ -34,7 +34,7 @@ path_patterns: ["*.tsx", "*.jsx", "**/next.config.*", "**/app/**/*.tsx"]
 
 React Server Components (RSC) enable server-first rendering with client-side interactivity. This skill covers Next.js 16.2 LTS App Router patterns, Server Components, Server Actions, and streaming.
 
-> **Next.js 16.2.3 LTS (Apr 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js also ships the `next-browser` binary (`npx next-browser`), a CDP client for mid-run inspection.
+> **Next.js 16.2.6 / React 19.2.6 (security release, May 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js ships **Next DevTools MCP** — wire `npx -y next-devtools-mcp@latest` into `.mcp.json` (it connects via the dev server's `/_next/mcp` endpoint) to inspect render trees and cache boundaries mid-session.
 
 **When to use this skill:**
 - Building Next.js 16+ applications with the App Router
@@ -92,9 +92,9 @@ async function UserDashboard({ userId }: { userId: string }) {
   return await loadDashboard(userId)
 }
 
-// Invalidate cache
+// Invalidate cache — v16 requires a cacheLife profile as the 2nd arg
 import { revalidateTag } from 'next/cache'
-revalidateTag('products')
+revalidateTag('products', 'max') // or updateTag('products') for read-your-writes
 ```
 
 Enable via `next.config.ts`:
@@ -161,7 +161,7 @@ export default async function PostPage({
 
 - **Turbopack default** — `next dev` and `next build` run Turbopack without any flag. Pass `--webpack` only when forced (legacy plugin).
 - **Server Fast Refresh** — Server Components hot-reload on save without losing client state. No extra config; it's on by default in 16.2.
-- **`next-browser` agent CDP client** — `npx next-browser --url http://localhost:3000 --trace` attaches to the running dev server, streams RSC payloads and cache boundaries to stdout in JSON. Designed for AI agents that need to inspect render trees mid-session without screenshotting.
+- **Next DevTools MCP** — register `npx -y next-devtools-mcp@latest` in `.mcp.json`; it attaches to the running dev server over the `/_next/mcp` endpoint and exposes RSC payloads and cache boundaries to an MCP client. Designed for AI agents that need to inspect render trees mid-session without screenshotting. (There is no `next-browser` binary.)
 
 ---
 

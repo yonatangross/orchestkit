@@ -38,14 +38,18 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 # app/api/routes/users.py
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/users/{user_id}")
-async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_user(user_id: UUID, db: SessionDep):
     result = await db.execute(
         select(User)
         .options(selectinload(User.orders))

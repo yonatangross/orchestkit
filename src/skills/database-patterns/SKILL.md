@@ -62,8 +62,9 @@ def downgrade() -> None:
 
 ```sql
 -- Schema: Normalization to 3NF with proper indexing
+-- PG18: prefer uuidv7() (time-ordered, better B-tree locality) over gen_random_uuid() (random v4)
 CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     customer_id UUID NOT NULL REFERENCES customers(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

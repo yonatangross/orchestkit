@@ -11,7 +11,7 @@ tags: [fastapi, depends, dependency-injection, authentication, service-layer]
 ## Database Session Dependency
 
 ```python
-from typing import AsyncGenerator
+from typing import Annotated, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, Request
 
@@ -27,6 +27,9 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
 ```
 
 ## Service Dependencies
@@ -39,7 +42,7 @@ class AnalysisService:
         self.llm = llm
 
 def get_analysis_service(
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
     request: Request = None,
 ) -> AnalysisService:
     return AnalysisService(
@@ -48,10 +51,12 @@ def get_analysis_service(
         llm=request.app.state.llm,
     )
 
+AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+
 @router.post("/analyses")
 async def create_analysis(
     data: AnalysisCreate,
-    service: AnalysisService = Depends(get_analysis_service),
+    service: AnalysisServiceDep,
 ):
     return await service.create(data)
 ```
@@ -82,8 +87,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 security = HTTPBearer()
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security),
-    db: AsyncSession = Depends(get_db),
+    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
+    db: SessionDep,
 ) -> User:
     token = credentials.credentials
     payload = decode_jwt(token)
@@ -92,7 +97,9 @@ async def get_current_user(
         raise HTTPException(401, "Invalid credentials")
     return user
 
-async def get_admin_user(user: User = Depends(get_current_user)) -> User:
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+async def get_admin_user(user: CurrentUserDep) -> User:
     if not user.is_admin:
         raise HTTPException(403, "Admin access required")
     return user
@@ -107,12 +114,12 @@ async def create_analysis(data: AnalysisCreate, request: Request):
     return await service.create(data)
 ```
 
-**Correct — Depends() enables dependency injection and easy testing:**
+**Correct — Annotated Depends() enables dependency injection and easy testing:**
 ```python
 @router.post("/analyses")
 async def create_analysis(
     data: AnalysisCreate,
-    service: AnalysisService = Depends(get_analysis_service),
+    service: AnalysisServiceDep,
 ):
     return await service.create(data)
 # Tests can override get_analysis_service with mocks

@@ -17,27 +17,29 @@ response = model.generate_content(contents=text)
 
 **Correct — Gemini TTS with voice and style config:**
 ```python
-import google.generativeai as genai
+from google import genai
+from google.genai import types
+
+client = genai.Client()
 
 def text_to_speech(text: str, voice: str = "Kore") -> bytes:
     """Gemini 2.5 Flash TTS with voice selection.
 
     Available voices: Puck, Charon, Kore, Fenrir, Aoede (30 total)
     """
-    model = genai.GenerativeModel("gemini-2.5-flash-tts")
-
-    response = model.generate_content(
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-tts",
         contents=text,
-        generation_config=genai.GenerationConfig(
+        config=types.GenerateContentConfig(
             response_mime_type="audio/mp3",
-            speech_config=genai.SpeechConfig(
-                voice_config=genai.VoiceConfig(
-                    prebuilt_voice_config=genai.PrebuiltVoiceConfig(
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
                         voice_name=voice
                     )
                 )
-            )
-        )
+            ),
+        ),
     )
     return response.audio
 ```

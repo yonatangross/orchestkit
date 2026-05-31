@@ -44,8 +44,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.rollback()
             raise
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/users/{user_id}")
-async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> UserResponse:
+async def get_user(user_id: UUID, db: SessionDep) -> UserResponse:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

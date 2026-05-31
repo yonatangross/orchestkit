@@ -14,7 +14,7 @@ complexity: medium
 persuasion-type: reference
 targets:
   - library: "@playwright/test"
-    version: ">=1.59.0"
+    version: ">=1.59.0"  # 1.60 adds connectOverCDP({noDefaults}), webError.location(), consoleMessage.location()
 metadata:
   category: document-asset-creation
 allowed-tools:
