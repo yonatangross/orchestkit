@@ -14,7 +14,10 @@ name: Release-Please Guard
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    # labeled/unlabeled: a `release-please-override` applied AFTER a failing run
+    # must re-dispatch the guard so the stale red check clears — otherwise it
+    # lingers red on the merge commit and reads like an admin bypass.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read

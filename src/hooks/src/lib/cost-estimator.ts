@@ -63,6 +63,13 @@ export interface DailyCostEstimate {
 
 const DEFAULT_PRICING: PricingConfig = {
   models: {
+    // Opus 4.8 — same $5/$25 per-MTok tier as 4.7/4.6 (Anthropic launch post)
+    'claude-opus-4-8': {
+      input_per_mtok: 5.0,
+      output_per_mtok: 25.0,
+      cache_read_per_mtok: 0.5,
+      cache_write_per_mtok: 6.25,
+    },
     // Opus 4.7 — same pricing as 4.6 per Anthropic launch post
     'claude-opus-4-7': {
       input_per_mtok: 5.0,
@@ -95,17 +102,18 @@ const DEFAULT_PRICING: PricingConfig = {
       cache_write_per_mtok: 1.25,
     },
   },
-  updated: '2026-04-16',
+  updated: '2026-05-31',
 };
 
 // Short name aliases for matching stats-cache keys.
 // Aliases always resolve to the CURRENT latest per channel — `opus` points
-// at Opus 4.7 (CC 2.1.111 default), `sonnet` at Sonnet 4.6. Older explicit
-// IDs still match their own pricing so historical cost reports replay accurately.
+// at Opus 4.8 (current latest), `sonnet` at Sonnet 4.6. Older explicit IDs
+// still match their own pricing so historical cost reports replay accurately.
 const MODEL_ALIASES: Record<string, string> = {
+  'claude-opus-4-8': 'claude-opus-4-8',
   'claude-opus-4-7': 'claude-opus-4-7',
   'claude-opus-4-6': 'claude-opus-4-6',
-  opus: 'claude-opus-4-7',
+  opus: 'claude-opus-4-8',
   'claude-sonnet-4-6': 'claude-sonnet-4-6',
   'claude-sonnet-4-5-20250929': 'claude-sonnet-4-5-20250929',
   sonnet: 'claude-sonnet-4-6',

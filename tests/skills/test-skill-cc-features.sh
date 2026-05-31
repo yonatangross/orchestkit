@@ -34,12 +34,13 @@ warn() { echo -e "  ${YELLOW}WARN${NC} $1"; TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1
 echo -e "${BLUE}Skill CC Feature Validation${NC}"
 echo "========================================"
 
-# --- Test 1: AUQ option previews use the valid `preview` field ---
-# The CC AskUserQuestion schema names the option-preview field `preview`, NOT
-# `markdown` (additionalProperties:false rejects markdown). Schema conformance
-# itself is enforced by structure/test-askuserquestion-schema.sh; this check
-# tracks adoption of rich previews across skills using the correct field.
-echo -e "\n${CYAN}Test 1: AUQ Preview Adoption (preview field)${NC}"
+# --- Test 1: AUQ option previews stay stripped (nav-bug regression guard) ---
+# The `preview` option field forces CC's side-by-side picker layout where up/down
+# keyboard nav is dead (confirmed 2026-05-28), so skills standardize on plain
+# label+description. This guard FAILS if any skill re-introduces a preview field.
+# Precise AUQ-block enforcement also lives in structure/test-askuserquestion-schema.sh.
+# Re-enable previews only after CC fixes the layout nav bug.
+echo -e "\n${CYAN}Test 1: AUQ Preview Stripped (nav-bug regression guard)${NC}"
 
 auq_skills_with_preview=0
 auq_skills_without=0
@@ -67,22 +68,22 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         if [[ "$rules_preview" -gt 0 ]]; then
             auq_skills_with_preview=$((auq_skills_with_preview + 1))
         else
-            # Only warn for user-invocable skills (simple preference questions
-            # legitimately need no preview, so this is advisory only)
-            is_invocable=$(grep -c 'user-invocable: true' "$skill_file" || true)  # silent: known-noise
-            if [[ "$is_invocable" -gt 0 ]]; then
-                warn "$skill_name: has AUQ options but no preview field"
-            fi
+            # No preview authored — this is the DESIRED state since the
+            # 2026-05-28 nav-bug strip, so no warning is emitted.
             auq_skills_without=$((auq_skills_without + 1))
         fi
     fi
 done
 
-# AUQ preview adoption is NO LONGER required. The preview field forces a side-by-side
-# picker layout where up/down nav is dead on current CC (confirmed 2026-05-28), so skills
-# standardize on plain label+description. The schema still PERMITS preview (enforced by
-# structure/test-askuserquestion-schema.sh) — this is now an informational count, not a gate.
-pass "AUQ previews: $auq_skills_with_preview skills use the preview field (informational; not required since the 2026-05-28 nav-bug strip)"
+# AUQ preview must stay at ZERO. The preview field forces a side-by-side picker
+# layout where up/down nav is dead on current CC (confirmed 2026-05-28), so skills
+# standardize on plain label+description. Re-enable only after CC fixes the layout
+# nav bug (see memory feedback_askuserquestion_preview_nav_bug).
+if [[ "$auq_skills_with_preview" -eq 0 ]]; then
+    pass "AUQ previews: 0 skills author a preview field (nav-bug guard holds)"
+else
+    fail "AUQ previews: $auq_skills_with_preview skill(s) re-introduced a preview field — forbidden since the 2026-05-28 nav-bug strip; use label+description only"
+fi
 
 # --- Test 2: multiSelect usage validation ---
 echo -e "\n${CYAN}Test 2: multiSelect Validation${NC}"

@@ -51,7 +51,11 @@ import os, re, sys
 skills_dir = sys.argv[1]
 verbose = os.environ.get("VERBOSE", "") in ("--verbose", "-v")
 
-VALID_OPTION_KEYS = {"label", "description", "preview"}
+# `preview` is schema-valid for CC but project-FORBIDDEN: it forces CC's
+# side-by-side picker layout where up/down nav is dead (confirmed 2026-05-28,
+# see memory feedback_askuserquestion_preview_nav_bug). Re-allow only after CC
+# fixes the layout nav bug. Flagged with a dedicated message below.
+VALID_OPTION_KEYS = {"label", "description"}
 violations = []   # list of "file:line  message"
 calls_checked = 0
 questions_checked = 0
@@ -221,18 +225,20 @@ for root, _dirs, fnames in os.walk(skills_dir):
                     violations.append(
                         f"{where}  has {len(opts)} options (must be 2-4)")
 
-                ms = bool(re.search(r'"multiSelect"\s*:\s*[Tt]rue', qobj))
                 for ob in opts:
                     keys = set(top_level_object_keys(ob))
-                    bad = keys - VALID_OPTION_KEYS
+                    # `preview` gets a dedicated message; exclude it from the
+                    # generic invalid-field check so it is not double-reported.
+                    bad = keys - VALID_OPTION_KEYS - {"preview"}
                     if bad:
                         violations.append(
                             f"{where}  option has invalid field(s): {sorted(bad)} "
-                            f"(allowed: label, description, preview)")
-                    if ms and "preview" in keys:
+                            f"(allowed: label, description)")
+                    if "preview" in keys:
                         violations.append(
-                            f"{where}  multiSelect question carries a preview "
-                            f"(previews are single-select only)")
+                            f"{where}  option carries a preview field — forbidden: it "
+                            f"forces CC's side-by-side picker layout where up/down nav "
+                            f"is dead (confirmed 2026-05-28); use label+description only")
 
 if verbose:
     print(f"  scanned {calls_checked} AskUserQuestion call(s), "
