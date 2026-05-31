@@ -7,7 +7,7 @@ Synthetic data generation uses large teacher models (GPT-4, Claude) to create tr
 ## Teacher-Student Paradigm
 
 ```
-Teacher Model (GPT-5.2) → Generate Examples → Train Student (Llama-8B)
+Teacher Model (GPT-5.5) → Generate Examples → Train Student (Llama-8B)
                                                     ↓
                                               Deploy Student (cheaper)
 ```
@@ -339,16 +339,16 @@ def estimate_generation_cost(
     num_examples: int,
     avg_input_tokens: int = 100,
     avg_output_tokens: int = 300,
-    model: str = "gpt-5.2",
+    model: str = "gpt-5.5",
 ) -> float:
     """Estimate synthetic data generation cost."""
-    # GPT-5.2 pricing (as of 2026)
+    # GPT-5.5 pricing (as of 2026)
     prices = {
-        "gpt-5.2": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
+        "gpt-5.5": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
         "claude-haiku-4-5-20251001": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
     }
 
-    price = prices.get(model, prices["gpt-5.2"])
+    price = prices.get(model, prices["gpt-5.5"])
 
     input_cost = num_examples * avg_input_tokens * price["input"]
     output_cost = num_examples * avg_output_tokens * price["output"]
@@ -356,7 +356,7 @@ def estimate_generation_cost(
     return input_cost + output_cost
 
 
-# Example: 10,000 examples with GPT-4o
+# Example: 10,000 examples with GPT-5.5
 cost = estimate_generation_cost(10000)
 print(f"Estimated cost: ${cost:.2f}")  # ~$32.50
 ```

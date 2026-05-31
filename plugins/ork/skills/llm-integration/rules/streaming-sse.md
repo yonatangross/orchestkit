@@ -17,7 +17,7 @@ client = AsyncOpenAI()
 async def async_stream(prompt: str):
     """Async streaming for better concurrency."""
     stream = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{"role": "user", "content": prompt}],
         stream=True
     )

@@ -19,7 +19,7 @@ class ConceptExtraction(BaseModel):
 
 async def decompose_query(query: str, llm: AsyncOpenAI) -> list[str]:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content":
                 "Extract 2-4 independent concepts from this query. "
@@ -79,7 +79,7 @@ async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
 
 **Key rules:**
 - Max 2-4 concepts per query (more increases latency without proportional benefit)
-- Use gpt-5.2-mini for decomposition (fast, cheap, good at concept extraction)
+- Use gpt-5-mini for decomposition (fast, cheap, good at concept extraction)
 - RRF fusion is robust and parameter-free for combining per-concept results
 - Cache decomposition results — same query often asked repeatedly
 - Set timeout with fallback to original query if decomposition fails

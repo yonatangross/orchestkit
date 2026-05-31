@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   // 4. Generate streaming response
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     messages,
     stream: true
   })
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 async function shouldUseRAG(message: string, _history: unknown[]): Promise<boolean> {
   // Use a cheap model to determine if RAG is needed
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.2-mini',
+    model: 'gpt-5-mini',
     messages: [
       {
         role: 'system',

@@ -163,7 +163,7 @@ Design, version, and optimize prompts for production LLM applications.
 | Training epochs | 1-3 (more risks overfitting) |
 | Context compression | Anchored iterative (60-80%) |
 | Compress trigger | 70% utilization, target 50% |
-| Judge model | `claude-haiku-4-5-20251001` (cost tier) or `gpt-5.2` |
+| Judge model | `claude-haiku-4-5-20251001` (cost tier) or `gpt-5.5` |
 | Quality threshold | 0.7 production, 0.6 drafts |
 | Few-shot examples | 3-5 diverse, representative |
 | Prompt versioning | Langfuse with labels |

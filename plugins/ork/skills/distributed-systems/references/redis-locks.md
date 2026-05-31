@@ -4,6 +4,7 @@
 
 ```python
 import asyncio
+import time
 from datetime import timedelta
 from uuid import UUID
 
@@ -72,7 +73,7 @@ class RedisLock:
     async def acquire(self, timeout: timedelta | None = None) -> bool:
         """Acquire lock with optional timeout."""
         deadline = (
-            asyncio.get_event_loop().time() + timeout.total_seconds()
+            time.monotonic() + timeout.total_seconds()
             if timeout
             else None
         )
@@ -90,7 +91,7 @@ class RedisLock:
                 self._acquired = True
                 return True
 
-            if deadline and asyncio.get_event_loop().time() >= deadline:
+            if deadline and time.monotonic() >= deadline:
                 return False
 
             # Exponential backoff

@@ -318,11 +318,13 @@ GET /api/v1/health
 **Location**: `backend/app/api/schemas/errors.py`
 
 ```python
+from pydantic import BaseModel, ConfigDict
+
 class ErrorResponse(BaseModel):
     error: dict[str, Any]
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": {
                     "code": "VALIDATION_ERROR",
@@ -331,6 +333,7 @@ class ErrorResponse(BaseModel):
                 }
             }
         }
+    )
 ```
 
 ### Example Error Responses

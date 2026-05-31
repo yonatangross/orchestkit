@@ -19,7 +19,7 @@ from autogen_agentchat.conditions import TextMentionTermination
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 # Create model client
-model_client = OpenAIChatCompletionClient(model="gpt-5.2")
+model_client = OpenAIChatCompletionClient(model="gpt-5.5")
 
 # Define agents
 planner = AssistantAgent(
@@ -156,21 +156,21 @@ researcher_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a research specialist. Gather information and facts.
 When research is complete, hand off to the writer.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 writer_agent = Agent(
     name="writer",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a content writer. Create compelling content from research.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 orchestrator = Agent(
     name="orchestrator",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You coordinate research and writing tasks.""",
-    model="gpt-5.2",
+    model="gpt-5.5",
     handoffs=[handoff(agent=researcher_agent), handoff(agent=writer_agent)]
 )
 

@@ -24,8 +24,8 @@ const data: any = await fetch('/api').then(r => r.json())
 import { z } from 'zod'
 
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   age: z.number().int().positive().max(120),
   role: z.enum(['admin', 'user', 'guest']),
   createdAt: z.date().default(() => new Date())
@@ -43,8 +43,8 @@ const user: User = result.data
 
 **Correct -- branded types to prevent ID confusion:**
 ```typescript
-const UserId = z.string().uuid().brand<'UserId'>()
-const AnalysisId = z.string().uuid().brand<'AnalysisId'>()
+const UserId = z.uuid().brand<'UserId'>()
+const AnalysisId = z.uuid().brand<'AnalysisId'>()
 
 type UserId = z.infer<typeof UserId>
 type AnalysisId = z.infer<typeof AnalysisId>

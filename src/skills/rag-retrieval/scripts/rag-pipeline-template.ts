@@ -163,7 +163,7 @@ async function generateAnswer(
 
   // Generate answer with LLM
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     temperature: 0.1, // Low temperature for factual responses
     messages: [
       {
@@ -279,7 +279,7 @@ async function condenseQuestion(
   }
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-5.2-mini', // Cheaper model for this task
+    model: 'gpt-5-mini', // Cheaper model for this task
     messages: [
       {
         role: 'system',

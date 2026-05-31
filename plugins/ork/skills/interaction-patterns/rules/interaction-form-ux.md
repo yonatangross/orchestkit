@@ -90,7 +90,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email address (e.g. name@company.com)'),
+  email: z.email('Enter a valid email address (e.g. name@company.com)'),
   phone: z.string().regex(/^\+?[\d\s-]{7,}$/, 'Enter a phone number (e.g. +1 555 0100)').optional(),
 })
 

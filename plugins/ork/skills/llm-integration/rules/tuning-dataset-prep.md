@@ -19,7 +19,7 @@ client = AsyncOpenAI()
 async def generate_training_example(topic: str) -> dict:
     """Generate a single training example using teacher model."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",  # Teacher
+        model="gpt-5.5",  # Teacher
         messages=[{
             "role": "system",
             "content": f"Generate a training example about {topic}. "

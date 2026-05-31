@@ -60,7 +60,7 @@ List any unsupported claims."""
 ```
 
 Key decisions:
-- Judge model: `claude-haiku-4-5-20251001` or `gpt-5.2` (different from evaluated model)
+- Judge model: `claude-haiku-4-5-20251001` or `gpt-5.5` (different from evaluated model)
 - Quality threshold: 0.7 production, 0.6 drafts
 - Dimensions: 3-5 most relevant to use case
 - Sample size: 50+ for reliable metrics

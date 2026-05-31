@@ -117,7 +117,7 @@
       "rule": "tuning-dataset-prep",
       "query": "Generate synthetic training data for fine-tuning",
       "expectedBehavior": [
-        "Uses teacher model (GPT-5.2) to generate examples",
+        "Uses teacher model (GPT-5.5) to generate examples",
         "Validates examples with separate validator model",
         "Deduplicates using embedding similarity to remove semantically redundant training examples",
         "Formats as Alpaca or ChatML template for consistent training data structure"

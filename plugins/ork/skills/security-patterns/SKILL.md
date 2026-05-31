@@ -74,7 +74,7 @@ token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 // Zod v4 schema validation
 import { z } from 'zod';
 const UserSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   role: z.enum(['user', 'admin']).default('user'),
 });

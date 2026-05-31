@@ -249,7 +249,7 @@ async def run_openai_agent(query: str):
     agent = Agent(
         name="analyst",
         instructions="You are a code analyst.",
-        model="gpt-5.2",
+        model="gpt-5.5",
     )
     # OpenAI Agents SDK supports Langfuse via OTEL exporter
     result = await Runner.run(agent, query)

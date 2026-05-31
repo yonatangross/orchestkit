@@ -337,7 +337,7 @@ analysis_llm_chain = LLMFallbackChain(
         OpenAIProvider(
             LLMConfig(
                 name="fallback",
-                model="gpt-5.2-mini",
+                model="gpt-5-mini",
                 timeout=30.0,
                 max_tokens=4096,
             )

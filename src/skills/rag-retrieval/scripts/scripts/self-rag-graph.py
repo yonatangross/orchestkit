@@ -25,13 +25,13 @@ from __future__ import annotations
 
 import logging
 import operator
-from dataclasses import dataclass, field
-from typing import Annotated, Any, Literal, Protocol
+from dataclasses import dataclass
+from typing import Annotated, Literal, Protocol
 
 from langchain_core.documents import Document
 from langchain_core.runnables import Runnable
 from langgraph.graph import END, START, StateGraph
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,7 @@ class LLM(Protocol):
 class RetrievalDecision(BaseModel):
     """Decision on whether to retrieve documents."""
 
-    needs_retrieval: bool = Field(
-        description="Whether retrieval would help answer this query"
-    )
+    needs_retrieval: bool = Field(description="Whether retrieval would help answer this query")
     confidence: float = Field(
         ge=0.0, le=1.0, description="Confidence in answering without retrieval"
     )
@@ -132,8 +130,7 @@ class SelfRAGState(BaseModel):
     max_retries: int = 2
     skip_retrieval: bool = False
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 # =============================================================================
@@ -260,9 +257,7 @@ async def grade_documents(state: SelfRAGState, config: SelfRAGConfig) -> dict:
     for i, doc in enumerate(state.documents):
         doc_id = doc.metadata.get("id", f"doc_{i}")
 
-        grade = await grader.ainvoke(
-            {"question": state.question, "document": doc.page_content}
-        )
+        grade = await grader.ainvoke({"question": state.question, "document": doc.page_content})
 
         grades[doc_id] = grade
         logger.debug(f"Graded {doc_id}: {grade.is_relevant}")
@@ -327,9 +322,7 @@ async def verify_support(state: SelfRAGState, config: SelfRAGConfig) -> dict:
 
     context = "\n\n".join([doc.page_content for doc in state.documents])
 
-    verification = await verifier.ainvoke(
-        {"generation": state.generation, "context": context}
-    )
+    verification = await verifier.ainvoke({"generation": state.generation, "context": context})
 
     logger.info(f"Support verification: {verification.is_supported}")
 
@@ -347,19 +340,15 @@ async def rewrite_query(state: SelfRAGState, config: SelfRAGConfig) -> dict:
             doc.page_content[:100]
             for i, doc in enumerate(state.documents)
             if state.document_grades.get(doc.metadata.get("id", f"doc_{i}"), None)
-            and state.document_grades[
-                doc.metadata.get("id", f"doc_{i}")
-            ].is_relevant
-            == "no"
+            and state.document_grades[doc.metadata.get("id", f"doc_{i}")].is_relevant == "no"
         ][:3]
         if irrelevant_topics:
-            failed_context = f"\n\nPrevious retrieval returned these irrelevant topics:\n" + "\n".join(
-                irrelevant_topics
+            failed_context = (
+                "\n\nPrevious retrieval returned these irrelevant topics:\n"
+                + "\n".join(irrelevant_topics)
             )
 
-    rewritten = await rewriter.ainvoke(
-        {"question": state.question, "context": failed_context}
-    )
+    rewritten = await rewriter.ainvoke({"question": state.question, "context": failed_context})
 
     logger.info(f"Query rewritten: {rewritten.query[:100]}...")
 
@@ -381,9 +370,7 @@ def route_after_grading(state: SelfRAGState, config: SelfRAGConfig) -> str:
     if state.skip_retrieval:
         return "generate"
 
-    relevant_count = sum(
-        1 for g in state.document_grades.values() if g.is_relevant == "yes"
-    )
+    relevant_count = sum(1 for g in state.document_grades.values() if g.is_relevant == "yes")
 
     if relevant_count >= config.min_relevant_docs:
         return "generate"
@@ -401,9 +388,11 @@ def route_after_verification(state: SelfRAGState, config: SelfRAGConfig) -> str:
 
     support_level = state.support_verification.is_supported
 
-    if support_level == "fully":
-        return END
-    elif support_level == "partially" and config.support_threshold == "partially":
+    if (
+        support_level == "fully"
+        or support_level == "partially"
+        and config.support_threshold == "partially"
+    ):
         return END
     elif state.retry_count < config.max_retries:
         return "rewrite"
@@ -429,24 +418,12 @@ def build_self_rag(config: SelfRAGConfig) -> StateGraph:
     workflow = StateGraph(SelfRAGState)
 
     # Add nodes with config binding
-    workflow.add_node(
-        "decide_retrieval", lambda s: decide_retrieval(s, config)
-    )
-    workflow.add_node(
-        "retrieve", lambda s: retrieve_documents(s, config)
-    )
-    workflow.add_node(
-        "grade", lambda s: grade_documents(s, config)
-    )
-    workflow.add_node(
-        "generate", lambda s: generate_answer(s, config)
-    )
-    workflow.add_node(
-        "verify", lambda s: verify_support(s, config)
-    )
-    workflow.add_node(
-        "rewrite", lambda s: rewrite_query(s, config)
-    )
+    workflow.add_node("decide_retrieval", lambda s: decide_retrieval(s, config))
+    workflow.add_node("retrieve", lambda s: retrieve_documents(s, config))
+    workflow.add_node("grade", lambda s: grade_documents(s, config))
+    workflow.add_node("generate", lambda s: generate_answer(s, config))
+    workflow.add_node("verify", lambda s: verify_support(s, config))
+    workflow.add_node("rewrite", lambda s: rewrite_query(s, config))
 
     # Define edges
     workflow.add_edge(START, "decide_retrieval")
@@ -489,11 +466,11 @@ def build_self_rag(config: SelfRAGConfig) -> StateGraph:
 
 async def example_usage():
     """Example of using Self-RAG workflow."""
-    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
     from langchain_community.vectorstores import FAISS
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
     # Setup components (replace with your actual setup)
-    llm = ChatOpenAI(model="gpt-5.2-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5-mini", temperature=0)
 
     # Create a simple retriever (replace with your vector store)
     embeddings = OpenAIEmbeddings()

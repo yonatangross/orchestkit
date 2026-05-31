@@ -412,6 +412,8 @@ GET /api/v1/analyses?fields=id,title,status
 
 ```python
 # app/api/schemas/errors.py
+from pydantic import BaseModel, ConfigDict
+
 class ErrorDetail(BaseModel):
     field: str
     message: str
@@ -420,8 +422,8 @@ class ErrorDetail(BaseModel):
 class ErrorResponse(BaseModel):
     error: dict[str, Any]
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": {
                     "code": "VALIDATION_ERROR",
@@ -438,6 +440,7 @@ class ErrorResponse(BaseModel):
                 }
             }
         }
+    )
 ```
 
 ### FastAPI Exception Handlers

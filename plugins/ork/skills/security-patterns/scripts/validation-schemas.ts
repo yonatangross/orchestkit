@@ -10,7 +10,7 @@ import { z } from 'zod';
 // Common Field Schemas
 // =============================================================================
 
-export const email = z.string().email();
+export const email = z.email();
 
 export const password = z.string()
   .min(8, 'Password must be at least 8 characters')
@@ -19,7 +19,7 @@ export const password = z.string()
   .regex(/[a-z]/, 'Must contain lowercase letter')
   .regex(/[0-9]/, 'Must contain number');
 
-export const uuid = z.string().uuid();
+export const uuid = z.uuid();
 
 export const slug = z.string()
   .min(1)
@@ -29,7 +29,7 @@ export const slug = z.string()
 export const phone = z.string()
   .regex(/^\+[1-9]\d{1,14}$/, 'Invalid phone number (E.164 format)');
 
-export const url = z.string().url();
+export const url = z.url();
 
 export const isoDate = z.coerce.date();
 
@@ -135,8 +135,7 @@ export type FileUpload = z.infer<typeof FileUploadSchema>;
 
 const ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com'] as const;
 
-export const SafeUrlSchema = z.string()
-  .url()
+export const SafeUrlSchema = z.url()
   .refine(
     (urlString) => {
       try {
@@ -156,8 +155,7 @@ export const SafeUrlSchema = z.string()
 // =============================================================================
 
 // For async validations like uniqueness checks
-export const UniqueEmailSchema = z.string()
-  .email()
+export const UniqueEmailSchema = z.email()
   .refine(
     async (email) => {
       // Replace with actual database check

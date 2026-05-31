@@ -139,7 +139,7 @@ class Redlock:
             # Retry with delay + jitter
             if attempt < self._config.retry_count - 1:
                 delay = self._config.retry_delay.total_seconds()
-                jitter = delay * 0.1 * (0.5 - asyncio.get_event_loop().time() % 1)
+                jitter = delay * 0.1 * (0.5 - time.monotonic() % 1)
                 await asyncio.sleep(delay + jitter)
 
         return RedlockResult(acquired=False, resource=resource)

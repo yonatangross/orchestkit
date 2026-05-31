@@ -118,7 +118,7 @@ agent = AssistantAgent(name="assistant", llm_config=config)
 # MS Agent Framework (new)
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-model_client = OpenAIChatCompletionClient(model="gpt-5.2")
+model_client = OpenAIChatCompletionClient(model="gpt-5.5")
 agent = AssistantAgent(name="assistant", model_client=model_client)
 ```
 
@@ -184,6 +184,6 @@ result = await app.ainvoke({"text": "..."})
 ```python
 # Simple task = single agent
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model="gpt-5.2")
+llm = ChatOpenAI(model="gpt-5.5")
 result = await llm.ainvoke("Summarize this text: ...")
 ```

@@ -286,7 +286,7 @@ async def ab_test_models(dataset_name: str):
 
     configs = {
         "sonnet": {"model": "claude-sonnet-4-6", "temperature": 0.7},
-        "gpt5": {"model": "gpt-5.2", "temperature": 0.7},
+        "gpt5": {"model": "gpt-5.5", "temperature": 0.7},
     }
 
     for name, config in configs.items():

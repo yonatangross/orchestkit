@@ -120,7 +120,7 @@ cat > "$TMP/extra.json" <<'EOF'
 }
 EOF
 node "$SCRIPT" "$TMP/extra.json" --out "$TMP/cal.ts" --project-root "$PROJ" 2>/dev/null
-check "date control -> z.string().datetime()"           grep -q "z.string().datetime()" "$TMP/cal.ts"
+check "date control -> z.iso.datetime()"           grep -q "z.iso.datetime()" "$TMP/cal.ts"
 check "array control -> z.array(z.string()).max(20)"    grep -q "z.array(z.string()).max(20)" "$TMP/cal.ts"
 check "boolean control -> z.boolean()"                  grep -q "z.boolean()" "$TMP/cal.ts"
 echo

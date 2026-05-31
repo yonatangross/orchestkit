@@ -355,8 +355,8 @@ class CostCircuitBreaker:
         """Calculate cost based on model pricing (Dec 2025)."""
         PRICING = {
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
-            "gpt-5.2": {"input": 2.5, "output": 10.0},
-            "gpt-5.2-mini": {"input": 0.15, "output": 0.60},
+            "gpt-5.5": {"input": 2.5, "output": 10.0},
+            "gpt-5-mini": {"input": 0.15, "output": 0.60},
             "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.0},
         }
 
@@ -433,7 +433,7 @@ llm_chain = FallbackChain(
     fallbacks=[
         LLMConfig(
             name="fallback",
-            model="gpt-5.2-mini",
+            model="gpt-5-mini",
             timeout=20.0,
         ),
     ],

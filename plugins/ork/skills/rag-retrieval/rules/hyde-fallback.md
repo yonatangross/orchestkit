@@ -28,7 +28,7 @@ async def hyde_with_fallback(
 ```
 
 **Performance Tips:**
-- Use fast model (gpt-5.2-mini, claude-haiku-4-5) for generation
+- Use fast model (gpt-5-mini, claude-haiku-4-5) for generation
 - Cache aggressively (queries often repeat)
 - Set tight timeouts (2-3s) with fallback
 - Keep hypothetical docs concise (100-200 tokens)

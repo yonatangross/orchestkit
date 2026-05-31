@@ -119,7 +119,7 @@
       "expectedBehavior": [
         "Generates a hypothetical answer document that mirrors the expected retrieval target language",
         "Embeds the hypothetical doc, NOT the query",
-        "Uses a fast model like gpt-5.2-mini to generate hypothetical documents with low latency",
+        "Uses a fast model like gpt-5-mini to generate hypothetical documents with low latency",
         "Sets temperature to 0.3 for consistent and focused hypothetical document generation output"
       ]
     },
