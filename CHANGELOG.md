@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.14.0](https://github.com/yonatangross/orchestkit/compare/v8.13.1...v8.14.0) (2026-06-01)
+
+
+### Features
+
+* **hooks:** channel-aware skill telemetry (main + subagent) ([#2154](https://github.com/yonatangross/orchestkit/issues/2154)) ([3cb8375](https://github.com/yonatangross/orchestkit/commit/3cb83751f21e0c21a316260c864ad14f9f317c8c))
+
+
+### Bug Fixes
+
+* **ci:** split Scorecard publish + SARIF filter into two jobs ([#2155](https://github.com/yonatangross/orchestkit/issues/2155)) ([5f365f3](https://github.com/yonatangross/orchestkit/commit/5f365f32b9422f1fb8088f400e05fb12038cb049))
+
 ## [8.13.1](https://github.com/yonatangross/orchestkit/compare/v8.13.0...v8.13.1) (2026-06-01)
 
 
