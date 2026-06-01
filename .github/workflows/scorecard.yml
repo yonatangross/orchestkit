@@ -31,6 +31,28 @@ jobs:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
+
+      # Hybrid de-noise: drop the irreducible npm/pip "not pinned by hash"
+      # findings from the SARIF before it reaches code-scanning. npm global
+      # installs and `pip install -e .` cannot be hash-pinned the way GitHub
+      # Actions / container images can, so those findings are permanent noise
+      # that masks genuinely actionable ones. GitHubAction / containerImage /
+      # downloadThenRun findings are KEPT, so a future unpinned-action
+      # regression (cf. ci-sentinel.yml slipping the org-wide SHA-pin sweep)
+      # still raises an alert. This affects ONLY the code-scanning view —
+      # `publish_results: true` above already sent the unfiltered result to the
+      # public OpenSSF score, so the score is not gamed.
+      - name: Drop unfixable npm/pip pinned-deps findings from SARIF
+        run: |
+          jq '.runs |= map(.results |= ((. // []) | map(
+            select(
+              ((.ruleId == "PinnedDependenciesID")
+                and (.message.text | test("(npmCommand|pipCommand) not pinned by hash")))
+              | not
+            )
+          )))' results.sarif > results.filtered.sarif
+          mv results.filtered.sarif results.sarif
+
       - uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa  # v4
         with:
           sarif_file: results.sarif
