@@ -46,11 +46,14 @@ jobs:
         # Do NOT use --ignore-scripts: postinstall bootstraps the native binary
         # that backs the `claude` CLI. With --ignore-scripts the binary path
         # is missing and `claude --version` fails with "native binary not
-        # installed". The other workflows pin to 2.1.105 with --ignore-scripts
+        # installed". The other workflows pin to 2.1.148 with --ignore-scripts
         # because they shell out to claude-code-action; ultrareview needs the
         # native CLI directly.
         run: |
-          npm install -g @anthropic-ai/claude-code@latest
+          # Pinned to the supported floor (2.1.148) instead of @latest — reproducible CI
+          # and no unpinned supply-chain pull. The `claude ultrareview --help` guard below
+          # still skips gracefully if the subcommand is absent at this version.
+          npm install -g @anthropic-ai/claude-code@2.1.148
           claude --version || echo "::warning::claude --version failed; will check ultrareview availability"
 
       - name: Verify ultrareview subcommand is available
