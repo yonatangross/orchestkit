@@ -23,6 +23,8 @@ tools:
   - TaskList
 skills:
   - design-to-code
+  - design-import
+  - design-ship
   - component-search
   - design-context-extract
   - remember

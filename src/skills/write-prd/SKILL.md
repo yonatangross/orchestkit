@@ -152,15 +152,19 @@ TaskUpdate(status="completed")
 
 ## Chain: Next Steps
 
-After PRD is approved, chain into implementation:
+After PRD is approved, decompose its acceptance criteria into a runnable goal, then implement:
 
 ```
+/ork:prd-to-goal PRD-{product-slug}.md   # → copy-pasteable `/goal until … abort-if …` line
 /ork:implement PRD-{product-slug}.md
 ```
+
+`/ork:prd-to-goal` reduces the Go/No-Go gate + acceptance criteria below into a single AND-joined boolean assertion, so the PRD drives an autonomous `/goal` run rather than a manual read-through.
 
 ## Related Skills
 
 - `ork:user-research` — Build user understanding (personas, journey maps, interviews) before writing the PRD
+- `ork:prd-to-goal` — Reduce this PRD's acceptance criteria to a `/goal until … abort-if …` line
 - `ork:implement` — Execute the implementation plan from the PRD
 - `ork:brainstorm` — Explore solution alternatives before committing to PRD scope
 - `ork:assess` — Rate PRD quality and completeness

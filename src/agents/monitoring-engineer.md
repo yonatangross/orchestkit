@@ -28,6 +28,8 @@ tools:
   - ExitWorktree
 skills:
   - monitoring-observability
+  - telemetry-inspect
+  - doctor
   - performance
   - testing-perf
   - testing-integration

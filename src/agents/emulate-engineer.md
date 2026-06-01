@@ -19,6 +19,7 @@ tools:
   - Glob
 skills:
   - emulate-seed
+  - dev
   - testing-integration
   - testing-e2e
   - testing-unit

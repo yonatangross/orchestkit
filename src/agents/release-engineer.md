@@ -27,6 +27,7 @@ tools:
   - ExitWorktree
 skills:
   - release-management
+  - release-sync
   - github-operations
   - task-dependency-patterns
   - remember

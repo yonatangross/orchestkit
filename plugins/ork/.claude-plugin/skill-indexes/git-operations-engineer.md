@@ -6,6 +6,7 @@
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{changelog-generation.md,release-automation.md,release-workflows.md,semver.md}}|git,github,releases,versioning,changelog,automation
+|swarm-migrate:{SKILL.md}|migration,cross-repo,swarm,parallel-agents,worktree,ledger
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,workflow,coordination
 |issue-progress-tracking:{SKILL.md}|git,github,issues,tracking,workflow

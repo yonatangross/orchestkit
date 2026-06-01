@@ -28,6 +28,8 @@ tools:
   - ExitWorktree
 skills:
   - monitoring-observability
+  - telemetry-inspect
+  - doctor
   - performance
   - testing-perf
   - testing-integration
@@ -405,6 +407,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,annotation-queues.md,cost-tracking.md,dashboards.md,dev-agent-lens.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,observability-layers.md,online-evaluators.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|telemetry-inspect:{SKILL.md,references/{telemetry-inventory.md}}|telemetry,observability,diagnostics,metrics,session,health,schema,inspection
+|doctor:{SKILL.md,references/{agents-validation.md,health-check-outputs.md,hook-validation.md,mcp-pinning-check.md,memory-health.md,permission-rules.md,remediation-guide.md,report-format.md,schema-validation.md,skills-validation.md,version-compatibility.md}}|health-check,diagnostics,validation,permissions,hooks,skills,agents,memory
 |performance:{SKILL.md,references/{caching-strategies.md,cc-prompt-cache-guide.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api

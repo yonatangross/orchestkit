@@ -124,9 +124,11 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
 | **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `${CLAUDE_SKILL_DIR}/rules/diagnostic-checks.md` |
-| **1. Skills** | Frontmatter, context field, token budget, links | load `${CLAUDE_SKILL_DIR}/references/skills-validation.md` |
+| **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `${CLAUDE_SKILL_DIR}/references/skills-validation.md` |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | load `${CLAUDE_SKILL_DIR}/references/agents-validation.md` |
 | **3. Hooks** | hooks.json schema, bundles, async patterns | load `${CLAUDE_SKILL_DIR}/references/hook-validation.md` |
+
+> **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it — via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
 
 ### Categories 4-5: System Health
 
@@ -191,9 +193,20 @@ WARNING: xhigh effort requires Opus 4.8.
 >
 > **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting — the skill analogue of `/reload-plugins`.
 
+## Chain: Deeper Audit
+
+> After a clean health report, audit the observability pipeline itself:
+>
+> ```
+> /ork:telemetry-inspect
+> ```
+>
+> `doctor` validates structure (manifests, hooks, skills, agents); `/ork:telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
+
 ## Related Skills
 
 - `ork:configure` - Configure plugin settings
+- `ork:telemetry-inspect` - Audit the telemetry/analytics pipeline after a clean structural check
 - `ork:quality-gates` - CI/CD integration
 - `security-scanning` - Comprehensive audits
 
