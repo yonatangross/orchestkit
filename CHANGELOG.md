@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.12.8](https://github.com/yonatangross/orchestkit/compare/v8.12.7...v8.12.8) (2026-06-01)
+
+
+### Bug Fixes
+
+* close library-audit coverage-misses (PostgresSaver, jose, gpt-5.5) ([#2147](https://github.com/yonatangross/orchestkit/issues/2147)) ([ab523ea](https://github.com/yonatangross/orchestkit/commit/ab523eaee07cbcf4bd5b6cd30044567ac071ccca))
+* **hooks:** antipattern hook recommends PyJWT not python-jose (CVE) ([#2149](https://github.com/yonatangross/orchestkit/issues/2149)) ([14f3a30](https://github.com/yonatangross/orchestkit/commit/14f3a3074fa080699b8ef499fdee90c593df2116))
+
 ## [8.12.7](https://github.com/yonatangross/orchestkit/compare/v8.12.6...v8.12.7) (2026-05-31)
 
 
