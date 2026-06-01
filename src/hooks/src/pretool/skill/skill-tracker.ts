@@ -17,6 +17,7 @@ import { bufferWrite } from '../../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
 import { recordInvocation } from '../../lib/session-registry.js';
+import { recordSkillChannel } from '../../lib/skill-channels.js';
 
 /**
  * Ensure directory exists
@@ -66,6 +67,11 @@ export function skillTracker(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   // usage analytics. Guarded + best-effort — the plaintext log above is the
   // fallback, and recordInvocation never throws.
   recordInvocation(input.session_id, skillName);
+
+  // Activation-channel telemetry: this fires on every main-session Skill call
+  // (user-direct or assistant-chained — indistinguishable here, so tagged
+  // "main"). The subagent channel is captured separately at SubagentStop.
+  recordSkillChannel(projectDir, { skill: skillName, channel: 'main', sessionId: input.session_id });
 
   ctx.log('skill-tracker', `Skill usage logged for ${skillName}`);
 

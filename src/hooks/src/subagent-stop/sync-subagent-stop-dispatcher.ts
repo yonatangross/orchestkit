@@ -27,6 +27,7 @@ import { autoSpawnQuality } from './auto-spawn-quality.js';
 import { multiClaudeVerifier } from './multi-claude-verifier.js';
 import { subagentQualityGate } from './subagent-quality-gate.js';
 import { retryHandler } from './retry-handler.js';
+import { skillChannelTracker } from './skill-channel-tracker.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'sync-subagent-stop-dispatcher';
@@ -46,6 +47,7 @@ const SYNC_HOOKS: SyncHookConfig[] = [
   { name: 'multi-claude-verifier', fn: multiClaudeVerifier },
   { name: 'subagent-quality-gate', fn: subagentQualityGate },
   { name: 'retry-handler', fn: retryHandler },
+  { name: 'skill-channel-tracker', fn: skillChannelTracker },
 ];
 
 /**

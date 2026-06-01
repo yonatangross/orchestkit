@@ -168,6 +168,49 @@ export function isValidSubagentSpawnEntry(raw: unknown): raw is SubagentSpawnEnt
 }
 
 // ---------------------------------------------------------------------------
+// SkillChannelEntry — .claude/logs/skill-channels.jsonl (activation channels)
+// Written by pretool/skill/skill-tracker (channel:"main") and
+// subagent-stop/skill-channel-tracker (channel:"subagent"). Each row records
+// one Skill invocation tagged with the activation channel it fired through, so
+// the activation matrix can be computed from real telemetry rather than static
+// analysis. `chain` and `background` are reserved for future capture points.
+// ---------------------------------------------------------------------------
+
+export type SkillChannel = 'main' | 'subagent' | 'chain' | 'background';
+
+export interface SkillChannelEntry {
+  /** ISO-8601 timestamp of the invocation */
+  ts: string;
+  /** Skill name as invoked (e.g. 'ork:cover') */
+  skill: string;
+  /** Activation channel the invocation fired through */
+  channel: SkillChannel;
+  /** Parent that triggered it: subagent_type for 'subagent', skill for 'chain' */
+  parent?: string;
+  /** Originating session id, when available */
+  session_id?: string;
+}
+
+const SKILL_CHANNELS: ReadonlyArray<SkillChannel> = ['main', 'subagent', 'chain', 'background'];
+
+export const SKILL_CHANNEL_REQUIRED_KEYS: ReadonlyArray<keyof SkillChannelEntry> = [
+  'ts',
+  'skill',
+  'channel',
+];
+
+export function isValidSkillChannelEntry(raw: unknown): raw is SkillChannelEntry {
+  if (!raw || typeof raw !== 'object') return false;
+  const entry = raw as Record<string, unknown>;
+  if (typeof entry.ts !== 'string' || Number.isNaN(Date.parse(entry.ts))) return false;
+  if (typeof entry.skill !== 'string' || entry.skill.length === 0) return false;
+  if (typeof entry.channel !== 'string' || !SKILL_CHANNELS.includes(entry.channel as SkillChannel)) return false;
+  if (entry.parent !== undefined && typeof entry.parent !== 'string') return false;
+  if (entry.session_id !== undefined && typeof entry.session_id !== 'string') return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // EditHistoryEntry — .claude/state/edit-history.jsonl (M121 #1490)
 // Written by posttool/write/edit-history-tracker.
 // Compact field names (`t`, `f`, `tool`) are intentional — this file grows
@@ -336,6 +379,14 @@ export const CANONICAL_SKILL_USAGE_FILE: SkillUsageFile = {
   last_updated: '2026-04-23T12:34:56.000Z',
 };
 
+export const CANONICAL_SKILL_CHANNEL_ENTRY: SkillChannelEntry = {
+  ts: '2026-06-01T12:34:56.000Z',
+  skill: 'ork:cover',
+  channel: 'subagent',
+  parent: 'test-generator',
+  session_id: 'sess-abc123',
+};
+
 // ---------------------------------------------------------------------------
 // Telemetry file inventory (M121 #1490)
 // Single source of truth for which files have schema locks. Readers can
@@ -354,4 +405,5 @@ export const SCHEMA_LOCKED: ReadonlyArray<{
   { path: '.claude/state/edit-history.jsonl',              validator: 'isValidEditHistoryEntry',         canonical: 'CANONICAL_EDIT_HISTORY_ENTRY' },
   { path: '.claude/state/ork-metrics-*.json',              validator: 'isValidOrkMetricsSnapshot',       canonical: 'CANONICAL_ORK_METRICS_SNAPSHOT' },
   { path: '.claude/feedback/skill-usage.json',             validator: 'isValidSkillUsageFile',           canonical: 'CANONICAL_SKILL_USAGE_FILE' },
+  { path: '.claude/logs/skill-channels.jsonl',             validator: 'isValidSkillChannelEntry',        canonical: 'CANONICAL_SKILL_CHANNEL_ENTRY' },
 ];
