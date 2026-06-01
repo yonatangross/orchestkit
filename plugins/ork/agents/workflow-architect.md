@@ -239,17 +239,16 @@ class AnalysisState(TypedDict):
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
-checkpointer = PostgresSaver.from_conn_string(
-    DATABASE_URL,
-    table_name="langgraph_checkpoints"
-)
+# from_conn_string is a @contextmanager — enter it and call setup() once
+with PostgresSaver.from_conn_string(DATABASE_URL) as checkpointer:
+    checkpointer.setup()
 
-# Compile with checkpointing
-workflow = graph.compile(checkpointer=checkpointer)
+    # Compile with checkpointing
+    workflow = graph.compile(checkpointer=checkpointer)
 
-# Resume from checkpoint
-config = {"configurable": {"thread_id": "analysis-123"}}
-result = await workflow.ainvoke(state, config)
+    # Resume from checkpoint
+    config = {"configurable": {"thread_id": "analysis-123"}}
+    result = await workflow.ainvoke(state, config)
 ```
 
 ### 4. RAG Orchestration Pattern

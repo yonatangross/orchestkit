@@ -409,12 +409,18 @@ def build_scenario_orchestrator(
 import asyncio
 import uuid
 from langgraph.checkpoint.postgres import PostgresSaver
+from psycopg_pool import ConnectionPool
 
 async def main():
-    # Setup checkpointing
-    checkpointer = PostgresSaver.from_conn_string(
-        "postgresql://user:password@localhost/orchestkit"
+    # Setup checkpointing — from_conn_string is a @contextmanager; use an
+    # explicit pool + PostgresSaver constructor for a long-running orchestrator
+    pool = ConnectionPool(
+        "postgresql://user:password@localhost/orchestkit",
+        max_size=20,
+        kwargs={"autocommit": True, "prepare_threshold": 0},
     )
+    checkpointer = PostgresSaver(pool)
+    checkpointer.setup()  # first run creates the checkpoint tables
 
     # Build orchestrator
     app = build_scenario_orchestrator(checkpointer=checkpointer)

@@ -248,7 +248,7 @@ class UserService:
 ```python
 # backend/app/core/security.py
 from datetime import datetime, timedelta
-from jose import jwt
+import jwt  # PyJWT
 
 ACCESS_TOKEN_EXPIRE = timedelta(minutes=15)
 REFRESH_TOKEN_EXPIRE = timedelta(days=7)

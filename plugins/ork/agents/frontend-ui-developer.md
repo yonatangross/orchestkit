@@ -314,9 +314,9 @@ startTransition(() => setSearchResults(results))
 import { z } from 'zod'
 
 const AnalysisSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   status: z.enum(['pending', 'running', 'completed', 'failed']),
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 })
 
 type Analysis = z.infer<typeof AnalysisSchema>

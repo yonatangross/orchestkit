@@ -126,7 +126,7 @@ Return structured integration report:
     "cache_type": "ephemeral",
     "estimated_savings": "72%"
   },
-  "fallback_chain": ["claude-sonnet-4", "gpt-5.2", "ollama/llama3"],
+  "fallback_chain": ["claude-sonnet-4-6", "gpt-5.5", "ollama/llama3.3"],
   "rate_limiting": {
     "requests_per_minute": 60,
     "tokens_per_minute": 100000
@@ -182,9 +182,9 @@ PROVIDERS = {
     "openai": {
         "client": OpenAI(),
         "models": {
-            "fast": "gpt-5.2-mini",
-            "balanced": "gpt-5.2",
-            "powerful": "o1"
+            "fast": "gpt-5-mini",
+            "balanced": "gpt-5.5",
+            "powerful": "gpt-5.5-pro"
         },
         "supports_caching": False,
         "supports_streaming": True

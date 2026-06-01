@@ -130,6 +130,7 @@ from orchestrator import (
     ScenarioProgress,
 )
 from langgraph.checkpoint.postgres import PostgresSaver
+from psycopg_pool import ConnectionPool
 
 async def run_scenario():
     # Read from environment
@@ -140,9 +141,13 @@ async def run_scenario():
     print(f"[{scenario_id.upper()}] Starting scenario execution")
     print(f"[{scenario_id.upper()}] Orchestration ID: {orchestration_id}")
 
-    # Setup checkpointer
+    # Setup checkpointer — from_conn_string is a @contextmanager, so for a
+    # long-running orchestrator use an explicit pool with the PostgresSaver
+    # constructor (a `with` block would close the pool mid-run).
     db_url = os.getenv("DATABASE_URL", "postgresql://localhost/orchestkit")
-    checkpointer = PostgresSaver.from_conn_string(db_url)
+    pool = ConnectionPool(db_url, max_size=20, kwargs={"autocommit": True, "prepare_threshold": 0})
+    checkpointer = PostgresSaver(pool)
+    checkpointer.setup()  # first run creates the checkpoint tables
 
     # Build orchestrator
     app = build_scenario_orchestrator(checkpointer=checkpointer)
@@ -412,6 +417,7 @@ To enable forced synchronization at milestones (all scenarios pause and wait):
 
 ```python
 # In run_scenario.py
+import asyncpg
 
 async def wait_for_milestone_sync(
     orchestration_id: str,
@@ -421,12 +427,14 @@ async def wait_for_milestone_sync(
 ):
     """Wait for all scenarios to reach milestone."""
 
-    checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
+    # Poll the progress table directly with an asyncpg pool — the langgraph
+    # checkpointer is a @contextmanager factory, not a general connection source.
+    pool = await asyncpg.create_pool(DATABASE_URL)
     start = time.time()
 
     while time.time() - start < timeout_seconds:
         # Query checkpoint status
-        async with checkpointer.get_connection() as conn:
+        async with pool.acquire() as conn:
             result = await conn.fetch("""
                 SELECT DISTINCT scenario_id, MAX(progress_pct)
                 FROM scenario_orchestration_checkpoints
