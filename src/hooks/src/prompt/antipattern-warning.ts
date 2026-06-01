@@ -23,7 +23,7 @@ const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
   {
     pattern: 'manual jwt validation',
     warning:
-      'Manual JWT validation is error-prone. Use established libraries like python-jose or jsonwebtoken.',
+      'Manual JWT validation is error-prone. Use established libraries like PyJWT or jsonwebtoken.',
   },
   {
     pattern: 'storing passwords in plaintext',
