@@ -79,10 +79,15 @@ describe('skill-tracker', () => {
     const input = createSkillInput('unit-testing');
     skillTracker(input, testCtx);
 
-    expect(mockAppendFileSync).toHaveBeenCalledTimes(1); // usage log only (analytics JSONL removed #919)
+    // Two sinks now: [0] plaintext usage log, [1] channel-tagged telemetry (channel:"main")
+    expect(mockAppendFileSync).toHaveBeenCalledTimes(2);
     const usageCall = mockAppendFileSync.mock.calls[0];
     expect(String(usageCall[0])).toContain('skill-usage.log');
     expect(String(usageCall[1])).toContain('unit-testing');
+    const channelCall = mockAppendFileSync.mock.calls[1];
+    expect(String(channelCall[0])).toContain('skill-channels.jsonl');
+    expect(String(channelCall[1])).toContain('"channel":"main"');
+    expect(String(channelCall[1])).toContain('unit-testing');
   });
 
   it('always returns silent success after logging', () => {
