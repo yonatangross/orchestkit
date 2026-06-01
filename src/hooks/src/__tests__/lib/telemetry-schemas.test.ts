@@ -22,6 +22,7 @@ import {
   isValidEditHistoryEntry,
   isValidOrkMetricsSnapshot,
   isValidSkillUsageFile,
+  isValidSkillChannelEntry,
   CANONICAL_IMAGE_RESPONSE_ENTRY,
   CANONICAL_PRE_COMPACT_DECISION_ENTRY,
   CANONICAL_DECISION_LOG_ENTRY,
@@ -29,6 +30,7 @@ import {
   CANONICAL_EDIT_HISTORY_ENTRY,
   CANONICAL_ORK_METRICS_SNAPSHOT,
   CANONICAL_SKILL_USAGE_FILE,
+  CANONICAL_SKILL_CHANNEL_ENTRY,
   IMAGE_RESPONSE_REQUIRED_KEYS,
   PRE_COMPACT_DECISION_REQUIRED_KEYS,
   PRE_COMPACT_SIGNAL_KEYS,
@@ -304,9 +306,35 @@ describe('SkillUsageFile shape lock (.claude/feedback/skill-usage.json)', () => 
   });
 });
 
+describe('SkillChannelEntry shape lock (activation channels)', () => {
+  it('canonical sample validates', () => {
+    expect(isValidSkillChannelEntry(CANONICAL_SKILL_CHANNEL_ENTRY)).toBe(true);
+  });
+
+  it('rejects an unknown channel value', () => {
+    expect(isValidSkillChannelEntry({ ...CANONICAL_SKILL_CHANNEL_ENTRY, channel: 'bogus' })).toBe(false);
+  });
+
+  it('requires ts + skill + channel', () => {
+    expect(isValidSkillChannelEntry({ skill: 'x', channel: 'main' })).toBe(false);
+    expect(isValidSkillChannelEntry({ ts: '2026-06-01T00:00:00.000Z', channel: 'main' })).toBe(false);
+    expect(isValidSkillChannelEntry({ ts: '2026-06-01T00:00:00.000Z', skill: 'x' })).toBe(false);
+  });
+
+  it('snapshot of canonical entry JSON (downstream contract lock)', () => {
+    expect(JSON.stringify(CANONICAL_SKILL_CHANNEL_ENTRY)).toBe(
+      '{"ts":"2026-06-01T12:34:56.000Z","skill":"ork:cover","channel":"subagent","parent":"test-generator","session_id":"sess-abc123"}',
+    );
+  });
+});
+
 describe('SCHEMA_LOCKED inventory (M121 #1490)', () => {
-  it('contains all 7 schema-locked file paths', () => {
-    expect(SCHEMA_LOCKED.length).toBe(7);
+  it('contains all 8 schema-locked file paths', () => {
+    expect(SCHEMA_LOCKED.length).toBe(8);
+  });
+
+  it('includes the activation-channel telemetry file', () => {
+    expect(SCHEMA_LOCKED.map(e => e.path)).toContain('.claude/logs/skill-channels.jsonl');
   });
 
   it('every entry has non-empty path + validator + canonical fields', () => {
