@@ -1,16 +1,89 @@
 [
   {
+    "version": "2.1.160",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "edit_grep_satisfies_read_check",
+        "category": "breaking",
+        "description": "Single-file grep/egrep/fgrep now satisfies the read-before-edit check, so a separate Read is no longer required.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Edit no longer requires a separate Read after viewing a file with `grep`: single-file `grep`/`egrep`/`fgrep` commands now satisfy the read-before-edit check"
+      },
+      {
+        "feature_slug": "bg_session_sigterm_before_sigkill",
+        "category": "breaking",
+        "description": "Background-session teardown now sends SIGTERM to running shell subprocesses before SIGKILL so cleanup handlers run.",
+        "gap_score": 20,
+        "affected_skills": [
+          "async-jobs",
+          "distributed-systems"
+        ],
+        "reference_changelog_line": "Improved background-session teardown (`claude rm`/`stop`, idle reap) to send SIGTERM to running shell subprocesses before SIGKILL, so cleanup handlers run"
+      },
+      {
+        "feature_slug": "workflow_trigger_renamed_ultracode",
+        "category": "breaking",
+        "description": "Dynamic-workflow trigger keyword renamed from `workflow` to `ultracode`; the word `workflow` is no longer a trigger.",
+        "gap_score": 20,
+        "affected_skills": [
+          "chain-patterns",
+          "agent-orchestration",
+          "configure"
+        ],
+        "reference_changelog_line": "Renamed the dynamic-workflow trigger keyword from `workflow` to `ultracode`. The word \"workflow\" no longer triggers a run; asking for one in your own words still works. The trigger keyword is highlighted in violet in the prompt input"
+      },
+      {
+        "feature_slug": "shell_startup_file_write_prompt",
+        "category": "new_perm",
+        "description": "Now prompts before writing to shell startup files (.zshenv, .zlogin, .bash_login) and ~/.config/git/ to avoid unintended",
+        "gap_score": 12,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Added a prompt before writing to shell startup files (`.zshenv`, `.zlogin`, `.bash_login`) and `~/.config/git/`, which could otherwise lead to unintended command execution"
+      },
+      {
+        "feature_slug": "accept_edits_build_config_prompt",
+        "category": "new_perm",
+        "description": "acceptEdits mode now prompts before writing build-tool config files granting code execution (.npmrc, bunfig.toml, .bazel",
+        "gap_score": 12,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "`acceptEdits` mode now prompts before writing build-tool config files that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`, etc.)"
+      },
+      {
+        "feature_slug": "removed_opus_4_6_fast_mode_override",
+        "category": "deprecation",
+        "description": "CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE environment variable removed and is now a no-op.",
+        "gap_score": 8,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Removed `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE`; the environment variable is now a no-op"
+      }
+    ],
+    "raw_bullets_count": 27,
+    "issues_filed_at": "2026-06-02T15:25:36Z"
+  },
+  {
     "version": "2.1.159",
-    "parse_failed": true,
     "features": [],
     "raw_bullets_count": 1,
-    "failed_at": "2026-06-01T16:03:04.074Z"
+    "parse_failed": true,
+    "failed_at": "2026-06-02T15:25:10.571Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-01T16:03:08.655Z"
+    "failed_at": "2026-06-02T15:25:16.245Z"
   }
 ]
