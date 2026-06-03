@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.15.0](https://github.com/yonatangross/orchestkit/compare/v8.14.0...v8.15.0) (2026-06-03)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.160 + 2.1.161 ([#2174](https://github.com/yonatangross/orchestkit/issues/2174)) ([77f97e6](https://github.com/yonatangross/orchestkit/commit/77f97e6f38acbf587ea063051e242c0ebfe1a72d))
+
+
+### Bug Fixes
+
+* **skills:** correct stale tool-call signatures in skill examples ([#2176](https://github.com/yonatangross/orchestkit/issues/2176)) ([cf07883](https://github.com/yonatangross/orchestkit/commit/cf07883091895daf6544cec4955f2cabdecf0006))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.159) ([#2162](https://github.com/yonatangross/orchestkit/issues/2162)) ([44f38b2](https://github.com/yonatangross/orchestkit/commit/44f38b20f06bbb9c50b7256591d24c2eea0f9164))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.160) ([#2169](https://github.com/yonatangross/orchestkit/issues/2169)) ([8c4f250](https://github.com/yonatangross/orchestkit/commit/8c4f250b1331011a6aab8e867bedb679a4ab5b22))
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.161) ([#2173](https://github.com/yonatangross/orchestkit/issues/2173)) ([be7513f](https://github.com/yonatangross/orchestkit/commit/be7513f3edd10e23c19ca1bbfe7f5dcbb407dc45))
+
 ## [8.14.0](https://github.com/yonatangross/orchestkit/compare/v8.13.1...v8.14.0) (2026-06-01)
 
 

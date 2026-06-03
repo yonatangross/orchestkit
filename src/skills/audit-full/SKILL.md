@@ -165,8 +165,8 @@ A full-codebase 1M-context audit typically runs 15–60 minutes on medium projec
 
 ```python
 PushNotification(
-  title="ork:audit-full complete",
-  body=f"{SCOPE}: {critical}C/{high}H/{medium}M/{low}L findings · report at {report_path}"
+  message=f"ork:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
+  status="proactive"
 )
 ```
 
