@@ -76,3 +76,5 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | Rate limit recovery | State is already saved — re-invoke `/checkpoint-resume` to continue |
 
 > Plan mode preserved across `--resume` (CC 2.1.132+) — `--permission-mode plan` is honored on resume, and `ExitPlanMode` re-applies plan mode for the rest of the session. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
+
+> Claude-managed worktrees are unlocked on finish (CC 2.1.157+) and `EnterWorktree` can switch worktrees mid-session — a resumed session can clean up prior worktrees with plain `git worktree remove`/`prune`.
