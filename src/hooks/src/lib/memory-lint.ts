@@ -94,12 +94,12 @@ export function compilePredicate(spec: PredicateSpec): (input: Record<string, un
     case 'prefix':
       return (i) => {
         const v = toStr(resolveField(i, spec.field));
-        return v !== undefined && v.startsWith(spec.value);
+        return v?.startsWith(spec.value) ?? false;
       };
     case 'contains':
       return (i) => {
         const v = toStr(resolveField(i, spec.field));
-        return v !== undefined && v.includes(spec.value);
+        return v?.includes(spec.value) ?? false;
       };
     case 'in':
       return (i) => {
@@ -165,7 +165,7 @@ export interface MemoryLoadResult {
 
 /** Extract the JSON body of the first ```ork-lint fenced block, or null if absent/unterminated. */
 export function extractLintBlock(text: string): string | null {
-  const open = text.indexOf('```' + FENCE);
+  const open = text.indexOf(`\`\`\`${FENCE}`);
   if (open === -1) return null;
   const nl = text.indexOf('\n', open);
   if (nl === -1) return null;
@@ -192,7 +192,7 @@ export function loadMemoryRulesFromDir(dir: string): MemoryLoadResult {
     } catch {
       continue;
     }
-    if (!text.includes('```' + FENCE)) continue; // fast skip — most files have no block
+    if (!text.includes(`\`\`\`${FENCE}`)) continue; // fast skip — most files have no block
     const body = extractLintBlock(text);
     if (body === null) {
       errors.push(`${f}: unterminated ${FENCE} block`);
