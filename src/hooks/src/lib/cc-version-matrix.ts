@@ -539,6 +539,9 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
 
   // 2.1.157 (2026-05-29) — .claude/skills autoload, claude plugin init, mid-session EnterWorktree, OTEL tool_parameters, Workflow keyword-trigger toggle
   { feature: 'local_skills_autoload',                   minVersion: '2.1.157', description: 'Plugins in .claude/skills auto-load without a marketplace; claude plugin init <name> scaffolds a plugin; EnterWorktree switches worktree mid-session; OTEL_LOG_TOOL_DETAILS=1 adds tool_parameters spans; /config toggles Workflow keyword-trigger.' },
+  { feature: 'worktrees_unlocked_on_finish',            minVersion: '2.1.157', description: 'Claude-managed worktrees are left unlocked when the agent finishes, so git worktree remove/prune can clean them up without --force.' },
+  { feature: 'claude_agents_agent_flag',                minVersion: '2.1.157', description: 'claude agents honors the settings.json `agent` field for dispatched sessions; --agent <name> overrides it.' },
+  { feature: 'backspace_dismiss_workflow_trigger',      minVersion: '2.1.157', description: 'Backspace right after a workflow/ultracode trigger keyword dismisses the dynamic-workflow request (same as alt+w).' },
 
   // 2.1.158 (2026-05-30) — auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8
   { feature: 'auto_mode_cloud_providers',               minVersion: '2.1.158', description: 'CLAUDE_CODE_ENABLE_AUTO_MODE=1 enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC version as of 2026-05-30.' },
