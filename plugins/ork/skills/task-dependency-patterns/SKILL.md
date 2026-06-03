@@ -126,8 +126,8 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 2. TaskCreate(subject, description)    → Add tasks to shared list
 3. Agent(prompt, team_name, name)       → Spawn teammates
 4. TaskUpdate(owner: "teammate-name")  → Assign tasks
-5. SendMessage(type: "message")        → Direct teammate communication
-6. SendMessage(type: "shutdown_request") → Graceful shutdown
+5. SendMessage(to, message, summary)   → Direct teammate communication
+6. TeamDelete()                          → Graceful team shutdown
 ```
 
 ### When to Use Teams vs Task Tool
@@ -163,14 +163,15 @@ TaskList → find next task
 ### Peer Messaging
 
 ```
-# Direct message between teammates
-SendMessage(type: "message", recipient: "frontend-dev",
-  content: "API contract ready: GET /users/:id returns {...}",
+# Direct message between teammates (params: to, message, summary)
+SendMessage(to: "frontend-dev",
+  message: "API contract ready: GET /users/:id returns {...}",
   summary: "API contract shared")
 
-# Broadcast to all (use sparingly)
-SendMessage(type: "broadcast",
-  content: "Breaking change: auth header format changed",
+# No broadcast primitive — send to each teammate, or post to the shared
+# task list (TaskCreate/TaskUpdate) so every teammate sees it
+SendMessage(to: "backend-dev",
+  message: "Breaking change: auth header format changed",
   summary: "Breaking auth change")
 ```
 
