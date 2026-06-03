@@ -126,6 +126,8 @@ Categories available:
 
 > **CC 2.1.160 — write prompts for startup files & build configs:** Expect approval prompts before Claude writes shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`) or — in `acceptEdits` mode — build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). These are security defaults; approve them deliberately, don't pre-allow.
 
+> **CC 2.1.141 — `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `/ork:ci-sentinel`, `/ork:bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
+
 ## Step 5: Configure MCPs (Optional)
 
 All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation requires a local package install.

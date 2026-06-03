@@ -78,6 +78,8 @@ The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `t
 
 This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
 
+> **vs built-in `/code-review --comment` (CC 2.1.147):** CC renamed `/simplify` → `/code-review` — a single-pass correctness-bug review whose `--comment` posts inline PR comments, overlapping this skill. They are **not** redundant: use built-in `/code-review` for a fast single-pass bug sweep; use `/ork:review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents — security, tests, architecture, performance — memory-KG context, domain-aware selection, synthesized approve/comment/request-changes verdict). Quick pass → built-in; high-stakes audit → ork. (#1940)
+
 
 ## STEP 0b: Select Orchestration Mode
 

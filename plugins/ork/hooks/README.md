@@ -116,6 +116,12 @@ hooks/
 
 ---
 
+## CC version behavior notes
+
+> **`if:` conditions activated at the 2.1.148 floor (CC 2.1.147 fix):** Two compound `Bash(...)` `if:` conditions in `hooks.json` — the PreToolUse list gating `sync-bash-dispatcher` (and its `dangerous-command-blocker` chain) and the PermissionRequest list gating `permission/unified-dispatcher` — were **silent no-ops on CC < 2.1.148** (specific `if:` patterns never matched before the 2.1.147 fix). The floor bump to 2.1.148 activates them: the dangerous-command-blocker chain now runs for guarded Bash calls, and the leading-wildcard clauses `Bash(* && rm -rf *)` / `Bash(* | xargs rm *)` fire for the first time. The verb overlap between the two conditions is **cross-event** (PreToolUse advisory/block vs PermissionRequest approval gate) — deliberate layered defense, not duplication; do not dedup. (#1941)
+
+> **SubagentStop hooks are EnterWorktree-refresh-safe (CC 2.1.141):** `unified-dispatcher`, `subagent-scope-auditor`, and `skill-channel-tracker` all read `transcript_path`, which CC 2.1.141 fixed to refresh after `EnterWorktree` switches cwd. All three guard file access with `existsSync` / `try-catch` and degrade to silent success or `null` when the path is missing — refresh-safe by design, no change required. (#1929)
+
 ## Hook Types
 
 ### Permission Hooks (PermissionRequest)
