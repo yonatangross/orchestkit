@@ -117,6 +117,8 @@ Provide present-continuous form for spinner display:
 
 Agent Teams provides multi-agent coordination with shared task lists and peer-to-peer messaging.
 
+> **CC 2.1.161 — independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
+
 ### Team Workflow
 
 ```

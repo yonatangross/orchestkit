@@ -108,6 +108,7 @@ Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) w
 - No step limit in agent loops (infinite loops)
 - No memory management (context overflow)
 - No error isolation in multi-agent (one failure crashes all)
+  - Note (CC 2.1.161): parallel *tool calls* now fail independently — a failed Bash no longer cancels siblings in the same batch. This caveat still applies at the agent-orchestration level, not to tool batches; `claude agents` rows now show `done/total` for fanned-out work.
 - Missing synthesis step (raw agent outputs not useful)
 - Mixing frameworks in one project (complexity explosion)
 - Using Agent Teams for simple sequential work (use Task tool)
