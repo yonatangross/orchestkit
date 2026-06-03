@@ -170,7 +170,7 @@ At ~$15/MTok (Sonnet input/output blended), that's roughly **$10-12/month per re
 - **`/ork:ci-sentinel status`** — read `.sentinel/ledger.jsonl` and summarize the last 24h.
 - **`/ork:ci-sentinel enable`** / **`disable`** — toggle the workflow's `on.schedule` block.
 
-The hourly run itself does **not** invoke this skill — the workflow calls `claude -p --bare` against `/ci-debug` directly. This skill is for the human admin actions around the sentinel.
+The hourly run itself does **not** invoke this skill — the workflow calls `claude -p` against `/ci-debug` directly (headless mode — not `--bare`, which was dropped because it ignores `ANTHROPIC_API_KEY`; see "Why no --bare" above). This skill is for the human admin actions around the sentinel.
 
 ## Why this design wins (one paragraph)
 

@@ -158,6 +158,7 @@ Agent(subagent_type="test-generator",
 - Output each result incrementally — don't batch
 - Flag critical findings immediately (don't wait for stragglers)
 - Background bash tasks are killed at 5GB output (CC 2.1.77) — pipe verbose output to files
+- Parallel tool calls fail independently (CC 2.1.161) — a failed Bash no longer cancels siblings in the batch; add explicit per-call error handling instead of relying on cascade-abort
 
 ## Pattern 7: SendMessage Agent Resume (CC 2.1.77)
 
