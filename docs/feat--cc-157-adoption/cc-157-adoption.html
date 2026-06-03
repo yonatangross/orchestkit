@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CC 2.1.157 adoption — OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2128;--border:#30363d;--fg:#c9d1d9;--muted:#8b949e;
+    --accent:#7c3aed;--breaking:#f85149;--cmd:#2f81f7;--ok:#3fb950;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  header{padding:20px 26px;border-bottom:1px solid var(--border);background:linear-gradient(120deg,#161b22,#1c2128);}
+  h1{margin:0 0 6px;font-size:20px;} h1 .hl{color:var(--accent);}
+  .sub{color:var(--muted);font-size:13px;max-width:880px;}
+  .stats{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .stat{font-size:11.5px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px 9px;}
+  .stat b{color:var(--ok);}
+  .layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 210px);}
+  .side{border-right:1px solid var(--border);padding:14px;overflow:auto;} .main{padding:18px 24px;overflow:auto;}
+  .card{border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--panel);cursor:pointer;}
+  .card:hover{border-color:var(--accent);} .card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+  .card .nm{font-family:var(--mono);font-size:12px;font-weight:600;} .card .sk{color:var(--muted);font-size:11px;margin-top:3px;}
+  .tag{font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;font-weight:700;}
+  .tag.breaking{background:rgba(248,81,73,.16);color:var(--breaking);} .tag.new_command{background:rgba(47,129,247,.16);color:var(--cmd);}
+  h2{font-size:16px;margin:0 0 4px;} .crumb{color:var(--muted);font-size:12px;margin-bottom:12px;}
+  .desc{margin:8px 0 14px;}
+  .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 4px;}
+  pre{background:#010409;border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--mono);font-size:12px;white-space:pre-wrap;color:#c9d1d9;}
+  .skills span{display:inline-block;background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:2px 8px;margin:0 5px 5px 0;font-size:12px;}
+  code{font-family:var(--mono);background:#010409;padding:1px 5px;border-radius:4px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Claude Code <span class="hl">2.1.157</span> adoption</h1>
+  <div class="sub">The deferred 2.1.157 batch (#2103-2108): plugin auto-load, worktree lifecycle, and new <code>claude</code> commands. 3 new matrix entries + 5 skill notes. Click a feature.</div>
+  <div class="stats">
+    <div class="stat">matrix entries +<b>3</b> (469→472)</div>
+    <div class="stat">skill notes <b>5</b></div>
+    <div class="stat">issues closed <b>6</b> (+3 triage)</div>
+  </div>
+</header>
+<div class="layout">
+  <div class="side"><div id="list"></div></div>
+  <div class="main"><div id="detail"></div></div>
+</div>
+<script>
+const F=[
+ {slug:"plugins_auto_load_skills_dir",cat:"breaking",issue:2103,skills:["configure","setup"],
+  desc:"Plugins in .claude/skills auto-load — no marketplace required. claude plugin init scaffolds one there.",
+  matrix:"(bundled in local_skills_autoload @ 2.1.157)",
+  note:"configure + setup: document the auto-load install path. Marketplace still works; .claude/skills is the new no-marketplace path."},
+ {slug:"enter_worktree_switch_midsession",cat:"breaking",issue:2104,skills:["chain-patterns","checkpoint-resume"],
+  desc:"EnterWorktree can switch between Claude-managed worktrees mid-session.",
+  matrix:"(bundled in local_skills_autoload @ 2.1.157)",
+  note:"chain-patterns + checkpoint-resume: worktree-lifecycle note."},
+ {slug:"worktrees_unlocked_on_finish",cat:"breaking",issue:2105,skills:["chain-patterns","checkpoint-resume"],
+  desc:"Claude-managed worktrees are left unlocked when the agent finishes — git worktree remove/prune works without --force.",
+  matrix:"NEW entry @ 2.1.157",
+  note:"Folded into the same worktree-lifecycle note."},
+ {slug:"backspace_dismiss_workflow_trigger",cat:"breaking",issue:2106,skills:["configure"],
+  desc:"Backspace right after a workflow/ultracode trigger keyword dismisses the dynamic-workflow request (same as alt+w).",
+  matrix:"NEW entry @ 2.1.157",
+  note:"configure: workflow-trigger control note (with the /config toggle)."},
+ {slug:"claude_plugin_init_command",cat:"new_command",issue:2107,skills:["configure","setup"],
+  desc:"claude plugin init <name> scaffolds a new plugin skeleton in .claude/skills.",
+  matrix:"(bundled in local_skills_autoload @ 2.1.157)",
+  note:"configure + setup notes."},
+ {slug:"claude_agents_agent_flag",cat:"new_command",issue:2108,skills:["configure","agent-orchestration"],
+  desc:"claude agents honors the settings.json `agent` field for dispatched sessions; --agent <name> overrides it.",
+  matrix:"NEW entry @ 2.1.157",
+  note:"configure + agent-orchestration: pin the agent type explicitly. (bare-eval skipped — it covers --agent in --print, a different context.)"},
+];
+let view=0; const listEl=document.getElementById('list'),detailEl=document.getElementById('detail');
+function render(){
+ listEl.innerHTML=F.map((f,i)=>`<div class="card ${i===view?'sel':''}" data-i="${i}"><div class="nm">${f.slug}</div><div class="sk"><span class="tag ${f.cat}">${f.cat.replace('_',' ')}</span> #${f.issue}</div></div>`).join('');
+ listEl.querySelectorAll('.card').forEach(c=>c.onclick=()=>{view=+c.dataset.i;render();});
+ const f=F[view];
+ detailEl.innerHTML=`<h2><span class="tag ${f.cat}">${f.cat.replace('_',' ')}</span> ${f.slug}</h2>
+  <div class="crumb">CC 2.1.157 · adoption issue #${f.issue}</div>
+  <p class="desc">${f.desc}</p>
+  <div class="lbl">Matrix</div><pre>${f.matrix}</pre>
+  <div class="lbl">Affected skills</div><div class="skills">${f.skills.map(s=>`<span>${s}</span>`).join('')}</div>
+  <div class="lbl">Adoption note</div><pre>${f.note.replace(/</g,'&lt;')}</pre>`;
+}
+render();
+</script>
+</body>
+</html>

@@ -24,6 +24,21 @@
 
 ---
 
+## Contents
+
+- [Quick Start](#quick-start)
+- [Why OrchestKit?](#why-orchestkit)
+- [What You Get](#what-you-get)
+- [Key Commands](#key-commands)
+- [Configuration](#configuration)
+- [Install](#install)
+- [Release Channels](#release-channels)
+- [FAQ](#faq)
+- [Development](#development)
+- [What's New](#whats-new)
+- [Community](#community)
+
+
 ## Quick Start
 
 ```bash
@@ -180,6 +195,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 ---
 
 ## What's New
+
+**v8.16.0** — CC 2.1.149 → 2.1.161 adoption catch-up
+
+- **CC 2.1.160 + 2.1.161 adopted** — shell/build-config write prompts, single-file `grep` satisfies read-before-edit, background-session SIGTERM-before-SIGKILL, dynamic-workflow trigger renamed `workflow` → `ultracode`, parallel-tool independent failure, `claude mcp` secret redaction, `OTEL_RESOURCE_ATTRIBUTES` metric labels, `claude agents` done/total, `/mcp` collapse-unused-connectors.
+- **CC 2.1.157 adopted** — `.claude/skills` plugin auto-load (no marketplace), `claude plugin init`, `EnterWorktree` mid-session switching, worktrees unlocked on finish, `claude agents --agent`, backspace-dismiss workflow trigger.
+- **Skill tool-signature fixes** — corrected `SendMessage` / `PushNotification` examples that had drifted from the live tool schemas across 5 skills, surfaced by a 61-skill adversarially-verified staleness audit.
+- **Version matrix now 472 entries**; supported floor held at **2.1.148** (frozen until 2026-08-23).
 
 **v7.63.0** — CC 2.1.116 Adoption + `gh` rate-limit enforcement
 

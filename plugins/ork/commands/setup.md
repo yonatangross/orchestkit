@@ -115,6 +115,8 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 > **TUI mode (CC 2.1.110+):** Recommend `/tui fullscreen` for flicker-free rendering during long sessions. Pair with `autoScrollEnabled: false` in `/config` for manual scroll control during brainstorm/implement output review. The `/focus` command provides a condensed view (prompt + one-line tool summaries + final response).
 
+> **Plugin install (CC 2.1.157+):** Plugins in `.claude/skills` auto-load without a marketplace — for local/dev installs, placing a plugin there is enough. `claude plugin init <name>` scaffolds a new plugin skeleton in `.claude/skills`.
+
 > **`--dangerously-skip-permissions` policy (CC 2.1.121 + 2.1.126, #1583):** the flag's scope expanded substantially. As of 2.1.126 it bypasses prompts for writes to `.claude/`, `.git/`, `.vscode/`, shell config files (`~/.bashrc`, `~/.zshrc`, etc.), and "other previously-protected paths" — on top of `.claude/skills/`, `.claude/agents/`, `.claude/commands/` already bypassed since 2.1.121. Only catastrophic removal commands (e.g., `rm -rf /`) still prompt. **Recommend against this flag for shared workstations, CI runners, and onboarding sessions.** Suggest the auto-approve permission hooks in `src/hooks/README.md` instead — they offer fine-grained allow-listing without disabling the safety net wholesale. The setup wizard should warn (not block) if the user enables this flag during configure.
 
 ## Phase 3.5: Project Configuration Wizard
