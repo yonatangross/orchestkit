@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.18.0](https://github.com/yonatangross/orchestkit/compare/v8.17.0...v8.18.0) (2026-06-03)
+
+
+### Features
+
+* **hooks:** memory-driven lint — feedback_*.md rules to linter ([#1901](https://github.com/yonatangross/orchestkit/issues/1901)) ([#2190](https://github.com/yonatangross/orchestkit/issues/2190)) ([c69ae80](https://github.com/yonatangross/orchestkit/commit/c69ae805b39fec35daedc6de091d803337587637))
+* **tests:** extend tool-call verifier to TaskCreate/TaskUpdate ([#2188](https://github.com/yonatangross/orchestkit/issues/2188)) ([41764f0](https://github.com/yonatangross/orchestkit/commit/41764f0ecc4bb45427e1f640a981231c1894a054)), closes [#2177](https://github.com/yonatangross/orchestkit/issues/2177)
+
 ## [8.17.0](https://github.com/yonatangross/orchestkit/compare/v8.16.2...v8.17.0) (2026-06-03)
 
 
