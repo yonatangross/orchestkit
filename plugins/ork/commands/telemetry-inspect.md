@@ -120,6 +120,7 @@ Degrade gracefully: if `sqlite3` is absent or the DB / metrics file doesn't exis
 When inspecting Claude Code's own OTel metrics (downstream of this skill — `claude_code.*` in your collector):
 
 - **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover — annotate, don't alert. See `references/../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.
+- **CC 2.1.161+**: `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on all metric datapoints, enabling dimensional slicing (team, repo, environment). Existing dashboards keep working; new dashboards should use label selectors to segment usage.
 
 ## Related
 

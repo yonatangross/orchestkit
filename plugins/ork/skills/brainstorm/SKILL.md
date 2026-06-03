@@ -391,11 +391,9 @@ Agent(subagent_type="test-generator", name="testability-assessor",
 **Team teardown** after synthesis:
 ```python
 # After Phase 5 synthesis and design presentation
-SendMessage(type="shutdown_request", recipient="system-designer", content="Brainstorm complete")
-SendMessage(type="shutdown_request", recipient="backend-thinker", content="Brainstorm complete")
-SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brainstorm complete")
-SendMessage(type="shutdown_request", recipient="testability-assessor", content="Brainstorm complete")
-# ... shutdown any additional domain teammates
+# TeamDelete() gracefully shuts down all teammates — no manual shutdown_request
+# needed. (SendMessage params are {to, message, summary}; CC discourages
+# originating shutdown_request, and TeamDelete supersedes it.)
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72) — for Tier 3+ projects that entered a worktree

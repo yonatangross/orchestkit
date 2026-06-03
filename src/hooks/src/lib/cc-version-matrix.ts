@@ -542,6 +542,20 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
 
   // 2.1.158 (2026-05-30) — auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8
   { feature: 'auto_mode_cloud_providers',               minVersion: '2.1.158', description: 'CLAUDE_CODE_ENABLE_AUTO_MODE=1 enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC version as of 2026-05-30.' },
+
+  // 2.1.160 (2026-06-02) — startup/build-config write prompts, grep-satisfies-read, bg SIGTERM-before-SIGKILL, workflow→ultracode rename
+  { feature: 'shell_startup_file_write_prompt',         minVersion: '2.1.160', description: 'CC prompts before writing shell startup files (.zshenv/.zlogin/.bash_login) and ~/.config/git/ to prevent unintended command execution.' },
+  { feature: 'accept_edits_build_config_prompt',        minVersion: '2.1.160', description: 'acceptEdits mode prompts before writing build-tool config that grants code execution (.npmrc, .yarnrc*, bunfig.toml, .bazelrc, .pre-commit-config.yaml, .devcontainer/).' },
+  { feature: 'edit_grep_satisfies_read_check',          minVersion: '2.1.160', description: 'A single-file grep/egrep/fgrep satisfies the read-before-edit check; a separate Read is no longer required before Edit.' },
+  { feature: 'bg_session_sigterm_before_sigkill',       minVersion: '2.1.160', description: 'Background-session teardown (claude rm/stop, idle reap) sends SIGTERM to shell subprocesses before SIGKILL so cleanup handlers run.' },
+  { feature: 'workflow_trigger_renamed_ultracode',      minVersion: '2.1.160', description: 'Dynamic-workflow trigger keyword renamed from "workflow" to "ultracode"; the word "workflow" no longer triggers a run (asking in your own words still works).' },
+
+  // 2.1.161 (2026-06-03) — parallel-tool independent failure, claude mcp secret redaction, OTEL resource-attr labels, agents done/total, /mcp collapse unused
+  { feature: 'parallel_tools_independent_failure',      minVersion: '2.1.161', description: 'A failed Bash command in a parallel tool batch no longer cancels sibling calls; each tool returns its own result independently.' },
+  { feature: 'claude_mcp_secret_redaction',             minVersion: '2.1.161', description: 'claude mcp list/get/add no longer expands ${VAR} references and redacts credential headers and URL secrets in terminal output.' },
+  { feature: 'otel_resource_attrs_metric_labels',       minVersion: '2.1.161', description: 'OTEL_RESOURCE_ATTRIBUTES values are attached as labels on metric datapoints, enabling slicing usage metrics by custom dimensions (team, repo).' },
+  { feature: 'claude_agents_done_total',                minVersion: '2.1.161', description: 'claude agents rows show done/total progress for fanned-out work; peek shows the longest-running item.' },
+  { feature: 'mcp_collapse_unused_connectors',          minVersion: '2.1.161', description: '/mcp collapses claude.ai connectors never signed in to behind a "Show unused connectors" row.' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];
