@@ -148,6 +148,38 @@ else
     echo -e "  ${YELLOW}tests/security/test-packaging-leaks.sh${NC}"
 fi
 
+# --------------------------------------------------------------------------
+# Test 5: No oversized files in plugins/ (#1237 — the source-leak root cause)
+# --------------------------------------------------------------------------
+# Tests 1-4 check file names/extensions. They do NOT check SIZE. The Mar-2026
+# Claude Code source leak shipped a 59.8MB source map — a size problem, not a
+# name problem. Cap is generous (current largest legit artifact is the ~1.8MB
+# mcp-server source map); override with MAX_FILE_MB=<n>.
+log_section "Test 5: No oversized files in plugins/ (cap ${MAX_FILE_MB:-3}MB)"
+
+MAX_BYTES=$(( ${MAX_FILE_MB:-3} * 1024 * 1024 ))
+# `if/fi` (not `&& printf`) so the loop's last command is truthy — under
+# `set -e` a trailing false `&&` would make the $() subshell exit 1 and abort.
+OVERSIZED=$(echo "$TRACKED_LIST" | while IFS= read -r f; do
+    if [[ -n "$f" ]]; then
+        sz=$(wc -c < "$PROJECT_ROOT/$f" 2>/dev/null || echo 0)
+        if [[ "$sz" -gt "$MAX_BYTES" ]]; then
+            printf '%s (%sKB)\n' "$f" "$(( sz / 1024 ))"
+        fi
+    fi
+done || true)
+
+if [[ -z "$OVERSIZED" ]]; then
+    log_pass "No files exceed ${MAX_FILE_MB:-3}MB"
+else
+    log_fail "Found oversized file(s) — possible source/blob leak:"
+    echo "$OVERSIZED" | while IFS= read -r line; do
+        echo -e "    ${RED}→${NC} $line"
+    done
+    echo -e "  ${YELLOW}A giant shipped file is how the Mar-2026 CC source leak happened.${NC}"
+    echo -e "  ${YELLOW}If legitimate, raise MAX_FILE_MB; otherwise exclude it from plugins/.${NC}"
+fi
+
 # ============================================================================
 # SUMMARY
 # ============================================================================
