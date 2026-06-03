@@ -25,13 +25,15 @@ import {
   safelyMatches,
   type ToolInvocationRule,
 } from '../lib/tool-invocation-rules.js';
+import { getMemoryRules } from '../lib/memory-lint.js';
 
 const HOOK_NAME = 'tool-invocation-linter';
 
 /** Format a matched rule as a one-line advisory. */
 function formatAdvisory(rule: ToolInvocationRule): string {
   const tag = rule.severity === 'warn' ? '⚠️' : rule.severity === 'block' ? '🚫' : 'ℹ️';
-  return `${tag} [${rule.id}] ${rule.message} (see: ${rule.see})`;
+  const src = rule.source ? ` [${rule.source}]` : '';
+  return `${tag} [${rule.id}] ${rule.message} (see: ${rule.see})${src}`;
 }
 
 export function toolInvocationLinter(
@@ -43,9 +45,14 @@ export function toolInvocationLinter(
 
   const toolInput = (input.tool_input as Record<string, unknown> | undefined) ?? {};
 
+  // Merge memory-sourced rules (#1901). The static registry is canonical and
+  // wins on `id` collision; memory rules are advisory-only (warn/info).
+  const staticIds = new Set(TOOL_INVOCATION_RULES.map((r) => r.id));
+  const memoryRules = getMemoryRules(input.project_dir).filter((r) => !staticIds.has(r.id));
+
   // Filter to rules that apply to this tool — preserves O(rules) but skips
   // predicate evaluation for unrelated tools.
-  const applicable = TOOL_INVOCATION_RULES.filter((r) => r.tool_name === toolName);
+  const applicable = [...TOOL_INVOCATION_RULES, ...memoryRules].filter((r) => r.tool_name === toolName);
   if (applicable.length === 0) return outputSilentSuccess();
 
   const matches = applicable.filter((r) => safelyMatches(r, toolInput));

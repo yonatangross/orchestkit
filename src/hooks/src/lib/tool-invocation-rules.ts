@@ -44,6 +44,12 @@ export interface ToolInvocationRule {
   message: string;
   /** Non-empty pointer to docs or issue (e.g. 'docs/parallel-primitives.md' or '#1883'). */
   see: string;
+  /**
+   * Provenance tag for non-static rules, e.g. 'memory:feedback_foo.md' (#1901).
+   * Static registry rules omit it; the linter appends it to the advisory so
+   * operators know a rule came from user memory rather than the canonical set.
+   */
+  source?: string;
 }
 
 /**
