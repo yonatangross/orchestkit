@@ -1,89 +1,86 @@
 [
   {
-    "version": "2.1.160",
+    "version": "2.1.161",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "edit_grep_satisfies_read_check",
+        "feature_slug": "parallel_tools_independent_failure",
         "category": "breaking",
-        "description": "Single-file grep/egrep/fgrep now satisfies the read-before-edit check, so a separate Read is no longer required.",
+        "description": "Failed Bash in a parallel tool batch no longer cancels sibling calls; each tool returns its own result.",
         "gap_score": 20,
         "affected_skills": [
+          "agent-orchestration",
+          "task-dependency-patterns",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Parallel tool calls: a failed Bash command no longer cancels other calls in the same batch — each tool returns its own result independently"
+      },
+      {
+        "feature_slug": "claude_mcp_secret_redaction",
+        "category": "breaking",
+        "description": "claude mcp list/get/add no longer expands ${VAR} refs and redacts credential headers and URL secrets.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
           "security-patterns"
         ],
-        "reference_changelog_line": "Edit no longer requires a separate Read after viewing a file with `grep`: single-file `grep`/`egrep`/`fgrep` commands now satisfy the read-before-edit check"
+        "reference_changelog_line": "Fixed `claude mcp` list/get/add printing secrets to the terminal: `${VAR}` references are no longer expanded, and credential headers and URL secrets are redacted"
       },
       {
-        "feature_slug": "bg_session_sigterm_before_sigkill",
-        "category": "breaking",
-        "description": "Background-session teardown now sends SIGTERM to running shell subprocesses before SIGKILL so cleanup handlers run.",
-        "gap_score": 20,
+        "feature_slug": "otel_resource_attrs_metric_labels",
+        "category": "new_attr",
+        "description": "OTEL_RESOURCE_ATTRIBUTES values are now attached as labels on metric datapoints for custom slicing.",
+        "gap_score": 5,
         "affected_skills": [
-          "async-jobs",
-          "distributed-systems"
+          "monitoring-observability",
+          "telemetry-inspect"
         ],
-        "reference_changelog_line": "Improved background-session teardown (`claude rm`/`stop`, idle reap) to send SIGTERM to running shell subprocesses before SIGKILL, so cleanup handlers run"
+        "reference_changelog_line": "`OTEL_RESOURCE_ATTRIBUTES` values are now included as labels on metric datapoints, so you can slice usage metrics by custom dimensions like team or repo"
       },
       {
-        "feature_slug": "workflow_trigger_renamed_ultracode",
-        "category": "breaking",
-        "description": "Dynamic-workflow trigger keyword renamed from `workflow` to `ultracode`; the word `workflow` is no longer a trigger.",
-        "gap_score": 20,
+        "feature_slug": "claude_agents_done_total",
+        "category": "new_attr",
+        "description": "claude agents rows now show done/total progress and peek shows the longest-running fanned-out item.",
+        "gap_score": 5,
         "affected_skills": [
-          "chain-patterns",
-          "agent-orchestration",
-          "configure"
+          "agent-orchestration"
         ],
-        "reference_changelog_line": "Renamed the dynamic-workflow trigger keyword from `workflow` to `ultracode`. The word \"workflow\" no longer triggers a run; asking for one in your own words still works. The trigger keyword is highlighted in violet in the prompt input"
+        "reference_changelog_line": "`claude agents` rows now show `done/total` before the detail when work is fanned out; peek shows the longest-running item"
       },
       {
-        "feature_slug": "shell_startup_file_write_prompt",
-        "category": "new_perm",
-        "description": "Now prompts before writing to shell startup files (.zshenv, .zlogin, .bash_login) and ~/.config/git/ to avoid unintended",
-        "gap_score": 12,
+        "feature_slug": "mcp_collapse_unused_connectors",
+        "category": "new_attr",
+        "description": "/mcp now hides claude.ai connectors never signed in to behind a Show unused connectors row.",
+        "gap_score": 5,
         "affected_skills": [
-          "security-patterns",
-          "configure"
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Added a prompt before writing to shell startup files (`.zshenv`, `.zlogin`, `.bash_login`) and `~/.config/git/`, which could otherwise lead to unintended command execution"
+        "reference_changelog_line": "`/mcp` now collapses claude.ai connectors you've never signed in to behind a \"Show unused connectors\" row"
       },
       {
-        "feature_slug": "accept_edits_build_config_prompt",
-        "category": "new_perm",
-        "description": "acceptEdits mode now prompts before writing build-tool config files granting code execution (.npmrc, bunfig.toml, .bazel",
-        "gap_score": 12,
-        "affected_skills": [
-          "security-patterns",
-          "configure"
-        ],
-        "reference_changelog_line": "`acceptEdits` mode now prompts before writing build-tool config files that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`, etc.)"
-      },
-      {
-        "feature_slug": "removed_opus_4_6_fast_mode_override",
-        "category": "deprecation",
-        "description": "CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE environment variable removed and is now a no-op.",
-        "gap_score": 8,
-        "affected_skills": [
-          "configure"
-        ],
-        "reference_changelog_line": "Removed `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE`; the environment variable is now a no-op"
+        "feature_slug": "fullscreen_linux_clipboard",
+        "category": "new_attr",
+        "description": "Fullscreen clipboard uses wl-copy/xclip/xsel on Linux and copies to clipboard plus PRIMARY selection.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fullscreen mode: clipboard now uses `wl-copy`/`xclip`/`xsel` on Linux when available, copies to both the clipboard and PRIMARY selection for middle-click paste, and the \"hold {key} for native selection\" hint now shows the correct key per terminal"
       }
     ],
-    "raw_bullets_count": 27,
-    "issues_filed_at": "2026-06-02T15:25:36Z"
+    "raw_bullets_count": 22,
+    "issues_filed_at": "2026-06-03T09:23:46Z"
   },
   {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-02T15:25:10.571Z"
+    "failed_at": "2026-06-03T09:23:24.461Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-02T15:25:16.245Z"
+    "failed_at": "2026-06-03T09:23:30.758Z"
   }
 ]
