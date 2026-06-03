@@ -513,6 +513,9 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'auto_allow_bash_sandboxed_expansion_fix', minVersion: '2.1.139', description: 'autoAllowBashIfSandboxed auto-approves commands with shell expansions like $VAR and $(cmd)' },
   { feature: 'compaction_preserves_sensitive_prefs',    minVersion: '2.1.139', description: 'Compaction prompt now asks the model to preserve sensitive user instructions' },
 
+  // 2.1.142 (2026-05-17) — MCP_TOOL_TIMEOUT now applies to remote HTTP/SSE servers
+  { feature: 'mcp_tool_timeout_http_sse',               minVersion: '2.1.142', description: 'MCP_TOOL_TIMEOUT now raises the per-request timeout for remote HTTP and SSE MCP servers (previously capped at 60s regardless); set it for long-poll tools like NotebookLM studio_status and KB ingest.' },
+
   // 2.1.145 (2026-05-20) — Stop/SubagentStop authoritative bg state, OTEL agent_id span attrs
   { feature: 'stop_hook_background_tasks',              minVersion: '2.1.145', description: 'Stop and SubagentStop hook input now includes background_tasks[] — authoritative live-agent list. OrchestKit watchdog uses this to suppress phantom-agent CRITICAL alerts from stale subagent-spawns.jsonl entries.' },
   { feature: 'stop_hook_session_crons',                 minVersion: '2.1.145', description: 'Stop and SubagentStop hook input now includes session_crons[] — active cron schedules at hook fire time. Available for hooks that want to suppress action during cron ticks.' },

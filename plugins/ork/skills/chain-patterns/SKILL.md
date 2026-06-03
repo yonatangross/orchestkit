@@ -114,6 +114,8 @@ Agent(
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
 
 > **CC 2.1.157 worktree lifecycle:** `EnterWorktree` can switch between Claude-managed worktrees mid-session, and worktrees are left **unlocked** when the agent finishes — so `git worktree remove`/`prune` cleans them up without `--force`.
+
+> **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep` — it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
 **When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
 Load details: `Read("${CLAUDE_SKILL_DIR}/references/worktree-agent-pattern.md")`

@@ -121,6 +121,7 @@ When inspecting Claude Code's own OTel metrics (downstream of this skill — `cl
 
 - **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover — annotate, don't alert. See `references/../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.
 - **CC 2.1.161+**: `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on all metric datapoints, enabling dimensional slicing (team, repo, environment). Existing dashboards keep working; new dashboards should use label selectors to segment usage.
+- **CC 2.1.145+**: `claude_code.tool` OTEL spans carry `agent_id` + `parent_agent_id`, and background subagent spans nest under the dispatching Agent tool span. Build the trace tree by querying on `parent_agent_id` — enables per-skill fan-out timing and cost attribution for multi-agent skills (`brainstorm`, `explore`, `implement`); no schema change needed.
 
 ## Related
 
