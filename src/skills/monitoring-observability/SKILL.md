@@ -85,6 +85,8 @@ Prometheus metrics, Grafana dashboards, and alerting for application health.
 | Grafana Dashboards | `rules/monitoring-grafana.md` | Golden Signals, SLO/SLI, health checks |
 | Alerting Rules | `rules/monitoring-alerting.md` | Severity levels, grouping, escalation, fatigue prevention |
 
+> **CC 2.1.161 — OTEL resource attributes as metric labels:** `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on metric datapoints, so usage metrics can be sliced by custom dimensions (team, repo, environment). Add label selectors to dashboards for multi-tenant / per-team cost and usage tracking.
+
 ## LLM Observability
 
 Langfuse-based tracing, cost tracking, and evaluation for LLM applications.

@@ -390,6 +390,16 @@ skill is no longer marked `experimental:` in its frontmatter.
 | internal infra + thinking-block fix | 2.1.155–2.1.156 | 2.1.155 is internal infrastructure only; 2.1.156 fixes a client crash where modified thinking blocks on Opus 4.8 caused API errors. No ork surface | — |
 | `.claude/skills` autoload + `plugin init` | 2.1.157 | Plugins under `.claude/skills` auto-load without a marketplace; `claude plugin init <name>` scaffolds a plugin; `EnterWorktree` switches worktree mid-session; `OTEL_LOG_TOOL_DETAILS=1` adds `tool_parameters` spans; `/config` toggles the Workflow keyword trigger. ork: no adoption yet (local-skills autoload could simplify dev installs) | Plugins required a marketplace; no mid-session worktree switch |
 | auto mode on cloud providers | 2.1.158 | `CLAUDE_CODE_ENABLE_AUTO_MODE=1` enables auto mode on Bedrock/Vertex/Foundry for Opus 4.7 & 4.8. Latest published CC (2026-05-30). No ork surface | Auto mode was first-party API only |
+| shell startup file write prompt | 2.1.160 | CC prompts before writing shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`); documented in `security-patterns`, `configure` | Silent writes to exec-on-load files |
+| `acceptEdits` build-config write prompt | 2.1.160 | `acceptEdits` mode prompts before writing build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`) | Silent writes to exec-granting build configs |
+| grep satisfies read-before-edit | 2.1.160 | A single-file `grep`/`egrep`/`fgrep` now satisfies the read-before-edit check; a separate Read is no longer required before Edit | Redundant Read required before each Edit |
+| bg session SIGTERM before SIGKILL | 2.1.160 | Background-session teardown (`claude rm`/`stop`, idle reap) sends SIGTERM to shell subprocesses before SIGKILL so cleanup handlers run | Cleanup handlers skipped on teardown |
+| workflow trigger renamed `ultracode` | 2.1.160 | Dynamic-workflow trigger keyword renamed `workflow` → `ultracode`; the bare word "workflow" no longer triggers a run. ork invokes the Workflow tool programmatically, so no skill copy depends on the keyword | Typing "workflow" silently triggered a run |
+| parallel tool independent failure | 2.1.161 | A failed Bash in a parallel tool batch no longer cancels sibling calls; each returns independently. Noted in `chain-patterns`, `agent-orchestration`, `task-dependency-patterns` | One failed call aborted the whole batch |
+| `claude mcp` secret redaction | 2.1.161 | `claude mcp list/get/add` no longer expands `${VAR}` refs and redacts credential headers + URL secrets; noted in `mcp-patterns`, `security-patterns` | Secrets printed to terminal |
+| OTEL resource-attr metric labels | 2.1.161 | `OTEL_RESOURCE_ATTRIBUTES` attached as labels on metric datapoints for slicing by team/repo; noted in `monitoring-observability`, `telemetry-inspect` | No custom-dimension slicing of usage metrics |
+| `claude agents` done/total | 2.1.161 | `claude agents` rows show `done/total` for fanned-out work; peek shows the longest-running item | No fan-out progress in the agents list |
+| `/mcp` collapse unused connectors | 2.1.161 | `/mcp` collapses claude.ai connectors never signed in to behind a "Show unused connectors" row | Long connector list with dead entries |
 
 ## Prompt Caching Recommendation
 
