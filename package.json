@@ -14,6 +14,7 @@
     "generate:docs-data": "node scripts/generate-docs-data.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
+    "test:packaging": "bash tests/security/test-packaging-leaks.sh",
     "test:skills": "bash tests/skills/structure/test-skill-md.sh && bash tests/skills/structure/test-rule-validation.sh && bash tests/skills/structure/test-askuserquestion-schema.sh && bash tests/skills/structure/test-tool-call-signatures.sh",
     "test:skills:directive-density": "bash tests/skills/structure/test-directive-density.sh",
     "test:skills:tokens": "bash tests/skills/structure/test-skill-tokens.sh",
