@@ -51,8 +51,8 @@ Bash("git worktree add ../{project}-frontend feat/{feature}/frontend")
 Bash("git worktree add ../{project}-tests feat/{feature}/tests")
 
 # Include worktree path in teammate messages
-SendMessage(type="message", recipient="backend-architect",
-    content="Work in ../{project}-backend/. Commit to feat/{feature}/backend.")
+SendMessage(to="backend-architect",
+    message="Work in ../{project}-backend/. Commit to feat/{feature}/backend.")
 ```
 
 See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.
@@ -74,8 +74,8 @@ In Agent Teams mode, the code-reviewer teammate has already been reviewing code 
 Bash("npm test && npm run typecheck && npm run lint")
 
 # Collect code-reviewer verdict
-SendMessage(type="message", recipient="code-reviewer",
-    content="All code merged. Please provide final APPROVE/REJECT verdict.")
+SendMessage(to="code-reviewer",
+    message="All code merged. Please provide final APPROVE/REJECT verdict.")
 ```
 
 > **Fallback:** If code-reviewer verdict is unclear, fall back to 4 independent Task spawns (standard Phase 6).
@@ -98,14 +98,7 @@ git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test 
 ### 2. Shut Down Teammates
 
 ```python
-SendMessage(type="shutdown_request", recipient="backend-architect",
-    content="Implementation complete, shutting down team.")
-SendMessage(type="shutdown_request", recipient="frontend-dev",
-    content="Implementation complete, shutting down team.")
-SendMessage(type="shutdown_request", recipient="test-engineer",
-    content="Implementation complete, shutting down team.")
-SendMessage(type="shutdown_request", recipient="code-reviewer",
-    content="Implementation complete, shutting down team.")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 ```
 
 ### 3. Clean Up

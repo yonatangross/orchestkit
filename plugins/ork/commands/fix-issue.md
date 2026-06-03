@@ -351,8 +351,8 @@ if capabilities.memory:
 >
 > ```python
 > PushNotification(
->   title="ork:fix-issue complete",
->   body=f"#{issue_number}: fix pushed, {tests_passing}/{tests_total} tests · PR #{pr_number}"
+>   message=f"ork:fix-issue complete — #{issue_number}: fix pushed, {tests_passing}/{tests_total} tests · PR #{pr_number}",
+>   status="proactive"
 > )
 > ```
 

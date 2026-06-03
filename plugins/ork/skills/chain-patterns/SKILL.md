@@ -174,7 +174,7 @@ Agent(subagent_type="backend-system-architect",
   prompt="Design the API schema", name="api-designer")
 
 # Later, continue the same agent with new context
-SendMessage(to="api-designer", content="Now implement the schema you designed")
+SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 # CC 2.1.77: SendMessage auto-resumes stopped agents.
 # No need to check agent state or handle "agent stopped" errors.

@@ -45,9 +45,8 @@ TaskUpdate(taskId: "5", status: "completed")
 // Agent communicates completion context to dependent agent
 TaskUpdate(taskId: "5", status: "completed")
 SendMessage(
-  type: "message",
-  recipient: "frontend-dev",
-  content: "Task #5 done: API returns { users: User[], total: number }. Schema in src/types/user.ts.",
+  to: "frontend-dev",
+  message: "Task #5 done: API returns { users: User[], total: number }. Schema in src/types/user.ts.",
   summary: "API contract ready for frontend"
 )
 // Downstream agent has full context to start dependent work

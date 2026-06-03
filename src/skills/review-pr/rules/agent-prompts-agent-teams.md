@@ -127,15 +127,7 @@ Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
 **Team teardown** after synthesis (only shut down agents that were actually spawned):
 ```python
 # After collecting all findings and producing the review
-# Core agents — always shut down
-SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="test-reviewer", content="Review complete")
-# Conditional agents — only shut down if spawned
-# if HAS_BACKEND:
-SendMessage(type="shutdown_request", recipient="backend-reviewer", content="Review complete")
-# if HAS_FRONTEND:
-SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Review complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)
@@ -153,8 +145,7 @@ Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
 **Correct — Proper team teardown:**
 ```python
 # After review synthesis complete
-SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
-SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()  # Clean shutdown
 ExitWorktree(action="keep")
 ```

@@ -31,8 +31,8 @@ return final_report  # user is still reading Slack; never sees it
 ```python
 # GOOD: fire at the final step, with an outcome-summarizing body
 PushNotification(
-  title="ork:implement complete",
-  body=f"{FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify"
+  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify",
+  status="proactive"
 )
 return final_report
 ```
@@ -45,7 +45,7 @@ The title names the skill; the body summarizes the outcome in one line. Users fi
 
 ```python
 # GOOD: unconditional call; tool is a no-op when RC is disabled
-PushNotification(title="...", body="...")
+PushNotification(message="... — ...", status="proactive")
 
 # WRONG: defensive capability check adds complexity for no gain
 if has_remote_control():  # this API does not exist

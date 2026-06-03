@@ -47,10 +47,7 @@ Agent(subagent_type="frontend-ui-developer", name="frontend-explorer",
 After report generation:
 
 ```python
-SendMessage(type="shutdown_request", recipient="structure-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="data-flow-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="backend-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="frontend-explorer", content="Exploration complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

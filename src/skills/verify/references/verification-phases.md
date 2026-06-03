@@ -173,12 +173,7 @@ Agent(subagent_type="python-performance-engineer", name="perf-verifier",
 **Team teardown** after report compilation:
 ```python
 # After composite grading and report generation
-SendMessage(type="shutdown_request", recipient="quality-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="security-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="test-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="api-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="ui-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="perf-verifier", content="Verification complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)
