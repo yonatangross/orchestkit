@@ -256,8 +256,8 @@ Monitor(pid=expect_task.agent_id)
 # Skip silently if the user doesn't have Remote Control enabled.
 if test_plan_duration_estimate > 180:
     PushNotification(
-        title="ork:expect complete",
-        body=f"{passed}/{total} steps passed on {len(affected_urls)} pages"
+        message=f"ork:expect complete — {passed}/{total} steps passed on {len(affected_urls)} pages",
+        status="proactive"
     )
 ```
 

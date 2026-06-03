@@ -296,8 +296,8 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/report-template.md")` for fu
 >
 > ```python
 > PushNotification(
->   title="ork:verify complete",
->   body=f"{verdict} · {score}/10 · {blockers_count} blockers"
+>   message=f"ork:verify complete — {verdict} · {score}/10 · {blockers_count} blockers",
+>   status="proactive"
 > )
 > ```
 

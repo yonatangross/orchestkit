@@ -44,11 +44,7 @@ Agent(subagent_type="test-generator", name="test-planner",
 
 **Team teardown** after fix is implemented and validated:
 ```python
-SendMessage(type="shutdown_request", recipient="root-cause-tracer", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="impact-analyst", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="backend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="frontend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="test-planner", content="Fix validated")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

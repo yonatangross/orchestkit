@@ -51,10 +51,7 @@ Agent(subagent_type="test-generator", name="test-assessor",
 
 **Team teardown** after report compilation:
 ```python
-SendMessage(type="shutdown_request", recipient="correctness-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="security-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="perf-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="test-assessor", content="Assessment complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)
