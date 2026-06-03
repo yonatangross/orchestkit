@@ -151,7 +151,8 @@ TeamCreate(team_name="feature-auth", description="User auth implementation")
 
 # 2. Create tasks in shared list
 TaskCreate(subject="Design API schema", description="...")
-TaskCreate(subject="Build React components", description="...", addBlockedBy=["1"])
+TaskCreate(subject="Build React components", description="...")
+TaskUpdate(taskId="2", addBlockedBy=["1"])  # link deps after the task exists
 
 # 3. Spawn teammates
 Agent(prompt="You are the backend architect...",

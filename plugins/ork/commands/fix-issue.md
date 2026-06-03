@@ -393,7 +393,7 @@ All 5 RCA agents receive: issue description, ranked hypotheses, reproduction ste
 
 ### Skill Chain
 
-After fix is applied: `TaskCreate(subject="Verify fix", addBlockedBy=[fix_task_id])` → `/ork:verify`.
+After fix is applied: `TaskCreate(subject="Verify fix")` then `TaskUpdate(taskId=verify_id, addBlockedBy=[fix_task_id])` → `/ork:verify`.
 
 ### Verification Gate
 

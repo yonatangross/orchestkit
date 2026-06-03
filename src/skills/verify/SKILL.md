@@ -395,7 +395,8 @@ SendMessage(to="code-quality-reviewer", message="Security finding at user_servic
 After verification, chain to commit if all gates pass:
 
 ```python
-TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlockedBy=[verify_task_id])
+TaskCreate(subject="Commit verified changes", activeForm="Committing")
+TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 # Then: /ork:commit
 ```
 

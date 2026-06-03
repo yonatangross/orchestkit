@@ -25,6 +25,9 @@
 # Registry (params per live CC schema, 2026-06-03):
 #   SendMessage      → {to, message, summary}      (legacy: recipient, content, type)
 #   PushNotification → {message, status}           (legacy: title, body)
+#   TaskCreate       → {subject, description, activeForm, metadata}  (NOT addBlockedBy — that is TaskUpdate)
+#   TaskUpdate       → {taskId, status, subject, description, activeForm, owner, metadata, addBlocks, addBlockedBy}
+# `Agent` is deliberately excluded — see the NOTE in the TOOLS registry below.
 #
 # To extend: add a tool to TOOLS below with its allowed-param set.
 #
@@ -66,6 +69,18 @@ TOOLS = {
     "PushNotification": {
         "allowed": {"message", "status"},
         "legacy": {"title": "message", "body": "message", "text": "message"},
+    },
+    # NOTE: `Agent` is intentionally NOT validated. `Agent(` collides with third-party
+    # agent-framework constructors ork legitimately documents — CrewAI Agent(role=,
+    # goal=, backstory=), OpenAI Agents SDK Agent(instructions=, handoffs=), LangGraph —
+    # which would produce 250+ false positives. Only CC-specific tool names are gated.
+    "TaskCreate": {
+        "allowed": {"subject", "description", "activeForm", "metadata"},
+        "legacy": {"title": "subject", "content": "description", "active_form": "activeForm", "name": "subject"},
+    },
+    "TaskUpdate": {
+        "allowed": {"taskId", "status", "subject", "description", "activeForm", "owner", "metadata", "addBlocks", "addBlockedBy"},
+        "legacy": {"task_id": "taskId", "id": "taskId", "blockedBy": "addBlockedBy", "blocks": "addBlocks"},
     },
 }
 

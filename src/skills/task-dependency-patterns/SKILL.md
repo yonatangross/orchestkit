@@ -180,7 +180,7 @@ SendMessage(to: "backend-dev",
 When using Agent Teams, if context limit is reached mid-workflow:
 - Collect partial results from completed teammates via `TaskList`
 - Synthesize available outputs — prefer partial results over silent failure
-- Log skipped tasks with `TaskUpdate(status: "cancelled", note: "context limit")`
+- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: {"skipped": "context limit"})`
 
 ## Anti-Patterns
 

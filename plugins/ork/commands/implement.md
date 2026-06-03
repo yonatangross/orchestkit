@@ -428,7 +428,8 @@ SendMessage(to="test-generator", message="Backend uses JWT — mock auth middlew
 After implementation completes, chain to verification:
 
 ```python
-TaskCreate(subject="Verify implementation", activeForm="Verifying changes", addBlockedBy=[impl_task_id])
+TaskCreate(subject="Verify implementation", activeForm="Verifying changes")
+TaskUpdate(taskId=verify_id, addBlockedBy=[impl_task_id])
 # Then: /ork:verify {feature}
 ```
 
