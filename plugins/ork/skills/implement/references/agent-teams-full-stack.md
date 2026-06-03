@@ -277,10 +277,7 @@ After all teammates complete (or when all tasks are done):
 
 5. **Shut down team:**
    ```
-   SendMessage(type="shutdown_request", recipient="backend-architect")
-   SendMessage(type="shutdown_request", recipient="frontend-dev")
-   SendMessage(type="shutdown_request", recipient="test-engineer")
-   SendMessage(type="shutdown_request", recipient="code-reviewer")
+   # TeamDelete() shuts down all teammates — no manual shutdown_request needed
    TeamDelete()
 
    # Worktree cleanup (CC 2.1.72)

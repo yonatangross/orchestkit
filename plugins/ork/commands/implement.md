@@ -380,8 +380,8 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("${CLAUDE_SKIL
 
 ```python
 PushNotification(
-  title="ork:implement complete",
-  body=f"{FEATURE}: {tests_passing}/{tests_total} tests · PR #{pr_num} opened · ready for /ork:verify"
+  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · PR #{pr_num} opened · ready for /ork:verify",
+  status="proactive"
 )
 ```
 

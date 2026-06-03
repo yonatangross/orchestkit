@@ -163,13 +163,13 @@ Agent(prompt="You are the backend architect...",
 
 ```
 # Direct message (default)
-SendMessage(type="message", recipient="frontend-dev",
-  content="API contract: GET /users/:id -> {id, name, email}",
+SendMessage(to="frontend-dev",
+  message="API contract: GET /users/:id -> {id, name, email}",
   summary="API contract ready")
 
-# Broadcast (expensive -- use sparingly)
-SendMessage(type="broadcast",
-  content="Auth header format changed to Bearer",
+# No broadcast primitive -- send per-teammate or post to the shared task list
+SendMessage(to="frontend-dev",
+  message="Auth header format changed to Bearer",
   summary="Breaking auth change")
 ```
 
