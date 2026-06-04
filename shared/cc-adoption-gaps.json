@@ -1,16 +1,91 @@
 [
   {
+    "version": "2.1.162",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "tools_flag_grep_glob_enabled",
+        "category": "breaking",
+        "description": "Listing Grep/Glob in --tools now enables dedicated search tools on native builds; previously silently ignored.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "bare-eval",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "`--tools`: explicitly listing Grep/Glob now provides the dedicated search tools on native builds with embedded search (previously these names were silently ignored)"
+      },
+      {
+        "feature_slug": "slash_command_click_fills",
+        "category": "breaking",
+        "description": "Clicking a slash command in autocomplete now fills the prompt instead of running it; Enter required to execute.",
+        "gap_score": 20,
+        "affected_skills": [
+          "help",
+          "demo-producer"
+        ],
+        "reference_changelog_line": "Clicking a slash command in the autocomplete menu now fills it into your prompt instead of running it immediately; press Enter to run"
+      },
+      {
+        "feature_slug": "webfetch_explicit_rules_precedence",
+        "category": "breaking",
+        "description": "Explicit WebFetch(domain:...) deny/ask/allow rules now override built-in preapproved-host auto-allow.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "web-research-workflow",
+          "browser-tools"
+        ],
+        "reference_changelog_line": "Fixed WebFetch permission rules not being applied to built-in preapproved domains; explicit `WebFetch(domain:...)` deny/ask/allow rules now take precedence over the preapproved-host auto-allow"
+      },
+      {
+        "feature_slug": "read_deny_hides_from_glob_grep",
+        "category": "breaking",
+        "description": "Read deny rules now hide files from Glob/Grep results, and Windows backslash/case-variant paths match correctly.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Windows permission rules never matching when spelled with backslashes (`~\\`, `\\\\server\\share`) or case-variant paths, and Read deny rules not hiding files from Glob/Grep results"
+      },
+      {
+        "feature_slug": "agents_json_waiting_for",
+        "category": "new_field",
+        "description": "`claude agents --json` output now includes a `waitingFor` field describing what a waiting session is blocked on.",
+        "gap_score": 5,
+        "affected_skills": [
+          "agent-orchestration",
+          "task-dependency-patterns"
+        ],
+        "reference_changelog_line": "`claude agents --json` now includes `waitingFor` showing what a waiting session is blocked on (e.g. permission prompt)"
+      },
+      {
+        "feature_slug": "effort_default_persist_confirm",
+        "category": "new_attr",
+        "description": "`/effort` now confirms when the chosen level will persist as the default for new sessions.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "setup"
+        ],
+        "reference_changelog_line": "`/effort` now confirms when your chosen level will persist as the default for new sessions"
+      }
+    ],
+    "raw_bullets_count": 28,
+    "issues_filed_at": "2026-06-04T15:04:01Z"
+  },
+  {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-03T15:35:13.129Z"
+    "failed_at": "2026-06-04T15:03:45.944Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-03T15:35:19.476Z"
+    "failed_at": "2026-06-04T15:03:52.106Z"
   }
 ]
