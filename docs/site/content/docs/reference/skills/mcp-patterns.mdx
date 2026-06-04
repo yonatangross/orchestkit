@@ -159,6 +159,7 @@ async def search(query: str) -> str:
 1. No lifecycle management (connection/resource leaks on shutdown)
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
+   - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `$\{VAR\}` references and redacts credential headers and URL secrets in terminal output — but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
 4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)
@@ -685,7 +686,8 @@ Set up MCP clients with proper session management, error handling, and reconnect
 
 **Incorrect -- no error handling, no cleanup:**
 ```typescript
-import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const client = new Client({ name: "app", version: "1.0.0" });
 const transport = new StreamableHTTPClientTransport(new URL("http://localhost:3000/mcp"));
@@ -709,7 +711,8 @@ print(result.content[0].text)  # No type check, no error handling
 
 **Correct -- TypeScript client with reconnection and capability negotiation:**
 ```typescript
-import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const transport = new StreamableHTTPClientTransport(
   new URL("http://localhost:3000/mcp"),
@@ -770,7 +773,7 @@ async def run_stdio_client():
                     print(content.text)
 
 async def run_http_client():
-    async with streamable_http_client("http://localhost:8000/mcp") as (read, write):
+    async with streamable_http_client("http://localhost:8000/mcp") as (read, write, get_session_id):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await session.list_tools()
@@ -1537,9 +1540,9 @@ app = Starlette(routes=[
 
 **Correct -- Streamable HTTP server (Python, recommended):**
 ```python
-from mcp.server.mcpserver import MCPServer
+from mcp.server.fastmcp import FastMCP
 
-mcp = MCPServer("my-tools")
+mcp = FastMCP("my-tools")
 
 @mcp.tool()
 def greet(name: str = "World") -> str:
@@ -1556,15 +1559,15 @@ if __name__ == "__main__":
 **Correct -- Streamable HTTP server (TypeScript, recommended):**
 ```typescript
 import { createServer } from "node:http";
-import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
-import { McpServer } from "@modelcontextprotocol/server";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const server = new McpServer({ name: "my-tools", version: "1.0.0" });
 
 // Register handlers...
 
 createServer(async (req, res) => {
-  const transport = new NodeStreamableHTTPServerTransport({
+  const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless; use () => randomUUID() for sessions
   });
   await server.connect(transport);
@@ -1573,8 +1576,8 @@ createServer(async (req, res) => {
 ```
 
 **Migrating SSE → Streamable HTTP:**
-- Python: Replace `SseServerTransport` with `MCPServer.run(transport="streamable-http")`
-- TypeScript: Replace `SSEServerTransport` with `NodeStreamableHTTPServerTransport`
+- Python: Replace `SseServerTransport` with `FastMCP.run(transport="streamable-http")`
+- TypeScript: Replace `SSEServerTransport` with `StreamableHTTPServerTransport`
 - Client endpoint changes from `/sse` + `/messages` to single `/mcp` path
 - Streamable HTTP supports both stateless (scalable) and stateful (session) modes
 
@@ -1627,7 +1630,7 @@ def search(query: str) -> str:
 **Correct -- unit tests with in-process Client:**
 ```python
 import pytest
-from mcp import Client
+from fastmcp import Client  # in-process harness lives in the separate `fastmcp` package
 from mcp.types import CallToolResult, TextContent
 from server import app
 

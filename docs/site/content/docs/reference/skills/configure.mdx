@@ -112,6 +112,14 @@ Categories available:
 
 > **CC 2.1.129 — `Bash(mkdir *)` / `Bash(touch *)` allow rules now work for in-project paths:** previously silently rejected for project-relative paths; now honored as documented. Workaround entries enumerating explicit subpaths (`Bash(mkdir:./src/*)`, etc.) can be collapsed back to the canonical glob form. See `references/cc-version-settings.md` § CC 2.1.129.
 
+> **CC 2.1.157 — plugin auto-load + workflow-trigger control:** Plugins in `.claude/skills` auto-load (no marketplace required); `claude plugin init &lt;name&gt;` scaffolds one there. The "Workflow keyword trigger" toggle in `/config` — and pressing backspace right after the keyword — stops a bare "workflow"/"ultracode" from launching a dynamic workflow. `claude agents` honors the `agent` field in `settings.json`, with `--agent &lt;name&gt;` to override.
+
+> **CC 2.1.160 — write prompts for startup files & build configs:** Expect approval prompts before Claude writes shell startup files (`.zshenv`/`.zlogin`/`.bash_login`, `~/.config/git/`) or — in `acceptEdits` mode — build-tool configs that grant code execution (`.npmrc`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). These are security defaults; approve them deliberately, don't pre-allow.
+
+> **CC 2.1.141 — `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `/ork:ci-sentinel`, `/ork:bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
+
+> **CC 2.1.142 — `MCP_TOOL_TIMEOUT` for remote MCP:** the per-request timeout now actually applies to remote **HTTP/SSE** MCP servers (previously capped at 60s regardless of the configured value). Raise it (e.g. `MCP_TOOL_TIMEOUT=180000`) for long-poll tools — NotebookLM `studio_status`, knowledge-base ingest, index rebuilds — that legitimately run past 60s, so they don't silently time out and self-skip.
+
 ## Step 5: Configure MCPs (Optional)
 
 All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation requires a local package install.
@@ -124,7 +132,7 @@ All 5 MCPs ship **enabled by default**. Tavily requires an API key; agentation r
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
 | agentation | UI annotation tool | enabled | `npm install agentation-mcp` |
 
-> **Why all enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.6 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why all enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 4.8 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily and agentation are used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 
@@ -175,17 +183,9 @@ AskUserQuestion(questions=[{
 
 ### If "Full streaming"
 
-1. Ask for webhook URL:
-```python
-AskUserQuestion(questions=[{
-  "question": "What is your webhook endpoint URL?",
-  "header": "Webhook URL",
-  "options": [
-    {"label": "Custom URL", "description": "Enter your API endpoint (e.g., https://api.example.com/hooks)"}
-  ],
-  "multiSelect": false
-}])
-```
+1. Ask for the webhook URL in plain text — AskUserQuestion needs ≥2 options (CC schema `minItems: 2`) and can't capture a free-form URL, so prompt directly:
+
+   > What is your webhook endpoint URL? Reply with the full URL (e.g., `https://api.example.com/hooks`).
 
 2. Run the HTTP hook generator:
 ```bash
@@ -223,6 +223,8 @@ Covers Agentation UI annotation tool (npm install, MCP config, component scaffol
 ## Step 12: Preview & Save
 
 > **Tip (CC 2.1.69+):** After saving configuration changes, run `/reload-plugins` to activate them without restarting your session.
+>
+> **Tip (CC 2.1.152+):** If you edited or added **skills** in a skill directory (personal `~/.claude/skills/` or project `.claude/skills/` — not plugin-packaged ones), run `/reload-skills` to re-scan and pick them up in the same session. A `SessionStart` hook can do the same by returning `reloadSkills: true`.
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
@@ -1009,7 +1011,7 @@ The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the
 Before 2.1.132, the `--permission-mode` flag was silently ignored when resuming a plan-mode session via `-p --continue` or `--resume`, and `ExitPlanMode` did not re-apply plan mode for the rest of the same session. Both gaps closed the wrong way (more permissive than declared), so this is a security-relevant fix, not just UX.
 
 ```bash
-# At our floor (CC ≥ 2.1.138): plan mode survives resume as declared
+# At our floor (CC ≥ 2.1.148): plan mode survives resume as declared
 claude --resume <session-id> --permission-mode plan
 ```
 
@@ -1034,7 +1036,7 @@ $ claude  /mcp
 
 Before 2.1.133, when multiple CC sessions shared the same credentials and a refresh-token rotation fired in one session, the other sessions could race against it and end up using the now-invalidated token — all of them dead-ending at `401 Unauthorized` simultaneously. CC 2.1.133 serializes the rotation so concurrent sessions see the same fresh token.
 
-**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `engines.claudeCode` (≥ 2.1.138) already guarantees the fix is active.
+**Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `engines.claudeCode` (≥ 2.1.148) already guarantees the fix is active.
 
 If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_SKILL_DIR\}/../doctor/references/remediation-guide.md` for recovery steps.
 
@@ -1074,7 +1076,7 @@ Before 2.1.133, passing a Windows **mapped network drive** path (e.g., `Z:\\shar
 claude --add-dir Z:\share\project
 # Read tool on Z:\share\project\file.ts → "path not in allowed directories"
 
-# At our floor (CC ≥ 2.1.138) — works as documented
+# At our floor (CC ≥ 2.1.148) — works as documented
 claude --add-dir Z:\share\project
 # Read/Write/Edit succeed
 ```
@@ -1202,7 +1204,7 @@ fi
 - **`ci-debug`**, **`assess`**, and **`verify`** chains can scale the number of parallel agents spawned with effort level.
 - **`pre-commit`** style gates can downgrade strict checks to advisory at `low` and enforce blocking at `high`.
 
-No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.138). Hook authors should treat absence as `medium` for forward compat.
+No setting change required — the JSON field and env var are always present at our floor (CC ≥ 2.1.148). Hook authors should treat absence as `medium` for forward compat.
 
 ### `/effort` Now Session-Scoped (No Cross-Session Leak)
 
@@ -1220,7 +1222,7 @@ CC 2.1.133 makes `/effort` session-local: each session has its own effort state,
 # → Session B is now low; Session A stays at xhigh (was previously also forced to low)
 ```
 
-**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `engines.claudeCode` (≥ 2.1.138) already guarantees the fix.
+**Impact for OrchestKit**: Direct hit on OrchestKit's worktree-isolation workflow — running parallel `/ork:implement` and `/ork:verify` in separate worktrees with different effort levels (e.g., `xhigh` for the implement run, `medium` for verify) now works as expected. Before 2.1.133, the second `/effort` call would silently retarget the first session, defeating the whole point of per-task effort tuning. Combined with the new `effort.level` hook input (#1702), this makes effort-aware hooks safe to deploy without worrying about cross-session contamination. No setting change required; the floor in `engines.claudeCode` (≥ 2.1.148) already guarantees the fix.
 
 ### Subagents Now Discover Project/User/Plugin Skills
 
@@ -1231,7 +1233,7 @@ CC 2.1.133 restores documented behavior: subagents inherit the full skill regist
 ```typescript
 // Inside a subagent body (e.g., src/agents/backend-system-architect.md):
 // Before 2.1.133: this would fail — Skill not found
-// At our floor (CC ≥ 2.1.138): works as documented
+// At our floor (CC ≥ 2.1.148): works as documented
 Skill({ name: 'ork:architecture-patterns' });
 ```
 
@@ -1280,12 +1282,12 @@ CC 2.1.136 fixes the bypass: plan mode now blocks writes regardless of allow rul
 claude --permission-mode plan
 # Edit on src/foo.ts → silently allowed by the Edit(src/**) rule
 
-# At our floor (CC ≥ 2.1.138, includes 2.1.136 fix): plan mode blocks writes
+# At our floor (CC ≥ 2.1.148, includes 2.1.136 fix): plan mode blocks writes
 claude --permission-mode plan
 # Edit on src/foo.ts → blocked by plan mode (allow rule has no effect)
 ```
 
-**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.138). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
+**Impact for OrchestKit**: Security-relevant fix, not just UX. Skills that drive plan-mode workflows (`ork:implement`, `ork:fix-issue`, `ork:brainstorm`) can now rely on plan mode actually being read-only — pre-2.1.136 a session-scoped `Edit(...)` allow rule could turn a "let me think first" into "let me silently rewrite". No setting change required at our floor (≥ 2.1.148). If a skill or agent body has language saying "Edit allow rules bypass plan mode" (a workaround documented for the broken behavior), that text is now wrong and should be removed — `ExitPlanMode` is the only path to writes in plan mode.
 
 ### `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` — Re-Enable Session Quality Survey for OTEL Capture
 
@@ -1305,7 +1307,7 @@ claude
 Before 2.1.136, `AskUserQuestion` with `multiSelect: true` silently **discarded** the answer when the runtime supplied it as an array (the documented shape). The question dispatched, the user clicked their selections, but the agent received no usable answer — effectively a soft hang on multi-select questions. CC 2.1.136 fixes the array path so multi-select answers are preserved end-to-end.
 
 ```typescript
-// Multi-select question that now works at our floor (CC ≥ 2.1.138)
+// Multi-select question that now works at our floor (CC ≥ 2.1.148)
 AskUserQuestion({
   questions: [{
     question: 'Which test tiers should I generate?',
@@ -1323,6 +1325,16 @@ AskUserQuestion({
 ```
 
 **Impact for OrchestKit**: Direct hit on any skill or agent that uses `AskUserQuestion` with `multiSelect: true`. The agent runtime relied on this — pre-2.1.136 a multi-select call would silently produce no answer and the agent would have to fall back to single-select or guess. At our floor the fix is implicit — no skill or agent frontmatter change required. If a skill body or agent description currently warns "don't use multiSelect, it drops answers" (a workaround for the pre-2.1.136 bug), that warning is stale and should be removed. The `ork:elicit` flow specifically benefits — questionnaires that branched on a single-select-only workaround can now use multiSelect natively.
+
+## CC 2.1.152 Settings
+
+### `--fallback-model` Now Switches for the Whole Session
+
+When the primary model is not found (e.g. a pinned model ID that no longer resolves, or a gateway that dropped it), CC 2.1.152 switches to your configured `--fallback-model` for the **rest of the session** instead of erroring on every request. Previously a missing primary model failed each request individually.
+
+**Action for OrchestKit**: Set a `--fallback-model` (or the `ANTHROPIC_SMALL_FAST_MODEL` / model settings your gateway supports) so a renamed or de-listed primary degrades gracefully rather than bricking the session. Pairs with the gateway model-discovery note above — if `/model` lists fewer models than expected, a fallback keeps long `ork:implement`/`ork:brainstorm` runs alive. No plugin-side change required.
+
+> **Related 2.1.152 items** (full table in `$\{CLAUDE_SKILL_DIR\}/../doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
 
 
 ### Http Hooks
@@ -1734,7 +1746,7 @@ For browser automation and testing, use the `agent-browser` skill instead of an 
 
 ## CC 2.1.128/129 changes that affect `.mcp.json` and plugin manifests
 
-We floor at `2.1.138`, so all of these apply by default.
+We floor at `2.1.148`, so all of these apply by default.
 
 ### Reserved server name: `workspace` (CC 2.1.128)
 

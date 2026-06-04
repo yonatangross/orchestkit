@@ -105,6 +105,8 @@ Provide present-continuous form for spinner display:
 
 Agent Teams provides multi-agent coordination with shared task lists and peer-to-peer messaging.
 
+> **CC 2.1.161 — independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
+
 ### Team Workflow
 
 ```
@@ -112,8 +114,8 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 2. TaskCreate(subject, description)    → Add tasks to shared list
 3. Agent(prompt, team_name, name)       → Spawn teammates
 4. TaskUpdate(owner: "teammate-name")  → Assign tasks
-5. SendMessage(type: "message")        → Direct teammate communication
-6. SendMessage(type: "shutdown_request") → Graceful shutdown
+5. SendMessage(to, message, summary)   → Direct teammate communication
+6. TeamDelete()                          → Graceful team shutdown
 ```
 
 ### When to Use Teams vs Task Tool
@@ -149,14 +151,15 @@ TaskList → find next task
 ### Peer Messaging
 
 ```
-# Direct message between teammates
-SendMessage(type: "message", recipient: "frontend-dev",
-  content: "API contract ready: GET /users/:id returns {...}",
+# Direct message between teammates (params: to, message, summary)
+SendMessage(to: "frontend-dev",
+  message: "API contract ready: GET /users/:id returns {...}",
   summary: "API contract shared")
 
-# Broadcast to all (use sparingly)
-SendMessage(type: "broadcast",
-  content: "Breaking change: auth header format changed",
+# No broadcast primitive — send to each teammate, or post to the shared
+# task list (TaskCreate/TaskUpdate) so every teammate sees it
+SendMessage(to: "backend-dev",
+  message: "Breaking change: auth header format changed",
   summary: "Breaking auth change")
 ```
 
@@ -165,7 +168,7 @@ SendMessage(type: "broadcast",
 When using Agent Teams, if context limit is reached mid-workflow:
 - Collect partial results from completed teammates via `TaskList`
 - Synthesize available outputs — prefer partial results over silent failure
-- Log skipped tasks with `TaskUpdate(status: "cancelled", note: "context limit")`
+- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: \{"skipped": "context limit"\})`
 
 ## Anti-Patterns
 
@@ -240,9 +243,8 @@ TaskUpdate(taskId: "5", status: "completed")
 // Agent communicates completion context to dependent agent
 TaskUpdate(taskId: "5", status: "completed")
 SendMessage(
-  type: "message",
-  recipient: "frontend-dev",
-  content: "Task #5 done: API returns { users: User[], total: number }. Schema in src/types/user.ts.",
+  to: "frontend-dev",
+  message: "Task #5 done: API returns { users: User[], total: number }. Schema in src/types/user.ts.",
   summary: "API contract ready for frontend"
 )
 // Downstream agent has full context to start dependent work

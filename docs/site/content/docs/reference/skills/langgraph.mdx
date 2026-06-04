@@ -16,8 +16,8 @@ Comprehensive patterns for building production LangGraph workflows. **LangGraph 
 
 > **LangGraph 1.2 (Q1 2026) — new in this bump:**
 >
-> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes for the current super-step have completed, which makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
-> - **Pre/post model hooks** on `create_react_agent(...)` and `ToolNode` — inject compression, summarization, or PII redaction without subclassing.
+> - **Deferred nodes** (`defer=True` on `add_node`) — the node runs only after all *other* upstream nodes have completed, so its execution is deferred until the run is about to end. This makes "aggregate once everyone else is done" patterns a one-liner instead of a custom reducer.
+> - **Model middleware** (`before_model` / `after_model`) on `create_agent(...)` (from `langchain.agents`) — inject compression, summarization, or PII redaction without subclassing. Note: the legacy `pre_model_hook` / `post_model_hook` params only existed on the now-deprecated `create_react_agent`; the current equivalent is middleware on `create_agent`.
 > - **Node-level caching** via `CachePolicy(ttl=..., key_func=...)` with `SqliteCache` and `RedisCache` backends (pluggable via `graph.compile(cache=...)`). Idempotent nodes skip recomputation on replay.
 
 ## Quick Reference
@@ -107,7 +107,8 @@ Independent of checkpointing. Cache individual node output so re-runs with ident
 
 ```python
 from langgraph.graph import StateGraph
-from langgraph.cache import CachePolicy, SqliteCache
+from langgraph.types import CachePolicy
+from langgraph.cache.sqlite import SqliteCache
 
 graph = StateGraph(State)
 graph.add_node(
@@ -121,20 +122,23 @@ compiled = graph.compile(cache=SqliteCache("cache.db"))
 
 Use when a node is idempotent and expensive (embeddings, external APIs). Do **not** use for nodes whose output depends on wall-clock time or mutable external state unless `key_func` captures that variance.
 
-## Deferred Nodes & Model Hooks (1.2+)
+## Deferred Nodes & Model Middleware (1.2+)
 
 ```python
-# defer=True — node waits for every other upstream node at this super-step
+# defer=True — node execution is deferred until the run is about to end,
+# i.e. after every other upstream node has completed
 graph.add_node("aggregate", aggregate_fn, defer=True)
 
-# Pre/post model hooks — no subclassing required
-from langgraph.prebuilt import create_react_agent
+# Model middleware — no subclassing required.
+# create_react_agent is @deprecated since v1.0; use create_agent from langchain.agents.
+# The legacy pre_model_hook/post_model_hook are now before_model/after_model middleware.
+from langchain.agents import create_agent
 
-agent = create_react_agent(
+agent = create_agent(
     model=model,
     tools=tools,
-    pre_model_hook=compress_history,   # e.g. summarize if > N tokens
-    post_model_hook=redact_pii,        # e.g. scrub emails/SSNs before persist
+    middleware=[compress_history, redact_pii],  # before_model / after_model hooks
+    system_prompt="...",                          # prompt= renamed to system_prompt
 )
 ```
 
@@ -222,7 +226,7 @@ app = graph.compile()
 - **Streaming v2 (LG 1.1)**: Use `version="v2"` for type-safe streaming — fully typed `stream()` and `astream()` returns. Default remains `"v1"` for backwards compat.
 - **Command API**: Use `Command(update=..., goto=...)` when updating state AND routing together
 - **context_schema**: Pass runtime config (temperature, provider) without polluting state
-- **CachePolicy**: Cache expensive node results with TTL via `InMemoryCache`
+- **CachePolicy**: Cache expensive node results with TTL via `SqliteCache` (prod) or `InMemoryCache` from `langgraph.cache.memory` (dev)
 - **RemainingSteps**: Proactively handle recursion limits
 - **Store**: Cross-thread memory separate from Checkpointer (thread-scoped)
 - **interrupt()**: Dynamic interrupts inside node logic (replaces `interrupt_before` for conditional cases)
@@ -362,12 +366,14 @@ memory = MemorySaver()
 app = workflow.compile(checkpointer=memory)
 
 # Production: PostgreSQL (shared, durable)
-checkpointer = PostgresSaver.from_conn_string("postgresql://...")
-app = workflow.compile(checkpointer=checkpointer)
+# from_conn_string is a @contextmanager — setup() MUST be called once
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()
+    app = workflow.compile(checkpointer=checkpointer)
 
-# Invoke with thread_id for resumability
-config = {"configurable": {"thread_id": "analysis-123"}}
-result = app.invoke(initial_state, config=config)
+    # Invoke with thread_id for resumability
+    config = {"configurable": {"thread_id": "analysis-123"}}
+    result = app.invoke(initial_state, config=config)
 ```
 
 **Key rules:**
@@ -390,8 +396,9 @@ Checkpointer = short-term (thread-scoped). Store = long-term (cross-thread, name
 ```python
 # User preferences stored in thread-1 state
 # When user starts thread-2, preferences are lost!
-checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
-app = workflow.compile(checkpointer=checkpointer)
+with PostgresSaver.from_conn_string(DATABASE_URL) as checkpointer:
+    checkpointer.setup()
+    app = workflow.compile(checkpointer=checkpointer)
 ```
 
 **Correct — Store for cross-thread memory:**
@@ -399,14 +406,18 @@ app = workflow.compile(checkpointer=checkpointer)
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.store.postgres import PostgresStore
 
+# from_conn_string is a @contextmanager — setup() MUST be called once
 # Checkpointer = SHORT-TERM (thread-scoped)
-checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
-
 # Store = LONG-TERM (cross-thread, namespaced)
-store = PostgresStore.from_conn_string(DATABASE_URL)
+with (
+    PostgresSaver.from_conn_string(DATABASE_URL) as checkpointer,
+    PostgresStore.from_conn_string(DATABASE_URL) as store,
+):
+    checkpointer.setup()
+    store.setup()
 
-# Compile with BOTH
-app = workflow.compile(checkpointer=checkpointer, store=store)
+    # Compile with BOTH
+    app = workflow.compile(checkpointer=checkpointer, store=store)
 ```
 
 **Using Store in nodes:**
@@ -1098,13 +1109,13 @@ client = get_client(url="http://localhost:2024")
 # Create assistants with different configs from the same graph
 creative = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.9, "model": "claude-sonnet-4-5-20250929"}},
+    config={"configurable": {"temperature": 0.9, "model": "claude-sonnet-4-6"}},
     name="creative-writer",
 )
 
 precise = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.1, "model": "claude-sonnet-4-5-20250929"}},
+    config={"configurable": {"temperature": 0.1, "model": "claude-sonnet-4-6"}},
     name="precise-analyst",
 )
 ```
@@ -1426,7 +1437,7 @@ Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgrap
 
 ## Cross-Graph Navigation
 
-Use `Command(graph=Command.PARENT)` to navigate from a subgraph node to the parent graph. Use `Command(graph="sibling_name")` for cross-graph routing between sibling subgraphs. Available in LangGraph v0.2.58+.
+Use `Command(graph=Command.PARENT)` to navigate from a subgraph node to the parent graph. Use `Command(graph="sibling_name")` for cross-graph routing between sibling subgraphs.
 
 **Incorrect — routing stays within subgraph:**
 ```python
@@ -1520,7 +1531,7 @@ def researcher_node(state: ResearcherState) -> Command[Literal["writer"]]:
 - Shared state keys updated via `Command.PARENT` **must** have reducers in parent state
 - State types can differ between parent and child — map values at the boundary
 - Use cases: escalation, delegation, multi-agent handoff, error propagation
-- Requires LangGraph v0.2.58+ (stable in v0.3+)
+- Stable API in LangGraph 1.x
 - Do not wrap `Command` returns in try/except — it uses exceptions internally
 
 Reference: [Cross-graph navigation](https://langchain-ai.github.io/langgraph/how-tos/command/#navigate-to-a-node-in-a-parent-graph)
@@ -2029,7 +2040,7 @@ for msg, meta in graph.stream(inputs, stream_mode="messages"):
 
 **Filtered by tags (more flexible):**
 ```python
-model = init_chat_model("claude-sonnet-4-20250514", tags=["main_response"])
+model = init_chat_model("claude-sonnet-4-6", tags=["main_response"])
 
 for msg, meta in graph.stream(inputs, stream_mode="messages"):
     if "main_response" in meta.get("tags", []):
@@ -2513,7 +2524,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email sent to {to}"
 
 tools = [search_database, send_email]
-model = ChatAnthropic(model="claude-sonnet-4-20250514")
+model = ChatAnthropic(model="claude-sonnet-4-6")
 model_with_tools = model.bind_tools(tools)
 
 def agent_node(state):

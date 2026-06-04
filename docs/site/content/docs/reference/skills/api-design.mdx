@@ -2019,7 +2019,7 @@ export async function GET(req: Request) {
 ```typescript
 export async function POST(req: Request) {
   const { messages } = await req.json()
-  const stream = await openai.chat.completions.create({ model: 'gpt-5.2', messages, stream: true })
+  const stream = await openai.chat.completions.create({ model: 'gpt-5.5', messages, stream: true })
   const encoder = new TextEncoder()
 
   return new Response(
@@ -2606,11 +2606,11 @@ Type-safe API consumption with runtime validation.
 import { z } from 'zod'
 
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   name: z.string(),
   role: z.enum(['admin', 'developer', 'viewer']),
-  created_at: z.string().datetime(),
+  created_at: z.iso.datetime(),
 })
 
 const UsersResponseSchema = z.object({
@@ -3968,6 +3968,8 @@ GET /api/v1/analyses?fields=id,title,status
 
 ```python
 # app/api/schemas/errors.py
+from pydantic import BaseModel, ConfigDict
+
 class ErrorDetail(BaseModel):
     field: str
     message: str
@@ -3976,8 +3978,8 @@ class ErrorDetail(BaseModel):
 class ErrorResponse(BaseModel):
     error: dict[str, Any]
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": {
                     "code": "VALIDATION_ERROR",
@@ -3994,6 +3996,7 @@ class ErrorResponse(BaseModel):
                 }
             }
         }
+    )
 ```
 
 ### FastAPI Exception Handlers
@@ -5858,7 +5861,7 @@ Complete example implementing RFC 9457 Problem Details in FastAPI.
 
 ```python
 # app/core/exceptions.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -5888,8 +5891,8 @@ class ProblemDetail(BaseModel):
     trace_id: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "type": "https://api.orchestkit.dev/problems/validation-error",
                 "title": "Validation Error",
@@ -5900,6 +5903,7 @@ class ProblemDetail(BaseModel):
                 "timestamp": "2026-01-07T10:30:00Z",
             }
         }
+    )
 
 
 class ValidationProblem(ProblemDetail):
@@ -7042,11 +7046,13 @@ GET /api/v1/health
 **Location**: `backend/app/api/schemas/errors.py`
 
 ```python
+from pydantic import BaseModel, ConfigDict
+
 class ErrorResponse(BaseModel):
     error: dict[str, Any]
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": {
                     "code": "VALIDATION_ERROR",
@@ -7055,6 +7061,7 @@ class ErrorResponse(BaseModel):
                 }
             }
         }
+    )
 ```
 
 ### Example Error Responses

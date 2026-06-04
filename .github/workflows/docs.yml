@@ -42,6 +42,19 @@ jobs:
             docs/site/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: Check generated docs drift (reference mdx must match src/)
+        run: |
+          # npm run build (above) regenerates reference mdx from src/skills + src/agents
+          # via scripts/build-docs.sh. If the committed mdx is stale, fail — mirrors the
+          # plugins/ drift gate. Scoped to generated docs paths so hooks/dist timestamp
+          # churn does not false-positive.
+          if ! git diff --quiet -- docs/site/content/docs/reference docs/site/content/docs/skills/by-category; then
+            echo "::error::Docs drift detected — generated reference mdx is stale on this branch."
+            echo "Fix: run 'npm run build' and commit docs/site/content/docs/reference + docs/site/content/docs/skills/by-category."
+            git diff --stat -- docs/site/content/docs/reference docs/site/content/docs/skills/by-category
+            exit 1
+          fi
+          echo "✓ Generated reference docs are in sync with src/."
       - name: Validate MDX frontmatter
         run: |
           shopt -s globstar

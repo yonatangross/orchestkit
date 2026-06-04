@@ -41,7 +41,7 @@ for token in "$ARGUMENTS".split():
 
 Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`) or full IDs (`claude-opus-4-6`) per CC 2.1.74.
 
-> **Opus 4.7**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
+> **Opus 4.8**: Agents use native adaptive thinking (no MCP sequential-thinking needed); defaults to `high` effort (CC 2.1.154+). Extended 128K output supports comprehensive verification reports.
 
 ---
 
@@ -54,7 +54,7 @@ Scale verification depth based on `/effort` level:
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
 | **medium** | Tests + code quality + security | 3 agents | Score + top issues |
 | **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 
@@ -68,11 +68,11 @@ AskUserQuestion(
     "question": "What scope for this verification?",
     "header": "Scope",
     "options": [
-      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + visual + grades", "markdown": "```\nFull Verification (10 phases)\n─────────────────────────────\n  7 parallel agents:\n  ┌────────────┐ ┌────────────┐\n  │ Code       │ │ Security   │\n  │ Quality    │ │ Auditor    │\n  ├────────────┤ ├────────────┤\n  │ Test       │ │ Backend    │\n  │ Generator  │ │ Architect  │\n  ├────────────┤ ├────────────┤\n  │ Frontend   │ │ Performance│\n  │ Developer  │ │ Engineer   │\n  ├────────────┤ └────────────┘\n  │ Visual     │\n  │ Capture    │ → gallery.html\n  └────────────┘\n         ▼\n    Composite Score (0-10)\n    8 dimensions + Grade\n    + Visual Gallery\n```"},
-      {"label": "Tests only", "description": "Run unit + integration + e2e tests", "markdown": "```\nTests Only\n──────────\n  npm test ──▶ Results\n  ┌─────────────────────┐\n  │ Unit tests     ✓/✗  │\n  │ Integration    ✓/✗  │\n  │ E2E            ✓/✗  │\n  │ Coverage       NN%  │\n  └─────────────────────┘\n  Skip: security, quality, UI\n  Output: Pass/fail + coverage\n```"},
-      {"label": "Security audit", "description": "Focus on security vulnerabilities", "markdown": "```\nSecurity Audit\n──────────────\n  security-auditor agent:\n  ┌─────────────────────────┐\n  │ OWASP Top 10       ✓/✗ │\n  │ Dependency CVEs    ✓/✗ │\n  │ Secrets scan       ✓/✗ │\n  │ Auth flow review   ✓/✗ │\n  │ Input validation   ✓/✗ │\n  └─────────────────────────┘\n  Output: Security score 0-10\n          + vulnerability list\n```"},
-      {"label": "Code quality", "description": "Lint, types, complexity analysis", "markdown": "```\nCode Quality\n────────────\n  code-quality-reviewer agent:\n  ┌─────────────────────────┐\n  │ Lint errors         N   │\n  │ Type coverage       NN% │\n  │ Cyclomatic complex  N.N │\n  │ Dead code           N   │\n  │ Pattern violations  N   │\n  └─────────────────────────┘\n  Output: Quality score 0-10\n          + refactor suggestions\n```"},
-      {"label": "Quick check", "description": "Just run tests, skip detailed analysis", "markdown": "```\nQuick Check (~1 min)\n────────────────────\n  Run tests ──▶ Pass/Fail\n\n  Output:\n  ├── Test results\n  ├── Build status\n  └── Lint status\n  No agents, no grading,\n  no report generation\n```"}
+      # multiSelect questions do not render previews (single-select only) — kept text-only
+      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + visual + grades"},
+      {"label": "Tests only", "description": "Run unit + integration + e2e tests"},
+      {"label": "Security & code quality", "description": "Security audit (OWASP/CVE/secrets) + lint/types/complexity"},
+      {"label": "Quick check", "description": "Just run tests, skip detailed analysis"}
     ],
     "multiSelect": true
   }]
@@ -82,8 +82,7 @@ AskUserQuestion(
 **Based on answer, adjust workflow:**
 - **Full verification**: All 10 phases (8 + 2.5 + 8.5), 7 parallel agents including visual capture
 - **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
-- **Security audit**: Focus on security-auditor agent
-- **Code quality**: Focus on code-quality-reviewer agent
+- **Security & code quality**: Run security-auditor + code-quality-reviewer agents
 - **Quick check**: Run tests only, skip grading and suggestions
 
 ---
@@ -311,8 +310,8 @@ Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/report-template.md")` for 
 >
 > ```python
 > PushNotification(
->   title="ork:verify complete",
->   body=f"\{verdict\} · \{score\}/10 · \{blockers_count\} blockers"
+>   message=f"ork:verify complete — \{verdict\} · \{score\}/10 · \{blockers_count\} blockers",
+>   status="proactive"
 > )
 > ```
 
@@ -373,7 +372,8 @@ SendMessage(to="code-quality-reviewer", message="Security finding at user_servic
 After verification, chain to commit if all gates pass:
 
 ```python
-TaskCreate(subject="Commit verified changes", activeForm="Committing", addBlockedBy=[verify_task_id])
+TaskCreate(subject="Commit verified changes", activeForm="Committing")
+TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 # Then: /ork:commit
 ```
 
@@ -1528,12 +1528,7 @@ Agent(subagent_type="python-performance-engineer", name="perf-verifier",
 **Team teardown** after report compilation:
 ```python
 # After composite grading and report generation
-SendMessage(type="shutdown_request", recipient="quality-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="security-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="test-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="api-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="ui-verifier", content="Verification complete")
-SendMessage(type="shutdown_request", recipient="perf-verifier", content="Verification complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

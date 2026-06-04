@@ -186,8 +186,8 @@ VHS recording and Remotion rendering commonly take 10–45 min per video, and fu
 
 ```python
 PushNotification(
-  title="ork:demo-producer complete",
-  body=f"{topic}: {variants_count} variants rendered · output at {output_dir}"
+  message=f"ork:demo-producer complete — {topic}: {variants_count} variants · {output_dir}",
+  status="proactive"
 )
 ```
 

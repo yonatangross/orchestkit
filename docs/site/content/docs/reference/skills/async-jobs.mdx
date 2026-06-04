@@ -2071,7 +2071,9 @@ class TokenBucketAgent(Task):
     bucket_size=100,
 )
 def charge_customer(self, customer_id: str, amount: int):
-    return stripe.PaymentIntent.create(customer=customer_id, amount=amount, currency="usd")
+    return StripeClient().v1.payment_intents.create(
+        params={"customer": customer_id, "amount": amount, "currency": "usd"}
+    )
 ```
 
 ## Rate Limit Patterns Summary
@@ -2187,20 +2189,22 @@ def process_payment(self, payment_id: str, amount: int) -> dict:
 
     try:
         # Process payment
-        result = stripe.PaymentIntent.create(
-            customer=get_customer(payment_id),
-            amount=amount,
-            currency="usd",
-            idempotency_key=f"celery:{payment_id}",  # Stripe-level idempotency
+        result = StripeClient().v1.payment_intents.create(
+            params={
+                "customer": get_customer(payment_id),
+                "amount": amount,
+                "currency": "usd",
+            },
+            options={"idempotency_key": f"celery:{payment_id}"},  # Stripe-level idempotency
         )
 
         # Mark as processed with 24h TTL
         redis_client.setex(idempotency_key, 86400, "1")
 
         return {"status": "success", "payment_id": payment_id, "intent_id": result.id}
-    except stripe.error.RateLimitError as exc:
+    except stripe.RateLimitError as exc:
         raise self.retry(exc=exc, countdown=60)
-    except stripe.error.InvalidRequestError:
+    except stripe.InvalidRequestError:
         raise  # Non-retryable
 ```
 

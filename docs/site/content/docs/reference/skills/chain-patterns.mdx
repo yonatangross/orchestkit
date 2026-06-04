@@ -108,6 +108,10 @@ Agent(
 ```
 
 **When to use worktree:** Agents with Write/Edit tools running in parallel.
+
+> **CC 2.1.157 worktree lifecycle:** `EnterWorktree` can switch between Claude-managed worktrees mid-session, and worktrees are left **unlocked** when the agent finishes — so `git worktree remove`/`prune` cleans them up without `--force`.
+
+> **Session-aware worktree check (CC 2.1.145):** before parallel-worktree work, detect concurrent same-repo sessions with `claude agents --json` (filter by `working_dir`) rather than `ps`/`pgrep` — it returns `session_id`, `parent_agent_id`, `working_dir`, `awaiting_input`, and `elapsed` per live session, so you can tell *which* sessions share this repo.
 **When NOT to use:** Read-only agents (brainstorm, assessment, review).
 
 Load details: `Read("$\{CLAUDE_SKILL_DIR\}/references/worktree-agent-pattern.md")`
@@ -154,6 +158,7 @@ Agent(subagent_type="test-generator",
 - Output each result incrementally — don't batch
 - Flag critical findings immediately (don't wait for stragglers)
 - Background bash tasks are killed at 5GB output (CC 2.1.77) — pipe verbose output to files
+- Parallel tool calls fail independently (CC 2.1.161) — a failed Bash no longer cancels siblings in the batch; add explicit per-call error handling instead of relying on cascade-abort
 
 ## Pattern 7: SendMessage Agent Resume (CC 2.1.77)
 
@@ -165,7 +170,7 @@ Agent(subagent_type="backend-system-architect",
   prompt="Design the API schema", name="api-designer")
 
 # Later, continue the same agent with new context
-SendMessage(to="api-designer", content="Now implement the schema you designed")
+SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 # CC 2.1.77: SendMessage auto-resumes stopped agents.
 # No need to check agent state or handle "agent stopped" errors.
@@ -395,8 +400,8 @@ return final_report  # user is still reading Slack; never sees it
 ```python
 # GOOD: fire at the final step, with an outcome-summarizing body
 PushNotification(
-  title="ork:implement complete",
-  body=f"{FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify"
+  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify",
+  status="proactive"
 )
 return final_report
 ```
@@ -409,7 +414,7 @@ The title names the skill; the body summarizes the outcome in one line. Users fi
 
 ```python
 # GOOD: unconditional call; tool is a no-op when RC is disabled
-PushNotification(title="...", body="...")
+PushNotification(message="... — ...", status="proactive")
 
 # WRONG: defensive capability check adds complexity for no gain
 if has_remote_control():  # this API does not exist
@@ -1662,7 +1667,9 @@ With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where
 - No need to `git push` before spawning isolated agents
 - Parent and child see the same uncommitted history
 
-CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.138`, so the setting is the single source of truth.
+CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.148`, so the setting is the single source of truth.
+
+> **CC 2.1.154 — nested-worktree HEAD fix**: `worktree.baseRef: "head"` previously resolved to the **main checkout's** HEAD (not the current worktree's) when spawning subagents or calling `EnterWorktree` from *inside* a linked worktree. 2.1.154 fixed this, so `"head"` is now reliable for nested/recursive worktree spawns too. Also in 2.1.154: subagents in background sessions no longer bypass the worktree-isolation guard, so `Agent(isolation:"worktree")` is safe for parallel spawns — the manual pre-create workaround (`implement/references/manual-worktree-pattern.md`) is superseded.
 
 > **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `$\{CLAUDE_SKILL_DIR\}/../configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
 

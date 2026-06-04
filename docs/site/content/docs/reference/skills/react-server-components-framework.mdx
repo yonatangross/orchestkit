@@ -16,7 +16,7 @@ description: "Use when building Next.js 16+ apps with React Server Components. C
 
 React Server Components (RSC) enable server-first rendering with client-side interactivity. This skill covers Next.js 16.2 LTS App Router patterns, Server Components, Server Actions, and streaming.
 
-> **Next.js 16.2.3 LTS (Apr 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js also ships the `next-browser` binary (`npx next-browser`), a CDP client for mid-run inspection.
+> **Next.js 16.2.6 / React 19.2.6 (security release, May 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js ships **Next DevTools MCP** — wire `npx -y next-devtools-mcp@latest` into `.mcp.json` (it connects via the dev server's `/_next/mcp` endpoint) to inspect render trees and cache boundaries mid-session.
 
 **When to use this skill:**
 - Building Next.js 16+ applications with the App Router
@@ -74,9 +74,9 @@ async function UserDashboard({ userId }: { userId: string }) {
   return await loadDashboard(userId)
 }
 
-// Invalidate cache
+// Invalidate cache — v16 requires a cacheLife profile as the 2nd arg
 import { revalidateTag } from 'next/cache'
-revalidateTag('products')
+revalidateTag('products', 'max') // or updateTag('products') for read-your-writes
 ```
 
 Enable via `next.config.ts`:
@@ -143,7 +143,7 @@ export default async function PostPage({
 
 - **Turbopack default** — `next dev` and `next build` run Turbopack without any flag. Pass `--webpack` only when forced (legacy plugin).
 - **Server Fast Refresh** — Server Components hot-reload on save without losing client state. No extra config; it's on by default in 16.2.
-- **`next-browser` agent CDP client** — `npx next-browser --url http://localhost:3000 --trace` attaches to the running dev server, streams RSC payloads and cache boundaries to stdout in JSON. Designed for AI agents that need to inspect render trees mid-session without screenshotting.
+- **Next DevTools MCP** — register `npx -y next-devtools-mcp@latest` in `.mcp.json`; it attaches to the running dev server over the `/_next/mcp` endpoint and exposes RSC payloads and cache boundaries to an MCP client. Designed for AI agents that need to inspect render trees mid-session without screenshotting. (There is no `next-browser` binary.)
 
 ---
 
@@ -823,8 +823,8 @@ import { revalidateTag } from 'next/cache'
 export async function updateProduct(id: string, data: ProductData) {
   await db.product.update({ where: { id }, data })
 
-  revalidateTag('products')        // Invalidate all products
-  revalidateTag(`product-${id}`)   // Invalidate specific product
+  revalidateTag('products', 'max')        // Invalidate all products
+  revalidateTag(`product-${id}`, 'max')   // Invalidate specific product
 }
 ```
 
@@ -837,7 +837,7 @@ import { updateTag, revalidateTag } from 'next/cache'
 updateTag('cart')
 
 // Stale-while-revalidate - serves stale, revalidates in background
-revalidateTag('posts')
+revalidateTag('posts', 'max')
 ```
 
 ---
@@ -940,9 +940,9 @@ async function getData() {
   return fetch('/api/data')
 }
 
-// Server Action (same API)
+// Server Action (v16 requires a cacheLife profile as the 2nd arg)
 import { revalidateTag } from 'next/cache'
-revalidateTag('my-tag')
+revalidateTag('my-tag', 'max')
 ```
 
 ---
@@ -1185,13 +1185,13 @@ async function getProduct(id: string) {
 }
 
 // Invalidate all products
-revalidateTag('products')
+revalidateTag('products', 'max')
 
 // Invalidate one product
-revalidateTag('product-123')
+revalidateTag('product-123', 'max')
 
 // Invalidate by category
-revalidateTag('category-electronics')
+revalidateTag('category-electronics', 'max')
 ```
 
 ### 4. Combine with Suspense for Mixed Content
@@ -2269,8 +2269,8 @@ export async function createPost(formData: FormData) {
   // Revalidate specific path
   revalidatePath('/posts')
 
-  // Revalidate all data with 'posts' tag
-  revalidateTag('posts')
+  // Revalidate all data with 'posts' tag (v16: cacheLife profile required)
+  revalidateTag('posts', 'max')
 }
 ```
 
@@ -2690,6 +2690,47 @@ export async function generateMetadata({
 }
 ```
 
+**Metadata image routes (`opengraph-image`, `icon`, `apple-icon`, etc.)**
+
+These now receive `params` **and** `id` as Promises that must be awaited:
+
+```tsx
+// app/posts/[slug]/opengraph-image.tsx
+export default async function Image({
+  params,
+  id,
+}: {
+  params: Promise<{ slug: string }>
+  id: Promise<string>
+}) {
+  const { slug } = await params
+  const imageId = await id // present when generateImageMetadata yields variants
+  const post = await getPost(slug)
+  return new ImageResponse(<div>{post.title}</div>)
+}
+```
+
+**`generateSitemaps`**
+
+The `id` passed to the `sitemap` function is now a Promise:
+
+```tsx
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }]
+}
+
+export default async function sitemap({
+  id,
+}: {
+  id: Promise<number>
+}): Promise<MetadataRoute.Sitemap> {
+  const sitemapId = await id
+  const start = sitemapId * 50_000
+  const products = await getProducts({ offset: start, limit: 50_000 })
+  return products.map((p) => ({ url: `https://acme.com/product/${p.id}` }))
+}
+```
+
 ---
 
 ### 2. Async Request APIs
@@ -2775,16 +2816,17 @@ export const config = {
 
 ```tsx
 // proxy.ts
-import { type ProxyRequest, type ProxyResponse, redirect, next } from 'next/proxy'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-export default function proxy(request: ProxyRequest): ProxyResponse {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('token')
 
-  if (!token && request.pathname.startsWith('/dashboard')) {
-    return redirect('/login')
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return next()
+  return NextResponse.next()
 }
 
 export const config = {
@@ -2794,9 +2836,10 @@ export const config = {
 
 **Key changes:**
 - File renamed from `middleware.ts` to `proxy.ts`
-- Import from `next/proxy` instead of `next/server`
-- Use `redirect()` and `next()` helpers instead of `NextResponse` methods
-- `request.nextUrl.pathname` simplified to `request.pathname`
+- Export a named `proxy` function instead of `middleware`
+- Imports stay the same: `NextResponse` and `NextRequest` from `next/server` (there is no `next/proxy` module)
+- The function body is unchanged — same `NextResponse` API and `request.nextUrl.pathname`
+- Edge runtime is **not** supported in `proxy.ts` (Node.js runtime only)
 
 ---
 
@@ -2824,14 +2867,27 @@ export default async function ProductsPage() {
 
 **After (Next.js 16)**
 
+Enable Cache Components in `next.config.ts`, then mark cacheable functions
+with the `'use cache'` directive (there is no `cache()` wrapper imported
+from `next/cache`):
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const config: NextConfig = {
+  cacheComponents: true, // replaces the experimental_ppr flag
+}
+
+export default config
+```
+
 ```tsx
 // app/products/page.tsx
-import { cache } from 'next/cache'
-
-// Wrap static content in cache()
-const CachedHeader = cache(async () => {
+async function CachedHeader() {
+  'use cache'
   return <StaticHeader />
-})
+}
 
 export default async function ProductsPage() {
   return (
@@ -2845,28 +2901,29 @@ export default async function ProductsPage() {
 }
 ```
 
-**Cache Components with options**
+**Cache Components with lifetime and tags**
+
+Use the `cacheLife()` and `cacheTag()` helpers from `next/cache` inside a
+`'use cache'` function (the `unstable_` prefix was dropped in 16.2):
 
 ```tsx
-import { cache } from 'next/cache'
+import { cacheLife, cacheTag } from 'next/cache'
 
 // Cache with revalidation
-const CachedSidebar = cache(
-  async () => {
-    const categories = await getCategories()
-    return <Sidebar categories={categories} />
-  },
-  { revalidate: 3600 } // 1 hour
-)
+async function CachedSidebar() {
+  'use cache'
+  cacheLife('hours') // named profile (minutes | hours | days | max | ...)
+  const categories = await getCategories()
+  return <Sidebar categories={categories} />
+}
 
 // Cache with tags
-const CachedProductList = cache(
-  async () => {
-    const products = await getProducts()
-    return <ProductList products={products} />
-  },
-  { tags: ['products'] }
-)
+async function CachedProductList() {
+  'use cache'
+  cacheTag('products')
+  const products = await getProducts()
+  return <ProductList products={products} />
+}
 ```
 
 ---
@@ -3113,7 +3170,14 @@ export function RefreshButton() {
 
 ### New revalidateTag() Signature
 
-The `revalidateTag()` function now accepts options:
+The `revalidateTag()` function now **requires** a second argument naming the
+cacheLife profile to revalidate against. The single-argument form is
+deprecated and produces a TypeScript error.
+
+```ts
+// Signature
+revalidateTag(tag: string, profile: string | { expire?: number }): void
+```
 
 **Before (Next.js 15)**
 
@@ -3128,20 +3192,25 @@ revalidateTag('products')
 ```tsx
 import { revalidateTag } from 'next/cache'
 
-// Simple revalidation (same as before)
-revalidateTag('products')
+// Named cacheLife profile (most common)
+revalidateTag('products', 'max')
 
-// With options
-revalidateTag('products', {
-  type: 'layout', // Revalidate layouts using this tag
-})
+// Custom expiry in seconds
+revalidateTag('products', { expire: 3600 })
 
-revalidateTag('products', {
-  type: 'page', // Revalidate only pages (default)
-})
+// Revalidate several tags — one call per tag (no array overload exists)
+for (const tag of ['products', 'categories']) {
+  revalidateTag(tag, 'max')
+}
+```
 
-// Revalidate multiple tags
-revalidateTag(['products', 'categories'])
+For read-your-writes consistency (refresh in the same request), use
+`updateTag()` instead of `revalidateTag()`:
+
+```tsx
+import { updateTag } from 'next/cache'
+
+updateTag('products')
 ```
 
 ---
@@ -3218,7 +3287,7 @@ npx @next/codemod@latest async-dynamic-apis .
 |-------|-------|-----|
 | `params is not defined` | Missing await | Add `await params` |
 | `cookies is not a function` | Sync usage | Add `await cookies()` |
-| `Cannot find module 'next/server'` in middleware | Old imports | Rename to `proxy.ts`, use `next/proxy` |
+| `middleware` export not picked up | File still named `middleware.ts` | Rename to `proxy.ts` and export a named `proxy` function (imports stay `next/server`) |
 | `experimental_ppr is not a valid export` | Removed feature | Use Cache Components |
 | `Missing default.js in parallel route` | New requirement | Add `default.tsx` returning `null` |
 | `Cannot resolve '~package'` in Sass | Turbopack | Remove `~` prefix |
@@ -4332,7 +4401,7 @@ import { z } from 'zod'
 const CreatePostSchema = z.object({
   title: z.string().min(1).max(100),
   content: z.string().min(10),
-  categoryId: z.string().uuid()
+  categoryId: z.uuid()
 })
 
 export async function createPost(formData: FormData) {
@@ -4345,7 +4414,9 @@ export async function createPost(formData: FormData) {
   const result = CreatePostSchema.safeParse(rawData)
 
   if (!result.success) {
-    return { error: result.error.flatten().fieldErrors }
+    // z.treeifyError() replaces deprecated .flatten() (Zod 4); per-field
+    // messages move to tree.properties[field].errors
+    return { error: z.treeifyError(result.error).properties }
   }
 
   const post = await db.post.create({ data: result.data })
@@ -5205,7 +5276,7 @@ import { useActionState, use } from 'react'
 import { z } from 'zod'
 
 const UrlSchema = z.object({
-  url: z.string().url('Please enter a valid URL'),
+  url: z.url('Please enter a valid URL'),
 })
 
 async function submitUrl(
