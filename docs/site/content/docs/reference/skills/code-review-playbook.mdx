@@ -186,6 +186,19 @@ Load `Read("$\{CLAUDE_SKILL_DIR\}/references/conventional-comments.md")` for the
 
 ---
 
+## CC Built-in Review Commands (2.1.152+)
+
+This playbook is the manual framework; Claude Code ships built-in commands that automate parts of it:
+
+- **`/code-review`** — reviews the current diff for correctness bugs and reuse/simplification/efficiency cleanups.
+- **`/code-review --fix`** (CC 2.1.152+) — runs the review then applies the findings to your working tree (a bug-hunting review covering correctness plus reuse/simplification/efficiency).
+- **`/code-review --comment`** — posts findings as inline PR comments.
+- **`/simplify`** — **CC 2.1.154 changed this**: it now runs a **cleanup-only** review (reuse, simplification, efficiency, altitude) and applies the fixes — it no longer invokes the full `/code-review --fix` bug-hunt. Reach for `/simplify` for tidy-ups, `/code-review --fix` for bug-finding-plus-fix.
+
+Use the built-ins for fast diff-scoped passes; use `ork:review-pr` for the multi-agent, full-PR review (security + testing + architecture). See #1940 for the overlap analysis between `/code-review --comment` and `ork:review-pr`.
+
+---
+
 **Skill Version**: 2.0.0
 **Last Updated**: 2026-01-08
 **Maintained by**: AI Agent Hub Team
@@ -252,6 +265,9 @@ Each category has individual rule files in `rules/` loaded on-demand:
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "types": "recommended"
+    },
     "rules": {
       "recommended": true,
       "correctness": {
@@ -260,9 +276,6 @@ Each category has individual rule files in `rules/` loaded on-demand:
       },
       "suspicious": {
         "noExplicitAny": "warn"
-      },
-      "nursery": {
-        "noFloatingPromises": "error"
       }
     }
   },
@@ -277,7 +290,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 **Biome 2.0+ type inference features:**
 - Reads `.d.ts` from node_modules for type-aware rules
-- `noFloatingPromises`: Catches unhandled promises (previously required tsconfig)
+- `noFloatingPromises`: Catches unhandled promises — Biome 2.4 moved this to the `types` domain, so set `linter.domains.types: "recommended"` or the rule silently under-functions
 - Multi-file analysis: Cross-module diagnostics
 
 **Correct — CI integration (GitHub Actions):**
@@ -688,8 +701,8 @@ const data = await response.json() as User;  // Type assertion, not validation
 // CORRECT: Validate at boundary
 import { z } from 'zod';
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),       // z.guid() for the permissive (non-RFC9562) variant
+  email: z.email(),
   role: z.enum(['admin', 'user']),
 });
 const data = UserSchema.parse(await response.json());
@@ -757,8 +770,8 @@ import { z } from 'zod';
 
 // Proper types
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
 });
 function processData(data: z.infer<typeof UserSchema>) { return data.email; }
 

@@ -14,6 +14,10 @@ description: "Agent orchestration patterns for agentic loops, multi-agent coordi
 
 Comprehensive patterns for building and coordinating AI agents -- from single-agent reasoning loops to multi-agent systems and framework selection. Each category has individual rule files in `rules/` loaded on-demand.
 
+> **CC native `/workflows` (2.1.154):** Claude Code now ships *dynamic workflows* — ask Claude to create a workflow and it orchestrates tens-to-hundreds of agents in the background; view runs with `/workflows`. This is **complementary** to the patterns here: use CC `/workflows` for large-scale, fire-and-forget **background** fan-out (you check back later); use the bounded **foreground** Agent Teams / Task-tool patterns below when ≤8 agents must coordinate within a single skill invocation via shared memory (handoff files, mesh messaging). Different scale, not a replacement.
+>
+> **Ask only when genuinely blocked (CC 2.1.154):** CC now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, rather than asking when it already has enough context to proceed. When orchestrating agents, don't gate progress on an `AskUserQuestion` the lead can resolve from available context — reserve prompts for true branch points (irreversible actions, missing requirements). This complements ork's voice-friendly decision guidance.
+
 ## Quick Reference
 
 | Category | Rules | Impact | When to Use |
@@ -91,6 +95,8 @@ Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) w
 - No step limit in agent loops (infinite loops)
 - No memory management (context overflow)
 - No error isolation in multi-agent (one failure crashes all)
+  - Note (CC 2.1.161): parallel *tool calls* now fail independently — a failed Bash no longer cancels siblings in the same batch. This caveat still applies at the agent-orchestration level, not to tool batches; `claude agents` rows now show `done/total` for fanned-out work.
+  - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent &lt;name&gt;` overrides it — pin the agent type explicitly when dispatching.
 - Missing synthesis step (raw agent outputs not useful)
 - Mixing frameworks in one project (complexity explosion)
 - Using Agent Teams for simple sequential work (use Task tool)
@@ -195,7 +201,7 @@ from autogen_agentchat.conditions import TextMentionTermination
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 # Create model client
-model_client = OpenAIChatCompletionClient(model="gpt-5.2")
+model_client = OpenAIChatCompletionClient(model="gpt-5.5")
 
 # Define agents
 planner = AssistantAgent(
@@ -332,21 +338,21 @@ researcher_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a research specialist. Gather information and facts.
 When research is complete, hand off to the writer.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 writer_agent = Agent(
     name="writer",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a content writer. Create compelling content from research.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 orchestrator = Agent(
     name="orchestrator",
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You coordinate research and writing tasks.""",
-    model="gpt-5.2",
+    model="gpt-5.5",
     handoffs=[handoff(agent=researcher_agent), handoff(agent=writer_agent)]
 )
 
@@ -521,7 +527,7 @@ agent = AssistantAgent(name="assistant", llm_config=config)
 # MS Agent Framework (new)
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-model_client = OpenAIChatCompletionClient(model="gpt-5.2")
+model_client = OpenAIChatCompletionClient(model="gpt-5.5")
 agent = AssistantAgent(name="assistant", model_client=model_client)
 ```
 
@@ -587,7 +593,7 @@ result = await app.ainvoke({"text": "..."})
 ```python
 # Simple task = single agent
 from langchain_openai import ChatOpenAI
-llm = ChatOpenAI(model="gpt-5.2")
+llm = ChatOpenAI(model="gpt-5.5")
 result = await llm.ainvoke("Summarize this text: ...")
 ```
 
@@ -644,7 +650,7 @@ crew = Crew(
     agents=[manager, researcher, writer],
     tasks=[project_task],
     process=Process.hierarchical,
-    manager_llm="gpt-5.2",
+    manager_llm="gpt-5.5",
     memory=True,
     verbose=True
 )
@@ -813,7 +819,7 @@ crew = Crew(
     agents=[manager, researcher, writer, reviewer],
     tasks=[project_task],
     process=Process.hierarchical,  # Manager delegates dynamically
-    manager_llm="gpt-5.2"
+    manager_llm="gpt-5.5"
 )
 ```
 
@@ -899,7 +905,7 @@ When done: Answer: [Final answer]`;
 
   for (let i = 0; i < maxIterations; i++) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.2', messages, temperature: 0.1
+      model: 'gpt-5.5', messages, temperature: 0.1
     });
 
     const content = response.choices[0].message.content!;
@@ -950,7 +956,7 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
   let iteration = 0;
   while (iteration < 10) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.2', messages, tools: openaiTools
+      model: 'gpt-5.5', messages, tools: openaiTools
     });
 
     const message = response.choices[0].message;
@@ -1445,7 +1451,8 @@ TeamCreate(team_name="feature-auth", description="User auth implementation")
 
 # 2. Create tasks in shared list
 TaskCreate(subject="Design API schema", description="...")
-TaskCreate(subject="Build React components", description="...", addBlockedBy=["1"])
+TaskCreate(subject="Build React components", description="...")
+TaskUpdate(taskId="2", addBlockedBy=["1"])  # link deps after the task exists
 
 # 3. Spawn teammates
 Agent(prompt="You are the backend architect...",
@@ -1457,13 +1464,13 @@ Agent(prompt="You are the backend architect...",
 
 ```
 # Direct message (default)
-SendMessage(type="message", recipient="frontend-dev",
-  content="API contract: GET /users/:id -> {id, name, email}",
+SendMessage(to="frontend-dev",
+  message="API contract: GET /users/:id -> {id, name, email}",
   summary="API contract ready")
 
-# Broadcast (expensive -- use sparingly)
-SendMessage(type="broadcast",
-  content="Auth header format changed to Bearer",
+# No broadcast primitive -- send per-teammate or post to the shared task list
+SendMessage(to="frontend-dev",
+  message="Auth header format changed to Bearer",
   summary="Breaking auth change")
 ```
 
@@ -1554,7 +1561,7 @@ export async function multiAgentCollaboration(
 
   // 1. Coordinator plans the task
   const planResponse = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     messages: [
       {
         role: 'system',
@@ -1574,7 +1581,7 @@ Provide a numbered plan with agent assignments.`
   const agentResults = await Promise.all(
     agents.map(async (agent) => {
       const response = await openai.chat.completions.create({
-        model: 'gpt-5.2',
+        model: 'gpt-5.5',
         messages: [
           { role: 'system', content: agent.systemPrompt },
           { role: 'user', content: `Task: ${task}\n\nPlan:\n${plan}\n\nComplete your part.` }
@@ -1586,7 +1593,7 @@ Provide a numbered plan with agent assignments.`
 
   // 3. Synthesize results
   const synthesisResponse = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+    model: 'gpt-5.5',
     messages: [
       { role: 'system', content: 'Synthesize agent results into a coherent final answer.' },
       { role: 'user', content: `Task: ${task}\n\nAgent Results:\n${JSON.stringify(agentResults, null, 2)}` }
@@ -2859,6 +2866,7 @@ from orchestrator import (
     ScenarioProgress,
 )
 from langgraph.checkpoint.postgres import PostgresSaver
+from psycopg_pool import ConnectionPool
 
 async def run_scenario():
     # Read from environment
@@ -2869,9 +2877,13 @@ async def run_scenario():
     print(f"[{scenario_id.upper()}] Starting scenario execution")
     print(f"[{scenario_id.upper()}] Orchestration ID: {orchestration_id}")
 
-    # Setup checkpointer
+    # Setup checkpointer — from_conn_string is a @contextmanager, so for a
+    # long-running orchestrator use an explicit pool with the PostgresSaver
+    # constructor (a `with` block would close the pool mid-run).
     db_url = os.getenv("DATABASE_URL", "postgresql://localhost/orchestkit")
-    checkpointer = PostgresSaver.from_conn_string(db_url)
+    pool = ConnectionPool(db_url, max_size=20, kwargs={"autocommit": True, "prepare_threshold": 0})
+    checkpointer = PostgresSaver(pool)
+    checkpointer.setup()  # first run creates the checkpoint tables
 
     # Build orchestrator
     app = build_scenario_orchestrator(checkpointer=checkpointer)
@@ -3141,6 +3153,7 @@ To enable forced synchronization at milestones (all scenarios pause and wait):
 
 ```python
 # In run_scenario.py
+import asyncpg
 
 async def wait_for_milestone_sync(
     orchestration_id: str,
@@ -3150,12 +3163,14 @@ async def wait_for_milestone_sync(
 ):
     """Wait for all scenarios to reach milestone."""
 
-    checkpointer = PostgresSaver.from_conn_string(DATABASE_URL)
+    # Poll the progress table directly with an asyncpg pool — the langgraph
+    # checkpointer is a @contextmanager factory, not a general connection source.
+    pool = await asyncpg.create_pool(DATABASE_URL)
     start = time.time()
 
     while time.time() - start < timeout_seconds:
         # Query checkpoint status
-        async with checkpointer.get_connection() as conn:
+        async with pool.acquire() as conn:
             result = await conn.fetch("""
                 SELECT DISTINCT scenario_id, MAX(progress_pct)
                 FROM scenario_orchestration_checkpoints
@@ -3620,7 +3635,7 @@ crew = Crew(
     agents=[manager, researcher, writer],
     tasks=[research_task, write_task, review_task],
     process=Process.hierarchical,
-    manager_llm="gpt-4o",  # Required for hierarchical
+    manager_llm="gpt-5.5",  # Required for hierarchical
     memory=True,
     verbose=True
 )
@@ -3640,8 +3655,8 @@ agent = Agent(
     backstory="Expert with 10 years experience",
 
     # LLM configuration
-    llm="gpt-4o",
-    function_calling_llm="gpt-4o-mini",  # Cheaper model for tools
+    llm="gpt-5.5",
+    function_calling_llm="gpt-5-mini",  # Cheaper model for tools
     use_system_prompt=True,
 
     # Execution control
@@ -4041,7 +4056,7 @@ class ReviewFlow(Flow):
     @human_feedback(
         message="Do you approve this content?",
         emit=["approved", "rejected"],
-        llm="gpt-4o-mini"
+        llm="gpt-5-mini"
     )
     def generate_content(self):
         return "Content for human review..."
@@ -4180,7 +4195,7 @@ agent = AssistantAgent(name="assistant", llm_config=config)
 # MS Agent Framework (new)
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-model_client = OpenAIChatCompletionClient(model="gpt-5.2")
+model_client = OpenAIChatCompletionClient(model="gpt-5.5")
 agent = AssistantAgent(name="assistant", model_client=model_client)
 ```
 
@@ -5348,12 +5363,18 @@ def build_scenario_orchestrator(
 import asyncio
 import uuid
 from langgraph.checkpoint.postgres import PostgresSaver
+from psycopg_pool import ConnectionPool
 
 async def main():
-    # Setup checkpointing
-    checkpointer = PostgresSaver.from_conn_string(
-        "postgresql://user:password@localhost/orchestkit"
+    # Setup checkpointing — from_conn_string is a @contextmanager; use an
+    # explicit pool + PostgresSaver constructor for a long-running orchestrator
+    pool = ConnectionPool(
+        "postgresql://user:password@localhost/orchestkit",
+        max_size=20,
+        kwargs={"autocommit": True, "prepare_threshold": 0},
     )
+    checkpointer = PostgresSaver(pool)
+    checkpointer.setup()  # first run creates the checkpoint tables
 
     # Build orchestrator
     app = build_scenario_orchestrator(checkpointer=checkpointer)
@@ -5575,7 +5596,7 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 # Create model client
 model_client = OpenAIChatCompletionClient(
-    model="gpt-5.2",
+    model="gpt-5.5",
     api_key=os.environ["OPENAI_API_KEY"]
 )
 
@@ -5787,7 +5808,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="assistant",
     instructions="You are a helpful assistant that answers questions.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 # Synchronous run
@@ -5811,7 +5832,7 @@ session = SQLiteSession(db_path="conversations.db")
 agent = Agent(
     name="assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 runner = Runner()
@@ -5865,7 +5886,7 @@ billing_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You handle billing inquiries. Check account status and payment issues.
 Hand back to triage when billing issue is resolved.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 support_agent = Agent(
@@ -5873,7 +5894,7 @@ support_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You handle technical support. Troubleshoot issues and provide solutions.
 Hand back to triage when support issue is resolved.""",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 # Triage agent with handoffs
@@ -5884,7 +5905,7 @@ You are the first point of contact. Determine the nature of inquiries.
 - Billing questions: hand off to billing
 - Technical issues: hand off to support
 - General questions: answer directly""",
-    model="gpt-5.2",
+    model="gpt-5.5",
     handoffs=[
         handoff(agent=billing_agent),
         handoff(agent=support_agent)
@@ -5972,7 +5993,7 @@ async with MCPServerManager() as manager:
     agent = Agent(
         name="mcp_agent",
         instructions="Use available tools to help the user.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         mcp_servers=[filesystem_server, api_server]
     )
 
@@ -5995,7 +6016,7 @@ async with MCPServerStdio(
     agent = Agent(
         name="file_agent",
         instructions="Help with file operations.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         mcp_servers=[server]
     )
     result = await runner.run(agent, "What files are available?")
@@ -6023,7 +6044,7 @@ def create_ticket(title: str, description: str, priority: str) -> str:
 support_agent = Agent(
     name="support",
     instructions="Help users with technical issues. Search knowledge base first.",
-    model="gpt-5.2",
+    model="gpt-5.5",
     tools=[search_knowledge_base, create_ticket]
 )
 ```
@@ -6052,7 +6073,7 @@ class ResponseValidator(OutputGuardrail):
 agent = Agent(
     name="safe_assistant",
     instructions="You are a helpful assistant.",
-    model="gpt-5.2",
+    model="gpt-5.5",
     input_guardrails=[ContentFilter()],
     output_guardrails=[ResponseValidator()]
 )
@@ -6113,7 +6134,7 @@ from agents import Agent, Runner
 agent = Agent(
     name="streamer",
     instructions="Provide detailed explanations.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 runner = Runner()
@@ -6195,7 +6216,7 @@ config = RunConfig(
 agent = Agent(
     name="assistant",
     instructions="You are helpful.",
-    model="gpt-5.2"
+    model="gpt-5.5"
 )
 
 result = await runner.run(agent, "Complex task", run_config=config)
@@ -6218,7 +6239,7 @@ from agents.extensions.litellm import LiteLLMModel
 agent = Agent(
     name="claude_agent",
     instructions="You are helpful.",
-    model=LiteLLMModel(model="anthropic/claude-sonnet-4-20250514")
+    model=LiteLLMModel(model="anthropic/claude-sonnet-4-6")
 )
 ```
 

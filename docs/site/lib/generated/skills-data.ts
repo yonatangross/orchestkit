@@ -589,7 +589,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "audit-full": {
     "name": "audit-full",
-    "description": "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
+    "description": "Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.2.0",
     "author": "OrchestKit",
     "tags": [
@@ -1560,7 +1560,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "claude-design-orchestrator"
+    ]
   },
   "design-ship": {
     "name": "design-ship",
@@ -1606,7 +1608,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "claude-design-orchestrator"
+    ]
   },
   "design-system-tokens": {
     "name": "design-system-tokens",
@@ -1740,7 +1744,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "emulate-engineer"
+    ]
   },
   "devops-deployment": {
     "name": "devops-deployment",
@@ -1935,7 +1941,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "monitoring-engineer"
+    ]
   },
   "documentation-patterns": {
     "name": "documentation-patterns",
@@ -3559,7 +3567,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "product-strategist"
+    ]
   },
   "presentation-builder": {
     "name": "presentation-builder",
@@ -4090,7 +4100,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "release-engineer"
+    ]
   },
   "remember": {
     "name": "remember",
@@ -4416,6 +4428,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "fork",
     "allowedTools": [
       "Read",
+      "Write",
       "Grep",
       "Glob",
       "Bash",
@@ -4616,7 +4629,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "git-operations-engineer"
+    ]
   },
   "task-dependency-patterns": {
     "name": "task-dependency-patterns",
@@ -4718,7 +4733,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "monitoring-engineer"
+    ]
   },
   "testing-e2e": {
     "name": "testing-e2e",
@@ -5269,8 +5286,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "visualize-plan": {
     "name": "visualize-plan",
-    "description": "Renders planned changes as ASCII visualizations with risk heat maps, execution order diagrams, dependency graphs, impact metrics, and before/after architecture comparisons. Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
-    "version": "2.0.0",
+    "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
+    "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -5280,7 +5297,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "diff",
       "risk",
       "impact",
-      "migration"
+      "migration",
+      "playground",
+      "infographic",
+      "multi-format"
     ],
     "userInvocable": true,
     "context": "fork",
@@ -5309,11 +5329,13 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
+        "before-after-arch-patterns.md",
         "blast-radius-patterns.md",
         "change-manifest-patterns.md",
         "decision-log-patterns.md",
         "deep-dives.md",
         "execution-swimlane-patterns.md",
+        "format-dispatch.md",
         "risk-dashboard-patterns.md",
         "visualization-tiers.md"
       ],
@@ -5477,7 +5499,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "product-strategist"
+    ]
   },
   "zustand-patterns": {
     "name": "zustand-patterns",

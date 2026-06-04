@@ -22,7 +22,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 /ork:explore authentication
 ```
 
-> **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
+> **Opus 4.8**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
 
 ---
 
@@ -44,9 +44,9 @@ EFFORT = EFFORT or "high"  # default
 | `low` | 1 (structure-only) | 1, 2, 8 | ~1 min |
 | `medium` | 2 (structure + data flow) | 1, 2, 3 (subset), 8 | ~3 min |
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
-| `xhigh` (Opus 4.7 only) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
+| `xhigh` (Opus 4.8) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `$\{CLAUDE_EFFORT\}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
+**Override gate:** if the user passes `--effort=high` explicitly while `$\{CLAUDE_EFFORT\}` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
 
 ---
 
@@ -60,11 +60,10 @@ AskUserQuestion(
     "question": "What aspect do you want to explore?",
     "header": "Focus",
     "options": [
-      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment", "markdown": "```\nFull Exploration (8 phases)\n───────────────────────────\n  4 parallel explorer agents:\n  ┌──────────┐ ┌──────────┐\n  │ Structure│ │ Data     │\n  │ Explorer │ │ Flow     │\n  ├──────────┤ ├──────────┤\n  │ Pattern  │ │ Product  │\n  │ Analyst  │ │ Context  │\n  └──────────┘ └──────────┘\n         ▼\n  ┌──────────────────────┐\n  │ Code Health    N/10  │\n  │ Dep Hotspots   map   │\n  │ Architecture   diag  │\n  └──────────────────────┘\n  Output: Full exploration report\n```"},
-      {"label": "Code structure only", "description": "Find files, classes, functions related to topic", "markdown": "```\nCode Structure\n──────────────\n  Grep ──▶ Glob ──▶ Map\n\n  Output:\n  ├── File tree (relevant)\n  ├── Key classes/functions\n  ├── Import graph\n  └── Entry points\n  No agents — direct search\n```"},
-      {"label": "Data flow", "description": "Trace how data moves through the system", "markdown": "```\nData Flow Trace\n───────────────\n  Input ──▶ Transform ──▶ Output\n    │          │            │\n    ▼          ▼            ▼\n  [API]    [Service]    [DB/Cache]\n\n  Traces: request lifecycle,\n  state mutations, side effects\n  Agent: 1 data-flow explorer\n```"},
-      {"label": "Architecture patterns", "description": "Identify design patterns and integrations", "markdown": "```\nArchitecture Analysis\n─────────────────────\n  ┌─────────────────────┐\n  │ Detected Patterns    │\n  │ ├── MVC / Hexagonal  │\n  │ ├── Event-driven?    │\n  │ ├── Service layers   │\n  │ └── External APIs    │\n  ├─────────────────────┤\n  │ Integration Map      │\n  │ DB ←→ Cache ←→ Queue │\n  └─────────────────────┘\n  Agent: backend-system-architect\n```"},
-      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis", "markdown": "```\nQuick Search (~30s)\n───────────────────\n  Grep + Glob ──▶ File list\n\n  Output:\n  ├── Matching files\n  ├── Line references\n  └── Brief summary\n  No agents, no health check,\n  no report generation\n```"}
+      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment"},
+      {"label": "Quick scan", "description": "Find relevant files + structure, skip deep analysis"},
+      {"label": "Data flow", "description": "Trace how data moves through the system"},
+      {"label": "Architecture patterns", "description": "Identify design patterns and integrations"}
     ],
     "multiSelect": false
   }]
@@ -73,10 +72,9 @@ AskUserQuestion(
 
 **Based on answer, adjust workflow:**
 - **Full exploration**: All phases, all parallel agents
-- **Code structure only**: Skip phases 5-7 (health, dependencies, product)
+- **Quick scan**: Files + structure only (phases 1-2), skip health/deps/product — no deep agents
 - **Data flow**: Focus phase 3 agents on data tracing
 - **Architecture patterns**: Focus on backend-system-architect agent
-- **Quick search**: Skip to phases 1-2 only, return file list
 
 ---
 
@@ -367,10 +365,7 @@ Agent(subagent_type="frontend-ui-developer", name="frontend-explorer",
 After report generation:
 
 ```python
-SendMessage(type="shutdown_request", recipient="structure-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="data-flow-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="backend-explorer", content="Exploration complete")
-SendMessage(type="shutdown_request", recipient="frontend-explorer", content="Exploration complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

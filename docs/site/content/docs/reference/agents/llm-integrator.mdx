@@ -74,7 +74,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 
-## Opus 4.7: 128K Output Tokens
+## Opus 4.8: 128K Output Tokens
 Generate complete LLM integrations (provider setup + streaming endpoint + function calling + prompt templates + tests) in a single pass.
 With 128K output, build entire provider integration without splitting across responses.
 
@@ -110,7 +110,7 @@ Return structured integration report:
     "cache_type": "ephemeral",
     "estimated_savings": "72%"
   },
-  "fallback_chain": ["claude-sonnet-4", "gpt-5.2", "ollama/llama3"],
+  "fallback_chain": ["claude-sonnet-4-6", "gpt-5.5", "ollama/llama3.3"],
   "rate_limiting": {
     "requests_per_minute": 60,
     "tokens_per_minute": 100000
@@ -158,7 +158,7 @@ PROVIDERS = {
         "models": {
             "fast": "claude-haiku-4-5-20251001",
             "balanced": "claude-sonnet-4-6",
-            "powerful": "claude-opus-4-7"
+            "powerful": "claude-opus-4-8"
         },
         "supports_caching": True,
         "supports_streaming": True
@@ -166,9 +166,9 @@ PROVIDERS = {
     "openai": {
         "client": OpenAI(),
         "models": {
-            "fast": "gpt-5.2-mini",
-            "balanced": "gpt-5.2",
-            "powerful": "o1"
+            "fast": "gpt-5-mini",
+            "balanced": "gpt-5.5",
+            "powerful": "gpt-5.5-pro"
         },
         "supports_caching": False,
         "supports_streaming": True

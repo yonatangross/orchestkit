@@ -31,9 +31,9 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 |---|---|
 | `low` / `medium` | Subset of dimensions, faster turnaround |
 | `high` (default) | All six dimensions with pros/cons |
-| `xhigh` (Opus 4.7 only) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+| `xhigh` (Opus 4.8) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
-> `xhigh` silently falls back to `high` on non-Opus-4.7 models. `/ork:doctor` warns when `xhigh` is used without Opus 4.7.
+> `xhigh` silently falls back to `high` on models that don't support it (Opus 4.8 do). `/ork:doctor` warns when `xhigh` is used without Opus 4.8.
 
 ---
 
@@ -69,7 +69,7 @@ for token in "$ARGUMENTS".split():
 EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC &lt; 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.7.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC &lt; 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` warns when `xhigh` is requested without Opus 4.8.
 
 ---
 
@@ -116,10 +116,10 @@ AskUserQuestion(
     "question": "What dimensions to assess?",
     "header": "Dimensions",
     "options": [
-      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance", "markdown": "```\nFull Assessment (7 phases)\n──────────────────────────\n  Dimensions scored 0-10:\n  ┌─────────────────────────────┐\n  │ Correctness      ████████░░ │\n  │ Maintainability  ██████░░░░ │\n  │ Security         █████████░ │\n  │ Performance      ███████░░░ │\n  │ Testability      ██████░░░░ │\n  │ Architecture     ████████░░ │\n  │ Documentation    █████░░░░░ │\n  └─────────────────────────────┘\n  + Pros/cons + alternatives\n  + Effort estimates + report\n  Agents: 4 parallel evaluators\n```"},
-      {"label": "Code quality only", "description": "Readability, complexity, best practices", "markdown": "```\nCode Quality Focus\n──────────────────\n  Dimensions scored 0-10:\n  ┌─────────────────────────────┐\n  │ Correctness      ████████░░ │\n  │ Maintainability  ██████░░░░ │\n  │ Testability      ██████░░░░ │\n  └─────────────────────────────┘\n  Skip: security, performance\n  Agents: 1 code-quality-reviewer\n  Output: Score + best practice gaps\n```"},
-      {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance", "markdown": "```\nSecurity Focus\n──────────────\n  ┌──────────────────────────┐\n  │ OWASP Top 10 check       │\n  │ Dependency CVE scan       │\n  │ Auth/AuthZ flow review    │\n  │ Data flow tracing         │\n  │ Secrets detection         │\n  └──────────────────────────┘\n  Agent: security-auditor\n  Output: Vuln list + severity\n          + remediation steps\n```"},
-      {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes", "markdown": "```\nQuick Score\n───────────\n  Single pass, ~2 min:\n\n  Read target ──▶ Score ──▶ Done\n                  7.2/10\n\n  Output:\n  ├── Composite score (0-10)\n  ├── Grade (A-F)\n  ├── 3 strengths\n  └── 3 improvements\n  No agents, no deep analysis\n```"}
+      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance"},
+      {"label": "Code quality only", "description": "Readability, complexity, best practices"},
+      {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance"},
+      {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes"}
     ],
     "multiSelect": false
   }]
@@ -319,9 +319,9 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ---
 
-## Self-Reported Uncertainty (Opus 4.7 only, `xhigh` effort)
+## Self-Reported Uncertainty (Opus 4.8, `xhigh` effort)
 
-Opus 4.7 is materially better than 4.6 at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
+Opus 4.8 is materially better than older tiers at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
 
 Output schema per dimension (JSON):
 
@@ -652,10 +652,7 @@ Agent(subagent_type="test-generator", name="test-assessor",
 
 **Team teardown** after report compilation:
 ```python
-SendMessage(type="shutdown_request", recipient="correctness-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="security-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="perf-assessor", content="Assessment complete")
-SendMessage(type="shutdown_request", recipient="test-assessor", content="Assessment complete")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

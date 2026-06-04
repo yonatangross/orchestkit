@@ -23,7 +23,7 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 /ork:fix-issue 456
 ```
 
-> **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+> **Opus 4.8**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
 
 > **CC ≥ 2.1.119 multi-host note (M122):** Issue fetching works against GitHub, GitLab, Bitbucket, and GitHub Enterprise. The argument is either a numeric ID (use the configured default remote's host) or a full URL (parsed via `parsePrUrl`/`parseIssueUrl` from `src/hooks/src/lib/pr-host-parser.ts`). Branch on the detected host family for the right CLI: `gh issue view` (GitHub/GHE), `glab issue view` (GitLab), `bb issue view` (Bitbucket). Reference: `src/skills/chain-patterns/references/pr-from-platform.md`.
 
@@ -131,7 +131,7 @@ Scale investigation depth based on `/effort` level:
 | **low** | Quick fix: read → fix → test → done | 0 agents | 1, 6, 7, 11 |
 | **medium** | Standard: investigate → fix → test → prevent | 2-3 agents | 1-4, 6-8, 11 |
 | **high** (default) | Full RCA: 5 parallel agents → fix → prevent → lessons | 5 agents | All 11 phases |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | Full RCA + extra regression-scan pass across sibling modules | 5 agents | All 11 phases + regression sweep |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | Full RCA + extra regression-scan pass across sibling modules | 5 agents | All 11 phases + regression sweep |
 
 > **Override:** Explicit user selection (e.g., "Proper fix") overrides `/effort` downscaling. Hotfix always uses minimal phases regardless of effort.
 
@@ -145,10 +145,10 @@ AskUserQuestion(
     "question": "How do you want to approach this fix?",
     "header": "Fix Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, regression test, prevention plan", "markdown": "```\nProper Fix (11 phases)\n──────────────────────\n  Understand ──▶ Hypothesize ──▶ RCA\n       │              │           │\n       ▼              ▼           ▼\n  5 parallel     Ranked       Confirmed\n  agents         hypotheses   root cause\n       │\n       ▼\n  Fix ──▶ Validate ──▶ Prevent ──▶ PR\n  + regression test   + runbook\n```"},
-      {"label": "Quick fix", "description": "Minimal investigation, fix and test", "markdown": "```\nQuick Fix (~10 min)\n───────────────────\n  Read issue ──▶ Fix ──▶ Test ──▶ PR\n\n  Skip: full RCA, prevention plan,\n  runbook, lessons learned\n  Keep: regression test (mandatory)\n```"},
-      {"label": "Investigate first", "description": "Deep analysis before deciding on approach", "markdown": "```\nInvestigate First\n─────────────────\n  Read issue ──▶ 5 parallel agents ──▶ Report\n\n  Output: Root cause analysis\n  + hypothesis ranking\n  + recommended approach\n  No code changes yet\n```"},
-      {"label": "Hotfix", "description": "Emergency fix, minimal process", "markdown": "```\nHotfix (emergency)\n──────────────────\n  Read issue ──▶ Fix ──▶ Push\n\n  Skip: agents, RCA, prevention\n  Keep: basic test verification\n  Post-fix: schedule proper RCA\n```"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, regression test, prevention plan"},
+      {"label": "Quick fix", "description": "Minimal investigation, fix and test"},
+      {"label": "Investigate first", "description": "Deep analysis before deciding on approach"},
+      {"label": "Hotfix", "description": "Emergency fix, minimal process"}
     ],
     "multiSelect": false
   }]
@@ -177,9 +177,9 @@ AskUserQuestion(questions=[{
   "question": "Before push?",
   "header": "Local CI",
   "options": [
-    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures", "markdown": "```\nPush + Remote CI\n────────────────\n  fix ──▶ commit ──▶ push ──▶ CI\n                                │\n                                v\n                            5-15 min\n  + fastest local turnaround\n  - failures discovered remotely\n  - rebase if CI red on main move\n```"},
-    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push", "markdown": "```\nLocal Full Suite + Push\n───────────────────────\n  fix ──▶ commit ──▶ npm test ──▶ push\n                       │\n                       v\n                   ~2-3 min\n  + catches all CI failures locally\n  - slower per-iteration\n  recommended when issue label =\n  security | data-loss\n```"},
-    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns", "markdown": "```\nSecurity-only + Push\n────────────────────\n  fix ──▶ commit ──▶ test:security ──▶ push\n                          │\n                          v\n                       ~30s\n  + catches secrets/deps/owasp\n  + faster than full suite\n  - misses lint/type/unit issues\n```"}
+    {"label": "Push and let CI run (default)", "description": "Fastest round-trip, CI catches failures"},
+    {"label": "Run full suite locally first", "description": "~2-3 min extra; catches CI failures locally before push"},
+    {"label": "Run security tests only", "description": "~30s; covers the usual blocker class — secrets, deps, common vulns"}
   ]
 }])
 ```
@@ -356,8 +356,8 @@ if capabilities.memory:
 >
 > ```python
 > PushNotification(
->   title="ork:fix-issue complete",
->   body=f"#\{issue_number\}: fix pushed, \{tests_passing\}/\{tests_total\} tests · PR #\{pr_number\}"
+>   message=f"ork:fix-issue complete — #\{issue_number\}: fix pushed, \{tests_passing\}/\{tests_total\} tests · PR #\{pr_number\}",
+>   status="proactive"
 > )
 > ```
 
@@ -398,7 +398,7 @@ All 5 RCA agents receive: issue description, ranked hypotheses, reproduction ste
 
 ### Skill Chain
 
-After fix is applied: `TaskCreate(subject="Verify fix", addBlockedBy=[fix_task_id])` → `/ork:verify`.
+After fix is applied: `TaskCreate(subject="Verify fix")` then `TaskUpdate(taskId=verify_id, addBlockedBy=[fix_task_id])` → `/ork:verify`.
 
 ### Verification Gate
 
@@ -420,7 +420,7 @@ When reporting fix status, follow `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/r
 
 ## Picker fallback (#1795)
 
-If the `AskUserQuestion` picker stalls (CC 2.1.139 input bug — orchestkit#1795), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
+If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orchestkit#1795, now guarded by tests/skills/structure/test-askuserquestion-schema.sh), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
 
 ## References
 
@@ -459,18 +459,17 @@ AskUserQuestion(
     "question": "What approach for this fix?",
     "header": "Approach",
     "options": [
-      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations", "markdown": "```\nProper Fix (11 phases)\n──────────────────────\n  Issue ──▶ RCA ──▶ Fix ──▶ Prevent\n  ┌─────┐  ┌─────┐  ┌─────┐  ┌───────┐\n  │Read │  │5-Why│  │Code │  │Tests  │\n  │issue│  │Fish │  │impl │  │Runbook│\n  │+hist│  │bone │  │+test│  │Lessons│\n  └─────┘  └─────┘  └─────┘  └───────┘\n  5 parallel agents for RCA\n  Regression test BEFORE fix\n  Prevention + lessons learned\n```"},
-      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue", "markdown": "```\nQuick Fix (phases 1-7)\n──────────────────────\n  Issue ──▶ Diagnose ──▶ Fix\n  ┌─────┐   ┌────────┐  ┌─────┐\n  │Read │   │Focused │  │Code │\n  │issue│   │RCA     │  │+test│\n  └─────┘   └────────┘  └─────┘\n  Skip: prevention, runbook,\n  lessons learned phases\n  Still requires regression test\n```"},
-      {"label": "Investigate first", "description": "Understand the issue before deciding on approach", "markdown": "```\nInvestigate Only (phases 1-4)\n─────────────────────────────\n  Issue ──▶ Search ──▶ Hypotheses\n  ┌─────┐  ┌──────┐  ┌──────────┐\n  │Read │  │Find  │  │Rank by   │\n  │issue│  │similar│  │confidence│\n  └─────┘  └──────┘  └──────────┘\n  Output: Root cause analysis\n  NO code changes made\n  Decide approach after findings\n```"},
-      {"label": "Hotfix", "description": "Emergency patch, minimal testing", "markdown": "```\nHotfix (minimal)\n────────────────\n  Issue ──▶ Fix ──▶ Ship\n  ┌─────┐  ┌────┐  ┌────┐\n  │Skim │  │Min │  │Push│\n  │issue│  │fix │  │now │\n  └─────┘  └────┘  └────┘\n  Skip: similar issue search,\n  deep RCA, prevention\n  ⚠ Follow up with proper fix\n```"},
-      {"label": "Plan first", "description": "Investigate root cause in plan mode before fixing", "markdown": "```\nPlan Mode Investigation\n──────────────────────\n  1. EnterPlanMode("Issue #$ISSUE")\n  2. Read issue + repro\n  3. Trace code paths\n  4. Identify root cause\n  5. ExitPlanMode → fix plan\n  6. User approves approach\n  7. Implement fix + tests\n\n  Best for: Complex bugs,\n  regressions, multi-file fixes\n```"}
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations"},
+      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue"},
+      {"label": "Investigate first (plan mode)", "description": "RCA in read-only plan mode, then ExitPlanMode with a fix plan for approval — no code until approved"},
+      {"label": "Hotfix", "description": "Emergency patch, minimal testing"}
     ],
     "multiSelect": false
   }]
 )
 ```
 
-**If 'Plan first' selected:** Call `EnterPlanMode("Investigate issue #$ISSUE: $TITLE")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
+**If 'Investigate first (plan mode)' selected:** Call `EnterPlanMode("Investigate issue #$ISSUE: $TITLE")`, perform research using Read/Grep/Glob only, then `ExitPlanMode` with the plan for user approval before proceeding.
 
 **Based on answer, adjust workflow:**
 - **Proper fix**: All 11 phases, parallel agents for RCA
@@ -945,11 +944,7 @@ Agent(subagent_type="test-generator", name="test-planner",
 
 **Team teardown** after fix is implemented and validated:
 ```python
-SendMessage(type="shutdown_request", recipient="root-cause-tracer", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="impact-analyst", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="backend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="frontend-expert", content="Fix validated")
-SendMessage(type="shutdown_request", recipient="test-planner", content="Fix validated")
+# TeamDelete() shuts down all teammates — no manual shutdown_request needed
 TeamDelete()
 
 # Worktree cleanup (CC 2.1.72)

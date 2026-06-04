@@ -41,27 +41,30 @@ The catalog is the contract. The spec is the data. The registry is the platform-
 
 ```typescript
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Heading: {
-    props: z.object({
-      text: z.string(),
-      level: z.enum(['h1', 'h2', 'h3']),
-    }),
-    children: false,
-  },
-  Paragraph: {
-    props: z.object({ text: z.string() }),
-    children: false,
-  },
-  StatCard: {
-    props: z.object({
-      label: z.string(),
-      value: z.string(),
-      trend: z.enum(['up', 'down', 'flat']).optional(),
-    }),
-    children: false,
+export const catalog = defineCatalog(schema, {
+  components: {
+    Heading: {
+      props: z.object({
+        text: z.string(),
+        level: z.enum(['h1', 'h2', 'h3']),
+      }),
+      children: false,
+    },
+    Paragraph: {
+      props: z.object({ text: z.string() }),
+      children: false,
+    },
+    StatCard: {
+      props: z.object({
+        label: z.string(),
+        value: z.string(),
+        trend: z.enum(['up', 'down', 'flat']).optional(),
+      }),
+      children: false,
+    },
   },
 })
 ```
@@ -70,11 +73,12 @@ export const catalog = defineCatalog({
 
 ```tsx
 import { Renderer } from '@json-render/react'
-import { catalog } from './catalog'
 import { webRegistry } from './registries/web'
 
+// webRegistry comes from `defineRegistry(catalog, { components })`.
+// RendererProps is { spec, registry, loading?, fallback? } — no catalog prop.
 export const Dashboard = ({ spec }) => (
-  <Renderer spec={spec} catalog={catalog} registry={webRegistry} />
+  <Renderer spec={spec} registry={webRegistry} />
 )
 ```
 
@@ -82,24 +86,22 @@ export const Dashboard = ({ spec }) => (
 
 ```typescript
 import { renderToBuffer, renderToFile } from '@json-render/react-pdf'
-import { catalog } from './catalog'
 import { pdfRegistry } from './registries/pdf'
 
-// Buffer for HTTP response
-const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+// Buffer for HTTP response — options are { registry, includeStandard?, state? }
+const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 
-// Direct file output
-await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+// Direct file output — renderToFile(spec, filePath, options?)
+await renderToFile(spec, './output/report.pdf', { registry: pdfRegistry })
 ```
 
 ### Render to Email
 
 ```typescript
 import { renderToHtml } from '@json-render/react-email'
-import { catalog } from './catalog'
 import { emailRegistry } from './registries/email'
 
-const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+const html = await renderToHtml(spec, { registry: emailRegistry })
 await sendEmail({ to: user.email, subject: 'Weekly Report', html })
 ```
 
@@ -107,11 +109,9 @@ await sendEmail({ to: user.email, subject: 'Weekly Report', html })
 
 ```typescript
 import { renderToSvg, renderToPng } from '@json-render/image'
-import { catalog } from './catalog'
 import { imageRegistry } from './registries/image'
 
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -194,15 +194,16 @@ The `@json-render/react-pdf` package renders specs to PDF using react-pdf under 
 import { renderToBuffer, renderToFile, renderToStream } from '@json-render/react-pdf'
 
 // In-memory buffer (for HTTP responses, S3 upload)
-const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+// options are { registry, includeStandard?, state? } — no catalog field
+const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 res.send(buffer)
 
-// Direct file write
-await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+// Direct file write — renderToFile(spec, filePath, options?)
+await renderToFile(spec, './output/report.pdf', { registry: pdfRegistry })
 
 // Streaming (for large documents)
-const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+const stream = await renderToStream(spec, { registry: pdfRegistry })
 stream.pipe(res)
 ```
 
@@ -217,7 +218,6 @@ import { renderToSvg, renderToPng } from '@json-render/image'
 
 // SVG output (smaller, scalable)
 const svg = await renderToSvg(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -225,7 +225,6 @@ const svg = await renderToSvg(spec, {
 
 // PNG output (universal compatibility)
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -374,13 +373,13 @@ import { catalog } from './catalog'
 import { pdfRegistry } from './registries/pdf'
 
 // Buffer — for HTTP responses, S3 upload, attachments
-const buffer = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
+const buffer = await renderToBuffer(spec, { registry: pdfRegistry })
 
 // File — direct disk write
-await renderToFile(spec, './output/report.pdf', { catalog, registry: pdfRegistry })
+await renderToFile(spec, './output/report.pdf', { registry: pdfRegistry })
 
 // Stream — for large documents, pipe to HTTP response
-const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+const stream = await renderToStream(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 stream.pipe(res)
 ```
@@ -397,7 +396,7 @@ import { renderToHtml } from '@json-render/react-email'
 import { catalog } from './catalog'
 import { emailRegistry } from './registries/email'
 
-const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
+const html = await renderToHtml(spec, { registry: emailRegistry })
 await transporter.sendMail({ to: user.email, subject: 'Report', html })
 ```
 
@@ -459,34 +458,39 @@ function Dashboard({ spec }) {
 
 **Correct — using the Renderer component:**
 ```tsx
-import { Renderer } from '@json-render/react'
+import { Renderer, defineRegistry } from '@json-render/react'
 import { catalog } from './catalog'
-import { webRegistry } from './registries/web'
+import { webComponents } from './registries/web'
+
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function Dashboard({ spec }) {
   return (
     <Renderer
       spec={spec}
-      catalog={catalog}
       registry={webRegistry}
       fallback={<LoadingSkeleton />}
-      onError={(err) => console.error('Render error:', err)}
     />
   )
 }
 ```
 
 **Key rules:**
-- Always pass `catalog` to `&lt;Renderer&gt;` — it validates that spec types exist in the catalog and props match Zod schemas
+- Build the registry with `defineRegistry(catalog, \{ components \})` — this binds catalog validation to the registry; `&lt;Renderer&gt;` receives only `spec` and `registry` (no `catalog` prop in 0.19)
+- `RendererProps` is `\{ spec, registry, loading?, fallback? \}` — no `catalog`, `components`, `directives`, or `onError` at top level
 - Use `fallback` prop for loading states during progressive streaming
-- Use `onError` callback or wrap in an error boundary for graceful degradation
+- Wrap in a React error boundary for graceful degradation
 - For streaming specs (AI generating in real-time), the Renderer updates progressively as elements arrive
 - The registry maps catalog types to React components — keep it separate from the catalog definition
 
 ### Progressive Streaming Pattern
 
 ```tsx
-import { Renderer, useStreamingSpec } from '@json-render/react'
+import { Renderer, defineRegistry, useStreamingSpec } from '@json-render/react'
+import { catalog } from './catalog'
+import { webComponents } from './registries/web'
+
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
 
 function StreamingDashboard({ specStream }) {
   const spec = useStreamingSpec(specStream) // updates as patches arrive
@@ -494,7 +498,6 @@ function StreamingDashboard({ specStream }) {
   return (
     <Renderer
       spec={spec}
-      catalog={catalog}
       registry={webRegistry}
       fallback={<Skeleton />}
     />
@@ -629,6 +632,7 @@ const ogImage = buildCanvasImage(data)             // manual canvas drawing
 **Correct — one catalog, one spec, multiple registries:**
 ```typescript
 import { catalog } from './catalog'
+import { defineRegistry } from '@json-render/react'
 
 // Same spec, different renderers
 import { Renderer } from '@json-render/react'           // web
@@ -636,11 +640,13 @@ import { renderToBuffer } from '@json-render/react-pdf' // pdf
 import { renderToHtml } from '@json-render/react-email' // email
 import { renderToPng } from '@json-render/image'        // og image
 
+const { registry: webRegistry } = defineRegistry(catalog, { components: webComponents })
+
 // Each renderer uses the same catalog + spec, different registry
-const webUi = <Renderer spec={spec} catalog={catalog} registry={webRegistry} />
-const pdf = await renderToBuffer(spec, { catalog, registry: pdfRegistry })
-const html = await renderToHtml(spec, { catalog, registry: emailRegistry })
-const png = await renderToPng(spec, { catalog, registry: imageRegistry, width: 1200, height: 630 })
+const webUi = <Renderer spec={spec} registry={webRegistry} />
+const pdf = await renderToBuffer(spec, { registry: pdfRegistry })
+const html = await renderToHtml(spec, { registry: emailRegistry })
+const png = await renderToPng(spec, { registry: imageRegistry, width: 1200, height: 630 })
 ```
 
 **Key rules:**
@@ -728,7 +734,6 @@ import { imageRegistry } from './registries/image'
 
 // SVG (smaller file size, scalable)
 const svg = await renderToSvg(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -736,7 +741,6 @@ const svg = await renderToSvg(spec, {
 
 // PNG (universal compatibility)
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,
@@ -789,10 +793,9 @@ import { Renderer } from '@json-render/react'
 
 <Renderer
   spec={spec}                    // JsonRenderSpec — flat-tree JSON/YAML
-  catalog={catalog}              // Catalog from defineCatalog()
-  registry={registry}            // CatalogComponents<typeof catalog>
-  fallback={<Loading />}         // Optional: shown during streaming
-  onError={(err) => log(err)}    // Optional: error callback
+  registry={registry}            // DefineRegistryResult from defineRegistry()
+  loading={isLoading}            // Optional: boolean, shows fallback while true
+  fallback={<Loading />}         // Optional: shown during streaming or loading
 />
 ```
 
@@ -816,7 +819,6 @@ Renders spec to an in-memory PDF buffer.
 import { renderToBuffer } from '@json-render/react-pdf'
 
 const buffer = await renderToBuffer(spec, {
-  catalog,
   registry: pdfRegistry,
   pageSize: 'A4',               // Optional: 'A4' | 'LETTER' | { width, height }
   orientation: 'portrait',      // Optional: 'portrait' | 'landscape'
@@ -832,7 +834,6 @@ Renders spec directly to a PDF file on disk.
 import { renderToFile } from '@json-render/react-pdf'
 
 await renderToFile(spec, './output/report.pdf', {
-  catalog,
   registry: pdfRegistry,
   pageSize: 'A4',
 })
@@ -845,7 +846,7 @@ Renders spec to a readable stream for piping to HTTP responses.
 ```typescript
 import { renderToStream } from '@json-render/react-pdf'
 
-const stream = await renderToStream(spec, { catalog, registry: pdfRegistry })
+const stream = await renderToStream(spec, { registry: pdfRegistry })
 res.setHeader('Content-Type', 'application/pdf')
 res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"')
 stream.pipe(res)
@@ -863,7 +864,6 @@ Renders spec to an HTML string optimized for email clients.
 import { renderToHtml } from '@json-render/react-email'
 
 const html = await renderToHtml(spec, {
-  catalog,
   registry: emailRegistry,
   preview: 'Your weekly report is ready', // Optional: email preview text
   theme: 'light',                          // Optional: 'light' | 'dark'
@@ -877,7 +877,7 @@ Renders spec to plain text (for text/plain multipart emails).
 ```typescript
 import { renderToPlainText } from '@json-render/react-email'
 
-const text = await renderToPlainText(spec, { catalog, registry: emailRegistry })
+const text = await renderToPlainText(spec, { registry: emailRegistry })
 ```
 
 ---
@@ -892,7 +892,6 @@ Renders spec to an SVG string using Satori.
 import { renderToSvg } from '@json-render/image'
 
 const svg = await renderToSvg(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,              // Required
   height: 630,              // Required
@@ -913,7 +912,6 @@ Renders spec to a PNG buffer (SVG -> PNG via Resvg).
 import { renderToPng } from '@json-render/image'
 
 const png = await renderToPng(spec, {
-  catalog,
   registry: imageRegistry,
   width: 1200,
   height: 630,

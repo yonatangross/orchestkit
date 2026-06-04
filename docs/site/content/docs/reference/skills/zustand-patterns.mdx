@@ -1013,7 +1013,8 @@ Comprehensive checklist for production-ready Zustand stores.
 
 ### Multi-Value Selectors
 - [ ] `useShallow` used for selecting multiple related values
-- [ ] Import from `zustand/react/shallow` (not deprecated `zustand/shallow`)
+- [ ] Import `useShallow` from `zustand/shallow` (the v5 migration-guide path)
+- [ ] Deprecated: passing an equality fn to `create()` — migrate to `createWithEqualityFn` from `zustand/traditional`
 
 ### Computed Values
 - [ ] Derived state computed in selectors, not stored

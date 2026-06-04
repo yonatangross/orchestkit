@@ -49,8 +49,8 @@ Directives are the safe escape hatch for computed values. AI emits a `$`-prefixe
 
 ### Registration
 
-```ts
-import { Render } from '@json-render/react'
+```tsx
+import { defineRegistry, JSONUIProvider, Renderer } from '@json-render/react'
 import { standardDirectives, createI18nDirective } from '@json-render/directives'
 
 const directives = [
@@ -62,7 +62,12 @@ const directives = [
   }),
 ]
 
-<Render catalog={catalog} components={components} spec={spec} directives={directives} />
+const { registry } = defineRegistry(catalog, { components })
+
+// directives register on the provider (RendererProps has no directives prop)
+<JSONUIProvider registry={registry} directives={directives}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 ```
 
 ### The seven prebuilt directives
@@ -116,7 +121,7 @@ Spread into the renderer alongside `standardDirectives`: `directives=\{[...stand
 
 1. **Developer defines a catalog** — Zod-typed component definitions with constrained props
 2. **AI generates a spec** — flat-tree JSON/YAML referencing only catalog components
-3. **Runtime renders the spec** — `&lt;Render&gt;` component validates and renders each element
+3. **Runtime renders the spec** — `&lt;Renderer&gt;` component validates and renders each element
 
 The catalog is the safety boundary. AI can only reference types that exist in the catalog, and props are validated against Zod schemas at runtime. This prevents hallucinated components and invalid props from reaching the UI.
 
@@ -126,32 +131,35 @@ The catalog is the safety boundary. AI can only reference types that exist in th
 
 ```typescript
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    props: z.object({
-      title: z.string(),
-      description: z.string().optional(),
-    }),
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string(),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-    }),
-    children: false,
-  },
-  StatGrid: {
-    props: z.object({
-      items: z.array(z.object({
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+      }),
+      children: true,
+    },
+    Button: {
+      props: z.object({
         label: z.string(),
-        value: z.string(),
-        trend: z.enum(['up', 'down', 'flat']).optional(),
-      })).max(20),
-    }),
-    children: false,
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+      }),
+      children: false,
+    },
+    StatGrid: {
+      props: z.object({
+        items: z.array(z.object({
+          label: z.string(),
+          value: z.string(),
+          trend: z.enum(['up', 'down', 'flat']).optional(),
+        })).max(20),
+      }),
+      children: false,
+    },
   },
 })
 ```
@@ -200,12 +208,15 @@ export const components: CatalogComponents<typeof catalog> = {
 ### Step 3: Render a Spec
 
 ```tsx
-import { Render } from '@json-render/react'
+import { defineRegistry, Renderer } from '@json-render/react'
 import { catalog } from './catalog'
 import { components } from './components'
 
+// defineRegistry returns DefineRegistryResult — destructure `registry`
+const { registry } = defineRegistry(catalog, { components })
+
 function App({ spec }: { spec: JsonRenderSpec }) {
-  return <Render catalog={catalog} components={components} spec={spec} />
+  return <Renderer spec={spec} registry={registry} />
 }
 ```
 
@@ -289,12 +300,14 @@ The `@json-render/shadcn` package provides a production-ready catalog of 36 comp
 
 > **Svelte:** `@json-render/shadcn-svelte` (added in 0.16) mirrors the same 36 components for Svelte 5 + Tailwind projects.
 
-```typescript
+```tsx
 import { shadcnCatalog, shadcnComponents } from '@json-render/shadcn'
+import { defineRegistry, Renderer } from '@json-render/react'
 import { mergeCatalogs } from '@json-render/core'
 
 // Use as-is
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={registry} />
 
 // Or merge with custom components
 const catalog = mergeCatalogs(shadcnCatalog, customCatalog)
@@ -571,8 +584,13 @@ Connect json-render state to your app's state management:
 ```typescript
 // Zustand adapter
 import { createZustandAdapter } from '@json-render/zustand'
+import { Renderer, defineRegistry } from '@json-render/react'
+import { JSONUIProvider } from '@json-render/react'
 const adapter = createZustandAdapter(useAppStore)
-<Render catalog={catalog} components={components} spec={spec} stateAdapter={adapter} />
+const { registry } = defineRegistry(catalog, { components })
+<JSONUIProvider registry={registry} directives={{ stateAdapter: adapter }}>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
 
 // Redux adapter
 import { createReduxAdapter } from '@json-render/redux'
@@ -623,42 +641,47 @@ function App({ spec }) {
 import { defineCatalog } from '@json-render/core'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    // props: Zod schema validates every prop AI generates
-    props: z.object({
-      title: z.string().max(100),
-      description: z.string().max(500).optional(),
-      elevated: z.boolean().default(false),
-    }),
-    // children: true = accepts child elements, false = leaf node
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string().max(50),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-      size: z.enum(['sm', 'md', 'lg']).default('md'),
-      disabled: z.boolean().default(false),
-    }),
-    children: false,
-  },
-  DataTable: {
-    props: z.object({
-      columns: z.array(z.object({
-        key: z.string(),
-        label: z.string(),
-        sortable: z.boolean().default(false),
-      })).min(1).max(12),
-      rows: z.array(z.record(z.string())).max(100),
-    }),
-    children: false,
+import { schema } from '@json-render/react/schema'
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      // props: Zod schema validates every prop AI generates
+      props: z.object({
+        title: z.string().max(100),
+        description: z.string().max(500).optional(),
+        elevated: z.boolean().default(false),
+      }),
+      // children: true = accepts child elements, false = leaf node
+      children: true,
+    },
+    Button: {
+      props: z.object({
+        label: z.string().max(50),
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+        size: z.enum(['sm', 'md', 'lg']).default('md'),
+        disabled: z.boolean().default(false),
+      }),
+      children: false,
+    },
+    DataTable: {
+      props: z.object({
+        columns: z.array(z.object({
+          key: z.string(),
+          label: z.string(),
+          sortable: z.boolean().default(false),
+        })).min(1).max(12),
+        rows: z.array(z.record(z.string())).max(100),
+      }),
+      children: false,
+    },
   },
 })
 
 // Type-safe rendering with catalog validation
-import { Render } from '@json-render/react'
-<Render catalog={catalog} components={components} spec={spec} />
+import { Renderer, defineRegistry } from '@json-render/react'
+const { registry } = defineRegistry(catalog, { components })
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### Children Types
@@ -769,7 +792,7 @@ GoodComponent: {
 | Numeric | `z.number()` | `z.number().int().min(0).max(100)` |
 | Boolean flags | (no constraint) | `z.boolean().default(false)` |
 | Freeform object | `z.record(z.any())` | `z.object(\{ specific: z.string() \})` |
-| URL/image | `z.string()` | `z.string().url().max(2048)` |
+| URL/image | `z.string()` | `z.url().max(2048)` |
 
 ### Refinements for Complex Validation
 
@@ -810,17 +833,20 @@ Reference: https://zod.dev
 import { defineCatalog } from '@json-render/core'
 import { z } from 'zod'
 
-const catalog = defineCatalog({
-  // Reimplementing what shadcn already has
-  Alert: {
-    props: z.object({
-      title: z.string(),
-      description: z.string(),
-      variant: z.enum(['default', 'destructive']),
-    }),
-    children: false,
+import { schema } from '@json-render/react/schema'
+const catalog = defineCatalog(schema, {
+  components: {
+    // Reimplementing what shadcn already has
+    Alert: {
+      props: z.object({
+        title: z.string(),
+        description: z.string(),
+        variant: z.enum(['default', 'destructive']),
+      }),
+      children: false,
+    },
+    // ... 35 more hand-rolled components
   },
-  // ... 35 more hand-rolled components
 })
 ```
 
@@ -831,7 +857,9 @@ import { mergeCatalogs } from '@json-render/core'
 import { z } from 'zod'
 
 // Use shadcn as-is for standard components
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+import { Renderer, defineRegistry } from '@json-render/shadcn'
+const { registry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={registry} />
 
 // Extend with domain-specific components only
 const appCatalog = mergeCatalogs(shadcnCatalog, {
@@ -920,7 +948,8 @@ When your project uses a shadcn v4 style, the default `shadcnComponents` use gen
 **Incorrect — using default components in a Luma project:**
 ```typescript
 // Default shadcnComponents use rounded-lg — wrong for Luma (rounded-4xl)
-<Render catalog={shadcnCatalog} components={shadcnComponents} spec={spec} />
+const { registry: defaultRegistry } = defineRegistry(shadcnCatalog, { components: shadcnComponents })
+<Renderer spec={spec} registry={defaultRegistry} />
 ```
 
 **Correct — overriding implementations for project's v4 style:**
@@ -1012,8 +1041,10 @@ elements:
       variant: ghost`
 
 // Parse YAML spec before rendering
+import { Renderer, defineRegistry } from '@json-render/react'
 const spec = parseYamlSpec(yamlString)
-<Render catalog={catalog} components={components} spec={spec} />
+const { registry } = defineRegistry(catalog, { components })
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### Format Selection Criteria
@@ -1137,24 +1168,27 @@ Convert loosely-typed props to Zod schemas:
 
 // After: Zod-constrained catalog
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    props: z.object({
-      title: z.string().max(100),
-      description: z.string().max(500).optional(),
-      elevated: z.boolean().default(false),
-    }),
-    children: true,
-  },
-  Button: {
-    props: z.object({
-      label: z.string().max(50),
-      variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
-      // Note: onClick is NOT in the catalog — use on.press instead
-    }),
-    children: false,
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({
+        title: z.string().max(100),
+        description: z.string().max(500).optional(),
+        elevated: z.boolean().default(false),
+      }),
+      children: true,
+    },
+    Button: {
+      props: z.object({
+        label: z.string().max(50),
+        variant: z.enum(['default', 'destructive', 'outline', 'ghost']),
+        // Note: onClick is NOT in the catalog — use on.press instead
+      }),
+      children: false,
+    },
   },
 })
 ```
@@ -1249,7 +1283,7 @@ Include the catalog schema in the system prompt so the AI knows which types and 
 - [ ] Replaced event handler props with `on` field actions
 - [ ] Wrapped existing component implementations with catalog types
 - [ ] Updated AI system prompts to generate flat-tree specs
-- [ ] Added runtime validation via `&lt;Render catalog=\{...\}&gt;` component
+- [ ] Added runtime validation via `&lt;Renderer spec=\{...\} registry=\{...\} /&gt;` component
 - [ ] Tested with existing specs to verify backward compatibility
 - [ ] Enabled streaming support if using progressive rendering
 
@@ -1280,7 +1314,7 @@ Include the catalog schema in the system prompt so the AI knows which types and 
 
 | Package | Components | Notes |
 |---------|------------|-------|
-| `@json-render/shadcn` | 29 | shadcn/ui components with Zod schemas and implementations |
+| `@json-render/shadcn` | 36 | shadcn/ui components with Zod schemas and implementations |
 
 ## Mobile
 
@@ -1575,7 +1609,7 @@ The script applies a deterministic mapping. Anything outside this list is **drop
 | `\{ control: 'select', options: [...] \}` | `z.enum([...])` | Best case — fully constrained |
 | `\{ control: 'radio', options: [...] \}` | `z.enum([...])` | Same |
 | `\{ control: 'color' \}` | `z.string().regex(/^#[0-9a-fA-F]\{6\}$/)` | Hex only |
-| `\{ control: 'date' \}` | `z.string().datetime()` | ISO-8601 |
+| `\{ control: 'date' \}` | `z.iso.datetime()` | ISO-8601 |
 | `\{ control: 'object' \}` | **DROPPED** | Too open-ended for AI safety; add manually with explicit shape |
 | `\{ control: 'array' \}` | `z.array(z.string()).max(20)` | Length cap; assumed string elements |
 | TypeScript `ReactNode` | `children: 'allowed'` | Marks the catalog entry as a container |
@@ -1591,28 +1625,31 @@ The script emits two files:
 // Source: storybook-manifest.json (sha-1: <hash>)
 // Generated: 2026-04-28T05:00:00Z
 import { defineCatalog } from '@json-render/core'
+import { schema } from '@json-render/react/schema'
 import { z } from 'zod'
 
-export const catalog = defineCatalog({
-  Card: {
-    description: 'Card component with optional title and elevation',
-    props: z.object({
-      title: z.string().max(500).optional(),
-      elevation: z.enum(['flat', 'low', 'high']),
-    }),
-    children: 'allowed',
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      description: 'Card component with optional title and elevation',
+      props: z.object({
+        title: z.string().max(500).optional(),
+        elevation: z.enum(['flat', 'low', 'high']),
+      }),
+      children: 'allowed',
+    },
+    Button: {
+      description: 'Button with size and variant',
+      props: z.object({
+        label: z.string().max(500),
+        size: z.enum(['sm', 'md', 'lg']),
+        variant: z.enum(['primary', 'secondary', 'ghost']),
+        disabled: z.boolean().optional(),
+      }),
+      children: false,
+    },
+    // ...
   },
-  Button: {
-    description: 'Button with size and variant',
-    props: z.object({
-      label: z.string().max(500),
-      size: z.enum(['sm', 'md', 'lg']),
-      variant: z.enum(['primary', 'secondary', 'ghost']),
-      disabled: z.boolean().optional(),
-    }),
-    children: false,
-  },
-  // ...
 })
 ```
 

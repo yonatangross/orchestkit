@@ -1,6 +1,6 @@
 ---
 title: "Audit Full"
-description: "Single-pass codebase analysis leveraging Opus 4.6 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
+description: "Single-pass codebase analysis leveraging Opus 4.8 1M context for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-red">max</span>
@@ -12,7 +12,7 @@ description: "Single-pass codebase analysis leveraging Opus 4.6 1M context for c
 
 # Full-Codebase Audit
 
-Single-pass whole-project analysis leveraging Opus 4.6's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
+Single-pass whole-project analysis leveraging Opus 4.8's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
 
 ## Quick Start
 
@@ -23,11 +23,11 @@ Single-pass whole-project analysis leveraging Opus 4.6's extended context window
 /ork:audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 4.6 / 4.7**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss. On Opus 4.7, prefers `xhigh` effort for one additional cross-file pattern sweep.
+> **Opus 4.8**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (GA) enables cross-file reasoning that chunked approaches miss. Opus 4.8 defaults to `high` effort; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` (Opus 4.7 only) adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Opus 4.8 defaults to `high` (CC 2.1.154) and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 
@@ -155,8 +155,8 @@ A full-codebase 1M-context audit typically runs 15–60 minutes on medium projec
 
 ```python
 PushNotification(
-  title="ork:audit-full complete",
-  body=f"{SCOPE}: {critical}C/{high}H/{medium}M/{low}L findings · report at {report_path}"
+  message=f"ork:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
+  status="proactive"
 )
 ```
 
@@ -533,11 +533,12 @@ AskUserQuestion(
     {
       "question": "What type of audit do you want to run?",
       "header": "Audit mode",
+      # multiSelect questions do not render previews (single-select only) — text-only
       "options": [
-        {"label": "Full audit (Recommended)", "description": "Security + architecture + dependencies in one pass", "markdown": "```\nFull Audit (1M context)\n───────────────────────\n  Load entire codebase ──▶\n  ┌────────────────────────┐\n  │ Security    OWASP Top10│\n  │ Architecture  patterns │\n  │ Dependencies  CVEs     │\n  │ Cross-file   data flow │\n  └────────────────────────┘\n  Single pass: Opus 4.6 sees\n  ALL files simultaneously\n  Output: Prioritized findings\n```"},
-        {"label": "Security audit", "description": "Cross-file vulnerability analysis, data flow tracing, OWASP mapping", "markdown": "```\nSecurity Audit\n──────────────\n  ┌──────────────────────┐\n  │ OWASP mapping        │\n  │ Data flow tracing    │\n  │   input ──▶ DB ──▶ output\n  │ Cross-file vulns     │\n  │ Auth/AuthZ review    │\n  │ Secret detection     │\n  └──────────────────────┘\n  Finds vulns that chunked\n  analysis misses\n```"},
-        {"label": "Architecture review", "description": "Pattern consistency, coupling analysis, dependency violations", "markdown": "```\nArchitecture Review\n───────────────────\n  ┌──────────────────────┐\n  │ Pattern consistency  │\n  │ Coupling metrics     │\n  │   A ←→ B  (tight)   │\n  │   C ──▶ D  (clean)  │\n  │ Dependency violations│\n  │ Layer enforcement    │\n  └──────────────────────┘\n  Cross-file analysis of\n  architectural integrity\n```"},
-        {"label": "Dependency audit", "description": "License compliance, CVE checking, version currency", "markdown": "```\nDependency Audit\n────────────────\n  ┌──────────────────────┐\n  │ CVE scan       N vuls│\n  │ License check  ✓/✗   │\n  │ Version drift  N old │\n  │ Unused deps    N     │\n  │ Transitive risk      │\n  └──────────────────────┘\n  npm audit + pip-audit +\n  license compatibility\n```"}
+        {"label": "Full audit (Recommended)", "description": "Security + architecture + dependencies in one pass (Opus 1M context, all files at once)"},
+        {"label": "Security audit", "description": "Cross-file vulnerability analysis, data flow tracing, OWASP mapping, secret detection"},
+        {"label": "Architecture review", "description": "Pattern consistency, coupling metrics, dependency violations, layer enforcement"},
+        {"label": "Dependency audit", "description": "CVE scan, license compliance, version drift, unused/transitive-risk deps"}
       ],
       "multiSelect": true
     },
@@ -545,9 +546,9 @@ AskUserQuestion(
       "question": "What should be audited?",
       "header": "Scope",
       "options": [
-        {"label": "Entire codebase", "description": "Load all source files into context", "markdown": "```\nEntire Codebase\n───────────────\n  Load ALL source files\n  into 1M context window\n\n  Best for: first audit,\n  full security review,\n  architecture assessment\n  ⚠ Requires Tier 4+ API\n```"},
-        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)", "markdown": "```\nSpecific Directory\n──────────────────\n  Load one subtree:\n  src/api/ or src/auth/\n\n  Best for: targeted review,\n  post-change validation,\n  smaller context budget\n```"},
-        {"label": "Changed files only", "description": "Audit only files changed vs main branch", "markdown": "```\nChanged Files Only\n──────────────────\n  git diff main...HEAD\n  Load only modified files\n\n  Best for: pre-merge check,\n  PR-scoped audit,\n  incremental review\n```"}
+        {"label": "Entire codebase", "description": "Load all source files into context"},
+        {"label": "Specific directory", "description": "Focus on a subdirectory (e.g., src/api/)"},
+        {"label": "Changed files only", "description": "Audit only files changed vs main branch"}
       ],
       "multiSelect": false
     }

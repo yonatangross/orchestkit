@@ -70,6 +70,8 @@ Prometheus metrics, Grafana dashboards, and alerting for application health.
 | Grafana Dashboards | `rules/monitoring-grafana.md` | Golden Signals, SLO/SLI, health checks |
 | Alerting Rules | `rules/monitoring-alerting.md` | Severity levels, grouping, escalation, fatigue prevention |
 
+> **CC 2.1.161 — OTEL resource attributes as metric labels:** `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on metric datapoints, so usage metrics can be sliced by custom dimensions (team, repo, environment). Add label selectors to dashboards for multi-tenant / per-team cost and usage tracking.
+
 ## LLM Observability
 
 Langfuse-based tracing, cost tracking, and evaluation for LLM applications.
@@ -690,7 +692,7 @@ that inflate Langfuse ingestion costs without adding LLM-relevant insight.
 Use `should_export_span` to filter out noisy spans:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
 def cost_relevant_only(span) -> bool:
     """Only export spans that contribute to LLM cost attribution."""
@@ -698,7 +700,8 @@ def cost_relevant_only(span) -> bool:
     lib = span.attributes.get("otel.library.name", "")
     return lib not in skip_libs
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: should_export_span is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     should_export_span=cost_relevant_only,
@@ -712,9 +715,10 @@ Configure a sample rate to trace a percentage of requests while preserving
 accurate cost estimates via extrapolation:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: sample_rate is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     sample_rate=0.1,  # Trace 10% of requests, extrapolate costs
@@ -891,8 +895,8 @@ async def analyze_and_score(query: str):
     )
     return response
 
-# Or score by trace_id directly (still supported)
-langfuse.score(
+# Or score by trace_id directly (v4: create_score replaces the removed .score())
+langfuse.create_score(
     trace_id="trace_123",
     name="factuality",
     value=0.92,
@@ -904,13 +908,13 @@ langfuse.score(
 
 ```python
 # Numeric scores (0-1 range)
-langfuse.score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
+langfuse.create_score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
 
 # Categorical scores
-langfuse.score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
+langfuse.create_score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
 
 # Boolean scores
-langfuse.score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
+langfuse.create_score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
 ```
 
 ## Evaluator Execution Tracing
@@ -1193,7 +1197,7 @@ DB drivers, DNS) are exported to Langfuse. Use `should_export_span` to keep
 only the spans you care about:
 
 ```python
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
 
 def span_filter(span) -> bool:
     """Only export LLM and application spans, skip infra noise."""
@@ -1201,28 +1205,28 @@ def span_filter(span) -> bool:
     lib = span.attributes.get("otel.library.name", "")
     return lib not in dominated_libs
 
-langfuse_processor = LangfuseSpanProcessor(
+# v4: should_export_span is a Langfuse client kwarg
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     should_export_span=span_filter,
 )
 ```
 
-## OpenTelemetry SpanProcessor
+## OpenTelemetry Integration
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+# v4: the Langfuse client installs its own OTEL span processor internally,
+# so there is no LangfuseSpanProcessor to add to a TracerProvider.
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-langfuse_processor = LangfuseSpanProcessor(
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     host="https://cloud.langfuse.com",
+    should_export_span=is_default_export_span,
 )
-
-provider = TracerProvider()
-provider.add_span_processor(langfuse_processor)
 ```
 
 ## JavaScript/TypeScript Setup
@@ -1905,7 +1909,7 @@ Agent Graphs provide visual execution flow for multi-agent systems. Langfuse aut
 ```python
 from langfuse import observe, get_client
 
-@observe(type="agent", name="supervisor")
+@observe(as_type="agent", name="supervisor")
 async def supervisor_agent(query: str):
     """Supervisor agent that routes to specialists."""
     get_client().update_current_observation(
@@ -1922,14 +1926,14 @@ async def supervisor_agent(query: str):
         return await general_agent(query)
 
 
-@observe(type="agent", name="code_review")
+@observe(as_type="agent", name="code_review")
 async def code_review_agent(query: str):
     """Specialist agent for code review."""
     context = await retrieve_context(query)
     return await generate_review(context)
 
 
-@observe(type="agent", name="security_audit")
+@observe(as_type="agent", name="security_audit")
 async def security_audit_agent(query: str):
     """Specialist agent for security auditing."""
     vulnerabilities = await scan_code(query)
@@ -1973,7 +1977,7 @@ Langfuse v3 adds 7 observation types beyond `generation` and `span`:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="retriever", name="vector_search")
+@observe(as_type="retriever", name="vector_search")
 async def retrieve_context(query: str):
     """Retrieve relevant context from vector DB."""
     results = await vector_db.search(query, top_k=5)
@@ -1987,7 +1991,7 @@ async def retrieve_context(query: str):
     return results
 
 
-@observe(type="tool", name="web_search")
+@observe(as_type="tool", name="web_search")
 async def search_web(query: str):
     """Execute web search tool."""
     results = await tavily.search(query)
@@ -1999,7 +2003,7 @@ async def search_web(query: str):
     return results
 
 
-@observe(type="guardrail", name="pii_filter")
+@observe(as_type="guardrail", name="pii_filter")
 async def check_pii(text: str):
     """Check for PII before sending to LLM."""
     has_pii = detect_pii(text)
@@ -2013,7 +2017,7 @@ async def check_pii(text: str):
     return text
 
 
-@observe(type="embedding", name="embed_query")
+@observe(as_type="embedding", name="embed_query")
 async def embed_query(text: str):
     """Generate embedding for query."""
     embedding = await embeddings.embed(text)
@@ -2026,7 +2030,7 @@ async def embed_query(text: str):
     return embedding
 
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     """Evaluate response relevance with LLM judge."""
     score = await llm_judge.evaluate(
@@ -2047,7 +2051,7 @@ async def evaluate_relevance(query: str, response: str):
 In v3, tool calls within generations are rendered inline in the trace view:
 
 ```python
-@observe(type="agent")
+@observe(as_type="agent")
 async def coding_agent(task: str):
     response = await client.messages.create(
         model="claude-sonnet-4-6",
@@ -2094,7 +2098,7 @@ The Trace Log View provides a chronological log of all events within a trace, us
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="langgraph_supervisor")
+@observe(as_type="agent", name="langgraph_supervisor")
 async def run_langgraph_workflow(query: str):
     """LangGraph workflow with automatic Langfuse tracing."""
     from langgraph.graph import StateGraph
@@ -2114,7 +2118,7 @@ async def run_langgraph_workflow(query: str):
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="crewai_crew")
+@observe(as_type="agent", name="crewai_crew")
 async def run_crew(task: str):
     """CrewAI crew with Langfuse tracing."""
     from crewai import Crew, Agent, Task
@@ -2135,7 +2139,7 @@ async def run_crew(task: str):
 ```python
 from langfuse import observe
 
-@observe(type="agent", name="openai_agent")
+@observe(as_type="agent", name="openai_agent")
 async def run_openai_agent(query: str):
     """OpenAI Agents SDK with Langfuse tracing."""
     from openai_agents import Agent, Runner
@@ -2143,7 +2147,7 @@ async def run_openai_agent(query: str):
     agent = Agent(
         name="analyst",
         instructions="You are a code analyst.",
-        model="gpt-5.2",
+        model="gpt-5.5",
     )
     # OpenAI Agents SDK supports Langfuse via OTEL exporter
     result = await Runner.run(agent, query)
@@ -2877,14 +2881,14 @@ services:
 
 ```yaml
 model_list:
-  - model_name: claude-sonnet-4-20250514
+  - model_name: claude-sonnet-4-6
     litellm_params:
-      model: anthropic/claude-sonnet-4-20250514
+      model: anthropic/claude-sonnet-4-6
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  - model_name: claude-opus-4-20250514
+  - model_name: claude-opus-4-8
     litellm_params:
-      model: anthropic/claude-opus-4-20250514
+      model: anthropic/claude-opus-4-8
       api_key: os.environ/ANTHROPIC_API_KEY
 
   - model_name: claude-haiku-4-5-20251001
@@ -2914,7 +2918,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:
 
-- **Model**: Exact model ID (`claude-sonnet-4-20250514`)
+- **Model**: Exact model ID (`claude-sonnet-4-6`)
 - **Tokens**: Input/output/cache token counts
 - **Cost**: Per-request USD cost (Anthropic pricing)
 - **Latency**: Time-to-first-token, total duration
@@ -3573,7 +3577,7 @@ async def analyze_and_score(query: str):
 
 
 # Or score by trace_id directly
-langfuse.score(
+langfuse.create_score(
     trace_id="trace_123",
     name="factuality",
     value=0.92,
@@ -3588,7 +3592,7 @@ In v3, each evaluator run creates its own inspectable trace:
 ```python
 from langfuse import observe, get_client
 
-@observe(type="evaluator", name="relevance_judge")
+@observe(as_type="evaluator", name="relevance_judge")
 async def evaluate_relevance(query: str, response: str):
     """Each evaluator call creates an inspectable trace in Langfuse."""
     score = await llm_judge.evaluate(
@@ -3633,13 +3637,13 @@ Configure score types and ranges in Langfuse settings:
 # In Langfuse UI: Settings → Score Configs
 
 # Numeric scores
-langfuse.score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
+langfuse.create_score(trace_id="...", name="relevance", value=0.85, data_type="NUMERIC")
 
 # Categorical scores
-langfuse.score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
+langfuse.create_score(trace_id="...", name="sentiment", value="positive", data_type="CATEGORICAL")
 
 # Boolean scores
-langfuse.score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
+langfuse.create_score(trace_id="...", name="contains_pii", value=0, data_type="BOOLEAN")
 ```
 
 ## Automated Scoring with G-Eval
@@ -3746,7 +3750,7 @@ Common score types:
 ## Best Practices
 
 1. **Score all production traces** for quality monitoring
-2. **Use evaluator type** (`@observe(type="evaluator")`) for inspectable judge traces
+2. **Use evaluator type** (`@observe(as_type="evaluator")`) for inspectable judge traces
 3. **Use consistent criteria** across all evaluations
 4. **Automate scoring** with G-Eval or similar
 5. **Set quality thresholds** (e.g., avg_relevance > 0.7)
@@ -4162,7 +4166,7 @@ async def ab_test_models(dataset_name: str):
 
     configs = {
         "sonnet": {"model": "claude-sonnet-4-6", "temperature": 0.7},
-        "gpt5": {"model": "gpt-5.2", "temperature": 0.7},
+        "gpt5": {"model": "gpt-5.5", "temperature": 0.7},
     }
 
     for name, config in configs.items():
@@ -4323,7 +4327,7 @@ Langfuse v3 integrates with modern AI frameworks via OpenTelemetry. Each integra
 # pip install anthropic langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="claude_agent")
+@observe(as_type="agent", name="claude_agent")
 async def run_claude_agent(task: str):
     """Claude Agent SDK with Langfuse tracing."""
     import anthropic
@@ -4379,7 +4383,7 @@ claude_agent (agent, 4.2s, $0.08)
 # pip install openai-agents langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="openai_agents_workflow")
+@observe(as_type="agent", name="openai_agents_workflow")
 async def run_openai_agents(query: str):
     """OpenAI Agents SDK with Langfuse tracing via OTEL."""
     from agents import Agent, Runner, function_tool
@@ -4392,7 +4396,7 @@ async def run_openai_agents(query: str):
     agent = Agent(
         name="research_agent",
         instructions="You are a research assistant.",
-        model="gpt-5.2",
+        model="gpt-5.5",
         tools=[search_docs],
     )
 
@@ -4401,7 +4405,7 @@ async def run_openai_agents(query: str):
 
     get_client().update_current_observation(
         output=result.final_output,
-        metadata={"agent": "research_agent", "model": "gpt-5.2"},
+        metadata={"agent": "research_agent", "model": "gpt-5.5"},
     )
     return result.final_output
 ```
@@ -4420,7 +4424,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="x-langfuse-public-key=pk-...,x-langfuse-secre
 # pip install pydantic-ai langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="pydantic_ai_agent")
+@observe(as_type="agent", name="pydantic_ai_agent")
 async def run_pydantic_agent(query: str):
     """Pydantic AI agent with Langfuse tracing."""
     from pydantic_ai import Agent
@@ -4458,7 +4462,7 @@ async def run_pydantic_agent(query: str):
 # pip install crewai langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="crewai_workflow")
+@observe(as_type="agent", name="crewai_workflow")
 async def run_crew(task_description: str):
     """CrewAI crew with Langfuse tracing."""
     from crewai import Crew, Agent, Task
@@ -4522,7 +4526,7 @@ os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
 # pip install livekit-agents langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="livekit_voice_agent")
+@observe(as_type="agent", name="livekit_voice_agent")
 async def run_voice_agent(session_id: str):
     """LiveKit voice agent with Langfuse tracing."""
     from livekit.agents import AutoSubscribe, JobContext, WorkerOptions
@@ -4532,7 +4536,7 @@ async def run_voice_agent(session_id: str):
     assistant = VoiceAssistant(
         vad=silero.VAD.load(),
         stt=openai.STT(),
-        llm=openai.LLM(model="gpt-5.2"),
+        llm=openai.LLM(model="gpt-5.5"),
         tts=openai.TTS(),
     )
 
@@ -4563,7 +4567,7 @@ export OTEL_EXPORTER_OTLP_HEADERS="x-langfuse-public-key=pk-...,x-langfuse-secre
 # pip install boto3 langfuse
 from langfuse import observe, get_client
 
-@observe(type="agent", name="bedrock_agent")
+@observe(as_type="agent", name="bedrock_agent")
 async def run_bedrock_agent(query: str):
     """Amazon Bedrock AgentCore with Langfuse tracing."""
     import boto3
@@ -4594,11 +4598,12 @@ async def run_bedrock_agent(query: str):
 
 ```python
 # Bedrock traces via AWS X-Ray → OTEL → Langfuse
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+# v4: no LangfuseSpanProcessor module — the client installs its own OTEL
+# processor and span filtering is a client kwarg.
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-processor = LangfuseSpanProcessor()
-# Add to your OTEL tracer provider
+langfuse = Langfuse(should_export_span=is_default_export_span)
 ```
 
 ## JavaScript/TypeScript Integration
@@ -5086,7 +5091,7 @@ sum(rate(claude_code.pull_request.count[5m])) by (provider)
 | `from langfuse.decorators import observe` | `from langfuse import observe` |
 | `from langfuse.decorators import langfuse_context` | `from langfuse import get_client` |
 | `from langfuse import Langfuse` | `from langfuse import Langfuse` (unchanged) |
-| `from langfuse.callback import CallbackHandler` | `from langfuse.callback import CallbackHandler` (unchanged) |
+| `from langfuse.callback import CallbackHandler` | `from langfuse.langchain import CallbackHandler` (moved in v3) |
 
 ### API Changes
 
@@ -5180,7 +5185,7 @@ langfuse = Langfuse()
 
 # Creating datasets, scoring, experiments — same API
 dataset = langfuse.create_dataset(name="golden-v1")
-langfuse.score(trace_id="...", name="quality", value=0.85)
+langfuse.create_score(trace_id="...", name="quality", value=0.85)
 ```
 
 ## Python SDK: v3 → v4
@@ -5472,7 +5477,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 - [ ] Remove explicit `langfuse.trace()` calls where `@observe()` creates auto-traces
 - [ ] Update trace ID handling if relying on UUID format (now W3C)
 - [ ] Add `type=` parameter to `@observe()` for new observation types
-- [ ] Update `requirements.txt`: `langfuse>=3.13.0`
+- [ ] Update `requirements.txt`: `langfuse>=4.0.0`
 
 ### JavaScript v3 → v4
 
@@ -5551,7 +5556,7 @@ from langfuse import observe, get_client, Langfuse
 langfuse = Langfuse()
 
 
-@observe(type="evaluator", name="depth_judge")
+@observe(as_type="evaluator", name="depth_judge")
 async def depth_evaluator(trace_id: str, output: str) -> float:
     """Depth evaluator — creates its own inspectable trace."""
     score = await g_eval.evaluate(criterion="depth", output=output)
@@ -5563,7 +5568,7 @@ async def depth_evaluator(trace_id: str, output: str) -> float:
     )
 
     # Record score on the original trace
-    langfuse.score(
+    langfuse.create_score(
         trace_id=trace_id,
         name="g_eval_depth",
         value=score,
@@ -5593,9 +5598,9 @@ langfuse = Langfuse()
 def create_g_eval_evaluator(criterion: str):
     """
     Create a Langfuse evaluator for a G-Eval criterion.
-    Each evaluator creates an inspectable trace via @observe(type="evaluator").
+    Each evaluator creates an inspectable trace via @observe(as_type="evaluator").
     """
-    @observe(type="evaluator", name=f"g_eval_{criterion}")
+    @observe(as_type="evaluator", name=f"g_eval_{criterion}")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         # Run G-Eval for this criterion
         score = await g_eval.evaluate(
@@ -5610,7 +5615,7 @@ def create_g_eval_evaluator(criterion: str):
         )
 
         # Record score in Langfuse
-        langfuse.score(
+        langfuse.create_score(
             trace_id=trace_id,
             name=f"g_eval_{criterion}",
             value=score,
@@ -5634,7 +5639,7 @@ def create_g_eval_overall_evaluator():
         "usefulness": 0.10,
     }
 
-    @observe(type="evaluator", name="g_eval_overall")
+    @observe(as_type="evaluator", name="g_eval_overall")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         scores = {}
 
@@ -5657,7 +5662,7 @@ def create_g_eval_overall_evaluator():
         )
 
         # Record in Langfuse
-        langfuse.score(
+        langfuse.create_score(
             trace_id=trace_id,
             name="g_eval_overall",
             value=overall,
@@ -5760,7 +5765,7 @@ async def run_quality_experiment(dataset_name: str):
 # BAD: Single judge decides everything
 score = await evaluate(output)
 
-# GOOD: Multiple judges with @observe(type="evaluator"), aggregate
+# GOOD: Multiple judges with @observe(as_type="evaluator"), aggregate
 scores = await asyncio.gather(
     depth_judge(output),
     accuracy_judge(output),
@@ -5773,18 +5778,18 @@ overall = weighted_average(scores, weights)
 
 ```python
 # BAD: Only log final score
-langfuse.score(trace_id=trace_id, name="quality", value=0.85)
+langfuse.create_score(trace_id=trace_id, name="quality", value=0.85)
 
 # GOOD: Log individual + aggregate
 for criterion, score in scores.items():
-    langfuse.score(
+    langfuse.create_score(
         trace_id=trace_id,
         name=f"g_eval_{criterion}",
         value=score,
         comment=f"G-Eval {criterion}",
     )
 
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="g_eval_overall",
     value=overall,
@@ -5796,7 +5801,7 @@ langfuse.score(
 
 ```python
 # If you have ground truth (golden dataset)
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="human_verified",
     value=ground_truth_score,
@@ -5809,7 +5814,7 @@ langfuse.score(
 ```python
 # Measure inter-judge agreement
 agreement = calculate_agreement(scores)
-langfuse.score(
+langfuse.create_score(
     trace_id=trace_id,
     name="judge_agreement",
     value=agreement,
@@ -6067,7 +6072,7 @@ Online evaluators are LLM-as-judge rules configured in the Langfuse UI that run 
 3. Configure:
    - **Name** — e.g., `response-quality`, `safety-check`, `hallucination-detector`
    - **Evaluator type** — select **LLM-as-judge**
-   - **Model** — e.g., `claude-sonnet-4-6`, `gpt-4o`
+   - **Model** — e.g., `claude-sonnet-4-6`, `gpt-5.5`
    - **Score name** — the key stored on the trace (e.g., `quality`, `safety`)
    - **Filter** — which traces to evaluate (by tag, model, metadata field, etc.)
    - **Sampling rate** — evaluate 100% or a random sample (e.g., 10% for high-volume endpoints)
@@ -6145,7 +6150,7 @@ async def generate(user_query: str) -> str:
 
     # Schema validation — deterministic, must be code
     is_valid_json = _try_parse_json(response)
-    lf.score(trace_id=trace_id, name="schema_valid", value=1.0 if is_valid_json else 0.0)
+    lf.create_score(trace_id=trace_id, name="schema_valid", value=1.0 if is_valid_json else 0.0)
 
     # Langfuse online evaluator scores "quality" asynchronously — no code needed here
 
@@ -7285,23 +7290,20 @@ Langfuse v3 uses W3C Trace Context format for trace IDs:
 For custom OTEL integration or forwarding traces to multiple backends:
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from langfuse.opentelemetry import LangfuseSpanProcessor
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
 
-# Langfuse as OTEL SpanProcessor
-langfuse_processor = LangfuseSpanProcessor(
+# v4: span filtering is a client kwarg (no LangfuseSpanProcessor module).
+# The Langfuse client installs its own OTEL processor internally.
+langfuse = Langfuse(
     public_key="pk-...",
     secret_key="sk-...",
     host="https://cloud.langfuse.com",
+    should_export_span=is_default_export_span,  # drop noisy infra spans
 )
 
-# Add to OTEL tracer provider
-provider = TracerProvider()
-provider.add_span_processor(langfuse_processor)
-
-# Now all OTEL spans are sent to Langfuse
-# Works with any OTEL-instrumented library
+# All OTEL spans the client captures are sent to Langfuse.
+# Works with any OTEL-instrumented library.
 ```
 
 ## New Observation Types (v3)
@@ -7311,38 +7313,38 @@ Beyond `generation` and `span`, v3 adds typed observations for Agent Graph rende
 ```python
 from langfuse import observe, get_client
 
-@observe(type="agent", name="supervisor")
+@observe(as_type="agent", name="supervisor")
 async def supervisor(query: str):
     """Agent type — shows as agent node in graph."""
     intent = await classify(query)
     return await route_to_specialist(intent, query)
 
-@observe(type="tool", name="web_search")
+@observe(as_type="tool", name="web_search")
 async def search(query: str):
     """Tool type — shows as tool call in graph."""
     return await tavily.search(query)
 
-@observe(type="retriever", name="vector_search")
+@observe(as_type="retriever", name="vector_search")
 async def retrieve(query: str):
     """Retriever type — shows retrieval step in graph."""
     return await vector_db.search(query, top_k=5)
 
-@observe(type="chain", name="prompt_chain")
+@observe(as_type="chain", name="prompt_chain")
 async def chain(inputs: dict):
     """Chain type — shows sequential processing."""
     return await run_chain(inputs)
 
-@observe(type="guardrail", name="pii_check")
+@observe(as_type="guardrail", name="pii_check")
 async def check_pii(text: str):
     """Guardrail type — shows safety check in graph."""
     return detect_and_mask_pii(text)
 
-@observe(type="embedding", name="embed")
+@observe(as_type="embedding", name="embed")
 async def embed(text: str):
     """Embedding type — shows vector generation."""
     return await embeddings.embed(text)
 
-@observe(type="evaluator", name="quality_judge")
+@observe(as_type="evaluator", name="quality_judge")
 async def evaluate(output: str):
     """Evaluator type — creates inspectable trace."""
     return await llm_judge.score(output)
@@ -7380,7 +7382,7 @@ async def run_content_analysis(analysis_id: str, content: str):
 For LangChain/LangGraph applications, use the CallbackHandler:
 
 ```python
-from langfuse.callback import CallbackHandler
+from langfuse.langchain import CallbackHandler
 
 langfuse_handler = CallbackHandler(
     public_key=settings.LANGFUSE_PUBLIC_KEY,
@@ -7614,7 +7616,7 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 ### Node.js (Express/Next.js)
 
 - [ ] Install SDK: `npm install @langfuse/core @langfuse/otel`
-- [ ] Add to package.json: `"@langfuse/core": "^4.0.0"` and `"@langfuse/otel": "^4.0.0"`
+- [ ] Add to package.json: `"@langfuse/core": "^5.0.0"` and `"@langfuse/otel": "^5.0.0"`
 
 ## Phase 3: Configuration
 
@@ -7640,15 +7642,14 @@ Langfuse v3 requires ClickHouse (analytics), Redis (queuing), MinIO (blob storag
 
 **Python (backend/app/core/config.py):**
 ```python
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     LANGFUSE_PUBLIC_KEY: str
     LANGFUSE_SECRET_KEY: str
     LANGFUSE_HOST: str = "https://cloud.langfuse.com"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
 ```
@@ -7810,7 +7811,7 @@ async def call_claude(prompt: str, model: str = "claude-sonnet-4-6") -> str:
 
 ```python
 @observe(name="llm_call")
-async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
+async def call_openai(prompt: str, model: str = "gpt-5.5") -> str:
     """Call OpenAI with cost tracking."""
 
     get_client().update_current_observation(
@@ -7823,7 +7824,7 @@ async def call_openai(prompt: str, model: str = "gpt-5.2") -> str:
         messages=[{"role": "user", "content": prompt}]
     )
 
-    # OpenAI pricing (gpt-5.2: $2.50/MTok input, $10/MTok output)
+    # OpenAI pricing (gpt-5.5: $2.50/MTok input, $10/MTok output)
     input_tokens = response.usage.prompt_tokens
     output_tokens = response.usage.completion_tokens
     cost_usd = (input_tokens / 1_000_000) * 2.50 + (output_tokens / 1_000_000) * 10.00
@@ -7867,7 +7868,7 @@ async def evaluate_response(query: str, response: str) -> dict:
     lf = get_client()
     trace_id = lf.get_current_trace_id()
     for criterion, score in scores.items():
-        lf.score(
+        lf.create_score(
             trace_id=trace_id,
             name=criterion,
             value=score,
@@ -7876,7 +7877,7 @@ async def evaluate_response(query: str, response: str) -> dict:
 
     # Add overall score
     overall = sum(scores.values()) / len(scores)
-    lf.score(
+    lf.create_score(
         trace_id=trace_id,
         name="overall_quality",
         value=overall,
@@ -7903,18 +7904,22 @@ from app.shared.services.langfuse.client import langfuse_client
 async def test_langfuse_trace_creation():
     """Verify Langfuse traces are created."""
 
-    trace = langfuse_client.trace(
+    trace = langfuse_client.start_observation(
         name="test_trace",
+        as_type="span",
         metadata={"test": True}
     )
 
-    generation = trace.generation(
+    generation = trace.start_observation(
         name="test_generation",
+        as_type="generation",
         model="claude-sonnet-4-6",
         input="Test prompt",
         output="Test response",
-        usage={"input": 10, "output": 5, "unit": "TOKENS"}
+        usage_details={"input": 10, "output": 5}
     )
+    generation.end()
+    trace.end()
 
     # Flush to ensure data is sent
     langfuse_client.flush()

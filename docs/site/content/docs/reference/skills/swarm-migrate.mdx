@@ -22,6 +22,8 @@ Use when the same transformation needs to land in **3 or more repos** with the s
 
 This skill exists because the 275-session insights showed **25 sessions burned coordinating PR cascades manually** (M164 deploy-migration, M17 yg-mcp-core extraction, @v1 reusable workflow rollout across 14 repos). The pattern was always: pick a repo, branch, apply, push, watch CI, repeat. This automates the repeat.
 
+> **vs CC `/workflows` (2.1.154):** CC's dynamic workflows orchestrate tens-to-hundreds of agents in the *background* and report via `/workflows`. `swarm-migrate` is different on purpose: it's a **coordinator-led, foreground DAG** with CI gates, conflict auto-rebase, and stop-on-novel-failure — you watch it and it stops on the first unexpected failure. Reach for CC `/workflows` when you want large-scale fire-and-forget background fan-out; reach for `swarm-migrate` when each step needs a CI gate and a human-visible ledger.
+
 ## Inputs
 
 A YAML spec at `swarm-specs/&lt;name&gt;.yaml`:

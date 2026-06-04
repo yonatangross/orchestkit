@@ -178,12 +178,12 @@ describe('POST /api/users', () => {
 
 ```python
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.main import app
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 @pytest.mark.asyncio
@@ -367,12 +367,12 @@ describe('POST /api/users', () => {
 
 ```python
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.main import app
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 @pytest.mark.asyncio
@@ -608,8 +608,8 @@ const data: any = await fetch('/api').then(r => r.json())
 import { z } from 'zod'
 
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   age: z.number().int().positive().max(120),
   role: z.enum(['admin', 'user', 'guest']),
   createdAt: z.date().default(() => new Date())
@@ -627,8 +627,8 @@ const user: User = result.data
 
 **Correct -- branded types to prevent ID confusion:**
 ```typescript
-const UserId = z.string().uuid().brand<'UserId'>()
-const AnalysisId = z.string().uuid().brand<'AnalysisId'>()
+const UserId = z.uuid().brand<'UserId'>()
+const AnalysisId = z.uuid().brand<'AnalysisId'>()
 
 type UserId = z.infer<typeof UserId>
 type AnalysisId = z.infer<typeof AnalysisId>
@@ -1503,7 +1503,7 @@ st.decimals(min_value=0, max_value=1000)   # Decimal precision
 # Strings
 st.text()                                  # Any unicode
 st.text(min_size=1, max_size=100)          # Bounded length
-st.text(alphabet=st.characters(whitelist_categories=('L', 'N')))  # Alphanumeric
+st.text(alphabet=st.characters(categories=('L', 'N')))  # Alphanumeric
 st.from_regex(r"[a-z]+@[a-z]+\.[a-z]{2,}")  # Email-like
 
 # Collections
@@ -1789,7 +1789,7 @@ OrchestKit uses a comprehensive testing strategy with a focus on **unit tests** 
 
 | Layer | Framework | Purpose |
 |-------|-----------|---------|
-| **Backend** | pytest 9.0.1 | Unit & integration tests |
+| **Backend** | pytest 9.0.3 | Unit & integration tests |
 | **Frontend** | Vitest + React Testing Library | Component & hook tests |
 | **E2E** | Playwright (future) | Critical user flows |
 | **Coverage** | pytest-cov, Vitest coverage | Track test coverage |

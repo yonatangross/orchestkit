@@ -151,7 +151,7 @@ Design, version, and optimize prompts for production LLM applications.
 | Training epochs | 1-3 (more risks overfitting) |
 | Context compression | Anchored iterative (60-80%) |
 | Compress trigger | 70% utilization, target 50% |
-| Judge model | `claude-haiku-4-5-20251001` (cost tier) or `gpt-5.2` |
+| Judge model | `claude-haiku-4-5-20251001` (cost tier) or `gpt-5.5` |
 | Quality threshold | 0.7 production, 0.6 drafts |
 | Few-shot examples | 3-5 diverse, representative |
 | Prompt versioning | Langfuse with labels |
@@ -416,7 +416,7 @@ class Analysis(BaseModel):
 
 # OpenAI structured output
 response = await client.beta.chat.completions.parse(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": "Analyze this text..."}],
     response_format=Analysis
 )
@@ -548,7 +548,7 @@ class ToolRegistry:
 async def run_tool_loop(
     registry: ToolRegistry,
     user_message: str,
-    model: str = "gpt-5.2",
+    model: str = "gpt-5.5",
     max_iterations: int = 10
 ) -> str:
     """Run tool execution loop with iteration guard."""
@@ -880,7 +880,7 @@ List any unsupported claims."""
 ```
 
 Key decisions:
-- Judge model: `claude-haiku-4-5-20251001` or `gpt-5.2` (different from evaluated model)
+- Judge model: `claude-haiku-4-5-20251001` or `gpt-5.5` (different from evaluated model)
 - Quality threshold: 0.7 production, 0.6 drafts
 - Dimensions: 3-5 most relevant to use case
 - Sample size: 50+ for reliable metrics
@@ -912,7 +912,7 @@ def get_llm_provider(task_type: str = "general"):
     else:
         # Fall back to cloud API
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model="gpt-5.2")
+        return ChatOpenAI(model="gpt-5.5")
 
 # Usage
 llm = get_llm_provider(task_type="coding")
@@ -993,7 +993,7 @@ async def prewarm_models() -> None:
 ```python
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-5.2")  # Always uses cloud, ignores local setup
+llm = ChatOpenAI(model="gpt-5.5")  # Always uses cloud, ignores local setup
 response = await llm.ainvoke("Generate code...")
 ```
 
@@ -1006,7 +1006,7 @@ from langchain_openai import ChatOpenAI
 def get_llm_provider(task_type: str = "general"):
     if os.getenv("OLLAMA_ENABLED") == "true":
         return ChatOllama(model="qwen2.5-coder:32b", keep_alive="5m")
-    return ChatOpenAI(model="gpt-5.2")
+    return ChatOpenAI(model="gpt-5.5")
 
 llm = get_llm_provider(task_type="coding")
 ```
@@ -1767,7 +1767,7 @@ client = AsyncOpenAI()
 async def async_stream(prompt: str):
     """Async streaming for better concurrency."""
     stream = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{"role": "user", "content": prompt}],
         stream=True
     )
@@ -1881,7 +1881,7 @@ async def stream_chat(prompt: str):
 async def stream_with_tools(messages: list, tools: list):
     """Handle streaming responses that include tool calls."""
     stream = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=messages,
         tools=tools,
         stream=True
@@ -2003,7 +2003,7 @@ client = AsyncOpenAI()
 async def generate_training_example(topic: str) -> dict:
     """Generate a single training example using teacher model."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",  # Teacher
+        model="gpt-5.5",  # Teacher
         messages=[{
             "role": "system",
             "content": f"Generate a training example about {topic}. "
@@ -2625,7 +2625,7 @@ async def generate_preference_pairs(
     for prompt in prompts:
         # Generate good response
         good = await client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-5.5",
             messages=[
                 {"role": "system", "content": "Provide a helpful, accurate response."},
                 {"role": "user", "content": prompt}
@@ -2634,7 +2634,7 @@ async def generate_preference_pairs(
 
         # Generate bad response
         bad = await client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-5.5",
             messages=[
                 {"role": "system", "content": "Provide a response that is vague, "
                  "unhelpful, or slightly incorrect."},
@@ -3096,7 +3096,7 @@ Synthetic data generation uses large teacher models (GPT-4, Claude) to create tr
 ## Teacher-Student Paradigm
 
 ```
-Teacher Model (GPT-5.2) → Generate Examples → Train Student (Llama-8B)
+Teacher Model (GPT-5.5) → Generate Examples → Train Student (Llama-8B)
                                                     ↓
                                               Deploy Student (cheaper)
 ```
@@ -3116,7 +3116,7 @@ async def generate_training_example(
 ) -> dict:
     """Generate a single training example."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate a training example for a {style} AI assistant.
@@ -3209,7 +3209,7 @@ async def generate_conversation(
 ) -> list[dict]:
     """Generate multi-turn conversation examples."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate a realistic {num_turns}-turn conversation between a user and AI assistant about {topic}.
@@ -3342,7 +3342,7 @@ async def generate_code_examples(
 ) -> list[dict]:
     """Generate coding instruction-response pairs."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate {num_examples} {language} coding examples at {difficulty} level.
@@ -3371,7 +3371,7 @@ async def generate_domain_examples(
 ) -> list[dict]:
     """Generate domain-specific training data."""
     response = await client.chat.completions.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         messages=[{
             "role": "system",
             "content": f"""Generate training examples for a {domain} expert assistant.
@@ -3428,16 +3428,16 @@ def estimate_generation_cost(
     num_examples: int,
     avg_input_tokens: int = 100,
     avg_output_tokens: int = 300,
-    model: str = "gpt-5.2",
+    model: str = "gpt-5.5",
 ) -> float:
     """Estimate synthetic data generation cost."""
-    # GPT-5.2 pricing (as of 2026)
+    # GPT-5.5 pricing (as of 2026)
     prices = {
-        "gpt-5.2": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
+        "gpt-5.5": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
         "claude-haiku-4-5-20251001": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
     }
 
-    price = prices.get(model, prices["gpt-5.2"])
+    price = prices.get(model, prices["gpt-5.5"])
 
     input_cost = num_examples * avg_input_tokens * price["input"]
     output_cost = num_examples * avg_output_tokens * price["output"]
@@ -3445,7 +3445,7 @@ def estimate_generation_cost(
     return input_cost + output_cost
 
 
-# Example: 10,000 examples with GPT-4o
+# Example: 10,000 examples with GPT-5.5
 cost = estimate_generation_cost(10000)
 print(f"Estimated cost: ${cost:.2f}")  # ~$32.50
 ```

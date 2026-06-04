@@ -372,7 +372,7 @@ Reliable event publishing with transactional outbox, saga orchestration, and mes
 async def create_order(order: Order):
     await db.insert(order)              # Step 1: succeeds
     await message_broker.publish(        # Step 2: might fail!
-        "order.created", order.dict()
+        "order.created", order.model_dump()
     )
     # If publish fails: order exists but no event was sent
     # Downstream services never know about the order
@@ -388,8 +388,8 @@ async def create_order(order: Order, db: AsyncSession):
         db.add(OutboxEvent(
             aggregate_id=order.id,
             event_type="order.created",
-            payload=order.dict(),
-            created_at=datetime.utcnow(),
+            payload=order.model_dump(),
+            created_at=datetime.now(datetime.UTC),
         ))
 
 # Outbox publisher (separate process, polls for unsent events)
@@ -405,7 +405,7 @@ async def publish_outbox_events(db: AsyncSession, broker: MessageBroker):
             )
             for event in events.scalars():
                 await broker.publish(event.event_type, event.payload)
-                event.published_at = datetime.utcnow()
+                event.published_at = datetime.now(datetime.UTC)
         await asyncio.sleep(1)
 ```
 
@@ -446,7 +446,7 @@ async def handle_event(event: Event, db: AsyncSession):
         await process_order(event.payload)
 
         # Mark as processed
-        db.add(ProcessedEvent(event_id=event.id, processed_at=datetime.utcnow()))
+        db.add(ProcessedEvent(event_id=event.id, processed_at=datetime.now(datetime.UTC)))
 ```
 
 **Key rules:**
@@ -3486,9 +3486,9 @@ class CostCircuitBreaker:
         """Calculate cost based on model pricing (Dec 2025)."""
         PRICING = {
             "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
-            "gpt-5.2": {"input": 2.5, "output": 10.0},
-            "gpt-5.2-mini": {"input": 0.15, "output": 0.60},
-            "claude-haiku-4-5-20251101": {"input": 0.80, "output": 4.0},
+            "gpt-5.5": {"input": 2.5, "output": 10.0},
+            "gpt-5-mini": {"input": 0.15, "output": 0.60},
+            "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.0},
         }
 
         prices = PRICING.get(model, {"input": 1.0, "output": 3.0})
@@ -3564,7 +3564,7 @@ llm_chain = FallbackChain(
     fallbacks=[
         LLMConfig(
             name="fallback",
-            model="gpt-5.2-mini",
+            model="gpt-5-mini",
             timeout=20.0,
         ),
     ],
@@ -3856,6 +3856,7 @@ WHERE l.locktype = 'advisory';
 
 ```python
 import asyncio
+import time
 from datetime import timedelta
 from uuid import UUID
 
@@ -3924,7 +3925,7 @@ class RedisLock:
     async def acquire(self, timeout: timedelta | None = None) -> bool:
         """Acquire lock with optional timeout."""
         deadline = (
-            asyncio.get_event_loop().time() + timeout.total_seconds()
+            time.monotonic() + timeout.total_seconds()
             if timeout
             else None
         )
@@ -3942,7 +3943,7 @@ class RedisLock:
                 self._acquired = True
                 return True
 
-            if deadline and asyncio.get_event_loop().time() >= deadline:
+            if deadline and time.monotonic() >= deadline:
                 return False
 
             # Exponential backoff
@@ -4237,7 +4238,7 @@ class Redlock:
             # Retry with delay + jitter
             if attempt < self._config.retry_count - 1:
                 delay = self._config.retry_delay.total_seconds()
-                jitter = delay * 0.1 * (0.5 - asyncio.get_event_loop().time() % 1)
+                jitter = delay * 0.1 * (0.5 - time.monotonic() % 1)
                 await asyncio.sleep(delay + jitter)
 
         return RedlockResult(acquired=False, resource=resource)
@@ -5439,7 +5440,7 @@ Add to your service's README:
 
 | Service | Threshold | Recovery | Fallback |
 |---------|-----------|----------|----------|
-| openai | 3 failures | 60s | Use gpt-5.2-mini |
+| openai | 3 failures | 60s | Use gpt-5-mini |
 | anthropic | 3 failures | 60s | Use cache |
 | youtube | 5 failures | 120s | Return partial data |
 
@@ -6348,12 +6349,12 @@ async def bulk_process(request: Request):
 ```python
 # tests/test_rate_limiting.py
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_rate_limit_enforced():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Make requests up to limit
         for _ in range(10):
             response = await client.post("/analyses")
@@ -6366,7 +6367,7 @@ async def test_rate_limit_enforced():
 
 @pytest.mark.asyncio
 async def test_rate_limit_headers():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/analyses")
 
         assert "X-RateLimit-Limit" in response.headers
@@ -6856,13 +6857,13 @@ async def cleanup_redis_idempotency_keys(redis_client, pattern: str = "idem:*"):
 
 ```python
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.mark.asyncio
 async def test_idempotent_request_returns_same_response():
     """Same idempotency key returns cached response."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         idempotency_key = str(uuid.uuid4())
 
         # First request
@@ -6888,7 +6889,7 @@ async def test_idempotent_request_returns_same_response():
 @pytest.mark.asyncio
 async def test_different_keys_process_independently():
     """Different idempotency keys process as separate requests."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response1 = await client.post(
             "/api/orders",
             json={"product": "widget", "quantity": 1},
@@ -6906,7 +6907,7 @@ async def test_different_keys_process_independently():
 @pytest.mark.asyncio
 async def test_mismatched_body_rejected():
     """Reusing key with different body is rejected."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         idempotency_key = str(uuid.uuid4())
 
         await client.post(
@@ -7267,7 +7268,7 @@ analysis_llm_chain = LLMFallbackChain(
         OpenAIProvider(
             LLMConfig(
                 name="fallback",
-                model="gpt-5.2-mini",
+                model="gpt-5-mini",
                 timeout=30.0,
                 max_tokens=4096,
             )

@@ -6014,7 +6014,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 
 const FormSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   agreeToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms',

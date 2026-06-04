@@ -343,7 +343,7 @@ response = await client.messages.create(
 # OpenAI: automatic prefix caching (no markers needed)
 # Just ensure static content comes first in messages array
 response = await openai.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.5",
     messages=[
         {"role": "system", "content": long_system_prompt},  # Cached automatically
         {"role": "user", "content": user_question},
@@ -991,11 +991,51 @@ export default function Hero() {
       height={630}
       priority           // Disables lazy loading, adds preload hint
       sizes="100vw"
-      quality={85}
+      quality={85}       // v16: must also be allow-listed in images.qualities
     />
   );
 }
 ```
+
+## Next.js 16 `next/image` Breaking Defaults
+
+Next.js 16 tightened the `next/image` defaults. Audit the config before
+shipping or images silently fall back / fail to optimize:
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const config: NextConfig = {
+  images: {
+    // quality values must be allow-listed; any `quality` prop not in this
+    // list is coerced to the default 75 (no longer a free-form 1–100 prop)
+    qualities: [75, 85],
+
+    // default minimumCacheTTL is now 14400s (4 hours), up from 60s
+    minimumCacheTTL: 14400,
+
+    // `images.domains` was REMOVED — use remotePatterns instead
+    remotePatterns: [
+      { protocol: 'https', hostname: 'cdn.example.com', pathname: '/assets/**' },
+    ],
+
+    // local query-string images now require explicit localPatterns.search
+    localPatterns: [{ pathname: '/images/**', search: '' }],
+  },
+}
+
+export default config
+```
+
+**Migration checklist (v15 → v16):**
+- Replace `images.domains: ['cdn.example.com']` with `images.remotePatterns`.
+- Add every `quality` value you pass to `&lt;Image&gt;` into `images.qualities`
+  (otherwise it's coerced to `75`).
+- Expect a longer default cache (`minimumCacheTTL` 60s → 14400s); set it
+  explicitly if you relied on the old short TTL.
+- Add `images.localPatterns` with a `search` entry for local images that use
+  query strings.
 
 ## Blur Placeholder
 

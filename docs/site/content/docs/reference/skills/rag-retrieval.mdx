@@ -147,7 +147,7 @@ async def rag_query(question: str, top_k: int = 5) -> dict:
 
 | Decision | Recommendation |
 |----------|----------------|
-| Embedding model | `text-embedding-3-small` (general), `voyage-3` (production) |
+| Embedding model | `text-embedding-3-small` (general), `voyage-3.5` (production) |
 | Chunk size | 256-1024 tokens (512 typical) |
 | Hybrid weight | 40% BM25 / 60% vector |
 | Top-k | 3-10 documents |
@@ -1360,22 +1360,22 @@ response = client.embeddings.create(
 vectors = [item.embedding for item in response.data]
 ```
 
-**Model Selection (2026-Q2):**
+**Model Selection (2026-Q2 — verified current):**
 
 | Model | Dims | Cost | Use Case |
 |-------|------|------|----------|
 | `text-embedding-3-small` | 1536 | $0.02/1M | General purpose (OpenAI) |
 | `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy (OpenAI) — Matryoshka-truncatable |
-| `voyage-3` | 1024 | $0.06/1M | Production (OrchestKit default) |
-| `voyage-3-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
-| `voyage-3-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
-| `text-embedding-004` (Gemini) | 768 | $0.025/1M | Google stack / multilingual (MRL-truncatable) |
+| `voyage-3.5` | 1024 | $0.06/1M | Production (OrchestKit default, launched 2025-05-20) |
+| `voyage-3.5-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
+| `voyage-3.5-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
+| `gemini-embedding-001` (Gemini) | 3072 (MRL: 768/1536/3072) | $0.025/1M | Google stack / multilingual (GA 2025-07-14) |
 | `nomic-embed-text` (Ollama) | 768 | Free | Local/CI |
 
 Guidance:
-- Default to `voyage-3` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
+- Default to `voyage-3.5` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
 - `text-embedding-3-large` is still the strongest OpenAI option when you need Matryoshka dim reduction (3072 → 1536) without retraining.
-- `text-embedding-004` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage.
+- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536) — set the output dimensionality explicitly if you need cost savings.
 
 **Similarity Calculation:**
 ```python
@@ -1451,7 +1451,7 @@ async def hyde_with_fallback(
 ```
 
 **Performance Tips:**
-- Use fast model (gpt-5.2-mini, claude-haiku-4-5) for generation
+- Use fast model (gpt-5-mini, claude-haiku-4-5) for generation
 - Cache aggressively (queries often repeat)
 - Set tight timeouts (2-3s) with fallback
 - Keep hypothetical docs concise (100-200 tokens)
@@ -1513,7 +1513,7 @@ async def generate_hyde(
 ) -> HyDEResult:
     """Generate hypothetical document and embed it."""
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content":
                 "Write a short paragraph that would answer this query. "
@@ -1548,7 +1548,7 @@ async def generate_hyde(
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[{"role": "user", "content": query}],
         max_tokens=150
     )
@@ -1561,7 +1561,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Write a short paragraph that would answer this query."},
             {"role": "user", "content": query}
@@ -1578,7 +1578,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
-- Use fast/cheap model (gpt-5.2-mini, claude-haiku-4-5) for generation
+- Use fast/cheap model (gpt-5-mini, claude-haiku-4-5) for generation
 - Temperature 0.3 for consistent, factual hypothetical docs
 - Keep hypothetical docs concise: 100-200 tokens
 - Adds ~500ms latency — always implement with timeout fallback
@@ -1750,7 +1750,7 @@ Embed images and text in the same vector space for cross-modal retrieval.
 
 | Model | Context | Modalities | Best For |
 |-------|---------|------------|----------|
-| **Voyage multimodal-3** | 32K tokens | Text + Image | Long documents |
+| **Voyage multimodal-3.5** | 32K tokens | Text + Image | Long documents |
 | **SigLIP 2** | Standard | Text + Image | Large-scale retrieval |
 | **CLIP ViT-L/14** | 77 tokens | Text + Image | General purpose |
 | **ImageBind** | Standard | 6 modalities | Audio/video included |
@@ -1794,7 +1794,7 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
             with open(path, "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
                 inputs.append({"type": "image", "content": f"data:image/png;base64,{b64}"})
-    return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3").embeddings
+    return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3.5").embeddings
 ```
 
 **Incorrect — using text-only embeddings for images:**
@@ -1818,7 +1818,7 @@ def embed_image(image_path: str) -> list[float]:
 
 **Key rules:**
 - Normalize embeddings for cosine similarity (CLIP already normalized)
-- Voyage multimodal-3 for long documents (32K context)
+- Voyage multimodal-3.5 for long documents (32K context, released 2025-05-20)
 - SigLIP 2 for large-scale production retrieval
 - Always embed both images AND captions for maximum coverage
 
@@ -2093,6 +2093,36 @@ LIMIT 10;
 - Set `hnsw.ef_search = 40` at query time for production recall
 - Use `iterative_scan = 'relaxed_order'` for filtered vector queries
 
+## Storage Reduction — halfvec & Binary Quantization (pgvector 0.7+)
+
+For high-dimensional embeddings (e.g. 3072-dim `gemini-embedding-001` / `text-embedding-3-large`), full `vector` storage and HNSW graphs get expensive. pgvector 0.7+ offers two reductions:
+
+**halfvec — 16-bit floats (~50% storage, negligible recall loss):**
+```sql
+ALTER TABLE chunks ALTER COLUMN embedding TYPE halfvec(3072);
+CREATE INDEX ON chunks USING hnsw (embedding halfvec_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+**Binary quantization — bit vectors for a coarse first pass (~32x smaller), then exact rerank:**
+```sql
+CREATE INDEX ON chunks
+    USING hnsw ((binary_quantize(embedding)::bit(3072)) bit_hamming_ops);
+
+-- two-phase: cheap Hamming shortlist, then exact cosine rerank
+SELECT * FROM (
+    SELECT * FROM chunks
+    ORDER BY binary_quantize(embedding)::bit(3072) <~> binary_quantize($1)::bit(3072)
+    LIMIT 200
+) shortlist
+ORDER BY embedding <=> $1
+LIMIT 10;
+```
+
+**When to use:**
+- `halfvec`: sensible default for any 1536+ dim embedding — ~50% smaller index, recall within ~0.5%
+- `binary_quantize` + rerank: 3072-dim at very large scale where even halfvec HNSW is too big; expect a recall hit unless you rerank the shortlist exactly
+
 
 ### Filter PGVector results by metadata and boost scores for improved retrieval relevance — MEDIUM
 
@@ -2255,7 +2285,7 @@ class ConceptExtraction(BaseModel):
 
 async def decompose_query(query: str, llm: AsyncOpenAI) -> list[str]:
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content":
                 "Extract 2-4 independent concepts from this query. "
@@ -2315,7 +2345,7 @@ async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
 
 **Key rules:**
 - Max 2-4 concepts per query (more increases latency without proportional benefit)
-- Use gpt-5.2-mini for decomposition (fast, cheap, good at concept extraction)
+- Use gpt-5-mini for decomposition (fast, cheap, good at concept extraction)
 - RRF fusion is robust and parameter-free for combining per-concept results
 - Cache decomposition results — same query often asked repeatedly
 - Set timeout with fallback to original query if decomposition fails
@@ -2556,7 +2586,7 @@ Re-score retrieved documents with cross-encoder for higher precision.
 from sentence_transformers import CrossEncoder
 
 class CrossEncoderReranker:
-    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
+    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L6-v2"):
         self.model = CrossEncoder(model_name)
 
     def rerank(self, query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
@@ -2571,9 +2601,9 @@ class CrossEncoderReranker:
 
 | Model | Latency | Cost | Quality |
 |-------|---------|------|---------|
-| `cross-encoder/ms-marco-MiniLM-L-6-v2` | ~50ms | Free | Good |
+| `cross-encoder/ms-marco-MiniLM-L6-v2` | ~50ms | Free | Good |
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
-| `cohere rerank-english-v3.0` | ~200ms | $1/1K | Best |
+| `cohere rerank-v4.0-pro` | ~200ms | $1/1K | Best |
 
 **Incorrect — retrieving few, no reranking:**
 ```python
@@ -2601,7 +2631,7 @@ async def search_with_reranking(query: str) -> list[dict]:
 **Key rules:**
 - Retrieve many (50-100), rerank to few (10) — "retrieve more, rerank less"
 - Cross-encoder processes query+doc pair together (slow but accurate)
-- Default model: `ms-marco-MiniLM-L-6-v2` (good quality, free, ~50ms)
+- Default model: `ms-marco-MiniLM-L6-v2` (good quality, free, ~50ms)
 - Truncate document content to 200-400 chars for reranking efficiency
 
 
@@ -2618,7 +2648,7 @@ async def llm_rerank(query: str, documents: list[dict], llm: AsyncOpenAI, top_k:
     docs_text = "\n\n".join([f"[Doc {i+1}]\n{doc['content'][:300]}..." for i, doc in enumerate(documents)])
 
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Rate each document's relevance to the query (0.0-1.0).\nOutput one score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
@@ -2648,12 +2678,13 @@ import cohere
 
 class CohereReranker:
     def __init__(self, api_key: str):
-        self.client = cohere.Client(api_key)
+        self.client = cohere.ClientV2(api_key=api_key)
 
     def rerank(self, query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
         results = self.client.rerank(
-            model="rerank-english-v3.0", query=query,
-            documents=[doc["content"] for doc in documents], top_n=top_k
+            model="rerank-v4.0-pro", query=query,
+            documents=[{"type": "text", "text": doc["content"]} for doc in documents],
+            top_n=top_k, max_tokens_per_doc=4096
         )
         return [{**documents[r.index], "score": r.relevance_score} for r in results.results]
 ```
@@ -2664,7 +2695,7 @@ async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
     scores = []
     for doc in documents:  # Sequential LLM calls!
         response = await llm.chat.completions.create(
-            model="gpt-5.2-mini",
+            model="gpt-5-mini",
             messages=[{"role": "user", "content": f"Rate relevance (0-1):\nQuery: {query}\nDoc: {doc['content']}"}]
         )
         scores.append(float(response.choices[0].message.content))
@@ -2681,7 +2712,7 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
     ])
 
     response = await llm.chat.completions.create(
-        model="gpt-5.2-mini",
+        model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
@@ -2698,8 +2729,9 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
 - Batch all docs in one LLM call (reduces latency vs per-doc calls)
 - Truncate to 200-400 chars per doc for LLM reranking
 - Parse scores defensively (default 0.5 on parse error)
-- LLM reranking at ~500ms, Cohere at ~200ms
+- LLM reranking at ~500ms, Cohere ClientV2/rerank-v4.0-pro at ~200ms
 - Set timeout with fallback to base ranking
+- Use ClientV2 (deprecated Client) and rerank-v4.0-pro (deprecated v3.0) models
 
 
 

@@ -19,7 +19,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 > | Provider | Model IDs |
 > |----------|-----------|
 > | Anthropic | `claude-opus-4-8` (latest), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
-> | OpenAI    | `gpt-5.2` (current flagship) |
+> | OpenAI    | `gpt-5.5` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
 > | Kling     | `kling-v3` (model_name field in Kling API) |
@@ -117,7 +117,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-8` (2,576 px, 3× Opus 4.6) or `gpt-5.2` |
+| High accuracy vision | `claude-opus-4-8` (2,576 px, 3× Opus 4.6) or `gpt-5.5` |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
@@ -301,17 +301,20 @@ result = {
 
 **Gemini — best for long-form audio (up to 9.5 hours):**
 ```python
-import google.generativeai as genai
-model = genai.GenerativeModel("gemini-2.5-pro")
+from google import genai
+client = genai.Client()
 
-audio_file = genai.upload_file(audio_path)
-response = model.generate_content([
-    audio_file,
-    """Transcribe with:
+audio_file = client.files.upload(file=audio_path)
+response = client.models.generate_content(
+    model="gemini-2.5-pro",
+    contents=[
+        audio_file,
+        """Transcribe with:
     1. Speaker labels (Speaker 1, Speaker 2)
     2. Timestamps: [HH:MM:SS]
-    3. Punctuation and formatting"""
-])
+    3. Punctuation and formatting""",
+    ],
+)
 ```
 
 **AssemblyAI — best feature set (diarization + sentiment + entities):**
@@ -363,27 +366,29 @@ response = model.generate_content(contents=text)
 
 **Correct — Gemini TTS with voice and style config:**
 ```python
-import google.generativeai as genai
+from google import genai
+from google.genai import types
+
+client = genai.Client()
 
 def text_to_speech(text: str, voice: str = "Kore") -> bytes:
     """Gemini 2.5 Flash TTS with voice selection.
 
     Available voices: Puck, Charon, Kore, Fenrir, Aoede (30 total)
     """
-    model = genai.GenerativeModel("gemini-2.5-flash-tts")
-
-    response = model.generate_content(
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-tts",
         contents=text,
-        generation_config=genai.GenerationConfig(
+        config=types.GenerateContentConfig(
             response_mime_type="audio/mp3",
-            speech_config=genai.SpeechConfig(
-                voice_config=genai.VoiceConfig(
-                    prebuilt_voice_config=genai.PrebuiltVoiceConfig(
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
                         voice_name=voice
                     )
                 )
-            )
-        )
+            ),
+        ),
     )
     return response.audio
 ```
@@ -729,7 +734,7 @@ Read(file_path="/path/to/document.pdf", pages="80-90")   # Appendix
 **Chart/diagram analysis — use high detail and explicit extraction prompt:**
 ```python
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     max_tokens=4096,
     messages=[{
         "role": "user",
@@ -778,7 +783,7 @@ Encode images correctly and structure multi-modal messages for each provider.
 ```python
 # OpenAI — image silently ignored
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": f"Describe this image: {base64_data}"}]
 )
 ```
@@ -795,7 +800,7 @@ def encode_image(path: str) -> tuple[str, str]:
 # OpenAI (GPT-5, GPT-4o)
 base64_data, mime_type = encode_image(image_path)
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     max_tokens=4096,  # Required for vision — omitting truncates response
     messages=[{
         "role": "user",
@@ -832,9 +837,14 @@ response = client.messages.create(
 **Gemini — uses PIL Image directly:**
 ```python
 from PIL import Image
-model = genai.GenerativeModel("gemini-2.5-pro")
+from google import genai
+
+client = genai.Client()
 image = Image.open(image_path)
-response = model.generate_content([prompt, image])
+response = client.models.generate_content(
+    model="gemini-2.5-pro",
+    contents=[prompt, image],
+)
 ```
 
 **Multi-image comparison (Claude supports up to 100):**
@@ -874,8 +884,8 @@ Choose the right vision provider based on accuracy, cost, and context needs.
 
 | Model | Context | Strengths | Max Images |
 |-------|---------|-----------|------------|
-| **GPT-5.2** | 128K | Best general reasoning | 10/request |
-| **Claude Opus 4.6** | 1M | Best coding, sustained agent tasks | 600/request |
+| **GPT-5.5** | 128K | Best general reasoning | 10/request |
+| **Claude Opus 4.8** | 1M | Best coding, sustained agent tasks | 600/request |
 | **Gemini 2.5 Pro** | 1M+ | Longest context, native video | 3,600/request |
 | **Gemini 3 Pro** | 1M | Deep Think, enhanced segmentation | 3,600/request |
 | **Grok 4** | 2M | Real-time X integration | Limited |
@@ -893,7 +903,7 @@ Choose the right vision provider based on accuracy, cost, and context needs.
 ```python
 # Wastes tokens: high detail + large model for yes/no
 response = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": [
         {"type": "text", "text": "Is there a person? Reply: yes/no"},
         {"type": "image_url", "image_url": {"url": img_url, "detail": "high"}}
@@ -904,7 +914,7 @@ response = client.chat.completions.create(
 **Correct — cost-optimized for simple tasks:**
 ```python
 response = client.chat.completions.create(
-    model="gpt-5.2-mini",  # Cheaper model
+    model="gpt-5.5-mini",  # Cheaper model
     messages=[{"role": "user", "content": [
         {"type": "text", "text": "Is there a person? Reply: yes/no"},
         {"type": "image_url", "image_url": {"url": img_url, "detail": "low"}}  # 65 tokens
@@ -925,7 +935,7 @@ response = client.chat.completions.create(
 
 | Scenario | Recommendation |
 |----------|----------------|
-| High accuracy | Claude Opus 4.6 or GPT-5 |
+| High accuracy | Claude Opus 4.8 or GPT-5.5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M tokens) |
 | Real-time/X data | Grok 4 with DeepSearch |

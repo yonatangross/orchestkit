@@ -54,7 +54,7 @@ token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 // Zod v4 schema validation
 import { z } from 'zod';
 const UserSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   role: z.enum(['user', 'admin']).default('user'),
 });
@@ -221,6 +221,8 @@ Plugin settings follow a 3-tier precedence:
 | 3. User (`~/.claude/settings.json`) | Personal preferences | Final authority |
 
 Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
+
+> **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -1250,17 +1252,18 @@ async def run_red_team_audit(target_model: callable, attacks_per_vulnerability: 
     }
 ```
 
-**OWASP Top 10 for LLMs mapping:**
+**OWASP Top 10 for LLMs (2025) mapping:**
 
 | OWASP LLM Risk | Guardrail Solution |
 |----------------|-------------------|
 | LLM01: Prompt Injection | NeMo input rails, Guardrails AI validators |
-| LLM02: Insecure Output | Output rails, structured validation |
-| LLM04: Model Denial of Service | Rate limiting, token budgets, timeout rails |
-| LLM06: Sensitive Info Disclosure | PII detection, context separation |
-| LLM07: Insecure Plugin Design | Tool validation, permission boundaries |
-| LLM08: Excessive Agency | Human-in-loop rails, action confirmation |
-| LLM09: Overreliance | Factuality checking, confidence thresholds |
+| LLM02: Sensitive Information Disclosure | PII detection, context separation |
+| LLM05: Improper Output Handling | Output rails, structured validation |
+| LLM06: Excessive Agency | Human-in-loop rails, action confirmation |
+| LLM07: System Prompt Leakage | Tool validation, permission boundaries |
+| LLM08: Vector and Embedding Weaknesses | Embedding access controls, tenant isolation |
+| LLM09: Misinformation | Factuality checking, confidence thresholds |
+| LLM10: Unbounded Consumption | Rate limiting, token budgets, timeout rails |
 
 **Framework comparison:**
 
@@ -1297,7 +1300,7 @@ return response  # Raw, unvalidated output!
 models:
   - type: main
     engine: openai
-    model: gpt-5.2
+    model: gpt-5.5
 
 rails:
   config:
@@ -1357,7 +1360,7 @@ if not input_result.validation_passed:
     return "Invalid input"
 
 llm_output = llm.generate(input_result.validated_output)
-output_result = guard(llm_api=openai.chat.completions.create, model="gpt-5.2",
+output_result = guard(llm_api=openai.chat.completions.create, model="gpt-5.5",
                       messages=[{"role": "user", "content": user_input}])
 
 if output_result.validation_passed:
@@ -2803,7 +2806,7 @@ repos:
 import { z } from 'zod';
 
 const UserSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   age: z.coerce.number().int().min(0).max(150),
   role: z.enum(['user', 'admin']).default('user'),
@@ -2917,7 +2920,7 @@ if (email.includes('@')) {
 **Correct — Server-side schema validation with Zod ensures all input is validated:**
 ```typescript
 app.post('/api/users', validateBody(z.object({
-  email: z.string().email(),
+  email: z.email(),
 })), async (req, res) => {
   // req.body.email is validated regardless of client
 });
@@ -3062,7 +3065,7 @@ element.textContent = userComment;
 const NotificationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('email'),
-    email: z.string().email(),
+    email: z.email(),
     subject: z.string().min(1),
     body: z.string().min(1),
   }),
@@ -3111,8 +3114,7 @@ function validateFileContent(buffer: Buffer, mimeType: string): boolean {
 ```typescript
 const ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com'] as const;
 
-const SafeUrlSchema = z.string()
-  .url()
+const SafeUrlSchema = z.url()
   .refine(
     (url) => {
       const { hostname, protocol } = new URL(url);
@@ -3130,7 +3132,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const SignupSchema = z.object({
-  email: z.string().email('Invalid email'),
+  email: z.email('Invalid email'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase')
@@ -3479,6 +3481,8 @@ generation = trace.generation(
 ### Context Separation
 
 # Context Separation Pattern
+
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM07: System Prompt Leakage** — keeping identifiers and internal context out of prompts prevents the model from echoing or leaking system-level data.
 
 ## The Problem
 
@@ -6323,7 +6327,7 @@ class RequestContext:
 
 ```python
 from fastapi import Request, Depends
-from jose import jwt
+import jwt  # PyJWT
 
 async def get_request_context(request: Request) -> RequestContext:
     """FastAPI dependency that creates RequestContext from JWT"""
@@ -6336,7 +6340,7 @@ async def get_request_context(request: Request) -> RequestContext:
     token = auth_header[7:]
     try:
         claims = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(401, "Invalid token")
 
     # 2. Build immutable context
@@ -6423,6 +6427,8 @@ def process(self):
 ### Tenant Isolation
 
 # Tenant Isolation Patterns
+
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM08: Vector and Embedding Weaknesses** — without per-tenant filtering, shared embedding/vector stores leak one tenant's data into another tenant's retrieval results.
 
 ## The Golden Rule
 
@@ -7125,9 +7131,9 @@ const bigintSchema = z.bigint();
 // String validations
 z.string().min(1)           // Non-empty
 z.string().max(100)         // Max length
-z.string().email()          // Email format
-z.string().url()            // URL format
-z.string().uuid()           // UUID format
+z.email()                   // Email format (top-level in v4; z.string().email() removed)
+z.url()                     // URL format (top-level in v4; z.string().url() removed)
+z.uuid()                    // UUID format (top-level in v4; z.string().uuid() removed)
 z.string().regex(/pattern/) // Custom pattern
 z.string().trim()           // Trim whitespace
 z.string().toLowerCase()    // Lowercase
@@ -7176,8 +7182,8 @@ bigintSchema.parse("9007199254740991"); // BigInt
 
 ```typescript
 const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   name: z.string().min(2).max(100),
   age: z.number().int().positive().optional(),
   role: z.enum(['user', 'admin', 'moderator']),
@@ -7195,7 +7201,7 @@ const result = UserSchema.safeParse(data);
 if (result.success) {
   console.log(result.data);
 } else {
-  console.log(result.error.errors);
+  console.log(result.error.issues);  // .errors removed in v4 — use .issues
 }
 ```
 
@@ -7251,7 +7257,7 @@ const jsonSchema = z.string().transform((str, ctx) => {
     return JSON.parse(str);
   } catch {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",  // v4: ZodIssueCode enum removed (codes live on z.core)
       message: "Invalid JSON",
     });
     return z.NEVER;
@@ -7283,7 +7289,7 @@ const formSchema = z.object({
 }).superRefine((data, ctx) => {
   if (data.password !== data.confirmPassword) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: "custom",  // v4: ZodIssueCode enum removed (codes live on z.core)
       message: "Passwords don't match",
       path: ["confirmPassword"],
     });
@@ -7332,15 +7338,22 @@ try {
   }
 }
 
-// Custom error map
-const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-  if (issue.code === z.ZodIssueCode.invalid_type) {
-    return { message: `Expected ${issue.expected}, received ${issue.received}` };
-  }
-  return { message: ctx.defaultError };
-};
+// Custom errors (v4: z.setErrorMap / ZodErrorMap removed — use the unified `error` param)
+// Per-schema: pass `error` directly on the schema
+const ageSchema = z.number({
+  error: (issue) =>
+    issue.code === "invalid_type"  // issue codes live on z.core in v4
+      ? `Expected ${issue.expected}, received ${typeof issue.input}`
+      : undefined, // fall back to the default message
+});
 
-z.setErrorMap(customErrorMap);
+// Global: configure a custom error map for all schemas
+z.config({
+  customError: (issue) =>
+    issue.code === "invalid_type"
+      ? `Expected ${issue.expected}, received ${typeof issue.input}`
+      : undefined,
+});
 ```
 
 ## React Hook Form Integration
@@ -7350,7 +7363,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const FormSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
@@ -8192,9 +8205,9 @@ def issue_tokens(user):
 
 ### Owasp Top10 Fixes
 
-# OWASP Top 10 - Vulnerable vs Secure Code
+# OWASP Top 10 (2025) - Vulnerable vs Secure Code
 
-Real examples showing vulnerable code and their secure alternatives.
+Real examples showing vulnerable code and their secure alternatives. Categories follow the OWASP Top 10:2025 ordering.
 
 ## A01: Broken Access Control
 
@@ -8216,7 +8229,31 @@ def get_document(doc_id: int, current_user: User = Depends(get_current_user)):
     return doc
 ```
 
-## A02: Cryptographic Failures
+## A02: Security Misconfiguration
+
+### ❌ Vulnerable: Debug in Production
+```python
+app = Flask(__name__)
+app.run(debug=True)  # Exposes debugger, allows code execution
+```
+
+### ✅ Secure: Environment-based Config
+```python
+app = Flask(__name__)
+app.run(debug=os.getenv("FLASK_ENV") == "development")
+```
+
+### ❌ Vulnerable: CORS Allow All
+```python
+CORS(app, origins="*", allow_credentials=True)
+```
+
+### ✅ Secure: Explicit Origins
+```python
+CORS(app, origins=["https://app.example.com"], allow_credentials=True)
+```
+
+## A04: Cryptographic Failures
 
 ### ❌ Vulnerable: Weak Hashing
 ```python
@@ -8231,7 +8268,9 @@ password_hash = argon2.hash(password)
 # Verify: argon2.verify(password, password_hash)
 ```
 
-## A03: Injection
+## A05: Injection
+
+In OWASP Top 10:2025, Cross-Site Scripting (XSS) is folded into the Injection category.
 
 ### ❌ Vulnerable: SQL Injection
 ```python
@@ -8258,33 +8297,7 @@ import subprocess
 subprocess.run(["convert", filename, "output.png"], check=True)
 ```
 
-## A05: Security Misconfiguration
-
-### ❌ Vulnerable: Debug in Production
-```python
-app = Flask(__name__)
-app.run(debug=True)  # Exposes debugger, allows code execution
-```
-
-### ✅ Secure: Environment-based Config
-```python
-app = Flask(__name__)
-app.run(debug=os.getenv("FLASK_ENV") == "development")
-```
-
-### ❌ Vulnerable: CORS Allow All
-```python
-CORS(app, origins="*", allow_credentials=True)
-```
-
-### ✅ Secure: Explicit Origins
-```python
-CORS(app, origins=["https://app.example.com"], allow_credentials=True)
-```
-
-## A07: XSS (Cross-Site Scripting)
-
-### ❌ Vulnerable: Unescaped Output
+### ❌ Vulnerable: XSS — Unescaped Output
 ```javascript
 element.innerHTML = userInput;  // userInput = "<script>stealCookies()</script>"
 ```
@@ -8305,7 +8318,9 @@ element.innerHTML = DOMPurify.sanitize(userInput);
 <div dangerouslySetInnerHTML={{__html: userInput}} />
 ```
 
-## A08: Insecure Deserialization
+## A08: Software or Data Integrity Failures
+
+Insecure deserialization is classified here in OWASP Top 10:2025.
 
 ### ❌ Vulnerable: Pickle from Untrusted Source
 ```python
@@ -8342,7 +8357,7 @@ import { z } from 'zod';
 
 // Request body schema
 const CreateUserSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8).max(100),
   name: z.string().min(2).max(100).transform(s => s.trim()),
   role: z.enum(['user', 'admin']).default('user'),
@@ -8409,7 +8424,7 @@ app.get('/api/users', validateQuery(PaginationSchema), (req, res) => {
 const NotificationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('email'),
-    email: z.string().email(),
+    email: z.email(),
     subject: z.string().min(1),
     body: z.string().min(1),
   }),
@@ -8487,8 +8502,7 @@ function validateFileContent(buffer: Buffer, mimeType: string): boolean {
 ```typescript
 const ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com'] as const;
 
-const UrlSchema = z.string()
-  .url()
+const UrlSchema = z.url()
   .refine(
     (url) => {
       const { hostname, protocol } = new URL(url);
@@ -8572,7 +8586,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 const SignupSchema = z.object({
-  email: z.string().email('Invalid email'),
+  email: z.email('Invalid email'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase')

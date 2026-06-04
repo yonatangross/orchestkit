@@ -40,8 +40,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.rollback()
             raise
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/users/{user_id}")
-async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_user(user_id: UUID, db: SessionDep):
     result = await db.execute(select(User).where(User.id == user_id))
     return result.scalar_one_or_none()
 ```
@@ -526,7 +529,7 @@ app = FastAPI(lifespan=lifespan)
 ## Database Session Dependency
 
 ```python
-from typing import AsyncGenerator
+from typing import Annotated, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, Request
 
@@ -542,6 +545,9 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
 ```
 
 ## Service Dependencies
@@ -554,7 +560,7 @@ class AnalysisService:
         self.llm = llm
 
 def get_analysis_service(
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
     request: Request = None,
 ) -> AnalysisService:
     return AnalysisService(
@@ -563,10 +569,12 @@ def get_analysis_service(
         llm=request.app.state.llm,
     )
 
+AnalysisServiceDep = Annotated[AnalysisService, Depends(get_analysis_service)]
+
 @router.post("/analyses")
 async def create_analysis(
     data: AnalysisCreate,
-    service: AnalysisService = Depends(get_analysis_service),
+    service: AnalysisServiceDep,
 ):
     return await service.create(data)
 ```
@@ -597,8 +605,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 security = HTTPBearer()
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security),
-    db: AsyncSession = Depends(get_db),
+    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
+    db: SessionDep,
 ) -> User:
     token = credentials.credentials
     payload = decode_jwt(token)
@@ -607,7 +615,9 @@ async def get_current_user(
         raise HTTPException(401, "Invalid credentials")
     return user
 
-async def get_admin_user(user: User = Depends(get_current_user)) -> User:
+CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+async def get_admin_user(user: CurrentUserDep) -> User:
     if not user.is_admin:
         raise HTTPException(403, "Admin access required")
     return user
@@ -622,12 +632,12 @@ async def create_analysis(data: AnalysisCreate, request: Request):
     return await service.create(data)
 ```
 
-**Correct — Depends() enables dependency injection and easy testing:**
+**Correct — Annotated Depends() enables dependency injection and easy testing:**
 ```python
 @router.post("/analyses")
 async def create_analysis(
     data: AnalysisCreate,
-    service: AnalysisService = Depends(get_analysis_service),
+    service: AnalysisServiceDep,
 ):
     return await service.create(data)
 # Tests can override get_analysis_service with mocks
@@ -1216,8 +1226,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.rollback()
             raise
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/users/{user_id}")
-async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> UserResponse:
+async def get_user(user_id: UUID, db: SessionDep) -> UserResponse:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -1569,6 +1582,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 ```python
 # app/api/v1/routes/users.py
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -1580,10 +1594,13 @@ from app.schemas.user import UserResponse, UserCreate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ) -> UserResponse:
     result = await db.execute(
         select(User)
@@ -1598,7 +1615,7 @@ async def get_user(
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: UserCreate,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ) -> UserResponse:
     user = User(**user_in.model_dump())
     db.add(user)
@@ -1641,11 +1658,11 @@ class UserService:
         await self.db.flush()
         return user
 
-# Usage in route
+# Usage in route (SessionDep = Annotated[AsyncSession, Depends(get_db)])
 @router.post("/")
 async def create_user(
     user_in: UserCreate,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,
 ):
     service = UserService(db)
     if await service.get_by_email(user_in.email):
@@ -1660,7 +1677,7 @@ async def create_user(
 @router.post("/transfer")
 async def transfer_funds(
     transfer: TransferRequest,
-    db: AsyncSession = Depends(get_db),
+    db: SessionDep,  # SessionDep = Annotated[AsyncSession, Depends(get_db)]
 ):
     async with db.begin():  # Explicit transaction
         from_account = await db.get(Account, transfer.from_id, with_for_update=True)
@@ -2223,6 +2240,8 @@ print(f"Max: {pool.get_max_size()}")
 
 ```python
 import asyncio
+import time
+
 import aiohttp
 
 class RateLimitedClient:
@@ -2258,12 +2277,12 @@ class AsyncRateLimiter:
     def __init__(self, rate: float):
         self._rate = rate
         self._tokens = rate
-        self._last_update = asyncio.get_event_loop().time()
+        self._last_update = time.monotonic()
         self._lock = asyncio.Lock()
 
     async def acquire(self):
         async with self._lock:
-            now = asyncio.get_event_loop().time()
+            now = time.monotonic()
             self._tokens = min(
                 self._rate,
                 self._tokens + (now - self._last_update) * self._rate
@@ -3404,6 +3423,8 @@ async def send_webhook(payload: dict):
 
 ```python
 import asyncio
+import time
+
 from prometheus_client import Gauge, Counter, Histogram
 from sqlalchemy import event, text
 
@@ -3434,12 +3455,12 @@ def setup_pool_monitoring(engine):
 
     @event.listens_for(engine.sync_engine, "checkout")
     def on_checkout(dbapi_conn, connection_record, connection_proxy):
-        connection_record.info["checkout_time"] = asyncio.get_event_loop().time()
+        connection_record.info["checkout_time"] = time.monotonic()
 
     @event.listens_for(engine.sync_engine, "checkin")
     def on_checkin(dbapi_conn, connection_record):
         if "checkout_time" in connection_record.info:
-            duration = asyncio.get_event_loop().time() - connection_record.info["checkout_time"]
+            duration = time.monotonic() - connection_record.info["checkout_time"]
             pool_checkout_time.observe(duration)
 
     @event.listens_for(engine.sync_engine, "connect")
@@ -3766,6 +3787,7 @@ app = FastAPI(
 ## Accessing App State in Routes
 
 ```python
+from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -3819,7 +3841,7 @@ async def create_analysis(
     queue=Depends(get_task_queue),
 ):
     # Create record
-    analysis = AnalysisModel(**request.dict())
+    analysis = AnalysisModel(**request.model_dump())
     db.add(analysis)
     await db.commit()
 
@@ -3936,7 +3958,7 @@ async def track_connections(request: Request, call_next):
 ```python
 # tests/conftest.py
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from app.main import app
@@ -3953,7 +3975,7 @@ async def client():
     app.state.redis = FakeRedis()
     app.state.task_queue = FakeTaskQueue()
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
 
@@ -4042,14 +4064,18 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 # app/api/routes/users.py
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 
+# Reusable dependency alias (FastAPI's recommended Annotated form)
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
+
 @router.get("/users/{user_id}")
-async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_user(user_id: UUID, db: SessionDep):
     result = await db.execute(
         select(User)
         .options(selectinload(User.orders))

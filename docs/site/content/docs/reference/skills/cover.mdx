@@ -60,7 +60,7 @@ Read `$\{CLAUDE_EFFORT\}` (CC 2.1.120+) first; explicit `--effort=` token wins a
 | **low** | Unit only | 1 agent | 1 max |
 | **medium** | Unit + Integration | 2 agents | 2 max |
 | **high** (default) | Unit + Integration + E2E | 3 agents | 3 max |
-| **xhigh** (Opus 4.7 only, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
+| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 4 max (one extra heal pass) |
 
 > **Override:** Explicit `--tier=` flag or user selection overrides `/effort` downscaling.
 
@@ -96,11 +96,10 @@ AskUserQuestion(
       "question": "What test tiers should I generate?",
       "header": "Test Tiers",
       "options": [
-        {"label": "Full coverage (Recommended)", "description": "Unit + Integration (real services) + E2E", "markdown": "```\nFull Coverage\n─────────────\n  Unit            Integration       E2E\n  ┌─────────┐    ┌─────────────┐  ┌──────────┐\n  │ AAA     │    │ Real DB     │  │Playwright│\n  │ Mocks   │    │ Real APIs   │  │Page obj  │\n  │ Factory │    │ Testcontain │  │A11y      │\n  └─────────┘    └─────────────┘  └──────────┘\n  3 parallel test-generator agents\n```"},
-        {"label": "Unit + Integration", "description": "Skip E2E, focus on logic and service boundaries", "markdown": "```\nUnit + Integration\n──────────────────\n  Unit tests for business logic\n  Integration tests at API boundaries\n  Real services if docker-compose found\n  Skip: browser automation\n```"},
-        {"label": "Unit only", "description": "Fast isolated tests for business logic", "markdown": "```\nUnit Only (~2 min)\n──────────────────\n  AAA pattern tests\n  MSW/VCR mocking\n  Factory-based data\n  Coverage gap analysis\n  Skip: real services, browser\n```"},
-        {"label": "Integration only", "description": "API boundary and real-service tests", "markdown": "```\nIntegration Only\n────────────────\n  API endpoint tests (Supertest/httpx)\n  Database tests (real or in-memory)\n  Contract tests (Pact)\n  Testcontainers if available\n```"},
-        {"label": "E2E only", "description": "Playwright browser tests", "markdown": "```\nE2E Only\n────────\n  Playwright page objects\n  User flow tests\n  Visual regression\n  Accessibility (axe-core)\n```"}
+        {"label": "Full coverage (Recommended)", "description": "Unit + Integration (real services) + E2E"},
+        {"label": "Unit + Integration", "description": "Skip E2E, focus on logic and service boundaries"},
+        {"label": "Unit only", "description": "Fast isolated tests for business logic"},
+        {"label": "E2E only", "description": "Playwright browser tests"}
       ],
       "multiSelect": false
     },
@@ -355,7 +354,7 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(title="ork:cover complete", body=f"\{SCOPE\}: \{coverage_pct\}% coverage · \{tests_generated\} tests · \{heal_loops\} heal iters")`. Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — \{SCOPE\}: \{coverage_pct\}% coverage · \{tests_generated\} tests · \{heal_loops\} heal iters", status="proactive")`. Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
@@ -376,7 +375,7 @@ CronCreate(
 
 ## Key Principles
 
-- **Output limits (CC 2.1.77+):** Opus 4.6 defaults to 64k output tokens (128k upper bound). For large test suites, chunk generation across multiple agent turns if output approaches the limit.
+- **Output limits (CC 2.1.77+):** Opus 4.8 defaults to 64k output tokens (128k upper bound). For large test suites, chunk generation across multiple agent turns if output approaches the limit.
 - **Partial reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` first page (not an error) on oversized files — re-read with explicit `offset`/`limit` so coverage analysis sees the whole file.
 - **Tests only** — never modify production source code, only generate test files
 - **Real services when available** — prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
