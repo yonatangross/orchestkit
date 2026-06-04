@@ -2,7 +2,7 @@
 
 ## Overview
 
-OrchestKit uses 66 global hook entries across 15 event types, compiled into 12 bundles. This reference explains how to validate and troubleshoot hooks.
+OrchestKit uses 144 global hook entries across 27 event types, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
 
 ## Hook Architecture
 
