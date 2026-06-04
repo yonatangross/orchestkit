@@ -18,7 +18,7 @@ export function backendLayerValidator(input: HookInput, ctx: HookContext = NOOP_
   const guard = guardPythonFiles(input);
   if (guard) return guard;
 
-  const filePath = input.tool_input.file_path;
+  const filePath = typeof input.tool_input.file_path === 'string' ? input.tool_input.file_path : '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
   if (!filePath || !content) return outputSilentSuccess();

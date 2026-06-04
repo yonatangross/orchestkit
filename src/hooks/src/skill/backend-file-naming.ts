@@ -18,7 +18,7 @@ export function backendFileNaming(input: HookInput, ctx: HookContext = NOOP_CTX)
   const guard = guardPythonFiles(input);
   if (guard) return guard;
 
-  const filePath = input.tool_input.file_path;
+  const filePath = typeof input.tool_input.file_path === 'string' ? input.tool_input.file_path : '';
   if (!filePath) return outputSilentSuccess();
 
   // Skip if not in an app/ or backend/ directory

@@ -14,7 +14,7 @@ import { NOOP_CTX } from '../lib/context.js';
  * Enforce pattern consistency across codebase
  */
 export function patternConsistencyEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const filePath = input.tool_input.file_path || '';
+  const filePath = typeof input.tool_input.file_path === 'string' ? input.tool_input.file_path : '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
   if (!filePath || !content) return outputSilentSuccess();

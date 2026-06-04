@@ -39,7 +39,7 @@ export function importDirectionEnforcer(input: HookInput, ctx: HookContext = NOO
   const guard = guardCodeFiles(input);
   if (guard) return guard;
 
-  const filePath = input.tool_input.file_path || '';
+  const filePath = typeof input.tool_input.file_path === 'string' ? input.tool_input.file_path : '';
   const content = input.tool_input.content || (input as any).tool_result || '';
 
   if (!filePath || !content) return outputSilentSuccess();
