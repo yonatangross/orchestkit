@@ -475,7 +475,28 @@ else
 fi
 
 # ============================================================================
-# Section F: JSON Output
+# Section F: CC-Idiom Conformance (#2193) — advisory
+# ============================================================================
+
+header "Section F: CC-Idiom Conformance"
+
+# Static, deterministic grader for stale CC idioms (old model IDs, hook-count
+# drift). Advisory only: emits warn (never fail) so it cannot block CI while
+# signal quality is validated. Set CONFORMANCE_STRICT=1 locally to gate.
+node "$PROJECT_ROOT/scripts/eval/conformance-check.mjs" >/dev/null 2>&1 || true
+CONF_JSON="$PROJECT_ROOT/tests/evaluations/results/conformance.json"
+CONF_N=0
+if [ -f "$CONF_JSON" ]; then
+  CONF_N=$(grep -o '"total_findings"[: ]*[0-9]*' "$CONF_JSON" | grep -o '[0-9]*' | head -1)
+fi
+if [ "${CONF_N:-0}" -gt 0 ]; then
+  add_check "CC-Idiom Conformance" "warn" "$CONF_N stale-idiom finding(s) — see tests/evaluations/results/conformance.json"
+else
+  add_check "CC-Idiom Conformance" "pass" "No stale CC-idiom drift detected"
+fi
+
+# ============================================================================
+# Section G: JSON Output
 # ============================================================================
 
 END_TIME=$(ms_now)
