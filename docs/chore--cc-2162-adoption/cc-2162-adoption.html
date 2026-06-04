@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CC 2.1.162 Adoption — OrchestKit Playground</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2230; --border: #30363d;
+    --fg: #e6edf3; --muted: #8b949e; --green: #3fb950; --amber: #d29922;
+    --red: #f85149; --blue: #58a6ff; --pink: #ec4899; --accent: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; }
+  .pill.done { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .pill.todo { background: rgba(210,153,34,.15); color: var(--amber); border: 1px solid rgba(210,153,34,.3); }
+  .pill.hold { background: rgba(88,166,255,.13); color: var(--blue); border: 1px solid rgba(88,166,255,.3); }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card .n { font-size: 28px; font-weight: 700; }
+  .card .l { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .card.g .n { color: var(--green); } .card.a .n { color: var(--amber); }
+  .card.b .n { color: var(--blue); } .card.p .n { color: var(--accent); }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .btn { background: var(--panel2); color: var(--fg); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn.active { border-color: var(--blue); color: var(--blue); background: rgba(88,166,255,.1); }
+  h2 { font-size: 17px; margin: 30px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  tr.hidden { display: none; }
+  code { background: var(--panel2); padding: 1px 6px; border-radius: 4px; font-size: 12.5px;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace; color: var(--accent); }
+  .ver { font-family: "SF Mono", ui-monospace, monospace; color: var(--blue); font-weight: 600; white-space: nowrap; }
+  .diff { background: #0a0e14; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.5; }
+  .diff .add { color: var(--green); } .diff .rem { color: var(--red); }
+  .diff .ctx { color: var(--muted); } .diff .file { color: var(--blue); font-weight: 700; }
+  .note { background: var(--panel); border-left: 3px solid var(--amber); border-radius: 0 8px 8px 0;
+    padding: 12px 16px; margin: 14px 0; }
+  .note.blue { border-left-color: var(--blue); }
+  .note b { color: var(--fg); }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 36px; border-top: 1px solid var(--border); padding-top: 14px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎯 CC 2.1.162 Adoption — OrchestKit</h1>
+  <p class="sub">Playground · branch <code>chore/cc-2162-adoption</code> · current floor <code>2.1.148</code> · 2026-06-04</p>
+
+  <div class="cards">
+    <div class="card g"><div class="n" id="c-done">11</div><div class="l">Already adopted</div></div>
+    <div class="card a"><div class="n" id="c-todo">2</div><div class="l">Remaining (this PR)</div></div>
+    <div class="card b"><div class="n">2.1.148</div><div class="l">Floor — no bump</div></div>
+    <div class="card p"><div class="n">+5</div><div class="l">New matrix entries</div></div>
+  </div>
+
+  <div class="note blue">
+    <b>The honest headline:</b> "full + proper 2.1.162 adoption" is mostly already done. The repo
+    catalogues CC through 2.1.161 and has already handled every breaking change (workflow→ultracode,
+    <code>OPUS_4_6</code> env removal, modelPicker keybind), Opus 4.8 model IDs, MessageDisplay, and
+    <code>disallowed-tools</code>. What remained collapsed to <b>one small PR</b>: catalogue 2.1.162 + fix a stale README claim.
+  </div>
+
+  <h2>Version-by-version status (2.1.149 → 2.1.162)</h2>
+  <div class="controls">
+    <button class="btn active" data-f="all">All</button>
+    <button class="btn" data-f="done">✅ Already adopted</button>
+    <button class="btn" data-f="todo">⏳ This PR</button>
+    <button class="btn" data-f="na">∅ Infra / skipped</button>
+  </div>
+  <table id="tbl">
+    <thead><tr><th>Version</th><th>Status</th><th>Plugin-facing change</th><th>How it's handled</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h2>What this PR actually changes</h2>
+  <div class="diff">
+<span class="file">src/hooks/src/lib/cc-version-matrix.ts</span>
+<span class="ctx">  { feature: 'mcp_collapse_unused_connectors', minVersion: '2.1.161', ... },</span>
+<span class="add">+</span>
+<span class="add">+  // 2.1.159 (2026-06) — internal infrastructure only; no catalogue-worthy change</span>
+<span class="add">+</span>
+<span class="add">+  // 2.1.162 — agents --json waitingFor, dedicated search tools, WebFetch fix, LSP query, MCP timeout floor</span>
+<span class="add">+  { feature: 'claude_agents_json_waiting_for',   minVersion: '2.1.162', ... },</span>
+<span class="add">+  { feature: 'tools_flag_dedicated_search',      minVersion: '2.1.162', ... },</span>
+<span class="add">+  { feature: 'webfetch_preapproved_domain_rules',minVersion: '2.1.162', ... },</span>
+<span class="add">+  { feature: 'lsp_workspace_symbol_query_param', minVersion: '2.1.162', ... },</span>
+<span class="add">+  { feature: 'mcp_per_server_timeout_floor',     minVersion: '2.1.162', ... },</span>
+<span class="ctx">] as const;   // 473 → 478 entries</span>
+
+<span class="file">src/hooks/README.md</span>
+<span class="ctx">- CC 2.1.158 compliant: 460-entry version matrix (catalogued through 2.1.158 …)  [kept as history]</span>
+<span class="add">+ CC 2.1.162 compliant: 478-entry version matrix (catalogued through 2.1.162 —</span>
+<span class="add">+   workflow→ultracode 2.1.160, mcp secret redaction 2.1.161, agents --json</span>
+<span class="add">+   waitingFor + dedicated search tools 2.1.162); floor stays 2.1.148.</span>
+  </div>
+
+  <h2>Floor decision</h2>
+  <div class="note">
+    <b>No floor bump in this PR.</b> The <code>#1945</code> ladder-capstone override holds the floor at
+    <code>2.1.148</code> until <b>2026-08-23</b>, with a documented rationale: <i>"2.1.149–2.1.158 are
+    adopted-by-use or fixes and do not force a floor bump."</i> Nothing in 2.1.159–162 changes that —
+    they're CLI/UX/bug-fixes, not hard plugin dependencies.
+  </div>
+  <div class="note blue">
+    <b>⚠️ August side-effect to know:</b> adding 2.1.162 to the matrix raises matrix-latest 2.1.161 → 2.1.162.
+    When the override expires on 2026-08-23, <code>cc-support-window-bump.yml</code> will compute
+    <code>floor = latest − 3 = 2.1.159</code> and open an auto-bump PR. That's policy-compliant — just know
+    the floor <i>will</i> jump to 2.1.159 in August, automatically, partly because of this PR.
+  </div>
+
+  <div class="foot">
+    Generated for the CC 2.1.162 adoption brainstorm. Track A (idiom adoption) = done across all surfaces;
+    Track B (floor bump) = deferred to the August auto-bump per the #1945 override. This is the
+    <b>playground</b> artifact for PR <code>chore/cc-2162-adoption</code>.
+  </div>
+</div>
+
+<script>
+  const data = [
+    {v:"2.1.149", s:"done", c:"arg-hint when frontmatter name≠dir basename; effort: in status bar", h:"Matrix ✓ — bug fixes, auto-apply"},
+    {v:"2.1.150", s:"na",   c:"internal infrastructure only", h:"Nothing to adopt"},
+    {v:"2.1.151", s:"na",   c:"version skipped (never published)", h:"Does not exist"},
+    {v:"2.1.152", s:"done", c:"MessageDisplay event · disallowed-tools · reloadSkills · sessionTitle", h:"Matrix ✓ + in HookEventName union; bare-eval uses disallowed-tools"},
+    {v:"2.1.153", s:"done", c:"/model persist; modelPicker keybind RENAME (breaking); subagent worktree-output fix", h:"Matrix ✓ + documented breaking rename in keybindings.md"},
+    {v:"2.1.154", s:"done", c:"Opus 4.8 · dynamic workflows · lean system prompt default", h:"Matrix ✓ + agents reference Opus 4.8"},
+    {v:"2.1.155", s:"na",   c:"version skipped (never published)", h:"Does not exist"},
+    {v:"2.1.156", s:"done", c:"Opus 4.8 thinking-block API fix", h:"Bug fix, auto-apply"},
+    {v:"2.1.157", s:"done", c:".claude/skills autoload · claude plugin init · EnterWorktree switch", h:"Matrix ✓"},
+    {v:"2.1.158", s:"done", c:"auto mode on Bedrock/Vertex/Foundry", h:"Matrix ✓"},
+    {v:"2.1.159", s:"na",   c:"internal infrastructure only", h:"Comment added; nothing to catalogue"},
+    {v:"2.1.160", s:"done", c:"workflow→ultracode rename (breaking) · OPUS_4_6 env removed · grep-satisfies-read", h:"Matrix ✓ + env clean + documented"},
+    {v:"2.1.161", s:"done", c:"parallel-tool independent failure · mcp secret redaction · OTEL labels", h:"Matrix ✓"},
+    {v:"2.1.162", s:"todo", c:"agents --json waitingFor · dedicated search tools · WebFetch domain fix · LSP query · MCP timeout floor", h:"⏳ +5 matrix entries (this PR)"},
+  ];
+  const badge = {done:'<span class="pill done">✅ adopted</span>', todo:'<span class="pill todo">⏳ this PR</span>', na:'<span class="pill hold">∅ n/a</span>'};
+  const rows = document.getElementById("rows");
+  rows.innerHTML = data.map(d =>
+    `<tr data-s="${d.s}"><td class="ver">${d.v}</td><td>${badge[d.s]}</td><td>${d.c}</td><td>${d.h}</td></tr>`
+  ).join("");
+  document.querySelectorAll(".btn").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    const f = b.dataset.f;
+    document.querySelectorAll("#rows tr").forEach(tr => {
+      tr.classList.toggle("hidden", f !== "all" && tr.dataset.s !== f);
+    });
+  }));
+  document.getElementById("c-done").textContent = data.filter(d => d.s==="done").length;
+  document.getElementById("c-todo").textContent = data.filter(d => d.s==="todo").length;
+</script>
+</body>
+</html>

@@ -562,6 +562,15 @@ export const CC_FEATURE_MATRIX: readonly CCFeatureEntry[] = [
   { feature: 'otel_resource_attrs_metric_labels',       minVersion: '2.1.161', description: 'OTEL_RESOURCE_ATTRIBUTES values are attached as labels on metric datapoints, enabling slicing usage metrics by custom dimensions (team, repo).' },
   { feature: 'claude_agents_done_total',                minVersion: '2.1.161', description: 'claude agents rows show done/total progress for fanned-out work; peek shows the longest-running item.' },
   { feature: 'mcp_collapse_unused_connectors',          minVersion: '2.1.161', description: '/mcp collapses claude.ai connectors never signed in to behind a "Show unused connectors" row.' },
+
+  // 2.1.159 (2026-06) — internal infrastructure only; no catalogue-worthy plugin-facing change
+
+  // 2.1.162 (2026-06-03) — agents --json waitingFor, dedicated search tools, WebFetch preapproved-domain fix, LSP query param, MCP timeout floor
+  { feature: 'claude_agents_json_waiting_for',          minVersion: '2.1.162', description: 'claude agents --json includes a waitingFor field showing what a blocked/waiting session is waiting on.' },
+  { feature: 'tools_flag_dedicated_search',             minVersion: '2.1.162', description: 'Explicitly listing Grep/Glob in --tools provides dedicated search tools on native builds (previously only via Bash).' },
+  { feature: 'webfetch_preapproved_domain_rules',       minVersion: '2.1.162', description: 'WebFetch permission rules are now applied to built-in preapproved domains, closing a rule-bypass gap.' },
+  { feature: 'lsp_workspace_symbol_query_param',        minVersion: '2.1.162', description: 'LSP workspaceSymbol now accepts a query parameter; previously the operation returned no results.' },
+  { feature: 'mcp_per_server_timeout_floor',           minVersion: '2.1.162', description: 'MCP per-server timeout values below 1000ms are floored to the 1-second watchdog instead of being honored verbatim.' },
 ] as const;
 
 export type CCFeature = typeof CC_FEATURE_MATRIX[number]['feature'];

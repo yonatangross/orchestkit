@@ -26,6 +26,7 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - CC 2.1.98 compliant: Monitor tool in workflow skills, SCRIPT_CAPS enforcement, bg subagent partial progress handling, hook stderr display awareness
 - CC 2.1.101 compliant: 253-entry version matrix, deny-overrides-ask in dangerous-command-blocker, 26 skill frontmatter corrections (context/agent fields now enforced), dynamic MCP inheritance for subagents
 - CC 2.1.158 compliant: 460-entry version matrix (catalogued through 2.1.158 — MessageDisplay 2.1.152, dynamic workflows + Opus 4.8 2.1.154, .claude/skills autoload 2.1.157), `MessageDisplay` event in the HookEventName union, `disallowed-tools` frontmatter. Counts: `claude plugin details ork` is the source of truth.
+- CC 2.1.162 compliant: 479-entry version matrix (catalogued through 2.1.162 — workflow→ultracode rename 2.1.160, parallel-tool independent failure + mcp secret redaction 2.1.161, agents --json waitingFor + dedicated search tools + WebFetch preapproved-domain fix 2.1.162); 2.1.159 is infra-only. Floor stays 2.1.148 (override expires 2026-08-23) — 2.1.149-162 are adopt-by-use or fixes and do not force a floor bump.
 - Event coverage: CwdChanged + FileChanged deliberately unhooked (no use case)
 
 ---
