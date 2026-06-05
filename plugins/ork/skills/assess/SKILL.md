@@ -266,6 +266,25 @@ Load `Read("${CLAUDE_SKILL_DIR}/references/agent-spawn-definitions.md")` for Tas
 
 ---
 
+## Phase 2.5: Adversarial Refutation (effort-gated)
+
+The assessor that scores a dimension is also its only judge — self-preferential bias.
+A separate **blind refuter** verifies decision-bearing scores before they reach the
+composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs up-to-4
+single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
+
+Load the protocol + assess bindings: `Read("${CLAUDE_SKILL_DIR}/references/adversarial-refutation.md")`
+(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
+
+Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
+isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
+serialized claim — no producer score, identity, or prose. Revised scores recompute the
+composite; the refutation ledger (`02b-refutation.json`) records survived/killed/downgraded
+so wrong scores are auditable. Keep the producer-basis score AND a labeled post-refutation
+score — refutation never silently raises the grade.
+
+---
+
 ## Phases 3-7: Analysis, Comparison & Report
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.

@@ -16,3 +16,10 @@ Cross-cutting evidence requirements for all skill completion claims.
 Anti-sycophancy and direct communication standards for review and feedback skills.
 
 - `anti-sycophancy.md` — Ban performative agreement, require direct technical statements
+
+## 3. Adversarial Verification (adversarial) — HIGH — 1 rule
+
+Blind-refuter protocol for evaluative skills (assess, review-pr, audit-full) — removes
+self-preferential bias by verifying decision-bearing findings with a separate, blind agent.
+
+- `adversarial-refutation.md` — Blindness contract, independent-score-first, citation-verify, quorum, no-auto-flip
