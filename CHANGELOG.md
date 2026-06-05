@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.19.0](https://github.com/yonatangross/orchestkit/compare/v8.18.1...v8.19.0) (2026-06-04)
+
+
+### Features
+
+* **evals:** CC-idiom conformance grader (advisory) ([#2207](https://github.com/yonatangross/orchestkit/issues/2207)) ([6083a44](https://github.com/yonatangross/orchestkit/commit/6083a446c520a1b92581bbd359a25f8b76242799))
+
+
+### Bug Fixes
+
+* **deps:** bump Hono 4.12.18 -&gt; 4.12.23 (4 moderate CVEs) ([#2208](https://github.com/yonatangross/orchestkit/issues/2208)) ([1771c1f](https://github.com/yonatangross/orchestkit/commit/1771c1fa8174cb968680eaf732f8cdecb388bdad))
+* **hooks:** guard tool_input.file_path against non-string ([#2205](https://github.com/yonatangross/orchestkit/issues/2205)) ([cb8b299](https://github.com/yonatangross/orchestkit/commit/cb8b2994d44d916ef5cff10d2306e0b65b178f95))
+* **skills:** clear the 5 CC-idiom conformance findings ([#2209](https://github.com/yonatangross/orchestkit/issues/2209)) ([6640c13](https://github.com/yonatangross/orchestkit/commit/6640c130c26cc0f739c24437f8cfb3e6ca896093))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.162) ([#2204](https://github.com/yonatangross/orchestkit/issues/2204)) ([cf51913](https://github.com/yonatangross/orchestkit/commit/cf519136b455ec14973ee9f7c259a7b344699026))
+
 ## [8.18.1](https://github.com/yonatangross/orchestkit/compare/v8.18.0...v8.18.1) (2026-06-04)
 
 
