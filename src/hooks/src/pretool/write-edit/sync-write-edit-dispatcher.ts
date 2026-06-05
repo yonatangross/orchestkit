@@ -3,11 +3,12 @@
 
 /**
  * Sync Write|Edit Dispatcher — PreToolUse Write|Edit Hook
- * Consolidates 4 Write|Edit PreToolUse hooks into a single dispatcher.
+ * Consolidates 5 Write|Edit PreToolUse hooks into a single dispatcher.
  *
  * Consolidated hooks (security-first order):
  * - content-secret-scanner (scans for secrets in file content — FIRST)
  * - file-guard (protects critical files from modification — SECOND)
+ * - dependency-confusion-scanner (warns on unclaimed package refs — advisory)
  * - write-headers (adds headers to new files — input modifier)
  * - unified-quality-dispatcher (quality checks — LAST)
  *
@@ -23,6 +24,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 // Import consolidated hook implementations
 import { contentSecretScanner } from './content-secret-scanner.js';
 import { fileGuard } from './file-guard.js';
+import { dependencyConfusionScanner } from './dependency-confusion-scanner.js';
 import { writeHeaders } from '../input-mod/write-headers.js';
 import { unifiedWriteEditQualityDispatcher } from './unified-quality-dispatcher.js';
 import { NOOP_CTX } from '../../lib/context.js';
@@ -41,6 +43,7 @@ interface WriteEditHookConfig {
 const WRITE_EDIT_HOOKS: WriteEditHookConfig[] = [
   { name: 'content-secret-scanner', fn: contentSecretScanner },
   { name: 'file-guard', fn: fileGuard },
+  { name: 'dependency-confusion-scanner', fn: dependencyConfusionScanner },
   { name: 'write-headers', fn: writeHeaders },
   { name: 'unified-quality-dispatcher', fn: unifiedWriteEditQualityDispatcher },
 ];
@@ -87,8 +90,9 @@ function buildMergedResult(
  * Execution order:
  * 1. content-secret-scanner (can block — security critical)
  * 2. file-guard (can block — security critical)
- * 3. write-headers (input modifier — adds headers to new files)
- * 4. unified-quality-dispatcher (context producer)
+ * 3. dependency-confusion-scanner (warn-only — supply-chain advisory)
+ * 4. write-headers (input modifier — adds headers to new files)
+ * 5. unified-quality-dispatcher (context producer)
  *
  * On first block: SHORT-CIRCUIT immediately.
  * On pass: merge additionalContext and updatedInput from all hooks.
