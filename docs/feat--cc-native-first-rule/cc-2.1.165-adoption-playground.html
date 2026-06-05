@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CC 2.1.165 Adoption Playground · OrchestKit</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2330; --border: #30363d;
+    --txt: #e6edf3; --dim: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --amber: #d29922; --red: #f85149; --redhi: #ff7b72; --purple: #bc8cff;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--txt);
+    font-family: var(--mono); font-size: 14px; line-height: 1.55;
+    padding: 28px 20px 80px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.3px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 1px;
+       color: var(--dim); margin: 32px 0 12px; border-bottom: 1px solid var(--border);
+       padding-bottom: 6px; }
+  .sub { color: var(--dim); margin: 0 0 4px; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px;
+         border: 1px solid var(--border); color: var(--dim); }
+  /* version landscape */
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .vcard { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+           padding: 12px 14px; position: relative; overflow: hidden; }
+  .vcard .ver { font-size: 17px; font-weight: 600; }
+  .vcard .st { font-size: 12px; margin-top: 4px; }
+  .vcard .ct { font-size: 12px; color: var(--dim); margin-top: 8px; }
+  .vcard.ok    { border-left: 4px solid var(--green); }
+  .vcard.gap   { border-left: 4px solid var(--redhi); box-shadow: 0 0 0 1px var(--redhi) inset; }
+  .vcard.none  { border-left: 4px solid var(--border); opacity: .6; }
+  .vcard.empty { border-left: 4px solid var(--amber); }
+  .pill { font-size: 10px; padding: 1px 6px; border-radius: 8px; }
+  .pill.ok { background: rgba(63,185,80,.15); color: var(--green); }
+  .pill.gap { background: rgba(255,123,114,.15); color: var(--redhi); }
+  .pill.none { background: rgba(139,148,158,.12); color: var(--dim); }
+  .pill.empty { background: rgba(210,153,34,.15); color: var(--amber); }
+  /* matrix */
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border);
+           vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; text-transform: uppercase;
+       letter-spacing: .5px; }
+  tr.item { cursor: pointer; transition: background .12s; }
+  tr.item:hover { background: var(--panel2); }
+  tr.item.off td:not(.chkcell) { opacity: .35; }
+  .chk { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .id { font-weight: 700; color: var(--accent); }
+  .chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 9px;
+          border: 1px solid var(--border); }
+  .imp-high { color: var(--redhi); border-color: var(--redhi); }
+  .imp-medh { color: var(--amber); border-color: var(--amber); }
+  .imp-med  { color: var(--amber); border-color: var(--border); }
+  .imp-low  { color: var(--green); border-color: var(--border); }
+  .eff { color: var(--dim); }
+  .ev { display: none; }
+  .ev.show { display: table-row; }
+  .ev td { background: #0a0d12; border-left: 3px solid var(--accent); color: var(--dim);
+           font-size: 12.5px; }
+  .ev code { color: var(--purple); background: rgba(188,140,255,.08); padding: 1px 5px;
+             border-radius: 4px; }
+  /* tally */
+  .dash { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 14px; }
+  .metric { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+            padding: 14px; text-align: center; }
+  .metric .n { font-size: 26px; font-weight: 700; }
+  .metric .l { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; }
+  .heat { height: 6px; border-radius: 3px; margin-top: 10px; background: var(--border); overflow: hidden; }
+  .heat > span { display: block; height: 100%; background: linear-gradient(90deg,var(--green),var(--amber),var(--redhi)); }
+  /* output */
+  .outbox { background: #0a0d12; border: 1px solid var(--border); border-radius: 8px;
+            padding: 14px 16px; margin-top: 10px; white-space: pre-wrap; font-size: 12.5px;
+            color: var(--txt); position: relative; }
+  .copy { position: absolute; top: 10px; right: 10px; background: var(--panel2);
+          border: 1px solid var(--border); color: var(--txt); border-radius: 6px;
+          padding: 4px 10px; font-family: var(--mono); font-size: 11px; cursor: pointer; }
+  .copy:hover { border-color: var(--accent); color: var(--accent); }
+  .copy.done { color: var(--green); border-color: var(--green); }
+  .note { font-size: 12px; color: var(--dim); margin-top: 10px; }
+  .note b { color: var(--amber); }
+  a { color: var(--accent); }
+  .legend { font-size: 11px; color: var(--dim); margin-top: 8px; }
+  .legend span { margin-right: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🔎 CC 2.1.165 Adoption Playground</h1>
+  <p class="sub">OrchestKit · what to learn &amp; adopt from the 2.1.16x release window</p>
+  <span class="tag">generated by /ork:brainstorm · evidence-backed, interactive</span>
+
+  <h2>📅 Version Landscape</h2>
+  <div class="strip" id="strip"></div>
+  <p class="legend">
+    <span>🟩 catalogued</span><span>🟥 adoption gap</span>
+    <span>⬜ does not exist</span><span>🟨 empty / reliability-only</span>
+  </p>
+  <p class="note">
+    <b>Headline:</b> 2.1.165 carries no itemized notes (summary-only "Bug fixes &amp; reliability
+    improvements"), 2.1.164 does not exist upstream, and 2.1.162 is already in the matrix.
+    The real net-new substance is <b>2.1.163</b> — which cc-watch skipped (snapshotted .162, adopted .160/.161).
+  </p>
+
+  <h2>🎯 Adoption Matrix — 2.1.163 × ork surface</h2>
+  <p class="sub">Toggle rows to assemble an adoption bundle. Click a row to expand its exposure evidence.</p>
+  <table>
+    <thead>
+      <tr><th class="chkcell"></th><th>Item</th><th>2.1.163 change</th><th>Impact</th><th>Effort</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <p class="legend">
+    <span>Impact: 🔴 High · 🟠 Med-High / Med · 🟢 Low</span>
+    <span>Effort: M = a PR · S = audit/doc · XS = one line</span>
+  </p>
+
+  <h2>📊 Bundle Tally</h2>
+  <div class="dash" id="dash"></div>
+  <div class="heat"><span id="heatbar" style="width:0%"></span></div>
+
+  <h2>📦 Generated Bundle Scope</h2>
+  <p class="sub">cc-watch style · umbrella #154 · <code>Key: cc-adopt+2.1.163</code></p>
+  <div class="outbox"><button class="copy" id="copyBtn">copy</button><span id="out"></span></div>
+
+  <h2>🧠 Devil's-Advocate Guardrails</h2>
+  <ul style="color:var(--dim);font-size:13px;line-height:1.7">
+    <li><b style="color:var(--txt)">Do not bump the floor.</b> Nothing in 2.1.163 is a correctness floor like 2.1.148 was — adopt-by-use; let <code style="color:var(--purple)">cc-support-window-bump.yml</code> move <code style="color:var(--purple)">latest</code>.</li>
+    <li><b style="color:var(--txt)">2.1.165 = ledger row only.</b> Re-check when Anthropic publishes detailed bullets.</li>
+    <li><b style="color:var(--txt)">Item A is the only real code.</b> B is free at the floor; C/D/E are doc/audit-sized.</li>
+    <li><b style="color:var(--txt)">Dedup before opening.</b> <code style="color:var(--purple)">Key: cc-adopt+2.1.163</code> per the cc-watch pipeline architecture.</li>
+  </ul>
+
+  <p class="note" style="margin-top:24px">
+    Built <code style="color:var(--purple)">/ork:brainstorm "what to learn for /release-notes 2.1.165"</code> ·
+    release-notes fetched verbatim via claude-code-guide agent · exposure greps run against
+    <code style="color:var(--purple)">src/hooks/</code> + <code style="color:var(--purple)">src/skills/</code>.
+  </p>
+</div>
+
+<script>
+const versions = [
+  { v: "2.1.162", cls: "ok",    pill: "ok",    st: "✅ catalogued", ct: "matrix:568-573 · 5 items (search tools, webfetch-preapproved, lsp query, mcp timeout floor)" },
+  { v: "2.1.163", cls: "gap",   pill: "gap",   st: "❌ ADOPTION GAP", ct: "4 items hit ork's surface · never catalogued — this is the work" },
+  { v: "2.1.164", cls: "none",  pill: "none",  st: "🚫 does not exist", ct: "no entry in upstream CHANGELOG" },
+  { v: "2.1.165", cls: "empty", pill: "empty", st: "🟡 reliability-only", ct: "summary-only \"Bug fixes & reliability improvements\" · zero bullets → watch-and-wait" },
+];
+const pillTxt = { ok:"CATALOGUED", gap:"GAP", none:"N/A", empty:"EMPTY" };
+document.getElementById("strip").innerHTML = versions.map(x => `
+  <div class="vcard ${x.cls}">
+    <div class="ver">${x.v} <span class="pill ${x.pill}">${pillTxt[x.pill]}</span></div>
+    <div class="st">${x.st}</div>
+    <div class="ct">${x.ct}</div>
+  </div>`).join("");
+
+const items = [
+  { id:"A", on:true, change:"<b>Stop / SubagentStop hooks</b> can return <code>hookSpecificOutput.additionalContext</code> to feed Claude + <b>keep the turn going</b> without a hook-error label",
+    imp:"High", impCls:"imp-high", impScore:5, eff:"M", effScore:3,
+    ev:"ork has <code>stop/goal-convergence-emitter</code> + <code>stop/goal-tracker</code> (hooks.json:990, :1186). Today they can't cleanly nudge \"goal not converged, keep going\". ork already uses additionalContext on 7+ other events — this is the missing <b>Stop</b> variant. <b>The one item worth real code.</b>" },
+  { id:"B", on:true, change:"<b>Fixed <code>if:\"Bash(…)\"</code> over-firing</b> on any cmd containing <code>$()</code>/<code>$VAR</code>; now also matches inside subshells &amp; backticks",
+    imp:"Med-High", impCls:"imp-medh", impScore:4, eff:"S", effScore:1,
+    ev:"ork has <b>3</b> <code>if:</code> Bash guards (hooks.json:7, :156, :575). The danger guard (:575 <code>rm -rf</code>, <code>git push</code>, <code>* &amp;&amp; rm -rf *</code>) now <b>also catches <code>$(…)</code>/backtick-wrapped</b> dangerous cmds → security-positive, and over-fire noise disappears. Free at the floor — just document + trust." },
+  { id:"C", on:true, change:"<b>Skills: <code>\\$</code> escape</b> for a literal <code>$</code> before a digit in command bodies",
+    imp:"Med", impCls:"imp-med", impScore:3, eff:"S", effScore:1,
+    ev:"<code>market-sizing</code>, <code>business-case</code>, <code>prioritization</code> carry literal <code>$300</code>, <code>$5.04B</code>, <code>$15M</code>. In arg-substitution position <code>$300</code> → <code>&lt;arg3&gt;00</code>. Latent mis-parse → audit + <code>\\$</code>-escape." },
+  { id:"D", on:false, change:"<b><code>requiredMinimumVersion</code> / <code>requiredMaximumVersion</code></b> managed settings — CC refuses to start outside range",
+    imp:"Med", impCls:"imp-med", impScore:3, eff:"S", effScore:1,
+    ev:"ork has a full floor system (<code>cc-support.json</code> → <code>stamp-cc-support.mjs</code> → MIN_CC_VERSION). <code>configure</code> skill already has <code>cc-version-settings.md</code>. New setting = a way to enforce the ork floor at managed-settings level → doc in configure + doctor." },
+  { id:"E", on:false, change:"<b><code>/plugin list --enabled/--disabled</code></b>",
+    imp:"Low", impCls:"imp-low", impScore:1, eff:"XS", effScore:0,
+    ev:"ork is a plugin; <code>doctor</code> checks plugin health → reference the new command. One-line doc enhancement." },
+];
+
+const rowsEl = document.getElementById("rows");
+function render() {
+  rowsEl.innerHTML = items.map((it,i) => `
+    <tr class="item ${it.on?'':'off'}" data-i="${i}">
+      <td class="chkcell"><input type="checkbox" class="chk" ${it.on?'checked':''} data-i="${i}" onclick="event.stopPropagation()"></td>
+      <td><span class="id">${it.id}</span></td>
+      <td>${it.change}</td>
+      <td><span class="chip ${it.impCls}">${it.imp}</span></td>
+      <td class="eff">${it.eff}</td>
+    </tr>
+    <tr class="ev" data-ev="${i}"><td></td><td colspan="4">🔬 ${it.ev}</td></tr>
+  `).join("");
+  bind(); tally();
+}
+function bind() {
+  document.querySelectorAll(".chk").forEach(c => c.addEventListener("change", e => {
+    items[e.target.dataset.i].on = e.target.checked; render();
+  }));
+  document.querySelectorAll("tr.item").forEach(r => r.addEventListener("click", () => {
+    const ev = document.querySelector(`tr[data-ev="${r.dataset.i}"]`);
+    ev.classList.toggle("show");
+  }));
+}
+function tally() {
+  const sel = items.filter(x => x.on);
+  const effMap = { XS:0, S:1, M:3 };
+  const effDays = sel.reduce((a,x)=>a+effMap[x.eff],0);
+  const impSum = sel.reduce((a,x)=>a+x.impScore,0);
+  const maxImp = items.reduce((a,x)=>a+x.impScore,0);
+  const realCode = sel.filter(x=>x.eff==="M").length;
+  document.getElementById("dash").innerHTML = `
+    <div class="metric"><div class="n" style="color:var(--accent)">${sel.length}</div><div class="l">items selected</div></div>
+    <div class="metric"><div class="n" style="color:var(--amber)">${effDays}</div><div class="l">effort units (S=1,M=3)</div></div>
+    <div class="metric"><div class="n" style="color:var(--redhi)">${realCode}</div><div class="l">real-code PRs</div></div>
+    <div class="metric"><div class="n" style="color:var(--green)">${impSum}</div><div class="l">impact score</div></div>`;
+  document.getElementById("heatbar").style.width = (maxImp? Math.round(impSum/maxImp*100):0) + "%";
+  out(sel);
+}
+function out(sel) {
+  if (!sel.length) { document.getElementById("out").textContent = "(no items selected — toggle rows above)"; return; }
+  const lines = [];
+  lines.push("# cc-watch adoption bundle · umbrella #154 · Key: cc-adopt+2.1.163");
+  lines.push("");
+  lines.push("1. chore(cc-watch): snapshot upstream CHANGELOG (2.1.163-2.1.165)");
+  lines.push("2. chore(cc): catalogue 2.1.163 in cc-version-matrix.ts + README ledger");
+  lines.push("3. feat(cc): adopt 2.1.163 — bundle:");
+  sel.forEach(x => {
+    const label = {
+      A:"stop-hook additionalContext on goal-convergence/goal-tracker  [code]",
+      B:"document subshell-aware if: matching → trust the :575 danger guard",
+      C:"\\$-escape audit of market-sizing/business-case/prioritization",
+      D:"requiredMin/MaxVersion → configure + doctor skill docs",
+      E:"/plugin list --enabled/--disabled → reference in doctor",
+    }[x.id];
+    lines.push(`     • ${x.id}  ${label}`);
+  });
+  lines.push("4. 2.1.165 → ledger row only (\"reliability rollup, no itemized notes\"), revisit later");
+  lines.push("");
+  lines.push("# guardrails: NO floor bump (not a correctness floor); adopt-by-use;");
+  lines.push("# let cc-support-window-bump.yml move `latest`.");
+  document.getElementById("out").textContent = lines.join("\n");
+}
+document.getElementById("copyBtn").addEventListener("click", e => {
+  navigator.clipboard.writeText(document.getElementById("out").textContent).then(()=>{
+    e.target.textContent="copied ✓"; e.target.classList.add("done");
+    setTimeout(()=>{e.target.textContent="copy"; e.target.classList.remove("done");},1400);
+  });
+});
+render();
+</script>
+</body>
+</html>
