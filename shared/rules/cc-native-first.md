@@ -64,23 +64,23 @@ subtraction" there.
 ## Drift register (audit targets)
 
 Mechanisms where ork overlaps a CC-native equivalent. Each must `DELETE`, `THIN`, or
-carry a written `KEEP` justification. Update this table as the audit resolves each.
+carry a written `KEEP` justification.
 
-| ork mechanism | CC-native equivalent | Type | Status |
-|---------------|----------------------|------|--------|
-| `lifecycle/session-registrar.ts` + `session-finalizer.ts` + `posttool/heartbeat.ts` (sessions.db liveness) | `claude agents --json waitingFor` (2.1.162), `done/total` (2.1.161) | Shadow | 🟠 **THIN** — delete the liveness triplet (~325 ln, 3 hooks, `sessions` table); keep `worktree_links`/`settings_overrides`/`skill_invocation`/`locks` (orthogonal). 24h sweep + `last_heartbeat` have zero in-repo readers. [#2217] |
-| `stop/goal-convergence-emitter.ts` (M168 bridge) | CC owns `goal-current.json` natively | Shadow | 🔴 **DELETE** — duplicates `stop/goal-tracker`'s history write; `events.jsonl` `goal_converged` has no consumer. [#2217] |
-| `prompt/goal-tracker.ts` + `stop/goal-tracker.ts` + `lifecycle/goal-budget-guard.ts` (M140 trio) | native `/goal` evaluator (2.1.139+) | Shadow | ✅ **KEEP** (justified below) |
-| `notification/desktop.ts` + `unified-dispatcher.ts` + `entries/notification.ts` (osascript) | hook `terminalSequence` field (2.1.141) | Wrap | 🟠 **THIN** — migrate desktop → `terminalSequence` (~305 ln gone); **KEEP** `notification/sound.ts` (afplay/paplay — no CC-native sound, orthogonal); defer `denial-notification.ts` (different event). Verify `entries/notification.ts` registration before deleting. [#1847, #2217] |
-| `lib/cc-version-matrix.ts` (615 lines / 478 entries) | CC's own changelog / runtime capability | Mirror | 🔴 **THIN (big)** — **0 runtime feature-gate consumers**; all 478 catalogue rows are read only by a count-canary test. Keep `MIN_CC_VERSION` + `compareCCVersions()`. Catalogue is documentation-debt → human call: drop, or auto-generate from a CC changelog feed. [#2217] |
-| `lifecycle/cc-version-check.ts` | polices the Mirror **and** Shadows CC 2.1.163 `requiredMinimumVersion` | Workaround+Shadow | 🔴 **DELETE (sequenced)** — `requiredMinimumVersion` (2.1.163) enforces the floor at startup (stronger: refuses to launch); the adoption-nudge is moot once the Mirror thins. Delete once matrix thins + `requiredMinimumVersion` adopted. Keep `shared/cc-support.json` (decoupled SoT). [#2217] |
+> **Re-audited 2026-06-05 (#2217), adversarially verified.** The first-pass audit (by
+> code-only agents) was **~60% wrong** — it inferred "redundant with CC" from surface
+> overlap without checking CC runtime behavior or structural dependencies. Every "rely
+> on native" verdict was re-tested with a CC-capability check **and** a read of the
+> consuming code. Net real drift across all 5 surfaces: the goal-emitter (shipped) and
+> the version-matrix catalogue (open). The other three are load-bearing KEEPs.
 
-> **Confirmed KEEP (not drift):** the M140 goal trio enforces **hard per-session
-> turn/token ceilings** (`ORK_GOAL_MAX_TURNS_PER_SESSION`=30,
-> `ORK_GOAL_MAX_TOKENS_PER_SESSION`=250k) that native `/goal` has no equivalent for —
-> `goal-budget-guard` (SessionEnd) writes a brake file that `prompt/goal-tracker`
-> reads to gate the next `/goal` via `continueOnBlock`. Orthogonal safety guarantee;
-> stays. (Audited 2026-06-05, #2217.)
+| ork mechanism | CC-native equivalent | Verdict (verified) |
+|---------------|----------------------|--------------------|
+| `lifecycle/session-registrar.ts` + `session-finalizer.ts` + `posttool/heartbeat.ts` (sessions.db) | `claude agents --json` liveness (2.1.161/162) | 🟢 **KEEP** — `sessions` is the **enforced-FK parent** (`PRAGMA foreign_keys=ON`) of `locks`/`settings_overrides`/`worktree_links`; `enter-registrar.ts:54-57` does a two-phase insert *because* `worktree_links.child_sid` FK requires the session row first. The spine is load-bearing, not liveness drift. Only `posttool/heartbeat.ts` + the dead `last_heartbeat` column (~59 ln) is marginal removable drift. |
+| `stop/goal-convergence-emitter.ts` (M168 bridge) | CC owns `goal-current.json` | ✅ **DONE (#2219)** — genuine Shadow (read CC-owned state, re-wrote `goal-history.jsonl`, emitted `goal_converged` with zero consumers). Removed. The M140 trio it was confused with is independently KEEP (below). |
+| `prompt/goal-tracker.ts` + `stop/goal-tracker.ts` + `lifecycle/goal-budget-guard.ts` (M140 trio) | native `/goal` (2.1.139+) | 🟢 **KEEP** — enforces hard per-session turn/token ceilings (`ORK_GOAL_MAX_TURNS_PER_SESSION`=30, `ORK_GOAL_MAX_TOKENS_PER_SESSION`=250k) native `/goal` lacks; `goal-budget-guard` writes a brake file `prompt/goal-tracker` reads to gate the next `/goal` via `continueOnBlock`. Orthogonal safety guarantee. |
+| `notification/desktop.ts` + `unified-dispatcher.ts` + `entries/notification.ts` (osascript) | hook `terminalSequence` (2.1.141) | 🟢 **KEEP** — *original THIN overturned.* `terminalSequence` is a raw OSC escape, **terminal-emulator-dependent** (silent in Apple Terminal / VS Code / tmux), title+body only; CC has **no native OS-level notification**. `osascript`/`notify-send` reaches the OS notification center across **all** terminals with rich content (repo+branch+issue#). Irreplaceable. [#1847 → won't-do] |
+| `lib/cc-version-matrix.ts` (615 lines / 478 entries) | CC has **no** runtime capability API | 🟠 **THIN (confirmed)** — `hasFeature`/`getAvailableFeatures`/`getMissingFeatures` have **zero production call-sites**; the only consumers (`cc-version-check.ts:42`, `generate-docs-data.js`) each read a single scalar (latest known version / `MIN_CC_VERSION`). The 478-row catalogue collapses to `MIN_CC_VERSION` + a `LATEST_KNOWN_CC` constant + `compareCCVersions()`. Genuine documentation-debt — open future refactor (drop or auto-generate). [#2217] |
+| `lifecycle/cc-version-check.ts` | CC 2.1.163 `requiredMinimumVersion` | 🟢 **KEEP** — `requiredMinimumVersion` is **managed-settings-only** (admin/MDM, hard-blocks before plugins load); a publicly-distributed plugin's users **cannot** set it. ork's SessionStart floor-warning is the only below-floor notice they get. The matrix-derived *adoption nudge* becomes a sequenced THIN only after the matrix thins. |
 
 ## Adopting a CC feature = often deleting ork code
 
@@ -90,11 +90,32 @@ When a CC release adds a native mechanism, frame the adoption **subtractively**:
 |------------------------|----------------------------|
 | "Use the new Stop `additionalContext`" | Retire the homegrown turn-continuation state machine it replaces |
 | "Trust subshell-aware `if:` matching" | Delete any PreToolUse hook re-parsing Bash to gate the same commands |
-| "Document `requiredMinimumVersion`" | Recognize ork's `MIN_CC_VERSION` is a toothless declaration; the native setting *enforces* — lean on it, keep only the policy doc |
+| "Document `requiredMinimumVersion`" | But it is **managed-settings-only** (admin/MDM) — a public plugin's users can't set it, so it does **not** replace a user-facing floor warning (see surface 5). Don't delete the warning hook on its account. |
+
+## Auditing this register — two mandatory gates
+
+The first-pass audit of this register was ~60% wrong because it reasoned from the file
+*under* audit alone. Before acting on any "rely on CC native / this is drift" verdict:
+
+1. **CC-capability check.** Actively feature-detect what the native surface
+   (`terminalSequence`, native `/goal`, `requiredMinimumVersion`, capability APIs) can
+   and cannot do on the current CC version. Never infer parity from a one-line changelog
+   claim — that is exactly how the notification THIN was wrong (terminalSequence is
+   terminal-dependent) and the version-check DELETE was wrong (`requiredMinimumVersion`
+   is managed-only).
+2. **Read the consumer, don't grep it.** Trace actual imports, FK constraints, and
+   call-sites *in the consuming function* — never the "used somewhere" heuristic. Reading
+   `cc-version-check.ts` revealed its only need is a scalar; reading `enter-registrar.ts`
+   revealed the `sessions` FK is load-bearing; a grep that matched the word "feature"
+   falsely flagged `cc-file-adoption-issues.sh` as a matrix consumer.
+
+A grep for call-sites **plus a read of the consuming function** beats any verdict reasoned
+from the audited file alone.
 
 ## Reference
 
 - Origin: `/ork:brainstorm` no-drift analysis, CC 2.1.163 adoption window (2026-06-05)
+- Re-audited + adversarially verified: 2026-06-05 (#2217)
 - Pairs with: `shared/rules/cc-support-policy.md`
-- Notification migration: #1847
-- Version matrix: `src/hooks/src/lib/cc-version-matrix.ts`
+- Notification migration #1847: closed won't-do (terminalSequence would degrade)
+- Version matrix: `src/hooks/src/lib/cc-version-matrix.ts` (the one open THIN)
