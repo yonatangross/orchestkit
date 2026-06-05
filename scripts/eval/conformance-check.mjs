@@ -127,6 +127,21 @@ for (const t of all) {
         add('C2-hook-count', t, lineno, `states "${m[1]} hooks" but hooks.json has ${HOOK_COUNT}`);
       }
     }
+
+    // C3 — install-path portability: absolute /Users/ paths or hardcoded
+    // plugins/ork/skills/<name>/ (should be ${CLAUDE_SKILL_DIR} same-skill /
+    // ${CLAUDE_PLUGIN_ROOT} cross-skill). Skips the *-glob and already-portable lines.
+    // /Users/<real-name>/ is a non-portable author path; placeholder usernames
+    // (foo/dev/john/me/you/…) and docs-about-paths are illustrative — skip them.
+    const PLACEHOLDER = /\/Users\/(foo|bar|baz|john|jane|dev|me|you|user|username|alice|bob|example|test)\b/i;
+    if (!/\$\{CLAUDE_(SKILL_DIR|PLUGIN_ROOT)\}/.test(line)) {
+      // case-SENSITIVE: /Users/ is the macOS home dir; /users/ is a REST resource path (not a bug)
+      if (/\/Users\/[A-Za-z0-9._-]+\//.test(line) && !PLACEHOLDER.test(line)) {
+        add('C3-install-path', t, lineno, 'absolute /Users/ path — non-portable; use ${CLAUDE_SKILL_DIR}/${CLAUDE_PLUGIN_ROOT} (or ~ for home paths)');
+      } else if (/plugins\/ork\/skills\/[a-z0-9-]+\//i.test(line) && !/plugins\/ork\/skills\/\*/.test(line)) {
+        add('C3-install-path', t, lineno, 'hardcoded plugins/ork/skills/<name>/ path — use ${CLAUDE_SKILL_DIR} (same-skill) or ${CLAUDE_PLUGIN_ROOT}/skills (cross-skill)');
+      }
+    }
   });
 }
 

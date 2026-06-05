@@ -183,7 +183,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 |-------|------------|--------|
 | **1. Target Understanding** | Read code/design, identify scope | Context summary |
 | **1.5. Scope Discovery** | Build bounded file list | Scoped file list |
-| **2. Quality Rating** | 7-dimension scoring (0-10) | Scores with reasoning |
+| **2. Quality Rating** | 6-dimension scoring (0-10) | Scores with reasoning |
 | **3. Pros/Cons Analysis** | Strengths and weaknesses | Balanced evaluation |
 | **4. Alternative Comparison** | Score alternatives | Comparison matrix |
 | **5. Improvement Suggestions** | Actionable recommendations | Prioritized list |
@@ -279,7 +279,7 @@ This guarantees JSON spec and markdown report stay in sync.
 When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `/ork:memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
 
 ```bash
-python3 plugins/ork/skills/assess/scripts/memory_writeback.py "<assessment-dir>"
+python3 ${CLAUDE_SKILL_DIR}/scripts/memory_writeback.py "<assessment-dir>"
 ```
 
 `<assessment-dir>` is the dir containing `assessment.json` (typically the session's `.claude/chain/`). The script writes a `memory-writeback.json` handoff alongside it.

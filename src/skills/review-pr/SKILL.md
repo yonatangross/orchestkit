@@ -405,7 +405,7 @@ gh pr review $PR_NUMBER --request-changes -b "Review message"
 After the verdict is submitted, optionally invoke `scripts/verdict_writeback.py <review-dir>` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
 
 ```bash
-python3 plugins/ork/skills/review-pr/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

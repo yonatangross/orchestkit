@@ -253,7 +253,7 @@ expect_task = Agent(
 # Stream agent-browser progress line-by-line instead of polling (CC 2.1.98+)
 # Each stdout line from agent-browser arrives as a notification — useful for
 # catching a failing step early rather than waiting for the full plan.
-# Full pattern: Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")
+# Full pattern: Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")
 Monitor(pid=expect_task.agent_id)
 
 # For long test plans (>3 min typical), notify on completion — requires

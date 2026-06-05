@@ -103,7 +103,7 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/memory-commands.md")` for fu
 Cron job in `.github/workflows/memory-staleness.yml` runs nightly at 04:00 UTC. Calls `scripts/staleness_cron.py` to scan ALL memory MCP entities, flag those whose latest observation timestamp is older than 30 days, and write a Markdown report to `docs/reports/memory-staleness-YYYY-MM-DD.md`.
 
 ```bash
-python3 plugins/ork/skills/memory/scripts/staleness_cron.py docs/reports/ \
+python3 ${CLAUDE_SKILL_DIR}/scripts/staleness_cron.py docs/reports/ \
     --threshold-days 30 --limit 50
 ```
 
