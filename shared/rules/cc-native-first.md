@@ -68,15 +68,19 @@ carry a written `KEEP` justification. Update this table as the audit resolves ea
 
 | ork mechanism | CC-native equivalent | Type | Status |
 |---------------|----------------------|------|--------|
-| `lifecycle/session-registrar.ts` + `session-finalizer.ts` (sessions.db) | `claude agents --json waitingFor` (2.1.162), `done/total` (2.1.161) | Shadow | ⬜ audit |
-| `prompt/goal-tracker.ts`, `stop/goal-tracker.ts`, `stop/goal-convergence-emitter.ts`, `lifecycle/goal-budget-guard.ts` | native `/goal` evaluator (2.1.139+, race fixed 2.1.143) | Shadow | ⬜ audit |
+| `lifecycle/session-registrar.ts` + `session-finalizer.ts` + `posttool/heartbeat.ts` (sessions.db liveness) | `claude agents --json waitingFor` (2.1.162), `done/total` (2.1.161) | Shadow | 🟠 **THIN** — delete the liveness triplet (~325 ln, 3 hooks, `sessions` table); keep `worktree_links`/`settings_overrides`/`skill_invocation`/`locks` (orthogonal). 24h sweep + `last_heartbeat` have zero in-repo readers. [#2217] |
+| `stop/goal-convergence-emitter.ts` (M168 bridge) | CC owns `goal-current.json` natively | Shadow | 🔴 **DELETE** — duplicates `stop/goal-tracker`'s history write; `events.jsonl` `goal_converged` has no consumer. [#2217] |
+| `prompt/goal-tracker.ts` + `stop/goal-tracker.ts` + `lifecycle/goal-budget-guard.ts` (M140 trio) | native `/goal` evaluator (2.1.139+) | Shadow | ✅ **KEEP** (justified below) |
 | `notification/desktop.ts` + `notification/sound.ts` (osascript) | hook `terminalSequence` field (2.1.141) | Wrap | ⬜ audit (#1847) |
 | `lib/cc-version-matrix.ts` (615 lines / 479 entries) | CC's own changelog / runtime capability | Mirror | ⬜ audit — is every entry load-bearing? |
 | `lifecycle/cc-version-check.ts` | exists only to police the Mirror above | Workaround | ⬜ remove if the Mirror thins |
 
-> A `KEEP` example that is **not** drift: `goal-budget-guard` enforces per-session
-> turn/token ceilings (`ORK_GOAL_MAX_TURNS_PER_SESSION`) that native `/goal` does not
-> provide — if confirmed orthogonal, it stays with this note. Verify before keeping.
+> **Confirmed KEEP (not drift):** the M140 goal trio enforces **hard per-session
+> turn/token ceilings** (`ORK_GOAL_MAX_TURNS_PER_SESSION`=30,
+> `ORK_GOAL_MAX_TOKENS_PER_SESSION`=250k) that native `/goal` has no equivalent for —
+> `goal-budget-guard` (SessionEnd) writes a brake file that `prompt/goal-tracker`
+> reads to gate the next `/goal` via `continueOnBlock`. Orthogonal safety guarantee;
+> stays. (Audited 2026-06-05, #2217.)
 
 ## Adopting a CC feature = often deleting ork code
 
