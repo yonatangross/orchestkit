@@ -45,6 +45,19 @@ Whenever a new CC version lands in `src/hooks/src/lib/cc-version-matrix.ts`, the
 - A formal policy stops floor-bump debate ("is 2.1.122 too aggressive?") — the math is the answer.
 - Auto-bump on matrix change keeps the floor honest: if we adopt a feature gated at 2.1.130, the matrix entry forces the bump conversation that same day.
 
+## Adoption is subtraction
+
+When the cc-watch pipeline processes a release, "adopt the new features" is only half
+the job. Each new or changed **native** mechanism must be checked against ork's own
+mechanisms with one question:
+
+> **What does this CC release let us delete?**
+
+If a native mechanism now does what an ork hook/skill/script was doing, the adoption is
+to **retire or thin** that ork code — not to layer more on top. A release processed
+without running this subtraction pass is processed incompletely. The governing rule,
+the drift taxonomy, and the live drift register live in `shared/rules/cc-native-first.md`.
+
 ## Manual override
 
 A maintainer may pin the floor below policy by editing `shared/cc-support.json` directly with a `manual_override` block:
@@ -67,3 +80,4 @@ The auto-bump workflow respects an unexpired override and opens an info-only PR 
 - Predecessor: M128's manual floor bump from 2.1.118 → 2.1.122 (PR #1585)
 - Stamper script: `scripts/stamp-cc-support.mjs`
 - Workflow: `.github/workflows/cc-support-window-bump.yml`
+- Companion rule: `shared/rules/cc-native-first.md` (don't drift — adopt subtractively)
