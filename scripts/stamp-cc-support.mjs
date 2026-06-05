@@ -5,7 +5,7 @@
  * Single source of truth: shared/cc-support.json
  * Derived (stamped):
  *   - CLAUDE.md                                       (Version section "Claude Code: >= X.Y.Z")
- *   - src/hooks/src/lib/cc-version-matrix.ts          (MIN_CC_VERSION constant)
+ *   - src/hooks/src/lib/cc-version-matrix.ts          (MIN_CC_VERSION + LATEST_KNOWN_CC constants)
  *   - src/skills/doctor/references/version-compatibility.md  (overview line)
  *
  * Idempotent. Run after editing cc-support.json. Used by:
@@ -26,10 +26,18 @@ if (!existsSync(supportPath)) {
   process.exit(1);
 }
 const support = JSON.parse(readFileSync(supportPath, 'utf8'));
-const { supported_floor, latest } = support;
+const { supported_floor, latest, latest_known } = support;
 
 if (!supported_floor || !/^\d+\.\d+\.\d+$/.test(supported_floor)) {
   console.error(`stamp-cc-support: invalid supported_floor "${supported_floor}"`);
+  process.exit(1);
+}
+
+// `latest_known` (the highest CC version ork's adoption covers) stamps LATEST_KNOWN_CC,
+// the version-check adoption-nudge threshold. Distinct from `latest` (the support-window
+// head) — they diverge while a manual_override freezes the floor. Must be >= the floor.
+if (!latest_known || !/^\d+\.\d+\.\d+$/.test(latest_known)) {
+  console.error(`stamp-cc-support: invalid latest_known "${latest_known}"`);
   process.exit(1);
 }
 
@@ -107,7 +115,7 @@ function stamp(filePath, replacers) {
   if (after !== before) writeAtomic(abs, after);
 }
 
-console.log(`stamp-cc-support: floor=${supported_floor} latest=${latest}`);
+console.log(`stamp-cc-support: floor=${supported_floor} latest=${latest} latest_known=${latest_known}`);
 
 stamp('CLAUDE.md', [
   {
@@ -123,6 +131,12 @@ stamp('src/hooks/src/lib/cc-version-matrix.ts', [
     label: 'MIN_CC_VERSION constant',
     pattern: /(export const MIN_CC_VERSION = ')\d+\.\d+\.\d+(';)/,
     replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+  {
+    label: 'LATEST_KNOWN_CC constant',
+    pattern: /(export const LATEST_KNOWN_CC = ')\d+\.\d+\.\d+(';)/,
+    replacement: `$1${latest_known}$2`,
     expectedMatches: 1,
   },
 ]);
