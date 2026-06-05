@@ -30,9 +30,6 @@ import { sessionSummary } from '../stop/session-summary.js';
 // M140 G3 (#1790) — /goal convergence telemetry stop hook
 import { goalTrackerStop } from '../stop/goal-tracker.js';
 
-// M168 Phase 3 (#1913) — /goal convergence → events.jsonl + history.jsonl
-import { goalConvergenceEmitter } from '../stop/goal-convergence-emitter.js';
-
 import type { HookFn } from '../types.js';
 
 /**
@@ -55,8 +52,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/session-summary': sessionSummary,
   // M140 G3 (#1790) — /goal convergence telemetry stop hook
   'stop/goal-tracker': goalTrackerStop,
-  // M168 Phase 3 (#1913) — emits goal_converged → events.jsonl + history.jsonl
-  'stop/goal-convergence-emitter': goalConvergenceEmitter,
 };
 
 export function getHook(name: string): HookFn | undefined {

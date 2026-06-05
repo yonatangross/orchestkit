@@ -203,7 +203,10 @@ describe('hooks.json wiring E2E', () => {
       //                          PreToolUse group (coverage required by
       //                          webhook-forwarder-coverage.test.ts).
       //                          (Layer 4 worktree advisory + per-session settings overrides).
-      expect(hooksConfig.description).toContain('212 total');
+      // 212 -> 211: #2217 drift cleanup — removed stop/goal-convergence-emitter
+      //                          (Shadow of CC-native goal-current.json; stop/goal-tracker
+      //                          already writes goal-history.jsonl).
+      expect(hooksConfig.description).toContain('211 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
