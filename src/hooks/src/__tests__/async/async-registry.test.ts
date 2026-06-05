@@ -155,7 +155,7 @@ describe('Async Hooks Registry', () => {
       //            - worktree/exit-finalizer            (WorktreeRemove, async, 5s)
       //            - pretool/settings-override-resolver (PreToolUse,     async, 3s)
       //            - lifecycle/webhook-forwarder        (PreToolUse new group, async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
+      expect(asyncHooks.length, 'Should have exactly 99 async hooks').toBe(99);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

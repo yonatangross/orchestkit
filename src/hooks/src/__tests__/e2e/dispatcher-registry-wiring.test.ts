@@ -137,7 +137,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // v7.30.0: Stop dispatcher flattened — 9 individual async hooks replace 1 dispatcher (#1264)
       // 11 -> 12: M140 Bundle B (#1790) — added stop/goal-tracker
       // 12 -> 13: M168 Phase 3 (#1913) — added stop/goal-convergence-emitter (events.jsonl emitter)
-      expect(commandHooks.length, 'Stop should have 13 command hooks').toBe(13);
+      // 13 -> 12: #2217 drift cleanup — removed stop/goal-convergence-emitter (CC owns goal-current.json)
+      expect(commandHooks.length, 'Stop should have 12 command hooks').toBe(12);
 
       const uncommittedCheckHook = commandHooks.find(h => commandPath(h).includes('stop-uncommitted-check.mjs'));
       expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
@@ -325,7 +326,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //            worktree/exit-finalizer (WorktreeRemove, 5s),
       //            pretool/settings-override-resolver (PreToolUse, 3s),
       //            + lifecycle/webhook-forwarder on the new PreToolUse group.
-      expect(asyncHooks.length, 'Should have exactly 100 async hooks').toBe(100);
+      // 100 -> 99: #2217 drift cleanup — removed stop/goal-convergence-emitter (async Stop hook)
+      expect(asyncHooks.length, 'Should have exactly 99 async hooks').toBe(99);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -443,7 +445,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       //            advisory + per-session settings overrides: worktree/enter-registrar,
       //            worktree/exit-finalizer, pretool/settings-override-resolver, plus
       //            lifecycle/webhook-forwarder on the new PreToolUse group.
-      expect(asyncCount).toBe(100);
+      // 100 -> 99: #2217 drift cleanup — removed stop/goal-convergence-emitter (async Stop hook)
+      expect(asyncCount).toBe(99);
     });
 
     it('should have hooks for all critical security operations', () => {

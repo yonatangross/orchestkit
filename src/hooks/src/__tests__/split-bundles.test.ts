@@ -392,7 +392,9 @@ describe('Cross-Bundle Consistency', () => {
     //              worktree advisory + per-session settings overrides:
     //              worktree/enter-registrar (WorktreeCreate), worktree/exit-finalizer
     //              (WorktreeRemove), pretool/settings-override-resolver (PreToolUse).
-    expect(totalHooks).toBe(245);
+    // 245 -> 244: #2217 drift cleanup — removed stop/goal-convergence-emitter
+    //              (Shadow of CC-native goal-current.json).
+    expect(totalHooks).toBe(244);
   });
 });
 
