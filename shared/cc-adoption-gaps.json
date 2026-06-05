@@ -1,91 +1,129 @@
 [
   {
-    "version": "2.1.162",
+    "version": "2.1.163",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "tools_flag_grep_glob_enabled",
+        "feature_slug": "deny_rule_home_path_bash_bypass_fix",
         "category": "breaking",
-        "description": "Listing Grep/Glob in --tools now enables dedicated search tools on native builds; previously silently ignored.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "bare-eval",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "`--tools`: explicitly listing Grep/Glob now provides the dedicated search tools on native builds with embedded search (previously these names were silently ignored)"
-      },
-      {
-        "feature_slug": "slash_command_click_fills",
-        "category": "breaking",
-        "description": "Clicking a slash command in autocomplete now fills the prompt instead of running it; Enter required to execute.",
-        "gap_score": 20,
-        "affected_skills": [
-          "help",
-          "demo-producer"
-        ],
-        "reference_changelog_line": "Clicking a slash command in the autocomplete menu now fills it into your prompt instead of running it immediately; press Enter to run"
-      },
-      {
-        "feature_slug": "webfetch_explicit_rules_precedence",
-        "category": "breaking",
-        "description": "Explicit WebFetch(domain:...) deny/ask/allow rules now override built-in preapproved-host auto-allow.",
+        "description": "Deny rules on home-directory paths now block Bash commands referencing the path via $HOME.",
         "gap_score": 20,
         "affected_skills": [
           "security-patterns",
-          "web-research-workflow",
-          "browser-tools"
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Fixed WebFetch permission rules not being applied to built-in preapproved domains; explicit `WebFetch(domain:...)` deny/ask/allow rules now take precedence over the preapproved-host auto-allow"
+        "reference_changelog_line": "Fixed deny rules on home-directory paths (e.g. `Read(~/Desktop/**)`) not blocking Bash commands that reference the path via `$HOME`"
       },
       {
-        "feature_slug": "read_deny_hides_from_glob_grep",
+        "feature_slug": "org_managed_perm_rules_session_fix",
         "category": "breaking",
-        "description": "Read deny rules now hide files from Glob/Grep results, and Windows backslash/case-variant paths match correctly.",
+        "description": "Org-managed permission rules now apply for the entire session when managed settings fetch completes during startup.",
         "gap_score": 20,
         "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed org-managed permission rules not applying for the entire session when the managed settings fetch completed during startup on a fresh config directory"
+      },
+      {
+        "feature_slug": "hook_if_bash_subshell_match",
+        "category": "breaking",
+        "description": "Hook `if: \"Bash(...)\"` conditions now match commands inside subshells and backticks, not every $()/$VAR command.",
+        "gap_score": 20,
+        "affected_skills": [
+          "mcp-patterns",
           "security-patterns"
         ],
-        "reference_changelog_line": "Fixed Windows permission rules never matching when spelled with backslashes (`~\\`, `\\\\server\\share`) or case-variant paths, and Read deny rules not hiding files from Glob/Grep results"
+        "reference_changelog_line": "Fixed hook `if: \"Bash(...)\"` conditions firing on every Bash command containing `$()` or `$VAR`; the pattern now matches against commands inside subshells and backticks too"
       },
       {
-        "feature_slug": "agents_json_waiting_for",
-        "category": "new_field",
-        "description": "`claude agents --json` output now includes a `waitingFor` field describing what a waiting session is blocked on.",
-        "gap_score": 5,
+        "feature_slug": "plugin_list_command",
+        "category": "new_command",
+        "description": "New `/plugin list` command lists installed plugins with `--enabled`/`--disabled` filters.",
+        "gap_score": 15,
         "affected_skills": [
-          "agent-orchestration",
-          "task-dependency-patterns"
+          "help",
+          "doctor",
+          "configure"
         ],
-        "reference_changelog_line": "`claude agents --json` now includes `waitingFor` showing what a waiting session is blocked on (e.g. permission prompt)"
+        "reference_changelog_line": "Added `/plugin list` command to list installed plugins, with `--enabled`/`--disabled` filters"
       },
       {
-        "feature_slug": "effort_default_persist_confirm",
-        "category": "new_attr",
-        "description": "`/effort` now confirms when the chosen level will persist as the default for new sessions.",
+        "feature_slug": "btw_copy_shortcut",
+        "category": "new_command",
+        "description": "Added a \"c to copy\" shortcut to `/btw` that copies the raw markdown answer to the clipboard.",
+        "gap_score": 15,
+        "affected_skills": [
+          "help"
+        ],
+        "reference_changelog_line": "Added a \"c to copy\" shortcut to `/btw` that copies the raw markdown answer to the clipboard, preserving formatting when pasted elsewhere"
+      },
+      {
+        "feature_slug": "required_min_max_version_settings",
+        "category": "new_field",
+        "description": "New `requiredMinimumVersion`/`requiredMaximumVersion` managed settings — CC refuses to start outside the allowed range.",
         "gap_score": 5,
         "affected_skills": [
           "configure",
-          "setup"
+          "upgrade-assessment",
+          "release-management"
         ],
-        "reference_changelog_line": "`/effort` now confirms when your chosen level will persist as the default for new sessions"
+        "reference_changelog_line": "Added `requiredMinimumVersion` and `requiredMaximumVersion` managed settings — Claude Code refuses to start if its version is outside the allowed range and directs the user to an approved version"
+      },
+      {
+        "feature_slug": "stop_hook_additional_context",
+        "category": "new_field",
+        "description": "Stop and SubagentStop hooks can return `hookSpecificOutput.additionalContext` to feed Claude without a hook error.",
+        "gap_score": 5,
+        "affected_skills": [
+          "mcp-patterns",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Hooks: Stop and SubagentStop hooks can now return `hookSpecificOutput.additionalContext` to give Claude feedback and keep the turn going without being labeled a hook error"
+      },
+      {
+        "feature_slug": "skills_dollar_escape_syntax",
+        "category": "new_field",
+        "description": "Skills support `\\$` escape syntax to include a literal `$` before a digit in command bodies.",
+        "gap_score": 5,
+        "affected_skills": [
+          "audit-skills"
+        ],
+        "reference_changelog_line": "Skills: added `\\$` escape syntax to include a literal `$` before a digit in command bodies"
+      },
+      {
+        "feature_slug": "stdio_mcp_session_id_on_resume",
+        "category": "new_field",
+        "description": "stdio MCP servers receive the same `CLAUDE_CODE_SESSION_ID` as hooks/Bash on `--resume`.",
+        "gap_score": 5,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` as hooks/Bash on `--resume`"
       }
     ],
-    "raw_bullets_count": 28,
-    "issues_filed_at": "2026-06-04T15:04:01Z"
+    "raw_bullets_count": 22,
+    "issues_filed_at": "2026-06-05T15:02:16Z"
+  },
+  {
+    "version": "2.1.165",
+    "parse_failed": true,
+    "features": [],
+    "raw_bullets_count": 1,
+    "failed_at": "2026-06-05T15:01:53.599Z"
   },
   {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-04T15:03:45.944Z"
+    "failed_at": "2026-06-05T15:01:58.314Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-04T15:03:52.106Z"
+    "failed_at": "2026-06-05T15:02:03.598Z"
   }
 ]
