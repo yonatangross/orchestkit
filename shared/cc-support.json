@@ -1,6 +1,7 @@
 {
   "$schema": "./cc-support.schema.json",
   "latest": "2.1.148",
+  "latest_known": "2.1.162",
   "supported_floor": "2.1.148",
   "drop_after": "2.1.147",
   "policy": "latest + 3 previous minors",
@@ -9,5 +10,5 @@
     "reason": "#1945 ladder capstone (2026-05-23) — bumps the floor to 2.1.148 to consolidate the 2.1.140-2.1.148 adoption ladder. 2.1.148 is a hard correctness floor: it fixes the 2.1.147 regression where the Bash tool returned exit 127 on every command. Lets downstream skill/hook adoption assume the fix without re-checking version guards. cc-version-matrix.ts now catalogues through 2.1.158 (MessageDisplay 2.1.152, dynamic workflows + Opus 4.8 2.1.154); 2.1.149-2.1.158 are adopted-by-use or fixes and do not force a floor bump. Auto-bump policy resumes after expires.",
     "expires": "2026-08-23"
   },
-  "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. Updated by .github/workflows/cc-support-window-bump.yml when cc-version-matrix.ts gains a new entry."
+  "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts MIN_CC_VERSION, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. `latest_known` (the highest CC version ork's adoption covers — distinct from `latest`, the support-window head; they diverge while a manual_override freezes the floor) stamps LATEST_KNOWN_CC, the version-check adoption-nudge threshold. Updated by .github/workflows/cc-support-window-bump.yml."
 }

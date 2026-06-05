@@ -55,7 +55,9 @@ fi
 # ============================================================================
 # Test 2: changing supported_floor in JSON propagates to all derived files
 # ============================================================================
-jq '.supported_floor = "2.1.999"' shared/cc-support.json > shared/cc-support.json.tmp
+# latest_known is set to a distinct value (2.2.0) to prove it stamps LATEST_KNOWN_CC
+# independently of the floor (they diverge while a manual_override freezes the floor).
+jq '.supported_floor = "2.1.999" | .latest_known = "2.2.0"' shared/cc-support.json > shared/cc-support.json.tmp
 mv shared/cc-support.json.tmp shared/cc-support.json
 
 node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1
@@ -70,6 +72,12 @@ if grep -q "MIN_CC_VERSION = '2.1.999'" src/hooks/src/lib/cc-version-matrix.ts; 
   log_pass "cc-version-matrix.ts MIN_CC_VERSION updated"
 else
   log_fail "cc-version-matrix.ts propagation" "expected MIN_CC_VERSION = '2.1.999'"
+fi
+
+if grep -q "LATEST_KNOWN_CC = '2.2.0'" src/hooks/src/lib/cc-version-matrix.ts; then
+  log_pass "cc-version-matrix.ts LATEST_KNOWN_CC updated (independent of floor)"
+else
+  log_fail "cc-version-matrix.ts LATEST_KNOWN_CC propagation" "expected LATEST_KNOWN_CC = '2.2.0'"
 fi
 
 if grep -q "OrchestKit requires Claude Code >= 2.1.999" src/skills/doctor/references/version-compatibility.md; then
