@@ -139,7 +139,7 @@ CC 2.1.111 added `xhigh` effort (Opus 4.8; since CC 2.1.154 it defaults to `high
 - If the active model does NOT support `xhigh` (i.e. not Opus 4.8), check whether `/effort` is set to `xhigh`:
   - Read `.claude/settings.json` → `effort` field
   - Read `$ORCHESTKIT_EFFORT` env var (populated by the effort-detector hook)
-- Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-4.7 model in scope
+- Check for any skill invocation under `.claude/chain/*.json` that explicitly set `effort: xhigh` with a non-Opus-4.8 model in scope
 
 **Warning format**:
 ```
