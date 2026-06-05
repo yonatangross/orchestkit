@@ -282,7 +282,7 @@ Agent(subagent_type="test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
-Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** Background agents that fail now report partial progress to the parent. If a worktree-isolated agent crashes mid-implementation, synthesize its partial output instead of re-spawning:
 
@@ -398,7 +398,7 @@ PushNotification(
 )
 ```
 
-Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Agent Coordination
 

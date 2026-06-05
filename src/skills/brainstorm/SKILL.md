@@ -272,7 +272,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 After Phase 6 lands, optionally invoke `scripts/post_synth_podcast.py <session-dir>` to auto-emit an audio podcast summarizing the top approaches + trade-offs. Self-skips on every non-happy-path so it never breaks the brainstorm:
 
 ```bash
-python3 plugins/ork/skills/brainstorm/scripts/post_synth_podcast.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/post_synth_podcast.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):
