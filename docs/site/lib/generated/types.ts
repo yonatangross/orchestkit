@@ -5,6 +5,7 @@ export interface SkillDetail {
   name: string;
   description: string;
   version: string;
+  sha256: string;
   author: string;
   tags: string[];
   userInvocable: boolean;
