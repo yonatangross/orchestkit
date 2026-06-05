@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.20.0](https://github.com/yonatangross/orchestkit/compare/v8.19.1...v8.20.0) (2026-06-05)
+
+
+### Features
+
+* **eval:** ship skill-fitness workflow harness ([#2212](https://github.com/yonatangross/orchestkit/issues/2212)) ([099abd4](https://github.com/yonatangross/orchestkit/commit/099abd48f7d45e867fa439265a7b4206aa6dcdd8))
+
+
+### Bug Fixes
+
+* **hooks:** give SessionEnd handoff a real budget (CC 2.1.74 env) ([#2214](https://github.com/yonatangross/orchestkit/issues/2214)) ([d3d1205](https://github.com/yonatangross/orchestkit/commit/d3d120530e531a4ec6e46cc9654dbbb2ef741fb5))
+* **skills:** clear skill-fitness workflow findings ([#2215](https://github.com/yonatangross/orchestkit/issues/2215)) ([5b217b9](https://github.com/yonatangross/orchestkit/commit/5b217b9c38a1788343f384cce7147426a7d310a9))
+* **skills:** portable install paths + C3 static gate ([#2218](https://github.com/yonatangross/orchestkit/issues/2218)) ([c4c507e](https://github.com/yonatangross/orchestkit/commit/c4c507e8e78c8f7e9b2191b60978337c447c772b))
+
+
+### Documentation
+
+* **rules:** codify CC-native-first (don't drift from Claude Code) ([#2216](https://github.com/yonatangross/orchestkit/issues/2216)) ([2645b78](https://github.com/yonatangross/orchestkit/commit/2645b78e5b07c36f58b00f9f2c5a774691edb8df))
+
 ## [8.19.1](https://github.com/yonatangross/orchestkit/compare/v8.19.0...v8.19.1) (2026-06-05)
 
 
