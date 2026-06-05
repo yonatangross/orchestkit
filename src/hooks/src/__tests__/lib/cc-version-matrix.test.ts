@@ -2,17 +2,19 @@
 // Created: 2026-02-19
 
 /**
- * Tests for CC Version Compatibility Matrix utilities
+ * Tests for CC version constants + comparator.
+ *
+ * #2229 thinned the 478-row feature catalogue (zero production feature-gate consumers)
+ * down to MIN_CC_VERSION + LATEST_KNOWN_CC + compareCCVersions. The catalogue/helper
+ * tests (CC_FEATURE_MATRIX length canary, getAvailableFeatures/getMissingFeatures/hasFeature)
+ * were removed with the code they tested.
  */
 
 import { describe, test, expect } from 'vitest';
 import {
   MIN_CC_VERSION,
-  CC_FEATURE_MATRIX,
+  LATEST_KNOWN_CC,
   compareCCVersions,
-  getAvailableFeatures,
-  getMissingFeatures,
-  hasFeature,
 } from '../../lib/cc-version-matrix.js';
 
 describe('cc-version-matrix', () => {
@@ -24,31 +26,21 @@ describe('cc-version-matrix', () => {
       // shared/cc-support.json by scripts/stamp-cc-support.mjs.
       expect(MIN_CC_VERSION).toBe('2.1.148');
     });
+
+    test('is a valid semver-like string', () => {
+      expect(MIN_CC_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+    });
   });
 
-  describe('CC_FEATURE_MATRIX', () => {
-    // Single canary: bump this number when adding entries.
-    // Drop check belongs here too — if anyone removes an entry the count regresses.
-    test('contains expected number of features', () => {
-      expect(CC_FEATURE_MATRIX.length).toBe(478);
+  describe('LATEST_KNOWN_CC', () => {
+    test('is a valid semver-like string', () => {
+      expect(LATEST_KNOWN_CC).toMatch(/^\d+\.\d+\.\d+$/);
     });
 
-    test('is sorted by version ascending', () => {
-      for (let i = 1; i < CC_FEATURE_MATRIX.length; i++) {
-        const cmp = compareCCVersions(
-          CC_FEATURE_MATRIX[i - 1].minVersion,
-          CC_FEATURE_MATRIX[i].minVersion,
-        );
-        expect(cmp).toBeLessThanOrEqual(0);
-      }
-    });
-
-    test('all entries have required fields', () => {
-      for (const entry of CC_FEATURE_MATRIX) {
-        expect(entry.feature).toBeTruthy();
-        expect(entry.minVersion).toMatch(/^\d+\.\d+\.\d+$/);
-        expect(entry.description).toBeTruthy();
-      }
+    test('is at or above the floor', () => {
+      // Bumped one line per adoption cycle (replaces appending matrix rows).
+      // It must never regress below the supported floor.
+      expect(compareCCVersions(LATEST_KNOWN_CC, MIN_CC_VERSION)).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -74,383 +66,10 @@ describe('cc-version-matrix', () => {
       expect(compareCCVersions('2.2.0', '2.1.47')).toBe(1);
       expect(compareCCVersions('2.0.99', '2.1.0')).toBe(-1);
     });
-  });
 
-  describe('getAvailableFeatures', () => {
-    test('all features at or below floor are available at floor', () => {
-      // The matrix may contain forward-looking entries above MIN_CC_VERSION
-      // (e.g. CC 2.1.145 features the watchdog adopts conditionally).
-      // Those entries are correctly NOT available at the floor — verify
-      // getAvailableFeatures returns precisely the at-or-below subset.
-      const features = getAvailableFeatures(MIN_CC_VERSION);
-      const expected = CC_FEATURE_MATRIX.filter(
-        f => compareCCVersions(f.minVersion, MIN_CC_VERSION) <= 0
-      );
-      expect(features.length).toBe(expected.length);
-      expect(features.every(f => compareCCVersions(f.minVersion, MIN_CC_VERSION) <= 0)).toBe(true);
-    });
-
-    test('2.1.47 has all features up to 2.1.47', () => {
-      const features = getAvailableFeatures('2.1.47');
-      expect(features.every(f => compareCCVersions(f.minVersion, '2.1.47') <= 0)).toBe(true);
-      expect(features.length).toBeGreaterThan(0);
-      expect(features.length).toBeLessThan(CC_FEATURE_MATRIX.length);
-    });
-
-    test('no features available at 2.0.0', () => {
-      const features = getAvailableFeatures('2.0.0');
-      expect(features.length).toBe(0);
-    });
-
-    test('partial features at 2.1.9', () => {
-      const features = getAvailableFeatures('2.1.9');
-      expect(features.length).toBeGreaterThan(0);
-      expect(features.length).toBeLessThan(CC_FEATURE_MATRIX.length);
-      expect(features.some(f => f.feature === 'session_id_guaranteed')).toBe(true);
-      expect(features.some(f => f.feature === 'last_assistant_message')).toBe(false);
-    });
-  });
-
-  describe('getMissingFeatures', () => {
-    // Per-version `missing.length` assertions used to live here with hand-maintained counts
-    // (and a sum-the-buckets comment that had to be re-tallied on every adoption PR).
-    // The numbers were tautological once the matrix is correctly sorted (covered by the
-    // `is sorted by version ascending` test) — every adoption PR had to bump 9 places by
-    // hand. Replaced with feature-name semantic assertions: a regression to
-    // `getMissingFeatures` will fail those, and a dropped matrix entry will fail
-    // `CC_FEATURE_MATRIX.length` (the single remaining count canary).
-
-    test('only forward-looking features are missing at floor', () => {
-      // Features at minVersion > MIN_CC_VERSION are correctly "missing" at
-      // the floor (e.g. CC 2.1.145 adoption surface). Verify the missing set
-      // matches the above-floor subset exactly — no false positives, no
-      // false negatives.
-      const missing = getMissingFeatures(MIN_CC_VERSION);
-      const expected = CC_FEATURE_MATRIX.filter(
-        f => compareCCVersions(f.minVersion, MIN_CC_VERSION) > 0
-      );
-      expect(missing.length).toBe(expected.length);
-      expect(missing.every(f => compareCCVersions(f.minVersion, MIN_CC_VERSION) > 0)).toBe(true);
-    });
-
-    test('2.1.119 misses 2.1.128 + 2.1.129 + 2.1.132 + 2.1.133 + 2.1.136 features', () => {
-      const missing = getMissingFeatures('2.1.119');
-      expect(missing.some(f => f.feature === 'enter_worktree_branch_from_head')).toBe(true);
-      expect(missing.some(f => f.feature === 'plugin_dir_zip_archives')).toBe(true);
-      expect(missing.some(f => f.feature === 'experimental_themes_monitors')).toBe(true);
-      expect(missing.some(f => f.feature === 'claude_code_session_id_env')).toBe(true);
-      expect(missing.some(f => f.feature === 'auto_mode_hard_deny')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.119') > 0)).toBe(true);
-    });
-
-    test('2.1.118 misses 2.1.119+ features', () => {
-      const missing = getMissingFeatures('2.1.118');
-      expect(missing.some(f => f.feature === 'posttool_duration_ms')).toBe(true);
-      expect(missing.some(f => f.feature === 'from_pr_multi_host')).toBe(true);
-      expect(missing.some(f => f.feature === 'channels_console_auth')).toBe(true);
-      expect(missing.some(f => f.feature === 'skill_overrides_setting')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.118') > 0)).toBe(true);
-    });
-
-    test('2.1.117 misses 2.1.118+ features', () => {
-      const missing = getMissingFeatures('2.1.117');
-      expect(missing.some(f => f.feature === 'mcp_tool_hook_type')).toBe(true);
-      expect(missing.some(f => f.feature === 'claude_plugin_tag')).toBe(true);
-      expect(missing.some(f => f.feature === 'posttool_duration_ms')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.117') > 0)).toBe(true);
-    });
-
-    test('2.1.116 misses 2.1.117+ features', () => {
-      const missing = getMissingFeatures('2.1.116');
-      expect(missing.some(f => f.feature === 'agent_mcp_servers_main_thread')).toBe(true);
-      expect(missing.some(f => f.feature === 'opus_46_sonnet_46_default_high')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.116') > 0)).toBe(true);
-    });
-
-    test('2.1.114 misses 2.1.116+ features', () => {
-      const missing = getMissingFeatures('2.1.114');
-      expect(missing.some(f => f.feature === 'agent_hooks_main_thread')).toBe(true);
-      expect(missing.some(f => f.feature === 'sandbox_rm_dangerous_path_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'agent_mcp_servers_main_thread')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.114') > 0)).toBe(true);
-    });
-
-    test('2.1.110 misses 2.1.111+ features', () => {
-      const missing = getMissingFeatures('2.1.110');
-      expect(missing.some(f => f.feature === 'opus_4_7_xhigh')).toBe(true);
-      expect(missing.some(f => f.feature === 'ultrareview_command')).toBe(true);
-      expect(missing.some(f => f.feature === 'sandbox_denied_domains')).toBe(true);
-      expect(missing.some(f => f.feature === 'native_binary_spawn')).toBe(true);
-      expect(missing.some(f => f.feature === 'agent_hooks_main_thread')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.110') > 0)).toBe(true);
-    });
-
-    test('2.1.101 misses 2.1.105+ features', () => {
-      const missing = getMissingFeatures('2.1.101');
-      expect(missing.some(f => f.feature === 'plugin_monitors_manifest')).toBe(true);
-      expect(missing.some(f => f.feature === 'skill_builtin_discovery')).toBe(true);
-      expect(missing.some(f => f.feature === 'prompt_caching_1h_env')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.101') > 0)).toBe(true);
-    });
-
-    test('2.1.98 misses 2.1.101+ features', () => {
-      const missing = getMissingFeatures('2.1.98');
-      expect(missing.some(f => f.feature === 'deny_overrides_ask')).toBe(true);
-      expect(missing.some(f => f.feature === 'skill_context_fork_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'recap_command')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.98') > 0)).toBe(true);
-    });
-
-    test('2.1.92 misses 2.1.94+ features', () => {
-      const missing = getMissingFeatures('2.1.92');
-      expect(missing.some(f => f.feature === 'skill_frontmatter_hooks_fix')).toBe(true);
-      expect(missing.some(f => f.feature === 'monitor_tool')).toBe(true);
-      expect(missing.some(f => f.feature === 'thinking_progress_rotation')).toBe(true);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.92') > 0)).toBe(true);
-    });
-
-    test('2.1.47 misses 2.1.49+ features', () => {
-      const missing = getMissingFeatures('2.1.47');
-      expect(missing.length).toBeGreaterThan(0);
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.47') > 0)).toBe(true);
-    });
-
-    test('all missing at 2.0.0', () => {
-      const missing = getMissingFeatures('2.0.0');
-      expect(missing.length).toBe(CC_FEATURE_MATRIX.length);
-    });
-
-    test('2.1.45 misses 2.1.47+ features', () => {
-      const missing = getMissingFeatures('2.1.45');
-      expect(missing.every(f => compareCCVersions(f.minVersion, '2.1.45') > 0)).toBe(true);
-      expect(missing.some(f => f.minVersion === '2.1.47')).toBe(true);
-      expect(missing.some(f => f.minVersion === '2.1.50')).toBe(true);
-    });
-  });
-
-  describe('hasFeature', () => {
-    test('session_id available at 2.1.9', () => {
-      expect(hasFeature('2.1.9', 'session_id_guaranteed')).toBe(true);
-    });
-
-    test('last_assistant_message not available at 2.1.46', () => {
-      expect(hasFeature('2.1.46', 'last_assistant_message')).toBe(false);
-    });
-
-    test('last_assistant_message available at 2.1.47', () => {
-      expect(hasFeature('2.1.47', 'last_assistant_message')).toBe(true);
-    });
-
-    test('session_end_timeout_fix available at 2.1.76', () => {
-      expect(hasFeature('2.1.76', 'session_end_timeout_fix')).toBe(true);
-    });
-
-    test('session_end_timeout_fix not available at 2.1.73', () => {
-      expect(hasFeature('2.1.73', 'session_end_timeout_fix')).toBe(false);
-    });
-
-    test('full_model_ids_agent available at 2.1.76', () => {
-      expect(hasFeature('2.1.76', 'full_model_ids_agent')).toBe(true);
-    });
-
-    test('pretooluse_allow_deny_fix available at 2.1.77', () => {
-      expect(hasFeature('2.1.77', 'pretooluse_allow_deny_fix')).toBe(true);
-    });
-
-    test('pretooluse_allow_deny_fix not available at 2.1.76', () => {
-      expect(hasFeature('2.1.76', 'pretooluse_allow_deny_fix')).toBe(false);
-    });
-
-    test('opus_64k_default available at 2.1.77', () => {
-      expect(hasFeature('2.1.77', 'opus_64k_default')).toBe(true);
-    });
-
-    test('powerup_lessons available at 2.1.90', () => {
-      expect(hasFeature('2.1.90', 'powerup_lessons')).toBe(true);
-    });
-
-    test('powerup_lessons not available at 2.1.89', () => {
-      expect(hasFeature('2.1.89', 'powerup_lessons')).toBe(false);
-    });
-
-    test('format_on_save_fix available at 2.1.90', () => {
-      expect(hasFeature('2.1.90', 'format_on_save_fix')).toBe(true);
-    });
-
-    test('plugin_monitors_manifest available at 2.1.105', () => {
-      expect(hasFeature('2.1.105', 'plugin_monitors_manifest')).toBe(true);
-    });
-
-    test('plugin_monitors_manifest not available at 2.1.101', () => {
-      expect(hasFeature('2.1.101', 'plugin_monitors_manifest')).toBe(false);
-    });
-
-    test('prompt_caching_1h_env available at 2.1.108', () => {
-      expect(hasFeature('2.1.108', 'prompt_caching_1h_env')).toBe(true);
-    });
-
-    test('prompt_caching_1h_env not available at 2.1.107', () => {
-      expect(hasFeature('2.1.107', 'prompt_caching_1h_env')).toBe(false);
-    });
-
-    test('skill_builtin_discovery available at 2.1.108', () => {
-      expect(hasFeature('2.1.108', 'skill_builtin_discovery')).toBe(true);
-    });
-
-    test('thinking_progress_rotation available at 2.1.109', () => {
-      expect(hasFeature('2.1.109', 'thinking_progress_rotation')).toBe(true);
-    });
-
-    test('push_notification_tool available at 2.1.110', () => {
-      expect(hasFeature('2.1.110', 'push_notification_tool')).toBe(true);
-    });
-
-    test('push_notification_tool not available at 2.1.109', () => {
-      expect(hasFeature('2.1.109', 'push_notification_tool')).toBe(false);
-    });
-
-    test('focus_command available at 2.1.110', () => {
-      expect(hasFeature('2.1.110', 'focus_command')).toBe(true);
-    });
-
-    test('opus_4_7_xhigh available at 2.1.111', () => {
-      expect(hasFeature('2.1.111', 'opus_4_7_xhigh')).toBe(true);
-    });
-
-    test('opus_4_7_xhigh not available at 2.1.110', () => {
-      expect(hasFeature('2.1.110', 'opus_4_7_xhigh')).toBe(false);
-    });
-
-    test('ultrareview_command available at 2.1.111', () => {
-      expect(hasFeature('2.1.111', 'ultrareview_command')).toBe(true);
-    });
-
-    test('stream_json_plugin_errors available at 2.1.111', () => {
-      expect(hasFeature('2.1.111', 'stream_json_plugin_errors')).toBe(true);
-    });
-
-    test('sandbox_denied_domains boundary: absent at 2.1.112, present at 2.1.113', () => {
-      expect(hasFeature('2.1.112', 'sandbox_denied_domains')).toBe(false);
-      expect(hasFeature('2.1.113', 'sandbox_denied_domains')).toBe(true);
-    });
-
-    test('native_binary_spawn boundary: absent at 2.1.112, present at 2.1.113', () => {
-      expect(hasFeature('2.1.112', 'native_binary_spawn')).toBe(false);
-      expect(hasFeature('2.1.113', 'native_binary_spawn')).toBe(true);
-    });
-
-    test('bash_find_exec_no_approve available at 2.1.113', () => {
-      expect(hasFeature('2.1.113', 'bash_find_exec_no_approve')).toBe(true);
-    });
-
-    test('agent_team_permission_fix boundary: absent at 2.1.113, present at 2.1.114', () => {
-      expect(hasFeature('2.1.113', 'agent_team_permission_fix')).toBe(false);
-      expect(hasFeature('2.1.114', 'agent_team_permission_fix')).toBe(true);
-    });
-
-    test('agent_hooks_main_thread boundary: absent at 2.1.114, present at 2.1.116', () => {
-      expect(hasFeature('2.1.114', 'agent_hooks_main_thread')).toBe(false);
-      expect(hasFeature('2.1.116', 'agent_hooks_main_thread')).toBe(true);
-    });
-
-    test('sandbox_rm_dangerous_path_fix boundary: absent at 2.1.114, present at 2.1.116', () => {
-      expect(hasFeature('2.1.114', 'sandbox_rm_dangerous_path_fix')).toBe(false);
-      expect(hasFeature('2.1.116', 'sandbox_rm_dangerous_path_fix')).toBe(true);
-    });
-
-    test('reload_plugins_auto_deps available at 2.1.116', () => {
-      expect(hasFeature('2.1.116', 'reload_plugins_auto_deps')).toBe(true);
-    });
-
-    test('bash_gh_rate_limit_hint available at 2.1.116', () => {
-      expect(hasFeature('2.1.116', 'bash_gh_rate_limit_hint')).toBe(true);
-    });
-
-    test('agent_mcp_servers_main_thread boundary: absent at 2.1.116, present at 2.1.117', () => {
-      expect(hasFeature('2.1.116', 'agent_mcp_servers_main_thread')).toBe(false);
-      expect(hasFeature('2.1.117', 'agent_mcp_servers_main_thread')).toBe(true);
-    });
-
-    test('opus_46_sonnet_46_default_high boundary: absent at 2.1.116, present at 2.1.117', () => {
-      expect(hasFeature('2.1.116', 'opus_46_sonnet_46_default_high')).toBe(false);
-      expect(hasFeature('2.1.117', 'opus_46_sonnet_46_default_high')).toBe(true);
-    });
-
-    test('plugin_install_auto_deps available at 2.1.117', () => {
-      expect(hasFeature('2.1.117', 'plugin_install_auto_deps')).toBe(true);
-    });
-
-    test('otel_command_attrs available at 2.1.117', () => {
-      expect(hasFeature('2.1.117', 'otel_command_attrs')).toBe(true);
-    });
-
-    test('auto_mode_hard_deny boundary: absent at 2.1.133, present at 2.1.136', () => {
-      expect(hasFeature('2.1.133', 'auto_mode_hard_deny')).toBe(false);
-      expect(hasFeature('2.1.136', 'auto_mode_hard_deny')).toBe(true);
-    });
-
-    test('plan_mode_edit_allow_block_fix boundary: absent at 2.1.133, present at 2.1.136', () => {
-      expect(hasFeature('2.1.133', 'plan_mode_edit_allow_block_fix')).toBe(false);
-      expect(hasFeature('2.1.136', 'plan_mode_edit_allow_block_fix')).toBe(true);
-    });
-
-    test('ask_user_question_multi_select_array_fix available at 2.1.136', () => {
-      expect(hasFeature('2.1.136', 'ask_user_question_multi_select_array_fix')).toBe(true);
-    });
-
-    test('otel_feedback_survey_env available at 2.1.136', () => {
-      expect(hasFeature('2.1.136', 'otel_feedback_survey_env')).toBe(true);
-    });
-
-    test('mcp_servers_persistence_clear_fix boundary: absent at 2.1.133, present at 2.1.136', () => {
-      expect(hasFeature('2.1.133', 'mcp_servers_persistence_clear_fix')).toBe(false);
-      expect(hasFeature('2.1.136', 'mcp_servers_persistence_clear_fix')).toBe(true);
-    });
-
-    test('vscode_windows_activation_fix available at 2.1.137', () => {
-      expect(hasFeature('2.1.137', 'vscode_windows_activation_fix')).toBe(true);
-    });
-
-    test('agent_view_command boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'agent_view_command')).toBe(false);
-      expect(hasFeature('2.1.139', 'agent_view_command')).toBe(true);
-    });
-
-    test('goal_command boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'goal_command')).toBe(false);
-      expect(hasFeature('2.1.139', 'goal_command')).toBe(true);
-    });
-
-    test('hook_args_array_form boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'hook_args_array_form')).toBe(false);
-      expect(hasFeature('2.1.139', 'hook_args_array_form')).toBe(true);
-    });
-
-    test('post_tool_continue_on_block boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'post_tool_continue_on_block')).toBe(false);
-      expect(hasFeature('2.1.139', 'post_tool_continue_on_block')).toBe(true);
-    });
-
-    test('mcp_stdio_claude_project_dir boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'mcp_stdio_claude_project_dir')).toBe(false);
-      expect(hasFeature('2.1.139', 'mcp_stdio_claude_project_dir')).toBe(true);
-    });
-
-    test('subagent_agent_id_headers boundary: absent at 2.1.138, present at 2.1.139', () => {
-      expect(hasFeature('2.1.138', 'subagent_agent_id_headers')).toBe(false);
-      expect(hasFeature('2.1.139', 'subagent_agent_id_headers')).toBe(true);
-    });
-
-    test('skill_wildcard_permission_fix available at 2.1.139', () => {
-      expect(hasFeature('2.1.139', 'skill_wildcard_permission_fix')).toBe(true);
-    });
-
-    test('plugin_details_command available at 2.1.139', () => {
-      expect(hasFeature('2.1.139', 'plugin_details_command')).toBe(true);
-    });
-
-    test('returns false for unknown feature', () => {
-      expect(hasFeature('2.1.47', 'nonexistent_feature' as any)).toBe(false);
+    test('handles differing segment counts', () => {
+      expect(compareCCVersions('2.1', '2.1.0')).toBe(0);
+      expect(compareCCVersions('2.1.1', '2.1')).toBe(1);
     });
   });
 });

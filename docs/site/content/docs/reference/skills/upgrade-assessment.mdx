@@ -521,8 +521,7 @@ These fields are optional — hooks should always use `input.field ?? fallback` 
 - `help`: CC keyboard shortcuts reference
 
 ### Runtime Utilities
-- `cc-version-matrix.ts`: 18-feature matrix with version comparison and query helpers
-- `hasFeature(version, feature)`: Check if a feature is available at a given CC version
+- `cc-version-matrix.ts`: CC version constants (`MIN_CC_VERSION`, `LATEST_KNOWN_CC`) + `compareCCVersions()`. (The per-feature catalogue + `hasFeature`/`getAvailableFeatures` helpers were removed in #2229 — they had zero production callers; ork adopts features by use, not runtime gating.)
 
 ## Verification
 
