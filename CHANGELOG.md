@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.20.1](https://github.com/yonatangross/orchestkit/compare/v8.20.0...v8.20.1) (2026-06-05)
+
+
+### Code Refactoring
+
+* **hooks:** remove stop/goal-convergence-emitter (drift cleanup) ([#2219](https://github.com/yonatangross/orchestkit/issues/2219)) ([e1236e2](https://github.com/yonatangross/orchestkit/commit/e1236e2376eb6c91b590c46acfaec73a3ac62ed7)), closes [#2217](https://github.com/yonatangross/orchestkit/issues/2217)
+
 ## [8.20.0](https://github.com/yonatangross/orchestkit/compare/v8.19.1...v8.20.0) (2026-06-05)
 
 
