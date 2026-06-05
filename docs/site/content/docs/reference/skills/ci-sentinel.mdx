@@ -44,6 +44,7 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
 - **Does not page.** Novel failures get a `🆕` flag in the comment; you find them on your normal status sweep, not via a notification storm.
 - **Does not analyze closed/merged PRs.**
 - **Does not roam outside the repo it's installed in.** This is per-repo by design. Org-wide sweep is a different shape — that's what `/status` is for.
+- **Does not act on untrusted text.** CI logs and PR titles/bodies are untrusted input that may carry prompt injection. Per `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rules/untrusted-input-quarantine.md")`, the classifier reads them read-only and extracts the failure class as structured facts; the propose-don't-apply design (no auto-push) already keeps the actor away from the raw bytes — quarantine makes that explicit, and deterministic signals (exit codes, test output) bypass the reader as ground truth.
 
 ## Why it's safe to run hourly
 

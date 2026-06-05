@@ -23,3 +23,10 @@ Blind-refuter protocol for evaluative skills (assess, review-pr, audit-full) —
 self-preferential bias by verifying decision-bearing findings with a separate, blind agent.
 
 - `adversarial-refutation.md` — Blindness contract, independent-score-first, citation-verify, quorum, no-auto-flip
+
+## 4. Untrusted Input (security) — HIGH — 1 rule
+
+Prompt-injection defense for skills that read untrusted GitHub/CI content (ci-sentinel,
+fix-issue, review-pr) — separate the agent that reads untrusted text from the one that acts.
+
+- `untrusted-input-quarantine.md` — reader/actor split, structured-facts contract, per-skill bindings
