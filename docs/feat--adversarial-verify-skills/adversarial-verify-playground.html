@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Adversarial Verification — assess pilot · OrchestKit</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2330;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--redhi:#ff7b72;--purple:#bc8cff;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--mono);font-size:14px;line-height:1.55;padding:28px 20px 80px}
+  .wrap{max-width:1020px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 4px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:30px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+  .sub{color:var(--dim);margin:0 0 6px}
+  .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);color:var(--dim)}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;margin-top:14px;font-size:12.5px}
+  .box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px}
+  .box b{color:var(--txt)}
+  .arr{color:var(--accent);text-align:center;font-size:18px}
+  .blind{border-color:var(--redhi)}
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .rule{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:9px 11px;font-size:12.5px;cursor:pointer;transition:background .12s}
+  .rule:hover{background:var(--panel2)}
+  .rule .t{color:var(--accent);font-weight:600}
+  .rule .d{color:var(--dim);display:none;margin-top:5px}
+  .rule.open .d{display:block}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase}
+  .chip{display:inline-block;font-size:11px;padding:1px 8px;border-radius:9px;border:1px solid var(--border)}
+  .ship{color:var(--green);border-color:var(--green)}
+  .defer{color:var(--amber);border-color:var(--amber)}
+  .gate{background:#0a0d12;border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-top:8px;font-size:12.5px}
+  .gate b{color:var(--amber)}
+  code{color:var(--purple);background:rgba(188,140,255,.08);padding:1px 5px;border-radius:4px}
+  .note{font-size:12px;color:var(--dim);margin-top:10px}
+  .outbox{background:#0a0d12;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:10px;white-space:pre-wrap;font-size:12.5px;position:relative}
+  .copy{position:absolute;top:10px;right:10px;background:var(--panel2);border:1px solid var(--border);color:var(--txt);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}
+  .copy:hover{border-color:var(--accent);color:var(--accent)}.copy.done{color:var(--green);border-color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛡️ Adversarial Verification — assess pilot</h1>
+  <p class="sub">#2231 · removes self-preferential bias from evaluative skills · designed by a workflow that dogfooded the pattern</p>
+  <span class="tag">3 blind challengers found all 3 designs unsound (10/10/7 weaknesses) → Opus synthesized the fixes</span>
+
+  <h2>🔄 The blind-refuter flow</h2>
+  <div class="flow">
+    <div class="box"><b>Producer</b><br>assessor scores a dimension 0-10 (its own subject)</div>
+    <div class="arr">→</div>
+    <div class="box blind"><b>Blind refuter</b><br>sees ONLY the code + rubric + neutral claim — <b>not</b> the score, identity, or prose. Scores independently FIRST.</div>
+    <div class="arr">→</div>
+    <div class="box"><b>Orchestrator</b><br>compares out-of-band, verifies the citation, applies quorum → ledger</div>
+  </div>
+  <p class="note">The key fix the adversarial pass forced: the refuter never sees the producer's number — handing it over pre-loads anchoring. It scores from the code itself; the orchestrator (not the refuter) decides SURVIVES/OVERTURNED.</p>
+
+  <h2>📜 The 10 engine rules (click)</h2>
+  <div class="rules" id="rules"></div>
+
+  <h2>🎯 Scope — ship the safe pilot, defer the risky wiring</h2>
+  <p class="sub">The synthesis flagged its own risks: false-negative inversion in a merge gate, "high coordination cost for one PR."</p>
+  <table>
+    <thead><tr><th>skill</th><th>this PR</th><th>why</th></tr></thead>
+    <tbody>
+      <tr><td><code>assess</code></td><td><span class="chip ship">SHIP</span></td><td>scores quality — doesn't gate merges or security. Lowest blast radius. Effort-gated Phase 2.5.</td></tr>
+      <tr><td><code>review-pr</code></td><td><span class="chip defer">DEFER</span></td><td>gates merges — false-negative inversion could drop a real blocker. Needs no-auto-flip + conformance enforcement first.</td></tr>
+      <tr><td><code>audit-full</code></td><td><span class="chip defer">DEFER</span></td><td>security findings — same risk; deterministic-exemption + cross-file rules must be enforced, not advisory.</td></tr>
+      <tr><td><i>conformance grader</i></td><td><span class="chip defer">DEFER</span></td><td>"the spec is advisory unless a grader enforces it" — the adoption-gap follow-up.</td></tr>
+    </tbody>
+  </table>
+  <div class="gate"><b>Honest residual:</b> a one-sided "your job is to REFUTE" pass raises false negatives. For a merge gate that's the costlier error — which is exactly why review-pr/audit-full are deferred until the enforcement gates are real, not just documented.</div>
+
+  <h2>📦 What lands</h2>
+  <div class="outbox"><button class="copy" id="cp">copy</button><span id="out"></span></div>
+
+  <p class="note" style="margin-top:22px">Engine: <code>src/skills/shared/rules/adversarial-refutation.md</code> · adapter: <code>src/skills/assess/references/adversarial-refutation.md</code> · designed by the <code>adversarial-verify-design</code> workflow (7 agents)</p>
+</div>
+<script>
+const rules=[
+ ['1 · Blindness contract','Refuter prompt may contain code+rubric+neutral claim; NEVER the producer number, identity, prose, or evidence list — those ARE the reasoning being de-biased.'],
+ ['2 · Independent-score-first','Refuter scores from the code itself; orchestrator compares out-of-band. Revise to the near band edge, never the midpoint. Kills anchoring.'],
+ ['3 · Citation-verification','Re-open the cited file:line before honoring a kill. Hallucinated/assertion-only → UPHELD.'],
+ ['4 · Quorum','Top-tier 3 refuters majority; mid-tier 2; single only for advisory. A 1-of-N dissent never revises — it drops confidence to low.'],
+ ['5 · Cross-file UPHELD-default','"Couldn\'t reproduce the traced flow" → UPHELD. A narrow refuter can\'t kill a true cross-file finding it couldn\'t see.'],
+ ['6 · Deterministic exemption','Never refute build/test/lint/CVE ground truth — only a reachability CLAIM on a CVE is refutable.'],
+ ['7 · No-auto-flip','Refutation alone can\'t flip block→approve or raise a headline score. Keep producer + post-refutation scores; human signs off.'],
+ ['8 · Spawn ceiling','Dedup to root-cause first; cap 24 refuters/run; rank by severity×distance-to-boundary; flag the rest, never silently truncate.'],
+ ['9 · Always-isolated spawn','Refuters are plain Agent() Tasks with NO team_name even in Agent-Teams mode — joining the mesh leaks producer reasoning via SendMessage.'],
+ ['10 · Refutation ledger','Persist {votes, verified_citations, outcome, original/revised} so wrong KEEPs AND wrong KILLs are auditable cross-session.'],
+];
+document.getElementById('rules').innerHTML=rules.map((r,i)=>`<div class="rule" data-i="${i}"><div class="t">${r[0]}</div><div class="d">${r[1]}</div></div>`).join('');
+document.querySelectorAll('.rule').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('open')));
+const out=[
+"#2231 — adversarial verification, assess pilot (one PR)",
+"",
+"NEW  src/skills/shared/rules/adversarial-refutation.md   the 10-rule blind-refuter engine",
+"NEW  src/skills/assess/references/adversarial-refutation.md   assess bindings + scope/effort gate",
+"EDIT src/skills/assess/SKILL.md   + Phase 2.5 (effort-gated: low/med skip, high advisory, xhigh majority-revise)",
+"EDIT src/skills/shared/rules/_sections.md   catalog entry",
+"",
+"DEFER (follow-ups, #157):  review-pr wiring · audit-full wiring · conformance grader",
+"Reason: false-negative inversion in a merge gate is the costlier error — enforce before bulk-wiring.",
+].join("\n");
+document.getElementById('out').textContent=out;
+document.getElementById('cp').addEventListener('click',e=>{navigator.clipboard.writeText(out).then(()=>{e.target.textContent='copied ✓';e.target.classList.add('done');setTimeout(()=>{e.target.textContent='copy';e.target.classList.remove('done');},1400);});});
+</script>
+</body>
+</html>
