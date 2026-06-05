@@ -28,7 +28,7 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 | `high` (default) | All six dimensions with pros/cons |
 | `xhigh` (Opus 4.8) | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
-> `xhigh` silently falls back to `high` on models that don't support it (Opus 4.8 do). `/ork:doctor` warns when `xhigh` is used without Opus 4.8.
+> `xhigh` silently falls back to `high` on models that don't support it (Opus 4.8 does). `/ork:doctor` warns when `xhigh` is used without Opus 4.8.
 
 
 ## Argument Resolution
@@ -143,7 +143,7 @@ TaskCreate(
 # 2. Create subtasks for each assessment phase
 TaskCreate(subject="Understand target and gather context", activeForm="Understanding target")   # id=2
 TaskCreate(subject="Discover scope and build file list", activeForm="Discovering scope")        # id=3
-TaskCreate(subject="Rate quality across 7 dimensions", activeForm="Rating quality")             # id=4
+TaskCreate(subject="Rate quality across 6 dimensions", activeForm="Rating quality")             # id=4
 TaskCreate(subject="Analyze pros and cons", activeForm="Analyzing pros/cons")                   # id=5
 TaskCreate(subject="Compare alternatives", activeForm="Comparing alternatives")                 # id=6
 TaskCreate(subject="Generate improvement suggestions", activeForm="Generating suggestions")     # id=7
@@ -221,13 +221,13 @@ Output results **incrementally** as each evaluation phase completes:
 For Phase 2 parallel agents, show each dimension's score **as soon as the evaluating agent returns** — don't wait for all 4 agents. If any dimension scores below 4/10, flag it immediately as a priority concern requiring user attention.
 
 
-## Phase 2: Quality Rating (7 Dimensions)
+## Phase 2: Quality Rating (6 Dimensions)
 
 Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for assess-specific overrides.
 
 Load `Read("${CLAUDE_SKILL_DIR}/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
-**Composite Score:** Weighted average of all 7 dimensions (see quality-model.md).
+**Composite Score:** Weighted average of all 6 dimensions (see quality-model.md).
 
 
 ## Phases 3-7: Analysis, Comparison & Report
@@ -336,9 +336,9 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| 7 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
+| 6 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
 | 0-10 scale | Industry standard | Easy to understand and compare |
-| Parallel assessment | 4 agents (7 dimensions) | Fast, thorough evaluation |
+| Parallel assessment | 4 agents (6 dimensions) | Fast, thorough evaluation |
 | Effort/Impact scoring | 1-5 scale | Simple prioritization math |
 
 

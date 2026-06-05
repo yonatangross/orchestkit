@@ -264,7 +264,7 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 
 **Why this matters:** Downstream skills (`/ork:fix-issue`, `/ork:implement`, `/ork:create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
 
-## Phase 6 — Notebook summary (signal-fired, optional)
+## Phase 6.5 — Notebook summary (signal-fired, optional)
 
 After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py &lt;session-dir&gt;` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 

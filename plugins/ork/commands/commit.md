@@ -162,7 +162,7 @@ Write(".claude/chain/committed.json", JSON.stringify({
 | `test` | Tests only |
 | `chore` | Build/deps/CI |
 
-## Rules
+## Quick Rules
 
 1. **Run validation locally** - Don't spawn agents to run lint/test
 2. **NO file creation** - Don't create MD files or documentation
@@ -206,7 +206,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
 | Stacked PRs | `${CLAUDE_SKILL_DIR}/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
 
-**Total: 9 rules across 7 categories**
+**Total: 9 rules across 8 categories**
 
 ## References
 
