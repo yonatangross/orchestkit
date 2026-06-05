@@ -3,7 +3,7 @@
  *
  * Fires on SessionStart. Three branches:
  *   - Below floor (< MIN_CC_VERSION)         → systemMessage warning to the user
- *   - Above matrix (> latestMatrixVersion)   → additionalContext nudge to Claude with adoption pointer
+ *   - Above latest-known (> LATEST_KNOWN_CC)  → additionalContext nudge to Claude with adoption pointer
  *   - In range                                → silent success
  *
  * Rate-limited to once per session via .claude/state/cc-version-check-<session_id>.flag
@@ -17,7 +17,7 @@ import { join } from 'node:path';
 import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputPromptContext, outputSilentSuccess, outputWithNotification } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { CC_FEATURE_MATRIX, MIN_CC_VERSION, compareCCVersions } from '../lib/cc-version-matrix.js';
+import { LATEST_KNOWN_CC, MIN_CC_VERSION, compareCCVersions } from '../lib/cc-version-matrix.js';
 
 const SUPPORT_JSON_REL = 'shared/cc-support.json';
 const STATE_DIR_REL = '.claude/state';
@@ -35,14 +35,6 @@ function readSupportJson(projectDir: string): SupportJson | null {
   } catch {
     return null;
   }
-}
-
-function latestMatrixVersion(): string {
-  let latest = MIN_CC_VERSION;
-  for (const entry of CC_FEATURE_MATRIX) {
-    if (compareCCVersions(entry.minVersion, latest) > 0) latest = entry.minVersion;
-  }
-  return latest;
 }
 
 function safeSessionId(raw: string): string {
@@ -80,7 +72,7 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // Floor: prefer shared/cc-support.json (Part C SoT), fall back to MIN_CC_VERSION constant.
   const support = readSupportJson(projectDir);
   const floor = support?.supported_floor || MIN_CC_VERSION;
-  const matrixLatest = latestMatrixVersion();
+  const matrixLatest = LATEST_KNOWN_CC;
 
   if (compareCCVersions(running, floor) < 0) {
     ctx.log('cc-version-check', `running=${running} < floor=${floor} — warning user`);
