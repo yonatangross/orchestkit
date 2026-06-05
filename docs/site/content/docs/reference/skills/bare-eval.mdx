@@ -159,6 +159,17 @@ Read("${CLAUDE_SKILL_DIR}/rules/_sections.md")
 Read("${CLAUDE_SKILL_DIR}/references/troubleshooting.md")
 ```
 
+## Dynamic-workflow harness (template-in-skill)
+
+`workflows/skill-fitness.mjs` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
+
+```
+Workflow({ scriptPath: "${CLAUDE_SKILL_DIR}/workflows/skill-fitness.mjs",
+           args: ["assess", "commit", "doctor"] })
+```
+
+Treat it as a **template**, not a verbatim script — adapt the `SKILLS` list and rubric per use. Cost is real (~50k tokens/skill; scoring all ~112 is ~6M tokens), so pass an explicit batch via `args`. Static-first: run `conformance-check.mjs` (zero tokens) to pre-filter, then this harness for the judgment grep can't make.
+
 ## Related
 
 - `eval:skill` npm script — unified skill evaluation runner
