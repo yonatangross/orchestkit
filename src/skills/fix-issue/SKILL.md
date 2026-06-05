@@ -94,7 +94,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 Before diagnosis kicks off, optionally invoke `scripts/prior_fix_lookup.py <session-dir>` to surface similar fixes already recorded in the memory MCP. READ-ONLY — no writeback. Self-skips on every non-happy-path so it never blocks the fix:
 
 ```bash
-python3 plugins/ork/skills/fix-issue/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/prior_fix_lookup.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

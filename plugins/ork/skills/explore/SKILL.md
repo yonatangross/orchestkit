@@ -290,7 +290,7 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 
 ```bash
-python3 plugins/ork/skills/explore/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

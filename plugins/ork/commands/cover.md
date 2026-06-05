@@ -235,7 +235,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > isolation), zero cutoffs across M164 Wave 2/3 + M170 sub-agents.
 >
 > Full pattern + helper function + prompt-constraint template:
-> `Read("/Users/yonatangross/coding/yonatangross/orchestkit/src/skills/implement/references/manual-worktree-pattern.md")`
+> `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/manual-worktree-pattern.md")`
 > (cross-referenced from `/ork:implement` — same doc applies here).
 
 ```python
@@ -344,7 +344,7 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
@@ -391,7 +391,7 @@ Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
-Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("/Users/yonatangross/coding/yonatangross/orchestkit/plugins/ork/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
 
