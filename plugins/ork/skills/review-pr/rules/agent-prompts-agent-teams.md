@@ -139,7 +139,7 @@ ExitWorktree(action="keep")
 # Agents keep running indefinitely
 Agent(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
 Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
-# Missing shutdown_request calls!
+# No teardown — agents keep running (needs TeamDelete(), below)
 ```
 
 **Correct — Proper team teardown:**

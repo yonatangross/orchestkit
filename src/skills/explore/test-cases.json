@@ -54,7 +54,7 @@
         "Creates an exploration team using TeamCreate with a descriptive team name",
         "Launches multiple named agents with team_name for coordinated parallel exploration",
         "Agents share discoveries in real-time by messaging each other with found entry points",
-        "Sends shutdown_request messages to all agents after report generation is complete",
+        "Tears down the team with TeamDelete() after report generation (no manual shutdown_request)",
         "Falls back to standard Task tool spawns if team formation fails"
       ]
     },

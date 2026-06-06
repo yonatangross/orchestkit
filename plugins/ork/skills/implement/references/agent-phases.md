@@ -450,7 +450,7 @@ Agent(
 
 ### Phase 6 — Teams Mode
 
-In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team (shutdown_request to all teammates + TeamDelete + worktree cleanup).
+In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team with `TeamDelete()` (which gracefully shuts down all teammates — no manual `shutdown_request` needed; CC discourages originating it and `TeamDelete` supersedes it) + worktree cleanup.
 
 ---
 
