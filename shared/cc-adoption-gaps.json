@@ -1,129 +1,138 @@
 [
   {
-    "version": "2.1.163",
+    "version": "2.1.166",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "deny_rule_home_path_bash_bypass_fix",
+        "feature_slug": "cross_session_msg_auth_strip",
         "category": "breaking",
-        "description": "Deny rules on home-directory paths now block Bash commands referencing the path via $HOME.",
+        "description": "SendMessage relays from other Claude sessions no longer carry user authority; permission requests refused.",
         "gap_score": 20,
         "affected_skills": [
+          "agent-orchestration",
           "security-patterns",
           "mcp-patterns"
         ],
-        "reference_changelog_line": "Fixed deny rules on home-directory paths (e.g. `Read(~/Desktop/**)`) not blocking Bash commands that reference the path via `$HOME`"
+        "reference_changelog_line": "Hardened cross-session messaging: messages relayed via `SendMessage` from other Claude sessions no longer carry user authority — receivers refuse relayed permission requests, and auto mode blocks them"
       },
       {
-        "feature_slug": "org_managed_perm_rules_session_fix",
+        "feature_slug": "thinking_disable_default_models",
         "category": "breaking",
-        "description": "Org-managed permission rules now apply for the entire session when managed settings fetch completes during startup.",
+        "description": "MAX_THINKING_TOKENS=0, --thinking disabled, and per-model toggle now disable thinking on default-thinking models.",
         "gap_score": 20,
         "affected_skills": [
-          "security-patterns",
+          "claude-api",
           "configure"
         ],
-        "reference_changelog_line": "Fixed org-managed permission rules not applying for the entire session when the managed settings fetch completed during startup on a fresh config directory"
+        "reference_changelog_line": "`MAX_THINKING_TOKENS=0`, `--thinking disabled`, and the per-model thinking toggle now disable thinking on models that think by default via the Claude API (3P providers unchanged)"
       },
       {
-        "feature_slug": "hook_if_bash_subshell_match",
+        "feature_slug": "fallback_model_retry_turn",
         "category": "breaking",
-        "description": "Hook `if: \"Bash(...)\"` conditions now match commands inside subshells and backticks, not every $()/$VAR command.",
+        "description": "Claude Code retries a turn once on the fallback model when API rejects an unexpected non-retryable error.",
+        "gap_score": 20,
+        "affected_skills": [
+          "claude-api",
+          "errors"
+        ],
+        "reference_changelog_line": "Claude Code now retries a turn once on the fallback model when the API rejects an unexpected non-retryable error; auth, rate-limit, request-size, and transport errors still surface immediately"
+      },
+      {
+        "feature_slug": "managed_settings_invalid_entry",
+        "category": "breaking",
+        "description": "Managed settings with an invalid entry no longer silently disable enforcement of remaining valid policies.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed managed settings with an invalid entry silently disabling enforcement of their remaining valid policies"
+      },
+      {
+        "feature_slug": "managed_mcp_var_predicates",
+        "category": "breaking",
+        "description": "Managed-settings allowedMcpServers/deniedMcpServers predicates now match when using ${VAR} references.",
         "gap_score": 20,
         "affected_skills": [
           "mcp-patterns",
+          "configure",
           "security-patterns"
         ],
-        "reference_changelog_line": "Fixed hook `if: \"Bash(...)\"` conditions firing on every Bash command containing `$()` or `$VAR`; the pattern now matches against commands inside subshells and backticks too"
+        "reference_changelog_line": "Fixed managed-settings `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references"
       },
       {
-        "feature_slug": "plugin_list_command",
-        "category": "new_command",
-        "description": "New `/plugin list` command lists installed plugins with `--enabled`/`--disabled` filters.",
-        "gap_score": 15,
+        "feature_slug": "deny_rule_glob_support",
+        "category": "new_perm",
+        "description": "Glob pattern support in deny rule tool-name position; allow rules reject non-MCP globs; unknown deny names warn.",
+        "gap_score": 12,
         "affected_skills": [
-          "help",
-          "doctor",
-          "configure"
+          "configure",
+          "security-patterns",
+          "mcp-patterns"
         ],
-        "reference_changelog_line": "Added `/plugin list` command to list installed plugins, with `--enabled`/`--disabled` filters"
+        "reference_changelog_line": "Added glob pattern support in deny rule tool-name position (`\"*\"` denies all tools); allow rules reject non-MCP globs, and unknown tool names in deny rules warn at startup"
       },
       {
-        "feature_slug": "btw_copy_shortcut",
-        "category": "new_command",
-        "description": "Added a \"c to copy\" shortcut to `/btw` that copies the raw markdown answer to the clipboard.",
-        "gap_score": 15,
-        "affected_skills": [
-          "help"
-        ],
-        "reference_changelog_line": "Added a \"c to copy\" shortcut to `/btw` that copies the raw markdown answer to the clipboard, preserving formatting when pasted elsewhere"
-      },
-      {
-        "feature_slug": "required_min_max_version_settings",
+        "feature_slug": "fallback_model_setting",
         "category": "new_field",
-        "description": "New `requiredMinimumVersion`/`requiredMaximumVersion` managed settings — CC refuses to start outside the allowed range.",
+        "description": "New fallbackModel setting configures up to three fallback models; --fallback-model now applies to interactive sessions.",
         "gap_score": 5,
         "affected_skills": [
           "configure",
-          "upgrade-assessment",
+          "claude-api"
+        ],
+        "reference_changelog_line": "Added `fallbackModel` setting to configure up to three fallback models tried in order when the primary model is overloaded or unavailable; `--fallback-model` now also applies to interactive sessions"
+      },
+      {
+        "feature_slug": "claude_update_announce_version",
+        "category": "new_attr",
+        "description": "claude update now announces the target version before downloading instead of going silent.",
+        "gap_score": 5,
+        "affected_skills": [
           "release-management"
         ],
-        "reference_changelog_line": "Added `requiredMinimumVersion` and `requiredMaximumVersion` managed settings — Claude Code refuses to start if its version is outside the allowed range and directs the user to an approved version"
+        "reference_changelog_line": "`claude update` now announces the target version before downloading instead of going silent"
       },
       {
-        "feature_slug": "stop_hook_additional_context",
-        "category": "new_field",
-        "description": "Stop and SubagentStop hooks can return `hookSpecificOutput.additionalContext` to feed Claude without a hook error.",
+        "feature_slug": "claude_agents_url_filter",
+        "category": "new_attr",
+        "description": "claude agents list now filters to session whose first prompt contained a typed URL.",
         "gap_score": 5,
         "affected_skills": [
-          "mcp-patterns",
           "agent-orchestration"
         ],
-        "reference_changelog_line": "Hooks: Stop and SubagentStop hooks can now return `hookSpecificOutput.additionalContext` to give Claude feedback and keep the turn going without being labeled a hook error"
-      },
-      {
-        "feature_slug": "skills_dollar_escape_syntax",
-        "category": "new_field",
-        "description": "Skills support `\\$` escape syntax to include a literal `$` before a digit in command bodies.",
-        "gap_score": 5,
-        "affected_skills": [
-          "audit-skills"
-        ],
-        "reference_changelog_line": "Skills: added `\\$` escape syntax to include a literal `$` before a digit in command bodies"
-      },
-      {
-        "feature_slug": "stdio_mcp_session_id_on_resume",
-        "category": "new_field",
-        "description": "stdio MCP servers receive the same `CLAUDE_CODE_SESSION_ID` as hooks/Bash on `--resume`.",
-        "gap_score": 5,
-        "affected_skills": [
-          "mcp-patterns"
-        ],
-        "reference_changelog_line": "stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` as hooks/Bash on `--resume`"
+        "reference_changelog_line": "`claude agents`: typing a URL into the list now filters to the session whose first prompt contained it"
       }
     ],
-    "raw_bullets_count": 22,
-    "issues_filed_at": "2026-06-05T15:02:16Z"
+    "raw_bullets_count": 21,
+    "issues_filed_at": "2026-06-06T14:34:02Z"
   },
   {
-    "version": "2.1.165",
+    "version": "2.1.167",
     "parse_failed": true,
     "features": [],
     "raw_bullets_count": 1,
-    "failed_at": "2026-06-05T15:01:53.599Z"
+    "failed_at": "2026-06-06T14:33:29.910Z"
+  },
+  {
+    "version": "2.1.165",
+    "features": [],
+    "raw_bullets_count": 1,
+    "parse_failed": true,
+    "failed_at": "2026-06-06T14:33:35.579Z"
   },
   {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-05T15:01:58.314Z"
+    "failed_at": "2026-06-06T14:33:42.228Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
     "parse_failed": true,
-    "failed_at": "2026-06-05T15:02:03.598Z"
+    "failed_at": "2026-06-06T14:33:46.630Z"
   }
 ]
