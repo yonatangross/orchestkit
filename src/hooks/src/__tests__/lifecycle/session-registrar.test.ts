@@ -17,7 +17,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
-import { sessionRegistrar } from '../../lifecycle/session-registrar.js';
+import { sessionRegistrar, __internals } from '../../lifecycle/session-registrar.js';
 import { openDb, __resetDbForTests } from '../../lib/session-registry.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import type { HookInput } from '../../types.js';
@@ -104,6 +104,123 @@ describe('lifecycle/session-registrar (#1912)', () => {
     db2.close();
     expect(staleRow.status).toBe('crashed');
     expect(activeRow.status).toBe('running');
+  });
+
+  // --- Peer-collision awareness (#2242) -------------------------------------
+
+  /** Seed a live peer row in the same repo_hash + branch + main working tree. */
+  function seedPeer(opts: {
+    sid: string;
+    repoHash: string;
+    branch: string | null;
+    worktreePath?: string | null;
+    heartbeatAgeSec?: number;
+    status?: string;
+  }): void {
+    const db = openDb();
+    const now = Math.floor(Date.now() / 1000);
+    db.prepare(
+      `INSERT INTO sessions (sid, pid, cwd, repo_hash, repo_path, worktree_path, branch, started_at, last_heartbeat, status)
+       VALUES (?, 4242, '/x', ?, '/x', ?, ?, ?, ?, ?)`,
+    ).run(
+      opts.sid,
+      opts.repoHash,
+      opts.worktreePath ?? null,
+      opts.branch,
+      now,
+      now - (opts.heartbeatAgeSec ?? 0),
+      opts.status ?? 'running',
+    );
+    db.close();
+    __resetDbForTests();
+  }
+
+  /** repo_hash the registrar will compute for workDir (mirrors hashRepo). */
+  function repoHashFor(dir: string): string {
+    return __internals.hashRepo(__internals.getRepoPath(dir));
+  }
+
+  it('warns when a live peer shares repo + branch + main working tree', () => {
+    // workDir is not a git repo, so the registrar would derive branch=null;
+    // drive findPeers directly with a known branch to exercise the collision path.
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: 'feature-x' });
+
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers.map(p => p.sid)).toEqual(['s-peer']);
+
+    const warning = __internals.formatPeerWarning(peers, '/repo/myproj', 'feature-x');
+    expect(warning).toContain('myproj-task');
+    expect(warning).toContain('git worktree add');
+    expect(warning).toContain('feature-x');
+  });
+
+  it('does NOT warn when this session is worktree-isolated', () => {
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: 'feature-x' });
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: '/some/worktree', // isolated → safe
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers).toEqual([]);
+  });
+
+  it('does NOT warn when the peer is on a different branch', () => {
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: 'other-branch' });
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers).toEqual([]);
+  });
+
+  it('does NOT warn about a stale peer (heartbeat older than the liveness window)', () => {
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: 'feature-x', heartbeatAgeSec: 600 });
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: 'feature-x',
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers).toEqual([]);
+  });
+
+  it('does NOT warn when there is no branch', () => {
+    const repoHash = repoHashFor(workDir);
+    seedPeer({ sid: 's-peer', repoHash, branch: null });
+    const db = openDb();
+    const peers = __internals.findPeers(db, {
+      sid: 's-me',
+      repoHash,
+      branch: null,
+      worktreePath: null,
+      nowSec: Math.floor(Date.now() / 1000),
+    });
+    db.close();
+    expect(peers).toEqual([]);
   });
 
   it('sweeps expired locks', () => {

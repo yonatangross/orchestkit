@@ -22,7 +22,7 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
-import { outputSilentSuccess } from '../lib/common.js';
+import { outputSilentSuccess, outputSessionStartContext } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { writeWithRetry } from '../lib/session-registry.js';
 import { execSync } from 'node:child_process';
@@ -33,6 +33,20 @@ import { fileURLToPath } from 'node:url';
 
 const HOOK_NAME = 'lifecycle/session-registrar';
 const SECONDS_PER_DAY = 86_400;
+
+/**
+ * Liveness window for peer-collision detection (#2242). A peer whose
+ * last_heartbeat is older than this is treated as gone — long enough to
+ * survive a slow tool loop, short enough to not warn about a stale row the
+ * 24h sweep hasn't reaped yet.
+ */
+const PEER_LIVENESS_WINDOW = 300;
+
+/** One concurrent session sharing this repo + branch + main working tree. */
+interface PeerRow {
+  sid: string;
+  pid: number;
+}
 
 /**
  * Resolve the git top-level for the given cwd. Returns cwd itself if not
@@ -179,6 +193,61 @@ function register(
   ).run(row);
 }
 
+/**
+ * Find live peer sessions that share this repo + branch AND sit in the same
+ * (main) working tree — the ONLY configuration that thrashes: branch flips
+ * mid-operation, node_modules rewrites, pre-push failures on stale state.
+ *
+ * Returns [] for the safe cases (no branch, or this session is worktree-isolated)
+ * without touching the DB, so worktree/different-branch sessions never warn.
+ */
+function findPeers(
+  db: import('node:sqlite').DatabaseSync,
+  args: {
+    sid: string;
+    repoHash: string;
+    branch: string | null;
+    worktreePath: string | null;
+    nowSec: number;
+  },
+): PeerRow[] {
+  if (!args.branch || args.worktreePath !== null) return [];
+  const rows = db
+    .prepare(
+      `SELECT sid, pid FROM sessions
+       WHERE status = 'running' AND repo_hash = ? AND branch = ?
+         AND worktree_path IS NULL AND sid != ? AND last_heartbeat > ?`,
+    )
+    .all(
+      args.repoHash,
+      args.branch,
+      args.sid,
+      args.nowSec - PEER_LIVENESS_WINDOW,
+    ) as Array<Record<string, unknown>>;
+  return rows.map(r => ({ sid: String(r.sid), pid: Number(r.pid) }));
+}
+
+/** Build the worktree-recommendation warning injected as SessionStart context. */
+function formatPeerWarning(
+  peers: PeerRow[],
+  repoPath: string,
+  branch: string,
+): string {
+  const repoName = repoPath.split('/').filter(Boolean).pop() || 'repo';
+  const list = peers
+    .map(p => `  - session ${p.sid.slice(0, 8)} (pid ${p.pid})`)
+    .join('\n');
+  return [
+    `WARNING: ${peers.length} other Claude Code session(s) running in this repo on branch '${branch}', sharing the same working tree:`,
+    list,
+    '',
+    'Concurrent sessions on one working tree thrash each other: branch flips mid-operation, node_modules rewrites, pre-push failures on stale state.',
+    'Isolate this session in a git worktree before mutating working-tree state:',
+    `  git worktree add ../${repoName}-task -b ${branch}-2 origin/${branch}`,
+    `  cd ../${repoName}-task`,
+  ].join('\n');
+}
+
 export function sessionRegistrar(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
@@ -195,8 +264,9 @@ export function sessionRegistrar(
   const ccVersion = getCcVersion();
   const orkVersion = getOrkVersion();
 
+  let peers: PeerRow[] = [];
   try {
-    writeWithRetry(db => {
+    peers = writeWithRetry(db => {
       sweep(db, nowSec);
       register(db, {
         sid,
@@ -210,13 +280,26 @@ export function sessionRegistrar(
         cc_version: ccVersion,
         ork_version: orkVersion,
       });
+      // Peer-collision detection (#2242) runs in the same txn so it observes the
+      // just-swept state. Self-excluded via sid; safe cases return [] (no query).
+      return findPeers(db, { sid, repoHash, branch, worktreePath, nowSec });
     });
   } catch (err) {
     ctx.log(HOOK_NAME, `register failed: ${(err as Error).message}`);
   }
 
+  if (peers.length > 0 && branch) {
+    return outputSessionStartContext(formatPeerWarning(peers, repoPath, branch));
+  }
   return outputSilentSuccess();
 }
 
 /** Exposed for tests. */
-export const __internals = { hashRepo, sweep, register, getRepoPath };
+export const __internals = {
+  hashRepo,
+  sweep,
+  register,
+  getRepoPath,
+  findPeers,
+  formatPeerWarning,
+};
