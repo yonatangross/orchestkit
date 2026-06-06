@@ -23,8 +23,8 @@ question.
 | Pattern | What it is | ork flow that uses it |
 |---------|-----------|------------------------|
 | **Classify-and-act** | a classifier routes work before doing it | `ci-debug` (10-pattern classifier), `errors` |
-| **Fan-out-synthesize** | split → parallel agent per piece → merge (barrier) | `explore`, `audit-full`, the drift re-audit |
-| **Adversarial verification** | a separate, blind agent refutes each finding | `assess` Phase 2.5, `shared/rules/adversarial-refutation.md` |
+| **Fan-out-synthesize** | split → parallel agent per piece → merge (barrier) | `explore`; `audit-full` **scale tier** (committed: `audit-full/workflows/audit-full-mapreduce.mjs`); the drift re-audit |
+| **Adversarial verification** | a separate, blind agent refutes each finding | `assess` Ph 2.5, `review-pr` Ph 4.5, `audit-full` STEP 3.5; `shared/rules/adversarial-refutation.md` |
 | **Generate-and-filter** | generate N ideas → filter by rubric/verify → dedup | `brainstorm` (divergent → keep/discard) |
 | **Tournament** | pairwise comparison beats absolute scoring | *gap* — `prioritization`/`competitive-analysis` use absolute scores |
 | **Loop-until-done** | spawn until a stop condition (K dry rounds) | `cover` (bounded heal); `ci-sentinel` could loop-until-dry |
@@ -69,6 +69,15 @@ Genuinely large-N / adversarial / repeated ..... may ship as a TEMPLATE skill (N
 Decision test: would a regular Claude Code session finish this in five minutes? Then you don't
 need a workflow at all (the article's own first warning). Reach for one only for the long,
 parallel, structured, or adversarial classes above.
+
+**Committed templates in ork** (run via `Workflow({scriptPath: "${CLAUDE_SKILL_DIR}/workflows/<file>"})`):
+
+| Template | Skill | Shape |
+|----------|-------|-------|
+| `workflows/skill-fitness.mjs` | `bare-eval` | fan-out one isolated agent per skill → ranked fitness scorecard |
+| `workflows/audit-full-mapreduce.mjs` | `audit-full` | shard → per-shard audit → cross-shard synthesis → adversarial refute (the scale tier for repos that exceed 1M context) |
+
+Both are TEMPLATES — pass `args` (skills / shards) per run; don't treat them as fixed scripts.
 
 ## Untrusted input → quarantine
 

@@ -9,7 +9,7 @@ version: 1.2.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: false
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, PushNotification, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, Workflow, PushNotification, mcp__memory__search_nodes]
 skills: [security-patterns, architecture-patterns, quality-gates]
 complexity: max
 persuasion-type: discipline
@@ -89,6 +89,27 @@ Before loading files, estimate whether the codebase fits in context.
 Load: `Read("${CLAUDE_SKILL_DIR}/references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
 
 Run estimation: `bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project`
+
+### Two tiers — pick by the estimate
+
+audit-full has **two execution tiers**. The estimate decides which:
+
+| Estimate vs budget | Tier | Path |
+|--------------------|------|------|
+| **Fits** (~≤125K LOC / ≤1M tokens) | **Single-context** (default — the skill's edge: whole-codebase cross-file reasoning in one window) | continue to STEP 2 |
+| **Exceeds** budget | **Map-reduce** (scale tier — shard → per-shard audit → cross-shard boundary synthesis → refute) | invoke the workflow below; STEP 2–3.5 run *inside* it |
+
+**Over-budget → run the map-reduce workflow** (don't punt, don't silently truncate the load):
+
+```python
+# Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
+Workflow({
+  "scriptPath": "${CLAUDE_SKILL_DIR}/workflows/audit-full-mapreduce.mjs",
+  "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
+})
+```
+
+It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits — only reach for map-reduce when it genuinely doesn't.
 
 ---
 
@@ -202,7 +223,7 @@ Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notific
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `/ork:verify` |
 | Exploring unfamiliar codebase | `/ork:explore` |
-| Codebase > 125K LOC (exceeds 1M) | `/ork:verify` (chunked approach) |
+| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.mjs`); `/ork:verify` only if you want multi-agent *graded* verification instead of an audit |
 
 ---
 
@@ -250,3 +271,4 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `assets/severity-matrix.md` | Finding classification criteria |
 | `checklists/audit-completion.md` | Pre-report verification |
 | `scripts/estimate-tokens.sh` | Automated LOC to token estimation |
+| `workflows/audit-full-mapreduce.mjs` | Scale tier — shard→audit→synthesize→refute for repos that exceed 1M context (run via the Workflow tool) |

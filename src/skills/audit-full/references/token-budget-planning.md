@@ -36,20 +36,26 @@ Always exclude from loading:
 
 ## If Codebase Exceeds Budget
 
-1. **Priority loading**: Entry points first, then imported modules
-2. **Directory scoping**: Ask user to narrow to specific directories
-3. **Fallback**: Recommend `/ork:verify` for multi-agent approach (only needed for codebases > 125K LOC)
+audit-full owns this case now — it does **not** punt. The map-reduce tier
+(`workflows/audit-full-mapreduce.mjs`, run via the Workflow tool) shards the repo,
+audits each shard in its own context, then recovers cross-shard edges in a synthesis
+pass. Prefer it over narrowing scope (which silently drops coverage).
+
+1. **Map-reduce tier (recommended)**: run the workflow with shards derived from the estimate — full coverage, cross-shard boundary pass, same STEP 3.5 refutation.
+2. **Directory scoping**: narrow to specific directories — fast but **drops coverage** outside the scope; say so.
+3. **Priority loading**: entry points + critical paths only — triage, not a full audit.
+4. **`/ork:verify`**: only if you actually want multi-agent *graded* verification rather than an audit.
 
 ```python
-# Fallback suggestion
+# Over-budget routing
 AskUserQuestion(
   questions=[{
-    "question": "Codebase exceeds context window. How to proceed?",
+    "question": "Codebase exceeds the single-context budget. How to proceed?",
     "header": "Too large",
     "options": [
-      {"label": "Narrow scope", "description": "Audit specific directories only"},
-      {"label": "Use /ork:verify instead", "description": "Chunked multi-agent approach (works with any context size)"},
-      {"label": "Priority loading", "description": "Load entry points + critical paths only"}
+      {"label": "Map-reduce audit (full coverage)", "description": "Shard → per-shard audit → cross-shard synthesis → refute (workflows/audit-full-mapreduce.mjs)"},
+      {"label": "Narrow scope", "description": "Audit specific directories only — drops coverage elsewhere"},
+      {"label": "Priority loading", "description": "Entry points + critical paths only (triage)"}
     ],
     "multiSelect": false
   }]
