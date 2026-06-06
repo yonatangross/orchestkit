@@ -5,6 +5,36 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.21.0](https://github.com/yonatangross/orchestkit/compare/v8.20.1...v8.21.0) (2026-06-06)
+
+
+### Features
+
+* **skills:** adversarial verification engine + assess pilot ([#2231](https://github.com/yonatangross/orchestkit/issues/2231)) ([#2235](https://github.com/yonatangross/orchestkit/issues/2235)) ([f1c90a1](https://github.com/yonatangross/orchestkit/commit/f1c90a1a0e20a1370c7cdadd6ac388395f868348))
+* **skills:** dynamic-workflow patterns reference + quarantine rule ([#2240](https://github.com/yonatangross/orchestkit/issues/2240)) ([a082314](https://github.com/yonatangross/orchestkit/commit/a0823148581fec7527b3526eef3f88bcc01d551e))
+
+
+### Bug Fixes
+
+* **cc:** stamp LATEST_KNOWN_CC from SoT + repair auto-bump workflow ([#2241](https://github.com/yonatangross/orchestkit/issues/2241)) ([3499996](https://github.com/yonatangross/orchestkit/commit/3499996f35c2786827ce62e79bc672d50ea5ca69)), closes [#2238](https://github.com/yonatangross/orchestkit/issues/2238)
+* **hooks:** pin session title to first-seen branch (survives concurrent-session thrash) ([#2246](https://github.com/yonatangross/orchestkit/issues/2246)) ([fec9775](https://github.com/yonatangross/orchestkit/commit/fec9775249bbb029074ff26e8ce18ab475f4c514))
+* **security:** correct dependency-confusion package ref + add guard ([#2239](https://github.com/yonatangross/orchestkit/issues/2239)) ([813cf8c](https://github.com/yonatangross/orchestkit/commit/813cf8c06c55cc340fcd2b387ab038edde2211b3))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.165) ([#2228](https://github.com/yonatangross/orchestkit/issues/2228)) ([76a5407](https://github.com/yonatangross/orchestkit/commit/76a5407fba6e00b2f1d62bdf70f7c8f6a90cd540))
+
+
+### Documentation
+
+* **rules:** correct drift register from adversarial re-audit ([#2217](https://github.com/yonatangross/orchestkit/issues/2217)) ([#2221](https://github.com/yonatangross/orchestkit/issues/2221)) ([b3c4ffb](https://github.com/yonatangross/orchestkit/commit/b3c4ffb1e08ab7217a8b7442a23df77566691e41))
+
+
+### Code Refactoring
+
+* **hooks:** thin cc-version-matrix to 2 constants ([#2229](https://github.com/yonatangross/orchestkit/issues/2229)) ([#2237](https://github.com/yonatangross/orchestkit/issues/2237)) ([19b4dd7](https://github.com/yonatangross/orchestkit/commit/19b4dd715144a2ffb4278e3619abc9912e024b91))
+
 ## [8.20.1](https://github.com/yonatangross/orchestkit/compare/v8.20.0...v8.20.1) (2026-06-05)
 
 
