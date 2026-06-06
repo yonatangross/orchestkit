@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { parseYamlFrontmatter } = require('./lib/parse-frontmatter');
 
 // Paths
@@ -84,10 +85,16 @@ function extractSkillMetadata(skillName, skillPath) {
   const truncatedBody = body.trim().slice(0, 3000);
   const bodyTruncated = body.trim().length > 3000;
 
+  // SHA-256 of the canonical SKILL.md bytes — published in the agent-skills
+  // discovery index (/.well-known/agent-skills/index.json) so agents can verify
+  // the skill they fetch matches what we advertise.
+  const sha256 = crypto.createHash('sha256').update(content).digest('hex');
+
   return {
     name: frontmatter.name || skillName,
     description: frontmatter.description || '',
     version: frontmatter.version || '1.0.0',
+    sha256,
     author: frontmatter.author || 'OrchestKit',
     tags: frontmatter.tags || [],
     userInvocable: frontmatter['user-invocable'] === true,
@@ -393,6 +400,7 @@ function generateSplitModules(data) {
     '  name: string;',
     '  description: string;',
     '  version: string;',
+    '  sha256: string;',
     '  author: string;',
     '  tags: string[];',
     '  userInvocable: boolean;',
