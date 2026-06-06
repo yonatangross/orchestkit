@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.22.0](https://github.com/yonatangross/orchestkit/compare/v8.21.0...v8.22.0) (2026-06-06)
+
+
+### Features
+
+* **docs:** agent-ready docs site (well-known + content negotiation) ([#2236](https://github.com/yonatangross/orchestkit/issues/2236)) ([fa749a6](https://github.com/yonatangross/orchestkit/commit/fa749a6afc57fb709bd8722eb6ebd22538a94e40))
+* **hooks:** warn on concurrent same-tree session collision ([#2242](https://github.com/yonatangross/orchestkit/issues/2242)) ([#2245](https://github.com/yonatangross/orchestkit/issues/2245)) ([7ed8cf2](https://github.com/yonatangross/orchestkit/commit/7ed8cf271357d08c015be893e68883df325ab4a2))
+
 ## [8.21.0](https://github.com/yonatangross/orchestkit/compare/v8.20.1...v8.21.0) (2026-06-06)
 
 
