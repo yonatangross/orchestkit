@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OrchestKit · Workflow Patterns Explainer</title>
+    <style>
+      :root{--bg:#0b0e14;--panel:#141925;--panel2:#1b2233;--ink:#e6edf3;--mut:#94a3b8;
+        --cyan:#06b6d4;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a78bfa;--line:#243049}
+      *{box-sizing:border-box}
+      body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+      header{padding:26px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101521,#0b0e14)}
+      h1{margin:0 0 6px;font-size:21px} .sub{color:var(--mut);font-size:14px;max-width:780px}
+      main{max-width:1040px;margin:0 auto;padding:22px}
+      h2{font-size:16px;border-left:3px solid var(--cyan);padding-left:10px;margin-top:30px}
+      code{font-family:ui-monospace,Menlo,monospace;background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:12.5px}
+      pre{background:#060910;border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:12.5px;font-family:ui-monospace,monospace;color:#b9c6d6}
+      .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));margin-top:12px}
+      .pat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;cursor:pointer;transition:border-color .15s}
+      .pat:hover{border-color:var(--cyan)} .pat.active{border-color:var(--cyan);background:var(--panel2)}
+      .pat h3{margin:0 0 4px;font-size:14.5px;color:var(--cyan)} .pat .fm{font-size:12px;color:var(--amber);margin-top:6px} .pat p{margin:6px 0 0;color:var(--mut);font-size:12.5px}
+      .detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:14px;min-height:120px}
+      .detail h3{margin:0 0 8px;color:var(--cyan)} .detail .ork{color:var(--green);font-weight:600}
+      .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(167,139,250,.16);color:var(--purple);margin-left:6px}
+      .note{color:var(--mut);font-size:12.5px;margin-top:8px}
+      table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+      th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top} th{color:var(--mut)}
+      .k{color:var(--green)} .b{color:var(--amber)}
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🧬 OrchestKit · Workflow Patterns Explainer</h1>
+      <div class="sub">How Claude Code <b>dynamic workflows</b> work, the <b>6 patterns</b> ork uses to shape them, and the one rule for picking the right one. <span class="pill">ork taxonomy — not a CC standard</span></div>
+    </header>
+    <main>
+      <h2>1 · What a dynamic workflow actually is</h2>
+      <p style="color:var(--mut);font-size:13.5px">A workflow is a <b>JS harness Claude writes on the fly</b> (CC v2.1.154+, <code>ultracode</code>). It runs in the <b>background</b> and orchestrates subagents deterministically — loops, conditionals, fan-out — instead of leaving coordination to one model's improvisation. You watch it with <code>/workflows</code>.</p>
+      <pre>// the three core primitives (CC documents these — the mechanics)
+agent(prompt, {schema, model, agentType, isolation})  // one subagent → returns its result
+parallel([ ()=&gt;agent(a), ()=&gt;agent(b) ])               // BARRIER — awaits ALL, then continues
+pipeline(items, stage1, stage2)                        // NO barrier — each item flows independently
+
+// pick model per agent · force structured output with a schema · isolate with a git worktree</pre>
+      <p class="note">⚖️ <b>parallel vs pipeline</b> — the choice that matters most: use <code>parallel()</code> only when stage N genuinely needs <i>all</i> of stage N-1 (dedup, early-exit, cross-item compare). Otherwise <code>pipeline()</code> — item A can be in stage 3 while item B is still in stage 1, so wall-clock = slowest single chain, not sum-of-slowest-per-stage.</p>
+
+      <h2>2 · The 6 patterns <span style="font-size:12px;color:var(--mut)">(click one — ork's taxonomy for naming multi-agent shapes)</span></h2>
+      <div class="grid" id="grid"></div>
+      <div class="detail" id="detail">Select a pattern above.</div>
+
+      <h2>3 · The selection rule — pick the pattern that <i>structurally prevents</i> your failure</h2>
+      <table>
+        <tr><th>Failure mode (single-context Claude)</th><th>Pattern that fixes it</th></tr>
+        <tr><td>🎯 <b>Goal drift</b> — loses the objective over many turns</td><td class="k">Fan-out-synthesize (one focused goal per agent)</td></tr>
+        <tr><td>🪞 <b>Self-preferential bias</b> — favors its own work when judging</td><td class="k">Adversarial verification (blind refuter)</td></tr>
+        <tr><td>😴 <b>Agentic laziness</b> — declares done on partial progress</td><td class="k">Loop-until-done + <code>/goal</code></td></tr>
+        <tr><td>📊 <b>Hard-to-score</b> — taste/ranking degrades at scale</td><td class="k">Tournament (pairwise)</td></tr>
+      </table>
+
+      <h2>4 · A real run (this very session)</h2>
+      <p style="color:var(--mut);font-size:13.5px">The verification that produced this PR <i>was</i> a workflow — 4 verifiers in <code>parallel()</code> then an adversarial critic. It dogfooded pattern #2 (the critic caught a mis-versioned release-notes draft no single agent flagged).</p>
+      <pre>phase('Verify')
+const [align, quality, integ, notes] = await parallel([
+  ()=&gt; agent('verify the patterns doc vs current CC', {agentType:'claude-code-guide'}),
+  ()=&gt; agent('quality-review the 2 new files',         {agentType:'Explore'}),
+  ()=&gt; agent('integration + status sweep (git/gh)',    {agentType:'general-purpose'}),
+  ()=&gt; agent('draft release notes 8.22.0..HEAD',       {agentType:'general-purpose'}),
+])
+phase('Critique')
+const critic = await agent(`find what the 4 reports MISSED: ${JSON.stringify({align,quality,integ,notes})}`)
+// → critic caught: notes were titled 8.22.0 but the real delta is 8.23.0 ✅</pre>
+
+      <h2>5 · ork ≠ CC /workflows — complementary, not competing</h2>
+      <table>
+        <tr><th></th><th class="b">CC /workflows</th><th class="k">ork skills (agent-orchestration etc.)</th></tr>
+        <tr><td>scale</td><td>large-N (tens–hundreds)</td><td>bounded (≤8)</td></tr>
+        <tr><td>mode</td><td>background, fire-and-forget</td><td>foreground, shared-memory</td></tr>
+        <tr><td>use when</td><td>broad sweep, you check back later</td><td>tight coordination in one invocation</td></tr>
+      </table>
+      <p class="note">ork does <b>not</b> wrap <code>/workflows</code> inside a skill (forced fit). The <code>dynamic-workflow-patterns.md</code> reference tells you when to reach for the Workflow tool <b>directly</b>. Only <code>swarm-migrate</code> genuinely overlaps.</p>
+    </main>
+
+    <script>
+      const P = [
+        {n:"Classify-and-act",fm:"prevents: wasted work on the wrong path",d:"A cheap classifier routes work BEFORE doing it — so expensive agents only run on the right branch.",ork:"ci-debug (10-pattern classifier), errors"},
+        {n:"Fan-out-synthesize",fm:"prevents: goal drift",d:"Split a task → one parallel agent per piece → merge at a barrier. Each agent holds one focused goal, so none drifts.",ork:"explore, audit-full, the drift re-audit"},
+        {n:"Adversarial verification",fm:"prevents: self-preferential bias",d:"A separate, BLIND agent refutes each finding — the producer can't be its own fair judge. Citation-verified, quorum on high-stakes calls.",ork:"assess Ph 2.5, review-pr Ph 4.5, audit-full STEP 3.5 · shared/rules/adversarial-refutation.md"},
+        {n:"Generate-and-filter",fm:"prevents: premature convergence",d:"Generate N candidates → filter by rubric / verify → dedup. Divergence first, judgment second.",ork:"brainstorm (divergent → keep/discard)"},
+        {n:"Tournament",fm:"prevents: unreliable absolute scores",d:"Pairwise comparison beats absolute 0-10 scoring when quality is a matter of taste/ranking at scale.",ork:"*gap* — prioritization / competitive-analysis still use absolute scores"},
+        {n:"Loop-until-done",fm:"prevents: agentic laziness",d:"Keep spawning until a stop condition (K dry rounds / a /goal assertion), not until the model 'feels' finished.",ork:"cover (bounded heal); ci-sentinel could loop-until-dry"},
+      ];
+      const grid=document.getElementById('grid'), detail=document.getElementById('detail');
+      grid.innerHTML=P.map((p,i)=>`<div class="pat" data-i="${i}"><h3>${p.n}</h3><div class="fm">${p.fm}</div></div>`).join('');
+      function show(i){const p=P[i];document.querySelectorAll('.pat').forEach((e,j)=>e.classList.toggle('active',j===i));
+        detail.innerHTML=`<h3>${p.n}</h3><p>${p.d}</p><p class="note">ork flow: <span class="ork">${p.ork}</span></p>`}
+      grid.querySelectorAll('.pat').forEach(e=>e.onclick=()=>show(+e.dataset.i));
+      show(2); // open on adversarial verification — the one this session leaned on
+    </script>
+  </body>
+</html>
