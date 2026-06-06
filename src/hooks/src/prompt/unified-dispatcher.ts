@@ -200,8 +200,9 @@ function buildSessionTitle(branch: string, effort: string, isWorktree = false): 
  *
  * Fix: emit only when the computed title differs from the title we
  * emitted on the previous turn. Mirrors the prompt-hash.txt delta-skip
- * pattern below (line ~324). `/rename` sticks indefinitely on the same
- * branch; branch checkouts still refresh the title automatically.
+ * pattern below (line ~324). Combined with getPinnedBranch() (title sourced
+ * from the session's first-seen branch, not the live working-tree branch),
+ * `/rename` sticks indefinitely even under concurrent-session branch thrash.
  *
  * Returns true on first turn (no state file), on branch/effort change, or on
  * I/O failure (fail-open keeps prior behavior).
@@ -225,6 +226,48 @@ function shouldEmitSessionTitle(
     return true;
   } catch {
     return true;
+  }
+}
+
+/**
+ * Pin the branch used for the session title to the FIRST branch this session
+ * observed, persisted per-session. Subsequent turns reuse the pinned value
+ * instead of re-reading the live working-tree branch.
+ *
+ * Why: the title was derived from `git branch --show-current` on every prompt.
+ * When multiple Claude sessions share one working tree (no per-session
+ * worktree), another session's `git checkout` flips the tree's branch under
+ * you — so your title would re-derive to the other session's branch and
+ * flip-flop turn to turn, defeating shouldEmitSessionTitle() (the branch
+ * genuinely "changed" from this session's view) and clobbering any `/rename`.
+ *
+ * Pinning to first-seen makes the title stable under concurrent-session branch
+ * thrash. Trade-off: an in-session `git checkout` by THIS session won't refresh
+ * the title — acceptable, since the recommended setup is one worktree per
+ * session, where the branch is constant for the session's life.
+ *
+ * Fail-open: returns the live branch on missing ids or any I/O error.
+ */
+function getPinnedBranch(
+  liveBranch: string,
+  sessionId: string | undefined,
+  projectDir: string | undefined,
+): string {
+  if (!sessionId || !projectDir) return liveBranch;
+  try {
+    const dir = getPromptSessionDir(sessionId, projectDir);
+    const file = join(dir, 'session-branch.txt');
+    if (existsSync(file)) {
+      const pinned = readFileSync(file, 'utf8').trim();
+      if (pinned) return pinned;
+    }
+    // First turn for this session: pin whatever branch we see now.
+    if (!liveBranch) return liveBranch;
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(file, liveBranch, 'utf8');
+    return liveBranch;
+  } catch {
+    return liveBranch;
   }
 }
 
@@ -351,7 +394,10 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // we don't overwrite `/rename`. The CC "identical = no-op" claim only
   // covers repeats of OUR value — a user `/rename` changes the live title
   // to something else, which makes our next emit a clobbering override.
-  const sessionTitle = buildSessionTitle(ctx.branch, effort, ctx.isWorktree);
+  // Pin to the session's first-seen branch so concurrent-session branch thrash
+  // (shared working tree) can't flip the title turn-to-turn or clobber /rename.
+  const titleBranch = getPinnedBranch(ctx.branch, sessionId, projectDir);
+  const sessionTitle = buildSessionTitle(titleBranch, effort, ctx.isWorktree);
   const emitTitle = shouldEmitSessionTitle(sessionTitle, sessionId, projectDir);
 
   // No context produced — still try to set the title if we have one

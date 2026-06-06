@@ -228,6 +228,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `progressive-output.md` | Progressive output with run_in_background |
 | `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
+| `dynamic-workflow-patterns.md` | The 6 Dynamic-Workflow patterns → ork map, failure-mode selection, per-agent model tiers, use-directly-vs-template, quarantine pointer |
 
 ## Related Skills
 

@@ -15,7 +15,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { mockCommonReal } from '../fixtures/mock-common.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
@@ -296,5 +296,70 @@ describe('prompt/unified-dispatcher — sessionTitle delta-detect (preserves /re
 
     // Fail-open: prior behavior (always emit) preserved when state I/O breaks
     expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-x');
+  });
+});
+
+describe('prompt/unified-dispatcher — branch pin (survives concurrent-session thrash)', () => {
+  let testCtx: ReturnType<typeof createTestContext>;
+  const mockedExists = vi.mocked(existsSync);
+  const mockedRead = vi.mocked(readFileSync);
+  const mockedWrite = vi.mocked(writeFileSync);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    testCtx = createTestContext();
+  });
+
+  test('first turn pins the live branch to session-branch.txt', () => {
+    testCtx = createTestContext({ branch: 'feature-auth' });
+    mockedExists.mockReturnValue(false); // no state files yet
+
+    const result = unifiedPromptDispatcher(createPromptInput('hi'), testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
+    // The branch was pinned for subsequent turns.
+    const pinned = mockedWrite.mock.calls.find(
+      ([p]) => typeof p === 'string' && p.endsWith('session-branch.txt'),
+    );
+    expect(pinned?.[1]).toBe('feature-auth');
+  });
+
+  test('emitted title uses the PINNED branch, not the live working-tree branch', () => {
+    // Live branch flipped to another session's branch (shared working tree),
+    // but this session pinned 'feature-auth' on turn 1.
+    testCtx = createTestContext({ branch: 'other-session-branch' });
+    mockedExists.mockImplementation(
+      (p) => typeof p === 'string' && p.endsWith('session-branch.txt'),
+    );
+    mockedRead.mockImplementation((p) =>
+      typeof p === 'string' && p.endsWith('session-branch.txt') ? 'feature-auth' : '',
+    );
+
+    const result = unifiedPromptDispatcher(createPromptInput('hi'), testCtx);
+
+    // Pin wins → title reflects the session's branch, NOT the thrashed one.
+    expect(result.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
+  });
+
+  test('branch thrash does NOT clobber /rename (title held → not re-emitted)', () => {
+    // The regression: another session flips the working-tree branch every turn.
+    // With the pin, the computed title stays equal to last-emitted, so we stay
+    // silent and the user's /rename survives.
+    testCtx = createTestContext({ branch: 'thrashed-by-other-session' });
+    mockedExists.mockImplementation(
+      (p) =>
+        typeof p === 'string' &&
+        (p.endsWith('session-branch.txt') || p.endsWith('last-session-title.txt')),
+    );
+    mockedRead.mockImplementation((p) => {
+      if (typeof p !== 'string') return '';
+      if (p.endsWith('session-branch.txt')) return 'feature-auth';
+      if (p.endsWith('last-session-title.txt')) return 'feature-auth';
+      return '';
+    });
+
+    const result = unifiedPromptDispatcher(createPromptInput('hi'), testCtx);
+
+    expect(result.hookSpecificOutput?.sessionTitle).toBeUndefined();
   });
 });
