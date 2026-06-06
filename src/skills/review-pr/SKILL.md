@@ -384,6 +384,25 @@ Set `ORK_DISABLE_ULTRAREVIEW=1` or `.claude/settings.json` → `"ork.disableUltr
 
 Load validation commands: `Read("${CLAUDE_SKILL_DIR}/references/validation-commands.md")`
 
+## Phase 4.5: Adversarial Refutation (effort-gated)
+
+A separate **blind refuter** verifies decision-bearing findings before they reach the
+Phase 5 verdict — the structural fix for self-preferential bias (the agent that raised a
+finding can't be its own fair judge). `low`/`medium` skip this phase; `high` runs single
+advisory refuters (no auto-flip); `xhigh` runs the engine's quorum (3 for a request-changes
+blocker, 2 for HIGH).
+
+Load the protocol + review-pr bindings: `Read("${CLAUDE_SKILL_DIR}/references/adversarial-refutation.md")`
+(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
+
+Runs after Phase 3 findings (and any Phase 3.5 ultrareview merge) and Phase 4 validation,
+before the Phase 5 synthesis and Phase 6 verdict. Refuters are ALWAYS isolated `Agent(...)`
+spawns with no `team_name`. Refutation alone may demote a finding's bucket but may **NOT**
+flip `request-changes`→`approve` without explicit user confirmation, and ground truth
+(failing CI/tests/lint, npm-audit/CVSS) is never refuted. The ledger
+(`refutation-ledger.json`) records survived/killed/downgraded so wrong calls — wrong KEEPs
+and wrong KILLs — are auditable cross-session.
+
 ## Phase 5: Synthesize Review
 
 Combine all agent feedback into a structured report. Load template: `Read("${CLAUDE_SKILL_DIR}/references/review-report-template.md")`
@@ -493,6 +512,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 |------|---------|
 | `review-template.md` | Review checklist template |
 | `review-report-template.md` | Structured review report |
+| `adversarial-refutation.md` | Blind-refuter bindings (Phase 4.5) — loads the shared engine |
 | `orchestration-mode-selection.md` | Task tool vs Agent Teams |
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |

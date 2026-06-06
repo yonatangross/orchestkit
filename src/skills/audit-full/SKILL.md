@@ -147,6 +147,26 @@ For multi-mode audits (Full), each mode's findings appear as they complete. This
 
 ---
 
+## STEP 3.5: Adversarial Refutation (effort-gated)
+
+Before the report, a separate **blind refuter** verifies CRITICAL/HIGH findings — the
+structural fix for self-preferential bias (a single-context pass grading its own findings
+anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single advisory
+refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
+
+Load the protocol + audit-full bindings: `Read("${CLAUDE_SKILL_DIR}/references/adversarial-refutation.md")`
+(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/skills/shared/rules/adversarial-refutation.md`).
+
+These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
+always isolated `Agent(...)` with no `team_name`, fed only a neutral claim (category +
+`file:line`). **Deterministic ground truth is exempt** — CVE/CVSS matches, failing build/test,
+type errors are never refuted; only a *reachability claim* on top of a CVE is. Cross-file
+findings the refuter can't reproduce from its narrow slice stay **UPHELD** (engine §5).
+Refutation never silently drops a CRITICAL — the ledger (`refutation-ledger.json`) records
+survived/killed/downgraded, and removing a CRITICAL/HIGH from the report needs user confirmation.
+
+---
+
 ## STEP 4: Generate Report
 
 Load the report template: `Read("${CLAUDE_SKILL_DIR}/assets/audit-report-template.md")`.
@@ -224,6 +244,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
 | `references/architecture-review-guide.md` | Pattern and coupling analysis |
 | `references/dependency-audit-guide.md` | CVE, license, currency checks |
+| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5) — loads the shared engine |
 | `references/token-estimation.md` | File type ratios and budget planning |
 | `assets/audit-report-template.md` | Structured output format |
 | `assets/severity-matrix.md` | Finding classification criteria |
