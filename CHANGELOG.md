@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.23.0](https://github.com/yonatangross/orchestkit/compare/v8.22.0...v8.23.0) (2026-06-06)
+
+
+### Features
+
+* **audit-full:** map-reduce workflow tier for over-budget repos ([#2259](https://github.com/yonatangross/orchestkit/issues/2259)) ([8c74273](https://github.com/yonatangross/orchestkit/commit/8c74273d3c2ecf226d292c2344a22e51ff375801))
+* **skills:** adversarial verification for review-pr + audit-full ([#2256](https://github.com/yonatangross/orchestkit/issues/2256)) ([f24926a](https://github.com/yonatangross/orchestkit/commit/f24926a0d9969a8d7bbfb489dac8ac62cd1239f8))
+
+
+### Bug Fixes
+
+* **skills:** trim review-pr under length gate + CC-orchestration hygiene ([#2260](https://github.com/yonatangross/orchestkit/issues/2260)) ([48311ca](https://github.com/yonatangross/orchestkit/commit/48311cafcf34105b120be4be4c362b5739f733f9))
+
+
+### Miscellaneous
+
+* **cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2255](https://github.com/yonatangross/orchestkit/issues/2255)) ([375eaa3](https://github.com/yonatangross/orchestkit/commit/375eaa382f27ae0f1782c1033319717a4a108d81))
+
+
+### Documentation
+
+* **chain-patterns:** label the 6 workflow patterns as ork's taxonomy ([#2258](https://github.com/yonatangross/orchestkit/issues/2258)) ([f68bfdd](https://github.com/yonatangross/orchestkit/commit/f68bfddf2e0fa4ea2338a58bd2a99bc9e1446ffc))
+
 ## [8.22.0](https://github.com/yonatangross/orchestkit/compare/v8.21.0...v8.22.0) (2026-06-06)
 
 
