@@ -74,32 +74,33 @@ describe('integration — sessionTitle delta-detect (built bundle)', () => {
     };
   }
 
-  test('full lifecycle: first → same → change → same again', () => {
-    const stateFile = join(
-      tmpProj,
-      '.claude',
-      'memory',
-      'sessions',
-      sessionId,
-      'last-session-title.txt',
-    );
+  test('full lifecycle: first → same → thrash → still held (branch pin)', () => {
+    const sessionDir = join(tmpProj, '.claude', 'memory', 'sessions', sessionId);
+    const stateFile = join(sessionDir, 'last-session-title.txt');
+    const branchPinFile = join(sessionDir, 'session-branch.txt');
 
-    // Turn 1: first turn (no state file) → emit + write file
+    // Turn 1: first turn (no state file) → emit + write title + pin branch
     const r1 = dispatch(input('hello'), ctx('feature-auth'));
     expect(r1.hookSpecificOutput?.sessionTitle).toBe('feature-auth');
     expect(existsSync(stateFile)).toBe(true);
     expect(readFileSync(stateFile, 'utf8').trim()).toBe('feature-auth');
+    // The branch was pinned to the first-seen value.
+    expect(existsSync(branchPinFile)).toBe(true);
+    expect(readFileSync(branchPinFile, 'utf8').trim()).toBe('feature-auth');
 
     // Turn 2: same branch → OMIT title (the /rename-preserves bit)
     const r2 = dispatch(input('still working'), ctx('feature-auth'));
     expect(r2.hookSpecificOutput?.sessionTitle).toBeUndefined();
 
-    // Turn 3: different branch → emit new + update file
-    const r3 = dispatch(input('switched'), ctx('feature-pay'));
-    expect(r3.hookSpecificOutput?.sessionTitle).toBe('feature-pay');
-    expect(readFileSync(stateFile, 'utf8').trim()).toBe('feature-pay');
+    // Turn 3: another session flipped the shared working-tree branch to
+    // 'feature-pay'. THIS session pinned 'feature-auth', so the title is held
+    // (NOT re-emitted) and the user's /rename survives. This is the fix.
+    const r3 = dispatch(input('thrashed by another session'), ctx('feature-pay'));
+    expect(r3.hookSpecificOutput?.sessionTitle).toBeUndefined();
+    expect(readFileSync(stateFile, 'utf8').trim()).toBe('feature-auth');
+    expect(readFileSync(branchPinFile, 'utf8').trim()).toBe('feature-auth');
 
-    // Turn 4: same NEW branch → OMIT again
+    // Turn 4: still the thrashed branch → still held
     const r4 = dispatch(input('more'), ctx('feature-pay'));
     expect(r4.hookSpecificOutput?.sessionTitle).toBeUndefined();
   });
