@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Session-Title Branch Pin — Playground</title>
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --border:#30363d; --fg:#e6edf3; --muted:#8b949e;
+    --green:#3fb950; --red:#f85149; --amber:#d29922; --accent:#58a6ff;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); padding:2rem 1rem;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; line-height:1.55; }
+  .wrap { max-width:880px; margin:0 auto; }
+  h1 { font-size:1.5rem; margin:0 0 .25rem; }
+  .sub { color:var(--muted); margin:0 0 1.5rem; font-size:.95rem; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:1.25rem; margin-bottom:1.25rem; }
+  label { display:block; font-size:.78rem; color:var(--muted); margin-bottom:.5rem; text-transform:uppercase; letter-spacing:.04em; }
+  .controls { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+  button { font-family:inherit; font-size:.85rem; cursor:pointer; background:var(--bg); color:var(--fg);
+    border:1px solid var(--border); border-radius:7px; padding:.5rem .85rem; transition:border-color .15s; }
+  button:hover { border-color:var(--accent); }
+  button.flip { border-color:var(--amber); color:var(--amber); }
+  button.rename { border-color:var(--accent); color:var(--accent); }
+  button.reset { color:var(--muted); }
+  .bars { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem; }
+  .bar { background:var(--bg); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .bar h3 { margin:0; font-size:.82rem; padding:.5rem .8rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .bar h3 .tag { font-size:.68rem; font-family:var(--mono); padding:.1rem .4rem; border-radius:4px; }
+  .tag.bad { background:rgba(248,81,73,.15); color:var(--red); }
+  .tag.good { background:rgba(63,185,80,.15); color:var(--green); }
+  .titlebar { font-family:var(--mono); font-size:1.05rem; padding:1rem .8rem; display:flex; gap:.5rem; align-items:center; min-height:3.2rem; }
+  .titlebar .dot { width:9px; height:9px; border-radius:50%; background:var(--green); flex:none; }
+  .titlebar.changed { animation:flash .6s; }
+  @keyframes flash { from { background:rgba(210,153,34,.25);} to { background:transparent; } }
+  .meta { color:var(--muted); font-size:.74rem; font-family:var(--mono); padding:0 .8rem .7rem; }
+  .state { font-family:var(--mono); font-size:.82rem; color:var(--muted); margin-top:1rem; }
+  .state b { color:var(--fg); }
+  table { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:.6rem; }
+  th,td { text-align:left; padding:.4rem .5rem; border-bottom:1px solid var(--border); font-family:var(--mono); }
+  th { color:var(--muted); font-weight:600; }
+  .log { font-family:var(--mono); font-size:.78rem; max-height:160px; overflow:auto; }
+  .log div { padding:.15rem 0; border-bottom:1px solid rgba(48,54,61,.5); color:var(--muted); }
+  .log b { color:var(--fg); }
+  code { font-family:var(--mono); background:var(--bg); padding:.1rem .35rem; border-radius:4px; font-size:.85em; }
+  .foot { color:var(--muted); font-size:.8rem; text-align:center; margin-top:1.5rem; }
+  @media (max-width:640px){ .bars{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🪪 Session-Title Branch Pin</h1>
+  <p class="sub">Bug: the prompt-bar title was re-derived from the <b>live</b> git branch every turn. With multiple
+  Claude sessions sharing one working tree, another session's <code>git checkout</code> flips the branch under you —
+  so your title flip-flops and your <code>/rename</code> gets clobbered. The fix pins the title to the session's
+  <b>first-seen</b> branch. Simulate it below.</p>
+
+  <div class="card">
+    <label>Simulate events (a prompt is submitted after each)</label>
+    <div class="controls">
+      <button class="flip" onclick="flip()">⤳ Another session checks out a branch</button>
+      <button class="rename" onclick="rename()">✏️ You /rename → "my work"</button>
+      <button onclick="prompt_()">⏎ Submit a prompt (same branch)</button>
+      <button class="reset" onclick="reset()">↺ Reset</button>
+    </div>
+
+    <div class="bars">
+      <div class="bar">
+        <h3>Before <span class="tag bad">live branch</span></h3>
+        <div id="t-old" class="titlebar"><span class="dot"></span><span id="old-text">—</span></div>
+        <div class="meta" id="old-meta"></div>
+      </div>
+      <div class="bar">
+        <h3>After <span class="tag good">pinned branch</span></h3>
+        <div id="t-new" class="titlebar"><span class="dot"></span><span id="new-text">—</span></div>
+        <div class="meta" id="new-meta"></div>
+      </div>
+    </div>
+
+    <div class="state">
+      live branch: <b id="s-live">—</b> · pinned (session-branch.txt): <b id="s-pin">—</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Event log</label>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card">
+    <label>How each model decides whether to re-emit the title</label>
+    <table>
+      <thead><tr><th>turn input</th><th>Before → title source</th><th>After → title source</th></tr></thead>
+      <tbody>
+        <tr><td>buildSessionTitle(branch)</td><td>getCachedBranch() — live HEAD</td><td>getPinnedBranch() — first-seen</td></tr>
+        <tr><td>shouldEmitSessionTitle()</td><td>computed ≠ last → RE-EMIT</td><td>computed == last → stay silent</td></tr>
+      </tbody>
+    </table>
+    <p class="sub" style="margin:.8rem 0 0">The pin makes the computed title stable across thrash, so the delta-skip
+    keeps the bar silent and <code>/rename</code> survives. Trade-off: an in-session checkout by <i>this</i> session
+    won't refresh the title (fine for the recommended one-worktree-per-session setup).</p>
+  </div>
+
+  <p class="foot">OrchestKit · fix/session-title-branch-pin · interactive playground</p>
+</div>
+
+<script>
+  const DEFAULT = 'feature-auth';
+  let live, pinned, renamed, oldTitle, newTitle, turn;
+  const logEl = document.getElementById('log');
+
+  function log(msg){ const d=document.createElement('div'); d.innerHTML='<b>turn '+turn+':</b> '+msg; logEl.prepend(d); }
+
+  // Before: title always = live branch, re-asserted whenever it differs from last shown.
+  function stepOld(){
+    const computed = live;
+    if (computed !== oldTitle){ oldTitle = computed; return true; } // re-emit (clobbers rename)
+    return false;
+  }
+  // After: title = pinned branch; emit only when it changes from last shown.
+  function stepNew(){
+    if (pinned === null) pinned = live;       // first turn pins
+    const computed = pinned;
+    if (computed !== newTitle){ newTitle = computed; return true; }
+    return false;
+  }
+
+  function render(oldChanged,newChanged){
+    document.getElementById('old-text').textContent = oldTitle;
+    document.getElementById('new-text').textContent = newTitle;
+    document.getElementById('s-live').textContent = live;
+    document.getElementById('s-pin').textContent = pinned === null ? '(unset)' : pinned;
+    document.getElementById('old-meta').textContent = oldChanged ? 'sessionTitle RE-EMITTED → overwrites prompt bar' : 'silent (kept)';
+    document.getElementById('new-meta').textContent = newChanged ? 'sessionTitle emitted' : 'silent (kept) → /rename survives';
+    const to=document.getElementById('t-old'), tn=document.getElementById('t-new');
+    if(oldChanged){ to.classList.remove('changed'); void to.offsetWidth; to.classList.add('changed'); }
+    if(newChanged){ tn.classList.remove('changed'); void tn.offsetWidth; tn.classList.add('changed'); }
+  }
+
+  function turnTick(label){
+    turn++;
+    const o = stepOld();
+    const n = stepNew();
+    // A /rename only "shows" if the model stays silent that turn.
+    let note = [];
+    if (renamed && o) note.push('❌ Before clobbered your "'+renamed+'" → "'+oldTitle+'"');
+    if (renamed && !o) note.push('Before kept your rename');
+    log(label + (note.length? ' — '+note.join('; ') : ''));
+    render(o,n);
+  }
+
+  function flip(){ live = (live === DEFAULT) ? 'other-session/wip' : DEFAULT; turnTick('another session flipped working tree → '+live); }
+  function rename(){ renamed = 'my work'; oldTitle = renamed; newTitle = renamed; turn++; log('you ran <b>/rename "my work"</b>'); render(false,false); }
+  function prompt_(){ turnTick('you submitted a prompt (branch unchanged)'); }
+  function reset(){
+    live=DEFAULT; pinned=null; renamed=null; oldTitle=DEFAULT; newTitle=null; turn=0; logEl.innerHTML='';
+    stepNew(); // pin on first render
+    log('session start — branch '+DEFAULT); render(false,true);
+  }
+  reset();
+</script>
+</body>
+</html>
