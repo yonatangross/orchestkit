@@ -429,7 +429,7 @@ dimension_score > 8:   No action needed
 **Incorrect — Upgrading without evaluation causes production breakage:**
 ```bash
 # Just upgrade without assessment
-npm install @anthropic-ai/claude@latest
+npm install @anthropic-ai/claude-code@latest
 git commit -m "upgrade claude"
 # Production breaks: hardcoded model IDs, hook changes, context limits
 ```
