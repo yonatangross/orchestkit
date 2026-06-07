@@ -31,6 +31,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
+import { stashOriginal, buildPointer } from '../lib/headroom-store.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -42,6 +43,20 @@ import { NOOP_CTX } from '../lib/context.js';
  */
 const DEFAULT_TRUNCATION_THRESHOLD =
   Number(process.env.ORCHESTKIT_MCP_TRUNCATION_THRESHOLD) || 2000;
+
+/**
+ * #2264: when set, truncation is REVERSIBLE — the full (already-redacted)
+ * original is stashed to disk and the truncated result carries a `Read` pointer
+ * instead of discarding the middle. Default OFF until the #2266 eval gate proves
+ * answer-equivalence. Scoped to the same 2K–50K band as lossy truncation; the
+ * >50K CC-persist guard is untouched.
+ *
+ * Read at call time (not module load) so the flag can flip within a session and
+ * so tests can toggle it per-case.
+ */
+function headroomReversibleEnabled(): boolean {
+  return process.env.ORK_HEADROOM_REVERSIBLE === '1';
+}
 
 /**
  * CC 2.1.51+: results > 50K chars are normally persisted to disk (file ref).
@@ -75,6 +90,39 @@ const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
  * Requires at least 10 digits to avoid matching short numeric IDs.
  */
 const PHONE_RE = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
+
+// -----------------------------------------------------------------------------
+// Secret heuristics (#2264 finding #1 — gate the reversible stash, NOT redaction)
+// -----------------------------------------------------------------------------
+
+/**
+ * High-confidence secret shapes. Used ONLY to decide whether to stash the full
+ * original to disk in reversible mode — if any match, we skip the stash and fall
+ * back to lossy truncation so a token in the discarded middle never lands on disk.
+ *
+ * Deliberately narrow (distinctive prefixes / structures) to avoid false
+ * positives that would needlessly disable reversibility on benign output.
+ * `redactPII` is unchanged — this does not redact, it gates persistence.
+ */
+const SECRET_PATTERNS: readonly RegExp[] = [
+  /\bAKIA[0-9A-Z]{16}\b/,                                  // AWS access key id
+  /\bASIA[0-9A-Z]{16}\b/,                                  // AWS temp access key id
+  /\bsk-[A-Za-z0-9_-]{20,}\b/,                             // OpenAI / Anthropic-style
+  /\bgh[pousr]_[A-Za-z0-9]{36,}\b/,                        // GitHub PAT / OAuth / refresh
+  /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,                      // Slack token
+  /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/, // JWT
+  /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/,    // PEM private key
+  /\b(?:authorization|bearer)\b\s*[:=]?\s*[A-Za-z0-9._-]{20,}/i,    // Authorization: Bearer …
+];
+
+/**
+ * True if the text contains anything that looks like a credential. Conservative:
+ * a false negative (miss a weird secret) degrades to today's behaviour; a false
+ * positive only disables the disk stash for that one output (still truncated).
+ */
+export function looksSecretBearing(text: string): boolean {
+  return SECRET_PATTERNS.some((re) => re.test(text));
+}
 
 // -----------------------------------------------------------------------------
 // Hook Metadata
@@ -134,7 +182,7 @@ function extractMetaResultSize(output: unknown): number | null {
 /**
  * Truncate text preserving head and tail with a truncation notice.
  */
-function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean } {
+function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean; stashHash?: string } {
   const originalLength = text.length;
 
   if (originalLength <= DEFAULT_TRUNCATION_THRESHOLD) {
@@ -144,6 +192,26 @@ function truncateOutput(text: string): { text: string; originalLength: number; t
   const head = text.slice(0, HEAD_CHARS);
   const tail = text.slice(-TAIL_CHARS);
   const truncatedLength = HEAD_CHARS + TAIL_CHARS;
+
+  // #2264: reversible mode — stash the full (already-redacted) original and emit
+  // a `Read` pointer instead of discarding the middle. Best-effort: if the stash
+  // write throws (disk full, perms), fall through to lossy truncation rather than
+  // failing the hook — a result is always returned.
+  //
+  // Finding #1 (secret-at-rest): redactPII only covers email/phone. If the output
+  // carries a credential-shaped token, skip the stash and discard the middle the
+  // old (lossy) way — a token in the dropped middle must never be persisted to
+  // disk, even locally. The head/tail Claude sees is unchanged from today.
+  if (headroomReversibleEnabled() && !looksSecretBearing(text)) {
+    try {
+      const { hash, path } = stashOriginal(text);
+      const pointer = buildPointer({ originalLen: originalLength, keptLen: truncatedLength, path });
+      return { text: `${head}\n\n${pointer}\n\n${tail}`, originalLength, truncated: true, stashHash: hash };
+    } catch {
+      // fall through to lossy notice
+    }
+  }
+
   const notice = `\n\n[Result truncated from ${originalLength} chars to ${truncatedLength} chars for context efficiency]\n\n`;
 
   return {
@@ -238,6 +306,7 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
   let final: string;
   let originalLength: number;
   let truncated: boolean;
+  let stashHash: string | undefined;
 
   if (ccKeptLargeResult) {
     // CC decided this result needs to be large — respect that decision
@@ -245,7 +314,7 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
     originalLength = redacted.length;
     truncated = false;
   } else {
-    ({ text: final, originalLength, truncated } = truncateOutput(redacted));
+    ({ text: final, originalLength, truncated, stashHash } = truncateOutput(redacted));
   }
 
   // Skip if no transformation was applied
@@ -266,7 +335,8 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
 
   ctx.log(
     'mcp-output-transform',
-    `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions`,
+    `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions` +
+      (stashHash ? `, reversible stash ${stashHash}` : ''),
     truncated || redactionCount > 0 ? 'info' : 'debug',
   );
 

@@ -15,6 +15,7 @@ import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.j
 import { getMetricsFile } from '../lib/paths.js';
 import { getTotalTools } from '../lib/metrics.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { gcHeadroom } from '../lib/headroom-store.js';
 
 interface SessionEntry {
   sessionId: string;
@@ -285,6 +286,16 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const failureCountPath = join(home, '.claude', 'logs', 'ork', 'failure-count.json');
   try { if (existsSync(debugFlagPath)) unlinkSync(debugFlagPath); } catch { /* ok */ }
   try { if (existsSync(failureCountPath)) unlinkSync(failureCountPath); } catch { /* ok */ }
+
+  // #2264: evict expired reversible-compression stashes (TTL 7d). Best-effort —
+  // gcHeadroom swallows a missing dir + per-file errors, so a removed stash only
+  // degrades a stale pointer to today's head+tail behaviour, never a crash.
+  try {
+    const gc = gcHeadroom();
+    if (gc.removed > 0) {
+      ctx.log('session-cleanup', `Evicted ${gc.removed}/${gc.scanned} expired headroom stash(es)`);
+    }
+  } catch { /* never block cleanup on GC */ }
 
   // Clean up team directories if this session was a team lead
   const teamName = process.env.CLAUDE_CODE_TEAM_NAME;

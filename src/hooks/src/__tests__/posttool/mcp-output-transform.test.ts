@@ -6,7 +6,10 @@
  * Issue #1240: MCP result truncation + PII redaction
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
@@ -17,7 +20,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn(),
 }));
 
-import { mcpOutputTransform } from '../../posttool/mcp-output-transform.js';
+import { mcpOutputTransform, looksSecretBearing } from '../../posttool/mcp-output-transform.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -190,6 +193,139 @@ describe('posttool/mcp-output-transform', () => {
       const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
       expect(output).toContain('5000 chars');
       expect(output).toContain('1800 chars');
+    });
+  });
+
+  // ===========================================================================
+  // Reversible mode (#2264) — ORK_HEADROOM_REVERSIBLE
+  // ===========================================================================
+
+  describe('reversible mode (#2264)', () => {
+    let tmpHome: string;
+    let prevHome: string | undefined;
+
+    beforeEach(() => {
+      tmpHome = mkdtempSync(join(tmpdir(), 'mcp-rev-'));
+      prevHome = process.env.HOME;
+      process.env.HOME = tmpHome;             // headroom-store stashes under $HOME/.claude/state
+      process.env.ORK_HEADROOM_REVERSIBLE = '1';
+    });
+
+    afterEach(() => {
+      delete process.env.ORK_HEADROOM_REVERSIBLE;
+      if (prevHome === undefined) delete process.env.HOME; else process.env.HOME = prevHome;
+      try { rmSync(tmpHome, { recursive: true, force: true }); } catch { /* best-effort */ }
+    });
+
+    const headroomDir = () => join(tmpHome, '.claude', 'state', 'orchestkit', 'headroom');
+
+    test('emits a Read pointer instead of the lossy notice', () => {
+      const longOutput = 'A'.repeat(12000);
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      expect(output).toContain('Full output: Read ');
+      expect(output).toContain('.txt');
+      expect(output).toContain('chars between');
+      expect(output).not.toContain('[Result truncated'); // NOT the lossy notice
+      expect(output.length).toBeLessThan(longOutput.length);
+    });
+
+    test('stashes the full original to a content-addressed file', () => {
+      const longOutput = `HEAD${'B'.repeat(11992)}TAIL`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1);
+      expect(existsSync(join(headroomDir(), files[0]))).toBe(true);
+    });
+
+    test('identical outputs dedup to one stash file', () => {
+      const longOutput = 'C'.repeat(9000);
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1); // dedup — second call skip-writes
+    });
+
+    test('flag OFF falls back to the lossy notice and writes nothing', () => {
+      delete process.env.ORK_HEADROOM_REVERSIBLE;
+      const longOutput = 'D'.repeat(12000);
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      expect(output).toContain('[Result truncated');
+      expect(output).not.toContain('Full output: Read ');
+      expect(existsSync(headroomDir())).toBe(false); // no stash dir created
+    });
+
+    test('does not stash PII — only the redacted text reaches disk', () => {
+      // Email sits in the kept head so we can assert redaction end-to-end.
+      const longOutput = `contact me at alice@example.com then ${'E'.repeat(12000)}`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      const stashed = readFileSync(join(headroomDir(), files[0]), 'utf8');
+      expect(stashed).toContain('[REDACTED_EMAIL]');
+      expect(stashed).not.toContain('alice@example.com');
+    });
+
+    test('>50K result is untouched (CC-persist guard wins over reversible)', () => {
+      const huge = 'F'.repeat(60000);
+      const result = mcpOutputTransform(createInput({ tool_output: huge }), testCtx);
+      // Guard short-circuits truncation entirely — no pointer, no stash.
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput;
+      if (typeof output === 'string') expect(output).not.toContain('Full output: Read ');
+      expect(existsSync(headroomDir())).toBe(false);
+    });
+
+    test('secret-bearing output is NOT stashed — falls back to lossy (finding #1)', () => {
+      // A fake token sits in the MIDDLE (the part the stash would persist).
+      const secret = 'AKIAIOSFODNN7EXAMPLE';
+      const longOutput = `${'G'.repeat(6000)} ${secret} ${'H'.repeat(6000)}`;
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      // No stash written, no pointer — degraded to the lossy notice.
+      expect(existsSync(headroomDir())).toBe(false);
+      expect(output).toContain('[Result truncated');
+      expect(output).not.toContain('Full output: Read ');
+      // And the token (in the discarded middle) is gone, not on disk.
+      expect(output).not.toContain(secret);
+    });
+
+    test('benign output with token-ish-but-not words still stashes', () => {
+      // "skipper", "ghost" etc. must not trip the narrow secret patterns.
+      const longOutput = `the skipper saw a ghost in ${'J'.repeat(12000)}`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1); // not a false positive — stash happened
+    });
+  });
+
+  // ===========================================================================
+  // looksSecretBearing unit (finding #1)
+  // ===========================================================================
+
+  describe('looksSecretBearing (#2264 finding #1)', () => {
+    test.each([
+      ['AWS key', 'prefix AKIAIOSFODNN7EXAMPLE suffix'],
+      ['OpenAI-style', 'token sk-abcdefABCDEF0123456789xyz here'],
+      ['GitHub PAT', 'ghp_0123456789abcdefABCDEF0123456789abcdef'],
+      ['JWT', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'],
+      ['PEM key', '-----BEGIN RSA PRIVATE KEY-----'],
+      ['Authorization', 'Authorization: Bearer abcdef0123456789ghij'],
+    ])('flags %s', (_label, text) => {
+      expect(looksSecretBearing(text)).toBe(true);
+    });
+
+    test.each([
+      ['plain prose', 'the quick brown fox jumps over the lazy dog'],
+      ['short hex id', 'commit a1b2c3d'],
+      ['code identifier', 'const skipper = getGhostList();'],
+    ])('does NOT flag %s', (_label, text) => {
+      expect(looksSecretBearing(text)).toBe(false);
     });
   });
 

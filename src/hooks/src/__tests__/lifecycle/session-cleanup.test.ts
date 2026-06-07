@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
@@ -440,6 +440,57 @@ describe('session-cleanup', () => {
 
       // Assert
       expect(result.suppressOutput).toBe(true);
+    });
+  });
+
+  // ===========================================================================
+  // Headroom stash GC (#2264)
+  // ===========================================================================
+
+  describe('headroom stash GC (#2264)', () => {
+    let tmpHome: string;
+    let prevHome: string | undefined;
+
+    beforeEach(() => {
+      tmpHome = mkdtempSync(join(tmpdir(), 'cleanup-hr-'));
+      prevHome = process.env.HOME;
+      process.env.HOME = tmpHome;
+    });
+
+    afterEach(() => {
+      if (prevHome === undefined) delete process.env.HOME; else process.env.HOME = prevHome;
+      try { rmSync(tmpHome, { recursive: true, force: true }); } catch { /* best-effort */ }
+    });
+
+    const headroomDir = () => join(tmpHome, '.claude', 'state', 'orchestkit', 'headroom');
+
+    test('evicts a stash file older than the TTL', () => {
+      const dir = headroomDir();
+      mkdirSync(dir, { recursive: true });
+      const stale = join(dir, 'deadbeef0001.txt');
+      writeFileSync(stale, 'stale original output');
+      // Age it 8 days past the 7d TTL.
+      const eightDaysAgoSec = Math.floor((Date.now() - 8 * 24 * 60 * 60 * 1000) / 1000);
+      utimesSync(stale, eightDaysAgoSec, eightDaysAgoSec);
+
+      sessionCleanup(createHookInput());
+
+      expect(existsSync(stale)).toBe(false);
+    });
+
+    test('keeps a fresh stash file', () => {
+      const dir = headroomDir();
+      mkdirSync(dir, { recursive: true });
+      const fresh = join(dir, 'cafebabe0002.txt');
+      writeFileSync(fresh, 'fresh original output');
+
+      sessionCleanup(createHookInput());
+
+      expect(existsSync(fresh)).toBe(true);
+    });
+
+    test('no headroom dir is a no-op (does not throw)', () => {
+      expect(() => sessionCleanup(createHookInput())).not.toThrow();
     });
   });
 });
