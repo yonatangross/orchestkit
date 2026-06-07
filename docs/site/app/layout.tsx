@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { AgentationWrapper } from "@/components/agentation-wrapper";
+import CustomSearchDialog from "@/components/search-dialog";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { BANNER_TEXT, COUNTS, SITE } from "@/lib/constants";
 
@@ -48,7 +49,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 					Skip to main content
 				</a>
 				<Banner id={`v${SITE.version}`}>{BANNER_TEXT}</Banner>
-				<RootProvider>
+				<RootProvider search={{ SearchDialog: CustomSearchDialog }}>
 					<div id="main-content">{children}</div>
 				</RootProvider>
 				<HQAnalytics projectId="orchestkit" />
