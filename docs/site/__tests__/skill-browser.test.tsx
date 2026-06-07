@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, within, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import { SkillBrowser } from "@/components/skill-browser";
 
 // ── Mock generated skills data ──────────────────────────────
@@ -87,124 +93,106 @@ vi.mock("@/lib/generated/skills-data", () => {
 
 vi.mock("@/lib/generated/types", () => ({}));
 
+// Wait for the async Orama collection to report the given visible count.
+function expectCount(n: number) {
+  return waitFor(() =>
+    expect(screen.getByRole("status")).toHaveTextContent(
+      new RegExp(`Showing\\s*${n}\\s*of 5 skills`),
+    ),
+  );
+}
+
+const PLACEHOLDER = "Search skills by name, description, or tag...";
+
 describe("SkillBrowser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders skill count header", () => {
+  it("renders skill count header once the index is ready", async () => {
     render(<SkillBrowser />);
-    expect(screen.getByRole("status")).toHaveTextContent("Showing");
-    expect(screen.getByRole("status")).toHaveTextContent("5");
-    expect(screen.getByRole("status")).toHaveTextContent("of 5 skills");
+    await expectCount(5);
   });
 
-  it("renders all skill cards", () => {
+  it("renders all skill cards", async () => {
     render(<SkillBrowser />);
-    expect(screen.getByText("implement")).toBeInTheDocument();
+    expect(await screen.findByText("implement")).toBeInTheDocument();
     expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
-    expect(screen.getByText("react-server-components-framework")).toBeInTheDocument();
+    expect(
+      screen.getByText("react-server-components-framework"),
+    ).toBeInTheDocument();
     expect(screen.getByText("owasp-top-10")).toBeInTheDocument();
     expect(screen.getByText("e2e-testing")).toBeInTheDocument();
   });
 
   it("renders search input with placeholder", () => {
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-    expect(searchInput).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(PLACEHOLDER)).toBeInTheDocument();
   });
 
   it("filters skills by search query on name", async () => {
-    vi.useFakeTimers();
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-
-    fireEvent.change(searchInput, { target: { value: "fastapi" } });
-    await act(() => vi.advanceTimersByTime(200));
-
-    expect(screen.getByRole("status")).toHaveTextContent("1");
-    // Highlight component splits text into spans, so use substring matcher
-    expect(screen.getByText((_, el) => el?.textContent === "fastapi-advanced")).toBeInTheDocument();
-    vi.useRealTimers();
+    await expectCount(5);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "fastapi" },
+    });
+    await expectCount(1);
+    // Highlight splits text into spans, so use a textContent matcher.
+    expect(
+      screen.getByText((_, el) => el?.textContent === "fastapi-advanced"),
+    ).toBeInTheDocument();
   });
 
   it("filters skills by search query on description", async () => {
-    vi.useFakeTimers();
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-
-    fireEvent.change(searchInput, { target: { value: "Playwright" } });
-    await act(() => vi.advanceTimersByTime(200));
-
-    expect(screen.getByRole("status")).toHaveTextContent("1");
+    await expectCount(5);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "Playwright" },
+    });
+    await expectCount(1);
     expect(screen.getByText("e2e-testing")).toBeInTheDocument();
-    vi.useRealTimers();
   });
 
   it("filters skills by search query on tags", async () => {
-    vi.useFakeTimers();
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-
-    fireEvent.change(searchInput, { target: { value: "owasp" } });
-    await act(() => vi.advanceTimersByTime(200));
-
-    expect(screen.getByRole("status")).toHaveTextContent("1");
-    // Highlight component splits text into spans, so use substring matcher
-    expect(screen.getByText((_, el) => el?.textContent === "owasp-top-10")).toBeInTheDocument();
-    vi.useRealTimers();
+    await expectCount(5);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "owasp" },
+    });
+    await expectCount(1);
+    expect(
+      screen.getByText((_, el) => el?.textContent === "owasp-top-10"),
+    ).toBeInTheDocument();
   });
 
   it("shows clear search button when search is active", () => {
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
+    const searchInput = screen.getByPlaceholderText(PLACEHOLDER);
 
-    // No clear button initially
     expect(screen.queryByLabelText("Clear search")).not.toBeInTheDocument();
 
     fireEvent.change(searchInput, { target: { value: "test" } });
     expect(screen.getByLabelText("Clear search")).toBeInTheDocument();
 
-    // Click clear
     fireEvent.click(screen.getByLabelText("Clear search"));
     expect(searchInput).toHaveValue("");
   });
 
   it("displays empty state when no skills match", async () => {
-    vi.useFakeTimers();
     render(<SkillBrowser />);
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-
-    fireEvent.change(searchInput, {
+    await expectCount(5);
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
       target: { value: "nonexistent-skill-xyz" },
     });
-    await act(() => vi.advanceTimersByTime(200));
 
-    // Empty state now shows the query text
-    expect(screen.getByText(/No skills match/)).toBeInTheDocument();
+    expect(await screen.findByText(/No skills match/)).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Try broadening your search or removing some filters.",
-      ),
+      screen.getByText("Try broadening your search or removing some filters."),
     ).toBeInTheDocument();
-    vi.useRealTimers();
   });
 
   it("renders category filter pills", () => {
     render(<SkillBrowser />);
-    // Category pills are inside a fieldset with legend "Category"
     const fieldset = screen.getByRole("group", { name: /category/i });
     expect(within(fieldset).getByText("Development")).toBeInTheDocument();
     expect(within(fieldset).getByText("Backend")).toBeInTheDocument();
@@ -213,29 +201,28 @@ describe("SkillBrowser", () => {
     expect(within(fieldset).getByText("Testing")).toBeInTheDocument();
   });
 
-  it("filters by category when pill is clicked", () => {
+  it("filters by category when pill is clicked", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    // Click Security category pill (inside the fieldset)
     const fieldset = screen.getByRole("group", { name: /category/i });
     fireEvent.click(within(fieldset).getByText("Security"));
 
-    expect(screen.getByRole("status")).toHaveTextContent("1");
+    await expectCount(1);
     expect(screen.getByText("owasp-top-10")).toBeInTheDocument();
   });
 
-  it("toggles category filter off when clicked again", () => {
+  it("toggles category filter off when clicked again", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
     const fieldset = screen.getByRole("group", { name: /category/i });
 
-    // Click Security category on
     fireEvent.click(within(fieldset).getByText("Security"));
-    expect(screen.getByRole("status")).toHaveTextContent("1");
+    await expectCount(1);
 
-    // Click again to deselect
     fireEvent.click(within(fieldset).getByText("Security"));
-    expect(screen.getByRole("status")).toHaveTextContent("5");
+    await expectCount(5);
   });
 
   it("renders plugin filter group with All, ork buttons", () => {
@@ -243,46 +230,47 @@ describe("SkillBrowser", () => {
     const group = screen.getByRole("group", { name: "Filter by plugin" });
     expect(group).toBeInTheDocument();
 
-    // All is active by default
     const allBtn = screen.getByRole("button", { name: "All" });
     expect(allBtn).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("filters by plugin when ork button is clicked", () => {
+  it("filters by plugin when ork button is clicked", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    // Click ork filter — all skills are in ork (v7 unified plugin)
-    const orkBtn = screen.getByRole("button", { name: "ork" });
-    fireEvent.click(orkBtn);
+    fireEvent.click(screen.getByRole("button", { name: "ork" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("5");
+    // All five mock skills belong to ork (v7 unified plugin).
+    await expectCount(5);
     expect(screen.getByText("implement")).toBeInTheDocument();
     expect(screen.getByText("e2e-testing")).toBeInTheDocument();
     expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
   });
 
-  it("shows Command badge for user-invocable skills", () => {
+  it("shows Command badge for user-invocable skills", async () => {
     render(<SkillBrowser />);
+    await screen.findByText("implement");
     // implement is userInvocable: true
     const commandBadges = screen.getAllByText("Command");
     expect(commandBadges.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("expands skill card on click and shows detail panel", () => {
+  it("expands skill card on click and shows detail panel", async () => {
     render(<SkillBrowser />);
-
-    // Find the implement card's button
-    const cardButton = screen.getByRole("button", { name: /implement/i });
+    const cardButton = await screen.findByRole("button", {
+      name: /implement/i,
+    });
     expect(cardButton).toHaveAttribute("aria-expanded", "false");
 
     fireEvent.click(cardButton);
     expect(cardButton).toHaveAttribute("aria-expanded", "true");
   });
 
-  it("collapses expanded card when clicked again", () => {
+  it("collapses expanded card when clicked again", async () => {
     render(<SkillBrowser />);
-
-    const cardButton = screen.getByRole("button", { name: /implement/i });
+    const cardButton = await screen.findByRole("button", {
+      name: /implement/i,
+    });
     fireEvent.click(cardButton); // expand
     expect(cardButton).toHaveAttribute("aria-expanded", "true");
 
@@ -290,74 +278,68 @@ describe("SkillBrowser", () => {
     expect(cardButton).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("shows Clear all button when any filter is active", () => {
+  it("shows Clear all button when any filter is active", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    // No clear all initially
-    expect(screen.queryByLabelText("Clear all filters")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Clear all filters"),
+    ).not.toBeInTheDocument();
 
-    // Apply category filter (scope to fieldset)
     const fieldset = screen.getByRole("group", { name: /category/i });
     fireEvent.click(within(fieldset).getByText("Backend"));
     expect(screen.getByLabelText("Clear all filters")).toBeInTheDocument();
   });
 
-  it("clears all filters when Clear all is clicked", () => {
+  it("clears all filters when Clear all is clicked", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    // Apply search + category
-    const searchInput = screen.getByPlaceholderText(
-      "Search skills by name, description, or tag...",
-    );
-    fireEvent.change(searchInput, { target: { value: "api" } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "api" },
+    });
     const fieldset = screen.getByRole("group", { name: /category/i });
     fireEvent.click(within(fieldset).getByText("Backend"));
 
-    // Click clear all
     fireEvent.click(screen.getByLabelText("Clear all filters"));
 
-    expect(searchInput).toHaveValue("");
-    expect(screen.getByRole("status")).toHaveTextContent("5");
+    expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveValue("");
+    await expectCount(5);
   });
 
   it("clears filters from empty state button", async () => {
-    vi.useFakeTimers();
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        "Search skills by name, description, or tag...",
-      ),
-      { target: { value: "nonexistent-xyz" } },
-    );
-    await act(() => vi.advanceTimersByTime(200));
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "nonexistent-xyz" },
+    });
 
-    expect(screen.getByText(/No skills match/)).toBeInTheDocument();
+    expect(await screen.findByText(/No skills match/)).toBeInTheDocument();
 
-    // In empty state, there's only one "Clear all filters" button visible
-    const buttons = screen.getAllByRole("button", { name: /clear all filters/i });
+    const buttons = screen.getAllByRole("button", {
+      name: /clear all filters/i,
+    });
     fireEvent.click(buttons[buttons.length - 1]);
-    await act(() => vi.advanceTimersByTime(200));
 
-    expect(screen.getByRole("status")).toHaveTextContent("5");
-    vi.useRealTimers();
+    await expectCount(5);
   });
 
-  it("combines search + category + plugin filters", () => {
+  it("combines search + category + plugin filters", async () => {
     render(<SkillBrowser />);
+    await expectCount(5);
 
-    // Filter to ork only
     fireEvent.click(screen.getByRole("button", { name: "ork" }));
 
-    // Then search for "api"
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        "Search skills by name, description, or tag...",
-      ),
-      { target: { value: "api" } },
-    );
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "api" },
+    });
 
-    // Should show fastapi-advanced (ork, backend/api tag)
-    expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
+    // fastapi-advanced (ork, backend/api tag) should survive.
+    expect(
+      await screen.findByText(
+        (_, el) => el?.textContent === "fastapi-advanced",
+      ),
+    ).toBeInTheDocument();
   });
 });

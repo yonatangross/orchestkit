@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
-import type { FuseResultMatch } from "fuse.js";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { CATEGORY_COLORS } from "@/lib/category-colors";
-import { useFuzzySearch } from "@/hooks/use-fuzzy-search";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { SKILL_SEARCH_OPTIONS, createRelaxedSearch } from "@/lib/search";
+import { createCollection, useOramaCollection } from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
 
 // ── Category visual metadata ────────────────────────────────
@@ -193,6 +191,31 @@ const ALL_SKILLS: SkillEntry[] = Object.entries(SKILLS).map(([key, skill]) => ({
 
 const ALL_CATEGORY_KEYS = Object.keys(SKILL_CATEGORY_META);
 
+// ── Orama collection (built once, client-side) ──────────────
+const SKILL_COLLECTION = createCollection<SkillEntry>(ALL_SKILLS, {
+  id: (e) => e.key,
+  schema: {
+    name: "string",
+    description: "string",
+    tags: "string[]",
+    category: "enum",
+    // Scalar enum (not enum[]): the read-only orama-browser `where` emits
+    // `{in:[...]}`, which Orama only supports on scalar enum / number fields —
+    // an `enum[]` field would need `containsAny`, which the API can't produce.
+    // Skills carry a single plugin (v7 unified "ork"), so scalar is lossless.
+    plugins: "enum",
+  },
+  toDoc: (e) => ({
+    name: e.skill.name,
+    description: e.skill.description,
+    tags: e.skill.tags,
+    category: e.category,
+    plugins: e.skill.plugins[0] ?? "ork",
+  }),
+  boost: { name: 3, tags: 1.5, description: 1.5 },
+  facetField: "category",
+});
+
 // ── Main component ──────────────────────────────────────────
 export function SkillBrowser() {
   const [search, setSearch] = useState("");
@@ -200,32 +223,18 @@ export function SkillBrowser() {
   const [pluginFilter, setPluginFilter] = useState<PluginFilter>("all");
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
-  // Fuzzy search
+  // Orama-backed search + faceted filtering (BM25 ranking, 1-char typo
+  // tolerance, native facet counts — all in one query).
   const debouncedSearch = useDebouncedValue(search, 150);
-  const searchResults = useFuzzySearch(ALL_SKILLS, debouncedSearch, SKILL_SEARCH_OPTIONS);
-
-  // Apply category + plugin filters on top of search results
-  const filtered = useMemo(() => {
-    return searchResults.filter(({ item: entry }) => {
-      if (
-        selectedCategories.length > 0 &&
-        !selectedCategories.includes(entry.category)
-      ) {
-        return false;
-      }
-      if (pluginFilter !== "all") {
-        if (!entry.skill.plugins.includes(pluginFilter)) return false;
-      }
-      return true;
-    });
-  }, [searchResults, selectedCategories, pluginFilter]);
-
-  // "Did you mean?" suggestions when no results
-  const suggestions = useMemo(() => {
-    if (filtered.length > 0 || !debouncedSearch) return [];
-    const relaxed = createRelaxedSearch(ALL_SKILLS, SKILL_SEARCH_OPTIONS);
-    return relaxed(debouncedSearch, 3);
-  }, [filtered.length, debouncedSearch]);
+  const { result, ready } = useOramaCollection<SkillEntry>(SKILL_COLLECTION, {
+    term: debouncedSearch,
+    where: {
+      category: selectedCategories,
+      plugins: pluginFilter === "all" ? [] : [pluginFilter],
+    },
+  });
+  const filtered = result.items;
+  const suggestions = result.suggestions;
 
   const toggleCategory = useCallback((cat: string) => {
     setSelectedCategories((prev) =>
@@ -253,11 +262,17 @@ export function SkillBrowser() {
           role="status"
           aria-live="polite"
         >
-          Showing{" "}
-          <span className="font-semibold tabular-nums text-fd-foreground">
-            {filtered.length}
-          </span>{" "}
-          of {ALL_SKILLS.length} skills
+          {ready ? (
+            <>
+              Showing{" "}
+              <span className="font-semibold tabular-nums text-fd-foreground">
+                {filtered.length}
+              </span>{" "}
+              of {ALL_SKILLS.length} skills
+            </>
+          ) : (
+            "Loading skills…"
+          )}
         </p>
         <div
           className="inline-flex rounded-lg border border-fd-border p-0.5"
@@ -353,7 +368,14 @@ export function SkillBrowser() {
       </fieldset>
 
       {/* Skill grid or empty state */}
-      {filtered.length === 0 ? (
+      {!ready ? (
+        <div
+          className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center text-sm text-fd-muted-foreground"
+          aria-busy="true"
+        >
+          Loading skills…
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
           <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
           <p className="text-sm font-medium text-fd-foreground">
@@ -393,11 +415,11 @@ export function SkillBrowser() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(({ item: entry, matches }) => (
+          {filtered.map((entry) => (
             <SkillCard
               key={entry.key}
               entry={entry}
-              matches={matches}
+              query={debouncedSearch}
               expanded={expandedSkill === entry.key}
               onToggle={() =>
                 setExpandedSkill(
@@ -415,12 +437,12 @@ export function SkillBrowser() {
 // ── Skill Card ──────────────────────────────────────────────
 function SkillCard({
   entry,
-  matches,
+  query,
   expanded,
   onToggle,
 }: {
   entry: SkillEntry;
-  matches: readonly FuseResultMatch[] | undefined;
+  query: string;
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -451,8 +473,7 @@ function SkillCard({
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <Highlight
               text={skill.name}
-              matches={matches}
-              fieldKey="skill.name"
+              query={query}
               className="text-sm font-semibold text-fd-foreground"
             />
             <span
@@ -468,8 +489,7 @@ function SkillCard({
           </div>
           <Highlight
             text={skill.description}
-            matches={matches}
-            fieldKey="skill.description"
+            query={query}
             className="line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground"
           />
         </div>
