@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.23.1](https://github.com/yonatangross/orchestkit/compare/v8.23.0...v8.23.1) (2026-06-06)
+
+
+### CI/CD
+
+* exempt ci/ config branches from the PR playground gate ([#2262](https://github.com/yonatangross/orchestkit/issues/2262)) ([797bf61](https://github.com/yonatangross/orchestkit/commit/797bf617c031fc53fd4c05ed45a69d817d9608a5))
+* **vercel:** production-only ignoreCommand — no preview deploys ([#2261](https://github.com/yonatangross/orchestkit/issues/2261)) ([fb9b04a](https://github.com/yonatangross/orchestkit/commit/fb9b04a83b1484cb3184d925546eb1abf71a501c))
+
 ## [8.23.0](https://github.com/yonatangross/orchestkit/compare/v8.22.0...v8.23.0) (2026-06-06)
 
 
