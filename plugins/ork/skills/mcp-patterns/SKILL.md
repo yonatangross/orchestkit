@@ -161,6 +161,8 @@ Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`) �
 
 > **CC 2.1.133 — MCP OAuth honors HTTP(S)_PROXY / NO_PROXY / mTLS**: the full MCP OAuth flow (discovery, dynamic client registration, token exchange, token refresh) now respects standard proxy and client-certificate env vars end-to-end. Enterprise deployments behind corporate proxies no longer need OAuth-specific workarounds — the same `HTTPS_PROXY` / `NO_PROXY` / `NODE_EXTRA_CA_CERTS` config that already routes MCP transport now also routes auth. See `configure/references/cc-version-settings.md` (CC 2.1.133 section) for the env-var example. The companion deployment skill `building-mcp-server-on-cloudflare` can drop any prior "proxy-aware OAuth requires manual handling" caveat at this floor.
 
+> **CC 2.1.163 — stdio servers get `CLAUDE_CODE_SESSION_ID`:** on `--resume`, stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` env var that hooks and Bash already get. Read it inside the server to correlate logs/telemetry across resumed sessions instead of minting your own session key — but never store auth tokens keyed off it (see Common Mistake #7).
+
 ## Example
 
 ```python

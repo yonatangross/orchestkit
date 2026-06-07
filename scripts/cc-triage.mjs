@@ -318,6 +318,28 @@ function parseSnapshotBullets(snapshotText) {
     .filter(Boolean);
 }
 
+// #2267: capability-introducing language. A snapshot whose bullets contain NONE
+// of these is a pure bugfix/internal rollup (e.g. "Bug fixes and reliability
+// improvements", "Internal infrastructure improvements", a lone "Fixed …" line)
+// for which the LLM correctly extracts `[]`. Such versions are FEATURELESS, not
+// failures — runExtraction graduates them without an LLM call instead of
+// sentineling them as `parse_failed` (the overload that left 2.1.156/159/165/167
+// stuck and re-filed dup "manual triage" issues #2203/#2227/#2254).
+//
+// Conservative on purpose: anything ambiguous (a fix phrased "… now matches …")
+// still matches a hint, so it routes to the LLM, returns `[]`, and sentinels per
+// the existing M134 empty-array guard (integration Test 7). We never graduate a
+// snapshot as featureless on a maybe — at worst a rare ambiguous fix stays on the
+// retry path (status quo), never the reverse.
+const FEATURE_HINT_RE =
+  /\b(add(?:ed|s)?|new|introduc\w*|you can now|can now|now \w+s|support(?:s|ed)?|enabl\w*|deprecat\w*)\b/i;
+
+// #2267: true when a snapshot describes no adoptable surface (no bullet matches
+// FEATURE_HINT_RE). Empty bullet list also counts as featureless.
+function isFeaturelessSnapshot(bullets) {
+  return !bullets.some((b) => FEATURE_HINT_RE.test(b));
+}
+
 // Normalization for MATCHING only (not the dedup hash — that stays in the shell
 // normalize_ref). Lowercase, drop a leading bullet, strip md emphasis, collapse
 // whitespace. Aggressive on purpose so a reworded ref still lands on its bullet.
@@ -510,12 +532,6 @@ function runExtraction(gaps, retryFailed) {
 
   for (const entry of gaps) {
     if (entry.features?.length > 0) continue;
-    if (entry.parse_failed && !retryFailed) continue;
-    if (entry.parse_failed && retryFailed) {
-      console.log(`cc-triage: clearing sentinel on ${entry.version} for retry`);
-      delete entry.parse_failed;
-      delete entry.failed_at;
-    }
 
     // W1h (#1739): skip the LLM call entirely for versions below the supported
     // floor. cc-release-watch.mjs intentionally surfaces ALL unsnapshotted
@@ -526,7 +542,8 @@ function runExtraction(gaps, retryFailed) {
     // (`select(.gap_score >= 10)`) already naturally skips entries with empty
     // features[], so no workflow change is needed for issue filing. The
     // sentinel is distinct from `parse_failed` (skipping is not failure), and
-    // takes precedence over the per-version LLM call below.
+    // takes precedence over the per-version LLM call below. Checked first so an
+    // ancient version never reaches the snapshot read or the LLM.
     if (supportedFloor && compareSemver(entry.version, supportedFloor) < 0) {
       entry.below_floor = true;
       // Ensure features is a deterministic empty array (it normally already is).
@@ -542,6 +559,38 @@ function runExtraction(gaps, retryFailed) {
       continue;
     }
     const snapText = readFileSync(snapPath, 'utf8');
+    const bullets = parseSnapshotBullets(snapText);
+
+    // #2267: featureless short-circuit. A snapshot with no capability-introducing
+    // bullet legitimately extracts to `[]`, so graduate it (`featureless: true`)
+    // without burning an LLM token — instead of sentineling it as `parse_failed`.
+    // Placed BEFORE the parse_failed skip so the four already-stuck sentinels
+    // (2.1.156/159/165/167) self-heal on the next normal run, not only under
+    // --retry-failed. Reserves the empty-array FAILURE path (callClaude → null →
+    // sentinel) for `[]` returned on a snapshot that DOES describe new surface —
+    // the M134 burp that integration Test 7 guards.
+    if (isFeaturelessSnapshot(bullets)) {
+      entry.features = [];
+      entry.featureless = true;
+      if (entry.parse_failed) {
+        delete entry.parse_failed;
+        delete entry.failed_at;
+      }
+      console.log(
+        `cc-triage: ${entry.version} — featureless snapshot (no capability bullets), graduating without LLM.`,
+      );
+      updated++;
+      continue;
+    }
+
+    // Capability-bearing snapshot → needs the LLM. Respect the sentinel skip
+    // unless --retry-failed (a genuine extraction failure stays parked here).
+    if (entry.parse_failed && !retryFailed) continue;
+    if (entry.parse_failed && retryFailed) {
+      console.log(`cc-triage: clearing sentinel on ${entry.version} for retry`);
+      delete entry.parse_failed;
+      delete entry.failed_at;
+    }
 
     console.log(`cc-triage: extracting features from ${entry.version}...`);
     const prompt = buildPrompt(entry.version, snapText, skillsCatalog);
@@ -552,7 +601,7 @@ function runExtraction(gaps, retryFailed) {
       entry.failed_at = new Date().toISOString();
       console.error(`cc-triage: ${entry.version} — both attempts failed; sentinel written.`);
     } else {
-      entry.features = validateAndScore(result, parseSnapshotBullets(snapText));
+      entry.features = validateAndScore(result, bullets);
       console.log(`cc-triage: ${entry.version} — extracted ${entry.features.length} feature(s).`);
     }
     updated++;

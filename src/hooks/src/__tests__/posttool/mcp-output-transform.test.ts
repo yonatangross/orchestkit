@@ -20,7 +20,7 @@ vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn(),
 }));
 
-import { mcpOutputTransform } from '../../posttool/mcp-output-transform.js';
+import { mcpOutputTransform, looksSecretBearing } from '../../posttool/mcp-output-transform.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -278,6 +278,54 @@ describe('posttool/mcp-output-transform', () => {
       const output = result.hookSpecificOutput?.updatedMCPToolOutput;
       if (typeof output === 'string') expect(output).not.toContain('Full output: Read ');
       expect(existsSync(headroomDir())).toBe(false);
+    });
+
+    test('secret-bearing output is NOT stashed — falls back to lossy (finding #1)', () => {
+      // A fake token sits in the MIDDLE (the part the stash would persist).
+      const secret = 'AKIAIOSFODNN7EXAMPLE';
+      const longOutput = `${'G'.repeat(6000)} ${secret} ${'H'.repeat(6000)}`;
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      // No stash written, no pointer — degraded to the lossy notice.
+      expect(existsSync(headroomDir())).toBe(false);
+      expect(output).toContain('[Result truncated');
+      expect(output).not.toContain('Full output: Read ');
+      // And the token (in the discarded middle) is gone, not on disk.
+      expect(output).not.toContain(secret);
+    });
+
+    test('benign output with token-ish-but-not words still stashes', () => {
+      // "skipper", "ghost" etc. must not trip the narrow secret patterns.
+      const longOutput = `the skipper saw a ghost in ${'J'.repeat(12000)}`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1); // not a false positive — stash happened
+    });
+  });
+
+  // ===========================================================================
+  // looksSecretBearing unit (finding #1)
+  // ===========================================================================
+
+  describe('looksSecretBearing (#2264 finding #1)', () => {
+    test.each([
+      ['AWS key', 'prefix AKIAIOSFODNN7EXAMPLE suffix'],
+      ['OpenAI-style', 'token sk-abcdefABCDEF0123456789xyz here'],
+      ['GitHub PAT', 'ghp_0123456789abcdefABCDEF0123456789abcdef'],
+      ['JWT', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'],
+      ['PEM key', '-----BEGIN RSA PRIVATE KEY-----'],
+      ['Authorization', 'Authorization: Bearer abcdef0123456789ghij'],
+    ])('flags %s', (_label, text) => {
+      expect(looksSecretBearing(text)).toBe(true);
+    });
+
+    test.each([
+      ['plain prose', 'the quick brown fox jumps over the lazy dog'],
+      ['short hex id', 'commit a1b2c3d'],
+      ['code identifier', 'const skipper = getGhostList();'],
+    ])('does NOT flag %s', (_label, text) => {
+      expect(looksSecretBearing(text)).toBe(false);
     });
   });
 

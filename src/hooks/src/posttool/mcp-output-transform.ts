@@ -92,6 +92,39 @@ const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 const PHONE_RE = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
 
 // -----------------------------------------------------------------------------
+// Secret heuristics (#2264 finding #1 — gate the reversible stash, NOT redaction)
+// -----------------------------------------------------------------------------
+
+/**
+ * High-confidence secret shapes. Used ONLY to decide whether to stash the full
+ * original to disk in reversible mode — if any match, we skip the stash and fall
+ * back to lossy truncation so a token in the discarded middle never lands on disk.
+ *
+ * Deliberately narrow (distinctive prefixes / structures) to avoid false
+ * positives that would needlessly disable reversibility on benign output.
+ * `redactPII` is unchanged — this does not redact, it gates persistence.
+ */
+const SECRET_PATTERNS: readonly RegExp[] = [
+  /\bAKIA[0-9A-Z]{16}\b/,                                  // AWS access key id
+  /\bASIA[0-9A-Z]{16}\b/,                                  // AWS temp access key id
+  /\bsk-[A-Za-z0-9_-]{20,}\b/,                             // OpenAI / Anthropic-style
+  /\bgh[pousr]_[A-Za-z0-9]{36,}\b/,                        // GitHub PAT / OAuth / refresh
+  /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,                      // Slack token
+  /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/, // JWT
+  /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/,    // PEM private key
+  /\b(?:authorization|bearer)\b\s*[:=]?\s*[A-Za-z0-9._-]{20,}/i,    // Authorization: Bearer …
+];
+
+/**
+ * True if the text contains anything that looks like a credential. Conservative:
+ * a false negative (miss a weird secret) degrades to today's behaviour; a false
+ * positive only disables the disk stash for that one output (still truncated).
+ */
+export function looksSecretBearing(text: string): boolean {
+  return SECRET_PATTERNS.some((re) => re.test(text));
+}
+
+// -----------------------------------------------------------------------------
 // Hook Metadata
 // -----------------------------------------------------------------------------
 
@@ -164,7 +197,12 @@ function truncateOutput(text: string): { text: string; originalLength: number; t
   // a `Read` pointer instead of discarding the middle. Best-effort: if the stash
   // write throws (disk full, perms), fall through to lossy truncation rather than
   // failing the hook — a result is always returned.
-  if (headroomReversibleEnabled()) {
+  //
+  // Finding #1 (secret-at-rest): redactPII only covers email/phone. If the output
+  // carries a credential-shaped token, skip the stash and discard the middle the
+  // old (lossy) way — a token in the dropped middle must never be persisted to
+  // disk, even locally. The head/tail Claude sees is unchanged from today.
+  if (headroomReversibleEnabled() && !looksSecretBearing(text)) {
     try {
       const { hash, path } = stashOriginal(text);
       const pointer = buildPointer({ originalLen: originalLength, keptLen: truncatedLength, path });

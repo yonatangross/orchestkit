@@ -701,6 +701,109 @@ else
   log_fail "snap #2045 fallback" "expected ref unchanged, got '$UNSNAPPED' (exit=$EXIT)"
 fi
 
+# ============================================================================
+# Test 15: #2267 — featureless snapshot graduates without an LLM call.
+# A pure bugfix/internal rollup ("Bug fixes and reliability improvements") has no
+# capability-introducing bullet, so the LLM correctly extracts []. Pre-#2267 that
+# [] was treated as a failure → parse_failed sentinel → re-filed dup "manual
+# triage" issues forever (#2203/#2227/#2254). Now it graduates: features=[],
+# featureless=true, NO parse_failed, and NO LLM call (proven by a populated
+# fixture that must NOT be consumed).
+# ============================================================================
+mkdir -p shared/cc-snapshots
+cat > shared/cc-snapshots/2.1.998.md <<'EOF'
+# Claude Code 2.1.998
+
+- Bug fixes and reliability improvements
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.998", "parse_failed": false, "features": [], "raw_bullets_count": 1 }
+]
+EOF
+# A fixture that WOULD populate features if the LLM were called — proves the
+# short-circuit bypassed it.
+FIXTURE=/tmp/cc-triage-fixture-featureless.txt
+cat > "$FIXTURE" <<'EOF'
+[
+  {"feature_slug": "should_not_appear", "category": "new_command", "description": "LLM was wrongly called", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "test"}
+]
+EOF
+
+EXIT=0
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "#2267: featureless run exits 0"
+else
+  log_fail "#2267 exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+fi
+
+FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
+if [ "$FL" = "true" ]; then
+  log_pass "#2267: featureless snapshot marked featureless: true"
+else
+  log_fail "#2267 featureless flag" "expected true, got '$FL'"
+fi
+
+FL_PF=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
+if [ "$FL_PF" = "false" ]; then
+  log_pass "#2267: featureless graduation does NOT set parse_failed (the overload fix)"
+else
+  log_fail "#2267 parse_failed" "expected false, got '$FL_PF' — featureless still misclassified as failure"
+fi
+
+FL_FEAT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
+if [ "$FL_FEAT" = "0" ]; then
+  log_pass "#2267: featureless entry has empty features[] (fixture not consumed)"
+else
+  log_fail "#2267 fixture leak" "expected 0 features, got $FL_FEAT (LLM was called for a featureless snapshot)"
+fi
+
+if grep -qF "extracting features from 2.1.998" /tmp/cc-triage-out.txt; then
+  log_fail "#2267 LLM bypass" "found 'extracting features from 2.1.998' — LLM was called for a featureless snapshot"
+else
+  log_pass "#2267: no 'extracting features' log (LLM call bypassed)"
+fi
+
+if grep -qF "2.1.998 — featureless snapshot" /tmp/cc-triage-out.txt; then
+  log_pass "#2267: explicit 'featureless snapshot, graduating' log emitted"
+else
+  log_fail "#2267 log message" "expected 'featureless snapshot' log on stdout"
+fi
+
+# ============================================================================
+# Test 16: #2267 — a STUCK parse_failed featureless sentinel SELF-HEALS on a
+# normal run (no --retry-failed). This is the exact state of 2.1.156/159/165/167:
+# previously marked parse_failed by the empty-array overload, they must clear
+# themselves once the featureless short-circuit runs ahead of the sentinel skip.
+# ============================================================================
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.998", "parse_failed": true, "failed_at": "2026-06-06T00:00:00.000Z", "features": [], "raw_bullets_count": 1 }
+]
+EOF
+
+EXIT=0
+# No --retry-failed: must still self-heal because the featureless check precedes
+# the parse_failed skip.
+CLAUDE_CODE_OAUTH_TOKEN=fake-token \
+CC_TRIAGE_FIXTURE="$FIXTURE" \
+  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+HEAL_PF=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
+HEAL_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
+HEAL_AT=$(jq -r '.[0].failed_at // "absent"' shared/cc-adoption-gaps.json)
+if [ "$HEAL_PF" = "absent" ] && [ "$HEAL_FL" = "true" ] && [ "$HEAL_AT" = "absent" ]; then
+  log_pass "#2267: stuck parse_failed featureless sentinel self-heals on a normal run (no --retry-failed)"
+else
+  log_fail "#2267 self-heal" "parse_failed=$HEAL_PF featureless=$HEAL_FL failed_at=$HEAL_AT (expected absent/true/absent)"
+fi
+
+rm -f /tmp/cc-triage-fixture-featureless.txt
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"
