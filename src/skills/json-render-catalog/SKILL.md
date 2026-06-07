@@ -1,6 +1,6 @@
 ---
 name: json-render-catalog
-compatibility: "Claude Code 2.1.148+"
+compatibility: "Claude Code 2.1.168+"
 description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects."
 tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
 version: 1.3.0

@@ -1,7 +1,7 @@
 ---
 name: memory
 license: MIT
-compatibility: "Claude Code 2.1.148+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.168+. Requires memory MCP server."
 description: "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: inherit

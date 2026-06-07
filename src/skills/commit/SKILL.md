@@ -1,7 +1,7 @@
 ---
 name: commit
 license: MIT
-compatibility: "Claude Code 2.1.148+."
+compatibility: "Claude Code 2.1.168+."
 description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when committing changes or generating commit messages."
 argument-hint: "[message]"
 context: inherit

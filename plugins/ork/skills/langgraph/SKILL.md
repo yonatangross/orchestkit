@@ -1,7 +1,7 @@
 ---
 name: langgraph
 license: MIT
-compatibility: "Claude Code 2.1.148+."
+compatibility: "Claude Code 2.1.168+."
 description: LangGraph 1.x (LTS) workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
 tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts]
 context: fork

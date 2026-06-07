@@ -63,11 +63,12 @@ rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-arg
 
 # Pre-populate snapshots for every prior version that's <= cc-support.json.latest
 # to simulate the production steady state. This isolates Test 1 to the "one new
-# version" scenario (2.1.148 — a synthetic future version above the current
-# floor of 2.1.138) without triggering the M130-hotfix recovery path that
-# re-snapshots equal-version-but-missing-on-disk entries (covered by a
-# dedicated test below). The fixture pins 2.1.148 specifically so this test
-# is resilient to future floor bumps in shared/cc-support.json.
+# version" scenario (2.1.168 — the synthetic fixture's top version, the only
+# entry NOT in the pre-populated snapshot set below) without triggering the
+# M130-hotfix recovery path that re-snapshots equal-version-but-missing-on-disk
+# entries (covered by Test 4 below). The fixture's top version tracks
+# cc-support.json.latest (currently 2.1.168) so Test 4's recovery target — which
+# reads `.latest` — finds a matching changelog entry; bump both together.
 mkdir -p shared/cc-snapshots
 for v in 2.1.126 2.1.127 2.1.128 2.1.129 2.1.131 2.1.132 2.1.133 2.1.136 2.1.137 2.1.138; do
   echo "# Claude Code $v (placeholder for test)" > "shared/cc-snapshots/$v.md"
@@ -79,13 +80,13 @@ done
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
   node scripts/cc-release-watch.mjs > /tmp/watch-out.txt 2>&1
 
-if [ -f shared/cc-snapshots/2.1.148.md ]; then
-  log_pass "Snapshot written for new version 2.1.148"
+if [ -f shared/cc-snapshots/2.1.168.md ]; then
+  log_pass "Snapshot written for new version 2.1.168"
 else
-  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.148.md (see /tmp/watch-out.txt)"
+  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.168.md (see /tmp/watch-out.txt)"
 fi
 
-if [ -f shared/cc-snapshots/2.1.148.md ] && grep -qF "EnterWorktree" shared/cc-snapshots/2.1.148.md; then
+if [ -f shared/cc-snapshots/2.1.168.md ] && grep -qF "EnterWorktree" shared/cc-snapshots/2.1.168.md; then
   log_pass "Snapshot body contains expected feature bullet"
 else
   log_fail "Snapshot body" "missing 'EnterWorktree' from fixture"
@@ -96,10 +97,10 @@ if [ -f shared/cc-adoption-gaps.json ]; then
   if [ "$COUNT" = "1" ]; then
     log_pass "Gaps JSON has exactly 1 entry"
     GAP_VERSION=$(jq -r '.[0].version' shared/cc-adoption-gaps.json)
-    if [ "$GAP_VERSION" = "2.1.148" ]; then
-      log_pass "Gap entry version = 2.1.148"
+    if [ "$GAP_VERSION" = "2.1.168" ]; then
+      log_pass "Gap entry version = 2.1.168"
     else
-      log_fail "Gap entry version" "expected 2.1.148, got '$GAP_VERSION'"
+      log_fail "Gap entry version" "expected 2.1.168, got '$GAP_VERSION'"
     fi
   else
     log_fail "Gaps JSON entry count" "expected 1, got $COUNT"
@@ -120,10 +121,10 @@ if [ -f shared/gh-issue-args.json ]; then
   # Per-version traceability is preserved in latest_new_version even though
   # the milestone no longer encodes the version.
   LATEST=$(jq -r '.latest_new_version' shared/gh-issue-args.json)
-  if [ "$LATEST" = "2.1.148" ]; then
-    log_pass "gh-issue-args latest_new_version = 2.1.148 (per-version trace kept)"
+  if [ "$LATEST" = "2.1.168" ]; then
+    log_pass "gh-issue-args latest_new_version = 2.1.168 (per-version trace kept)"
   else
-    log_fail "latest_new_version" "expected 2.1.148, got '$LATEST'"
+    log_fail "latest_new_version" "expected 2.1.168, got '$LATEST'"
   fi
 else
   log_fail "gh-issue-args.json missing" "expected emitted by watch script"
@@ -141,7 +142,7 @@ else
   log_fail "Idempotent check" "expected 'nothing new', got: $(tail -2 /tmp/watch-out2.txt)"
 fi
 
-# After Test 1, the 2.1.148 gap entry is un-triaged (empty features) and
+# After Test 1, the 2.1.168 gap entry is un-triaged (empty features) and
 # UN-stamped (no issues_filed_at) — i.e. un-filed work. The carry-forward fix
 # (#2084 follow-up) intentionally PRESERVES such entries across a no-op run
 # instead of clearing them: the old "clear to []" behavior silently dropped
@@ -149,11 +150,11 @@ fi
 # filer stamps issues_filed_at before the next watch run, so a fully-processed
 # entry IS still pruned — proven by Test 12 below.
 if [ -f shared/cc-adoption-gaps.json ]; then
-  KEPT=$(jq -r '[.[] | select(.version=="2.1.148" and (has("issues_filed_at")|not))] | length' shared/cc-adoption-gaps.json)
+  KEPT=$(jq -r '[.[] | select(.version=="2.1.168" and (has("issues_filed_at")|not))] | length' shared/cc-adoption-gaps.json)
   if [ "$KEPT" = "1" ]; then
     log_pass "No-op run preserves un-filed (un-stamped) gap entry (carry-forward, #2084 fix)"
   else
-    log_fail "Idempotent gaps carry" "expected un-stamped 2.1.148 preserved on no-op run, got $KEPT"
+    log_fail "Idempotent gaps carry" "expected un-stamped 2.1.168 preserved on no-op run, got $KEPT"
   fi
 fi
 
@@ -168,8 +169,9 @@ fi
 
 # ============================================================================
 # Test 4: recovery path — equal-version + missing snapshot is re-included
-# (M130 hotfix). Pinned to cc-support.json.latest's value (2.1.138 today) so
-# this test stays aligned with the floor whenever the support window bumps.
+# (M130 hotfix). Reads cc-support.json.latest (2.1.168 today) so this test
+# stays aligned with the floor whenever the support window bumps. The synthetic
+# fixture's top version must match this value (see Test 1 setup note).
 # Removes the latest's snapshot from disk; rerunning must re-snapshot it
 # instead of silently skipping.
 # ============================================================================
@@ -360,7 +362,7 @@ fi
 # ============================================================================
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
-for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138 2.1.148; do
+for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138 2.1.168; do
   echo "# Claude Code $v (placeholder)" > "shared/cc-snapshots/$v.md"
 done
 echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
@@ -385,12 +387,12 @@ done
 echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
   node scripts/cc-release-watch.mjs > /tmp/watch-carry2.txt 2>&1
-NEWN=$(jq -r '[.[] | select(.version=="2.1.148")] | length' shared/cc-adoption-gaps.json)
+NEWN=$(jq -r '[.[] | select(.version=="2.1.168")] | length' shared/cc-adoption-gaps.json)
 CARRIED2=$(jq -r '[.[] | select(.version=="2.1.901" and .parse_failed==true)] | length' shared/cc-adoption-gaps.json)
 if [ "$NEWN" = "1" ] && [ "$CARRIED2" = "1" ]; then
-  log_pass "carry-forward (new-version): stuck entry rides alongside new 2.1.148"
+  log_pass "carry-forward (new-version): stuck entry rides alongside new 2.1.168"
 else
-  log_fail "carry-forward (new-version)" "expected new 2.1.148 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see /tmp/watch-carry2.txt)"
+  log_fail "carry-forward (new-version)" "expected new 2.1.168 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see /tmp/watch-carry2.txt)"
 fi
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 

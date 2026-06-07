@@ -1,7 +1,7 @@
 ---
 name: design-context-extract
 license: MIT
-compatibility: "Claude Code 2.1.148+. Optional: stitch (official Google Stitch) MCP server."
+compatibility: "Claude Code 2.1.168+. Optional: stitch (official Google Stitch) MCP server."
 description: "Extract design DNA from existing app screenshots or live URLs using Google Stitch. Produces color palettes, typography specs, spacing tokens, and component patterns as design-tokens.json or Tailwind config. Use when auditing an existing design, creating a design system from a live app, or ensuring new pages match an established visual identity."
 argument-hint: "[screenshot-path | url | 'current project']"
 tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]

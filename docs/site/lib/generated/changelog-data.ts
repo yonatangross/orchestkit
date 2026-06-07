@@ -17,6 +17,229 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.24.0",
+    "date": "2026-06-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** GC reversible-compression stashes on session end ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2274](https://github.com/yonatangross/orchestkit/issues/2274)) ([5ed5e7c](https://github.com/yonatangross/orchestkit/commit/5ed5e7ce31d051c4a57285ba38d1209a2a304b80))",
+          "**hooks:** headroom reversible-compression backing store ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2270](https://github.com/yonatangross/orchestkit/issues/2270)) ([8aa331d](https://github.com/yonatangross/orchestkit/commit/8aa331d05cf79145a3c459849bb6bf6c9eff3593))",
+          "**hooks:** skip reversible stash for secret-bearing output ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2277](https://github.com/yonatangross/orchestkit/issues/2277)) ([5bbeb72](https://github.com/yonatangross/orchestkit/commit/5bbeb721a26980cef05012b01e40c87327f15830))",
+          "**hooks:** wire reversible compression into mcp-transform ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2272](https://github.com/yonatangross/orchestkit/issues/2272)) ([1035065](https://github.com/yonatangross/orchestkit/commit/103506549ce5fa7804728dc21f181d4ab86718a7))",
+          "**skills:** document CC 2.1.163/166 features in 3 skills ([#2251](https://github.com/yonatangross/orchestkit/issues/2251)) ([#2275](https://github.com/yonatangross/orchestkit/issues/2275)) ([9d62495](https://github.com/yonatangross/orchestkit/commit/9d62495b288793870a0ea44474da8d6ed04fa52e))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-triage:** graduate featureless CC versions + snapshot 2.1.168 ([#2271](https://github.com/yonatangross/orchestkit/issues/2271)) ([9c8c92b](https://github.com/yonatangross/orchestkit/commit/9c8c92b514b7f9790ee015be795baa5df279ca84))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** reframe stale Stop additionalContext comments ([#2269](https://github.com/yonatangross/orchestkit/issues/2269)) ([#2276](https://github.com/yonatangross/orchestkit/issues/2276)) ([e5b94f8](https://github.com/yonatangross/orchestkit/commit/e5b94f87183b0b20452a9459feb5af26654f5a20))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.23.1",
+    "date": "2026-06-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "exempt ci/ config branches from the PR playground gate ([#2262](https://github.com/yonatangross/orchestkit/issues/2262)) ([797bf61](https://github.com/yonatangross/orchestkit/commit/797bf617c031fc53fd4c05ed45a69d817d9608a5))",
+          "**vercel:** production-only ignoreCommand — no preview deploys ([#2261](https://github.com/yonatangross/orchestkit/issues/2261)) ([fb9b04a](https://github.com/yonatangross/orchestkit/commit/fb9b04a83b1484cb3184d925546eb1abf71a501c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.23.0",
+    "date": "2026-06-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**audit-full:** map-reduce workflow tier for over-budget repos ([#2259](https://github.com/yonatangross/orchestkit/issues/2259)) ([8c74273](https://github.com/yonatangross/orchestkit/commit/8c74273d3c2ecf226d292c2344a22e51ff375801))",
+          "**skills:** adversarial verification for review-pr + audit-full ([#2256](https://github.com/yonatangross/orchestkit/issues/2256)) ([f24926a](https://github.com/yonatangross/orchestkit/commit/f24926a0d9969a8d7bbfb489dac8ac62cd1239f8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** trim review-pr under length gate + CC-orchestration hygiene ([#2260](https://github.com/yonatangross/orchestkit/issues/2260)) ([48311ca](https://github.com/yonatangross/orchestkit/commit/48311cafcf34105b120be4be4c362b5739f733f9))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2255](https://github.com/yonatangross/orchestkit/issues/2255)) ([375eaa3](https://github.com/yonatangross/orchestkit/commit/375eaa382f27ae0f1782c1033319717a4a108d81))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**chain-patterns:** label the 6 workflow patterns as ork's taxonomy ([#2258](https://github.com/yonatangross/orchestkit/issues/2258)) ([f68bfdd](https://github.com/yonatangross/orchestkit/commit/f68bfddf2e0fa4ea2338a58bd2a99bc9e1446ffc))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.22.0",
+    "date": "2026-06-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs:** agent-ready docs site (well-known + content negotiation) ([#2236](https://github.com/yonatangross/orchestkit/issues/2236)) ([fa749a6](https://github.com/yonatangross/orchestkit/commit/fa749a6afc57fb709bd8722eb6ebd22538a94e40))",
+          "**hooks:** warn on concurrent same-tree session collision ([#2242](https://github.com/yonatangross/orchestkit/issues/2242)) ([#2245](https://github.com/yonatangross/orchestkit/issues/2245)) ([7ed8cf2](https://github.com/yonatangross/orchestkit/commit/7ed8cf271357d08c015be893e68883df325ab4a2))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.21.0",
+    "date": "2026-06-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** adversarial verification engine + assess pilot ([#2231](https://github.com/yonatangross/orchestkit/issues/2231)) ([#2235](https://github.com/yonatangross/orchestkit/issues/2235)) ([f1c90a1](https://github.com/yonatangross/orchestkit/commit/f1c90a1a0e20a1370c7cdadd6ac388395f868348))",
+          "**skills:** dynamic-workflow patterns reference + quarantine rule ([#2240](https://github.com/yonatangross/orchestkit/issues/2240)) ([a082314](https://github.com/yonatangross/orchestkit/commit/a0823148581fec7527b3526eef3f88bcc01d551e))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc:** stamp LATEST_KNOWN_CC from SoT + repair auto-bump workflow ([#2241](https://github.com/yonatangross/orchestkit/issues/2241)) ([3499996](https://github.com/yonatangross/orchestkit/commit/3499996f35c2786827ce62e79bc672d50ea5ca69)), closes [#2238](https://github.com/yonatangross/orchestkit/issues/2238)",
+          "**hooks:** pin session title to first-seen branch (survives concurrent-session thrash) ([#2246](https://github.com/yonatangross/orchestkit/issues/2246)) ([fec9775](https://github.com/yonatangross/orchestkit/commit/fec9775249bbb029074ff26e8ce18ab475f4c514))",
+          "**security:** correct dependency-confusion package ref + add guard ([#2239](https://github.com/yonatangross/orchestkit/issues/2239)) ([813cf8c](https://github.com/yonatangross/orchestkit/commit/813cf8c06c55cc340fcd2b387ab038edde2211b3))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.165) ([#2228](https://github.com/yonatangross/orchestkit/issues/2228)) ([76a5407](https://github.com/yonatangross/orchestkit/commit/76a5407fba6e00b2f1d62bdf70f7c8f6a90cd540))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**rules:** correct drift register from adversarial re-audit ([#2217](https://github.com/yonatangross/orchestkit/issues/2217)) ([#2221](https://github.com/yonatangross/orchestkit/issues/2221)) ([b3c4ffb](https://github.com/yonatangross/orchestkit/commit/b3c4ffb1e08ab7217a8b7442a23df77566691e41))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** thin cc-version-matrix to 2 constants ([#2229](https://github.com/yonatangross/orchestkit/issues/2229)) ([#2237](https://github.com/yonatangross/orchestkit/issues/2237)) ([19b4dd7](https://github.com/yonatangross/orchestkit/commit/19b4dd715144a2ffb4278e3619abc9912e024b91))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.20.1",
+    "date": "2026-06-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** remove stop/goal-convergence-emitter (drift cleanup) ([#2219](https://github.com/yonatangross/orchestkit/issues/2219)) ([e1236e2](https://github.com/yonatangross/orchestkit/commit/e1236e2376eb6c91b590c46acfaec73a3ac62ed7)), closes [#2217](https://github.com/yonatangross/orchestkit/issues/2217)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.20.0",
+    "date": "2026-06-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**eval:** ship skill-fitness workflow harness ([#2212](https://github.com/yonatangross/orchestkit/issues/2212)) ([099abd4](https://github.com/yonatangross/orchestkit/commit/099abd48f7d45e867fa439265a7b4206aa6dcdd8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** give SessionEnd handoff a real budget (CC 2.1.74 env) ([#2214](https://github.com/yonatangross/orchestkit/issues/2214)) ([d3d1205](https://github.com/yonatangross/orchestkit/commit/d3d120530e531a4ec6e46cc9654dbbb2ef741fb5))",
+          "**skills:** clear skill-fitness workflow findings ([#2215](https://github.com/yonatangross/orchestkit/issues/2215)) ([5b217b9](https://github.com/yonatangross/orchestkit/commit/5b217b9c38a1788343f384cce7147426a7d310a9))",
+          "**skills:** portable install paths + C3 static gate ([#2218](https://github.com/yonatangross/orchestkit/issues/2218)) ([c4c507e](https://github.com/yonatangross/orchestkit/commit/c4c507e8e78c8f7e9b2191b60978337c447c772b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**rules:** codify CC-native-first (don't drift from Claude Code) ([#2216](https://github.com/yonatangross/orchestkit/issues/2216)) ([2645b78](https://github.com/yonatangross/orchestkit/commit/2645b78e5b07c36f58b00f9f2c5a774691edb8df))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.19.1",
+    "date": "2026-06-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "bump hono ([#2210](https://github.com/yonatangross/orchestkit/issues/2210)) ([a7d6738](https://github.com/yonatangross/orchestkit/commit/a7d67384d3169305f5a7608c9582b32fc97e0c60))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.19.0",
+    "date": "2026-06-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**evals:** CC-idiom conformance grader (advisory) ([#2207](https://github.com/yonatangross/orchestkit/issues/2207)) ([6083a44](https://github.com/yonatangross/orchestkit/commit/6083a446c520a1b92581bbd359a25f8b76242799))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**deps:** bump Hono 4.12.18 -&gt; 4.12.23 (4 moderate CVEs) ([#2208](https://github.com/yonatangross/orchestkit/issues/2208)) ([1771c1f](https://github.com/yonatangross/orchestkit/commit/1771c1fa8174cb968680eaf732f8cdecb388bdad))",
+          "**hooks:** guard tool_input.file_path against non-string ([#2205](https://github.com/yonatangross/orchestkit/issues/2205)) ([cb8b299](https://github.com/yonatangross/orchestkit/commit/cb8b2994d44d916ef5cff10d2306e0b65b178f95))",
+          "**skills:** clear the 5 CC-idiom conformance findings ([#2209](https://github.com/yonatangross/orchestkit/issues/2209)) ([6640c13](https://github.com/yonatangross/orchestkit/commit/6640c130c26cc0f739c24437f8cfb3e6ca896093))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.162) ([#2204](https://github.com/yonatangross/orchestkit/issues/2204)) ([cf51913](https://github.com/yonatangross/orchestkit/commit/cf519136b455ec14973ee9f7c259a7b344699026))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.18.1",
+    "date": "2026-06-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** catalogue CC 2.1.162 in version matrix + README ledger ([#2196](https://github.com/yonatangross/orchestkit/issues/2196)) ([8e74901](https://github.com/yonatangross/orchestkit/commit/8e7490101bd67ac3d0d4f2821fa434f851ad02e4))",
+          "**docs:** resync fumadocs reference pages + add drift gate ([#2198](https://github.com/yonatangross/orchestkit/issues/2198)) ([a94b5e0](https://github.com/yonatangross/orchestkit/commit/a94b5e071d7f5a74e691fc75b1061a02faf7b8fe))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.18.0",
     "date": "2026-06-03",
     "compareUrl": "",

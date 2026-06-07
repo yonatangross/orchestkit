@@ -52,7 +52,7 @@ claude plugin validate
 
 ### "Stale plugin paths in PATH"
 
-CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.148). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
+CC ≤ 2.1.127 occasionally left `installed_plugins.json` entries pointing at deleted cache directories, polluting `PATH` for subprocesses. CC 2.1.128+ scrubs those automatically — no maintenance needed at our floor (2.1.168). If you see plugin commands failing with `command not found` after uninstalling a plugin on CC < 2.1.128, upgrade.
 
 ### "Auto mode unable to evaluate"
 
@@ -69,7 +69,7 @@ Pick whichever applies — `/compact` if context is full, `--debug` to see the c
 
 If multiple CC sessions all logged themselves out at the same moment after the laptop woke from sleep, that is the pre-2.1.129 OAuth refresh race — concurrent wake-time refreshes invalidated the active token across every running session.
 
-**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.148, so anyone on the supported window is already fixed). Recover the session with:
+**Fix**: upgrade to CC ≥ 2.1.129 (our floor is 2.1.168, so anyone on the supported window is already fixed). Recover the session with:
 
 ```bash
 claude /login
@@ -83,7 +83,7 @@ If logouts after wake persist on CC ≥ 2.1.129, the cause is no longer the race
 
 If you had multiple CC sessions open (worktree-isolated agents, parallel `/ork:implement` chains, multi-tab work) and every one of them dead-ended at `401 Unauthorized` at the same instant — that is the pre-2.1.133 parallel-session refresh-token race. A refresh-token rotation fired in one session, the other sessions raced against it, and they all wound up holding the now-invalidated old token.
 
-**Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.148, so the supported window is already past this). Recover the stuck sessions with:
+**Fix**: upgrade to CC ≥ 2.1.133 (our floor is 2.1.168, so the supported window is already past this). Recover the stuck sessions with:
 
 ```bash
 claude /login

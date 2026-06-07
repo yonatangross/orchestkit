@@ -1,7 +1,7 @@
 ---
 name: swarm-migrate
 license: MIT
-compatibility: "Claude Code 2.1.148+. Uses isolated git worktrees (one per repo) and the Agent tool for parallel dispatch."
+compatibility: "Claude Code 2.1.168+. Uses isolated git worktrees (one per repo) and the Agent tool for parallel dispatch."
 description: "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement."
 argument-hint: "<spec-file.yaml> [--dry-run] [--max-parallel=N]"
 context: fork

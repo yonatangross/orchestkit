@@ -1,6 +1,6 @@
 ---
 name: checkpoint-resume
-compatibility: "Claude Code 2.1.148+"
+compatibility: "Claude Code 2.1.168+"
 description: Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.
 tags: [resilience, checkpoint, pipeline, orchestkit]
 version: 2.0.0

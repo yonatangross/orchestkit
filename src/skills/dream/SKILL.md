@@ -1,7 +1,7 @@
 ---
 name: dream
 license: MIT
-compatibility: "Claude Code 2.1.148+"
+compatibility: "Claude Code 2.1.168+"
 description: "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory)."
 argument-hint: "[--dry-run]"
 tags: [memory, maintenance, consolidation]

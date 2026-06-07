@@ -12,7 +12,7 @@
         "Offers agent selection (Product and Technical agents)",
         "Configures hook toggles with safety hooks always on",
         "Offers MCP server configuration options for external tool integrations",
-        "Presents CC version-specific settings guidance (current floor 2.1.148, e.g. 2.1.152 --fallback-model)",
+        "Presents CC version-specific settings guidance (current floor 2.1.168, e.g. 2.1.152 --fallback-model)",
         "Saves the final configuration to ~/.claude/plugins/orchestkit/config.json on disk"
       ],
       "tags": [

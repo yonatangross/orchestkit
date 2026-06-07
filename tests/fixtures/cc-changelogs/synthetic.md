@@ -1,14 +1,14 @@
 # Changelog
 
-## 2.1.148
+## 2.1.168
 
-- `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped (synthetic placeholder; the real upstream behaviour landed in 2.1.128 — kept here as the test fixture's "new version" detection + equal-version recovery target, pinned at the #1945 floor of 2.1.148)
+- `EnterWorktree` now creates the new branch from local HEAD instead of `origin/<default-branch>`, so unpushed commits are no longer dropped (synthetic placeholder; the real upstream behaviour landed in 2.1.128 — kept here as the test fixture's "new version" detection + equal-version recovery target, pinned to track cc-support.json.latest, currently 2.1.168)
 - `--plugin-dir` now accepts `.zip` plugin archives, enabling offline distribution alongside directory-based loads
 - MCP server name `workspace` is now reserved; conflicting `.mcp.json` entries are silently skipped with a warning
 
 ## 2.1.138
 
-- Internal fixes (synthetic placeholder mirroring upstream — pinned at the current floor so Test 4 can exercise the equal-version recovery path)
+- Internal fixes (synthetic placeholder mirroring upstream — a mid-range version already present in pre-populated snapshots, so it is never re-detected as new)
 
 ## 2.1.132
 

@@ -80,8 +80,9 @@ export const TOOL_INVOCATION_RULES: ToolInvocationRule[] = [
   // ─── #1883 — Agent(isolation:"worktree"); FIXED in CC 2.1.154 ───
   // On CC ≤ 2.1.153 the built-in Agent param flipped primary HEAD and raced
   // node_modules (it didn't truly `git worktree add`). CC 2.1.154 fixed
-  // subagent worktree-isolation. Our support floor is 2.1.148, so the bug
-  // still bites 2.1.148–2.1.153 — keep the warning but make it version-aware.
+  // subagent worktree-isolation. Our support floor is now 2.1.168 (> 2.1.153),
+  // so the bug no longer bites any supported version — keep the warning as a
+  // guard for anyone still running the buggy 2.1.148–2.1.153 range below floor.
   // The manual pre-create pattern is documented in /ork:cover and /ork:implement.
   {
     id: 'agent-isolation-worktree',
