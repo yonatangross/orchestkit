@@ -31,6 +31,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
+import { stashOriginal, buildPointer } from '../lib/headroom-store.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -42,6 +43,20 @@ import { NOOP_CTX } from '../lib/context.js';
  */
 const DEFAULT_TRUNCATION_THRESHOLD =
   Number(process.env.ORCHESTKIT_MCP_TRUNCATION_THRESHOLD) || 2000;
+
+/**
+ * #2264: when set, truncation is REVERSIBLE — the full (already-redacted)
+ * original is stashed to disk and the truncated result carries a `Read` pointer
+ * instead of discarding the middle. Default OFF until the #2266 eval gate proves
+ * answer-equivalence. Scoped to the same 2K–50K band as lossy truncation; the
+ * >50K CC-persist guard is untouched.
+ *
+ * Read at call time (not module load) so the flag can flip within a session and
+ * so tests can toggle it per-case.
+ */
+function headroomReversibleEnabled(): boolean {
+  return process.env.ORK_HEADROOM_REVERSIBLE === '1';
+}
 
 /**
  * CC 2.1.51+: results > 50K chars are normally persisted to disk (file ref).
@@ -134,7 +149,7 @@ function extractMetaResultSize(output: unknown): number | null {
 /**
  * Truncate text preserving head and tail with a truncation notice.
  */
-function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean } {
+function truncateOutput(text: string): { text: string; originalLength: number; truncated: boolean; stashHash?: string } {
   const originalLength = text.length;
 
   if (originalLength <= DEFAULT_TRUNCATION_THRESHOLD) {
@@ -144,6 +159,21 @@ function truncateOutput(text: string): { text: string; originalLength: number; t
   const head = text.slice(0, HEAD_CHARS);
   const tail = text.slice(-TAIL_CHARS);
   const truncatedLength = HEAD_CHARS + TAIL_CHARS;
+
+  // #2264: reversible mode — stash the full (already-redacted) original and emit
+  // a `Read` pointer instead of discarding the middle. Best-effort: if the stash
+  // write throws (disk full, perms), fall through to lossy truncation rather than
+  // failing the hook — a result is always returned.
+  if (headroomReversibleEnabled()) {
+    try {
+      const { hash, path } = stashOriginal(text);
+      const pointer = buildPointer({ originalLen: originalLength, keptLen: truncatedLength, path });
+      return { text: `${head}\n\n${pointer}\n\n${tail}`, originalLength, truncated: true, stashHash: hash };
+    } catch {
+      // fall through to lossy notice
+    }
+  }
+
   const notice = `\n\n[Result truncated from ${originalLength} chars to ${truncatedLength} chars for context efficiency]\n\n`;
 
   return {
@@ -238,6 +268,7 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
   let final: string;
   let originalLength: number;
   let truncated: boolean;
+  let stashHash: string | undefined;
 
   if (ccKeptLargeResult) {
     // CC decided this result needs to be large — respect that decision
@@ -245,7 +276,7 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
     originalLength = redacted.length;
     truncated = false;
   } else {
-    ({ text: final, originalLength, truncated } = truncateOutput(redacted));
+    ({ text: final, originalLength, truncated, stashHash } = truncateOutput(redacted));
   }
 
   // Skip if no transformation was applied
@@ -266,7 +297,8 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
 
   ctx.log(
     'mcp-output-transform',
-    `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions`,
+    `Transformed ${toolName}: ${originalLength}→${final.length} chars, ${redactionCount} PII redactions` +
+      (stashHash ? `, reversible stash ${stashHash}` : ''),
     truncated || redactionCount > 0 ? 'info' : 'debug',
   );
 
