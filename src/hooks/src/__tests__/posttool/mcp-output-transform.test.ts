@@ -6,7 +6,10 @@
  * Issue #1240: MCP result truncation + PII redaction
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
 vi.mock('../../lib/common.js', () => mockCommonBasic({
@@ -190,6 +193,91 @@ describe('posttool/mcp-output-transform', () => {
       const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
       expect(output).toContain('5000 chars');
       expect(output).toContain('1800 chars');
+    });
+  });
+
+  // ===========================================================================
+  // Reversible mode (#2264) — ORK_HEADROOM_REVERSIBLE
+  // ===========================================================================
+
+  describe('reversible mode (#2264)', () => {
+    let tmpHome: string;
+    let prevHome: string | undefined;
+
+    beforeEach(() => {
+      tmpHome = mkdtempSync(join(tmpdir(), 'mcp-rev-'));
+      prevHome = process.env.HOME;
+      process.env.HOME = tmpHome;             // headroom-store stashes under $HOME/.claude/state
+      process.env.ORK_HEADROOM_REVERSIBLE = '1';
+    });
+
+    afterEach(() => {
+      delete process.env.ORK_HEADROOM_REVERSIBLE;
+      if (prevHome === undefined) delete process.env.HOME; else process.env.HOME = prevHome;
+      try { rmSync(tmpHome, { recursive: true, force: true }); } catch { /* best-effort */ }
+    });
+
+    const headroomDir = () => join(tmpHome, '.claude', 'state', 'orchestkit', 'headroom');
+
+    test('emits a Read pointer instead of the lossy notice', () => {
+      const longOutput = 'A'.repeat(12000);
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      expect(output).toContain('Full output: Read ');
+      expect(output).toContain('.txt');
+      expect(output).toContain('chars between');
+      expect(output).not.toContain('[Result truncated'); // NOT the lossy notice
+      expect(output.length).toBeLessThan(longOutput.length);
+    });
+
+    test('stashes the full original to a content-addressed file', () => {
+      const longOutput = `HEAD${'B'.repeat(11992)}TAIL`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1);
+      expect(existsSync(join(headroomDir(), files[0]))).toBe(true);
+    });
+
+    test('identical outputs dedup to one stash file', () => {
+      const longOutput = 'C'.repeat(9000);
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      expect(files).toHaveLength(1); // dedup — second call skip-writes
+    });
+
+    test('flag OFF falls back to the lossy notice and writes nothing', () => {
+      delete process.env.ORK_HEADROOM_REVERSIBLE;
+      const longOutput = 'D'.repeat(12000);
+      const result = mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput as string;
+
+      expect(output).toContain('[Result truncated');
+      expect(output).not.toContain('Full output: Read ');
+      expect(existsSync(headroomDir())).toBe(false); // no stash dir created
+    });
+
+    test('does not stash PII — only the redacted text reaches disk', () => {
+      // Email sits in the kept head so we can assert redaction end-to-end.
+      const longOutput = `contact me at alice@example.com then ${'E'.repeat(12000)}`;
+      mcpOutputTransform(createInput({ tool_output: longOutput }), testCtx);
+
+      const files = readdirSync(headroomDir()).filter((f) => f.endsWith('.txt'));
+      const stashed = readFileSync(join(headroomDir(), files[0]), 'utf8');
+      expect(stashed).toContain('[REDACTED_EMAIL]');
+      expect(stashed).not.toContain('alice@example.com');
+    });
+
+    test('>50K result is untouched (CC-persist guard wins over reversible)', () => {
+      const huge = 'F'.repeat(60000);
+      const result = mcpOutputTransform(createInput({ tool_output: huge }), testCtx);
+      // Guard short-circuits truncation entirely — no pointer, no stash.
+      const output = result.hookSpecificOutput?.updatedMCPToolOutput;
+      if (typeof output === 'string') expect(output).not.toContain('Full output: Read ');
+      expect(existsSync(headroomDir())).toBe(false);
     });
   });
 
