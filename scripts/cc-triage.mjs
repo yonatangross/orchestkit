@@ -513,44 +513,108 @@ function writeSkillGaps(candidates) {
   console.log(`cc-triage: wrote ${candidates.length} skill-feature gap candidate(s) to ${SKILL_GAPS_PATH}`);
 }
 
-// Token-gated LLM extraction loop. Mutates `gaps` in place and rewrites
-// GAPS_PATH when any entry changed. Factored out of main() (#1964) so the
-// skill-feature gap pass can still run when no OAUTH token is present.
-function runExtraction(gaps, retryFailed) {
-  if (retryFailed) {
-    console.log('cc-triage: --retry-failed set — sentinel entries will be re-attempted.');
-  }
-
-  const skillsCatalog = buildSkillsCatalog();
+// #2267 follow-up — deterministic, TOKEN-FREE reconciliation. Resolves the two
+// classes of entry that need no LLM: below-floor (ancient → skip) and featureless
+// (bugfix/internal rollup → graduate), clearing any stale `parse_failed` sentinel
+// on a featureless entry. Runs BEFORE the token gate in main(), so a token-free
+// cron still heals the ledger — fixing the bug where this graduation lived inside
+// the OAUTH-gated runExtraction(), so a no-token run skipped it and the stuck
+// 2.1.156/159/165/167 sentinels never reconciled. Idempotent: only counts/logs an
+// entry it actually changes, so re-runs are no-ops (no GAPS_PATH churn). Mutates
+// `gaps` in place; returns the number of entries changed.
+function reconcileDeterministic(gaps) {
   const supportedFloor = readSupportedFloor();
   if (supportedFloor) {
-    console.log(`cc-triage: supported_floor = ${supportedFloor} (versions below this skip LLM extraction)`);
+    console.log(`cc-triage: supported_floor = ${supportedFloor} (below this → below_floor, no LLM)`);
   } else {
-    console.log('cc-triage: no supported_floor available — triaging all entries (legacy behaviour).');
+    console.log('cc-triage: no supported_floor available — skipping below-floor pass (legacy behaviour).');
   }
   let updated = 0;
 
   for (const entry of gaps) {
     if (entry.features?.length > 0) continue;
 
-    // W1h (#1739): skip the LLM call entirely for versions below the supported
-    // floor. cc-release-watch.mjs intentionally surfaces ALL unsnapshotted
-    // versions (so a recovery operator can still reissue them), but we do NOT
-    // want to burn LLM tokens classifying ancient CHANGELOG history that the
-    // adoption pipeline will never act on. Mark with `below_floor: true` so
-    // downstream filters can exclude them; the workflow's Step 3 jq filter
-    // (`select(.gap_score >= 10)`) already naturally skips entries with empty
-    // features[], so no workflow change is needed for issue filing. The
-    // sentinel is distinct from `parse_failed` (skipping is not failure), and
-    // takes precedence over the per-version LLM call below. Checked first so an
-    // ancient version never reaches the snapshot read or the LLM.
+    // W1h (#1739): mark versions below the supported floor. cc-release-watch.mjs
+    // surfaces ALL unsnapshotted versions; we never want to triage ancient
+    // CHANGELOG history. `below_floor` is distinct from `parse_failed` (skipping
+    // is not failure). No snapshot read, no token.
     if (supportedFloor && compareSemver(entry.version, supportedFloor) < 0) {
-      entry.below_floor = true;
-      // Ensure features is a deterministic empty array (it normally already is).
-      if (!Array.isArray(entry.features)) entry.features = [];
-      console.error(`cc-triage: ${entry.version} — below floor ${supportedFloor}, skipping LLM`);
-      updated++;
+      let changed = false;
+      if (!entry.below_floor) {
+        entry.below_floor = true;
+        changed = true;
+      }
+      if (!Array.isArray(entry.features)) {
+        entry.features = [];
+        changed = true;
+      }
+      if (changed) {
+        console.error(`cc-triage: ${entry.version} — below floor ${supportedFloor}, skipping LLM`);
+        updated++;
+      }
       continue;
+    }
+
+    const snapPath = join(SNAPSHOT_DIR, `${entry.version}.md`);
+    // No snapshot yet → leave for runExtraction()'s warn path, don't graduate.
+    if (!existsSync(snapPath)) continue;
+    const bullets = parseSnapshotBullets(readFileSync(snapPath, 'utf8'));
+
+    // #2267: featureless graduation. A snapshot with no capability-introducing
+    // bullet legitimately extracts to `[]`, so graduate it (`featureless: true`)
+    // — instead of sentineling it as `parse_failed`. The empty-array FAILURE path
+    // (callClaude → null → sentinel) stays reserved for `[]` returned on a
+    // snapshot that DOES describe new surface — the M134 burp Test 7 guards.
+    if (isFeaturelessSnapshot(bullets)) {
+      let changed = false;
+      if (!entry.featureless) {
+        entry.featureless = true;
+        changed = true;
+      }
+      if (!Array.isArray(entry.features) || entry.features.length !== 0) {
+        entry.features = [];
+        changed = true;
+      }
+      if (entry.parse_failed) {
+        delete entry.parse_failed;
+        delete entry.failed_at;
+        changed = true;
+      }
+      if (changed) {
+        console.log(
+          `cc-triage: ${entry.version} — featureless snapshot (no capability bullets), graduating without LLM.`,
+        );
+        updated++;
+      }
+    }
+  }
+  return updated;
+}
+
+// Token-gated LLM extraction loop. Mutates `gaps` in place; returns the number of
+// entries changed (main() does the single GAPS_PATH write). Only handles
+// capability-bearing entries still missing features — below-floor and featureless
+// entries are already resolved by reconcileDeterministic() and skipped here.
+function runExtraction(gaps, retryFailed) {
+  if (retryFailed) {
+    console.log('cc-triage: --retry-failed set — sentinel entries will be re-attempted.');
+  }
+
+  const skillsCatalog = buildSkillsCatalog();
+  let updated = 0;
+
+  for (const entry of gaps) {
+    if (entry.features?.length > 0) continue;
+    if (entry.below_floor) continue; // resolved by reconcileDeterministic()
+    if (entry.featureless) continue; // resolved by reconcileDeterministic()
+
+    // Respect the sentinel skip unless --retry-failed (a genuine extraction
+    // failure on a capability-bearing snapshot stays parked here).
+    if (entry.parse_failed && !retryFailed) continue;
+    if (entry.parse_failed && retryFailed) {
+      console.log(`cc-triage: clearing sentinel on ${entry.version} for retry`);
+      delete entry.parse_failed;
+      delete entry.failed_at;
     }
 
     const snapPath = join(SNAPSHOT_DIR, `${entry.version}.md`);
@@ -560,37 +624,6 @@ function runExtraction(gaps, retryFailed) {
     }
     const snapText = readFileSync(snapPath, 'utf8');
     const bullets = parseSnapshotBullets(snapText);
-
-    // #2267: featureless short-circuit. A snapshot with no capability-introducing
-    // bullet legitimately extracts to `[]`, so graduate it (`featureless: true`)
-    // without burning an LLM token — instead of sentineling it as `parse_failed`.
-    // Placed BEFORE the parse_failed skip so the four already-stuck sentinels
-    // (2.1.156/159/165/167) self-heal on the next normal run, not only under
-    // --retry-failed. Reserves the empty-array FAILURE path (callClaude → null →
-    // sentinel) for `[]` returned on a snapshot that DOES describe new surface —
-    // the M134 burp that integration Test 7 guards.
-    if (isFeaturelessSnapshot(bullets)) {
-      entry.features = [];
-      entry.featureless = true;
-      if (entry.parse_failed) {
-        delete entry.parse_failed;
-        delete entry.failed_at;
-      }
-      console.log(
-        `cc-triage: ${entry.version} — featureless snapshot (no capability bullets), graduating without LLM.`,
-      );
-      updated++;
-      continue;
-    }
-
-    // Capability-bearing snapshot → needs the LLM. Respect the sentinel skip
-    // unless --retry-failed (a genuine extraction failure stays parked here).
-    if (entry.parse_failed && !retryFailed) continue;
-    if (entry.parse_failed && retryFailed) {
-      console.log(`cc-triage: clearing sentinel on ${entry.version} for retry`);
-      delete entry.parse_failed;
-      delete entry.failed_at;
-    }
 
     console.log(`cc-triage: extracting features from ${entry.version}...`);
     const prompt = buildPrompt(entry.version, snapText, skillsCatalog);
@@ -606,13 +639,7 @@ function runExtraction(gaps, retryFailed) {
     }
     updated++;
   }
-
-  if (updated > 0) {
-    writeFileSync(GAPS_PATH, JSON.stringify(gaps, null, 2) + '\n');
-    console.log(`cc-triage: updated ${updated} version entries in ${GAPS_PATH}`);
-  } else {
-    console.log('cc-triage: no entries needed extraction.');
-  }
+  return updated;
 }
 
 function main() {
@@ -629,11 +656,26 @@ function main() {
     process.exit(0);
   }
 
+  // Deterministic reconciliation runs ALWAYS (token-free): graduates featureless
+  // versions + marks below-floor, healing stuck `parse_failed` sentinels even on a
+  // no-token cron — the fix for the gap where this lived inside the token-gated
+  // runExtraction() and so never ran on the (token-free) common path.
+  let updated = reconcileDeterministic(gaps);
+
   // LLM extraction is token-gated; the skill-gap pass below is not.
   if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
-    runExtraction(gaps, retryFailed);
+    updated += runExtraction(gaps, retryFailed);
   } else {
     console.log('cc-triage: CLAUDE_CODE_OAUTH_TOKEN not set — skipping LLM extraction.');
+  }
+
+  // Single GAPS_PATH write for both passes (#2267 follow-up: the write moved out
+  // of runExtraction() so the deterministic pass persists even with no token).
+  if (updated > 0) {
+    writeFileSync(GAPS_PATH, JSON.stringify(gaps, null, 2) + '\n');
+    console.log(`cc-triage: updated ${updated} version entries in ${GAPS_PATH}`);
+  } else {
+    console.log('cc-triage: no entries needed extraction.');
   }
 
   // Skill-feature gap pass (#1964) — pure data processing over the (possibly

@@ -804,6 +804,53 @@ fi
 
 rm -f /tmp/cc-triage-fixture-featureless.txt
 
+# ============================================================================
+# Test 17: #2267 follow-up — featureless reconciliation runs TOKEN-FREE.
+# This is the real bug: the nightly cron runs with NO CLAUDE_CODE_OAUTH_TOKEN, so
+# pre-fix the whole graduation pass (inside the token-gated runExtraction) was
+# skipped and 2.1.156/159/165/167 never healed. With the deterministic pass moved
+# ahead of the token gate, a stuck featureless sentinel must self-heal WITHOUT a
+# token — and the gaps file must actually be written.
+# ============================================================================
+mkdir -p shared/cc-snapshots
+cat > shared/cc-snapshots/2.1.997.md <<'EOF'
+# Claude Code 2.1.997
+
+- Bug fixes and reliability improvements
+EOF
+cat > shared/cc-adoption-gaps.json <<'EOF'
+[
+  { "version": "2.1.997", "parse_failed": true, "failed_at": "2026-06-06T00:00:00.000Z", "features": [], "raw_bullets_count": 1 }
+]
+EOF
+
+EXIT=0
+# Critically: NO CLAUDE_CODE_OAUTH_TOKEN (the cron's real condition).
+unset CLAUDE_CODE_OAUTH_TOKEN || true
+node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+
+if [ "$EXIT" = "0" ]; then
+  log_pass "#2267 token-free: run exits 0 with no token"
+else
+  log_fail "#2267 token-free exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+fi
+
+TF_PF=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
+TF_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
+if [ "$TF_PF" = "absent" ] && [ "$TF_FL" = "true" ]; then
+  log_pass "#2267 token-free: stuck featureless sentinel self-heals WITHOUT a token (the cron-path fix)"
+else
+  log_fail "#2267 token-free self-heal" "parse_failed=$TF_PF featureless=$TF_FL (expected absent/true) — graduation still gated on token"
+fi
+
+# The no-token path must still log the skip, proving the LLM pass was bypassed
+# while the deterministic pass still ran.
+if grep -qF "skipping LLM extraction" /tmp/cc-triage-out.txt && grep -qF "2.1.997 — featureless snapshot" /tmp/cc-triage-out.txt; then
+  log_pass "#2267 token-free: LLM skipped AND deterministic graduation logged"
+else
+  log_fail "#2267 token-free logs" "expected both 'skipping LLM extraction' and 'featureless snapshot' (cat /tmp/cc-triage-out.txt)"
+fi
+
 echo ""
 echo "==================================="
 echo "  Results: $PASS passed, $FAIL failed"

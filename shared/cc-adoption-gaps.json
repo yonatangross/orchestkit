@@ -109,30 +109,26 @@
   },
   {
     "version": "2.1.167",
-    "parse_failed": true,
     "features": [],
     "raw_bullets_count": 1,
-    "failed_at": "2026-06-06T14:33:29.910Z"
+    "featureless": true
   },
   {
     "version": "2.1.165",
     "features": [],
     "raw_bullets_count": 1,
-    "parse_failed": true,
-    "failed_at": "2026-06-06T14:33:35.579Z"
+    "featureless": true
   },
   {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
-    "parse_failed": true,
-    "failed_at": "2026-06-06T14:33:42.228Z"
+    "featureless": true
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
-    "parse_failed": true,
-    "failed_at": "2026-06-06T14:33:46.630Z"
+    "featureless": true
   }
 ]
