@@ -167,7 +167,7 @@ Session and instance lifecycle management.
 **Events:**
 - `SessionStart` - Initialize session, load context
 - `SessionEnd` - Save state, cleanup (CC 2.1.74: `hook.timeout` now respected; env override: `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`)
-- `Stop` - User stops conversation, trigger compaction. **Error-loop safety:** all hooks return silent success (CC 2.1.78)
+- `Stop` - User stops conversation, trigger compaction. **Error-loop safety:** all hooks return silent success. CC 2.1.78 fixed the original loop; CC 2.1.163 now permits Stop/SubagentStop to return `additionalContext`, but ork opts out (no consumer, avoids loop regression)
 - `StopFailure` - API error termination (CC 2.1.78). Flushes state, writes emergency handoff. **Must be async.** See `stop/stop-failure-handler.ts`
 - `Setup` - First-run setup, maintenance tasks
 - `SubagentStart` - Subagent spawn validation

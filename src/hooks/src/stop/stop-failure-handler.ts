@@ -9,10 +9,12 @@
  * Flushes session state and writes an emergency handoff so the next session
  * can resume cleanly.
  *
- * ERROR-LOOP SAFETY: This handler MUST return outputSilentSuccess() — never
+ * ERROR-LOOP SAFETY: This handler returns outputSilentSuccess() and does not
  * produce additionalContext or systemMessage. CC 2.1.78 fixed an infinite loop
- * where stop hooks re-fed errors to the model. StopFailure is especially
- * dangerous because it fires ON errors — any output here could re-trigger.
+ * where stop hooks re-fed errors to the model. CC 2.1.163 permits Stop/
+ * SubagentStop to return additionalContext, but ork opts out here — StopFailure
+ * is especially dangerous because it fires ON errors, so any output could
+ * re-trigger the loop.
  *
  * @behavior silent
  */

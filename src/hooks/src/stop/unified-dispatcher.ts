@@ -7,12 +7,16 @@
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  *
- * ERROR-LOOP SAFETY (CC 2.1.78):
- * This dispatcher MUST always return outputSilentSuccess() — never produce
+ * ERROR-LOOP SAFETY (CC 2.1.78 history; CC 2.1.163 opt-out):
+ * This dispatcher always returns outputSilentSuccess() — it never produces
  * additionalContext, systemMessage, or blocking output. CC 2.1.78 fixed an
  * infinite loop where API errors triggered stop hooks that re-fed errors to
- * the model. All hooks in HOOKS[] are fire-and-forget; failures are logged
- * but never surfaced. The same constraint applies to StopFailure handlers.
+ * the model. As of CC 2.1.163, Stop/SubagentStop MAY return
+ * hookSpecificOutput.additionalContext without it being treated as a hook
+ * error — but ork deliberately opts out: there is no consumer for it, and
+ * re-enabling it risks regressing the 2.1.78 loop. All hooks in HOOKS[] are
+ * fire-and-forget; failures are logged but never surfaced. The same opt-out
+ * applies to StopFailure handlers.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -56,9 +60,11 @@ interface HookConfig {
  * Issue #243: Fire-and-forget pattern - all hooks run in background
  * Analytics hooks removed — now handled by HQ content pipeline
  *
- * SAFETY: Every hook here MUST return outputSilentSuccess() or equivalent.
- * Never return additionalContext or systemMessage — this prevents the
- * error-loop bug fixed in CC 2.1.78 (stop hooks re-feeding errors to model).
+ * SAFETY: Every hook here returns outputSilentSuccess() or equivalent and
+ * does not return additionalContext or systemMessage. CC 2.1.163 permits
+ * Stop hooks to return additionalContext, but ork opts out (no consumer;
+ * avoids regressing the error-loop bug fixed in CC 2.1.78 where stop hooks
+ * re-fed errors to the model).
  */
 const HOOKS: HookConfig[] = [
   // --- Core session hooks ---

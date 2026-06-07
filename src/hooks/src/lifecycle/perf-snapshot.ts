@@ -129,8 +129,10 @@ export function perfSnapshot(_input: HookInput, ctx: HookContext = NOOP_CTX): Ho
     const snapPath = join(perfDir, `snap-${bucket}.json`);
     atomicWriteSync(snapPath, JSON.stringify(snapshot, null, 2));
 
-    // Build summary for log only (CC 2.1.78 safety: dispatcher discards
-    // systemMessage from Stop hooks to prevent error-loop bug)
+    // Build summary for log only. The dispatcher discards systemMessage/
+    // additionalContext from Stop hooks: CC 2.1.78 fixed the error-loop bug,
+    // and although CC 2.1.163 now permits additionalContext, ork opts out
+    // (no consumer, avoids loop regression).
     const summary = buildSummaryLines(snapshot);
     ctx.log(
       HOOK_NAME,
