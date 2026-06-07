@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/pricing",
     "/compare",
     "/alternatives",
+    "/status",
   ];
   return [
     { url: SITE.domain, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
