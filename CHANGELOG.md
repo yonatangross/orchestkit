@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.24.0](https://github.com/yonatangross/orchestkit/compare/v8.23.1...v8.24.0) (2026-06-07)
+
+
+### Features
+
+* **hooks:** GC reversible-compression stashes on session end ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2274](https://github.com/yonatangross/orchestkit/issues/2274)) ([5ed5e7c](https://github.com/yonatangross/orchestkit/commit/5ed5e7ce31d051c4a57285ba38d1209a2a304b80))
+* **hooks:** headroom reversible-compression backing store ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2270](https://github.com/yonatangross/orchestkit/issues/2270)) ([8aa331d](https://github.com/yonatangross/orchestkit/commit/8aa331d05cf79145a3c459849bb6bf6c9eff3593))
+* **hooks:** skip reversible stash for secret-bearing output ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2277](https://github.com/yonatangross/orchestkit/issues/2277)) ([5bbeb72](https://github.com/yonatangross/orchestkit/commit/5bbeb721a26980cef05012b01e40c87327f15830))
+* **hooks:** wire reversible compression into mcp-transform ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2272](https://github.com/yonatangross/orchestkit/issues/2272)) ([1035065](https://github.com/yonatangross/orchestkit/commit/103506549ce5fa7804728dc21f181d4ab86718a7))
+* **skills:** document CC 2.1.163/166 features in 3 skills ([#2251](https://github.com/yonatangross/orchestkit/issues/2251)) ([#2275](https://github.com/yonatangross/orchestkit/issues/2275)) ([9d62495](https://github.com/yonatangross/orchestkit/commit/9d62495b288793870a0ea44474da8d6ed04fa52e))
+
+
+### Bug Fixes
+
+* **cc-triage:** graduate featureless CC versions + snapshot 2.1.168 ([#2271](https://github.com/yonatangross/orchestkit/issues/2271)) ([9c8c92b](https://github.com/yonatangross/orchestkit/commit/9c8c92b514b7f9790ee015be795baa5df279ca84))
+
+
+### Documentation
+
+* **hooks:** reframe stale Stop additionalContext comments ([#2269](https://github.com/yonatangross/orchestkit/issues/2269)) ([#2276](https://github.com/yonatangross/orchestkit/issues/2276)) ([e5b94f8](https://github.com/yonatangross/orchestkit/commit/e5b94f87183b0b20452a9459feb5af26654f5a20))
+
 ## [8.23.1](https://github.com/yonatangross/orchestkit/compare/v8.23.0...v8.23.1) (2026-06-06)
 
 
