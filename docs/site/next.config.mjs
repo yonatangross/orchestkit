@@ -45,6 +45,19 @@ const config = {
 			destination: "/api/well-known/mcp-server-card",
 		},
 		{
+			// Alternate well-known filenames agents probe for the server card.
+			source: "/.well-known/mcp.json",
+			destination: "/api/well-known/mcp-server-card",
+		},
+		{
+			source: "/.well-known/mcp/manifest.json",
+			destination: "/api/well-known/mcp-server-card",
+		},
+		{
+			source: "/mcp.json",
+			destination: "/api/well-known/mcp-server-card",
+		},
+		{
 			// NLWeb natural-language query endpoint.
 			source: "/ask",
 			destination: "/api/ask",
@@ -70,9 +83,18 @@ const config = {
 		{
 			source: "/(.*)",
 			headers: [
+				// Public, read-only site + agent API: allow any origin so
+				// cross-origin (incl. browser-based) AI agents can actually read
+				// /ask, /api/mcp, the well-known cards, and the markdown/llms feeds.
+				// Locking this to the apex blocked every cross-origin agent.
+				{ key: "Access-Control-Allow-Origin", value: "*" },
 				{
-					key: "Access-Control-Allow-Origin",
-					value: "https://orchestkit.yonyon.ai",
+					key: "Access-Control-Allow-Methods",
+					value: "GET, POST, OPTIONS",
+				},
+				{
+					key: "Access-Control-Allow-Headers",
+					value: "Content-Type, Accept",
 				},
 				// RFC 8288 Link headers — advertise agent-discovery resources so agents
 				// can find the API catalog and machine-readable docs from any response.
