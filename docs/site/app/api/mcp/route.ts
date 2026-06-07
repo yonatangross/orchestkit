@@ -152,3 +152,9 @@ export function GET() {
 		headers: { Allow: "POST" },
 	});
 }
+
+// CORS preflight so browser-based agents can open the transport cross-origin.
+// CORS headers are attached globally in next.config.mjs.
+export function OPTIONS() {
+	return new Response(null, { status: 204 });
+}

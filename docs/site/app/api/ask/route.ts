@@ -103,3 +103,9 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
 	return handle(req);
 }
+
+// CORS preflight for cross-origin (browser-based) agents. CORS headers are
+// attached globally in next.config.mjs; this just returns a 2xx for OPTIONS.
+export function OPTIONS() {
+	return new Response(null, { status: 204 });
+}
