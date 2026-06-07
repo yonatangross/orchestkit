@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import type { FuseResultMatch } from "fuse.js";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
-import { useFuzzySearch } from "@/hooks/use-fuzzy-search";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { AGENT_SEARCH_OPTIONS, createRelaxedSearch } from "@/lib/search";
+import { createCollection, useOramaCollection } from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
 import {
   Search,
@@ -68,6 +66,31 @@ const MODEL_STYLES: Record<string, string> = {
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_META) as Category[];
 
+// ── Orama collection (built once, client-side) ──────────────
+const AGENT_COLLECTION = createCollection<Agent>(AGENTS, {
+  id: (a) => a.id,
+  schema: {
+    name: "string",
+    description: "string",
+    keywords: "string[]",
+    category: "enum",
+    // Indexed but not `where`-filtered: the read-only orama-browser emits
+    // `{in:[...]}`, which Orama rejects on an `enum[]` field (it needs
+    // `containsAny`). Task-type filtering is applied in JS below, preserving
+    // the original "matches any selected task type" semantics.
+    taskTypes: "enum[]",
+  },
+  toDoc: (a) => ({
+    name: a.name,
+    description: a.description,
+    keywords: a.keywords,
+    category: a.category,
+    taskTypes: a.taskTypes,
+  }),
+  boost: { name: 3, keywords: 1.5, description: 1.5 },
+  facetField: "category",
+});
+
 // ── Main component ──────────────────────────────────────────
 export function AgentSelector() {
   const [search, setSearch] = useState("");
@@ -81,35 +104,20 @@ export function AgentSelector() {
   const [quizCategory, setQuizCategory] = useState<Category | null>(null);
   const quizTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Fuzzy search
+  // Orama-backed search + category faceted filtering via `where`. Task-type is
+  // multi-valued, so it's filtered in JS (the API's `{in}` can't target enum[]).
   const debouncedSearch = useDebouncedValue(search, 150);
-  const searchResults = useFuzzySearch(AGENTS, debouncedSearch, AGENT_SEARCH_OPTIONS);
-
-  // Apply category + task type filters on top of search results
+  const { result, ready } = useOramaCollection<Agent>(AGENT_COLLECTION, {
+    term: debouncedSearch,
+    where: { category: selectedCategories },
+  });
   const filtered = useMemo(() => {
-    return searchResults.filter(({ item: agent }) => {
-      if (
-        selectedCategories.length > 0 &&
-        !selectedCategories.includes(agent.category)
-      ) {
-        return false;
-      }
-      if (
-        selectedTaskTypes.length > 0 &&
-        !selectedTaskTypes.some((t) => agent.taskTypes.includes(t))
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [searchResults, selectedCategories, selectedTaskTypes]);
-
-  // "Did you mean?" suggestions when no results
-  const suggestions = useMemo(() => {
-    if (filtered.length > 0 || !debouncedSearch) return [];
-    const relaxed = createRelaxedSearch(AGENTS, AGENT_SEARCH_OPTIONS);
-    return relaxed(debouncedSearch, 3);
-  }, [filtered.length, debouncedSearch]);
+    if (selectedTaskTypes.length === 0) return result.items;
+    return result.items.filter((agent) =>
+      selectedTaskTypes.some((t) => agent.taskTypes.includes(t)),
+    );
+  }, [result.items, selectedTaskTypes]);
+  const suggestions = result.suggestions;
 
   // Quiz results
   const quizResults = useMemo(() => {
@@ -182,11 +190,17 @@ export function AgentSelector() {
       {/* Header row */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-fd-muted-foreground" role="status" aria-live="polite">
-          Showing{" "}
-          <span className="font-semibold tabular-nums text-fd-foreground">
-            {filtered.length}
-          </span>{" "}
-          of {AGENTS.length} agents
+          {ready ? (
+            <>
+              Showing{" "}
+              <span className="font-semibold tabular-nums text-fd-foreground">
+                {filtered.length}
+              </span>{" "}
+              of {AGENTS.length} agents
+            </>
+          ) : (
+            "Loading agents…"
+          )}
         </p>
         <button
           ref={quizTriggerRef}
@@ -337,7 +351,14 @@ export function AgentSelector() {
       </fieldset>
 
       {/* Agent grid */}
-      {filtered.length === 0 ? (
+      {!ready ? (
+        <div
+          className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center text-sm text-fd-muted-foreground"
+          aria-busy="true"
+        >
+          Loading agents…
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
           <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
           <p className="text-sm font-medium text-fd-foreground">
@@ -377,11 +398,11 @@ export function AgentSelector() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(({ item: agent, matches }) => (
+          {filtered.map((agent) => (
             <AgentCard
               key={agent.id}
               agent={agent}
-              matches={matches}
+              query={debouncedSearch}
               expanded={expandedAgent === agent.id}
               onToggle={() =>
                 setExpandedAgent(
@@ -429,12 +450,12 @@ export function AgentSelector() {
 // ── Agent Card — colored left border + model tier badge ─────
 function AgentCard({
   agent,
-  matches,
+  query,
   expanded,
   onToggle,
 }: {
   agent: Agent;
-  matches: readonly FuseResultMatch[] | undefined;
+  query: string;
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -458,8 +479,7 @@ function AgentCard({
           <div className="mb-1 flex items-center gap-2">
             <Highlight
               text={agent.name}
-              matches={matches}
-              fieldKey="name"
+              query={query}
               className="text-sm font-semibold text-fd-foreground"
             />
             <span
@@ -470,8 +490,7 @@ function AgentCard({
           </div>
           <Highlight
             text={agent.description}
-            matches={matches}
-            fieldKey="description"
+            query={query}
             className="text-xs leading-relaxed text-fd-muted-foreground"
           />
           <div className="mt-2 flex items-center gap-2">

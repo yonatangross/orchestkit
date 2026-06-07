@@ -1,59 +1,59 @@
 {
-  "name": "orchestkit-docs",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "predev": "node ../../scripts/generate-docs-data.js",
-    "dev": "next dev",
-    "build": "git fetch --unshallow 2>/dev/null || true; next build --webpack",
-    "start": "next start",
-    "postinstall": "fumadocs-mdx",
-    "test": "vitest run -c vitest.site.config.ts",
-    "test:watch": "vitest -c vitest.site.config.ts",
-    "test:e2e": "playwright test"
-  },
-  "dependencies": {
-    "@dagrejs/dagre": "^2.0.4",
-    "@vercel/analytics": "^1.6.1",
-    "@vercel/speed-insights": "^1.3.1",
-    "@xyflow/react": "^12.10.1",
-    "@yonatan-hq/analytics": "^1.0.3",
-    "esbuild": "^0.28.0",
-    "fumadocs-core": "^16.9.3",
-    "fumadocs-mdx": "^15.0.10",
-    "fumadocs-ui": "^16.9.3",
-    "fuse.js": "^7.1.0",
-    "lucide-react": "^1.0.0",
-    "next": "^16.2.3",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6"
-  },
-  "devDependencies": {
-    "@mdx-js/mdx": "^3.1.1",
-    "@playwright/test": "^1.59.1",
-    "@tailwindcss/postcss": "^4.0.0",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^24.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^5.1.3",
-    "agentation": "^2.2.1",
-    "agentation-mcp": "^1.2.0",
-    "happy-dom": "^20.8.9",
-    "magic-string": "^0.30.21",
-    "postcss": "^8.5.14",
-    "remark-gfm": "^4.0.1",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.8.0",
-    "vitest": "^4.0.18"
-  },
-  "optionalDependencies": {
-    "@esbuild/darwin-x64": "^0.28.0"
-  },
-  "overrides": {
-    "hono": "^4.12.18",
-    "ip-address": "^10.2.0",
-    "postcss@<8.5.14": "^8.5.14"
-  }
+	"name": "orchestkit-docs",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"predev": "node ../../scripts/generate-docs-data.js",
+		"dev": "next dev",
+		"build": "git fetch --unshallow 2>/dev/null || true; next build --webpack",
+		"start": "next start",
+		"postinstall": "fumadocs-mdx",
+		"test": "vitest run -c vitest.site.config.ts",
+		"test:watch": "vitest -c vitest.site.config.ts",
+		"test:e2e": "playwright test"
+	},
+	"dependencies": {
+		"@dagrejs/dagre": "^2.0.4",
+		"@orama/orama": "^3.1.18",
+		"@vercel/analytics": "^1.6.1",
+		"@vercel/speed-insights": "^1.3.1",
+		"@xyflow/react": "^12.10.1",
+		"@yonatan-hq/analytics": "^1.0.3",
+		"esbuild": "^0.28.0",
+		"fumadocs-core": "^16.9.3",
+		"fumadocs-mdx": "^15.0.10",
+		"fumadocs-ui": "^16.9.3",
+		"lucide-react": "^1.0.0",
+		"next": "^16.2.3",
+		"react": "^19.2.6",
+		"react-dom": "^19.2.6"
+	},
+	"devDependencies": {
+		"@mdx-js/mdx": "^3.1.1",
+		"@playwright/test": "^1.59.1",
+		"@tailwindcss/postcss": "^4.0.0",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@types/node": "^24.0.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"@vitejs/plugin-react": "^5.1.3",
+		"agentation": "^2.2.1",
+		"agentation-mcp": "^1.2.0",
+		"happy-dom": "^20.8.9",
+		"magic-string": "^0.30.21",
+		"postcss": "^8.5.14",
+		"remark-gfm": "^4.0.1",
+		"tailwindcss": "^4.0.0",
+		"typescript": "^5.8.0",
+		"vitest": "^4.0.18"
+	},
+	"optionalDependencies": {
+		"@esbuild/darwin-x64": "^0.28.0"
+	},
+	"overrides": {
+		"hono": "^4.12.18",
+		"ip-address": "^10.2.0",
+		"postcss@<8.5.14": "^8.5.14"
+	}
 }

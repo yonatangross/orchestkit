@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit Search Redesign — Explorer</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#13171c; --panel2:#181d24; --line:#222a33;
+    --ink:#e6edf3; --mut:#8b97a5; --dim:#5b6673;
+    --accent:#7c9cff; --accent2:#56d4a0; --warn:#ffb454; --bad:#ff6b6b;
+    --chip:#1d242d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:100vh}
+  .controls{background:var(--panel);border-right:1px solid var(--line);padding:18px;overflow-y:auto;max-height:100vh}
+  .stage{padding:22px 26px;overflow-y:auto;max-height:100vh}
+  h1{font-size:16px;margin:0 0 2px}
+  .sub{color:var(--mut);font-size:12px;margin-bottom:16px}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:20px 0 8px;font-weight:600}
+  .group{margin-bottom:6px}
+  label.row{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;color:var(--ink)}
+  label.row input{accent-color:var(--accent);width:15px;height:15px}
+  label.row .meta{color:var(--dim);font-size:11px;margin-left:auto}
+  .seg{display:flex;gap:4px;background:var(--panel2);border-radius:8px;padding:4px}
+  .seg button{flex:1;background:transparent;border:0;color:var(--mut);padding:7px 4px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+  .seg button.on{background:var(--accent);color:#0b0d10}
+  .slider{display:flex;align-items:center;gap:10px;padding:4px 0}
+  .slider input[type=range]{flex:1;accent-color:var(--accent2)}
+  .slider .val{font-family:var(--mono);font-size:12px;color:var(--accent2);min-width:26px;text-align:right}
+  .slider .lab{min-width:78px;color:var(--mut);font-size:12px}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+  .presets button{background:var(--chip);border:1px solid var(--line);color:var(--mut);font-size:11px;padding:5px 9px;border-radius:20px;cursor:pointer}
+  .presets button:hover{border-color:var(--accent);color:var(--ink)}
+  .note{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.4}
+  /* stage */
+  .approachbar{display:flex;gap:10px;margin-bottom:18px}
+  .acard{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;cursor:pointer;position:relative;transition:.15s}
+  .acard:hover{border-color:var(--dim)}
+  .acard.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .acard .k{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.05em}
+  .acard .t{font-size:13px;font-weight:600;margin:3px 0}
+  .acard .c{font-family:var(--mono);font-size:20px;font-weight:700}
+  .acard .badge{position:absolute;top:-9px;right:9px;background:var(--accent2);color:#06231a;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:.05em}
+  .panels{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media(max-width:1100px){.panels{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h3{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim)}
+  /* mock search dialog */
+  .dlg{background:var(--panel2);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .dlg .inp{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line)}
+  .dlg .inp svg{flex:none}
+  .dlg .inp input{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:15px}
+  .dlg .inp .kbd{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:2px 6px}
+  .tabs{display:flex;gap:4px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .tabs button{background:transparent;border:0;color:var(--mut);font-size:12px;padding:5px 11px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .tabs button.on{background:var(--accent);color:#0b0d10;font-weight:600}
+  .tabs button .cnt{font-family:var(--mono);font-size:10px;opacity:.8}
+  .results{max-height:340px;overflow-y:auto}
+  .res{display:flex;align-items:flex-start;gap:11px;padding:10px 14px;border-bottom:1px solid #11161b}
+  .res:hover{background:#0e1318}
+  .res .ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;margin-top:1px}
+  .ic.docs{background:#1c2740;color:#7c9cff}
+  .ic.skill{background:#10322a;color:#56d4a0}
+  .ic.agent{background:#33241a;color:#ffb454}
+  .ic.hook{background:#2b1c33;color:#c08cff}
+  .res .body .ti{font-size:13px;font-weight:600}
+  .res .body .de{font-size:11.5px;color:var(--mut);margin-top:1px}
+  .res .body mark{background:rgba(124,156,255,.28);color:#cdd9ff;border-radius:3px;padding:0 1px}
+  .res .ty{margin-left:auto;font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:2px 5px;text-transform:uppercase;letter-spacing:.04em;flex:none}
+  .empty{padding:28px 14px;text-align:center;color:var(--dim);font-size:13px}
+  .empty .big{font-size:22px;margin-bottom:6px}
+  /* scorecard */
+  .dim{display:flex;align-items:center;gap:10px;margin:7px 0}
+  .dim .nm{min-width:118px;font-size:12px;color:var(--mut)}
+  .dim .track{flex:1;height:8px;background:#0e1318;border-radius:5px;overflow:hidden}
+  .dim .fill{height:100%;border-radius:5px;transition:width .35s ease,background .35s}
+  .dim .sc{font-family:var(--mono);font-size:11px;width:20px;text-align:right;color:var(--ink)}
+  .comp{display:flex;align-items:baseline;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .comp .big{font-family:var(--mono);font-size:30px;font-weight:800}
+  .comp .lab{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  /* coverage */
+  .cov{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+  .cov .pill{font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--line);display:flex;gap:6px;align-items:center}
+  .cov .pill.on{background:rgba(86,212,160,.12);border-color:var(--accent2);color:#9ff0cf}
+  .cov .pill.off{color:var(--dim);opacity:.6}
+  /* prompt */
+  .promptbar{margin-top:18px}
+  .promptbox{position:relative;background:#0a1f17;border:1px solid #1c4a38;border-radius:12px;padding:15px 16px;font-family:var(--mono);font-size:12.5px;color:#bdf0d8;white-space:pre-wrap;line-height:1.55}
+  .copy{position:absolute;top:11px;right:11px;background:var(--accent2);color:#06231a;border:0;border-radius:7px;padding:6px 13px;font-weight:700;font-size:12px;cursor:pointer}
+  .copy.done{background:#2bd4a0}
+  .flag{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:var(--warn);margin-top:7px}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ░░░ CONTROLS ░░░ -->
+  <aside class="controls">
+    <h1>🔍 Search Redesign</h1>
+    <div class="sub">orchestkit.yonyon.ai · free / no-SaaS / Vercel+Next16</div>
+
+    <h2>Presets</h2>
+    <div class="presets" id="presets"></div>
+
+    <h2>Typo tolerance (Levenshtein)</h2>
+    <div class="seg" id="tolSeg">
+      <button data-tol="0">0 · exact</button>
+      <button data-tol="1">1 · recommended</button>
+      <button data-tol="2">2 · loose</button>
+    </div>
+    <div class="note" id="tolNote"></div>
+
+    <h2>Field boost weights</h2>
+    <div class="slider"><span class="lab">title</span><input type="range" id="bTitle" min="0" max="5" step="0.5"><span class="val" id="bTitleV"></span></div>
+    <div class="slider"><span class="lab">description</span><input type="range" id="bDesc" min="0" max="5" step="0.5"><span class="val" id="bDescV"></span></div>
+    <div class="slider"><span class="lab">content/body</span><input type="range" id="bBody" min="0" max="5" step="0.5"><span class="val" id="bBodyV"></span></div>
+
+    <h2>Index coverage</h2>
+    <div class="group" id="coverGroup"></div>
+
+    <h2>Ship which phases</h2>
+    <div class="group" id="phaseGroup"></div>
+  </aside>
+
+  <!-- ░░░ STAGE ░░░ -->
+  <main class="stage">
+    <div class="approachbar" id="approaches"></div>
+
+    <div class="panels">
+      <!-- LEFT: mock dialog -->
+      <section class="card">
+        <h3>Live ⌘K preview · type to test typo tolerance</h3>
+        <div class="dlg">
+          <div class="inp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b97a5" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="q" placeholder="Try: memry · agnt · implmnt · owsap" autocomplete="off" />
+            <span class="kbd">esc</span>
+          </div>
+          <div class="tabs" id="tabs"></div>
+          <div class="results" id="results"></div>
+        </div>
+        <div class="cov" id="covStrip"></div>
+      </section>
+
+      <!-- RIGHT: scorecard -->
+      <section class="card">
+        <h3>Scorecard · <span id="scoreApproach"></span></h3>
+        <div id="dims"></div>
+        <div class="comp"><span class="big" id="composite"></span><span class="lab">composite<br>(of 10)</span></div>
+        <div class="note" id="approachNote" style="margin-top:12px"></div>
+      </section>
+    </div>
+
+    <div class="promptbar">
+      <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin:0 0 8px">Implementation prompt → paste back to Claude</h3>
+      <div class="promptbox"><button class="copy" id="copyBtn">Copy</button><span id="prompt"></span></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ─────────── data ───────────
+const APPROACHES = {
+  A:{key:'A',t:'Tune Fuse + expand',c:5.6,note:'Keeps all 3 engines. Cheapest, but never unifies — drift stays. Rejected as the target.',
+     dims:{Relevance:4,'Unification':3,'UX + typo':5,'Effort (cheap=hi)':9,Maintainability:4,Performance:6,'Risk (low=hi)':8}},
+  B:{key:'B',t:'Orama unified',c:7.9,best:true,note:'One Orama index via fumadocs createSearchAPI(\'advanced\'). Native facets+counts, real typo tolerance, replaces Fuse. Free, Vercel-native. The pick.',
+     dims:{Relevance:8,'Unification':9,'UX + typo':8,'Effort (cheap=hi)':6,Maintainability:9,Performance:8,'Risk (low=hi)':7}},
+  C:{key:'C',t:'Orama hybrid + Ask-AI',c:6.7,note:'B + precomputed embeddings + LLM "Ask the docs". Marginal lexical gain at ~400 docs; TFjs-node 383MB breaks Vercel 250MB limit. Defer.',
+     dims:{Relevance:9,'Unification':9,'UX + typo':9,'Effort (cheap=hi)':3,Maintainability:6,Performance:6,'Risk (low=hi)':5}},
+};
+const COVERAGE = [
+  {id:'docs',label:'Docs (260 MDX)',def:true,locked:true},
+  {id:'skills',label:'Skills (111)',def:true},
+  {id:'agents',label:'Agents (37)',def:true},
+  {id:'hooks',label:'Hooks',def:true},
+  {id:'bodies',label:'Skill bodies (358KB)',def:true},
+  {id:'compositions',label:'Compositions',def:false},
+];
+const PHASES = [
+  {id:'p1',label:'Phase 1 · unified index + tolerance + boost',def:true},
+  {id:'p2',label:'Phase 2 · Orama where+facets replaces Fuse',def:true},
+  {id:'p3',label:'Phase 3 · custom grouped dialog + WebMCP',def:false},
+  {id:'cc',label:'Cross-cut · 40-60w answer blocks',def:false},
+];
+// sample corpus for the mock results
+const CORPUS = [
+  {ty:'docs', t:'Memory overview', d:'Graph memory, local memory & native CC memory', terms:['memory','memry','memori']},
+  {ty:'skill',t:'memory', d:'Knowledge-graph search, session load, decision timeline', terms:['memory','memry']},
+  {ty:'skill',t:'remember', d:'Store decisions & patterns in the memory graph', terms:['memory','memry','remember']},
+  {ty:'agent',t:'backend-system-architect', d:'REST/GraphQL APIs, schemas, microservice boundaries', terms:['agent','agnt','backend','architect']},
+  {ty:'agent',t:'security-auditor', d:'Vulnerability scanning, OWASP Top 10, secrets detection', terms:['agent','agnt','owasp','owsap','security']},
+  {ty:'skill',t:'implement', d:'Full-power feature implementation with parallel agents', terms:['implement','implmnt','agent']},
+  {ty:'skill',t:'owasp-top-10', d:'OWASP Top 10 vulnerabilities & mitigations', terms:['owasp','owsap','security']},
+  {ty:'hook', t:'stale-import-detector', d:'Surfaces stale import paths after Write/Edit', terms:['hook','import']},
+  {ty:'docs',t:'Writing agents', d:'Authoring agents in CC 2.1.78 format', terms:['agent','agnt','writing']},
+  {ty:'hook',t:'thrash-detector', d:'Flags repeated edits to the same file', terms:['hook','thrash']},
+];
+const TAB_FILTER = {all:null,docs:'docs',skill:'skill',agent:'agent'};
+
+// ─────────── state ───────────
+const DEFAULTS = {approach:'B',tol:1,bTitle:3,bDesc:1.5,bBody:1,
+  cover:Object.fromEntries(COVERAGE.map(c=>[c.id,c.def])),
+  phase:Object.fromEntries(PHASES.map(p=>[p.id,p.def])),
+  tab:'all',q:''};
+let state = structuredClone(DEFAULTS);
+
+const PRESETS = {
+  'Recommended (B)':{approach:'B',tol:1,bTitle:3,bDesc:1.5,bBody:1,
+    cover:{docs:1,skills:1,agents:1,hooks:1,bodies:1,compositions:0},phase:{p1:1,p2:1,p3:0,cc:0}},
+  'Ship everything':{approach:'B',tol:1,bTitle:3,bDesc:1.5,bBody:1.5,
+    cover:{docs:1,skills:1,agents:1,hooks:1,bodies:1,compositions:1},phase:{p1:1,p2:1,p3:1,cc:1}},
+  'Today\'s broken state':{approach:'A',tol:0,bTitle:1,bDesc:0,bBody:0,
+    cover:{docs:1,skills:0,agents:0,hooks:0,bodies:0,compositions:0},phase:{p1:0,p2:0,p3:0,cc:0}},
+  'Go semantic (C)':{approach:'C',tol:1,bTitle:3,bDesc:1.5,bBody:1,
+    cover:{docs:1,skills:1,agents:1,hooks:1,bodies:1,compositions:1},phase:{p1:1,p2:1,p3:1,cc:1}},
+};
+
+// ─────────── build controls ───────────
+const $=id=>document.getElementById(id);
+function buildPresets(){
+  $('presets').innerHTML='';
+  Object.keys(PRESETS).forEach(n=>{
+    const b=document.createElement('button');b.textContent=n;
+    b.onclick=()=>{Object.assign(state,structuredClone(DEFAULTS),structuredClone(PRESETS[n]));syncControls();updateAll();};
+    $('presets').appendChild(b);
+  });
+}
+function buildCover(){
+  $('coverGroup').innerHTML='';
+  COVERAGE.forEach(c=>{
+    const l=document.createElement('label');l.className='row';
+    l.innerHTML=`<input type="checkbox" ${c.locked?'disabled':''}> <span>${c.label}</span>${c.locked?'<span class="meta">always</span>':''}`;
+    const cb=l.querySelector('input');cb.checked=state.cover[c.id];
+    cb.onchange=()=>{state.cover[c.id]=cb.checked;updateAll();};
+    cb.dataset.cid=c.id;
+    $('coverGroup').appendChild(l);
+  });
+}
+function buildPhase(){
+  $('phaseGroup').innerHTML='';
+  PHASES.forEach(p=>{
+    const l=document.createElement('label');l.className='row';
+    l.innerHTML=`<input type="checkbox"> <span>${p.label}</span>`;
+    const cb=l.querySelector('input');cb.checked=state.phase[p.id];cb.dataset.pid=p.id;
+    cb.onchange=()=>{state.phase[p.id]=cb.checked;updateAll();};
+    $('phaseGroup').appendChild(l);
+  });
+}
+function buildApproaches(){
+  $('approaches').innerHTML='';
+  Object.values(APPROACHES).forEach(a=>{
+    const d=document.createElement('div');d.className='acard'+(state.approach===a.key?' on':'');
+    d.innerHTML=`${a.best?'<span class="badge">RECOMMENDED</span>':''}<div class="k">APPROACH ${a.key}</div><div class="t">${a.t}</div><div class="c" style="color:${a.c>=7.5?'var(--accent2)':a.c>=6.3?'var(--warn)':'var(--bad)'}">${a.c.toFixed(1)}</div>`;
+    d.onclick=()=>{state.approach=a.key;updateAll();};
+    $('approaches').appendChild(d);
+  });
+}
+
+// ─────────── render ───────────
+function renderTabs(counts){
+  const tabs=[['all','All','#7c9cff'],['docs','Docs','#7c9cff'],['skill','Skills','#56d4a0'],['agent','Agents','#ffb454']];
+  $('tabs').innerHTML='';
+  tabs.forEach(([id,lab])=>{
+    const b=document.createElement('button');b.className=state.tab===id?'on':'';
+    b.innerHTML=`${lab} <span class="cnt">${counts[id]??0}</span>`;
+    b.onclick=()=>{state.tab=id;updateAll();};
+    $('tabs').appendChild(b);
+  });
+}
+function coverOnFor(ty){
+  if(ty==='docs')return true;
+  if(ty==='skill')return state.cover.skills;
+  if(ty==='agent')return state.cover.agents;
+  if(ty==='hook')return state.cover.hooks;
+  return true;
+}
+function matchScore(item,q){
+  if(!q)return 1; // browse mode
+  const ql=q.toLowerCase().trim();
+  // exact / substring on title or desc
+  const hay=(item.t+' '+item.d).toLowerCase();
+  if(hay.includes(ql))return 3;
+  // term list contains query (covers intended-typo demo)
+  if(item.terms.some(t=>t.toLowerCase()===ql))return 2.5;
+  // levenshtein-ish: allow within tolerance against any term/title word
+  const words=(item.t.toLowerCase()+' '+item.terms.join(' ').toLowerCase()).split(/\s+/);
+  const best=Math.min(...words.map(w=>lev(w,ql)));
+  if(best<=state.tol && state.tol>0)return 2 - best*0.3;
+  if(state.tol===0 && best===0)return 2;
+  return 0;
+}
+function lev(a,b){
+  const m=a.length,n=b.length;const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return dp[m][n];
+}
+function hl(text,q){
+  if(!q)return text;const ql=q.toLowerCase().trim();const i=text.toLowerCase().indexOf(ql);
+  if(i<0)return text;return text.slice(0,i)+'<mark>'+text.slice(i,i+ql.length)+'</mark>'+text.slice(i+ql.length);
+}
+function renderResults(){
+  const q=state.q;
+  // boost-weighted ranking: title boost amplifies title hits
+  let items=CORPUS.filter(it=>coverOnFor(it.ty)).map(it=>{
+    let s=matchScore(it,q);
+    // apply field boost: title-weighted vs body
+    if(s>0 && q){const inTitle=it.t.toLowerCase().includes(q.toLowerCase().trim());
+      s*= inTitle?(0.5+state.bTitle/3):(0.4+ (state.bDesc+state.bBody)/6);}
+    return {...it,s};
+  }).filter(it=>it.s>0);
+  items.sort((a,b)=>b.s-a.s);
+  // counts per tab (for facet count display)
+  const counts={all:items.length,docs:0,skill:0,agent:0};
+  items.forEach(it=>{const k=it.ty==='hook'?null:it.ty; if(k&&counts[k]!=null)counts[k]++;});
+  counts.docs=items.filter(i=>i.ty==='docs').length;
+  renderTabs(counts);
+  const filt=TAB_FILTER[state.tab];
+  let show=items.filter(it=>!filt||it.ty===filt);
+  const R=$('results');R.innerHTML='';
+  if(show.length===0){
+    R.innerHTML=`<div class="empty"><div class="big">🫥</div>${q? (state.tol===0?'Nothing — and tolerance:0 means a single typo kills the query.':'No matches in this tab.') : 'Type a query above.'}</div>`;
+    return;
+  }
+  const icon={docs:'📄',skill:'⚡',agent:'🤖',hook:'🪝'};
+  show.slice(0,8).forEach(it=>{
+    const row=document.createElement('div');row.className='res';
+    row.innerHTML=`<div class="ic ${it.ty}">${icon[it.ty]}</div>
+      <div class="body"><div class="ti">${hl(it.t,q)}</div><div class="de">${hl(it.d,q)}</div></div>
+      <div class="ty">${it.ty}</div>`;
+    R.appendChild(row);
+  });
+}
+function renderScore(){
+  const a=APPROACHES[state.approach];
+  $('scoreApproach').textContent=`${a.key} · ${a.t}`;
+  $('approachNote').textContent=a.note;
+  const D=$('dims');D.innerHTML='';
+  Object.entries(a.dims).forEach(([nm,sc])=>{
+    const col=sc>=8?'var(--accent2)':sc>=6?'var(--warn)':sc>=4?'#e89a4a':'var(--bad)';
+    const d=document.createElement('div');d.className='dim';
+    d.innerHTML=`<div class="nm">${nm}</div><div class="track"><div class="fill" style="width:${sc*10}%;background:${col}"></div></div><div class="sc">${sc}</div>`;
+    D.appendChild(d);
+  });
+  $('composite').textContent=a.c.toFixed(1);
+  $('composite').style.color=a.c>=7.5?'var(--accent2)':a.c>=6.3?'var(--warn)':'var(--bad)';
+}
+function renderCoverStrip(){
+  const S=$('covStrip');S.innerHTML='';
+  COVERAGE.forEach(c=>{
+    const on=c.locked||state.cover[c.id];
+    const p=document.createElement('span');p.className='pill '+(on?'on':'off');
+    p.innerHTML=`${on?'✓':'·'} ${c.label}`;
+    S.appendChild(p);
+  });
+}
+
+// ─────────── prompt ───────────
+function updatePrompt(){
+  const a=APPROACHES[state.approach];
+  const cov=COVERAGE.filter(c=>c.locked||state.cover[c.id]).map(c=>c.id);
+  const ship=PHASES.filter(p=>state.phase[p.id]).map(p=>p.label.split('·')[0].trim());
+  let p=[];
+  if(state.approach==='A'){
+    p.push(`Improve the OrchestKit docs search using Approach A (tune existing Fuse.js, keep current engines).`);
+    p.push(`Note: composite only ${a.c} — this does NOT unify the 3 engines. Expand the Fuse index to include skill bodies and raise fumadocs Orama tolerance, but flag that real unification needs Approach B.`);
+  } else {
+    p.push(`Improve the OrchestKit docs search (docs/site, Next.js 16 + fumadocs ${state.approach==='C'?'16.9.3, Vercel)':'16.9.3 on Vercel).'} using Approach ${state.approach}: ${a.t}.`);
+    p.push(``);
+    p.push(`Build ONE unified Orama index via fumadocs createSearchAPI('advanced', { indexes }), replacing the current 3 engines (fumadocs-Orama title-only, two Fuse.js browsers, substring compositions).`);
+    p.push(`Index these content types: ${cov.join(', ')}.`);
+    p.push(`Config: tolerance:${state.tol}${state.tol>0?" (typo-tolerant; note tolerance>0 disables prefix per Orama #544 — fine for full-query docs search)":" (EXACT match — will miss typos; raise to 1)"}, boost:{title:${state.bTitle}, description:${state.bDesc}, content:${state.bBody}}.`);
+  }
+  if(state.phase.p2) p.push(`Replace Fuse.js in skill-browser.tsx and agent-selector.tsx with Orama where+facets (native facet counts). Update __tests__/search.test.ts and skill-browser.test.tsx.`);
+  if(state.phase.p3) p.push(`Add a custom SearchDialog with Docs/Skills/Agents tabs + grouped results, and unify the WebMCP search_docs tool onto the same index.`);
+  if(state.cover.compositions) p.push(`Also index compositions (retire the raw .includes() in demo-gallery.tsx).`);
+  if(state.approach==='C') p.push(`Add semantic layer: precompute embeddings at BUILD time with @xenova/transformers (BYO vectors into Orama — do NOT use @tensorflow/tfjs-node, 383MB > Vercel 250MB limit). Add an LLM "Ask the docs" mode. Only pursue if lexical relevance proves insufficient at ~400 docs.`);
+  if(state.phase.cc) p.push(`Cross-cut: add a 40-60 word answer block atop each reference page and apply chunk-for-isolation (lifts retrieval + AI-citation eligibility).`);
+  p.push(``);
+  p.push(`Ship: ${ship.length?ship.join(' → '):'(no phases selected)'}. All free, no SaaS, on current Vercel+Next16. Expected composite: ${a.c}/10.`);
+  $('prompt').textContent=p.join('\n');
+}
+
+// ─────────── tolerance note ───────────
+const TOL_NOTES={0:'⚠️ Exact match — one typo returns nothing. This is today\'s default and a top cause of "search sucks".',
+  1:'✅ 1-char edit distance. Sweet spot for docs. (Disables prefix autocomplete — fine for full-query search.)',
+  2:'2-char edits. More forgiving but noisier; can surface false positives at 400 docs.'};
+
+// ─────────── sync + update ───────────
+function syncControls(){
+  document.querySelectorAll('#tolSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.tol===state.tol));
+  $('bTitle').value=state.bTitle;$('bDesc').value=state.bDesc;$('bBody').value=state.bBody;
+  $('bTitleV').textContent=state.bTitle;$('bDescV').textContent=state.bDesc;$('bBodyV').textContent=state.bBody;
+  document.querySelectorAll('#coverGroup input').forEach(cb=>{if(cb.dataset.cid)cb.checked=state.cover[cb.dataset.cid];});
+  document.querySelectorAll('#phaseGroup input').forEach(cb=>{cb.checked=state.phase[cb.dataset.pid];});
+}
+function updateAll(){
+  buildApproaches();
+  $('tolNote').textContent=TOL_NOTES[state.tol];
+  $('bTitleV').textContent=state.bTitle;$('bDescV').textContent=state.bDesc;$('bBodyV').textContent=state.bBody;
+  renderResults();renderScore();renderCoverStrip();updatePrompt();
+}
+
+// ─────────── wire ───────────
+function init(){
+  buildPresets();buildCover();buildPhase();
+  document.querySelectorAll('#tolSeg button').forEach(b=>b.onclick=()=>{state.tol=+b.dataset.tol;syncControls();updateAll();});
+  [['bTitle','bTitle'],['bDesc','bDesc'],['bBody','bBody']].forEach(([el,key])=>{
+    $(el).oninput=()=>{state[key]=+$(el).value;updateAll();};
+  });
+  $('q').oninput=()=>{state.q=$('q').value;updateAll();};
+  $('copyBtn').onclick=()=>{navigator.clipboard.writeText($('prompt').textContent).then(()=>{
+    const b=$('copyBtn');b.textContent='Copied!';b.classList.add('done');setTimeout(()=>{b.textContent='Copy';b.classList.remove('done');},1300);});};
+  syncControls();updateAll();
+}
+init();
+</script>
+</body>
+</html>

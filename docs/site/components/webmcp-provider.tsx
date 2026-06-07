@@ -30,18 +30,27 @@ const TOOLS: WebMcpTool[] = [
 	{
 		name: "search_docs",
 		description:
-			"Full-text search across the OrchestKit documentation. Returns matching pages with titles and URLs.",
+			"Full-text search across ALL OrchestKit content (docs, skills, agents, hooks, compositions) via the unified index. Returns matching results with titles and URLs. Optionally filter by content type with `tag`.",
 		inputSchema: {
 			type: "object",
 			properties: {
 				query: { type: "string", description: "Search term" },
+				tag: {
+					type: "string",
+					enum: ["docs", "skill", "agent", "hook", "composition"],
+					description:
+						"Restrict results to one content type (e.g. 'skill' or 'agent'). Omit to search everything.",
+				},
 			},
 			required: ["query"],
 		},
 		execute: async (args) => {
 			const query = String(args.query ?? "").trim();
 			if (!query) return text("Provide a non-empty query.");
-			const res = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
+			const params = new URLSearchParams({ query });
+			const tag = String(args.tag ?? "").trim();
+			if (tag) params.set("tag", tag);
+			const res = await fetch(`/api/search?${params.toString()}`);
 			if (!res.ok) return text(`Search failed (${res.status}).`);
 			return text(await res.text());
 		},

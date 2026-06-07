@@ -1,44 +1,37 @@
-import type { FuseResultMatch } from "fuse.js";
-
 interface HighlightProps {
   text: string;
-  matches: readonly FuseResultMatch[] | undefined;
-  fieldKey: string;
+  /** The active search query; occurrences are wrapped in <mark>. */
+  query: string;
   className?: string;
 }
 
 /**
- * Renders text with highlighted match ranges from Fuse.js results.
- * Merges overlapping indices before rendering.
+ * Highlights occurrences of `query` inside `text` (case-insensitive) by
+ * wrapping each match in a <mark>. XSS-safe: the string is split into React
+ * segments — no dangerouslySetInnerHTML, no HTML parsing of user input.
  */
-export function Highlight({ text, matches, fieldKey, className }: HighlightProps) {
-  if (!matches) return <span className={className}>{text}</span>;
+export function Highlight({ text, query, className }: HighlightProps) {
+  const q = query.trim();
+  if (!q) return <span className={className}>{text}</span>;
 
-  const fieldMatch = matches.find((m) => m.key === fieldKey);
-  if (!fieldMatch?.indices?.length) return <span className={className}>{text}</span>;
-
-  // Merge overlapping indices
-  const sorted = [...fieldMatch.indices].sort((a, b) => a[0] - b[0]);
-  const merged: [number, number][] = [];
-  for (const [start, end] of sorted) {
-    const last = merged[merged.length - 1];
-    if (last && start <= last[1] + 1) {
-      last[1] = Math.max(last[1], end);
-    } else {
-      merged.push([start, end]);
-    }
-  }
+  const haystack = text.toLowerCase();
+  const needle = q.toLowerCase();
 
   const parts: { text: string; highlighted: boolean }[] = [];
   let cursor = 0;
+  let idx = haystack.indexOf(needle, cursor);
 
-  for (const [start, end] of merged) {
-    if (start > cursor) {
-      parts.push({ text: text.slice(cursor, start), highlighted: false });
+  while (idx !== -1) {
+    if (idx > cursor) {
+      parts.push({ text: text.slice(cursor, idx), highlighted: false });
     }
-    parts.push({ text: text.slice(start, end + 1), highlighted: true });
-    cursor = end + 1;
+    parts.push({ text: text.slice(idx, idx + q.length), highlighted: true });
+    cursor = idx + q.length;
+    idx = haystack.indexOf(needle, cursor);
   }
+
+  if (parts.length === 0) return <span className={className}>{text}</span>;
+
   if (cursor < text.length) {
     parts.push({ text: text.slice(cursor), highlighted: false });
   }
