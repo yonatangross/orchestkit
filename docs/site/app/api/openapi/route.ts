@@ -3,9 +3,9 @@
 
 import { COUNTS, SITE } from "@/lib/constants";
 
-// Minimal OpenAPI 3.1 description of the public docs search API. Referenced as the
-// `service-desc` relation of the API catalog (/.well-known/api-catalog) so agents
-// can discover how to query the documentation programmatically.
+// OpenAPI 3.1 description of the public, read-only OrchestKit API. Referenced as
+// the `service-desc` relation of the API catalog (/.well-known/api-catalog) so
+// agents can discover the API surface and call it via function-calling. No auth.
 export const revalidate = false;
 
 export function GET() {
@@ -14,39 +14,103 @@ export function GET() {
 		info: {
 			title: `${SITE.name} Docs API`,
 			version: SITE.version,
-			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents).`,
-			license: { name: "MIT" },
+			summary: "Public, read-only API over the OrchestKit documentation.",
+			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks). No authentication is required — see ${SITE.domain}/auth.md. Errors use RFC 9457 Problem Details.`,
+			license: {
+				name: "MIT",
+				url: "https://opensource.org/license/mit",
+			},
+			contact: { name: SITE.name, url: SITE.github },
 		},
-		servers: [{ url: SITE.domain }],
+		servers: [{ url: SITE.domain, description: "Production" }],
 		paths: {
 			"/api/search": {
 				get: {
 					operationId: "searchDocs",
 					summary: "Full-text search across the documentation",
+					description:
+						"Returns documentation pages matching a search term, ranked by relevance. Use this to find the right doc before fetching its Markdown.",
+					tags: ["search"],
 					parameters: [
 						{
 							name: "query",
 							in: "query",
 							required: true,
-							description: "Search term",
-							schema: { type: "string" },
+							description: "Search term, e.g. 'install' or 'memory'.",
+							schema: { type: "string", minLength: 1 },
 						},
 					],
 					responses: {
 						"200": {
-							description: "Ranked search results",
+							description: "Ranked search results.",
 							content: {
 								"application/json": {
 									schema: {
 										type: "array",
-										items: {
-											type: "object",
-											properties: {
-												id: { type: "string" },
-												url: { type: "string" },
-												content: { type: "string" },
-											},
+										items: { $ref: "#/components/schemas/SearchResult" },
+									},
+								},
+							},
+						},
+						"400": { $ref: "#/components/responses/Problem" },
+					},
+				},
+			},
+			"/ask": {
+				post: {
+					operationId: "askQuestion",
+					summary: "Answer a natural-language question about OrchestKit",
+					description:
+						"NLWeb endpoint. Accepts a natural-language query and returns matching documentation as structured JSON (with a `_meta` block). Send `Accept: text/event-stream` to stream results as Server-Sent Events.",
+					tags: ["ask"],
+					requestBody: {
+						required: true,
+						content: {
+							"application/json": {
+								schema: { $ref: "#/components/schemas/AskRequest" },
+							},
+						},
+					},
+					responses: {
+						"200": {
+							description: "Structured answer with matching documentation.",
+							content: {
+								"application/json": {
+									schema: { $ref: "#/components/schemas/AskResponse" },
+								},
+								"text/event-stream": {
+									schema: {
+										type: "string",
+										description:
+											"SSE stream of NLWeb events: start, result, complete.",
+									},
+								},
+							},
+						},
+						"400": { $ref: "#/components/responses/Problem" },
+					},
+				},
+			},
+			"/api/health": {
+				get: {
+					operationId: "getHealth",
+					summary: "Liveness check",
+					description:
+						"Returns 200 with service name and version when serving.",
+					tags: ["meta"],
+					responses: {
+						"200": {
+							description: "Service is serving.",
+							content: {
+								"application/json": {
+									schema: {
+										type: "object",
+										properties: {
+											status: { type: "string", examples: ["ok"] },
+											service: { type: "string" },
+											version: { type: "string" },
 										},
+										required: ["status"],
 									},
 								},
 							},
@@ -54,11 +118,73 @@ export function GET() {
 					},
 				},
 			},
-			"/api/health": {
-				get: {
-					operationId: "health",
-					summary: "Liveness check",
-					responses: { "200": { description: "Service is serving" } },
+		},
+		components: {
+			schemas: {
+				SearchResult: {
+					type: "object",
+					description: "A single documentation search hit.",
+					properties: {
+						id: { type: "string", description: "Stable result id." },
+						url: { type: "string", description: "Path to the doc page." },
+						content: {
+							type: "string",
+							description: "Matching heading or text excerpt.",
+						},
+					},
+					required: ["id", "url"],
+				},
+				AskRequest: {
+					type: "object",
+					properties: {
+						query: {
+							type: "string",
+							minLength: 1,
+							description: "The natural-language question.",
+						},
+					},
+					required: ["query"],
+				},
+				AskResponse: {
+					type: "object",
+					properties: {
+						results: {
+							type: "array",
+							items: { $ref: "#/components/schemas/SearchResult" },
+						},
+						_meta: {
+							type: "object",
+							description: "NLWeb metadata.",
+							properties: {
+								response_type: { type: "string", examples: ["docs"] },
+								version: { type: "string" },
+							},
+							required: ["response_type", "version"],
+						},
+					},
+					required: ["results", "_meta"],
+				},
+				Problem: {
+					type: "object",
+					description: "RFC 9457 Problem Details.",
+					properties: {
+						type: { type: "string" },
+						title: { type: "string" },
+						status: { type: "integer" },
+						detail: { type: "string" },
+						instance: { type: "string" },
+					},
+					required: ["title", "status"],
+				},
+			},
+			responses: {
+				Problem: {
+					description: "Error in RFC 9457 Problem Details format.",
+					content: {
+						"application/problem+json": {
+							schema: { $ref: "#/components/schemas/Problem" },
+						},
+					},
 				},
 			},
 		},

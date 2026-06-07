@@ -23,6 +23,9 @@ export const metadata: Metadata = {
 	},
 	description: `${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks for Claude Code. Stop explaining your stack. Start shipping.`,
 	icons: { icon: "/favicon.svg" },
+	// Default canonical = site root. Per-page metadata overrides this with its own
+	// `alternates.canonical` (docs pages and the trust/pricing pages already do).
+	alternates: { canonical: SITE.domain },
 	openGraph: {
 		siteName: SITE.name,
 		type: "website",
