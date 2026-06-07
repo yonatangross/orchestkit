@@ -242,6 +242,8 @@ Plugin settings follow a 3-tier precedence:
 
 Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
 
+> **CC 2.1.166 — managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies — one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references.
+
 > **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
 
 ## Anti-Patterns (FORBIDDEN)
