@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reversible Output Compression — #2264 Explorer</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2230; --border: #30363d;
+    --text: #c9d1d9; --dim: #8b949e; --accent: #58a6ff; --green: #3fb950;
+    --red: #f85149; --amber: #d29922; --purple: #bc8cff; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px; line-height: 1.5;
+  }
+  header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  header .sub { color: var(--dim); font-size: 12.5px; }
+  header .badge { font-family: var(--mono); font-size: 11px; color: var(--purple); border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; }
+  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 0; min-height: calc(100vh - 56px); }
+  .controls { padding: 18px 20px; border-right: 1px solid var(--border); overflow-y: auto; }
+  .preview { padding: 18px 20px; overflow-y: auto; }
+  .group { margin-bottom: 22px; }
+  .group h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--dim); margin: 0 0 10px; font-weight: 600; }
+  label.row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+  label.row .val { font-family: var(--mono); color: var(--accent); font-size: 12px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 2px 0 14px; }
+  select, textarea {
+    width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px; font-family: var(--mono); font-size: 12px;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .preset {
+    background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 10px; border-radius: 14px; font-size: 12px; cursor: pointer;
+  }
+  .preset:hover { border-color: var(--accent); }
+  .preset.active { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+  .toggle { display: flex; gap: 8px; }
+  .toggle button {
+    flex: 1; background: var(--panel2); border: 1px solid var(--border); color: var(--dim);
+    padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+  }
+  .toggle button.on { color: #0d1117; }
+  .toggle button.on.loss { background: var(--red); border-color: var(--red); }
+  .toggle button.on.rev { background: var(--green); border-color: var(--green); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .stat .k { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+  .stat .v { font-family: var(--mono); font-size: 19px; margin-top: 3px; font-weight: 600; }
+  .stat .v.green { color: var(--green); } .stat .v.red { color: var(--red); } .stat .v.accent { color: var(--accent); }
+
+  .bar { height: 22px; background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 4px; }
+  .bar .seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-family: var(--mono); white-space: nowrap; overflow: hidden; }
+  .bar .kept { background: rgba(63,185,80,.35); color: var(--green); }
+  .bar .saved { background: rgba(248,81,73,.18); color: var(--red); }
+  .barlabel { font-size: 11px; color: var(--dim); margin-bottom: 16px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .card .cap { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .card .cap .tag { font-family: var(--mono); font-size: 10.5px; padding: 1px 6px; border-radius: 4px; }
+  .tag.loss { background: rgba(248,81,73,.15); color: var(--red); }
+  .tag.rev { background: rgba(63,185,80,.15); color: var(--green); }
+  .tag.orig { background: rgba(88,166,255,.15); color: var(--accent); }
+  pre.out { margin: 0; padding: 12px; font-family: var(--mono); font-size: 11.5px; white-space: pre-wrap; word-break: break-word; max-height: 340px; overflow-y: auto; }
+  .hd { color: var(--text); }
+  .mid { color: var(--dim); }
+  .ptr { color: var(--amber); background: rgba(210,153,34,.10); border-left: 2px solid var(--amber); padding: 2px 4px; display: block; }
+  .gone { color: var(--red); text-decoration: line-through; opacity: .55; }
+
+  .flow { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: var(--mono); font-size: 11.5px; white-space: pre; overflow-x: auto; margin-bottom: 16px; color: var(--dim); line-height: 1.55; }
+  .flow b.on { color: var(--green); } .flow b.off { color: var(--red); }
+
+  .note { font-size: 12px; color: var(--dim); margin-top: 6px; }
+  .hashline { font-family: var(--mono); font-size: 12px; color: var(--purple); margin-top: 4px; }
+
+  .promptbar { position: sticky; bottom: 0; margin-top: 20px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .promptbar .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .promptbar h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--dim); margin: 0; }
+  #copyBtn { background: var(--accent); color: #0d1117; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
+  #copyBtn:active { transform: translateY(1px); }
+  #promptText { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; color: var(--text); }
+  .ccguard { color: var(--amber); font-size: 12px; margin-top: 8px; display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🗜️ Reversible Output Compression</h1>
+  <span class="sub">OrchestKit <code>mcp-output-transform.ts</code> — lossy vs reversible truncation</span>
+  <span class="badge">#2264</span>
+</header>
+
+<div class="layout">
+  <!-- ============ CONTROLS ============ -->
+  <div class="controls">
+    <div class="group">
+      <h2>Sample tool output</h2>
+      <div class="presets" id="presets"></div>
+      <textarea id="customInput" placeholder="…or paste your own MCP tool output here"></textarea>
+      <div class="note" id="inputMeta"></div>
+    </div>
+
+    <div class="group">
+      <h2>Mode</h2>
+      <div class="toggle">
+        <button id="modeLoss" class="loss" onclick="setMode('loss')">❌ Lossy (today)</button>
+        <button id="modeRev" class="rev" onclick="setMode('rev')">✅ Reversible (#2264)</button>
+      </div>
+      <div class="note">Reversible stashes the full original to disk and emits a <code>Read</code> pointer instead of discarding the middle.</div>
+    </div>
+
+    <div class="group">
+      <h2>Tuning</h2>
+      <label class="row">Truncation threshold <span class="val"><span id="thrV"></span> ch</span></label>
+      <input type="range" id="thr" min="500" max="50000" step="500">
+      <label class="row">Head chars kept <span class="val"><span id="headV"></span></span></label>
+      <input type="range" id="head" min="200" max="4000" step="100">
+      <label class="row">Tail chars kept <span class="val"><span id="tailV"></span></span></label>
+      <input type="range" id="tail" min="0" max="4000" step="100">
+      <label class="row">Chars per token <span class="val"><span id="cptV"></span></span></label>
+      <input type="range" id="cpt" min="2.5" max="5" step="0.1">
+      <div class="note">Default ork values: threshold 2000, head 1200, tail 600. CC persists &gt;50K natively — above that, both modes skip (the guard).</div>
+    </div>
+  </div>
+
+  <!-- ============ PREVIEW ============ -->
+  <div class="preview">
+    <div class="stats">
+      <div class="stat"><div class="k">Original</div><div class="v accent" id="sOrig">–</div></div>
+      <div class="stat"><div class="k">Sent to Claude</div><div class="v" id="sSent">–</div></div>
+      <div class="stat"><div class="k">Token savings</div><div class="v green" id="sSave">–</div></div>
+    </div>
+
+    <div class="bar" id="bar"></div>
+    <div class="barlabel" id="barlabel"></div>
+
+    <div class="flow" id="flow"></div>
+
+    <div class="cols">
+      <div class="card">
+        <div class="cap"><span>Original output</span><span class="tag orig" id="origTokens">–</span></div>
+        <pre class="out" id="origOut"></pre>
+      </div>
+      <div class="card">
+        <div class="cap"><span id="resCap">Compressed result</span><span class="tag" id="resTag">–</span></div>
+        <pre class="out" id="resOut"></pre>
+        <div style="padding: 0 12px 12px;">
+          <div class="hashline" id="hashline"></div>
+          <div class="note" id="resNote"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ccguard" id="ccguard">⚠️ This output is above the 50K CC-persist threshold — both modes skip. CC keeps it in context natively (file-ref). ork must not re-truncate.</div>
+
+    <div class="promptbar">
+      <div class="top">
+        <h2>📋 Prompt</h2>
+        <button id="copyBtn" onclick="copyPrompt()">Copy</button>
+      </div>
+      <div id="promptText"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- sample generators (kept in JS so the HTML stays small) ----------
+function rep(line, n) { return Array.from({length:n}, (_,i)=>line(i)).join('\n'); }
+const SAMPLES = {
+  'Code search (100 hits)': () =>
+    'Found 100 matches for "getProjectDir" across 38 files:\n\n' +
+    rep(i => `src/hooks/src/lib/${['env','context','session-state','atomic-write','common'][i%5]}.ts:${12+i*3}:   const projectDir = getProjectDir(${i%2?'opts':''}); // resolve ${['cwd','HOME','plugin root','worktree','git top'][i%5]}`, 100),
+  'JSON API response': () =>
+    '{\n  "data": [\n' +
+    rep(i => `    { "id": ${1000+i}, "sku": "ORK-${(2000+i)}", "name": "widget-${i}", "price": ${(9.99+i).toFixed(2)}, "inStock": ${i%3!==0}, "tags": ["a","b","c"], "updatedAt": "2026-06-0${1+i%7}T1${i%9}:00:00Z" }`, 90).replace(/\n(?!$)/g, ',\n') +
+    '\n  ],\n  "page": 1, "total": 4821, "nextCursor": "eyJpZCI6MTA5MH0="\n}',
+  'Log / SRE dump': () =>
+    rep(i => `2026-06-06T1${i%9}:${(10+i%50)}:0${i%9}Z [${['INFO','WARN','ERROR','DEBUG'][i%4]}] svc=api pod=api-${7000+i} latency=${20+i*3}ms msg="${['request handled','retry scheduled','cache miss','pool saturated','timeout downstream'][i%5]}" trace=${(i*7919).toString(16)}`, 120),
+  'File read (source)': () =>
+    rep(i => `${(i+1).toString().padStart(4,' ')}  ${['export ','  ','async ','const ','return '][i%5]}function step${i}(input) { return transform(input, ${i}); }`, 110),
+  'git diff': () =>
+    rep(i => `${['@@ -'+(i*10)+',6 +'+(i*10)+',7 @@','-  const x = old();','+  const x = neW();','   untouched line','+  added line '+i,' '][i%6]}`, 130),
+};
+const SAMPLE_KEYS = Object.keys(SAMPLES);
+
+// ---------- state ----------
+const DEFAULTS = { thr: 2000, head: 1200, tail: 600, cpt: 4.0, mode: 'rev', preset: SAMPLE_KEYS[0], custom: '' };
+const state = { ...DEFAULTS };
+
+// ---------- elements ----------
+const $ = id => document.getElementById(id);
+const presetsEl = $('presets');
+SAMPLE_KEYS.forEach(k => {
+  const b = document.createElement('button'); b.className = 'preset'; b.textContent = k;
+  b.onclick = () => { state.preset = k; state.custom = ''; $('customInput').value=''; syncPresetUI(); updateAll(); };
+  b.dataset.k = k; presetsEl.appendChild(b);
+});
+function syncPresetUI(){ [...presetsEl.children].forEach(b=>b.classList.toggle('active', b.dataset.k===state.preset && !state.custom)); }
+
+['thr','head','tail','cpt'].forEach(id => $(id).addEventListener('input', e => { state[id] = parseFloat(e.target.value); updateAll(); }));
+$('customInput').addEventListener('input', e => { state.custom = e.target.value; syncPresetUI(); updateAll(); });
+
+function setMode(m){ state.mode = m; updateAll(); }
+
+// ---------- helpers ----------
+function fmt(n){ return n.toLocaleString(); }
+function tokens(n){ return Math.round(n / state.cpt); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function getInput(){ return state.custom.trim() ? state.custom : SAMPLES[state.preset](); }
+
+async function sha12(text){
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].slice(0,6).map(b=>b.toString(16).padStart(2,'0')).join('');
+  } catch { // file:// without secure context — fallback djb2
+    let h=5381; for(let i=0;i<text.length;i++) h=((h<<5)+h+text.charCodeAt(i))>>>0;
+    return h.toString(16).padStart(12,'0').slice(0,12);
+  }
+}
+
+const CC_PERSIST = 50000;
+
+// ---------- render ----------
+async function updateAll(){
+  syncPresetUI();
+  const input = getInput();
+  const len = input.length;
+  const HEAD = state.head, TAIL = state.tail, THR = state.thr;
+
+  // input meta
+  $('inputMeta').textContent = `${fmt(len)} chars · ~${fmt(tokens(len))} tokens`;
+  $('thrV').textContent = fmt(THR); $('headV').textContent = fmt(HEAD);
+  $('tailV').textContent = fmt(TAIL); $('cptV').textContent = state.cpt.toFixed(1);
+  $('modeLoss').classList.toggle('on', state.mode==='loss');
+  $('modeRev').classList.toggle('on', state.mode==='rev');
+
+  // CC guard
+  const ccGuarded = len > CC_PERSIST;
+  $('ccguard').style.display = ccGuarded ? 'block' : 'none';
+
+  // original panel
+  $('origOut').textContent = input.length > 6000 ? input.slice(0,6000)+'\n…[' + fmt(len-6000) + ' more chars]' : input;
+  $('origTokens').textContent = '~' + fmt(tokens(len)) + ' tok';
+
+  // decide truncation
+  const willTruncate = !ccGuarded && len > THR && (HEAD + TAIL) < len;
+  const path = '~/.claude/state/orchestkit/headroom/';
+  const hash = await sha12(input);
+
+  let resHTML, sentLen, note='', hashline='';
+  const head = input.slice(0, HEAD), tail = TAIL>0 ? input.slice(-TAIL) : '';
+
+  if (ccGuarded){
+    resHTML = `<span class="hd">${esc(input.slice(0,800))}</span><span class="mid">\n…[full ${fmt(len)} chars kept — CC native file-ref persistence]</span>`;
+    sentLen = len; note = 'Above 50K → ork skips entirely. No stash, no truncate.';
+    $('resTag').textContent = 'guard';
+    $('resTag').className = 'tag orig'; $('resCap').textContent = 'Untouched (CC owns it)';
+  } else if (!willTruncate){
+    resHTML = `<span class="hd">${esc(input)}</span>`;
+    sentLen = len; note = len<=THR ? `Under threshold (${fmt(THR)}) — passed through unchanged.` : 'head+tail ≥ original — nothing to gain, passed through.';
+    $('resTag').textContent = 'pass-through'; $('resTag').className = 'tag orig';
+    $('resCap').textContent = 'Result (unchanged)';
+  } else if (state.mode==='loss'){
+    const notice = `\n\n[Result truncated from ${fmt(len)} chars to ${fmt(HEAD+TAIL)} chars for context efficiency]\n\n`;
+    resHTML = `<span class="hd">${esc(head)}</span>`
+            + `<span class="gone">${esc(input.slice(HEAD, len-TAIL).slice(0,300))}${len-TAIL-HEAD>300?' …':''}</span>`
+            + `<span class="mid">${esc(notice)}</span>`
+            + `<span class="hd">${esc(tail)}</span>`;
+    sentLen = HEAD + TAIL + notice.length;
+    note = `☠️ The ${fmt(len-HEAD-TAIL)} chars in the middle are gone forever — no recovery path.`;
+    $('resTag').textContent = 'lossy'; $('resTag').className = 'tag loss';
+    $('resCap').textContent = 'Compressed (lossy)';
+  } else { // reversible
+    const ptr = `\n\n[Truncated ${fmt(len)}→${fmt(HEAD+TAIL)} chars. Full output: Read ${path}${hash}.txt for the ${fmt(len-HEAD-TAIL)} chars between.]\n\n`;
+    resHTML = `<span class="hd">${esc(head)}</span>`
+            + `<span class="ptr">${esc(ptr.trim())}</span>`
+            + `<span class="hd">${esc(tail)}</span>`;
+    sentLen = HEAD + TAIL + ptr.length;
+    note = `🔓 Full original stashed to disk. Claude pulls the middle back with a single Read when needed.`;
+    hashline = `📦 stash: ${path}${hash}.txt  ·  content-addressed → identical outputs dedup to one file`;
+    $('resTag').textContent = 'reversible'; $('resTag').className = 'tag rev';
+    $('resCap').textContent = 'Compressed (reversible)';
+  }
+
+  $('resOut').innerHTML = resHTML;
+  $('resNote').textContent = note;
+  $('hashline').textContent = hashline;
+
+  // stats
+  const savedTok = tokens(len) - tokens(sentLen);
+  const pct = len>0 ? Math.round((1 - sentLen/len)*100) : 0;
+  $('sOrig').textContent = '~'+fmt(tokens(len))+' tok';
+  $('sSent').textContent = '~'+fmt(tokens(sentLen))+' tok';
+  $('sSent').className = 'v ' + (sentLen<len?'green':'accent');
+  $('sSave').textContent = (pct>0?pct+'%':'0%');
+  $('sSave').className = 'v ' + (pct>0?'green':'red');
+
+  // bar
+  const keptPct = Math.max(0, Math.min(100, Math.round(sentLen/len*100)));
+  $('bar').innerHTML = `<div class="seg kept" style="width:${keptPct}%">${keptPct>8?'kept '+fmt(tokens(sentLen))+' tok':''}</div>`
+                     + `<div class="seg saved" style="width:${100-keptPct}%">${100-keptPct>8?'saved '+fmt(savedTok)+' tok':''}</div>`;
+  $('barlabel').textContent = `${fmt(tokens(len))} tokens in → ${fmt(tokens(sentLen))} tokens to Claude` + (savedTok>0?` (−${fmt(savedTok)})`:'');
+
+  // flow diagram
+  renderFlow(ccGuarded, willTruncate, hash, path);
+
+  // prompt
+  updatePrompt(len, sentLen, pct, ccGuarded, willTruncate);
+}
+
+function renderFlow(guarded, trunc, hash, path){
+  const on = (b,t)=>`<b class="${b?'on':'off'}">${t}</b>`;
+  let f;
+  if (guarded){
+    f = `mcp__* result ──► redact PII ──► size > 50K?  ${on(true,'YES')}\n`
+      + `                                   └─► ${on(true,'SKIP')} — CC keeps it natively (file-ref). ork hands off.`;
+  } else if (!trunc){
+    f = `mcp__* result ──► redact PII ──► size > threshold?  ${on(false,'NO')}\n`
+      + `                                   └─► pass through unchanged ──► Claude`;
+  } else if (state.mode==='loss'){
+    f = `mcp__* result ──► redact PII ──► head + notice + tail ──► Claude\n`
+      + `                                       │\n`
+      + `                                       └─► middle  ${on(false,'☠ DISCARDED')}  (no recovery)`;
+  } else {
+    f = `mcp__* result ──► redact PII ──► sha256 → ${hash}\n`
+      + `                                   │\n`
+      + `                                   ├─► stash FULL ──► ${path}${hash}.txt   ${on(true,'(dedup)')}\n`
+      + `                                   ▼\n`
+      + `                            head + pointer + tail ──► Claude\n`
+      + `                                   │  needs middle?\n`
+      + `                                   └─► Read(${hash}.txt) ──► ${on(true,'full output back 🔓')}`;
+  }
+  $('flow').innerHTML = f;
+}
+
+function updatePrompt(len, sentLen, pct, guarded, trunc){
+  const parts = [];
+  parts.push(`Implement #2264 (reversible output compression) in src/hooks/src/posttool/mcp-output-transform.ts.`);
+  const nonDefault = [];
+  if (state.thr !== DEFAULTS.thr) nonDefault.push(`truncation threshold ${fmt(state.thr)} chars`);
+  if (state.head !== DEFAULTS.head) nonDefault.push(`head ${fmt(state.head)} chars`);
+  if (state.tail !== DEFAULTS.tail) nonDefault.push(`tail ${fmt(state.tail)} chars`);
+  if (nonDefault.length) parts.push(`Use ${nonDefault.join(', ')} (vs the current defaults).`);
+
+  if (guarded){
+    parts.push(`Note: my sample is >50K, so confirm the CC-persist guard short-circuits BEFORE any stash — ork must not touch outputs CC keeps natively.`);
+  } else if (!trunc){
+    parts.push(`Note: my sample is under threshold, so verify the pass-through path writes nothing to disk.`);
+  } else {
+    parts.push(`On the ${fmt(state.thr)}–50K band, instead of discarding the middle: sha256 the redacted output, stash the full original to ~/.claude/state/orchestkit/headroom/<hash>.txt (content-addressed, dedup, skip-write if it exists), and replace the lossy notice with a pointer telling Claude to Read that path for the ${fmt(len - state.head - state.tail)} skipped chars. Hash the POST-redaction text so PII never lands on disk. Add the headroom dir to the session-cleanup TTL sweep. On my sample this cuts ~${fmt(tokens(len)-tokens(sentLen))} tokens (${pct}% smaller) while staying fully recoverable.`);
+  }
+  $('promptText').textContent = parts.join(' ');
+}
+
+function copyPrompt(){
+  navigator.clipboard.writeText($('promptText').textContent).then(()=>{
+    const b=$('copyBtn'); const t=b.textContent; b.textContent='Copied!'; setTimeout(()=>b.textContent=t,1200);
+  });
+}
+
+// ---------- init ----------
+$('thr').value=state.thr; $('head').value=state.head; $('tail').value=state.tail; $('cpt').value=state.cpt;
+updateAll();
+</script>
+</body>
+</html>
