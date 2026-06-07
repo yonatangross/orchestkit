@@ -1,134 +1,30 @@
 [
   {
-    "version": "2.1.166",
-    "parse_failed": false,
-    "features": [
-      {
-        "feature_slug": "cross_session_msg_auth_strip",
-        "category": "breaking",
-        "description": "SendMessage relays from other Claude sessions no longer carry user authority; permission requests refused.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "security-patterns",
-          "mcp-patterns"
-        ],
-        "reference_changelog_line": "Hardened cross-session messaging: messages relayed via `SendMessage` from other Claude sessions no longer carry user authority — receivers refuse relayed permission requests, and auto mode blocks them"
-      },
-      {
-        "feature_slug": "thinking_disable_default_models",
-        "category": "breaking",
-        "description": "MAX_THINKING_TOKENS=0, --thinking disabled, and per-model toggle now disable thinking on default-thinking models.",
-        "gap_score": 20,
-        "affected_skills": [
-          "claude-api",
-          "configure"
-        ],
-        "reference_changelog_line": "`MAX_THINKING_TOKENS=0`, `--thinking disabled`, and the per-model thinking toggle now disable thinking on models that think by default via the Claude API (3P providers unchanged)"
-      },
-      {
-        "feature_slug": "fallback_model_retry_turn",
-        "category": "breaking",
-        "description": "Claude Code retries a turn once on the fallback model when API rejects an unexpected non-retryable error.",
-        "gap_score": 20,
-        "affected_skills": [
-          "claude-api",
-          "errors"
-        ],
-        "reference_changelog_line": "Claude Code now retries a turn once on the fallback model when the API rejects an unexpected non-retryable error; auth, rate-limit, request-size, and transport errors still surface immediately"
-      },
-      {
-        "feature_slug": "managed_settings_invalid_entry",
-        "category": "breaking",
-        "description": "Managed settings with an invalid entry no longer silently disable enforcement of remaining valid policies.",
-        "gap_score": 20,
-        "affected_skills": [
-          "configure",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed managed settings with an invalid entry silently disabling enforcement of their remaining valid policies"
-      },
-      {
-        "feature_slug": "managed_mcp_var_predicates",
-        "category": "breaking",
-        "description": "Managed-settings allowedMcpServers/deniedMcpServers predicates now match when using ${VAR} references.",
-        "gap_score": 20,
-        "affected_skills": [
-          "mcp-patterns",
-          "configure",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed managed-settings `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references"
-      },
-      {
-        "feature_slug": "deny_rule_glob_support",
-        "category": "new_perm",
-        "description": "Glob pattern support in deny rule tool-name position; allow rules reject non-MCP globs; unknown deny names warn.",
-        "gap_score": 12,
-        "affected_skills": [
-          "configure",
-          "security-patterns",
-          "mcp-patterns"
-        ],
-        "reference_changelog_line": "Added glob pattern support in deny rule tool-name position (`\"*\"` denies all tools); allow rules reject non-MCP globs, and unknown tool names in deny rules warn at startup"
-      },
-      {
-        "feature_slug": "fallback_model_setting",
-        "category": "new_field",
-        "description": "New fallbackModel setting configures up to three fallback models; --fallback-model now applies to interactive sessions.",
-        "gap_score": 5,
-        "affected_skills": [
-          "configure",
-          "claude-api"
-        ],
-        "reference_changelog_line": "Added `fallbackModel` setting to configure up to three fallback models tried in order when the primary model is overloaded or unavailable; `--fallback-model` now also applies to interactive sessions"
-      },
-      {
-        "feature_slug": "claude_update_announce_version",
-        "category": "new_attr",
-        "description": "claude update now announces the target version before downloading instead of going silent.",
-        "gap_score": 5,
-        "affected_skills": [
-          "release-management"
-        ],
-        "reference_changelog_line": "`claude update` now announces the target version before downloading instead of going silent"
-      },
-      {
-        "feature_slug": "claude_agents_url_filter",
-        "category": "new_attr",
-        "description": "claude agents list now filters to session whose first prompt contained a typed URL.",
-        "gap_score": 5,
-        "affected_skills": [
-          "agent-orchestration"
-        ],
-        "reference_changelog_line": "`claude agents`: typing a URL into the list now filters to the session whose first prompt contained it"
-      }
-    ],
-    "raw_bullets_count": 21,
-    "issues_filed_at": "2026-06-06T14:34:02Z"
-  },
-  {
     "version": "2.1.167",
     "features": [],
     "raw_bullets_count": 1,
-    "featureless": true
+    "featureless": true,
+    "issues_filed_at": "2026-06-07T14:36:39Z"
   },
   {
     "version": "2.1.165",
     "features": [],
     "raw_bullets_count": 1,
-    "featureless": true
+    "featureless": true,
+    "issues_filed_at": "2026-06-07T14:36:39Z"
   },
   {
     "version": "2.1.159",
     "features": [],
     "raw_bullets_count": 1,
-    "featureless": true
+    "featureless": true,
+    "issues_filed_at": "2026-06-07T14:36:39Z"
   },
   {
     "version": "2.1.156",
     "features": [],
     "raw_bullets_count": 1,
-    "featureless": true
+    "featureless": true,
+    "issues_filed_at": "2026-06-07T14:36:39Z"
   }
 ]
