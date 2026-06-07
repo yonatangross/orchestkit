@@ -371,6 +371,54 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ============ WHY ORCHESTKIT ============ */}
+      <section aria-labelledby="why-heading" className="border-b border-fd-border">
+        <div className="mx-auto max-w-[1200px] px-7 py-16 sm:py-20">
+          <h2
+            id="why-heading"
+            className="text-2xl font-semibold tracking-tight text-fd-foreground"
+          >
+            Why OrchestKit
+          </h2>
+          <p className="mt-3 max-w-[680px] leading-7 text-fd-muted-foreground">
+            OrchestKit is built for Claude Code developers. Unlike editor
+            assistants such as Cursor or GitHub Copilot — which autocomplete
+            inside your IDE — OrchestKit operates at the agent layer, making the
+            Claude Code agent more capable with {COUNTS.skills} curated skills,{" "}
+            {COUNTS.agents} specialist agents, and {COUNTS.hooks} guardrail hooks.
+            It is free, open source, and runs locally. See the{" "}
+            <Link href="/compare" className="text-fd-primary underline underline-offset-2">
+              side-by-side comparison
+            </Link>{" "}
+            or read{" "}
+            <Link href="/about" className="text-fd-primary underline underline-offset-2">
+              about the project
+            </Link>
+            .
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <Link
+              href="/docs/getting-started/first-10-minutes"
+              className="inline-flex h-10 items-center rounded-lg bg-fd-primary px-[18px] text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-[oklch(0.54_0.15_163)]"
+            >
+              Get started
+            </Link>
+            <Link
+              href="/compare"
+              className="inline-flex h-10 items-center rounded-lg border border-fd-border px-[18px] text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+            >
+              Compare
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex h-10 items-center rounded-lg border border-fd-border px-[18px] text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+            >
+              Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ============ FOOTER ============ */}
       <footer>
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-7 py-5 text-[13px] text-fd-muted-foreground">
@@ -402,8 +450,14 @@ export default async function HomePage() {
             <Link href="/docs/getting-started/installation" className="hover:text-fd-foreground">
               Docs
             </Link>
-            <Link href="#cookbook" className="hover:text-fd-foreground">
-              Cookbook
+            <Link href="/compare" className="hover:text-fd-foreground">
+              Compare
+            </Link>
+            <Link href="/pricing" className="hover:text-fd-foreground">
+              Pricing
+            </Link>
+            <Link href="/about" className="hover:text-fd-foreground">
+              About
             </Link>
           </nav>
         </div>
