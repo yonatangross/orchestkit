@@ -13,13 +13,12 @@ import json
 import os
 import re
 import shutil
-
 from pathlib import Path
-
 
 # ---------------------------------------------------------------------------
 # YAML frontmatter parser (no external deps)
 # ---------------------------------------------------------------------------
+
 
 def parse_frontmatter(text: str) -> tuple[dict, str]:
     """Parse YAML frontmatter from markdown text. Returns (metadata, body)."""
@@ -38,7 +37,7 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
         return {}, text
 
     fm_lines = lines[1:end_idx]
-    body = "\n".join(lines[end_idx + 1:])
+    body = "\n".join(lines[end_idx + 1 :])
     meta = {}
     current_key = None
     current_list = None
@@ -100,8 +99,15 @@ def title_case(slug: str) -> str:
 
 # Languages not in Shiki's default bundle — replace with 'text'
 UNSUPPORTED_LANGS = {
-    "colang", "tape", "redis", "env", "dotenv",
-    "properties", "conf", "cfg", "ini",
+    "colang",
+    "tape",
+    "redis",
+    "env",
+    "dotenv",
+    "properties",
+    "conf",
+    "cfg",
+    "ini",
 }
 
 
@@ -143,11 +149,43 @@ def sanitize_mdx_body(body: str) -> str:
         # Escape ALL < that could be interpreted as JSX by MDX.
         # Only keep known-safe HTML/MDX component tags.
         safe_tags = {
-            "br", "hr", "img", "a", "div", "span", "p", "ul", "ol", "li",
-            "table", "thead", "tbody", "tr", "td", "th", "strong", "em",
-            "code", "pre", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6",
-            "sup", "sub", "details", "summary", "Callout", "Card", "Tab",
-            "Tabs", "Steps", "Step", "details", "summary",
+            "br",
+            "hr",
+            "img",
+            "a",
+            "div",
+            "span",
+            "p",
+            "ul",
+            "ol",
+            "li",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "td",
+            "th",
+            "strong",
+            "em",
+            "code",
+            "pre",
+            "blockquote",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "sup",
+            "sub",
+            "details",
+            "summary",
+            "Callout",
+            "Card",
+            "Tab",
+            "Tabs",
+            "Steps",
+            "Step",
         }
 
         def escape_angle(m):
@@ -186,6 +224,52 @@ def quote_yaml_value(val: str) -> str:
     return f'"{val}"'
 
 
+def build_answer_block(name: str, description: str) -> str:
+    """Build a self-contained answer-block blockquote for search/AI retrieval.
+
+    Returns a single markdown blockquote line of the form:
+        > **<Name>** <summary>.
+
+    The sentence is "chunk-isolated": it leads with the item's proper-noun name
+    so the block stands on its own out of context (never starts with "This",
+    "It", or a pronoun). The summary is derived from the item's ``description``
+    frontmatter. A short description is kept verbatim (no filler padding); a long
+    one is trimmed to ~60 words at a sentence boundary. Returns ``""`` when there
+    is no usable description (caller skips the block).
+
+    The whole page is regenerated from source on every run, so emitting this line
+    unconditionally is idempotent — re-running never stacks duplicate blocks.
+    """
+    desc = (description or "").strip()
+    if not desc:
+        return ""
+
+    # Trim only when materially over budget; keep shorter descriptions as-is.
+    if len(desc.split()) > 60:
+        sentences = re.split(r"(?<=[.!?])\s+", desc)
+        acc: list[str] = []
+        word_count = 0
+        for sentence in sentences:
+            sentence_words = len(sentence.split())
+            if acc and word_count + sentence_words > 60:
+                break
+            acc.append(sentence)
+            word_count += sentence_words
+        trimmed = " ".join(acc).strip()
+        # A single opening sentence longer than the budget: hard-cut at 60 words.
+        if not trimmed or len(trimmed.split()) > 70:
+            trimmed = " ".join(desc.split()[:60]).rstrip(",;:")
+        desc = trimmed
+
+    # Escape MDX-hostile characters (curly braces, stray angle brackets).
+    desc = sanitize_mdx_body(desc).strip()
+
+    if desc and desc[-1] not in ".!?":
+        desc += "."
+
+    return f"> **{name}** {desc}"
+
+
 # ---------------------------------------------------------------------------
 # SKILL SUBDIRECTORY HELPERS
 # ---------------------------------------------------------------------------
@@ -211,12 +295,14 @@ def read_subdirectory_files(skill_dir: Path, subdir_name: str) -> list[dict]:
         text = md_file.read_text(encoding="utf-8")
         frontmatter, body = parse_frontmatter(text)
         title = frontmatter.get("title", "") or title_case(md_file.stem)
-        results.append({
-            "filename": md_file.name,
-            "title": title,
-            "frontmatter": frontmatter,
-            "body": body,
-        })
+        results.append(
+            {
+                "filename": md_file.name,
+                "title": title,
+                "frontmatter": frontmatter,
+                "body": body,
+            }
+        )
     return results
 
 
@@ -255,6 +341,7 @@ def format_subdir_sections(skill_dir: Path) -> list[str]:
 # SKILLS
 # ---------------------------------------------------------------------------
 
+
 def generate_skills(skills_src: str, skills_out: str) -> int:
     """Generate skill MDX pages. Returns count."""
     skills_dir = Path(skills_src)
@@ -264,9 +351,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 
     # Only count dirs that actually carry a SKILL.md — `src/skills/shared/` is a
     # shared-helpers dir with no SKILL.md and must not inflate the published count.
-    skill_dirs = sorted(
-        d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists()
-    )
+    skill_dirs = sorted(d for d in skills_dir.iterdir() if d.is_dir() and (d / "SKILL.md").exists())
     count = len(skill_dirs)
     print(f"Generating {count} skill pages...")
 
@@ -318,7 +403,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 
         # Invocation CTA (#1082)
         if user_invocable:
-            lines.append(f'```bash title="Invoke"')
+            lines.append('```bash title="Invoke"')
             lines.append(f"/ork:{slug}")
             lines.append("```")
             lines.append("")
@@ -332,6 +417,13 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         # Contextual sidebar (#1080)
         lines.append(f'<ContextualSkillSidebar slug="{slug}" />')
         lines.append("")
+
+        # Answer block for search/AI retrieval: a self-contained, name-led
+        # summary placed after badges/sidebar and before the body's first H1.
+        answer_block = build_answer_block(title, description)
+        if answer_block:
+            lines.append(answer_block)
+            lines.append("")
 
         lines.append(sanitize_mdx_body(body))
 
@@ -384,6 +476,7 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 # AGENTS
 # ---------------------------------------------------------------------------
 
+
 def build_agent_hooks_map(project_root: str) -> dict[str, list[dict]]:
     """Scan src/hooks/src/agent/*.ts and build a mapping of agent_slug -> [hook_info].
 
@@ -404,7 +497,8 @@ def build_agent_hooks_map(project_root: str) -> dict[str, list[dict]]:
         # Matches "Used by: name1, name2,\n *          name3, name4"
         used_by_match = re.search(
             r"Used by:\s*(.+?)(?:\n\s*\*\s*\n|\n\s*\*\s*[A-Z]|\*/)",
-            source, re.DOTALL,
+            source,
+            re.DOTALL,
         )
         if not used_by_match:
             continue
@@ -450,9 +544,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
 
     # Exclude README.md — it documents the agents dir, it is not an agent. Counting
     # it inflates the published agent count (38 vs 37) and emits a bogus README.mdx.
-    agent_files = sorted(
-        f for f in agents_dir.glob("*.md") if f.stem.lower() != "readme"
-    )
+    agent_files = sorted(f for f in agents_dir.glob("*.md") if f.stem.lower() != "readme")
     count = len(agent_files)
     print(f"Generating {count} agent pages...")
 
@@ -496,9 +588,9 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
                 activation_keywords = match.group(1)
 
         # Short description (before activation keywords)
-        short_desc = re.split(
-            r"\s*[Aa]ctivates for\s*|\s*[Uu]se when\s*", description
-        )[0].rstrip(". ")
+        short_desc = re.split(r"\s*[Aa]ctivates for\s*|\s*[Uu]se when\s*", description)[0].rstrip(
+            ". "
+        )
 
         # Build MDX
         lines = []
@@ -511,7 +603,13 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
         if category:
             lines.append(f' <span className="badge badge-gray">{category}</span>')
         lines.append("")
-        lines.append(f"> {short_desc}")
+        # Answer block for search/AI retrieval: a self-contained, name-led
+        # summary derived from the agent description, placed after badges and
+        # before the body's first H1. Replaces the old bare-description quote.
+        answer_block = build_answer_block(title, description)
+        if not answer_block:
+            answer_block = f"> {short_desc}"
+        lines.append(answer_block)
         lines.append("")
 
         if activation_keywords:
@@ -553,9 +651,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
             for ah in agent_hooks:
                 badge = BEHAVIOR_BADGES.get(ah["behavior"], ah["behavior"])
                 desc = ah["description"] or "\u2014"
-                lines.append(
-                    f"| `{ah['hook']}` | {badge} | {desc} |"
-                )
+                lines.append(f"| `{ah['hook']}` | {badge} | {desc} |")
             lines.append("")
 
         lines.append(sanitize_mdx_body(body))
@@ -566,8 +662,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
         # Index row — escape description for markdown table
         safe_desc = short_desc.replace("|", "\\|")
         index_rows.append(
-            f"| [{title}](/docs/reference/agents/{slug}) "
-            f"| {model or '\u2014'} | {safe_desc} |"
+            f"| [{title}](/docs/reference/agents/{slug}) | {model or '\u2014'} | {safe_desc} |"
         )
 
     # Write index page
@@ -602,6 +697,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
 # ---------------------------------------------------------------------------
 # HOOKS
 # ---------------------------------------------------------------------------
+
 
 def slug_from_category(cat: str) -> str:
     """Convert PascalCase to kebab-case: PreToolUse -> pre-tool-use"""
@@ -654,10 +750,7 @@ def _extract_jsdoc_description(source: str) -> str:
         return ""
 
     comment_body = match.group(1)
-    lines = [
-        line.strip().lstrip("* ").strip()
-        for line in comment_body.split("\n")
-    ]
+    lines = [line.strip().lstrip("* ").strip() for line in comment_body.split("\n")]
     # Filter to non-empty lines
     lines = [l for l in lines if l]
 
@@ -791,14 +884,16 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
                     behavior = "fire-and-forget" if "run-hook-silent.mjs" in cmd else "silent"
                     meta = {"description": "", "behavior": behavior}
 
-                rows.append({
-                    "name": hook_name,
-                    "path": hook_path,
-                    "matcher": matcher_name,
-                    "scope": scope,
-                    "behavior": meta["behavior"],
-                    "description": meta["description"],
-                })
+                rows.append(
+                    {
+                        "name": hook_name,
+                        "path": hook_path,
+                        "matcher": matcher_name,
+                        "scope": scope,
+                        "behavior": meta["behavior"],
+                        "description": meta["description"],
+                    }
+                )
                 total_hooks += 1
         category_pages[cat] = rows
 
@@ -827,9 +922,7 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
                 badge = BEHAVIOR_BADGES.get(r["behavior"], r["behavior"])
                 desc = r["description"].replace("|", "\\|") if r["description"] else "\u2014"
                 matcher_escaped = r["matcher"].replace("|", "\\|")
-                lines.append(
-                    f"| `{r['name']}` | `{matcher_escaped}` | {badge} | {desc} |"
-                )
+                lines.append(f"| `{r['name']}` | `{matcher_escaped}` | {badge} | {desc} |")
         else:
             lines.append("*No hooks registered for this event.*")
         lines.append("")
@@ -854,15 +947,16 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     ]
     for slug, cat, count in cat_slugs:
         index_lines.append(
-            f"| [{cat}](/docs/reference/hooks/{slug}) | {count} | "
-            f"Hooks for `{cat}` events |"
+            f"| [{cat}](/docs/reference/hooks/{slug}) | {count} | Hooks for `{cat}` events |"
         )
     (out_dir / "index.mdx").write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 
     # Copy spotlights from docs/hooks/spotlights/ source directory
     spotlights_dir = out_dir / "spotlights"
     spotlights_dir.mkdir(parents=True, exist_ok=True)
-    spotlights_src = Path(project_root) / "docs" / "site" / "content" / "docs" / "hooks" / "spotlights"
+    spotlights_src = (
+        Path(project_root) / "docs" / "site" / "content" / "docs" / "hooks" / "spotlights"
+    )
     if spotlights_src.exists():
         for src_file in spotlights_src.iterdir():
             shutil.copy2(src_file, spotlights_dir / src_file.name)
@@ -881,8 +975,7 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     )
 
     print(
-        f"  -> {total_hooks} hooks across {len(categories)} category pages "
-        f"written to {hooks_out}"
+        f"  -> {total_hooks} hooks across {len(categories)} category pages written to {hooks_out}"
     )
     return total_hooks
 
@@ -896,27 +989,53 @@ CATEGORY_RULES = {
         "label": "Backend",
         "desc": "API design, databases, Python, async patterns, distributed systems.",
         "tags": {
-            "rest", "fastapi", "database", "sqlalchemy", "postgresql",
-            "graphql", "grpc", "asyncio", "python", "api-design",
-            "distributed-systems", "domain-driven-design", "event-driven",
-            "microservices", "cqrs",
+            "rest",
+            "fastapi",
+            "database",
+            "sqlalchemy",
+            "postgresql",
+            "graphql",
+            "grpc",
+            "asyncio",
+            "python",
+            "api-design",
+            "distributed-systems",
+            "domain-driven-design",
+            "event-driven",
+            "microservices",
+            "cqrs",
         },
         "agents": {
-            "backend-system-architect", "database-engineer",
-            "event-driven-architect", "python-performance-engineer",
+            "backend-system-architect",
+            "database-engineer",
+            "event-driven-architect",
+            "python-performance-engineer",
         },
     },
     "frontend": {
         "label": "Frontend",
         "desc": "React, components, design systems, animations, responsive patterns.",
         "tags": {
-            "react", "ui", "component", "design-tokens", "css",
-            "animation", "framer-motion", "responsive", "storybook",
-            "zustand", "figma", "shadcn", "vite", "next",
+            "react",
+            "ui",
+            "component",
+            "design-tokens",
+            "css",
+            "animation",
+            "framer-motion",
+            "responsive",
+            "storybook",
+            "zustand",
+            "figma",
+            "shadcn",
+            "vite",
+            "next",
         },
         "agents": {
-            "frontend-ui-developer", "design-system-architect",
-            "accessibility-specialist", "component-curator",
+            "frontend-ui-developer",
+            "design-system-architect",
+            "accessibility-specialist",
+            "component-curator",
             "frontend-performance-engineer",
         },
     },
@@ -924,8 +1043,17 @@ CATEGORY_RULES = {
         "label": "Testing",
         "desc": "Unit, integration, E2E, performance, and LLM testing patterns.",
         "tags": {
-            "testing", "unit", "integration", "e2e", "playwright",
-            "vitest", "jest", "pytest", "coverage", "mocking", "msw",
+            "testing",
+            "unit",
+            "integration",
+            "e2e",
+            "playwright",
+            "vitest",
+            "jest",
+            "pytest",
+            "coverage",
+            "mocking",
+            "msw",
         },
         "agents": {"test-generator", "code-quality-reviewer"},
     },
@@ -933,44 +1061,76 @@ CATEGORY_RULES = {
         "label": "Security",
         "desc": "OWASP, auth patterns, defense-in-depth, vulnerability scanning.",
         "tags": {
-            "security", "owasp", "authentication", "pii",
-            "vulnerability", "audit",
+            "security",
+            "owasp",
+            "authentication",
+            "pii",
+            "vulnerability",
+            "audit",
         },
         "agents": {
-            "security-auditor", "security-layer-auditor", "ai-safety-auditor",
+            "security-auditor",
+            "security-layer-auditor",
+            "ai-safety-auditor",
         },
     },
     "ai-llm": {
         "label": "AI & LLM",
         "desc": "LLM integration, RAG, agent orchestration, MCP, embeddings.",
         "tags": {
-            "llm", "rag", "mcp", "embedding", "vector",
-            "langchain", "langgraph", "multimodal",
-            "function-calling", "streaming", "prompt",
+            "llm",
+            "rag",
+            "mcp",
+            "embedding",
+            "vector",
+            "langchain",
+            "langgraph",
+            "multimodal",
+            "function-calling",
+            "streaming",
+            "prompt",
         },
         "agents": {
-            "llm-integrator", "multimodal-specialist",
+            "llm-integrator",
+            "multimodal-specialist",
         },
     },
     "devops": {
         "label": "DevOps",
         "desc": "CI/CD, deployment, monitoring, infrastructure, containers.",
         "tags": {
-            "devops", "ci-cd", "docker", "kubernetes", "terraform",
-            "monitoring", "observability", "deployment", "github-actions",
+            "devops",
+            "ci-cd",
+            "docker",
+            "kubernetes",
+            "terraform",
+            "monitoring",
+            "observability",
+            "deployment",
+            "github-actions",
         },
         "agents": {
-            "ci-cd-engineer", "deployment-manager",
-            "infrastructure-architect", "monitoring-engineer",
+            "ci-cd-engineer",
+            "deployment-manager",
+            "infrastructure-architect",
+            "monitoring-engineer",
         },
     },
     "product": {
         "label": "Product",
         "desc": "PRDs, market sizing, competitive analysis, OKRs, user research.",
         "tags": {
-            "prd", "product", "roi", "persona", "market", "competitive",
-            "okr", "prioritization", "user-research",
-            "business-case", "strategy",
+            "prd",
+            "product",
+            "roi",
+            "persona",
+            "market",
+            "competitive",
+            "okr",
+            "prioritization",
+            "user-research",
+            "business-case",
+            "strategy",
         },
         "agents": {"product-strategist", "market-intelligence"},
     },
@@ -998,15 +1158,17 @@ def _collect_skill_metadata(skills_src: str) -> list[dict]:
         tags = meta.get("tags", [])
         if isinstance(tags, str):
             tags = [tags]
-        results.append({
-            "slug": slug,
-            "title": title_case(slug),
-            "description": meta.get("description", ""),
-            "tags": set(tags),
-            "user_invocable": meta.get("user-invocable", False),
-            "complexity": meta.get("complexity", ""),
-            "agent": meta.get("agent", ""),
-        })
+        results.append(
+            {
+                "slug": slug,
+                "title": title_case(slug),
+                "description": meta.get("description", ""),
+                "tags": set(tags),
+                "user_invocable": meta.get("user-invocable", False),
+                "complexity": meta.get("complexity", ""),
+                "agent": meta.get("agent", ""),
+            }
+        )
     return results
 
 
@@ -1076,20 +1238,14 @@ def generate_categories(skills_src: str, categories_out: str) -> int:
             lines.append("## Related Agents")
             lines.append("")
             for agent_slug in sorted(related_agents):
-                lines.append(
-                    f"- [{title_case(agent_slug)}]"
-                    f"(/docs/reference/agents/{agent_slug})"
-                )
+                lines.append(f"- [{title_case(agent_slug)}](/docs/reference/agents/{agent_slug})")
             lines.append("")
 
-        (out_dir / f"{cat_slug}.mdx").write_text(
-            "\n".join(lines), encoding="utf-8"
-        )
+        (out_dir / f"{cat_slug}.mdx").write_text("\n".join(lines), encoding="utf-8")
 
     # Write meta.json
     (out_dir / "meta.json").write_text(
-        json.dumps({"title": "By Category", "pages": cat_slugs}, indent=2)
-        + "\n",
+        json.dumps({"title": "By Category", "pages": cat_slugs}, indent=2) + "\n",
         encoding="utf-8",
     )
 

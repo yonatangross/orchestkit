@@ -9,6 +9,8 @@ description: "Validates hook, skill, and agent counts are consistent across CLAU
 
 <ContextualSkillSidebar slug="validate-counts" />
 
+> **Validate Counts** Validates hook, skill, and agent counts are consistent across CLAUDE.md, hooks.json, manifests, and source directories. Use when counts may be stale after adding or removing components, before releases, or when CLAUDE.md Project Overview looks wrong.
+
 
 # Validate Counts
 
@@ -224,7 +226,7 @@ Overview of every place counts appear and what they represent.
 
 | File | Field | Example |
 |------|-------|---------|
-| `CLAUDE.md` | Project Overview line | "111 skills, 37 agents, 211 hooks" |
+| `CLAUDE.md` | Project Overview line | "111 skills, 37 agents, 144 hooks" |
 | `CLAUDE.md` | Version section | "55 entries (17 event types, 12 dispatchers, 9 native async)" |
 | `src/hooks/hooks.json` | top-level `description` | May embed hook count |
 | `manifests/ork.json` | `skills[]` length, `agents[]` length | Counted from arrays |
