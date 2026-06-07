@@ -4,6 +4,7 @@ import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { formatStars } from "@/lib/format-stars";
 import { AnimateOnView } from "@/components/animate-on-view";
+import { HomepageStructuredData } from "@/components/structured-data";
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -105,6 +106,7 @@ export default async function HomePage() {
 
   return (
     <main>
+      <HomepageStructuredData starCount={stars} />
       {/* ============ HERO ============ */}
       <section
         aria-labelledby="hero-heading"
@@ -137,6 +139,7 @@ export default async function HomePage() {
           <AnimateOnView delay={100} className="mt-5">
             <h1
               id="hero-heading"
+              data-speakable-headline
               className="text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
             >
               <span
@@ -154,7 +157,7 @@ export default async function HomePage() {
           </AnimateOnView>
 
           <AnimateOnView delay={200} className="mt-5">
-            <p className="mx-auto max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground">
+            <p data-speakable-summary className="mx-auto max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground">
               <span className="font-mono text-[0.92em] font-medium text-fd-foreground">
                 {COUNTS.skills} skills
               </span>
