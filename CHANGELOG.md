@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.25.0](https://github.com/yonatangross/orchestkit/compare/v8.24.0...v8.25.0) (2026-06-07)
+
+
+### Features
+
+* **docs-search:** unified Orama search (relevance, typo, coverage) ([#2278](https://github.com/yonatangross/orchestkit/issues/2278)) ([129dcc4](https://github.com/yonatangross/orchestkit/commit/129dcc48382b089cbe94aff77382d0d1f11219d9))
+* **docs-site:** agent-readiness endpoints for orank gaps ([#2279](https://github.com/yonatangross/orchestkit/issues/2279)) ([ddd5b7d](https://github.com/yonatangross/orchestkit/commit/ddd5b7d4f54d0e900f3d3d92e186f2168bae2695))
+* **skills:** adopt CC 2.1.163 home-path deny note + verify 2.1.162/163 backlog ([#2291](https://github.com/yonatangross/orchestkit/issues/2291)) ([93bb140](https://github.com/yonatangross/orchestkit/commit/93bb140fecec24304ad181e8058cf2fd35039145))
+
+
+### Bug Fixes
+
+* **cc-triage:** run featureless reconciliation token-free + heal the ledger ([#2290](https://github.com/yonatangross/orchestkit/issues/2290)) ([aa9f289](https://github.com/yonatangross/orchestkit/commit/aa9f289fdcafbc36936efa4d5d27c73c22d2eb7f))
+* **docs-site:** open CORS for cross-origin agents + MCP paths ([#2292](https://github.com/yonatangross/orchestkit/issues/2292)) ([c03c8e8](https://github.com/yonatangross/orchestkit/commit/c03c8e86322702643af943f1a65ef6e71a7fcdfb))
+
+
+### Miscellaneous
+
+* **hooks:** bump types.ts CC-compliance ledger to 2.1.168 ([#2268](https://github.com/yonatangross/orchestkit/issues/2268)) ([#2281](https://github.com/yonatangross/orchestkit/issues/2281)) ([5ed3873](https://github.com/yonatangross/orchestkit/commit/5ed387389a09b51b102fc74a360f16fb5461773d))
+
 ## [8.24.0](https://github.com/yonatangross/orchestkit/compare/v8.23.1...v8.24.0) (2026-06-07)
 
 
