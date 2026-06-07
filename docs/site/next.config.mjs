@@ -15,6 +15,8 @@ const config = {
 	// compiled MDX components, not as raw files).
 	outputFileTracingIncludes: {
 		"/api/md/[[...slug]]": ["./content/docs/**/*.mdx"],
+		// /llms-full.txt concatenates every doc body at request time.
+		"/llms-full.txt": ["./content/docs/**/*.mdx"],
 	},
 	// Map agent-discovery well-known paths to their route handlers. Done via
 	// rewrites (rather than dot-folders under app/) so the URLs are stable and
@@ -27,6 +29,25 @@ const config = {
 		{
 			source: "/.well-known/api-catalog",
 			destination: "/api/well-known/api-catalog",
+		},
+		{
+			// A2A agent card.
+			source: "/.well-known/agent-card.json",
+			destination: "/api/well-known/agent-card",
+		},
+		{
+			// MCP server card (both the bare path and the spec-named JSON file).
+			source: "/.well-known/mcp",
+			destination: "/api/well-known/mcp-server-card",
+		},
+		{
+			source: "/.well-known/mcp/server-card.json",
+			destination: "/api/well-known/mcp-server-card",
+		},
+		{
+			// NLWeb natural-language query endpoint.
+			source: "/ask",
+			destination: "/api/ask",
 		},
 	],
 	redirects: async () => [
@@ -61,8 +82,13 @@ const config = {
 						'</.well-known/api-catalog>; rel="api-catalog"',
 						'</llms.txt>; rel="service-doc"',
 						'</.well-known/agent-skills/index.json>; rel="https://agentskills.io/rel/index"',
+						'</.well-known/agent-card.json>; rel="https://a2a.dev/rel/agent-card"',
+						'</.well-known/mcp/server-card.json>; rel="https://modelcontextprotocol.io/rel/server-card"',
 					].join(", "),
 				},
+				// Vary on Accept: the same URL serves HTML or Markdown depending on the
+				// Accept header (see middleware.ts), so caches must key on it.
+				{ key: "Vary", value: "Accept, Accept-Encoding" },
 				{ key: "X-Frame-Options", value: "DENY" },
 				{ key: "X-Content-Type-Options", value: "nosniff" },
 				{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

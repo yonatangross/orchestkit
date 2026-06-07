@@ -4,8 +4,9 @@
 import { SITE } from "@/lib/constants";
 
 // RFC 9727 API Catalog — served at /.well-known/api-catalog via a rewrite in
-// next.config.mjs. Returns application/linkset+json (RFC 9264) describing the
-// public docs API so agents can discover its spec, docs, and health endpoint.
+// next.config.mjs. Returns application/linkset+json (RFC 9264). The catalog
+// anchor carries `item` links to each discoverable API; per-API anchors carry
+// their service-desc / service-doc / status relations.
 export const revalidate = false;
 
 export function GET() {
@@ -13,12 +14,44 @@ export function GET() {
 	const linkset = {
 		linkset: [
 			{
+				// The catalog itself, with one `item` per discoverable API surface.
+				anchor: `${d}/.well-known/api-catalog`,
+				item: [
+					{
+						href: `${d}/api/openapi`,
+						type: "application/json",
+						title: "Documentation search API (OpenAPI 3.1)",
+					},
+					{
+						href: `${d}/ask`,
+						type: "application/json",
+						title: "Natural-language query endpoint (NLWeb)",
+					},
+					{
+						href: `${d}/api/mcp`,
+						type: "application/json",
+						title: "MCP server (Streamable HTTP)",
+					},
+					{
+						href: `${d}/.well-known/mcp/server-card.json`,
+						type: "application/json",
+						title: "MCP server card",
+					},
+					{
+						href: `${d}/.well-known/agent-card.json`,
+						type: "application/json",
+						title: "A2A agent card",
+					},
+				],
+			},
+			{
 				anchor: `${d}/api/search`,
 				"service-desc": [
 					{ href: `${d}/api/openapi`, type: "application/json" },
 				],
 				"service-doc": [
 					{ href: `${d}/llms.txt`, type: "text/plain" },
+					{ href: `${d}/llms-full.txt`, type: "text/markdown" },
 					{ href: `${d}/docs`, type: "text/html" },
 				],
 				status: [{ href: `${d}/api/health`, type: "application/json" }],

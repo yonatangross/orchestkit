@@ -3,30 +3,44 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 
-// Markdown-for-Agents content negotiation. When a client sends
-// `Accept: text/markdown`, rewrite homepage and docs requests to the markdown
-// route (app/api/md), which returns Content-Type: text/markdown. HTML stays the
-// default for browsers (which send Accept: text/html).
+// Agent content negotiation → the Markdown route (app/api/md). An agent can get
+// raw Markdown three ways, all mapped here:
+//   1. Accept: text/markdown            (content negotiation)
+//   2. a `.md` suffix on the URL        (e.g. /docs/foundations/overview.md)
+//   3. ?mode=agent                      (explicit machine-readable view)
+// Browsers (Accept: text/html, no suffix, no flag) keep getting HTML.
+function mdTarget(pathname: string): string | null {
+	if (pathname === "/" || pathname === "/index.md") return "/api/md";
+	// Strip a trailing `.md` so /docs/x.md and /docs/x resolve identically.
+	const clean = pathname.endsWith(".md") ? pathname.slice(0, -3) : pathname;
+	if (clean === "/docs" || clean === "/docs/") return "/api/md";
+	if (clean.startsWith("/docs/")) {
+		return `/api/md/${clean.slice("/docs/".length)}`;
+	}
+	return null;
+}
+
 export function middleware(req: NextRequest) {
+	const { pathname, searchParams } = req.nextUrl;
 	const accept = req.headers.get("accept") ?? "";
-	if (!accept.includes("text/markdown")) return NextResponse.next();
 
-	const { pathname } = req.nextUrl;
+	const wantsMarkdown =
+		accept.includes("text/markdown") ||
+		pathname.endsWith(".md") ||
+		searchParams.get("mode") === "agent";
+
+	if (!wantsMarkdown) return NextResponse.next();
+
+	const target = mdTarget(pathname);
+	if (!target) return NextResponse.next();
+
 	const url = req.nextUrl.clone();
-
-	if (pathname === "/") {
-		url.pathname = "/api/md";
-		return NextResponse.rewrite(url);
-	}
-
-	if (pathname.startsWith("/docs/")) {
-		url.pathname = `/api/md/${pathname.slice("/docs/".length)}`;
-		return NextResponse.rewrite(url);
-	}
-
-	return NextResponse.next();
+	url.pathname = target;
+	url.search = ""; // drop ?mode=agent so it doesn't leak into the rewrite
+	return NextResponse.rewrite(url);
 }
 
 export const config = {
-	matcher: ["/", "/docs/:path+"],
+	// `/index.md` and `/docs/*.md` twins plus the negotiated `/` and `/docs/*`.
+	matcher: ["/", "/index.md", "/docs/:path*"],
 };

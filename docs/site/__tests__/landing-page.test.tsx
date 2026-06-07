@@ -29,8 +29,18 @@ vi.mock("..//lib/constants", () => ({
     domain: "https://orchestkit.yonyon.ai",
     github: "https://github.com/yonatangross/orchestkit",
     installCommand: "claude install orchestkit/ork",
+    ccVersion: "2.1.148+",
   },
   COUNTS: { skills: 69, agents: 38, hooks: 96 },
+  PERSON: { name: "Yonatan Gross", url: "https://github.com/yonatangross" },
+  ORG: {
+    legalName: "OrchestKit",
+    supportUrl: "https://github.com/yonatangross/orchestkit/issues",
+  },
+  SAME_AS: [
+    "https://github.com/yonatangross/orchestkit",
+    "https://github.com/yonatangross",
+  ],
 }));
 
 vi.mock("..//lib/generated/compositions-data", () => ({

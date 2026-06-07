@@ -11,6 +11,7 @@ import {
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { SITE } from "@/lib/constants";
+import { breadcrumbNode } from "@/components/structured-data";
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
 import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
@@ -46,6 +47,18 @@ export default async function Page(props: {
     ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    ...breadcrumbNode([
+      { name: SITE.name, url: SITE.domain },
+      { name: "Docs", url: `${SITE.domain}/docs` },
+      {
+        name: page.data.title,
+        url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
+      },
+    ]),
+  };
+
   return (
     <DocsPage
       toc={page.data.toc}
@@ -66,6 +79,10 @@ export default async function Page(props: {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
