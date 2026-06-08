@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.26.0](https://github.com/yonatangross/orchestkit/compare/v8.25.2...v8.26.0) (2026-06-08)
+
+
+### Features
+
+* **docs-site:** link homepage sameAs to Wikidata (Q140128295) ([#2305](https://github.com/yonatangross/orchestkit/issues/2305)) ([db60407](https://github.com/yonatangross/orchestkit/commit/db60407d586536943a5f37f6708c0475595bc9dc))
+
+
+### Miscellaneous
+
+* **hooks:** label headroom inert + fix test env isolation ([#2304](https://github.com/yonatangross/orchestkit/issues/2304)) ([51fd608](https://github.com/yonatangross/orchestkit/commit/51fd608b545a290ff2826ae2d114990dc2ef8bd3))
+
+
+### CI/CD
+
+* bump anthropics/claude-code-action from 1.0.133 to 1.0.140 ([#2299](https://github.com/yonatangross/orchestkit/issues/2299)) ([fd12189](https://github.com/yonatangross/orchestkit/commit/fd121898dfb878ed5ef01ed3a32aa2be0fa8bfae))
+* bump github/codeql-action from 4.36.0 to 4.36.2 ([#2298](https://github.com/yonatangross/orchestkit/issues/2298)) ([fcab076](https://github.com/yonatangross/orchestkit/commit/fcab076e378e50f83236478fab2ddbf9cad763b9))
+
 ## [8.25.2](https://github.com/yonatangross/orchestkit/compare/v8.25.1...v8.25.2) (2026-06-07)
 
 
