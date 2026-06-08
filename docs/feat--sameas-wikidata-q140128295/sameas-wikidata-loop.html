@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit · sameAs → Wikidata entity loop</title>
+<style>
+  :root{--bg:#0b1120;--panel:#111a2e;--border:#1e2b45;--fg:#e6edf7;--muted:#93a4c0;--emerald:#34d399;--mono:ui-monospace,Menlo,monospace}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:820px;margin:0 auto;padding:34px 20px 70px}
+  h1{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.02em}.sub{color:var(--muted);margin:0 0 26px}
+  .loop{display:grid;gap:12px;margin:0 0 26px}
+  .node{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .node .k{font-family:var(--mono);font-size:.72rem;color:var(--emerald);text-transform:uppercase;letter-spacing:.05em;min-width:120px}
+  .node a{color:var(--emerald)}
+  .arrow{color:var(--muted);text-align:center;font-family:var(--mono);font-size:.8rem}
+  pre{background:#0e1626;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;font-family:var(--mono);font-size:.8rem}
+  .foot{color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);padding-top:14px;margin-top:24px}
+  code{font-family:var(--mono);color:var(--fg)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The sameAs → Wikidata entity loop</h1>
+  <p class="sub">This PR adds the OrchestKit Wikidata entity to the homepage <code>sameAs</code>, closing the loop that lets AI engines disambiguate the brand from the unrelated musician "YonYon".</p>
+
+  <div class="loop">
+    <div class="node"><span class="k">Homepage JSON-LD</span><span>Organization → <code>sameAs</code> (#2279)</span></div>
+    <div class="arrow">↓ now resolves to →</div>
+    <div class="node"><span class="k">Wikidata</span><a href="https://www.wikidata.org/wiki/Q140128295">Q140128295 · OrchestKit</a></div>
+    <div class="arrow">↓ <code>P856 official website</code> →</div>
+    <div class="node"><span class="k">Canonical site</span><a href="https://orchestkit.yonyon.ai">orchestkit.yonyon.ai</a></div>
+  </div>
+
+  <h3>What the entity now asserts</h3>
+  <pre>instance of      : free and open-source software · plug-in
+official website : https://orchestkit.yonyon.ai
+source code      : github.com/yonatangross/orchestkit
+license          : MIT · programmed in: TypeScript · OS: cross-platform</pre>
+
+  <h3>The one-line change</h3>
+  <pre>// docs/site/lib/constants.ts
+export const SAME_AS = [
+  SITE.github,
+  PERSON.url,
++ "https://www.wikidata.org/wiki/Q140128295", // Wikidata entity
+] as const;</pre>
+
+  <p class="foot">Before: <code>sameAs</code> pointed only at GitHub — no entity to anchor to. After: a real Wikidata item with <code>P856</code> back to the site forms a closed, machine-verifiable identity loop. Disambiguation note: the artist "YonYon" has no Wikidata item, so the structural software statements above carry the disambiguation instead of a <code>different from</code> link.</p>
+</div>
+</body>
+</html>
