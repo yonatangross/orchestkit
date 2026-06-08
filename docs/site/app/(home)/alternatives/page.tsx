@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
-import { SITE } from "@/lib/constants";
+import {
+	breadcrumbNode,
+	faqPageNode,
+	softwareApplicationNode,
+	StructuredData,
+} from "@/components/structured-data";
+import { COUNTS, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
 	title: "Alternatives",
-	description: `Alternatives to ${SITE.name} and how they differ. OrchestKit is the curated skill/agent/hook toolkit purpose-built for Claude Code.`,
+	description: `Alternatives to ${SITE.name} and how they differ. OrchestKit is the curated skill/agent/hook toolkit purpose-built for Claude Code — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks, MIT.`,
 	alternates: { canonical: `${SITE.domain}/alternatives` },
 };
+
+const ALTERNATIVES_FAQS = [
+	{
+		question: "What are the alternatives to OrchestKit?",
+		answer:
+			"The main alternatives fall in three groups: editor assistants (Cursor, GitHub Copilot) for inline completion; bare Claude Code with no plugin; and other single-purpose Claude Code plugins or skill marketplaces. OrchestKit differs by bundling skills, agents, and guardrail hooks into one MIT-licensed, dependency-free package.",
+	},
+	{
+		question: "Is there a free, open-source alternative to OrchestKit?",
+		answer: `OrchestKit itself is the free, open-source option — MIT licensed, no account, no API key. Bare Claude Code is also an option, but you author the ${COUNTS.skills}+ skills and ${COUNTS.hooks}+ hooks yourself rather than installing them ready-made.`,
+	},
+];
 
 export default function AlternativesPage() {
 	return (
@@ -16,6 +34,17 @@ export default function AlternativesPage() {
 			path="/alternatives"
 			lead="If you're evaluating AI development tooling, here is how the common alternatives relate to OrchestKit — and where each one is the better fit."
 		>
+			<StructuredData
+				nodes={[
+					softwareApplicationNode(),
+					faqPageNode(ALTERNATIVES_FAQS),
+					breadcrumbNode([
+						{ name: SITE.name, url: SITE.domain },
+						{ name: "Alternatives", url: `${SITE.domain}/alternatives` },
+					]),
+				]}
+			/>
+
 			<h2>Editor assistants: Cursor and GitHub Copilot</h2>
 			<p>
 				<a href="https://cursor.com">Cursor</a> and{" "}
@@ -45,6 +74,14 @@ export default function AlternativesPage() {
 				that are designed to work together, with security and quality gates on by
 				default.
 			</p>
+
+			<h2>Frequently asked questions</h2>
+			{ALTERNATIVES_FAQS.map((f) => (
+				<div key={f.question}>
+					<h3>{f.question}</h3>
+					<p>{f.answer}</p>
+				</div>
+			))}
 
 			<h2>How to choose</h2>
 			<p>
