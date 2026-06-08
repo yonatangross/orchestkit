@@ -30,8 +30,8 @@ export const SEARCH_TAGS = [
 ] as const;
 export type SearchTag = (typeof SEARCH_TAGS)[number];
 
-/** Derive the content-type tag from a docs page URL. */
-function tagForUrl(url: string): SearchTag {
+/** Derive the content-type tag from a docs page URL. Exported for unit tests. */
+export function tagForUrl(url: string): SearchTag {
   if (url.startsWith("/docs/reference/skills") || url.startsWith("/docs/skills"))
     return "skill";
   if (url.startsWith("/docs/reference/agents") || url.startsWith("/docs/agents"))
