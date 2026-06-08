@@ -2,6 +2,9 @@
 // Created: 2026-06-05
 
 import { type NextRequest, NextResponse } from "next/server";
+import { shouldJsonError } from "@/lib/agent-404";
+import { SITE } from "@/lib/constants";
+import { problemResponse } from "@/lib/problem";
 
 // Agent content negotiation → the Markdown route (app/api/md). An agent can get
 // raw Markdown three ways, all mapped here:
@@ -24,23 +27,40 @@ export function middleware(req: NextRequest) {
 	const { pathname, searchParams } = req.nextUrl;
 	const accept = req.headers.get("accept") ?? "";
 
+	// 1) Markdown content negotiation → the Markdown route (only / and /docs/*).
 	const wantsMarkdown =
 		accept.includes("text/markdown") ||
 		pathname.endsWith(".md") ||
 		searchParams.get("mode") === "agent";
 
-	if (!wantsMarkdown) return NextResponse.next();
+	if (wantsMarkdown) {
+		const target = mdTarget(pathname);
+		if (target) {
+			const url = req.nextUrl.clone();
+			url.pathname = target;
+			url.search = ""; // drop ?mode=agent so it doesn't leak into the rewrite
+			return NextResponse.rewrite(url);
+		}
+	}
 
-	const target = mdTarget(pathname);
-	if (!target) return NextResponse.next();
+	// 2) Content-negotiated 404: an unknown path requested by a non-browser
+	// client gets a structured RFC 9457 error instead of the HTML not-found page,
+	// so agents parse the failure instead of scraping markup.
+	if (shouldJsonError(req.method, pathname, accept)) {
+		return problemResponse({
+			type: `${SITE.domain}/docs/reference`,
+			title: "Resource not found",
+			status: 404,
+			detail: `No resource at ${pathname}. Browse /docs, or see the API catalog at /.well-known/api-catalog.`,
+			instance: pathname,
+		});
+	}
 
-	const url = req.nextUrl.clone();
-	url.pathname = target;
-	url.search = ""; // drop ?mode=agent so it doesn't leak into the rewrite
-	return NextResponse.rewrite(url);
+	return NextResponse.next();
 }
 
 export const config = {
-	// `/index.md` and `/docs/*.md` twins plus the negotiated `/` and `/docs/*`.
-	matcher: ["/", "/index.md", "/docs/:path*"],
+	// Run on everything except Next internals so the 404 negotiation can see any
+	// unknown path; the markdown branch still only acts on / and /docs/*.
+	matcher: ["/((?!_next/static|_next/image).*)"],
 };
