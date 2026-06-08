@@ -4,7 +4,7 @@ import { SITE } from "@/lib/constants";
 // HTML 404 — which makes agents (and the orank "JSON error responses" probe)
 // conclude "no API detected". Returning JSON here makes the API discoverable and
 // keeps the surface uniformly machine-readable. Unknown sub-paths still return
-// RFC 9457 problem+json via app/api/[...path].
+// RFC 9457-shaped JSON errors via app/api/[...path].
 export const revalidate = false;
 
 export function GET() {
@@ -13,7 +13,7 @@ export function GET() {
 		{
 			name: `${SITE.name} API`,
 			description:
-				"Public, read-only API over the OrchestKit documentation. No authentication. Errors are RFC 9457 Problem Details (application/problem+json).",
+				"Public, read-only API over the OrchestKit documentation. No authentication. Errors use the RFC 9457 Problem Details shape, served as application/json.",
 			version: "v1",
 			endpoints: {
 				search: `${d}/api/search?query=...&limit=10`,

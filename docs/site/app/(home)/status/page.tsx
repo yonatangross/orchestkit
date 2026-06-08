@@ -50,8 +50,9 @@ export default function StatusPage() {
 			<p>
 				Agents should poll <Link href="/api/health">/api/health</Link>, which
 				returns <code>{`{ "status": "ok", ... }`}</code> with HTTP 200 when the
-				deployment is serving. Errors across the API use RFC 9457 Problem Details
-				(<code>application/problem+json</code>).
+				deployment is serving. Errors across the API use the RFC 9457 Problem
+				Details shape (<code>type</code>, <code>title</code>, <code>status</code>,
+				<code>detail</code>), served as <code>application/json</code>.
 			</p>
 
 			<h2>Incidents</h2>

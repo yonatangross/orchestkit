@@ -15,7 +15,7 @@ export function GET() {
 			title: `${SITE.name} Docs API`,
 			version: SITE.version,
 			summary: "Public, read-only API over the OrchestKit documentation.",
-			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks). No authentication is required — see ${SITE.domain}/auth.md. Errors use RFC 9457 Problem Details (application/problem+json) and reference the Problem schema. **Versioning:** this is API v1, also reachable under the path-versioned alias \`/api/v1/*\` (e.g. \`/api/v1/search\`). Breaking changes ship under a new \`/api/vN\` prefix; the unversioned path tracks the latest. **Rate limits:** the API is public and CDN-fronted with no per-key quota; cache responses and retry transient 5xx with exponential backoff.`,
+			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks). No authentication is required — see ${SITE.domain}/auth.md. Errors use the RFC 9457 Problem Details shape (served as application/json) and reference the Problem schema. **Versioning:** this is API v1, also reachable under the path-versioned alias \`/api/v1/*\` (e.g. \`/api/v1/search\`). Breaking changes ship under a new \`/api/vN\` prefix; the unversioned path tracks the latest. **Rate limits:** the API is public and CDN-fronted with no per-key quota; cache responses and retry transient 5xx with exponential backoff.`,
 			license: {
 				name: "MIT",
 				url: "https://opensource.org/license/mit",
@@ -207,9 +207,10 @@ export function GET() {
 			},
 			responses: {
 				Problem: {
-					description: "Error in RFC 9457 Problem Details format.",
+					description:
+						"Error using the RFC 9457 Problem Details shape, served as application/json.",
 					content: {
-						"application/problem+json": {
+						"application/json": {
 							schema: { $ref: "#/components/schemas/Problem" },
 						},
 					},
