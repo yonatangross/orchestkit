@@ -44,6 +44,7 @@ export const ORG = {
 export const SAME_AS = [
   SITE.github, // GitHub repository
   PERSON.url, // Maintainer GitHub profile
+  "https://www.wikidata.org/wiki/Q140128295", // Wikidata entity
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
