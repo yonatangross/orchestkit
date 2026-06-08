@@ -130,6 +130,12 @@ The setup wizard (`/ork:setup`) will recommend MCPs based on your stack.
 
 No tiering. No version confusion. Just one powerful plugin.
 
+Not on Claude Code? Pull the skills into any agent (Cursor, Codex, OpenCode, …) via [skills.sh](https://skills.sh):
+
+```bash
+npx skills add yonatangross/orchestkit
+```
+
 ---
 
 ## Release Channels
