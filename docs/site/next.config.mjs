@@ -63,6 +63,12 @@ const config = {
 			destination: "/api/ask",
 		},
 		{
+			// WebMCP: expose the MCP server at the bare /mcp path so it's
+			// browser-discoverable (the /.well-known/mcp server-card is separate).
+			source: "/mcp",
+			destination: "/api/mcp",
+		},
+		{
 			// Path-versioned API alias: /api/v1/* → /api/* (this is API v1).
 			source: "/api/v1/:path*",
 			destination: "/api/:path*",

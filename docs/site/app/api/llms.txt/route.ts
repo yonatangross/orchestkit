@@ -6,9 +6,11 @@ import { SITE } from "@/lib/constants";
 // app/api/[...path] catch-all.
 export const revalidate = false;
 
-export function GET() {
+// Shared content generator so the Markdown twin (/api/llms.txt.md) serves the
+// exact same text — the only difference between the two routes is Content-Type.
+export function buildLlmsTxt(): string {
 	const d = SITE.domain;
-	const body = [
+	return [
 		`# ${SITE.name} API`,
 		"",
 		`> Public, read-only HTTP API over the ${SITE.name} documentation. No authentication. Errors use the RFC 9457 Problem Details shape, served as \`application/json\`. Current version: v1.`,
@@ -41,6 +43,10 @@ export function GET() {
 		`- Auth (none): ${d}/auth.md`,
 		"",
 	].join("\n");
+}
+
+export function GET() {
+	const body = buildLlmsTxt();
 
 	return new Response(body, {
 		headers: {

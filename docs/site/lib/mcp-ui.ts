@@ -33,6 +33,7 @@ export const SEARCH_RESULTS_CSP = [
 export const SEARCH_RESULTS_HTML = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
 <meta http-equiv="Content-Security-Policy" content="${SEARCH_RESULTS_CSP}" />
+<meta name="color-scheme" content="light dark" />
 <style>
   body{margin:0;font-family:system-ui,sans-serif;font-size:14px;color:#e9eef7;background:#0e1626}
   .wrap{padding:12px}

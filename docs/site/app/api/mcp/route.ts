@@ -27,7 +27,7 @@ const UI_RESOURCES = [
 		uri: UI_SEARCH_RESULTS,
 		name: "OrchestKit search results",
 		description: "Renders documentation search hits as a clickable list.",
-		mimeType: "text/html+skybridge",
+		mimeType: "text/html;profile=mcp-app",
 		text: SEARCH_RESULTS_HTML,
 	},
 ];
