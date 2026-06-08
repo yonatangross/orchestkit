@@ -4,7 +4,11 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { createCollection, useOramaCollection } from "@/lib/orama-browser";
+import {
+  createCollection,
+  matchesAnyTaskType,
+  useOramaCollection,
+} from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
 import {
   Search,
@@ -111,12 +115,13 @@ export function AgentSelector() {
     term: debouncedSearch,
     where: { category: selectedCategories },
   });
-  const filtered = useMemo(() => {
-    if (selectedTaskTypes.length === 0) return result.items;
-    return result.items.filter((agent) =>
-      selectedTaskTypes.some((t) => agent.taskTypes.includes(t)),
-    );
-  }, [result.items, selectedTaskTypes]);
+  const filtered = useMemo(
+    () =>
+      result.items.filter((agent) =>
+        matchesAnyTaskType(agent.taskTypes, selectedTaskTypes),
+      ),
+    [result.items, selectedTaskTypes],
+  );
   const suggestions = result.suggestions;
 
   // Quiz results
