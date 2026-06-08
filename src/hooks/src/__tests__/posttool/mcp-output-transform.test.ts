@@ -39,6 +39,11 @@ describe('posttool/mcp-output-transform', () => {
   beforeEach(() => {
     testCtx = createTestContext({ projectDir: '/tmp/test-project' });
     vi.clearAllMocks();
+    // Isolate from ambient env (#2302): a dev who armed ORK_HEADROOM_REVERSIBLE=1
+    // globally (e.g. via ~/.claude/settings.json) would otherwise flip the
+    // lossy-mode truncation tests into reversible output and see spurious
+    // failures. The reversible-mode describe sets it explicitly.
+    delete process.env.ORK_HEADROOM_REVERSIBLE;
   });
 
   // ===========================================================================
