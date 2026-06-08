@@ -62,6 +62,11 @@ const config = {
 			source: "/ask",
 			destination: "/api/ask",
 		},
+		{
+			// Path-versioned API alias: /api/v1/* → /api/* (this is API v1).
+			source: "/api/v1/:path*",
+			destination: "/api/:path*",
+		},
 	],
 	redirects: async () => [
 		{

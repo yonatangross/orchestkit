@@ -36,6 +36,8 @@ export const ORG = {
   // The canonical support channel — there is no hosted contact desk; issues are
   // triaged on GitHub. Used for schema.org contactPoint (contactType + url).
   supportUrl: `${SITE.github}/issues`,
+  // ISO 3166-1 alpha-2 — the maintainer's country (honest, country-level only).
+  country: "IL",
 } as const;
 
 // Authoritative external references for the OrchestKit entity. Reused verbatim

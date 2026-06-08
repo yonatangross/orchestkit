@@ -36,6 +36,7 @@ vi.mock("..//lib/constants", () => ({
   ORG: {
     legalName: "OrchestKit",
     supportUrl: "https://github.com/yonatangross/orchestkit/issues",
+    country: "IL",
   },
   SAME_AS: [
     "https://github.com/yonatangross/orchestkit",
