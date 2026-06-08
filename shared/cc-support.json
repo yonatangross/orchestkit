@@ -7,8 +7,8 @@
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {
-    "reason": "Deliberate owner decision (2026-06-07) to set floor=latest=latest_known=2.1.168 — support only the newest CC. This STRICT bump overrides the #1945 capstone freeze (which had pinned the floor at 2.1.148) per explicit owner request. Auto-bump policy resumes after expires.",
+    "reason": "Deliberate owner decision (2026-06-07) to set floor=latest=latest_known=2.1.168 \u2014 support only the newest CC. This STRICT bump overrides the #1945 capstone freeze (which had pinned the floor at 2.1.148) per explicit owner request. Auto-bump policy resumes after expires. NOTE: this DELIBERATELY DEVIATES from the steady-state `policy` field (\"latest + 3 previous minors\") \u2014 floor is pinned to latest+0 here. The `policy` field is intentionally left unchanged because cc-support-window-bump.yml reads it to recompute the floor once this override expires; the policy resumes then.",
     "expires": "2026-09-07"
   },
-  "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts MIN_CC_VERSION, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. `latest_known` (the highest CC version ork's adoption covers — distinct from `latest`, the support-window head; they diverge while a manual_override freezes the floor) stamps LATEST_KNOWN_CC, the version-check adoption-nudge threshold. Updated by .github/workflows/cc-support-window-bump.yml."
+  "comment": "Single source of truth for OrchestKit's CC support window. All other floor declarations (CLAUDE.md, src/hooks/src/lib/cc-version-matrix.ts MIN_CC_VERSION, manifests/ork.json) derive from this via scripts/stamp-cc-support.mjs. `latest_known` (the highest CC version ork's adoption covers \u2014 distinct from `latest`, the support-window head; they diverge while a manual_override freezes the floor) stamps LATEST_KNOWN_CC, the version-check adoption-nudge threshold. Updated by .github/workflows/cc-support-window-bump.yml."
 }

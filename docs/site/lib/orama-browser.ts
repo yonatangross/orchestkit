@@ -121,6 +121,24 @@ export function createCollection<T>(items: T[], config: CollectionConfig<T>) {
   return { query };
 }
 
+/**
+ * True if an agent's task types satisfy the selected task-type filter.
+ * Empty selection = no filter (everything matches). Otherwise OR semantics:
+ * an agent matches if it carries ANY of the selected task types.
+ *
+ * Extracted from agent-selector so the filter predicate is unit-testable
+ * (the `enum[]` field can't be `where`-filtered via Orama's `{in}`, so this
+ * runs in JS).
+ */
+export function matchesAnyTaskType(
+  agentTaskTypes: string[],
+  selected: string[],
+): boolean {
+  return (
+    selected.length === 0 || selected.some((t) => agentTaskTypes.includes(t))
+  );
+}
+
 function normalizeWhere(
   where: Record<string, string | string[]> | undefined,
 ): Record<string, unknown> {
