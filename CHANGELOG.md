@@ -5,6 +5,33 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.27.0](https://github.com/yonatangross/orchestkit/compare/v8.26.0...v8.27.0) (2026-06-08)
+
+
+### Features
+
+* **docs-search:** show stable facet counts on browser pills ([#2282](https://github.com/yonatangross/orchestkit/issues/2282)) ([#2311](https://github.com/yonatangross/orchestkit/issues/2311)) ([7b99d77](https://github.com/yonatangross/orchestkit/commit/7b99d7741ae2f2e1fd076de5c8de16cfb05676ed))
+* **docs-site:** content-negotiated JSON 404 + MCP App-view CSP ([#2316](https://github.com/yonatangross/orchestkit/issues/2316)) ([128aae9](https://github.com/yonatangross/orchestkit/commit/128aae9074c6199e8b08e07f0630d7ca4d5b05f2))
+* **docs-site:** MCP Apps (ui:// resources) + JSON /api index ([#2312](https://github.com/yonatangross/orchestkit/issues/2312)) ([4f28250](https://github.com/yonatangross/orchestkit/commit/4f2825027762d05ea5348fadce98b14e7f5f7db2))
+* **docs-site:** orank B→A — API standards, schema, llms, MCP ([#2308](https://github.com/yonatangross/orchestkit/issues/2308)) ([4144c08](https://github.com/yonatangross/orchestkit/commit/4144c08dfa2d51acca5b41be6750d3edf2efee49))
+
+
+### Miscellaneous
+
+* **mcp:** add server.json for MCP registry publish ([#2309](https://github.com/yonatangross/orchestkit/issues/2309)) ([cef2957](https://github.com/yonatangross/orchestkit/commit/cef2957014ef930711b20bc93ba538c3ca613938))
+
+
+### Documentation
+
+* **configure:** clarify op:// vault assumption for MCP keys ([#2314](https://github.com/yonatangross/orchestkit/issues/2314)) ([4e5e147](https://github.com/yonatangross/orchestkit/commit/4e5e1474423b1fdf8944eeaa4c93be36f6d8434b))
+* **readme:** add skills.sh install path ([#2285](https://github.com/yonatangross/orchestkit/issues/2285)) ([#2315](https://github.com/yonatangross/orchestkit/issues/2315)) ([ba847b8](https://github.com/yonatangross/orchestkit/commit/ba847b84b8a8d88054de5668adb45a46e5126f1c))
+* **search:** interactive plan viz for [#2283](https://github.com/yonatangross/orchestkit/issues/2283) semantic/hybrid search ([#2313](https://github.com/yonatangross/orchestkit/issues/2313)) ([d4779fb](https://github.com/yonatangross/orchestkit/commit/d4779fbda6a52e3d1b2216aa1571c36389d1133a))
+
+
+### CI/CD
+
+* bump actions/checkout from 6.0.2 to 6.0.3 ([#2300](https://github.com/yonatangross/orchestkit/issues/2300)) ([7a5899c](https://github.com/yonatangross/orchestkit/commit/7a5899c656ba5051c1c93de570eacc091a331ac2))
+
 ## [8.26.0](https://github.com/yonatangross/orchestkit/compare/v8.25.2...v8.26.0) (2026-06-08)
 
 
