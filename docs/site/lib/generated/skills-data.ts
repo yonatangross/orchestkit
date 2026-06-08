@@ -4428,7 +4428,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "f977db976c362dd34b26afc34ac1d31e791dd005f388742ce5a0dfdc8dd97712",
+    "sha256": "efdf2ecfc3e23154167a9d45c2c2fdb36916ae45b3d71d7140333020a730dca7",
     "author": "OrchestKit",
     "tags": [
       "security",
