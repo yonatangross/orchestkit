@@ -43,6 +43,14 @@ jobs:
         if: steps.detect.outputs.drift == 'true'
         run: node scripts/check-labs-versions.mjs --apply
 
+      # Regenerate plugins/ so the committed twins match the bumped src/skills/
+      # frontmatter. Without this the build-drift gate fails on the resulting PR.
+      - name: Rebuild plugins
+        if: steps.detect.outputs.drift == 'true'
+        run: |
+          npm ci
+          npm run build
+
       - name: Build summary
         if: steps.detect.outputs.drift == 'true'
         id: summary
@@ -75,7 +83,7 @@ jobs:
           git config user.name "orchestkit-release-bot"
           git config user.email "orchestkit-release-bot@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add src/skills/
+          git add src/skills/ plugins/
           git commit -m "chore(labs): bump upstream-version-tested pins for drifted skills"
           git push -u origin "$BRANCH"
           gh pr create \
