@@ -236,6 +236,14 @@ export function SkillBrowser() {
   const filtered = result.items;
   const suggestions = result.suggestions;
 
+  // Per-category facet counts. Stable under an active category filter: the
+  // orama-browser sources these from a query that excludes the category field
+  // from `where`, so selecting one pill doesn't collapse the others' counts.
+  const countOf = useCallback(
+    (cat: string) => result.facets.find((f) => f.value === cat)?.count ?? 0,
+    [result.facets],
+  );
+
   const toggleCategory = useCallback((cat: string) => {
     setSelectedCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
@@ -351,6 +359,9 @@ export function SkillBrowser() {
                   } ${meta.dot}`}
                 />
                 {meta.label}
+                <span className="tabular-nums text-fd-muted-foreground/70">
+                  {countOf(cat)}
+                </span>
               </button>
             );
           })}

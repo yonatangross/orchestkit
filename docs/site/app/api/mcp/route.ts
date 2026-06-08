@@ -10,7 +10,56 @@ export const dynamic = "force-dynamic";
 
 const PROTOCOL_VERSION = "2025-06-18";
 
-type ToolResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
+type ToolResult = {
+	content: Array<{ type: "text"; text: string }>;
+	structuredContent?: unknown;
+	_meta?: Record<string, unknown>;
+	isError?: boolean;
+};
+
+// MCP Apps (ext-apps): a ui:// HTML resource the host renders inline in the
+// conversation. The search tool references it via `_meta.ui.resourceUri` and
+// returns `structuredContent` the template draws. Self-contained — no SDK dep.
+const UI_SEARCH_RESULTS = "ui://orchestkit/search-results";
+
+const SEARCH_RESULTS_HTML = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;font-size:14px;color:#e9eef7;background:#0e1626}
+  .wrap{padding:12px}
+  a.r{display:block;text-decoration:none;color:inherit;background:#111a2e;border:1px solid #1e2b45;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  a.r:hover{border-color:#34d399}
+  a.r b{color:#34d399} a.r span{display:block;color:#8da2c0;margin-top:3px;font-size:.86em}
+  .empty{color:#8da2c0;padding:8px}
+</style></head>
+<body><div class="wrap" id="root"><div class="empty">Loading…</div></div>
+<script>
+  function render(data){
+    var results=(data&&data.results)||[];
+    var root=document.getElementById("root");
+    root.innerHTML = results.length
+      ? results.map(function(h){return '<a class="r" href="'+h.url+'" target="_blank" rel="noopener"><b>'+h.title+'</b><span>'+(h.content||"")+'</span></a>';}).join("")
+      : '<div class="empty">No matching documentation.</div>';
+  }
+  // OpenAI Apps SDK exposes tool output on window.openai.
+  if (window.openai && window.openai.toolOutput) render(window.openai.toolOutput);
+  // MCP-UI render-data fallback (postMessage).
+  window.addEventListener("message", function(e){
+    if (e.data && e.data.type === "ui-lifecycle-iframe-render-data") {
+      render(e.data.payload && e.data.payload.toolOutput);
+    }
+  });
+</script></body></html>`;
+
+const UI_RESOURCES = [
+	{
+		uri: UI_SEARCH_RESULTS,
+		name: "OrchestKit search results",
+		description: "Renders documentation search hits as a clickable list.",
+		mimeType: "text/html+skybridge",
+		text: SEARCH_RESULTS_HTML,
+	},
+];
 
 // Tool descriptions are prompts: each says when to use it, what to pass, and what
 // comes back. Names are prefix-namespaced so an agent can select the right one.
@@ -26,18 +75,21 @@ const TOOLS = [
 			},
 			required: ["query"],
 		},
+		// MCP Apps: results render inline via the ui:// template above.
+		uiResource: UI_SEARCH_RESULTS,
 		run: (args: Record<string, unknown>): ToolResult => {
 			const query = String(args.query ?? "").trim();
 			if (!query) return errText("Provide a non-empty `query`.");
 			const hits = searchDocs(query);
-			if (hits.length === 0) {
-				return text(
-					`No documentation matched "${query}". Try broader terms, or list sections at ${SITE.domain}/docs/llms.txt.`,
-				);
-			}
-			return text(
-				hits.map((h) => `- ${h.title} — ${h.url}\n  ${h.content}`).join("\n"),
-			);
+			const textBody =
+				hits.length === 0
+					? `No documentation matched "${query}". Try broader terms, or list sections at ${SITE.domain}/docs/llms.txt.`
+					: hits.map((h) => `- ${h.title} — ${h.url}\n  ${h.content}`).join("\n");
+			return {
+				content: [{ type: "text", text: textBody }],
+				structuredContent: { results: hits },
+				_meta: { ui: { resourceUri: UI_SEARCH_RESULTS } },
+			};
 		},
 	},
 	{
@@ -95,7 +147,11 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 			return rpcResult(req.id, {
 				protocolVersion:
 					(req.params?.protocolVersion as string) ?? PROTOCOL_VERSION,
-				capabilities: { tools: { listChanged: false } },
+				capabilities: {
+					tools: { listChanged: false },
+					// MCP Apps: ui:// resources rendered inline by the host.
+					resources: { listChanged: false },
+				},
 				serverInfo: { name: `${SITE.name} Docs MCP`, version: SITE.version },
 				instructions:
 					"Search the OrchestKit docs with orchestkit_docs_search, then read a page with orchestkit_docs_get.",
@@ -104,20 +160,27 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 			return rpcResult(req.id, {});
 		case "tools/list":
 			return rpcResult(req.id, {
-				tools: TOOLS.map(({ name, description, inputSchema }) => ({
-					name,
-					description,
-					inputSchema,
-					// Both tools only read documentation — agents can call them
-					// without user confirmation.
-					annotations: {
-						title: name,
-						readOnlyHint: true,
-						destructiveHint: false,
-						idempotentHint: true,
-						openWorldHint: false,
-					},
-				})),
+				tools: TOOLS.map((t) => {
+					const ui = "uiResource" in t ? t.uiResource : undefined;
+					return {
+						name: t.name,
+						description: t.description,
+						inputSchema: t.inputSchema,
+						// Both tools only read documentation — agents can call them
+						// without user confirmation.
+						annotations: {
+							title: t.name,
+							readOnlyHint: true,
+							destructiveHint: false,
+							idempotentHint: true,
+							openWorldHint: false,
+						},
+						// MCP Apps: link the inline UI template for tools that have one.
+						...(ui
+							? { _meta: { ui: { resourceUri: ui }, "openai/outputTemplate": ui } }
+							: {}),
+					};
+				}),
 			});
 		case "tools/call": {
 			const name = req.params?.name as string;
@@ -125,6 +188,25 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 			const tool = TOOLS.find((t) => t.name === name);
 			if (!tool) return rpcError(req.id, -32602, `Unknown tool: ${name}`);
 			return rpcResult(req.id, await tool.run(args));
+		}
+		case "resources/list":
+			return rpcResult(req.id, {
+				resources: UI_RESOURCES.map(({ uri, name, description, mimeType }) => ({
+					uri,
+					name,
+					description,
+					mimeType,
+				})),
+			});
+		case "resources/read": {
+			const uri = req.params?.uri as string;
+			const resource = UI_RESOURCES.find((r) => r.uri === uri);
+			if (!resource) return rpcError(req.id, -32602, `Unknown resource: ${uri}`);
+			return rpcResult(req.id, {
+				contents: [
+					{ uri: resource.uri, mimeType: resource.mimeType, text: resource.text },
+				],
+			});
 		}
 		default:
 			// Notifications (e.g. notifications/initialized) carry no id — no reply.

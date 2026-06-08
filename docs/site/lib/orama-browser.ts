@@ -90,9 +90,30 @@ export function createCollection<T>(items: T[], config: CollectionConfig<T>) {
       .map((h) => byId.get(String(h.document.id)))
       .filter((x): x is T => x !== undefined);
 
+    // Facet counts must stay stable when the facet field is itself the active
+    // filter. Orama computes facets AFTER `where`, so once a category is
+    // selected the category facets collapse to only that category. To keep the
+    // pills honest, source the counts from a query that EXCLUDES the facet
+    // field from `where` (other filters like `plugins` are kept). When the
+    // facet field is NOT an active filter, the main query's facets are already
+    // the full counts — no second query (preserves the cheap path).
+    let facetSource = res;
+    if (config.facetField && config.facetField in where) {
+      const whereSansFacet = { ...where };
+      delete whereSansFacet[config.facetField];
+      facetSource = await search(db, {
+        term: args.term,
+        tolerance: args.term ? 1 : 0,
+        boost: config.boost,
+        where: Object.keys(whereSansFacet).length ? whereSansFacet : undefined,
+        facets: { [config.facetField]: {} },
+        limit: 1, // facets aggregate over all matches; hits are unused here
+      });
+    }
+
     const facets: FacetCount[] = [];
-    if (config.facetField && res.facets?.[config.facetField]) {
-      const values = res.facets[config.facetField].values as Record<
+    if (config.facetField && facetSource.facets?.[config.facetField]) {
+      const values = facetSource.facets[config.facetField].values as Record<
         string,
         number
       >;
