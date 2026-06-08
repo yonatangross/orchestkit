@@ -13,6 +13,7 @@
 #   4. non-version issue (manual-triage / rotation) → ignored
 #   5. DRY_RUN=1 → zero mutations
 #   6. label missing → created once
+#   9. below-floor `breaking`/`new_perm` → guarded, NEVER auto-staled
 
 set -euo pipefail
 
@@ -88,12 +89,15 @@ fi
 echo '{"supported_floor":"2.1.148"}' > "$WORK/cc-support.json"
 SCRIPT="$PROJECT_ROOT/scripts/cc-stale-belowfloor.sh"
 
-# Mixed issue set with real tabs.
-ISSUES=$(printf '%s\t%s\t%s\n' \
-  100 'adopt CC 2.1.140 feature: foo (new_perm)' 'cc-adoption,automation' \
-  101 'adopt CC 2.1.150 feature: bar (new_command)' 'cc-adoption' \
-  102 'adopt CC 2.1.142 feature: baz (new_field)' 'cc-adoption,cc-stale' \
-  103 'CC adoption: manual triage needed for 2.1.151' 'cc-adoption')
+# Mixed issue set with real tabs. Column 4 = category (real script extracts it
+# from the issue body; the mock supplies it directly since it bypasses --jq).
+ISSUES=$(printf '%s\t%s\t%s\t%s\n' \
+  100 'adopt CC 2.1.140 feature: foo (new_field)' 'cc-adoption,automation' 'new_field' \
+  101 'adopt CC 2.1.150 feature: bar (new_command)' 'cc-adoption' 'new_command' \
+  102 'adopt CC 2.1.142 feature: baz (new_field)' 'cc-adoption,cc-stale' 'new_field' \
+  103 'CC adoption: manual triage needed for 2.1.151' 'cc-adoption' 'unknown' \
+  104 'adopt CC 2.1.141 feature: qux (breaking)' 'cc-adoption' 'breaking' \
+  105 'adopt CC 2.1.139 feature: quux (new_perm)' 'cc-adoption,automation' 'new_perm')
 
 EDIT_RE='^issue edit [0-9]+ .* --add-label cc-stale'
 COMMENT_RE='^issue comment [0-9]+'
@@ -119,10 +123,11 @@ if [ "$COMMENTS" = "1" ]; then
 else
   log_fail "comment" "expected 1 comment, got $COMMENTS"
 fi
-# #100 labeled, NOT #101 (above), #102 (already stale), #103 (no version)
+# #100 labeled, NOT #101 (above), #102 (already stale), #103 (no version),
+# #104 (breaking guard), #105 (new_perm guard)
 if grep -qE '^issue edit 100 ' "$MOCK_LOG" \
-   && ! grep -qE '^issue edit (101|102|103) ' "$MOCK_LOG"; then
-  log_pass "skips above-floor (#101), already-stale (#102), non-version (#103)"
+   && ! grep -qE '^issue edit (101|102|103|104|105) ' "$MOCK_LOG"; then
+  log_pass "skips above-floor (#101), already-stale (#102), non-version (#103), guarded (#104/#105)"
 else
   log_fail "selectivity" "wrong issues labeled (see $MOCK_LOG)"
 fi
@@ -192,6 +197,25 @@ if [ "$EXIT" = "0" ] && grep -qi "already exists (race)" /tmp/stale-8.out && [ "
   log_pass "create race: tolerated, run continues to label the below-floor issue"
 else
   log_fail "create-race resilience" "expected exit 0 + race-tolerated + 1 edit (see /tmp/stale-8.out)"
+fi
+
+# ============================================================================
+# Case 9: below-floor `breaking` (#104) + `new_perm` (#105) → category guard
+# skips them (NEVER auto-staled), even though their version < floor. Regression
+# guard for the mislabel that buried 6/12 security/permission adoption items.
+# ============================================================================
+: > "$MOCK_LOG"
+EXIT=0
+MOCK_LABELS=$'cc-adoption' MOCK_ISSUES_TSV="$ISSUES" SLEEP_BETWEEN=0 \
+  GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
+  bash "$SCRIPT" >/tmp/stale-9.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] \
+  && ! grep -qE '^issue edit (104|105) ' "$MOCK_LOG" \
+  && grep -q "category=breaking persists at floor" /tmp/stale-9.out \
+  && grep -q "category=new_perm persists at floor" /tmp/stale-9.out; then
+  log_pass "category guard: below-floor breaking/new_perm NOT auto-staled (#104/#105)"
+else
+  log_fail "category guard" "expected #104/#105 skipped with guard note (see /tmp/stale-9.out)"
 fi
 
 echo "========================================================="
