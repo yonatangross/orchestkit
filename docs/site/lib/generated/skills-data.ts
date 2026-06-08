@@ -826,7 +826,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "OrchestKit security wrapper for browser automation. Adds URL blocklisting, rate limiting, robots.txt enforcement, and ethical scraping guardrails on top of the upstream agent-browser skill. Use when automating browser workflows that need safety guardrails.",
     "version": "5.0.0",
-    "sha256": "264ef324fa4f903c2b93d1963dd12650c7510ae7a20c34a41b93cec3348c7bd2",
+    "sha256": "5ff356205048a885266b5fdf5a85a97453176b3779652aab3fbe7ea336b6764a",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -3584,7 +3584,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "portless",
     "description": "Named HTTPS .localhost URLs for local development with portless (v0.13.x). Eliminates port collisions, enables stable URLs for agents, integrates with emulate for API emulation aliases, git worktrees for branch-named subdomains, LAN mode (--lan) for mDNS .local hostnames reachable across devices, Tailscale sharing (--tailscale / --funnel), and OS startup-service install for boot persistence. Use when setting up local dev environments, configuring agent-accessible URLs, running multi-service dev setups, or testing from phones/tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration.",
     "version": "1.2.0",
-    "sha256": "1c8fbc0719fe361f02df7f19cb936ad115c8063f2fa97a547caea99afcf78fdf",
+    "sha256": "4f9c235b2209f96eff254a37b7964c01132c4d3575ffa92c305392ce170c0e02",
     "author": "OrchestKit",
     "tags": [
       "dev-server",
@@ -4428,7 +4428,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "efdf2ecfc3e23154167a9d45c2c2fdb36916ae45b3d71d7140333020a730dca7",
+    "sha256": "6a782b79b827f535db6b18746dcb7ab51e367bc49bf18b57bcea6fa686ad13df",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4457,6 +4457,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "audit-logging.md",
+        "cc-permission-model.md",
         "context-separation.md",
         "langfuse-mask-callback.md",
         "llm-guard-sanitization.md",

@@ -246,6 +246,8 @@ Security hooks shipped by OrchestKit are **managed defaults** — users can disa
 
 > **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
 
+> **Permission-rule semantics (≥ 2.1.166):** `allow`/`ask`/`deny` rules gained security-relevant behavior — `Read` deny now hides files from Glob/Grep, deny tool-names accept globs (`"*"` = default-deny), explicit `WebFetch(domain:…)` overrides the preapproved-host auto-allow, relayed `SendMessage` from other sessions carries no authority, and org-managed rules apply for the whole session. See `references/cc-permission-model.md` for the full model + a recommended baseline `settings.json`.
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python
@@ -273,6 +275,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 | File | Content |
 |------|---------|
+| `cc-permission-model.md` | CC allow/ask/deny rule semantics (≥2.1.166): Read-deny hides from Glob/Grep, deny-globs, WebFetch precedence, cross-session auth, org-managed rules |
 | `oauth-2.1-passkeys.md` | OAuth 2.1, PKCE, DPoP, Passkeys/WebAuthn |
 | `request-context-pattern.md` | Immutable request context for identity flow |
 | `tenant-isolation.md` | Tenant-scoped repository, vector/full-text search |
