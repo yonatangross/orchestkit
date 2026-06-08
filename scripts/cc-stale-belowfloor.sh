@@ -11,6 +11,13 @@
 # adoption item is de-facto deprioritized: the floor moved past it, so it's a
 # candidate for the human to close (or to keep, by removing the label).
 #
+# CATEGORY GUARD: `breaking` and `new_perm` items are NEVER auto-staled. Their
+# behavior persists at the current floor (below-floor only means the feature is
+# now universally available), so they are live adoption work — not moot. Keying
+# staleness on version alone wrongly buried these (security/permission behaviors);
+# the category is read from the issue body's `**Category:** \`...\`` line. Only
+# non-breaking, non-perm features below the floor are auto-staled.
+#
 # Idempotent self-heal: already-labeled issues are skipped, and non-version
 # issues (manual-triage / token-rotation) are ignored. Safe on every cron tick.
 #
@@ -87,7 +94,7 @@ fi
 
 labeled=0
 skipped=0
-while IFS=$'\t' read -r NUM TITLE LABELS; do
+while IFS=$'\t' read -r NUM TITLE LABELS CAT; do
   [ -z "${NUM:-}" ] && continue
   # Only per-version feature issues carry a version in the title
   # ("adopt CC X.Y.Z feature: ..."). manual-triage / token-rotation issues
@@ -106,6 +113,19 @@ while IFS=$'\t' read -r NUM TITLE LABELS; do
       continue
       ;;
   esac
+  # Category guard: NEVER auto-stale `breaking` changes or `new_perm` capabilities.
+  # Their behavior persists at the current floor (below-floor just means the
+  # feature is now universally available), so they are live adoption work, not
+  # moot. Keying staleness on version alone mislabeled these as moot — verified
+  # 6/12 (security/permission behaviors). Only non-breaking, non-perm features
+  # below the floor are auto-staled.
+  case "$CAT" in
+    breaking|new_perm)
+      note "skip #${NUM}: category=${CAT} persists at floor — not auto-staled (CC ${VER})"
+      skipped=$((skipped + 1))
+      continue
+      ;;
+  esac
   if ver_lt "$VER" "$FLOOR"; then
     if [ "$DRY_RUN" = "1" ]; then
       note "DRY_RUN: would label #${NUM} \"${STALE_LABEL}\" (CC ${VER} < floor ${FLOOR})"
@@ -118,7 +138,12 @@ while IFS=$'\t' read -r NUM TITLE LABELS; do
     labeled=$((labeled + 1))
   fi
 done < <(gh issue list -R "$GH_REPO" --label cc-adoption --state open --limit 300 \
-  --json number,title,labels \
-  --jq '.[] | [.number, .title, ([.labels[].name] | join(","))] | @tsv')
+  --json number,title,labels,body \
+  --jq '.[] | [
+      .number,
+      .title,
+      ([.labels[].name] | join(",")),
+      (((.body // "") | (capture("Category[^`]*`(?<c>[a-z_]+)`")?.c)) // "unknown")
+    ] | @tsv')
 
 note "done: labeled=${labeled}, already-stale skipped=${skipped}."
