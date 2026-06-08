@@ -11,7 +11,7 @@ export function GET() {
 	const body = [
 		`# ${SITE.name} API`,
 		"",
-		`> Public, read-only HTTP API over the ${SITE.name} documentation. No authentication. Errors use RFC 9457 Problem Details (\`application/problem+json\`). Current version: v1.`,
+		`> Public, read-only HTTP API over the ${SITE.name} documentation. No authentication. Errors use the RFC 9457 Problem Details shape, served as \`application/json\`. Current version: v1.`,
 		"",
 		"## Endpoints",
 		"",

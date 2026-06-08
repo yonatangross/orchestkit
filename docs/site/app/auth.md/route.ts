@@ -50,7 +50,7 @@ export function GET() {
 		"",
 		"## Errors",
 		"",
-		"Errors are returned as RFC 9457 Problem Details (`application/problem+json`) with a machine-readable `type`, `title`, `status`, and `detail`. The error codes you may encounter:",
+		"Errors use the RFC 9457 Problem Details shape — a machine-readable `type`, `title`, `status`, and `detail` — served as `application/json`. The error codes you may encounter:",
 		"",
 		"| HTTP status | `title` | When |",
 		"| --- | --- | --- |",
