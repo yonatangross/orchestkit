@@ -5,6 +5,14 @@
  * MCP Output Transform — PostToolUse hook for MCP tool results
  * Issue #1240: Proof-of-concept for updatedMCPToolOutput
  *
+ * ⚠️ EXPERIMENTAL / KNOWN-INERT LIVE (#2302, ref CC #1794): as of CC 2.1.168,
+ * Claude Code does NOT apply `updatedMCPToolOutput` from a plugin PostToolUse
+ * `mcp__*` hook — so this hook (and #2264's reversible-stash path) never fires on
+ * live MCP outputs (verified 0 transforms across 4 restarts). The code is correct
+ * and unit-tested; it is DORMANT pending CC support, not removed. See #2302 for
+ * the defer-not-remove decision + the criteria for graduating vs removing it. Do
+ * not invest further here until CC closes the gap.
+ *
  * Transforms MCP tool outputs before Claude sees them:
  * 1. Token-saving truncation: large results are head+tail truncated
  * 2. PII redaction: emails and phone numbers replaced with [REDACTED]
