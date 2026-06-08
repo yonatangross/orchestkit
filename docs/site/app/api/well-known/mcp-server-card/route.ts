@@ -15,16 +15,25 @@ export function GET() {
 		serverUrl: `${d}/api/mcp`,
 		transport: "streamable-http",
 		authentication: { type: "none" },
+		// Branding for registry listings (logo + category).
+		icon: `${d}/favicon.svg`,
+		logo: `${d}/favicon.svg`,
+		category: "developer-tools",
+		homepage: d,
+		repository: SITE.github,
+		license: "MIT",
 		tools: [
 			{
 				name: "orchestkit_docs_search",
 				description:
 					"Search the OrchestKit documentation; returns ranked pages with titles and URLs.",
+				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 			{
 				name: "orchestkit_docs_get",
 				description:
 					"Fetch one OrchestKit documentation page as Markdown by its path.",
+				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 		],
 	};

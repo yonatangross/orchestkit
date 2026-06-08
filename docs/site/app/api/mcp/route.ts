@@ -108,6 +108,15 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 					name,
 					description,
 					inputSchema,
+					// Both tools only read documentation — agents can call them
+					// without user confirmation.
+					annotations: {
+						title: name,
+						readOnlyHint: true,
+						destructiveHint: false,
+						idempotentHint: true,
+						openWorldHint: false,
+					},
 				})),
 			});
 		case "tools/call": {

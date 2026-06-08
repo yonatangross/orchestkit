@@ -44,6 +44,25 @@ export function organizationNode(): JsonLdNode {
 			contactType: "technical support",
 			url: ORG.supportUrl,
 		},
+		// Country-level address — the maintainer's country (honest; no registered
+		// business street address for a solo open-source project).
+		address: {
+			"@type": "PostalAddress",
+			addressCountry: ORG.country,
+		},
+	};
+}
+
+// Service node — broadens schema-type coverage and describes the free offering.
+export function serviceNode(): JsonLdNode {
+	return {
+		"@type": "Service",
+		name: SITE.name,
+		serviceType: "AI-assisted software development toolkit",
+		description: SUMMARY,
+		provider: { "@id": ORG_ID },
+		areaServed: "Worldwide",
+		offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 	};
 }
 
@@ -197,6 +216,7 @@ export function HomepageStructuredData({
 			websiteNode(),
 			homeWebPageNode(),
 			softwareApplicationNode(starCount),
+			serviceNode(),
 			faqPageNode(HOME_FAQS),
 		],
 	};

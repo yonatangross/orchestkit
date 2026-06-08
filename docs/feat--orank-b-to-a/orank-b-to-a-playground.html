@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit · orank B→A gap closures</title>
+<style>
+  :root{--bg:#0a0f1c;--panel:#111a2e;--panel2:#0e1626;--border:#1e2b45;--fg:#e9eef7;--muted:#8da2c0;--emerald:#34d399;--emerald-dim:#0f3b30;--red:#f87171;--mono:ui-monospace,Menlo,monospace}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:30px 20px 80px}
+  h1{font-size:1.7rem;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 22px}
+  .score{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 22px}
+  .pill{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:120px}
+  .pill .k{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}.pill .v{font-size:1.3rem;font-weight:650;margin-top:3px}.pill .v.up{color:var(--emerald)}
+  h2{font-size:1.05rem;margin:26px 0 10px}
+  .row{display:grid;grid-template-columns:48px 1fr;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px}
+  .row .p{font-family:var(--mono);font-weight:700;color:var(--emerald);text-align:right}
+  .row .t b{color:var(--fg)}.row .t{color:var(--muted);font-size:.9rem}
+  .skip{border-color:#3a1d22}.skip .p{color:var(--red)}
+  code{font-family:var(--mono);background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:.85em}
+  .foot{color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>orank B→A — on-site gap closures</h1>
+  <p class="sub">This PR works through the orank gap list, implementing every fix that's honest for a <b>free, MIT, no-commerce, no-auth, read-only</b> tool — and deliberately skipping the ones that would require fabricating capabilities.</p>
+
+  <div class="score">
+    <div class="pill"><div class="k">Before</div><div class="v">72 · B</div></div>
+    <div class="pill"><div class="k">This PR adds (est.)</div><div class="v up">~+15</div></div>
+    <div class="pill"><div class="k">Target</div><div class="v up">~85 · A</div></div>
+  </div>
+
+  <h2>✅ Implemented (honest, on-site)</h2>
+  <div id="done"></div>
+
+  <h2>🛑 Deliberately skipped — would be fabrication</h2>
+  <div id="skip"></div>
+
+  <p class="foot">Free read-only docs tool: no checkout (UCP/ACP/MPP/x402), no auth flow (OAuth PRM / Web-Bot-Auth), no writes (webhooks/async/idempotency), no SDK/CLI. Implementing those = advertising capabilities that don't exist. The remaining real ceiling is off-site (citations, registries, Wikipedia) — tracked separately.</p>
+</div>
+<script>
+const DONE=[
+  ["+4","<b>JSON error responses</b> — <code>/api/search</code> now returns <code>400 application/problem+json</code> on a malformed request instead of an empty 200."],
+  ["+3","<b>REST versioning</b> — <code>/api/v1/*</code> path-versioned alias + <code>servers</code> + versioning policy in the OpenAPI description."],
+  ["+3","<b>llms.txt quality / when-to-use / agent-instructions</b> — added What-it-is, Use cases, Constraints, and a 'For AI agents' section."],
+  ["+2","<b>REST pagination</b> — <code>limit</code> param + <code>X-Total-Count</code> header on search, documented in OpenAPI."],
+  ["+1","<b>Modular llms.txt</b> — new <code>/api/llms.txt</code> (per-area context)."],
+  ["+1","<b>MCP tool annotations</b> — <code>readOnlyHint</code>/<code>destructiveHint</code> on tools/list + server-card."],
+  ["+1","<b>Registry branding</b> — icon/logo/category/repo/license on the MCP server-card."],
+  ["+1","<b>Organization schema</b> — added <code>PostalAddress</code> (country-level)."],
+  ["+1","<b>Schema breadth</b> — added a <code>Service</code> node to the homepage graph."],
+  ["+1","<b>auth.md structure</b> — explicit 'no agentic registration', expanded RFC 9727 / A2A discovery steps, error-code table."],
+  ["+1","<b>Typed error model</b> — consistent Problem <code>$ref</code> + the <code>X-Total-Count</code>/limit response shape in OpenAPI."],
+  ["+1","<b>Agent error recovery</b> — rate-limit + exponential-backoff guidance in llms.txt / auth.md."],
+  ["+1–2","<b>Semantic indexability / content-without-JS</b> — SSR 'What is OrchestKit?' definitional section with H2/H3 hierarchy + named stats."],
+];
+const SKIP=[
+  ["−13","Payments: UCP · ACP · ACP-delegate · MPP · x402 — no commerce; can't fake checkout/payment endpoints."],
+  ["−10","Auth: OAuth PRM · Web-Bot-Auth · agent_auth · WWW-Authenticate 401 — no auth flow exists."],
+  ["−8","CLI · multi-lang SDK · webhook signing · async-job · idempotency — none exist (read-only, no writes)."],
+  ["−1","robots ai-train=no — conflicts with the 'training-corpus footprint' gap; keep crawlers allowed."],
+];
+function fill(id,arr,cls){const el=document.getElementById(id);arr.forEach(([p,t])=>{const d=document.createElement("div");d.className="row "+(cls||"");d.innerHTML=`<div class="p">${p}</div><div class="t">${t}</div>`;el.appendChild(d);});}
+fill("done",DONE);fill("skip",SKIP,"skip");
+</script>
+</body>
+</html>

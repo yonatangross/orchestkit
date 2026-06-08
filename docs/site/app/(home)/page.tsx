@@ -217,6 +217,43 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ============ WHAT IS (definitional, SSR — agent/LLM extractable) ============ */}
+      <section aria-labelledby="what-heading" className="border-b border-fd-border">
+        <div className="mx-auto max-w-[820px] px-7 py-14">
+          <h2 id="what-heading" className="text-2xl font-semibold tracking-tight text-fd-foreground">
+            What is OrchestKit?
+          </h2>
+          <p className="mt-3 leading-7 text-fd-muted-foreground">
+            OrchestKit is a free, open-source (MIT) plugin for{" "}
+            <a href="https://www.anthropic.com/claude-code" className="text-fd-primary underline underline-offset-2">Claude Code</a>,
+            Anthropic's agentic command-line coding tool. It packages{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.skills} skills</span>,{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.agents} agents</span>, and{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.hooks} lifecycle hooks</span>{" "}
+            into a single install — encoding security patterns and quality gates so the agent works to your standards out of the box. It runs locally inside Claude Code; it is not a hosted service and not an editor autocomplete.
+          </p>
+          <div className="mt-7 grid gap-5 sm:grid-cols-3">
+            <div>
+              <h3 className="font-semibold text-fd-foreground">Skills · {COUNTS.skills}</h3>
+              <p className="mt-1 text-sm leading-6 text-fd-muted-foreground">Reusable knowledge modules for auth, migrations, API design, testing, and review — loaded on demand at zero runtime cost.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-fd-foreground">Agents · {COUNTS.agents}</h3>
+              <p className="mt-1 text-sm leading-6 text-fd-muted-foreground">Specialist personas — security auditors, backend architects, frontend devs — each with curated tools and skills, run in parallel.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-fd-foreground">Hooks · {COUNTS.hooks}</h3>
+              <p className="mt-1 text-sm leading-6 text-fd-muted-foreground">TypeScript lifecycle automation that blocks dangerous commands, injects context, and enforces security — non-blocking, automatic.</p>
+            </div>
+          </div>
+          <p className="mt-7 leading-7 text-fd-muted-foreground">
+            <strong className="text-fd-foreground">How it compares:</strong> unlike editor assistants such as Cursor or GitHub Copilot — which autocomplete inside the IDE — OrchestKit operates at the agent layer, making Claude Code more capable rather than typing alongside you. Install with{" "}
+            <span className="font-mono text-fd-foreground">{SITE.installCommand}</span>. See the{" "}
+            <Link href="/compare" className="text-fd-primary underline underline-offset-2">full comparison</Link>.
+          </p>
+        </div>
+      </section>
+
       {/* ============ VALUE-PROP STRIP ============ */}
       <section
         aria-labelledby="personas-heading"
