@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/constants";
 import { getDocMarkdown, searchDocs } from "@/lib/doc-search";
+import { SEARCH_RESULTS_HTML, UI_SEARCH_RESULTS } from "@/lib/mcp-ui";
 
 // Stateless MCP server over Streamable HTTP (JSON-RPC 2.0 on POST). Dependency-
 // free: MCP's transport is JSON-RPC, so a stateless handler covering
@@ -19,38 +20,8 @@ type ToolResult = {
 
 // MCP Apps (ext-apps): a ui:// HTML resource the host renders inline in the
 // conversation. The search tool references it via `_meta.ui.resourceUri` and
-// returns `structuredContent` the template draws. Self-contained — no SDK dep.
-const UI_SEARCH_RESULTS = "ui://orchestkit/search-results";
-
-const SEARCH_RESULTS_HTML = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8" />
-<style>
-  body{margin:0;font-family:system-ui,sans-serif;font-size:14px;color:#e9eef7;background:#0e1626}
-  .wrap{padding:12px}
-  a.r{display:block;text-decoration:none;color:inherit;background:#111a2e;border:1px solid #1e2b45;border-radius:8px;padding:10px 12px;margin-bottom:8px}
-  a.r:hover{border-color:#34d399}
-  a.r b{color:#34d399} a.r span{display:block;color:#8da2c0;margin-top:3px;font-size:.86em}
-  .empty{color:#8da2c0;padding:8px}
-</style></head>
-<body><div class="wrap" id="root"><div class="empty">Loading…</div></div>
-<script>
-  function render(data){
-    var results=(data&&data.results)||[];
-    var root=document.getElementById("root");
-    root.innerHTML = results.length
-      ? results.map(function(h){return '<a class="r" href="'+h.url+'" target="_blank" rel="noopener"><b>'+h.title+'</b><span>'+(h.content||"")+'</span></a>';}).join("")
-      : '<div class="empty">No matching documentation.</div>';
-  }
-  // OpenAI Apps SDK exposes tool output on window.openai.
-  if (window.openai && window.openai.toolOutput) render(window.openai.toolOutput);
-  // MCP-UI render-data fallback (postMessage).
-  window.addEventListener("message", function(e){
-    if (e.data && e.data.type === "ui-lifecycle-iframe-render-data") {
-      render(e.data.payload && e.data.payload.toolOutput);
-    }
-  });
-</script></body></html>`;
-
+// returns `structuredContent` the template draws. Markup + its CSP live in
+// lib/mcp-ui.ts (extracted so the policy can be unit-tested).
 const UI_RESOURCES = [
 	{
 		uri: UI_SEARCH_RESULTS,
