@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.27.1](https://github.com/yonatangross/orchestkit/compare/v8.27.0...v8.27.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **docs-site:** serve API errors as application/json ([#2320](https://github.com/yonatangross/orchestkit/issues/2320)) ([4b2c897](https://github.com/yonatangross/orchestkit/commit/4b2c89743c77b4d932989203273485a93c00e4fb)), closes [#2279](https://github.com/yonatangross/orchestkit/issues/2279)
+
+
+### Miscellaneous
+
+* **labs:** weekly upstream pin sync ([#2310](https://github.com/yonatangross/orchestkit/issues/2310)) ([bd57e9c](https://github.com/yonatangross/orchestkit/commit/bd57e9c38d9825587c037ee4fafc7cf1e81600c3))
+
+
+### CI/CD
+
+* **labs:** rebuild plugins/ in version-watch bot to fix drift gate ([#2317](https://github.com/yonatangross/orchestkit/issues/2317)) ([dc9c299](https://github.com/yonatangross/orchestkit/commit/dc9c2999d5b1272632b76235a503d6bf7bfb3be1))
+
 ## [8.27.0](https://github.com/yonatangross/orchestkit/compare/v8.26.0...v8.27.0) (2026-06-08)
 
 
