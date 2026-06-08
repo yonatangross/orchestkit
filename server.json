@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yonatangross/orchestkit",
+  "title": "OrchestKit Docs MCP",
+  "description": "Read-only MCP server over the OrchestKit documentation: full-text docs search and Markdown page fetch for the OrchestKit Claude Code plugin (skills, agents, hooks). No authentication.",
+  "websiteUrl": "https://orchestkit.yonyon.ai",
+  "repository": { "url": "https://github.com/yonatangross/orchestkit", "source": "github" },
+  "version": "8.26.0",
+  "remotes": [
+    { "type": "streamable-http", "url": "https://orchestkit.yonyon.ai/api/mcp" }
+  ]
+}
