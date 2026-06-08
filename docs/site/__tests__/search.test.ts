@@ -191,6 +191,81 @@ describe("createCollection (Orama-backed skill search)", () => {
     });
   });
 
+  describe("facet stability under an active category filter (#2282)", () => {
+    function facetMap(
+      facets: { value: string; count: number }[],
+    ): Record<string, number> {
+      return Object.fromEntries(facets.map((f) => [f.value, f.count]));
+    }
+
+    it("keeps other categories' counts unchanged when one category is selected", async () => {
+      const c = makeCollection();
+      // Baseline: full per-category counts with no category filter.
+      const full = facetMap((await c.query({ term: "" })).facets);
+      expect(full).toEqual({
+        development: 2,
+        backend: 1,
+        security: 1,
+        testing: 1,
+      });
+
+      // Selecting "development" must NOT collapse the other pills to 0/absent.
+      const filtered = facetMap(
+        (await c.query({ term: "", where: { category: ["development"] } }))
+          .facets,
+      );
+      expect(filtered.backend).toBe(full.backend);
+      expect(filtered.security).toBe(full.security);
+      expect(filtered.testing).toBe(full.testing);
+      // The selected category's own count is also preserved.
+      expect(filtered.development).toBe(full.development);
+      // Counts are fully stable — identical to the no-filter snapshot.
+      expect(filtered).toEqual(full);
+    });
+
+    it("stays stable when a non-development category is selected", async () => {
+      const c = makeCollection();
+      const full = facetMap((await c.query({ term: "" })).facets);
+      const filtered = facetMap(
+        (await c.query({ term: "", where: { category: ["security"] } }))
+          .facets,
+      );
+      // Other categories keep their full counts despite the active filter.
+      expect(filtered.development).toBe(full.development);
+      expect(filtered.backend).toBe(full.backend);
+      expect(filtered.testing).toBe(full.testing);
+      expect(filtered).toEqual(full);
+    });
+
+    it("keeps category counts stable when an orthogonal filter (plugins) is active", async () => {
+      const c = makeCollection();
+      // Filtering on plugins (not the facet field) DOES narrow the facet
+      // counts — the cheap single-query path. With plugins=["ork"], the lone
+      // "extra"-plugin skill (category development) drops out, so development
+      // falls 2 -> 1 while the others are unaffected.
+      const filtered = facetMap(
+        (await c.query({ term: "", where: { plugins: ["ork"] } })).facets,
+      );
+      expect(filtered).toEqual({
+        development: 1,
+        backend: 1,
+        security: 1,
+        testing: 1,
+      });
+    });
+
+    it("returns full facet counts on the cheap path (no term, no where)", async () => {
+      const c = makeCollection();
+      const { facets } = await c.query({ term: "" });
+      expect(facetMap(facets)).toEqual({
+        development: 2,
+        backend: 1,
+        security: 1,
+        testing: 1,
+      });
+    });
+  });
+
   describe("suggestions (did you mean?)", () => {
     it("populates suggestions on a near-miss with no exact hit", async () => {
       const c = makeCollection();
