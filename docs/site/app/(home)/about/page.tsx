@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
+import { StructuredData, personNode } from "@/components/structured-data";
 import { COUNTS, PERSON, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function AboutPage() {
 			path="/about"
 			lead={`${SITE.name} is a free, open-source plugin for Claude Code — a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`}
 		>
+			<StructuredData nodes={[personNode()]} />
 			<h2>What OrchestKit is</h2>
 			<p>
 				OrchestKit is a plugin for{" "}
@@ -37,10 +39,21 @@ export default function AboutPage() {
 			<h2>Who builds it</h2>
 			<p>
 				OrchestKit is built and maintained by{" "}
-				<a href={PERSON.url}>{PERSON.name}</a> as an open-source project under the
-				MIT license. Development happens in the open on{" "}
-				<a href={SITE.github}>GitHub</a>, where issues, discussions, and pull
-				requests are welcome.
+				<a href={PERSON.url} rel="author">
+					<strong>{PERSON.name}</strong>
+				</a>{" "}
+				as an open-source project under the MIT license. {PERSON.name} is a
+				software engineer who develops OrchestKit in the open — designing the
+				skill, agent, and hook primitives, and curating the security and
+				quality-gate patterns the plugin ships with.
+			</p>
+			<p>
+				Development happens publicly on{" "}
+				<a href={SITE.github}>GitHub</a>, where every skill, agent, and hook is
+				version-controlled and reviewed. Issues, discussions, and pull requests
+				are welcome — the fastest way to reach the maintainer is to{" "}
+				<a href={`${SITE.github}/issues`}>open an issue</a> or follow{" "}
+				<a href={PERSON.url}>{PERSON.name} on GitHub</a>.
 			</p>
 
 			<h2>Why it exists</h2>

@@ -25,6 +25,14 @@ export function GET() {
 			pushNotifications: false,
 			stateTransitionHistory: false,
 		},
+		// Anonymous, no-auth API: an empty `security` array means no security
+		// scheme is required to call any endpoint (A2A / OpenAPI convention), and
+		// `securitySchemes` is intentionally empty for the same reason. The honest
+		// `identity_type: "anonymous"` marker states this explicitly for agents
+		// that key off it. See /auth.md for the full no-credential walkthrough.
+		identity_type: "anonymous",
+		securitySchemes: {},
+		security: [],
 		defaultInputModes: ["text/plain", "application/json"],
 		defaultOutputModes: ["application/json", "text/markdown"],
 		skills: [
