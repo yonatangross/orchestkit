@@ -933,14 +933,17 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
     index_lines = [
         "---",
         "title: Hooks Reference",
-        f'description: "Complete reference for all {total_hooks} OrchestKit hooks '
-        f'across {len(categories)} event categories."',
+        f'description: "Complete reference for all {total_hooks} global lifecycle '
+        f'hook entries across {len(categories)} event categories."',
         "---",
         "",
         "# Hooks Reference",
         "",
-        f"OrchestKit includes **{total_hooks} hook entries** across "
-        f"**{len(categories)} lifecycle event categories**.",
+        f"OrchestKit includes **{total_hooks} global lifecycle hook entries** across "
+        f"**{len(categories)} lifecycle event categories**, listed below by event. "
+        "These are the *global* hooks that fire on Claude Code lifecycle events; "
+        "agent- and skill-scoped hooks ship with their respective agents and skills, "
+        "so the plugin's total hook count is higher than the number here.",
         "",
         "| Category | Hooks | Description |",
         "|----------|-------|-------------|",
