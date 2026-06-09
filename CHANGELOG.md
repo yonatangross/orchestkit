@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.29.1](https://github.com/yonatangross/orchestkit/compare/v8.29.0...v8.29.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **docs-site:** move buildLlmsTxt out of the route module ([#2337](https://github.com/yonatangross/orchestkit/issues/2337)) ([7aaf9eb](https://github.com/yonatangross/orchestkit/commit/7aaf9ebe82ca9d834f9eda0dd1766b77090d25ab)), closes [#2329](https://github.com/yonatangross/orchestkit/issues/2329)
+
+
+### Miscellaneous
+
+* **mcp:** link mcp.so listing in sameAs ([#2334](https://github.com/yonatangross/orchestkit/issues/2334)) ([d112226](https://github.com/yonatangross/orchestkit/commit/d11222636befb82bd2195608fb619208970a1bc6))
+* **mcp:** link Smithery listing in sameAs ([#2333](https://github.com/yonatangross/orchestkit/issues/2333)) ([e3f3103](https://github.com/yonatangross/orchestkit/commit/e3f310329c208c950a4f699e14ad7196fd96fab1))
+* **mcp:** publish to official MCP registry + link in sameAs ([#2331](https://github.com/yonatangross/orchestkit/issues/2331)) ([0d481df](https://github.com/yonatangross/orchestkit/commit/0d481df918e1cd839be41de3a8b4d35a70587b6b))
+
 ## [8.29.0](https://github.com/yonatangross/orchestkit/compare/v8.28.1...v8.29.0) (2026-06-08)
 
 
