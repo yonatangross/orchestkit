@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>OrchestKit · Next.js Route Export Rules — buildLlmsTxt fix</title>
+<style>
+  :root{--bg:#0a0f1c;--panel:#111a2e;--border:#1e2b45;--fg:#e9eef7;--muted:#8da2c0;--ok:#34d399;--bad:#f87171;--amber:#fbbf24;--mono:ui-monospace,"SF Mono",Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55;font-size:15px}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:1.5rem;letter-spacing:-.02em;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 22px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:0 0 16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.row{grid-template-columns:1fr}}
+  h2{font-size:.95rem;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  pre{background:#0e1626;border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;font-family:var(--mono);font-size:.8rem;margin:0}
+  .bad pre{border-color:#3b1f1f} .ok pre{border-color:#0f3b30}
+  .tag{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px}
+  .tag.bad{background:#3b1f1f;color:var(--bad)} .tag.ok{background:#0f3b30;color:var(--ok)}
+  .chip{display:inline-block;background:#0e1626;border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-family:var(--mono);font-size:.74rem;color:var(--fg);margin:2px}
+  code{font-family:var(--mono);background:#0e1626;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:.85em}
+  .legend{color:var(--muted);font-size:.85rem;margin-top:8px}
+  .who{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  .who .ok-i{color:var(--ok)} .who .no-i{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Next.js route export rules — the <code>buildLlmsTxt</code> fix</h1>
+  <p class="sub">PR #2337. A Next.js <code>route.ts</code> module may only export request handlers + reserved config. #2329 exported a shared helper from a route file → the Docs Site Build's route-type check failed and reddened main. Fix: move the helper to <code>lib/</code>.</p>
+
+  <div class="card">
+    <h2>✅ What a route module is allowed to export</h2>
+    <div class="who">
+      <span class="chip ok-i">GET</span><span class="chip ok-i">POST</span><span class="chip ok-i">PUT</span>
+      <span class="chip ok-i">PATCH</span><span class="chip ok-i">DELETE</span><span class="chip ok-i">HEAD</span>
+      <span class="chip ok-i">OPTIONS</span><span class="chip ok-i">dynamic</span><span class="chip ok-i">revalidate</span>
+      <span class="chip ok-i">runtime</span><span class="chip ok-i">fetchCache</span><span class="chip ok-i">preferredRegion</span>
+      <span class="chip ok-i">maxDuration</span><span class="chip ok-i">generateStaticParams</span>
+    </div>
+    <p class="legend">Anything else — an arbitrary helper like <code>buildLlmsTxt()</code> — fails: <em>"Route … does not match the required types of a Next.js Route."</em></p>
+  </div>
+
+  <div class="row">
+    <div class="card bad">
+      <h2><span class="tag bad">BEFORE (#2329)</span> reddened main</h2>
+      <pre>// app/api/llms.txt/route.ts
+export const revalidate = false;
+
+// ❌ non-handler export from a route module
+export function buildLlmsTxt(): string { … }
+
+export function GET() {
+  return new Response(buildLlmsTxt(), …);
+}
+
+// app/api/llms.txt.md/route.ts
+import { buildLlmsTxt } from
+  "@/app/api/llms.txt/route"; // ❌ imports a route</pre>
+    </div>
+    <div class="card ok">
+      <h2><span class="tag ok">AFTER (#2337)</span> build green</h2>
+      <pre>// lib/llms-txt.ts  ✅ plain module
+export function buildLlmsTxt(): string { … }
+
+// app/api/llms.txt/route.ts
+import { buildLlmsTxt } from "@/lib/llms-txt";
+export const revalidate = false;
+export function GET() { … }
+
+// app/api/llms.txt.md/route.ts
+import { buildLlmsTxt } from "@/lib/llms-txt"; ✅</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔎 Why it slipped past auto-merge</h2>
+    <p class="legend">Docs Site Build is <strong>not a required check</strong>, so #2329/#2331/#2333/#2334 merged with it red. And a local <code>next build --webpack</code> on a <strong>warm <code>.next</code> cache</strong> skips the route-type validation — a <strong>clean</strong> build (fresh worktree) reproduces and confirms the fix. Verified: <code>next build</code> exit 0, both <code>/api/llms.txt</code> + <code>/api/llms.txt.md</code> compile.</p>
+  </div>
+</div>
+</body>
+</html>
