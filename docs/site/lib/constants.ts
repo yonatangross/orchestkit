@@ -47,6 +47,9 @@ export const SAME_AS = [
   SITE.github, // GitHub repository
   PERSON.url, // Maintainer GitHub profile
   "https://www.wikidata.org/wiki/Q140128295", // Wikidata entity
+  // Official MCP Registry entry (published via mcp-publisher; queryable by name).
+  // Provides bi-directional verification between the docs site and the registry.
+  "https://registry.modelcontextprotocol.io/v0/servers?search=orchestkit",
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
