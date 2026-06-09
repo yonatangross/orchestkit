@@ -8,7 +8,7 @@ paths:
 ## Required Frontmatter
 - `name` (kebab-case, must match filename)
 - `description` (third person, concise — Claude uses this for agent selection)
-- `model`: opus | sonnet | haiku
+- `model`: fable | opus | sonnet | haiku | inherit (vocabulary: src/hooks/src/lib/models.vocab.json — premium tiers fable/opus are reserved for high-complexity agents, enforced by test-agent-model-tool-correlation.sh)
 - `tools`: array of tool names — e.g. Read, Write, Edit, Bash, Grep, Glob, Agent(sub-name)
 - `skills`: array of skill names the agent can access
 

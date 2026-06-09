@@ -15,6 +15,8 @@
 
 const fs = require('fs');
 const path = require('path');
+// #2338: model vocabulary single source of truth
+const modelShortNames = require('../src/hooks/src/lib/models.vocab.json').shortNames;
 const crypto = require('crypto');
 const { parseYamlFrontmatter } = require('./lib/parse-frontmatter');
 
@@ -704,7 +706,7 @@ function generateSplitModules(data) {
     '  name: string;',
     '  description: string;',
     '  category: Category;',
-    '  model: "opus" | "sonnet" | "haiku" | "inherit";',
+    `  model: ${modelShortNames.map(m => JSON.stringify(m)).join(' | ')};`,
     '  taskTypes: TaskType[];',
     '  keywords: string[];',
     '  examplePrompts: [string, string];',

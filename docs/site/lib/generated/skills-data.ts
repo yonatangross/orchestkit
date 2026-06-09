@@ -3364,7 +3364,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "8ae340e1c149c55f197d79df65b30023920926fbb1c1ebc1b66d8fc8dc0080ef",
+    "sha256": "0632a171380dab925dafa818240ef8dc4a53f2a1acd198d99ead7218a1cbfddc",
     "author": "OrchestKit",
     "tags": [
       "vision",

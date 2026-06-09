@@ -8,11 +8,11 @@ export const SAMPLE_DATA: AnalyticsExport = {
   period: { from: "2026-02-11", to: "2026-02-18" },
   sessions: { count: 42, totalDuration: 128400000, avgTokensPerSession: 185000 },
   modelUsage: {
-    "claude-opus-4-6": { sessions: 38, inputTokens: 5200000, outputTokens: 1400000, cacheReadInputTokens: 42000000, cacheCreationInputTokens: 2100000 },
+    "claude-fable-5": { sessions: 38, inputTokens: 5200000, outputTokens: 1400000, cacheReadInputTokens: 42000000, cacheCreationInputTokens: 2100000 },
     "claude-sonnet-4-5-20250929": { sessions: 12, inputTokens: 200000, outputTokens: 50000 },
     "claude-haiku-4-5-20251001": { sessions: 25, inputTokens: 80000, outputTokens: 20000 },
   },
-  costEstimate: { total: 18.50, byModel: { "claude-opus-4-6": 16.20, "claude-sonnet-4-5-20250929": 1.85, "claude-haiku-4-5-20251001": 0.45 }, cacheSavings: 8.20 },
+  costEstimate: { total: 31.50, byModel: { "claude-fable-5": 29.20, "claude-sonnet-4-5-20250929": 1.85, "claude-haiku-4-5-20251001": 0.45 }, cacheSavings: 16.40 },
   topAgents: [
     { name: "Explore", count: 45, avgMs: 12000 },
     { name: "test-generator", count: 32, avgMs: 8500 },

@@ -30,7 +30,7 @@ Integrate vision, audio, and video generation capabilities from leading multimod
 >
 > | Provider | Model IDs |
 > |----------|-----------|
-> | Anthropic | `claude-opus-4-8` (latest), `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
+> | Anthropic | `claude-fable-5` (latest, SOTA vision — rebuilds app source from screenshots), `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001` |
 > | OpenAI    | `gpt-5.5` (current flagship) |
 > | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
@@ -129,7 +129,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy vision | `claude-opus-4-8` (2,576 px, 3× Opus 4.6) or `gpt-5.5` |
+| High accuracy vision | `claude-fable-5` (SOTA — extracts precise figures, screenshot→source) or `claude-opus-4-8` (2,576 px, 3× Opus 4.6) |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
 | Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |

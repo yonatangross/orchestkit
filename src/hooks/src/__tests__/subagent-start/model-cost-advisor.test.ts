@@ -217,22 +217,68 @@ describe('modelCostAdvisor', () => {
   });
 
   // 5. Downgrade recommendations
+  //
+  // #2338: the old key assertion here was wrapped in
+  // `if (r.hookSpecificOutput?.additionalContext)` — a field this hook NEVER
+  // emits (outputWarning returns systemMessage), so it could never fail. The
+  // real semantics it was masking: an agent that explicitly pins a premium
+  // tier is auto-classified high-complexity, so downgrade advice fires ONLY
+  // for INHERITED premium models. Pinned hard below.
   describe('downgrade recommendations', () => {
-    test('warns opus for low-complexity (40% savings)', () => {
+    test('explicit opus pin → NO downgrade advice (premium pin = author intent)', () => {
       setupFs({ agentModel: 'opus' });
-      const r = modelCostAdvisor(mkInput('a', 'list files check status summary'));
+      const r = modelCostAdvisor(mkInput('pin-opus', 'list files check status summary'));
       expect(r.continue).toBe(true);
-      if (r.hookSpecificOutput?.additionalContext) {
-        expect(r.hookSpecificOutput.additionalContext).toContain('40%');
-        expect(r.hookSpecificOutput.additionalContext).toContain('sonnet');
-      }
+      expect(r.suppressOutput).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
     });
 
-    test('warns inherited opus for medium-complexity (30% savings)', () => {
+    test('inherited opus on low-complexity → 40% warning (hard assert)', () => {
       setupFs({ agentExists: false });
       process.env.CLAUDE_MODEL = 'opus';
-      const r = modelCostAdvisor(mkInput('a', 'implement a module'));
+      // unique agentType: the hook's module-level frontmatter cache persists
+      // across tests, so reusing 'a' would read a stale pinned model
+      const r = modelCostAdvisor(mkInput('inh-opus-low', 'list files check status summary'));
       expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('40%');
+      expect(r.systemMessage).toContain('sonnet');
+    });
+
+    test('inherited opus on medium-complexity → 30% warning (hard assert)', () => {
+      setupFs({ agentExists: false });
+      process.env.CLAUDE_MODEL = 'opus';
+      const r = modelCostAdvisor(mkInput('inh-opus-med', 'implement a module'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('30%');
+    });
+
+    test('inherited fable on low-complexity → 70% warning (#2338)', () => {
+      setupFs({ agentExists: false });
+      process.env.CLAUDE_MODEL = 'fable';
+      const r = modelCostAdvisor(mkInput('inh-fable-low', 'list files check status summary'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('70%');
+      expect(r.systemMessage).toContain('sonnet');
+    });
+
+    test('inherited fable on medium-complexity → 60% warning (#2338)', () => {
+      setupFs({ agentExists: false });
+      process.env.CLAUDE_MODEL = 'fable';
+      const r = modelCostAdvisor(mkInput('inh-fable-med', 'implement a module'));
+      expect(r.continue).toBe(true);
+      expect(r.systemMessage).toBeDefined();
+      expect(r.systemMessage).toContain('60%');
+    });
+
+    test('explicit fable pin → NO downgrade advice (#2338)', () => {
+      setupFs({ agentModel: 'fable' });
+      const r = modelCostAdvisor(mkInput('pin-fable', 'list files check status summary'));
+      expect(r.continue).toBe(true);
+      expect(r.suppressOutput).toBe(true);
+      expect(r.systemMessage).toBeUndefined();
     });
   });
 

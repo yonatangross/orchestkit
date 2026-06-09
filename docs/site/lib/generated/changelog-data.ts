@@ -17,6 +17,233 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.29.1",
+    "date": "2026-06-09",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs-site:** move buildLlmsTxt out of the route module ([#2337](https://github.com/yonatangross/orchestkit/issues/2337)) ([7aaf9eb](https://github.com/yonatangross/orchestkit/commit/7aaf9ebe82ca9d834f9eda0dd1766b77090d25ab)), closes [#2329](https://github.com/yonatangross/orchestkit/issues/2329)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**mcp:** link mcp.so listing in sameAs ([#2334](https://github.com/yonatangross/orchestkit/issues/2334)) ([d112226](https://github.com/yonatangross/orchestkit/commit/d11222636befb82bd2195608fb619208970a1bc6))",
+          "**mcp:** link Smithery listing in sameAs ([#2333](https://github.com/yonatangross/orchestkit/issues/2333)) ([e3f3103](https://github.com/yonatangross/orchestkit/commit/e3f310329c208c950a4f699e14ad7196fd96fab1))",
+          "**mcp:** publish to official MCP registry + link in sameAs ([#2331](https://github.com/yonatangross/orchestkit/issues/2331)) ([0d481df](https://github.com/yonatangross/orchestkit/commit/0d481df918e1cd839be41de3a8b4d35a70587b6b))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.29.0",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** orank layers 2/3/4 honest wins ([#2329](https://github.com/yonatangross/orchestkit/issues/2329)) ([615a356](https://github.com/yonatangross/orchestkit/commit/615a356ae827a7bcd994f471a22267cb027cf859))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**security-patterns:** document CC ≥2.1.166 permission-rule semantics ([#2328](https://github.com/yonatangross/orchestkit/issues/2328)) ([ff0a52a](https://github.com/yonatangross/orchestkit/commit/ff0a52a322d91f4c5a0fabae51eaa5c6deeb22b6))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.28.1",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-stale:** never auto-stale breaking/new_perm adoption issues ([#2326](https://github.com/yonatangross/orchestkit/issues/2326)) ([3097b9d](https://github.com/yonatangross/orchestkit/commit/3097b9d4c95b220f4c51e16e023eb780c7b287ba)), closes [#2325](https://github.com/yonatangross/orchestkit/issues/2325)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.28.0",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** GEO-enhance /compare + /alternatives for AI citation ([#2323](https://github.com/yonatangross/orchestkit/issues/2323)) ([2b20fcd](https://github.com/yonatangross/orchestkit/commit/2b20fcd280c8d1ef44fc49bf4bfba8bc83c30e40))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.27.2",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2319](https://github.com/yonatangross/orchestkit/issues/2319)) ([16e3c1d](https://github.com/yonatangross/orchestkit/commit/16e3c1d50634294c517a9f995eda892eab2aa0a9))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks-ref:** clarify 143 global vs 211 total hook count ([#2321](https://github.com/yonatangross/orchestkit/issues/2321)) ([e92df60](https://github.com/yonatangross/orchestkit/commit/e92df60af9ca282aa542d30a217492facc023dea)), closes [#2279](https://github.com/yonatangross/orchestkit/issues/2279)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.27.1",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**docs-site:** serve API errors as application/json ([#2320](https://github.com/yonatangross/orchestkit/issues/2320)) ([4b2c897](https://github.com/yonatangross/orchestkit/commit/4b2c89743c77b4d932989203273485a93c00e4fb)), closes [#2279](https://github.com/yonatangross/orchestkit/issues/2279)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**labs:** weekly upstream pin sync ([#2310](https://github.com/yonatangross/orchestkit/issues/2310)) ([bd57e9c](https://github.com/yonatangross/orchestkit/commit/bd57e9c38d9825587c037ee4fafc7cf1e81600c3))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**labs:** rebuild plugins/ in version-watch bot to fix drift gate ([#2317](https://github.com/yonatangross/orchestkit/issues/2317)) ([dc9c299](https://github.com/yonatangross/orchestkit/commit/dc9c2999d5b1272632b76235a503d6bf7bfb3be1))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.27.0",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-search:** show stable facet counts on browser pills ([#2282](https://github.com/yonatangross/orchestkit/issues/2282)) ([#2311](https://github.com/yonatangross/orchestkit/issues/2311)) ([7b99d77](https://github.com/yonatangross/orchestkit/commit/7b99d7741ae2f2e1fd076de5c8de16cfb05676ed))",
+          "**docs-site:** content-negotiated JSON 404 + MCP App-view CSP ([#2316](https://github.com/yonatangross/orchestkit/issues/2316)) ([128aae9](https://github.com/yonatangross/orchestkit/commit/128aae9074c6199e8b08e07f0630d7ca4d5b05f2))",
+          "**docs-site:** MCP Apps (ui:// resources) + JSON /api index ([#2312](https://github.com/yonatangross/orchestkit/issues/2312)) ([4f28250](https://github.com/yonatangross/orchestkit/commit/4f2825027762d05ea5348fadce98b14e7f5f7db2))",
+          "**docs-site:** orank B→A — API standards, schema, llms, MCP ([#2308](https://github.com/yonatangross/orchestkit/issues/2308)) ([4144c08](https://github.com/yonatangross/orchestkit/commit/4144c08dfa2d51acca5b41be6750d3edf2efee49))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**mcp:** add server.json for MCP registry publish ([#2309](https://github.com/yonatangross/orchestkit/issues/2309)) ([cef2957](https://github.com/yonatangross/orchestkit/commit/cef2957014ef930711b20bc93ba538c3ca613938))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**configure:** clarify op:// vault assumption for MCP keys ([#2314](https://github.com/yonatangross/orchestkit/issues/2314)) ([4e5e147](https://github.com/yonatangross/orchestkit/commit/4e5e1474423b1fdf8944eeaa4c93be36f6d8434b))",
+          "**readme:** add skills.sh install path ([#2285](https://github.com/yonatangross/orchestkit/issues/2285)) ([#2315](https://github.com/yonatangross/orchestkit/issues/2315)) ([ba847b8](https://github.com/yonatangross/orchestkit/commit/ba847b84b8a8d88054de5668adb45a46e5126f1c))",
+          "**search:** interactive plan viz for [#2283](https://github.com/yonatangross/orchestkit/issues/2283) semantic/hybrid search ([#2313](https://github.com/yonatangross/orchestkit/issues/2313)) ([d4779fb](https://github.com/yonatangross/orchestkit/commit/d4779fbda6a52e3d1b2216aa1571c36389d1133a))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump actions/checkout from 6.0.2 to 6.0.3 ([#2300](https://github.com/yonatangross/orchestkit/issues/2300)) ([7a5899c](https://github.com/yonatangross/orchestkit/commit/7a5899c656ba5051c1c93de570eacc091a331ac2))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.26.0",
+    "date": "2026-06-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-site:** link homepage sameAs to Wikidata (Q140128295) ([#2305](https://github.com/yonatangross/orchestkit/issues/2305)) ([db60407](https://github.com/yonatangross/orchestkit/commit/db60407d586536943a5f37f6708c0475595bc9dc))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** label headroom inert + fix test env isolation ([#2304](https://github.com/yonatangross/orchestkit/issues/2304)) ([51fd608](https://github.com/yonatangross/orchestkit/commit/51fd608b545a290ff2826ae2d114990dc2ef8bd3))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump anthropics/claude-code-action from 1.0.133 to 1.0.140 ([#2299](https://github.com/yonatangross/orchestkit/issues/2299)) ([fd12189](https://github.com/yonatangross/orchestkit/commit/fd121898dfb878ed5ef01ed3a32aa2be0fa8bfae))",
+          "bump github/codeql-action from 4.36.0 to 4.36.2 ([#2298](https://github.com/yonatangross/orchestkit/issues/2298)) ([fcab076](https://github.com/yonatangross/orchestkit/commit/fcab076e378e50f83236478fab2ddbf9cad763b9))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.25.2",
+    "date": "2026-06-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2296](https://github.com/yonatangross/orchestkit/issues/2296)) ([c26db27](https://github.com/yonatangross/orchestkit/commit/c26db27a34f23e20d3d24f130b3293ddd27ae94c))",
+          "**cc:** bump supported floor to 2.1.168 + fix stale banner counts ([#2295](https://github.com/yonatangross/orchestkit/issues/2295)) ([aae6be4](https://github.com/yonatangross/orchestkit/commit/aae6be45f8395257ddf7d92b714844e76e7397d4))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.25.1",
+    "date": "2026-06-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** ship [#2264](https://github.com/yonatangross/orchestkit/issues/2264) reversible compression (stale dist was inert) ([#2293](https://github.com/yonatangross/orchestkit/issues/2293)) ([4053c7d](https://github.com/yonatangross/orchestkit/commit/4053c7d69ce34febf6560f0802eed855b860d7c5))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.25.0",
+    "date": "2026-06-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**docs-search:** unified Orama search (relevance, typo, coverage) ([#2278](https://github.com/yonatangross/orchestkit/issues/2278)) ([129dcc4](https://github.com/yonatangross/orchestkit/commit/129dcc48382b089cbe94aff77382d0d1f11219d9))",
+          "**docs-site:** agent-readiness endpoints for orank gaps ([#2279](https://github.com/yonatangross/orchestkit/issues/2279)) ([ddd5b7d](https://github.com/yonatangross/orchestkit/commit/ddd5b7d4f54d0e900f3d3d92e186f2168bae2695))",
+          "**skills:** adopt CC 2.1.163 home-path deny note + verify 2.1.162/163 backlog ([#2291](https://github.com/yonatangross/orchestkit/issues/2291)) ([93bb140](https://github.com/yonatangross/orchestkit/commit/93bb140fecec24304ad181e8058cf2fd35039145))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**cc-triage:** run featureless reconciliation token-free + heal the ledger ([#2290](https://github.com/yonatangross/orchestkit/issues/2290)) ([aa9f289](https://github.com/yonatangross/orchestkit/commit/aa9f289fdcafbc36936efa4d5d27c73c22d2eb7f))",
+          "**docs-site:** open CORS for cross-origin agents + MCP paths ([#2292](https://github.com/yonatangross/orchestkit/issues/2292)) ([c03c8e8](https://github.com/yonatangross/orchestkit/commit/c03c8e86322702643af943f1a65ef6e71a7fcdfb))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** bump types.ts CC-compliance ledger to 2.1.168 ([#2268](https://github.com/yonatangross/orchestkit/issues/2268)) ([#2281](https://github.com/yonatangross/orchestkit/issues/2281)) ([5ed3873](https://github.com/yonatangross/orchestkit/commit/5ed387389a09b51b102fc74a360f16fb5461773d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.24.0",
     "date": "2026-06-07",
     "compareUrl": "",

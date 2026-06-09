@@ -34,7 +34,7 @@ export interface Agent {
   name: string;
   description: string;
   category: Category;
-  model: "opus" | "sonnet" | "haiku" | "inherit";
+  model: "fable" | "opus" | "sonnet" | "haiku" | "inherit";
   taskTypes: TaskType[];
   keywords: string[];
   examplePrompts: [string, string];

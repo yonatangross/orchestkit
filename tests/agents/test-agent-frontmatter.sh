@@ -19,7 +19,10 @@ REQUIRED_FIELDS=(
   "examplePrompts:"
 )
 
-VALID_MODELS=("opus" "sonnet" "haiku" "inherit")
+# Model vocabulary comes from the single source of truth (#2338):
+# src/hooks/src/lib/models.vocab.json — add new models THERE, not here.
+VOCAB_FILE="$REPO_ROOT/src/hooks/src/lib/models.vocab.json"
+read -r -a VALID_MODELS <<< "$(node -p "require('$VOCAB_FILE').shortNames.join(' ')")"
 VALID_TASK_TYPES=("build" "review" "debug" "test" "deploy" "design" "research" "document" "optimize" "secure" "plan")
 
 FAILED=0
@@ -57,7 +60,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
       fi
     done
     if [[ $valid -eq 0 ]]; then
-      echo "FAIL: $agent_name has invalid model: $model (must be opus|sonnet|haiku)"
+      echo "FAIL: $agent_name has invalid model: $model (must be one of: ${VALID_MODELS[*]})"
       agent_failed=1
       FAILED=1
     fi

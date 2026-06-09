@@ -11,19 +11,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 
-# Valid short-form and full model ID values
-VALID_MODELS=(
-  "opus"
-  "sonnet"
-  "haiku"
-  "inherit"
-  "claude-opus-4-8"
-  "claude-opus-4-7"
-  "claude-opus-4-6"
-  "claude-sonnet-4-6"
-  "claude-haiku-4-5"
-  "claude-haiku-4-5-20251001"
-)
+# Valid short-form and full model ID values — from the single source of
+# truth (#2338): src/hooks/src/lib/models.vocab.json (shortNames + fullIds).
+VOCAB_FILE="$REPO_ROOT/src/hooks/src/lib/models.vocab.json"
+read -r -a VALID_MODELS <<< "$(node -p "const v=require('$VOCAB_FILE'); [...v.shortNames, ...v.fullIds].join(' ')")"
 
 FAILED=0
 PASS_COUNT=0
@@ -68,7 +59,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   done
 
   if [[ $valid -eq 0 ]]; then
-    echo "FAIL: $agent_name — invalid model value: '$model' (must be opus|sonnet|haiku|inherit or full claude-* ID)"
+    echo "FAIL: $agent_name — invalid model value: '$model' (must be one of: ${VALID_MODELS[*]})"
     FAILED=1
     FAIL_COUNT=$((FAIL_COUNT + 1))
   else

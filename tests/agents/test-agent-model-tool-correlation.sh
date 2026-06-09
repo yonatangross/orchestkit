@@ -9,7 +9,7 @@
 #         Operational categories (devops, docs, git, product, data, testing)
 #         may have Write/Edit as writing files is their core function.
 #
-# Rule 2: ALL opus agents must be high-complexity:
+# Rule 2: ALL premium-tier (opus/fable) agents must be high-complexity:
 #         name must contain one of: safety, security, event-driven, system-design, workflow
 #
 # Rule 3: NO haiku agent should have more than 12 tools listed.
@@ -186,7 +186,7 @@ echo ""
 # Rule 2: Opus agents must be high-complexity
 # Patterns: security, safety, event-driven, system-design, workflow
 # ---------------------------------------------------------------------------
-echo "--- Rule 2: Opus agents must be high-complexity (security/safety/design/orchestration) ---"
+echo "--- Rule 2: Premium-tier (opus/fable) agents must be high-complexity (security/safety/design/orchestration) ---"
 echo ""
 
 OPUS_COMPLEXITY_PATTERNS=(
@@ -201,7 +201,8 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   agent_name=$(basename "$agent_file" .md)
   model=$(grep "^model:" "$agent_file" | awk '{print $2}' || echo "")
 
-  [[ "$model" != "opus" ]] && continue
+  # #2338: fable joins opus as a premium tier with the same reservation rule
+  [[ "$model" != "opus" && "$model" != "fable" ]] && continue
 
   matched=0
   matched_pattern=""
@@ -214,11 +215,11 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   done
 
   if [[ $matched -eq 1 ]]; then
-    echo "PASS: $agent_name (opus) — matches high-complexity pattern '$matched_pattern'"
+    echo "PASS: $agent_name ($model) — matches high-complexity pattern '$matched_pattern'"
   else
-    echo "FAIL: $agent_name (opus) — name does not match any high-complexity pattern"
+    echo "FAIL: $agent_name ($model) — name does not match any high-complexity pattern"
     echo "      Valid patterns: ${OPUS_COMPLEXITY_PATTERNS[*]}"
-    echo "      Opus is reserved for security, safety, system-design, event-driven, or workflow agents"
+    echo "      Premium tiers (opus/fable) are reserved for security, safety, system-design, event-driven, or workflow agents"
     FAILED=1
   fi
 done

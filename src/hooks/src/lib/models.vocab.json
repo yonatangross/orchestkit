@@ -1,0 +1,75 @@
+{
+  "$comment": "SINGLE SOURCE OF TRUTH for the Claude model vocabulary (#2338). Consumed by: src/hooks/src/lib/cost-estimator.ts + src/hooks/src/subagent-start/model-cost-advisor.ts (esbuild-inlined JSON import), tests/agents/test-agent-frontmatter.sh, tests/agents/test-agent-model-field.sh, tests/skills/structure/test-model-id-vocab.sh, scripts/generate-docs-data.js. Add new models HERE, nowhere else. shortNames = agent frontmatter values; aliases = shortName -> current latest full ID per channel; fullIds = API-valid IDs allowed in agent frontmatter and skill docs; historicalIds = retired IDs that legitimately appear in migration/monitoring docs (allowed by the vocab lint, NOT valid for agent frontmatter); pricing = per-MTok USD.",
+  "updated": "2026-06-10",
+  "shortNames": ["fable", "opus", "sonnet", "haiku", "inherit"],
+  "aliases": {
+    "fable": "claude-fable-5",
+    "opus": "claude-opus-4-8",
+    "sonnet": "claude-sonnet-4-6",
+    "haiku": "claude-haiku-4-5-20251001"
+  },
+  "fullIds": [
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-opus-4-6",
+    "claude-sonnet-4-6",
+    "claude-sonnet-4-5-20250929",
+    "claude-haiku-4-5",
+    "claude-haiku-4-5-20251001"
+  ],
+  "historicalIds": [
+    "claude-3-5-sonnet-20241022",
+    "claude-sonnet-4-5-20250916",
+    "claude-sonnet-4-20250514",
+    "claude-opus-4-20250514",
+    "claude-opus-4-6-20260115",
+    "claude-sonnet-4",
+    "claude-opus-4",
+    "claude-haiku-3"
+  ],
+  "pricing": {
+    "claude-fable-5": {
+      "input_per_mtok": 10.0,
+      "output_per_mtok": 50.0,
+      "cache_read_per_mtok": 1.0,
+      "cache_write_per_mtok": 12.5
+    },
+    "claude-opus-4-8": {
+      "input_per_mtok": 5.0,
+      "output_per_mtok": 25.0,
+      "cache_read_per_mtok": 0.5,
+      "cache_write_per_mtok": 6.25
+    },
+    "claude-opus-4-7": {
+      "input_per_mtok": 5.0,
+      "output_per_mtok": 25.0,
+      "cache_read_per_mtok": 0.5,
+      "cache_write_per_mtok": 6.25
+    },
+    "claude-opus-4-6": {
+      "input_per_mtok": 5.0,
+      "output_per_mtok": 25.0,
+      "cache_read_per_mtok": 0.5,
+      "cache_write_per_mtok": 6.25
+    },
+    "claude-sonnet-4-6": {
+      "input_per_mtok": 3.0,
+      "output_per_mtok": 15.0,
+      "cache_read_per_mtok": 0.3,
+      "cache_write_per_mtok": 3.75
+    },
+    "claude-sonnet-4-5-20250929": {
+      "input_per_mtok": 3.0,
+      "output_per_mtok": 15.0,
+      "cache_read_per_mtok": 0.3,
+      "cache_write_per_mtok": 3.75
+    },
+    "claude-haiku-4-5-20251001": {
+      "input_per_mtok": 1.0,
+      "output_per_mtok": 5.0,
+      "cache_read_per_mtok": 0.1,
+      "cache_write_per_mtok": 1.25
+    }
+  }
+}

@@ -13,6 +13,7 @@ import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
 import { join, dirname } from 'node:path';
 import { getHomeDir } from './paths.js';
+import modelsVocab from './models.vocab.json';
 
 // ============================================================================
 // Types
@@ -58,67 +59,22 @@ export interface DailyCostEstimate {
 }
 
 // ============================================================================
-// Default Pricing (Feb 2026)
+// Default Pricing — derived from lib/models.vocab.json, the single source of
+// truth for the model vocabulary (#2338). Add new models THERE, not here.
 // ============================================================================
 
 const DEFAULT_PRICING: PricingConfig = {
-  models: {
-    // Opus 4.8 — same $5/$25 per-MTok tier as 4.7/4.6 (Anthropic launch post)
-    'claude-opus-4-8': {
-      input_per_mtok: 5.0,
-      output_per_mtok: 25.0,
-      cache_read_per_mtok: 0.5,
-      cache_write_per_mtok: 6.25,
-    },
-    // Opus 4.7 — same pricing as 4.6 per Anthropic launch post
-    'claude-opus-4-7': {
-      input_per_mtok: 5.0,
-      output_per_mtok: 25.0,
-      cache_read_per_mtok: 0.5,
-      cache_write_per_mtok: 6.25,
-    },
-    'claude-opus-4-6': {
-      input_per_mtok: 5.0,
-      output_per_mtok: 25.0,
-      cache_read_per_mtok: 0.5,
-      cache_write_per_mtok: 6.25,
-    },
-    'claude-sonnet-4-6': {
-      input_per_mtok: 3.0,
-      output_per_mtok: 15.0,
-      cache_read_per_mtok: 0.3,
-      cache_write_per_mtok: 3.75,
-    },
-    'claude-sonnet-4-5-20250929': {
-      input_per_mtok: 3.0,
-      output_per_mtok: 15.0,
-      cache_read_per_mtok: 0.3,
-      cache_write_per_mtok: 3.75,
-    },
-    'claude-haiku-4-5-20251001': {
-      input_per_mtok: 1.0,
-      output_per_mtok: 5.0,
-      cache_read_per_mtok: 0.1,
-      cache_write_per_mtok: 1.25,
-    },
-  },
-  updated: '2026-05-31',
+  models: modelsVocab.pricing,
+  updated: modelsVocab.updated,
 };
 
-// Short name aliases for matching stats-cache keys.
-// Aliases always resolve to the CURRENT latest per channel — `opus` points
-// at Opus 4.8 (current latest), `sonnet` at Sonnet 4.6. Older explicit IDs
-// still match their own pricing so historical cost reports replay accurately.
+// Short name aliases for matching stats-cache keys, derived from the vocab:
+// aliases always resolve to the CURRENT latest per channel (`fable` →
+// claude-fable-5, `opus` → Opus 4.8, ...). Every priced full ID also maps to
+// itself so historical cost reports replay accurately.
 const MODEL_ALIASES: Record<string, string> = {
-  'claude-opus-4-8': 'claude-opus-4-8',
-  'claude-opus-4-7': 'claude-opus-4-7',
-  'claude-opus-4-6': 'claude-opus-4-6',
-  opus: 'claude-opus-4-8',
-  'claude-sonnet-4-6': 'claude-sonnet-4-6',
-  'claude-sonnet-4-5-20250929': 'claude-sonnet-4-5-20250929',
-  sonnet: 'claude-sonnet-4-6',
-  'claude-haiku-4-5-20251001': 'claude-haiku-4-5-20251001',
-  haiku: 'claude-haiku-4-5-20251001',
+  ...Object.fromEntries(Object.keys(modelsVocab.pricing).map(id => [id, id])),
+  ...modelsVocab.aliases,
 };
 
 // ============================================================================
@@ -324,3 +280,12 @@ export function formatTokens(count: number): string {
   if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
   return String(count);
 }
+
+// Re-exports so tests can poke internals without widening the public API
+// (same convention as lifecycle/sweep-stale-worktrees). #2338 canaries pin
+// the vocab-derived pricing table + alias resolution + fallback behavior.
+export const __internals = {
+  resolveModelKey,
+  getPricing,
+  calculateCost,
+};

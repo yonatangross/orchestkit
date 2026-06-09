@@ -13,6 +13,22 @@ import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWarning, getPluginRoot } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import modelsVocab from '../lib/models.vocab.json';
+
+// Premium tiers where a downgrade recommendation can apply (#2338). Derived
+// behavior must stay backward-identical for opus: tierSavingsPercent
+// reproduces the previously hardcoded 40% (low) / 30% (medium) figures.
+const PREMIUM_TIERS = new Set(['opus', 'fable']);
+
+/** % output-price saving moving short-name tier `from` to `to` (vocab pricing). */
+function tierSavingsPercent(from: string, to: string): number {
+  const aliases = modelsVocab.aliases as Record<string, string>;
+  const pricing = modelsVocab.pricing as Record<string, { output_per_mtok: number }>;
+  const f = pricing[aliases[from]]?.output_per_mtok;
+  const t = pricing[aliases[to]]?.output_per_mtok;
+  if (!f || !t || t >= f) return 0;
+  return Math.round((1 - t / f) * 100);
+}
 
 // Keyword signals for complexity detection (fallback when frontmatter unavailable)
 const HIGH_COMPLEXITY_SIGNALS = [
@@ -160,7 +176,7 @@ function analyzeComplexity(agentType: string, description: string): 'low' | 'med
 
   const highMatches = HIGH_COMPLEXITY_SIGNALS.filter(p => p.test(description)).length;
   const agentModel = getAgentModel(agentType);
-  if (highMatches >= 2 || agentModel === 'opus') return 'high';
+  if (highMatches >= 2 || PREMIUM_TIERS.has(agentModel)) return 'high';
 
   const lowMatches = LOW_COMPLEXITY_SIGNALS.filter(p => p.test(description)).length;
   if (lowMatches >= 2) return 'low';
@@ -194,23 +210,30 @@ function getModelAdvice(agentType: string, description: string): ModelAdvice | n
     };
   }
 
-  // Low complexity task on expensive model → recommend downgrade
-  if (complexity === 'low' && current === 'opus') {
+  // Low complexity task on a premium model (opus/fable) → recommend downgrade.
+  // Savings derive from vocab pricing: opus → 40%, fable → 70%.
+  if (complexity === 'low' && PREMIUM_TIERS.has(current)) {
     return {
       recommended: 'sonnet',
       current,
       reason: 'Simple task — sonnet handles this equally well at lower cost',
-      savingsPercent: 40,
+      savingsPercent: tierSavingsPercent(current, 'sonnet'),
     };
   }
 
-  // Medium complexity on opus (only if agent doesn't explicitly require opus)
-  if (complexity === 'medium' && current === 'opus' && getAgentModel(agentType) !== 'opus') {
+  // Medium complexity on a premium model (only if the agent doesn't
+  // explicitly pin that tier). 10 points more conservative than the low-
+  // complexity figure: opus → 30%, fable → 60%.
+  if (
+    complexity === 'medium' &&
+    PREMIUM_TIERS.has(current) &&
+    getAgentModel(agentType) !== current
+  ) {
     return {
       recommended: 'sonnet',
       current,
       reason: 'Medium-complexity task — sonnet is sufficient',
-      savingsPercent: 30,
+      savingsPercent: tierSavingsPercent(current, 'sonnet') - 10,
     };
   }
 
