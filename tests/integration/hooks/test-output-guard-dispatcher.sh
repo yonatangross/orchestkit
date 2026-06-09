@@ -82,19 +82,36 @@ run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
-# Test 1: WorktreeCreate command-type returns silent success (no envelope)
+# Test 1: WorktreeCreate command-type emits the BARE provisioned path (#2335)
 # ---------------------------------------------------------------------------
-echo "Test 1: WorktreeCreate command-type — empty stdout (#1996 path-channel)"
-INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-001","tool_input":{},"name":"feature-auth","project_dir":"/tmp/test-project"}'
-OUT=$(run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
-# #1996: command-type WorktreeCreate must emit EMPTY stdout — CC reads stdout as
-# the worktree path, so the {"continue":...} envelope would be misread as a path
-# and abort every Agent(isolation:"worktree") spawn. Empty ⇒ CC uses its default.
-if [[ -z "$OUT" ]]; then
-  printf "  %s command-type — empty stdout (envelope not misread as a path)\n" "$(green PASS)"
+echo "Test 1: WorktreeCreate command-type — bare path stdout (#2335 contract)"
+# Current CC contract: the hook OWNS provisioning and must echo the absolute
+# worktree path; empty stdout is a hard failure. The JSON envelope must still
+# never reach this channel. Hermetic tmp git repo so the real repo is untouched.
+WT_REPO=$(mktemp -d "${TMPDIR:-/tmp}/ork-og-wt.XXXXXX")
+WT_REPO=$(cd "$WT_REPO" && pwd)  # macOS TMPDIR has a trailing slash — normalize // so string compares match Node's join()
+git init --quiet "$WT_REPO"
+touch "$WT_REPO/README.md"
+git -C "$WT_REPO" -c user.email=t@t -c user.name=t add .
+git -C "$WT_REPO" -c user.email=t@t -c user.name=t commit --quiet -m init --no-gpg-sign
+INPUT="{\"hook_event\":\"WorktreeCreate\",\"tool_name\":\"\",\"session_id\":\"itest-001\",\"tool_input\":{},\"worktree_name\":\"feature-auth\",\"project_dir\":\"$WT_REPO\"}"
+OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
+if [[ "$OUT" == "$WT_REPO/.worktrees/feature-auth" ]]; then
+  printf "  %s command-type — bare provisioned path on stdout\n" "$(green PASS)"
   PASS=$((PASS + 1))
 else
-  printf "  %s command-type — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
+  printf "  %s command-type — expected bare path, got: %s\n" "$(red FAIL)" "$OUT"
+  FAIL=$((FAIL + 1))
+fi
+
+# Decline case: non-git project_dir → empty stdout (never the envelope).
+INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-001b","tool_input":{},"worktree_name":"nope","project_dir":"/tmp/og-not-a-repo"}'
+OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
+if [[ -z "$OUT" ]]; then
+  printf "  %s command-type decline — empty stdout (envelope never leaks)\n" "$(green PASS)"
+  PASS=$((PASS + 1))
+else
+  printf "  %s command-type decline — expected empty stdout, got: %s\n" "$(red FAIL)" "$OUT"
   FAIL=$((FAIL + 1))
 fi
 
@@ -125,8 +142,8 @@ assert_field_equals "continue is true" "$OUT" ".continue" "true"
 # Test 4: HTTP-type WorktreeCreate preserves worktreePath
 # ---------------------------------------------------------------------------
 echo "Test 4: HTTP-type WorktreeCreate — worktreePath must survive"
-INPUT='{"hook_event":"WorktreeCreate","tool_name":"","session_id":"itest-004","tool_input":{},"name":"feature-http","type":"http","project_dir":"/tmp/test-project"}'
-OUT=$(run_dispatcher "worktree/worktree-lifecycle-logger" "$INPUT")
+INPUT="{\"hook_event\":\"WorktreeCreate\",\"tool_name\":\"\",\"session_id\":\"itest-004\",\"tool_input\":{},\"worktree_name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$WT_REPO\"}"
+OUT=$(run_dispatcher "worktree/worktree-provisioner" "$INPUT")
 assert_field_equals "continue is true" "$OUT" ".continue" "true"
 WTPATH=$(echo "$OUT" | jq -r '.hookSpecificOutput.worktreePath // empty' 2>>"$STDERR_LOG")
 if [[ -n "$WTPATH" ]]; then
@@ -166,3 +183,5 @@ if [[ "$FAIL" -gt 0 ]]; then
 fi
 echo "  $(green "All output-guard dispatcher tests passed (#1794)")"
 exit 0
+
+rm -rf "$WT_REPO"

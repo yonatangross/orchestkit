@@ -169,8 +169,14 @@ export interface HookInput {
   task_description?: string;
 
   // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69, 2.1.84)
-  /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate) */
+  /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate, legacy field) */
   name?: string;
+  /** Worktree slug identifier — current documented WorktreeCreate field name (#2335) */
+  worktree_name?: string;
+  /** Branch to create/check out in the new worktree (WorktreeCreate, #2335) */
+  branch?: string;
+  /** When true, provision the worktree detached from any branch (WorktreeCreate, #2335) */
+  detach?: boolean;
   /** Absolute path to worktree being removed (WorktreeRemove) */
   worktree_path?: string;
   /** Hook type: "command" (default) or "http" (CC 2.1.84 — returns worktreePath in hookSpecificOutput) */

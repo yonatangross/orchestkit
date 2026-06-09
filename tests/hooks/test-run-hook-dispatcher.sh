@@ -328,26 +328,45 @@ fi
 
 # =============================================================================
 echo ""
-echo "7. WorktreeCreate path-channel (#1990)"
-echo "--------------------------------------"
+echo "7. WorktreeCreate path-channel (#2335, supersedes #1990)"
+echo "--------------------------------------------------------"
 
-# CC reads a command-type WorktreeCreate/WorktreeRemove hook's STDOUT as the
-# worktree directory path. An observability hook that emits the
-# {"continue":true,"suppressOutput":true} envelope makes CC misread the JSON as
-# a path ("returned a path that is not a directory") and abort every
-# Agent(isolation:"worktree") spawn. run-hook.mjs must emit EMPTY stdout here.
+# Current CC contract: a registered WorktreeCreate hook OWNS provisioning —
+# command-type hooks must create the worktree and echo its ABSOLUTE PATH as
+# bare stdout (empty stdout = hard failure / decline). The JSON envelope must
+# still never reach this channel. Provisioning happens in a hermetic tmp git
+# repo so the repo under test is never touched.
 
-# 7a. command-type WorktreeCreate → empty stdout (CC uses its default path).
-run_hook "worktree/worktree-lifecycle-logger" \
-  "{\"hook_event\":\"WorktreeCreate\",\"name\":\"feature-test\",\"type\":\"command\",\"project_dir\":\"$PROJECT_ROOT\"}" \
-  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
-if [[ -z "$LAST_STDOUT" ]]; then
-  pass "WorktreeCreate (command): empty stdout — envelope not misread as a path"
+WT_TMP_REPO=$(mktemp -d "${TMPDIR:-/tmp}/ork-wt-dispatcher.XXXXXX")
+WT_TMP_REPO=$(cd "$WT_TMP_REPO" && pwd)  # macOS TMPDIR has a trailing slash — normalize // so string compares match Node's join()
+git init --quiet "$WT_TMP_REPO"
+touch "$WT_TMP_REPO/README.md"
+git -C "$WT_TMP_REPO" -c user.email=t@t -c user.name=t add .
+git -C "$WT_TMP_REPO" -c user.email=t@t -c user.name=t commit --quiet -m init --no-gpg-sign
+
+# 7a. command-type WorktreeCreate → provisioner emits the BARE worktree path.
+run_hook "worktree/worktree-provisioner" \
+  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"feature-test\",\"type\":\"command\",\"project_dir\":\"$WT_TMP_REPO\"}" \
+  "CLAUDE_PROJECT_DIR=$WT_TMP_REPO"
+if [[ "$LAST_STDOUT" == "$WT_TMP_REPO/.worktrees/feature-test" ]]; then
+  pass "WorktreeCreate (command): bare provisioned path on stdout"
 else
-  fail "WorktreeCreate command stdout not empty: '$LAST_STDOUT'"
+  fail "WorktreeCreate command stdout not the bare path: '$LAST_STDOUT'"
 fi
 
-# 7b. WorktreeRemove → also empty stdout.
+# 7a2. command-type WorktreeCreate in a NON-git dir → provisioner declines
+# with EMPTY stdout (never the envelope).
+WT_TMP_NOGIT=$(mktemp -d "${TMPDIR:-/tmp}/ork-wt-nogit.XXXXXX")
+run_hook "worktree/worktree-provisioner" \
+  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"nope\",\"type\":\"command\",\"project_dir\":\"$WT_TMP_NOGIT\"}" \
+  "CLAUDE_PROJECT_DIR=$WT_TMP_NOGIT"
+if [[ -z "$LAST_STDOUT" ]]; then
+  pass "WorktreeCreate (command, non-git): declines with empty stdout"
+else
+  fail "WorktreeCreate decline stdout not empty: '$LAST_STDOUT'"
+fi
+
+# 7b. WorktreeRemove → still empty stdout (observer contributes no path).
 run_hook "worktree/worktree-lifecycle-logger" \
   "{\"hook_event\":\"WorktreeRemove\",\"worktree_path\":\"/tmp/wt-test\",\"project_dir\":\"$PROJECT_ROOT\"}" \
   "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
@@ -357,15 +376,17 @@ else
   fail "WorktreeRemove stdout not empty: '$LAST_STDOUT'"
 fi
 
-# 7c. http-type WorktreeCreate → a legit worktreePath IS still emitted.
-run_hook "worktree/worktree-lifecycle-logger" \
-  "{\"hook_event\":\"WorktreeCreate\",\"name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$PROJECT_ROOT\"}" \
-  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT"
+# 7c. http-type WorktreeCreate → worktreePath emitted inside the JSON envelope.
+run_hook "worktree/worktree-provisioner" \
+  "{\"hook_event\":\"WorktreeCreate\",\"worktree_name\":\"feature-http\",\"type\":\"http\",\"project_dir\":\"$WT_TMP_REPO\"}" \
+  "CLAUDE_PROJECT_DIR=$WT_TMP_REPO"
 if echo "$LAST_STDOUT" | grep -q "worktreePath"; then
-  pass "WorktreeCreate (http): worktreePath preserved (path-providing hooks unaffected)"
+  pass "WorktreeCreate (http): worktreePath in envelope (http path-channel intact)"
 else
   fail "WorktreeCreate http dropped worktreePath: '$LAST_STDOUT'"
 fi
+
+rm -rf "$WT_TMP_REPO" "$WT_TMP_NOGIT"
 
 # 7d. Regression guard — a normal event still emits the continue envelope.
 run_hook "pretool/bash/dangerous-command-blocker" \

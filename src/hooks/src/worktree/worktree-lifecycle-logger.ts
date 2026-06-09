@@ -2,151 +2,32 @@
 // Created: 2026-02-21
 
 /**
- * Worktree Lifecycle Logger
- * Logs worktree creation and removal events, emits advisory context.
- * CC 2.1.76+: Detects monorepo and suggests worktree.sparsePaths.
- * CC 2.1.84+: Supports type: "http" — returns worktree path via hookSpecificOutput.
- * Fix: #1794 — command-type returns silent OK (CC doesn't consume additionalContext for WorktreeCreate).
+ * Worktree Lifecycle Logger — WorktreeRemove hook
  *
- * Hook events: WorktreeCreate, WorktreeRemove
+ * Logs worktree removal events. Until #2335 this hook also fired on
+ * WorktreeCreate as a pure observer (monorepo sparsePaths advisory), but the
+ * current CC WorktreeCreate contract has no observation-only mode — a
+ * registered hook must provision the worktree and return its path, or the
+ * Agent(isolation:"worktree") spawn hard-fails. Creation (and the monorepo
+ * advisory) now lives in worktree/worktree-provisioner; this hook keeps the
+ * remove-side logging only.
+ *
+ * Hook event: WorktreeRemove
  */
 
-import type { HookInput, HookResult , HookContext} from '../types.js';
+import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
-import { readdirSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
-import { writeWorktreeAdvisory } from '../lib/worktree-advisory.js';
-import { safeIdentifier } from '../lib/safe-fs.js';
-
-/** Heuristic: repos with many top-level dirs are likely monorepos. */
-const MONOREPO_DIR_THRESHOLD = 15;
-
-/** Monorepo signals: workspace config files */
-const MONOREPO_MARKERS = [
-  'pnpm-workspace.yaml',
-  'lerna.json',
-  'nx.json',
-  'rush.json',
-  'turbo.json',
-];
-
-/**
- * Detect if the project is a monorepo and count top-level directories.
- * Returns { isMonorepo, topDirCount } — fast, no recursion.
- */
-function detectMonorepo(projectDir: string): { isMonorepo: boolean; topDirCount: number } {
-  // Check for explicit monorepo markers
-  const hasMarker = MONOREPO_MARKERS.some(m => existsSync(join(projectDir, m)));
-
-  // Check for workspaces in package.json
-  let hasWorkspaces = false;
-  const pkgPath = join(projectDir, 'package.json');
-  if (existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-      hasWorkspaces = Array.isArray(pkg.workspaces) || typeof pkg.workspaces === 'object';
-    } catch { /* ignore parse errors */ }
-  }
-
-  // Count top-level directories (fast — single readdir, no recursion)
-  let topDirCount = 0;
-  try {
-    const entries = readdirSync(projectDir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-        topDirCount++;
-      }
-    }
-  } catch { /* ignore readdir errors */ }
-
-  return {
-    isMonorepo: hasMarker || hasWorkspaces || topDirCount >= MONOREPO_DIR_THRESHOLD,
-    topDirCount,
-  };
-}
-
-/**
- * Check if worktree.sparsePaths is already configured in project settings.
- */
-function hasSparsePathsConfigured(projectDir: string): boolean {
-  const settingsPath = join(projectDir, '.claude', 'settings.json');
-  if (!existsSync(settingsPath)) return false;
-  try {
-    const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
-    return Array.isArray(settings?.worktree?.sparsePaths) && settings.worktree.sparsePaths.length > 0;
-  } catch {
-    return false;
-  }
-}
 
 export function worktreeLifecycleLogger(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const event = input.hook_event;
-
-  if (event === 'WorktreeCreate') {
-    // CC 2.1.69: WorktreeCreate sends `name` (slug identifier like 'feature-auth').
-    // #1826: guard against envelope leak — if CC hands us `{"continue":...}` as
-    // the name (because upstream hook stdout polluted its state cache), fall
-    // back to 'unknown' rather than propagate corruption into .worktrees/
-    // directories and worktree-advisory-<slug>.md filenames.
-    const name = safeIdentifier(input.name, 'unknown');
-    const hookType = input.type;
-    ctx.log('worktree-lifecycle', `Worktree creating: name=${name}, type=${hookType || 'command'}`);
-
-    // CC 2.1.76: Suggest worktree.sparsePaths for monorepos without sparse config
-    const projectDir = input.project_dir || (ctx.projectDir);
-    const { isMonorepo, topDirCount } = detectMonorepo(projectDir);
-    const hasSparse = hasSparsePathsConfigured(projectDir);
-
-    // PR-2 (#1794 follow-up): defer monorepo advisory delivery to the next
-    // UserPromptSubmit via .claude/state/worktree-advisory-<slug>.md. CC does
-    // not consume additionalContext on WorktreeCreate (that's why PR-1
-    // returns silent success), so we write the advisory to disk now and let
-    // prompt/worktree-advisory-consumer inject it on the next user prompt.
-    if (isMonorepo && !hasSparse) {
-      const advisory =
-        `⚡ **Monorepo detected on worktree "${name}"** (${topDirCount} top-level dirs). ` +
-        'Consider configuring `worktree.sparsePaths` in `.claude/settings.json` to speed up worktree creation. ' +
-        'Example: `{ "worktree": { "sparsePaths": ["src/", "packages/core/", "tests/"] } }` — ' +
-        'only those directories will be checked out in worktrees (CC 2.1.76+).';
-      const wrote = writeWorktreeAdvisory(advisory, name, projectDir);
-      ctx.log(
-        'worktree-lifecycle',
-        wrote
-          ? `Monorepo (${topDirCount} dirs) without sparsePaths — advisory deferred to next prompt`
-          : `Monorepo advisory write failed for worktree "${name}" — falling back to ctx.log only`,
-      );
-    }
-
-    // CC 2.1.84: HTTP type hooks return worktree path via hookSpecificOutput
-    if (hookType === 'http') {
-      const worktreePath = join(projectDir, '.worktrees', name);
-      ctx.log('worktree-lifecycle', `HTTP type — returning worktreePath: ${worktreePath}`);
-      return {
-        continue: true,
-        suppressOutput: true,
-        hookSpecificOutput: { worktreePath },
-      };
-    }
-
-    // CC WorktreeCreate command-type does not consume additionalContext.
-    // Returning a UserPromptSubmit envelope here would make CC misread stdout
-    // as a chdir target (see #1794). Advisory delivery is deferred above.
-    //
-    // NOTE (#2016): this return value is NOT what reaches CC's stdout. The
-    // runner (run-hook.mjs emitHookResult/silentExit, #1990) suppresses the
-    // envelope for WorktreeCreate/WorktreeRemove and emits EMPTY stdout, so CC
-    // provisions at its default path. Don't "fix" this line to return empty —
-    // the suppression is centralized in the runner; guard:
-    // __tests__/integration/worktree-create-stdout.test.ts.
-    return outputSilentSuccess();
-  }
 
   if (event === 'WorktreeRemove') {
     // CC 2.1.69: WorktreeRemove sends `worktree_path` (absolute path)
     const worktreePath = input.worktree_path || 'unknown';
     ctx.log('worktree-lifecycle', `Worktree removed: ${worktreePath}`);
-    // Same constraint as WorktreeCreate (#1794) — return silent success.
+    // CC reads WorktreeRemove command-hook stdout as a path channel (#1794,
+    // #1990) — the runner suppresses the envelope; return silent success.
     return outputSilentSuccess();
   }
 

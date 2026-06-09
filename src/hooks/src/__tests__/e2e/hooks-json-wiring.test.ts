@@ -101,16 +101,27 @@ describe('hooks.json wiring E2E', () => {
       expect(hooksConfig.hooks.WorktreeRemove.length).toBeGreaterThan(0);
     });
 
-    it('WorktreeCreate and WorktreeRemove use the same handler', () => {
+    it('WorktreeCreate provisions, WorktreeRemove observes (#2335)', () => {
       const createHooks = hooksConfig.hooks.WorktreeCreate.flatMap(g => g.hooks ?? []);
       const removeHooks = hooksConfig.hooks.WorktreeRemove.flatMap(g => g.hooks ?? []);
 
       const createCommands = createHooks.map(h => commandPath(h)).filter(Boolean);
       const removeCommands = removeHooks.map(h => commandPath(h)).filter(Boolean);
 
-      // Both should route to worktree-lifecycle-logger
-      expect(createCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(true);
+      // Create side: the provisioner OWNS creation (CC consumes its stdout as
+      // the worktree path) and MUST be sync — an async hook's stdout is not
+      // collected on the path channel.
+      expect(createCommands.some(c => c!.includes('worktree-provisioner'))).toBe(true);
+      const provisionerHook = createHooks.find(h => commandPath(h)?.includes('worktree-provisioner'));
+      expect(provisionerHook?.async).not.toBe(true);
+      // The pre-#2335 observers must be GONE from the create side — empty
+      // stdout from an observer is a hard failure on the current contract.
+      expect(createCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(false);
+      expect(createCommands.some(c => c!.includes('enter-registrar'))).toBe(false);
+
+      // Remove side keeps the logger + exit-finalizer observers.
       expect(removeCommands.some(c => c!.includes('worktree-lifecycle-logger'))).toBe(true);
+      expect(removeCommands.some(c => c!.includes('exit-finalizer'))).toBe(true);
     });
   });
 
@@ -206,7 +217,10 @@ describe('hooks.json wiring E2E', () => {
       // 212 -> 211: #2217 drift cleanup — removed stop/goal-convergence-emitter
       //                          (Shadow of CC-native goal-current.json; stop/goal-tracker
       //                          already writes goal-history.jsonl).
-      expect(hooksConfig.description).toContain('211 total');
+      // 211 -> 210: #2335 — WorktreeCreate chain rebuilt: worktree-lifecycle-logger
+      //                          (Create side) + worktree/enter-registrar replaced by ONE
+      //                          sync worktree/worktree-provisioner that owns provisioning.
+      expect(hooksConfig.description).toContain('210 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {

@@ -31,13 +31,28 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { existsSync, rmSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
+
 import { execFileSync } from 'node:child_process';
 import { getProjectDir } from '../lib/paths.js';
 
 const HOOK_NAME = 'lifecycle/sweep-stale-worktrees';
+
+/**
+ * Canonicalize a path for registry comparison. `git worktree list` reports
+ * realpaths (e.g. /private/var/... on macOS) while scanned/recorded paths may
+ * go through symlinks (/var/...) — plain resolve() would never match, which
+ * for these sweeps could misclassify a LIVE worktree as stale.
+ */
+function canon(p: string): string {
+  try {
+    return realpathSync(p);
+  } catch {
+    return resolve(p);
+  }
+}
 
 const MIN_AGE_MS = 60 * 60 * 1000; // 1 hour — race-protect in-flight worktree-add
 const MAX_DEPTH_FILES = 3; // Find files up to 3 levels deep (avoids deep scans).
@@ -58,7 +73,7 @@ function registeredWorktrees(projectDir: string): Set<string> | null {
     const paths = new Set<string>();
     for (const line of stdout.split('\n')) {
       if (line.startsWith('worktree ')) {
-        paths.add(resolve(line.slice('worktree '.length).trim()));
+        paths.add(canon(line.slice('worktree '.length).trim()));
       }
     }
     return paths;
@@ -87,8 +102,11 @@ function isEmptyOfFiles(path: string, depth = 0): boolean {
     // Skip well-known per-process detritus that may exist in aborted trees.
     // `.DS_Store` is a file (macOS Finder metadata); it must be skipped at the
     // top of the loop, BEFORE the isFile() check, or any aborted worktree
-    // visited by Finder would be treated as non-empty.
-    if (entry === '.DS_Store' || entry === 'Thumbs.db') continue;
+    // visited by Finder would be treated as non-empty. `.gitkeep` is the
+    // placeholder the pre-#2335 enter-registrar dropped into orphan
+    // `.worktrees/<name>/children/` shells — placeholder-only trees are
+    // empty in the meaningful sense.
+    if (entry === '.DS_Store' || entry === 'Thumbs.db' || entry === '.gitkeep') continue;
 
     const full = join(path, entry);
     let st: ReturnType<typeof statSync>;
@@ -154,8 +172,9 @@ export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number
     // already filters this out, but belt-and-braces).
     if (fullPath === resolvedProject) continue;
 
-    // Predicate 2: skip if registered as a real worktree.
-    if (registered.has(fullPath)) continue;
+    // Predicate 2: skip if registered as a real worktree (canon: the
+    // registry holds realpaths).
+    if (registered.has(canon(fullPath))) continue;
 
     let st: ReturnType<typeof statSync>;
     try {
@@ -184,6 +203,118 @@ export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number
   return removed;
 }
 
+/**
+ * Sweep orphan shells INSIDE `<projectDir>/.worktrees/` (#2335). Failed
+ * Agent(isolation:"worktree") spawns on the pre-#2335 hook chain left
+ * `.worktrees/<name>/children/.gitkeep` shells that were never registered
+ * with git. Same safety predicates as the sibling sweep: not registered,
+ * older than 1h, and empty of real files (`.gitkeep` placeholders ignored).
+ */
+export function sweepWorktreeShells(projectDir: string, ctx: HookContext): number {
+  const worktreesDir = join(resolve(projectDir), '.worktrees');
+  if (!existsSync(worktreesDir)) return 0;
+
+  const registered = registeredWorktrees(resolve(projectDir));
+  if (registered === null) {
+    ctx.log(HOOK_NAME, 'skipping .worktrees sweep — `git worktree list` failed');
+    return 0;
+  }
+
+  let entries: string[];
+  try {
+    entries = readdirSync(worktreesDir);
+  } catch {
+    return 0;
+  }
+
+  const now = Date.now();
+  let removed = 0;
+  for (const entry of entries) {
+    const fullPath = resolve(worktreesDir, entry);
+    if (registered.has(canon(fullPath))) continue;
+
+    let st: ReturnType<typeof statSync>;
+    try {
+      st = statSync(fullPath);
+    } catch {
+      continue;
+    }
+    if (!st.isDirectory()) continue;
+    if (now - st.mtimeMs < MIN_AGE_MS) continue;
+    if (!isEmptyOfFiles(fullPath)) continue;
+
+    try {
+      rmSync(fullPath, { recursive: true, force: true });
+      removed++;
+      ctx.log(HOOK_NAME, `removed orphan .worktrees shell: ${fullPath}`);
+    } catch (err) {
+      ctx.log(HOOK_NAME, `rm failed for ${fullPath}: ${(err as Error).message}`);
+    }
+  }
+  return removed;
+}
+
+/**
+ * Sweep stale pending-link markers in `.claude/state/worktree-pending/`
+ * (#2335). Markers are written at WorktreeCreate and consumed by the
+ * exit-finalizer at WorktreeRemove — when creation failed, no remove ever
+ * fires and the marker leaks forever. A marker is stale when it is older
+ * than 1h AND its recorded worktree_path is not a registered worktree.
+ */
+export function sweepPendingMarkers(projectDir: string, ctx: HookContext): number {
+  const pendingDir = join(resolve(projectDir), '.claude', 'state', 'worktree-pending');
+  if (!existsSync(pendingDir)) return 0;
+
+  const registered = registeredWorktrees(resolve(projectDir));
+  if (registered === null) {
+    ctx.log(HOOK_NAME, 'skipping pending-marker sweep — `git worktree list` failed');
+    return 0;
+  }
+
+  let entries: string[];
+  try {
+    entries = readdirSync(pendingDir);
+  } catch {
+    return 0;
+  }
+
+  const now = Date.now();
+  let removed = 0;
+  for (const entry of entries) {
+    if (!entry.endsWith('.json')) continue;
+    const fullPath = join(pendingDir, entry);
+
+    let st: ReturnType<typeof statSync>;
+    try {
+      st = statSync(fullPath);
+    } catch {
+      continue;
+    }
+    if (!st.isFile()) continue;
+    if (now - st.mtimeMs < MIN_AGE_MS) continue;
+
+    // Resolve the marker's recorded worktree; unparseable markers count as
+    // stale (they can never be matched by the exit-finalizer either).
+    let worktreePath: string | null = null;
+    try {
+      const parsed = JSON.parse(readFileSync(fullPath, 'utf8'));
+      if (typeof parsed?.worktree_path === 'string') worktreePath = canon(parsed.worktree_path);
+    } catch {
+      /* unparseable — treat as stale */
+    }
+    if (worktreePath && registered.has(worktreePath)) continue;
+
+    try {
+      rmSync(fullPath, { force: true });
+      removed++;
+      ctx.log(HOOK_NAME, `removed stale pending marker: ${fullPath}`);
+    } catch (err) {
+      ctx.log(HOOK_NAME, `rm failed for ${fullPath}: ${(err as Error).message}`);
+    }
+  }
+  return removed;
+}
+
 export function sweepStaleWorktrees(
   _input: HookInput,
   ctx: HookContext = NOOP_CTX,
@@ -194,9 +325,12 @@ export function sweepStaleWorktrees(
 
   const projectDir = getProjectDir();
   try {
-    const removed = sweepStaleSiblings(projectDir, ctx);
+    const removed =
+      sweepStaleSiblings(projectDir, ctx) +
+      sweepWorktreeShells(projectDir, ctx) +
+      sweepPendingMarkers(projectDir, ctx);
     if (removed > 0) {
-      ctx.log(HOOK_NAME, `sweep complete: ${removed} stale empty worktree path(s) removed`);
+      ctx.log(HOOK_NAME, `sweep complete: ${removed} stale worktree artifact(s) removed`);
     }
   } catch (err) {
     // Hook must never block CC — swallow + log.  // silent: known-noise
@@ -211,5 +345,7 @@ export const __internals = {
   registeredWorktrees,
   isEmptyOfFiles,
   sweepStaleSiblings,
+  sweepWorktreeShells,
+  sweepPendingMarkers,
   MIN_AGE_MS,
 };

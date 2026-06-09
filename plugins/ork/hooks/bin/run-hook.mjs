@@ -528,17 +528,19 @@ function validateInput(input, hookName) {
 /**
  * Events whose hook STDOUT is read by CC as the worktree directory path
  * (not the standard continue/suppressOutput envelope). A `command`-type hook
- * on these events must echo a bare directory path — or nothing at all, in
- * which case CC provisions the worktree at its own default location.
+ * on these events must echo a BARE directory path.
  *
- * #1990: OrchestKit's WorktreeCreate hooks are observability-only (logging +
- * a deferred sparse-paths advisory) — they do NOT provision worktrees, so they
- * have no path to contribute. Printing the `{"continue":true,...}` envelope
- * here makes CC misread the JSON as the path ("returned a path that is not a
- * directory") and aborts every Agent(isolation:"worktree") spawn. Emitting
- * EMPTY stdout lets CC fall back to its default worktree creation. HTTP-type
- * hooks that legitimately set `hookSpecificOutput.worktreePath` still emit it.
- * Recurrence of #1794/#1797 (the original "WorktreeCreate output shape" fix).
+ * #2336 (inverts #1990/#2016): the current CC WorktreeCreate contract has no
+ * observation-only mode — a registered hook OWNS provisioning and empty
+ * stdout is a hard failure that aborts the Agent(isolation:"worktree")
+ * spawn. worktree/worktree-provisioner now runs `git worktree add` itself
+ * and returns `hookSpecificOutput.worktreePath`; for command-type hooks we
+ * emit that as a bare path (older CC also honors a returned path, so this is
+ * safe on both contracts). A result WITHOUT worktreePath still emits empty
+ * stdout — that is the only way for a hook on these events to decline
+ * (e.g. provisioning failed, or WorktreeRemove observers with no path to
+ * contribute). http-type results keep the JSON envelope: CC reads
+ * `hookSpecificOutput.worktreePath` from HTTP responses directly.
  */
 const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
 
@@ -546,9 +548,16 @@ const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
  * Write a hook result to stdout, honoring the WorktreeCreate/WorktreeRemove
  * path-channel contract. For those events with no `worktreePath`, emit nothing.
  */
-function emitHookResult(result, firingEvent) {
-  if (WORKTREE_PATH_EVENTS.has(firingEvent) && !result?.hookSpecificOutput?.worktreePath) {
-    return; // empty stdout — CC uses its default worktree path
+function emitHookResult(result, firingEvent, hookType) {
+  if (WORKTREE_PATH_EVENTS.has(firingEvent)) {
+    const worktreePath = result?.hookSpecificOutput?.worktreePath;
+    if (!worktreePath) {
+      return; // empty stdout — this hook declines; see #2336 note above
+    }
+    if (hookType !== 'http') {
+      console.log(worktreePath); // bare path — the command-type contract
+      return;
+    }
   }
   console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
 }
@@ -593,7 +602,7 @@ async function runHook(parsedInput) {
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
-    emitHookResult(result, firingEvent);
+    emitHookResult(result, firingEvent, parsedInput.type);
   } catch (err) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
@@ -606,7 +615,7 @@ async function runHook(parsedInput) {
     emitHookResult({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
-    }, firingEvent);
+    }, firingEvent, parsedInput?.type);
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;

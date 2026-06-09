@@ -155,7 +155,10 @@ describe('Async Hooks Registry', () => {
       //            - worktree/exit-finalizer            (WorktreeRemove, async, 5s)
       //            - pretool/settings-override-resolver (PreToolUse,     async, 3s)
       //            - lifecycle/webhook-forwarder        (PreToolUse new group, async, 5s)
-      expect(asyncHooks.length, 'Should have exactly 99 async hooks').toBe(99);
+      // 99 -> 98: #2335 — worktree/enter-registrar (async) absorbed into the SYNC
+      //           worktree/worktree-provisioner (CC's WorktreeCreate contract consumes
+      //           the hook's stdout as the provisioned path — provisioning can't be async).
+      expect(asyncHooks.length, 'Should have exactly 98 async hooks').toBe(98);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

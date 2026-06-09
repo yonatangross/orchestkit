@@ -70,12 +70,15 @@ describe('Worktree Hook Loading (CC 2.1.78 fix validation)', () => {
       expect(hooksJson.hooks.WorktreeRemove.length).toBeGreaterThan(0);
     });
 
-    it('should use worktree-lifecycle-logger for WorktreeCreate', () => {
+    it('should use worktree-provisioner for WorktreeCreate (#2335)', () => {
+      // #2335: the current CC contract makes the WorktreeCreate hook OWN
+      // provisioning — the observer-only logger moved to WorktreeRemove and
+      // worktree-provisioner (sync) owns the create side.
       const hooks = hooksJson.hooks.WorktreeCreate.flatMap((g: Record<string, unknown>) => (g.hooks as unknown[]) ?? []);
-      const hasLogger = hooks.some((h: Record<string, unknown>) =>
-        commandPath(h).includes('worktree-lifecycle-logger')
+      const hasProvisioner = hooks.some((h: Record<string, unknown>) =>
+        commandPath(h).includes('worktree-provisioner')
       );
-      expect(hasLogger).toBe(true);
+      expect(hasProvisioner).toBe(true);
     });
 
     it('should use worktree-lifecycle-logger for WorktreeRemove', () => {

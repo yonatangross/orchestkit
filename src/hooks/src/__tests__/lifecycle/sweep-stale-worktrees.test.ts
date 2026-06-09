@@ -29,7 +29,13 @@ import {
 } from '../../lifecycle/sweep-stale-worktrees.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
-const { isEmptyOfFiles, sweepStaleSiblings, MIN_AGE_MS } = __internals;
+const {
+  isEmptyOfFiles,
+  sweepStaleSiblings,
+  sweepWorktreeShells,
+  sweepPendingMarkers,
+  MIN_AGE_MS,
+} = __internals;
 
 // Set the path mtime to N ms in the past (helper to bypass the 1h race guard).
 function backdate(path: string, msAgo: number): void {
@@ -226,5 +232,128 @@ describe('sweepStaleWorktrees (#1884)', () => {
     expect(existsSync(stale1)).toBe(false);
     expect(existsSync(stale2)).toBe(false);
     expect(existsSync(real)).toBe(true);
+  });
+});
+
+describe('sweepWorktreeShells + sweepPendingMarkers (#2335)', () => {
+  let parent: string;
+  let project: string;
+
+  // Make the fake project a git repo WITH a commit so `git worktree add`
+  // works for the registered-worktree cases.
+  beforeEach(() => {
+    parent = mkdtempSync(join(tmpdir(), 'sweep-2336-'));
+    project = join(parent, 'fakerepo');
+    mkdirSync(project, { recursive: true });
+    execFileSync('git', ['init', '--quiet', project], { stdio: 'ignore' });
+    writeFileSync(join(project, 'README.md'), 'x');
+    const gitc = (...args: string[]) =>
+      execFileSync('git', ['-C', project, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], {
+        stdio: 'ignore',
+      });
+    gitc('add', '.');
+    gitc('commit', '--quiet', '-m', 'init', '--no-gpg-sign');
+  });
+
+  afterEach(() => {
+    rmSync(parent, { recursive: true, force: true });
+  });
+
+  it('isEmptyOfFiles: ignores .gitkeep placeholders (pre-#2335 orphan shells)', () => {
+    const d = join(parent, 'shell');
+    mkdirSync(join(d, 'children'), { recursive: true });
+    writeFileSync(join(d, 'children', '.gitkeep'), '');
+    expect(isEmptyOfFiles(d)).toBe(true);
+  });
+
+  it('removes a stale orphan agent-* shell inside .worktrees/', () => {
+    const shell = join(project, '.worktrees', 'agent-abc123');
+    mkdirSync(join(shell, 'children'), { recursive: true });
+    writeFileSync(join(shell, 'children', '.gitkeep'), '');
+    backdate(shell, MIN_AGE_MS + 60_000);
+
+    const removed = sweepWorktreeShells(project, NOOP_CTX);
+    expect(removed).toBe(1);
+    expect(existsSync(shell)).toBe(false);
+  });
+
+  it('SKIPS a fresh shell under the 1-hour threshold (race protection)', () => {
+    const shell = join(project, '.worktrees', 'agent-fresh');
+    mkdirSync(join(shell, 'children'), { recursive: true });
+
+    const removed = sweepWorktreeShells(project, NOOP_CTX);
+    expect(removed).toBe(0);
+    expect(existsSync(shell)).toBe(true);
+  });
+
+  it('SKIPS a registered worktree inside .worktrees/', () => {
+    const wt = join(project, '.worktrees', 'real-task');
+    execFileSync('git', ['-C', project, 'worktree', 'add', '--detach', wt], { stdio: 'ignore' });
+    backdate(wt, MIN_AGE_MS + 60_000);
+
+    const removed = sweepWorktreeShells(project, NOOP_CTX);
+    expect(removed).toBe(0);
+    expect(existsSync(wt)).toBe(true);
+  });
+
+  it('SKIPS a shell containing real files', () => {
+    const shell = join(project, '.worktrees', 'agent-with-work');
+    mkdirSync(shell, { recursive: true });
+    writeFileSync(join(shell, 'notes.md'), 'unsaved work');
+    backdate(shell, MIN_AGE_MS + 60_000);
+
+    const removed = sweepWorktreeShells(project, NOOP_CTX);
+    expect(removed).toBe(0);
+    expect(existsSync(shell)).toBe(true);
+  });
+
+  function writeMarker(name: string, worktreePath: string | null): string {
+    const dir = join(project, '.claude', 'state', 'worktree-pending');
+    mkdirSync(dir, { recursive: true });
+    const p = join(dir, `${name}.json`);
+    writeFileSync(
+      p,
+      worktreePath === null
+        ? 'not json {'
+        : JSON.stringify({ parent_sid: 's1', worktree_path: worktreePath, name }),
+    );
+    return p;
+  }
+
+  it('removes a stale marker whose worktree never materialized', () => {
+    const p = writeMarker('agent-dead', join(project, '.worktrees', 'agent-dead'));
+    backdate(p, MIN_AGE_MS + 60_000);
+
+    const removed = sweepPendingMarkers(project, NOOP_CTX);
+    expect(removed).toBe(1);
+    expect(existsSync(p)).toBe(false);
+  });
+
+  it('removes a stale unparseable marker', () => {
+    const p = writeMarker('agent-corrupt', null);
+    backdate(p, MIN_AGE_MS + 60_000);
+
+    const removed = sweepPendingMarkers(project, NOOP_CTX);
+    expect(removed).toBe(1);
+    expect(existsSync(p)).toBe(false);
+  });
+
+  it('KEEPS a marker pointing at a registered worktree', () => {
+    const wt = join(project, '.worktrees', 'live-task');
+    execFileSync('git', ['-C', project, 'worktree', 'add', '--detach', wt], { stdio: 'ignore' });
+    const p = writeMarker('live-task', wt);
+    backdate(p, MIN_AGE_MS + 60_000);
+
+    const removed = sweepPendingMarkers(project, NOOP_CTX);
+    expect(removed).toBe(0);
+    expect(existsSync(p)).toBe(true);
+  });
+
+  it('KEEPS a fresh marker (race protection)', () => {
+    const p = writeMarker('agent-justnow', join(project, '.worktrees', 'agent-justnow'));
+
+    const removed = sweepPendingMarkers(project, NOOP_CTX);
+    expect(removed).toBe(0);
+    expect(existsSync(p)).toBe(true);
   });
 });

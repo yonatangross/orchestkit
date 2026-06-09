@@ -97,8 +97,9 @@ import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
 import { sessionRegistrar } from '../lifecycle/session-registrar.js';
 // #1912 — M168 Phase 2: SQLite session registry finalizer (SessionEnd; lifecycle/ prefix per convention)
 import { sessionFinalizer } from '../lifecycle/session-finalizer.js';
-// #1914 — M168 Phase 4: WorktreeCreate enter-registrar (children-bus init + worktree_links pending marker)
-import { enterRegistrar } from '../worktree/enter-registrar.js';
+// #2335 — WorktreeCreate provisioner (owns `git worktree add` per current CC contract;
+// absorbs enter-registrar's children-bus init + worktree_links pending marker)
+import { worktreeProvisioner } from '../worktree/worktree-provisioner.js';
 // #1914 — M168 Phase 4: WorktreeRemove exit-finalizer (UPDATE worktree_links + clean children/)
 import { exitFinalizer } from '../worktree/exit-finalizer.js';
 
@@ -172,8 +173,8 @@ export const hooks: Record<string, HookFn> = {
 
   // WorktreeCreate/WorktreeRemove hooks (CC 2.1.50)
   'worktree/worktree-lifecycle-logger': worktreeLifecycleLogger,
-  // #1914 — M168 Phase 4: SQLite worktree_links + children-bus advisory
-  'worktree/enter-registrar': enterRegistrar,
+  // #2335 — owns worktree provisioning (children-bus + pending marker post-create)
+  'worktree/worktree-provisioner': worktreeProvisioner,
   'worktree/exit-finalizer': exitFinalizer,
 
   // ConfigChange hooks (CC 2.1.50)
