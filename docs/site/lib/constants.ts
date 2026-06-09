@@ -53,6 +53,8 @@ export const SAME_AS = [
   // Smithery listing (external release; Smithery scanned and verified both
   // tools). Bi-directional verification for the docs ⇄ Smithery registry.
   "https://smithery.ai/servers/yonaigross/orchestkit",
+  // mcp.so listing. Bi-directional verification for the docs ⇄ mcp.so registry.
+  "https://mcp.so/server/orchestkit/yonaigross",
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
