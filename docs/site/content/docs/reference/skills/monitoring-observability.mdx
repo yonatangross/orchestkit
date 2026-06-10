@@ -104,6 +104,8 @@ Detection and alerting for silent failures in LLM agents.
 | Quality Degradation | `rules/silent-degraded-quality.md` | Heuristics + LLM-as-judge, z-score baselines |
 | Silent Alerting | `rules/silent-alerting.md` | Loop detection, token spikes, escalation workflow |
 
+> **CC 2.1.169 — OTEL client-cert paths require trust:** untrusted project settings can no longer set OTEL client-certificate paths without a trust confirmation. If your OTEL exporter uses client certs configured in project `.claude/settings.json`, expect a one-time trust prompt on first use in an untrusted project — telemetry silently not flowing after 2.1.169 is usually this gate, not the collector.
+
 ## Key Decisions
 
 | Decision | Recommendation | Rationale |

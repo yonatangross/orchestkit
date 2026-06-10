@@ -1,7 +1,7 @@
 ---
 name: component-search
 license: MIT
-compatibility: "Claude Code 2.1.168+. Optional: 21st-dev-magic MCP server."
+compatibility: "Claude Code 2.1.170+. Optional: 21st-dev-magic MCP server."
 description: "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks."
 argument-hint: "[component description]"
 tags: [components, 21st-dev, react, ui, search, registry, tailwind, shadcn]

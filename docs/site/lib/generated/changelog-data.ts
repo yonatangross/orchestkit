@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.30.0",
+    "date": "2026-06-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**models:** adopt Claude Fable 5 via single model vocabulary ([#2339](https://github.com/yonatangross/orchestkit/issues/2339)) ([7b47e77](https://github.com/yonatangross/orchestkit/commit/7b47e774d62c4e82f0823be878a08150e978704b)), closes [#2338](https://github.com/yonatangross/orchestkit/issues/2338)"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** own WorktreeCreate provisioning per current CC contract ([#2336](https://github.com/yonatangross/orchestkit/issues/2336)) ([64b7c76](https://github.com/yonatangross/orchestkit/commit/64b7c767422ef9a7824df3ac833d8966ced2d5bd)), closes [#2335](https://github.com/yonatangross/orchestkit/issues/2335)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.29.1",
     "date": "2026-06-09",
     "compareUrl": "",

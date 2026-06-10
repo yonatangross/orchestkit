@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.168+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.170+. Requires memory MCP server, gh CLI."
 description: "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge."
 argument-hint: "[pr-number-or-branch]"
 context: fork

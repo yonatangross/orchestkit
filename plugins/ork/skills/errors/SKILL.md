@@ -1,7 +1,7 @@
 ---
 name: errors
 license: MIT
-compatibility: "Claude Code 2.1.168+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.170+. Requires memory MCP server."
 description: "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues."
 context: inherit
 agent: debug-investigator
@@ -37,6 +37,8 @@ Analyze errors captured from Claude Code sessions to identify patterns and get a
 | `/errors` | Batch analysis of error patterns (last 24h/7d) | Historical patterns |
 | `/debug` | Real-time debug of current session state | Current session |
 | `/ork:fix-issue` | Full RCA workflow for specific bug | Single issue |
+
+> **CC 2.1.169+:** for errors that survive `/clear` and restarts, `claude --safe-mode` boots with every customization disabled (CLAUDE.md/plugins/skills/hooks/MCP) — the one-step test that separates "ork/hook/MCP bug" from "CC bug" before deeper analysis.
 
 ## Quick Analysis
 

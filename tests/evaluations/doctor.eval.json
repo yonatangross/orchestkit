@@ -11,7 +11,7 @@
         "Validates all 12 health check categories in sequence",
         "Checks skills frontmatter, agents validation, hook registration",
         "Verifies permission rules for unreachable entries",
-        "Checks Claude Code version meets the supported floor (>= 2.1.168) and recommends 2.1.154+ for Opus 4.8 / xhigh effort",
+        "Checks Claude Code version meets the supported floor (>= 2.1.170) and recommends 2.1.154+ for Opus 4.8 / xhigh effort",
         "Reports MCP server status: active, disabled, or misconfigured",
         "Produces formatted health report with pass/warn/fail per category"
       ],

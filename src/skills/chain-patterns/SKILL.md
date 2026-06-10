@@ -1,6 +1,6 @@
 ---
 name: chain-patterns
-compatibility: "Claude Code 2.1.168+"
+compatibility: "Claude Code 2.1.170+"
 description: "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable."
 tags: [pipeline, resilience, checkpoint, mcp, orchestkit]
 version: 1.0.0
@@ -204,6 +204,8 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 - After running tests → `/loop 10m npm test`
 - After deployment → `/loop 1h check health at {endpoint}`
 - After verification → `/loop 30m /ork:verify {scope}`
+
+> **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd <dir>` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
 
 ## Rules
 

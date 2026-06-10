@@ -203,6 +203,8 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 - After deployment → `/loop 1h check health at \{endpoint\}`
 - After verification → `/loop 30m /ork:verify \{scope\}`
 
+> **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd &lt;dir&gt;` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
+
 ## Rules
 
 | Rule | Impact | Key Pattern |
@@ -1767,7 +1769,7 @@ With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where
 - No need to `git push` before spawning isolated agents
 - Parent and child see the same uncommitted history
 
-CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.168`, so the setting is the single source of truth.
+CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.170`, so the setting is the single source of truth.
 
 > **CC 2.1.154 — nested-worktree HEAD fix**: `worktree.baseRef: "head"` previously resolved to the **main checkout's** HEAD (not the current worktree's) when spawning subagents or calling `EnterWorktree` from *inside* a linked worktree. 2.1.154 fixed this, so `"head"` is now reliable for nested/recursive worktree spawns too. Also in 2.1.154: subagents in background sessions no longer bypass the worktree-isolation guard, so `Agent(isolation:"worktree")` is safe for parallel spawns — the manual pre-create workaround (`implement/references/manual-worktree-pattern.md`) is superseded.
 

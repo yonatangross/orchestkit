@@ -1,6 +1,6 @@
 ---
 name: emulate-seed
-compatibility: "Claude Code 2.1.168+"
+compatibility: "Claude Code 2.1.170+"
 description: "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS (S3/SQS/IAM), Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs. Not mocks — full state machines where create-a-PR-and-it-appears-in-the-list, send-an-email-and-retrieve-from-local-inbox. Use when setting up test environments, CI pipelines, integration tests, or offline development."
 tags: [emulate, testing, api-emulation, github, vercel, google, stripe, resend, okta, clerk, mongodb, seed, ci, stateful-testing]
 version: 1.3.0

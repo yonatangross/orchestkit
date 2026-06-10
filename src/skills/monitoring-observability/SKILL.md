@@ -1,7 +1,7 @@
 ---
 name: monitoring-observability
 license: MIT
-compatibility: "Claude Code 2.1.168+."
+compatibility: "Claude Code 2.1.170+."
 description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
 tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
 context: fork
@@ -116,6 +116,8 @@ Detection and alerting for silent failures in LLM agents.
 | Tool Skipping | `rules/silent-tool-skipping.md` | Expected vs actual tool calls, Langfuse traces |
 | Quality Degradation | `rules/silent-degraded-quality.md` | Heuristics + LLM-as-judge, z-score baselines |
 | Silent Alerting | `rules/silent-alerting.md` | Loop detection, token spikes, escalation workflow |
+
+> **CC 2.1.169 — OTEL client-cert paths require trust:** untrusted project settings can no longer set OTEL client-certificate paths without a trust confirmation. If your OTEL exporter uses client certs configured in project `.claude/settings.json`, expect a one-time trust prompt on first use in an untrusted project — telemetry silently not flowing after 2.1.169 is usually this gate, not the collector.
 
 ## Key Decisions
 

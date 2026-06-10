@@ -15,14 +15,14 @@
  */
 
 /** Minimum CC version OrchestKit supports (the floor). Stamped from shared/cc-support.json. */
-export const MIN_CC_VERSION = '2.1.168';
+export const MIN_CC_VERSION = '2.1.170';
 
 /**
  * Highest CC version OrchestKit's adoption is known to cover. The version-check hook nudges
  * Claude to look for new features when the running CC exceeds this. Bump this one line per
  * adoption cycle (replaces the old "append rows to the matrix" ritual).
  */
-export const LATEST_KNOWN_CC = '2.1.168';
+export const LATEST_KNOWN_CC = '2.1.170';
 
 /**
  * Compare two semver-like CC version strings (e.g. "2.1.47").

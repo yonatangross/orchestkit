@@ -1,7 +1,7 @@
 ---
 name: security-patterns
 license: MIT
-compatibility: "Claude Code 2.1.168+."
+compatibility: "Claude Code 2.1.170+."
 description: Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.
 tags: [security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth]
 context: fork
@@ -327,7 +327,9 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 
 > **CC 2.1.128 — SDK host "Always allow" persistence**: when a user picks "Always allow" from a Bash permission prompt in an SDK host, the grant now persists via `.claude/settings.local.json` instead of evaporating at session end. Audit your SDK consumers' `.gitignore` to confirm `.claude/settings.local.json` is excluded — committing it leaks per-developer Bash auth grants. Project-committed `.claude/settings.json` is unchanged; only the user-machine-local file receives the new entries.
 
-> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`< 2.1.163`) leave the Bash path open — ork's floor is now `2.1.168`, which already includes this fix.
+> **CC 2.1.169 — managed MCP enforcement + OTEL cert-path trust:** two policy-bypass classes closed. Enterprise `allowedMcpServers`/`deniedMcpServers` policies were NOT enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, or before remote settings loaded — treat any pre-2.1.169 managed-MCP audit as incomplete on those paths. And untrusted project settings could set OTEL client-certificate paths without trust confirmation (a cloned repo could point telemetry at an attacker cert); now gated behind trust. Both fixes are active at ork's floor (2.1.170).
+
+> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`< 2.1.163`) leave the Bash path open — ork's floor is now `2.1.170`, which already includes this fix.
 
 ### input-validation
 **Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
