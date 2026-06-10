@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.30.0](https://github.com/yonatangross/orchestkit/compare/v8.29.1...v8.30.0) (2026-06-10)
+
+
+### Features
+
+* **models:** adopt Claude Fable 5 via single model vocabulary ([#2339](https://github.com/yonatangross/orchestkit/issues/2339)) ([7b47e77](https://github.com/yonatangross/orchestkit/commit/7b47e774d62c4e82f0823be878a08150e978704b)), closes [#2338](https://github.com/yonatangross/orchestkit/issues/2338)
+
+
+### Bug Fixes
+
+* **hooks:** own WorktreeCreate provisioning per current CC contract ([#2336](https://github.com/yonatangross/orchestkit/issues/2336)) ([64b7c76](https://github.com/yonatangross/orchestkit/commit/64b7c767422ef9a7824df3ac833d8966ced2d5bd)), closes [#2335](https://github.com/yonatangross/orchestkit/issues/2335)
+
 ## [8.29.1](https://github.com/yonatangross/orchestkit/compare/v8.29.0...v8.29.1) (2026-06-09)
 
 
