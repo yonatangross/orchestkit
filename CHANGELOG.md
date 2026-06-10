@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.32.0](https://github.com/yonatangross/orchestkit/compare/v8.31.0...v8.32.0) (2026-06-10)
+
+
+### Features
+
+* **hooks:** fable spend-consent gate + Claude Fable 5 docs guide ([#2358](https://github.com/yonatangross/orchestkit/issues/2358)) ([59110a2](https://github.com/yonatangross/orchestkit/commit/59110a2864aad660ec6c318a70ec7d21e835af6b))
+
 ## [8.31.0](https://github.com/yonatangross/orchestkit/compare/v8.30.0...v8.31.0) (2026-06-10)
 
 
