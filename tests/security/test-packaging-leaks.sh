@@ -132,7 +132,11 @@ ALLOWED_REGEX='\.(md|json|mjs|js|ts|tsx|py|sh|yaml|yml|html|css|tf|map)$'
 
 # Filter to files with extensions (skip extensionless like Dockerfile)
 FILES_WITH_EXT=$(echo "$TRACKED_LIST" | grep -E '\.[^/]+$' || true)
-UNEXPECTED=$(echo "$FILES_WITH_EXT" | grep -v -E "$ALLOWED_REGEX" | sed '/^$/d' || true)
+# .sql is allowed ONLY in hooks/dist/: SQLite migrations are runtime assets the
+# hook bundle reads via readFileSync (esbuild can't inline them; see #2008),
+# and hooks/dist ships in git since #2360. Scoped here instead of ALLOWED_REGEX
+# so stray .sql anywhere else in plugins/ still fails.
+UNEXPECTED=$(echo "$FILES_WITH_EXT" | grep -v -E "$ALLOWED_REGEX" | grep -v -E '/hooks/dist/[^/]+\.sql$' | sed '/^$/d' || true)
 
 if [[ -z "$UNEXPECTED" ]]; then
     log_pass "All files have allowlisted extensions"

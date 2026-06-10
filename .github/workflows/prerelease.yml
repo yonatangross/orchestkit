@@ -41,12 +41,15 @@ jobs:
         with:
           build-plugins: 'true'
           run-ci-setup: 'false'
+          install-hooks-deps: 'true'  # #2360: rebuild hook bundles so the drift check below actually verifies them
 
+      # Same gate as ci.yml build-plugins (#2360): hook dist copies are tracked,
+      # so a stale committed bundle fails the diff after the fresh rebuild.
       - name: Check for uncommitted build changes
         run: |
-          if ! git diff --quiet plugins/; then
-            echo "::error::Build drift detected! Run 'npm run build' and commit the changes."
-            git diff --stat plugins/
+          if ! git diff --quiet plugins/ src/hooks/dist/; then
+            echo "::error::Build drift detected! Run 'npm run build' and commit the changes (plugins/ + src/hooks/dist/)."
+            git diff --stat plugins/ src/hooks/dist/
             exit 1
           fi
 

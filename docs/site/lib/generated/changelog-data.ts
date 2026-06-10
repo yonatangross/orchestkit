@@ -17,6 +17,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.32.0",
+    "date": "2026-06-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** fable spend-consent gate + Claude Fable 5 docs guide ([#2358](https://github.com/yonatangross/orchestkit/issues/2358)) ([59110a2](https://github.com/yonatangross/orchestkit/commit/59110a2864aad660ec6c318a70ec7d21e835af6b))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.31.0",
+    "date": "2026-06-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**rubric:** adopt ork-rubric/1.0 stop-gating contract ([#2356](https://github.com/yonatangross/orchestkit/issues/2356)) ([0ce1c7f](https://github.com/yonatangross/orchestkit/commit/0ce1c7f80ed47910e4b3ae24607cbca42bf4d85a))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** bump supported floor to 2.1.170 + adopt 2.1.169 features ([#2355](https://github.com/yonatangross/orchestkit/issues/2355)) ([44f5d29](https://github.com/yonatangross/orchestkit/commit/44f5d29851cf82c7abf138b6575c7ad46e23b3b0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.30.0",
     "date": "2026-06-10",
     "compareUrl": "",

@@ -56,9 +56,10 @@ const commonBuildOptions = {
  */
 async function buildSplitBundles() {
   const startTime = Date.now();
+  // Deterministic (#2360): no generatedAt/buildTimeMs in the stats FILE — it is
+  // committed (src/hooks/dist + plugins/ork/hooks/dist) and must only change
+  // when the bundles change. Build time is logged to the console instead.
   const stats = {
-    generatedAt: new Date().toISOString(),
-    buildTimeMs: 0,
     mode: 'split',
     bundles: {},
     totalSize: 0,
@@ -74,9 +75,11 @@ async function buildSplitBundles() {
       ...commonBuildOptions,
       entryPoints: [entryPoint],
       outfile,
+      // No timestamps in banners or stats (#2360): identical source must produce
+      // byte-identical dist output, so committed bundles only diff when code
+      // actually changes and the plugins/ drift gate can catch stale bundles.
       banner: {
         js: `// OrchestKit Hooks - ${name} bundle
-// Generated: ${new Date().toISOString()}
 `,
       },
     });
@@ -100,7 +103,6 @@ async function buildSplitBundles() {
     outfile: './dist/hooks.mjs',
     banner: {
       js: `// OrchestKit Hooks - Unified Bundle (for CLI tools)
-// Generated: ${new Date().toISOString()}
 // Use split bundles (permission.mjs, pretool.mjs, etc.) for hooks
 `,
     },
@@ -116,13 +118,13 @@ async function buildSplitBundles() {
 
   console.log(`\n  hooks.mjs (unified): ${stats.bundles['hooks'].sizeKB} KB (for CLI tools)`);
 
-  stats.buildTimeMs = Date.now() - startTime;
+  const buildTimeMs = Date.now() - startTime;
   stats.totalSizeKB = (stats.totalSize / 1024).toFixed(2);
   stats.avgBundleSizeKB = (stats.totalSize / Object.keys(entryPoints).length / 1024).toFixed(2);
 
   writeFileSync('./dist/bundle-stats.json', JSON.stringify(stats, null, 2));
 
-  console.log(`\nBuild complete in ${stats.buildTimeMs}ms`);
+  console.log(`\nBuild complete in ${buildTimeMs}ms`);
   console.log(`Split bundles: ${stats.totalSizeKB} KB (${Object.keys(entryPoints).length} bundles)`);
   console.log(`Unified bundle: ${stats.bundles['hooks'].sizeKB} KB`);
 }
@@ -139,16 +141,15 @@ async function buildSingleBundle() {
     outfile: './dist/hooks.mjs',
     banner: {
       js: `// OrchestKit Hooks - TypeScript/ESM Bundle
-// Generated: ${new Date().toISOString()}
 // https://github.com/yonatangross/orchestkit
 `,
     },
   });
 
   const outputFile = result.metafile.outputs['dist/hooks.mjs'];
+  const buildTimeMs = Date.now() - startTime;
+  // Deterministic (#2360): see buildSplitBundles — no timestamps in the file.
   const stats = {
-    generatedAt: new Date().toISOString(),
-    buildTimeMs: Date.now() - startTime,
     mode: 'single',
     size: outputFile.bytes,
     sizeKB: (outputFile.bytes / 1024).toFixed(2),
@@ -158,7 +159,7 @@ async function buildSingleBundle() {
 
   writeFileSync('./dist/bundle-stats.json', JSON.stringify(stats, null, 2));
 
-  console.log(`Build complete in ${stats.buildTimeMs}ms`);
+  console.log(`Build complete in ${buildTimeMs}ms`);
   console.log(`Bundle size: ${stats.sizeKB} KB`);
   console.log(`Input files: ${stats.inputs}`);
 
@@ -198,7 +199,6 @@ async function main() {
       outfile: './dist/hooks.mjs',
       banner: {
         js: `// OrchestKit Hooks - Development Build
-// Generated: ${new Date().toISOString()}
 `,
       },
     });

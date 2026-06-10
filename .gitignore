@@ -156,8 +156,10 @@ orchestkit-demos/build/
 # Next.js build cache (docs site)
 .next/
 
-# Split bundle dist copies in plugins (source of truth is src/hooks/dist/)
-plugins/*/hooks/dist/
+# plugins/*/hooks/dist is TRACKED (#2360): marketplace installs have no build
+# toolchain, so the built hook bundles must ship in git. Source of truth is
+# still src/hooks/dist/ — build-plugins.sh rsyncs it into plugins/ and the CI
+# drift gate fails when the committed copies go stale.
 
 # Vercel local project config
 

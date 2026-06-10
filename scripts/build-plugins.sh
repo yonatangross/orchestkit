@@ -110,21 +110,33 @@ echo ""
 # below copies whatever's in src/hooks/dist into plugins/ — if that bundle
 # is stale (someone edited a hook but forgot `cd src/hooks && npm run build`),
 # users get the old behavior with no warning. See the 2026-05-22 incident
-# where plugins/ shipped an 8-day-old watchdog without a 24h zombie cap.
+# where plugins/ shipped an 8-day-old watchdog without a 24h zombie cap, and
+# #2360 where a stale lifecycle.mjs broke every worktree-isolated agent spawn.
 #
-# Skip cleanly if hook deps aren't installed (e.g. running build-plugins.sh
-# in an environment where only marketplace assembly is needed).
+# HARD-FAIL policy (#2360): a failed esbuild step must abort the whole build —
+# the old warn-and-continue path is exactly how stale bundles reached releases
+# while the script still printed "BUILD COMPLETE".
 HOOKS_DIR="$SRC_DIR/hooks"
 if [[ -d "$HOOKS_DIR" && -f "$HOOKS_DIR/package.json" && -d "$HOOKS_DIR/node_modules" ]]; then
     echo -e "${BLUE}[1.5/10] Refreshing src/hooks/dist (esbuild)...${NC}"
     ( cd "$HOOKS_DIR" && npm run --silent build ) || {
-        echo -e "${YELLOW}  ⚠ src/hooks build failed — continuing with existing dist/${NC}"
-        echo -e "${YELLOW}    (plugins/ may carry a stale bundle; investigate)${NC}"
+        echo -e "${RED}  ERROR: src/hooks build failed — aborting (stale bundles must not ship, #2360)${NC}"
+        echo -e "${RED}         Fix the esbuild error above, or run: cd src/hooks && npm run build${NC}"
+        exit 1
     }
     echo -e "${GREEN}  Hooks bundle refreshed${NC}"
     echo ""
 else
+    # No node_modules → we cannot rebuild. The committed src/hooks/dist may be
+    # used as-is ONLY if it actually exists; the CI drift gate verifies its
+    # freshness (plugins/ + src/hooks/dist are both tracked and diffed).
+    if [[ ! -f "$HOOKS_DIR/dist/lifecycle.mjs" ]]; then
+        echo -e "${RED}[1.5/10] ERROR: src/hooks/node_modules missing AND src/hooks/dist is absent/incomplete${NC}"
+        echo -e "${RED}         Run: cd src/hooks && npm ci && npm run build${NC}"
+        exit 1
+    fi
     echo -e "${YELLOW}[1.5/10] Skipping hooks rebuild — node_modules missing in $HOOKS_DIR${NC}"
+    echo -e "${YELLOW}         Using committed src/hooks/dist (freshness enforced by CI drift gate)${NC}"
     echo ""
 fi
 
@@ -261,6 +273,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             --exclude='__tests__' \
             --exclude='*.d.mts' \
             --exclude='*.d.ts' \
+            --exclude='*.map' \
             --exclude='TEST_REPORT.md' \
             --exclude='IMPROVEMENT-PLAN.md' \
             --exclude='.gitignore' \

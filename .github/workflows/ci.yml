@@ -52,11 +52,16 @@ jobs:
       - name: Validate passive indexes
         run: bash tests/indexes/test-index-generation.sh
 
+      # Drift gate covers BOTH committed dist copies (#2360): the setup step
+      # above installs src/hooks deps, so build-plugins.sh rebuilds the hook
+      # bundles from source before this diff — a stale committed lifecycle.mjs
+      # (src/hooks/dist OR plugins/ork/hooks/dist) now fails here, including on
+      # push to main (cross-PR staleness, the #2360 incident class).
       - name: Check for uncommitted build changes
         run: |
-          if ! git diff --quiet plugins/; then
-            echo "::error::Build drift detected! Run 'npm run build' and commit the changes."
-            git diff --stat plugins/
+          if ! git diff --quiet plugins/ src/hooks/dist/; then
+            echo "::error::Build drift detected! Run 'npm run build' and commit the changes (plugins/ + src/hooks/dist/)."
+            git diff --stat plugins/ src/hooks/dist/
             exit 1
           fi
 
