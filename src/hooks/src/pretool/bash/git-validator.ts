@@ -8,6 +8,7 @@
  * @version 2.0.0 - Consolidated from 4 separate hooks
  */
 
+import { isAbsolute, join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
@@ -16,8 +17,9 @@ import {
   outputAllowWithContext,
   logPermissionFeedback,
 } from '../../lib/common.js';
-import { isProtectedBranch, validateBranchName, analyzeStagedChanges } from '../../lib/git.js';
+import { isProtectedBranch, validateBranchName, analyzeStagedChanges, getCurrentBranch } from '../../lib/git.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { getStateFilePath, readSessionState, repoSlugFromCwd } from '../../lib/session-state.js';
 
 // =============================================================================
 // CONSTANTS
@@ -75,15 +77,180 @@ function stripProxyPrefix(cmd: string): string {
 }
 
 // =============================================================================
+// LEADING-CHAIN PARSING (#2363)
+// =============================================================================
+
+/**
+ * Matches a segment that IS a git invocation, allowing the common harmless
+ * prefixes: `rtk` proxy, `env [-u NAME]...`, and `NAME=value` assignments.
+ * Capture group 1 is the `git` token itself (used for offset math).
+ */
+const GIT_SEGMENT_RE =
+  /^(?:rtk\s+)?(?:env(?:\s+-u\s+[A-Za-z_][A-Za-z0-9_]*)*\s+)?(?:[A-Za-z_][A-Za-z0-9_]*=[^\s]*\s+)*(git)(?:\s|$)/;
+
+export interface LocatedGit {
+  /** Offset of the `git` token in the original command string. */
+  offset: number;
+  /** Target of the last leading `cd <path>` before the git segment, if any. */
+  cdTarget: string | null;
+}
+
+/**
+ * Locate a git invocation at the head of a command, looking through a
+ * leading chain of SIMPLE quote-free segments (`cd x && git commit`,
+ * `pwd && git push`, `env -u TOKEN git push`). This closes the historical
+ * under-blocking gap where any compound command skipped validation
+ * (#2363) — without parsing quoted strings: the scan stops cold at the
+ * first quote/subshell character, so prose like
+ * `gh issue create --body "... git commit ..."` is never matched.
+ *
+ * Returns null when the command does not lead with git through a simple
+ * chain (then the validator stays silent, exactly like the old
+ * startsWith guard).
+ */
+export function locateGitSegment(command: string): LocatedGit | null {
+  let cdTarget: string | null = null;
+  let pos = 0;
+  const n = command.length;
+
+  while (pos < n) {
+    // Skip whitespace between segments
+    while (pos < n && /\s/.test(command[pos])) pos++;
+    if (pos >= n) return null;
+
+    // Read one segment: ends at && or ; — but stop trusting the parse at
+    // the first quote/backtick/subshell character.
+    let end = pos;
+    let sawQuote = false;
+    while (end < n) {
+      const ch = command[end];
+      if (ch === '"' || ch === "'" || ch === '`' || ch === '$') {
+        sawQuote = true;
+        break;
+      }
+      if (ch === ';' || (ch === '&' && command[end + 1] === '&') || ch === '|') {
+        break;
+      }
+      end++;
+    }
+
+    const segment = command.slice(pos, end).trim();
+
+    const gitMatch = GIT_SEGMENT_RE.exec(segment);
+    if (gitMatch) {
+      // Offset of the `git` token in the ORIGINAL string. The regex is
+      // anchored and ends at the git token (+1 ws), so the real token is
+      // always the LAST `git` occurrence in the matched prefix — even for
+      // pathological prefixes like `FOO=git git push`.
+      const offsetInSegment = gitMatch[0].lastIndexOf(gitMatch[1]);
+      return { offset: pos + offsetInSegment, cdTarget };
+    }
+
+    // A quote appeared before any git segment — the rest is untrusted prose
+    // territory (gh bodies, echo strings). Bail out entirely.
+    if (sawQuote) return null;
+
+    const cdMatch = segment.match(/^cd\s+([^\s]+)$/);
+    if (cdMatch) {
+      cdTarget = cdMatch[1];
+    } else if (!/^[A-Za-z0-9_./-]+(\s+[^"'`$;|&]*)?$/.test(segment) && segment !== '') {
+      // Not a simple command — don't keep scanning past things we can't read.
+      return null;
+    }
+
+    // Advance past the separator. Pipes end our interest in the chain —
+    // a git command on the right of a pipe receives stdin, and commit/push
+    // forms that matter don't appear there in practice.
+    if (end >= n) return null;
+    if (command[end] === ';') pos = end + 1;
+    else if (command[end] === '&') pos = end + 2;
+    else return null; // '|' or unexpected — stop
+  }
+
+  return null;
+}
+
+// =============================================================================
+// EFFECTIVE-DIRECTORY RESOLUTION (#2363)
+// =============================================================================
+
+/**
+ * Where will this git command actually run? Resolution order:
+ *   1. `git -C <path>`           — explicit, highest trust
+ *   2. leading `cd <path> &&`    — explicit in the same command
+ *   3. session-state `shell_cwd` — the Bash tool's persistent cwd as
+ *      recorded by the CwdChanged hook (file read — call lazily!)
+ * Relative paths resolve against the project dir. Returns null when the
+ * command gives no signal beyond the session project dir.
+ */
+export function resolveEffectiveDir(
+  gitCommand: string,
+  cdTarget: string | null,
+  input: HookInput,
+  ctx: HookContext,
+): string | null {
+  const projectDir = input.project_dir || ctx.projectDir || '';
+  const absolutize = (p: string): string =>
+    isAbsolute(p) ? p : join(projectDir, p);
+
+  const dashC = gitCommand.match(/^git\s+-C\s+([^\s]+)/);
+  if (dashC) return absolutize(dashC[1]);
+
+  if (cdTarget) return absolutize(cdTarget);
+
+  // Session-state shell_cwd — one small JSON read, ONLY reached on the
+  // would-block/advisory path (project dir on a protected branch), so the
+  // common feature-branch hot path stays I/O-free per the perf budget.
+  const sessionId = input.session_id;
+  if (sessionId && projectDir) {
+    const statePath = getStateFilePath(repoSlugFromCwd(projectDir), sessionId);
+    const state = readSessionState(statePath);
+    if (state?.shell_cwd && state.shell_cwd !== projectDir) {
+      return state.shell_cwd;
+    }
+  }
+
+  return null;
+}
+
+// =============================================================================
 // VALIDATION FUNCTIONS
 // =============================================================================
 
-function validateBranchProtection(command: string, currentBranch: string): HookResult | null {
+function validateBranchProtection(
+  gitCommand: string,
+  currentBranch: string,
+  resolveEffective: () => string | null,
+): HookResult | null {
   if (!isProtectedBranch(currentBranch)) {
     return null;
   }
 
-  if (/git\s+(commit|push)/.test(command)) {
+  // Worktree-awareness (#2363): the session project dir is on a protected
+  // branch, but the command may execute elsewhere — `git -C <path>`, a
+  // leading `cd <path> &&`, or the shell's persistent cwd recorded by the
+  // CwdChanged hook. Judge by the branch where the command actually runs.
+  // An unresolvable/unknown branch falls through to the protected verdict
+  // (fail closed).
+  const effectiveDir = resolveEffective();
+  if (effectiveDir) {
+    const effectiveBranch = getCurrentBranch(effectiveDir);
+    if (
+      effectiveBranch &&
+      effectiveBranch !== 'unknown' &&
+      !isProtectedBranch(effectiveBranch)
+    ) {
+      logPermissionFeedback(
+        'allow',
+        `Worktree-aware: '${effectiveBranch}' at ${effectiveDir} (session dir on '${currentBranch}')`,
+      );
+      return outputAllowWithContext(
+        `git runs on branch '${effectiveBranch}' (${effectiveDir}) — session dir is on '${currentBranch}', not blocking.`,
+      );
+    }
+  }
+
+  if (/git\s+(commit|push)/.test(gitCommand)) {
     const errorMsg = `BLOCKED: Cannot commit or push directly to '${currentBranch}' branch.
 
 Required workflow:
@@ -235,31 +402,42 @@ function validateAtomicCommit(command: string, projectDir?: string): HookResult 
 export function gitValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = stripProxyPrefix(input.tool_input.command || '');
 
-  if (!command.startsWith('git')) {
+  // Locate the git invocation — at position 0 OR after a leading chain of
+  // simple quote-free segments (`cd x && git commit`, `env -u T git push`).
+  // The old `startsWith('git')` guard let any compound command skip
+  // validation entirely (#2363 under-blocking).
+  const located = locateGitSegment(command);
+  if (!located) {
     return outputSilentSuccess();
   }
+  const gitCommand = command.slice(located.offset);
 
   const currentBranch = ctx.branch;
 
-  ctx.log('git-validator', `Validating: ${command.slice(0, 50)}...`);
+  ctx.log('git-validator', `Validating: ${gitCommand.slice(0, 50)}...`);
+
+  // Lazy effective-dir resolution — only invoked on the protected-branch
+  // path so the common (feature-branch) hot path does zero extra work.
+  const resolveEffective = (): string | null =>
+    resolveEffectiveDir(gitCommand, located.cdTarget, input, ctx);
 
   // 1. Branch protection (can block)
-  const protectionResult = validateBranchProtection(command, currentBranch);
+  const protectionResult = validateBranchProtection(gitCommand, currentBranch, resolveEffective);
   if (protectionResult?.continue === false) {
     return protectionResult;
   }
 
   // 2. Commit message validation (can block)
-  const commitMsgResult = validateCommitMessage(command);
+  const commitMsgResult = validateCommitMessage(gitCommand);
   if (commitMsgResult?.continue === false) {
     return commitMsgResult;
   }
 
   // 3. Branch naming (advisory)
-  const branchNameResult = validateBranchNaming(command);
+  const branchNameResult = validateBranchNaming(gitCommand);
 
   // 4. Atomic commit (advisory)
-  const atomicResult = validateAtomicCommit(command, input.project_dir);
+  const atomicResult = validateAtomicCommit(gitCommand, input.project_dir);
 
   // Combine advisory contexts
   const contexts: string[] = [];

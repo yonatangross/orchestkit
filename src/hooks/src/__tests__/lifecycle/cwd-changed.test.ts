@@ -19,8 +19,23 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
   getPluginRoot: vi.fn(() => '/test/plugin'),
 }));
 
+vi.mock('../../lib/session-state.js', () => ({
+  getStateFilePath: vi.fn(() => '/tmp/test-state.json'),
+  readSessionState: vi.fn(() => null),
+  mergeSessionState: vi.fn(
+    (_existing: unknown, update: Record<string, unknown>, repo: string, sid: string) => ({
+      repo,
+      session_id: sid,
+      ...update,
+    }),
+  ),
+  writeSessionStateAtomic: vi.fn(() => true),
+  repoSlugFromCwd: vi.fn((cwd: string) => cwd.split('/').pop() ?? cwd),
+}));
+
 import { cwdChanged, _resetSkillPathIndex } from '../../lifecycle/cwd-changed.js';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { writeSessionStateAtomic } from '../../lib/session-state.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -303,6 +318,36 @@ describe('lifecycle/cwd-changed', () => {
       const result = cwdChanged(createInput(), testCtx);
       const ctx = result.hookSpecificOutput?.additionalContext as string;
       expect(ctx).toContain('/ork:api-design');
+    });
+  });
+
+  describe('shell_cwd persistence (#2363)', () => {
+    test('persists new_cwd to the session-state bus', () => {
+      cwdChanged(createInput({ project_dir: '/test/project', new_cwd: '/test/project/.worktrees/agent-x' }), testCtx);
+
+      expect(writeSessionStateAtomic).toHaveBeenCalledWith(
+        '/tmp/test-state.json',
+        expect.objectContaining({ shell_cwd: '/test/project/.worktrees/agent-x' }),
+      );
+    });
+
+    test('skips persistence when session_id is missing', () => {
+      cwdChanged(
+        createInput({ session_id: '', project_dir: '/test/project' }),
+        testCtx,
+      );
+
+      expect(writeSessionStateAtomic).not.toHaveBeenCalled();
+    });
+
+    test('a failing state write does not break the hook', () => {
+      vi.mocked(writeSessionStateAtomic).mockImplementationOnce(() => {
+        throw new Error('disk full');
+      });
+
+      const result = cwdChanged(createInput({ project_dir: '/test/project' }), testCtx);
+
+      expect(result.continue).toBe(true);
     });
   });
 });

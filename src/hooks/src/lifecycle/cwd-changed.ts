@@ -17,6 +17,13 @@ import { outputSilentSuccess, getPluginRoot } from '../lib/common.js';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
+import {
+  getStateFilePath,
+  mergeSessionState,
+  readSessionState,
+  repoSlugFromCwd,
+  writeSessionStateAtomic,
+} from '../lib/session-state.js';
 
 const HOOK_NAME = 'cwd-changed';
 
@@ -175,6 +182,29 @@ export function cwdChanged(input: HookInput, ctx: HookContext = NOOP_CTX): HookR
   }
 
   ctx.log(HOOK_NAME, `Directory changed: ${oldCwd} → ${newCwd}`);
+
+  // Persist the shell's cwd to the session-state bus (#2363) so
+  // directory-sensitive PreToolUse validators (git-validator branch
+  // protection) can judge git commands by where they actually run —
+  // the session project dir stays on main while the shell works in a
+  // linked worktree. Best-effort: never blocks the hook.
+  const sessionId = input.session_id;
+  const projectDir = input.project_dir || ctx.projectDir;
+  if (sessionId && projectDir) {
+    try {
+      const statePath = getStateFilePath(repoSlugFromCwd(projectDir), sessionId);
+      const repoSlug = repoSlugFromCwd(projectDir);
+      const merged = mergeSessionState(
+        readSessionState(statePath),
+        { shell_cwd: newCwd },
+        repoSlug,
+        sessionId,
+      );
+      writeSessionStateAtomic(statePath, merged);
+    } catch {
+      // Best-effort — a failed state write must not break CwdChanged
+    }
+  }
 
   const watchPaths = getWatchPaths(newCwd);
 

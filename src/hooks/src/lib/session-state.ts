@@ -78,6 +78,15 @@ export interface SessionState {
   last_push: PushRef | null;
   /** Most recent PR opened/merged/readied via `gh pr`. */
   last_pr: PrRef | null;
+  /**
+   * The Bash tool's persistent shell working directory, recorded by the
+   * CwdChanged hook (#2363). Lets directory-sensitive validators (e.g.
+   * git-validator branch protection) judge commands by where they will
+   * actually run — a linked worktree on a feature branch is not "main"
+   * just because the session's project dir is. Optional: absent on
+   * states written before this field existed.
+   */
+  shell_cwd?: string | null;
 }
 
 /** Root directory we write to. */
