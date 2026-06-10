@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ork-rubric/1.0",
+  "description": "Machine-readable rubric contract shared across grading skills (verify, assess, review-pr). Dimension weights MUST sum to 1.0 (+/- 0.001) — enforced by tests/skills/structure/test-rubric-schema.sh, not expressible in JSON Schema. Scores are on a 0-10 scale. min_blocker semantics: a dimension score below min_blocker is a hard blocker regardless of composite. min_pass semantics: a dimension (or composite) score below min_pass fails the gate. (#2347)",
+  "type": "object",
+  "required": ["rubric", "skill", "dimensions"],
+  "additionalProperties": false,
+  "properties": {
+    "rubric": {
+      "const": "ork-rubric/1.0",
+      "description": "Contract version discriminator."
+    },
+    "skill": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Skill this rubric belongs to (directory name under src/skills/)."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable summary of what this rubric grades and how."
+    },
+    "source": {
+      "type": "string",
+      "description": "Pointer to the prose reference this rubric was transcribed from (kept canonical for humans)."
+    },
+    "composite": {
+      "type": "object",
+      "required": ["min_pass"],
+      "additionalProperties": false,
+      "properties": {
+        "min_pass": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Weighted composite score below this value fails the gate."
+        }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/dimension" }
+    }
+  },
+  "$defs": {
+    "dimension": {
+      "type": "object",
+      "required": ["name", "weight"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Contribution to the weighted composite. All weights in a rubric must sum to 1.0 (+/- 0.001)."
+        },
+        "min_pass": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Dimension score below this value fails the gate (soft floor)."
+        },
+        "min_blocker": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Dimension score below this value is a hard blocker regardless of composite. Must be <= min_pass when both are present."
+        },
+        "description": {
+          "type": "string"
+        },
+        "bands": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/band" }
+        }
+      }
+    },
+    "band": {
+      "type": "object",
+      "required": ["score_min", "score_max", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "score_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "score_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

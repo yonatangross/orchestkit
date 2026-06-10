@@ -287,6 +287,17 @@ Load details: `Read("${CLAUDE_SKILL_DIR}/references/visual-capture.md")` (Phase 
 
 Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("${CLAUDE_SKILL_DIR}/references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("${CLAUDE_SKILL_DIR}/references/grading-rubric.md")` for per-agent scoring criteria.
 
+### Dimension-Level Blockers (ork-rubric/1.0)
+
+Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_SKILL_DIR}/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
+
+- **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
+- A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
+- Blocked verdicts list every tripped dimension first, each with the fix needed to clear it.
+- A project `.claude/policies/verification-policy.json` (see Policy-as-Code) may tighten these thresholds, never loosen them below the rubric defaults.
+
+Threshold bands and reporting format: `references/grading-rubric.md` ("Dimension-Level Blockers" section).
+
 ---
 
 ## Evidence & Test Execution

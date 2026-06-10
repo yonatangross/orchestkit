@@ -67,6 +67,26 @@ The skill emits exactly two lines, ready to paste:
 
 No commentary, no markdown wrapper — the user copies the block straight into Claude Code.
 
+### Optional: rubric emission (`.claude/rubric.json`)
+
+When the user wants graded feedback beyond pass/fail booleans, the skill MAY also emit `.claude/rubric.json` conforming to `ork-rubric/1.0` (schema: `$\{CLAUDE_PLUGIN_ROOT\}/skills/shared/rubric.schema.json`), mapping each acceptance criterion to one dimension:
+
+```json
+{
+  "rubric": "ork-rubric/1.0",
+  "skill": "prd-to-goal",
+  "dimensions": [
+    { "name": "regression_test_added", "weight": 0.4, "min_pass": 8, "min_blocker": 3 },
+    { "name": "auth_suite_green",      "weight": 0.4, "min_pass": 10, "min_blocker": 5 },
+    { "name": "lint_clean",            "weight": 0.2, "min_pass": 10, "min_blocker": 0 }
+  ]
+}
+```
+
+Scores are 0–10 (`min_pass` = soft floor, `min_blocker` = hard blocker regardless of composite); dimension weights MUST sum to 1.0 — see the schema for the full contract.
+
+The file is deliberately **user-editable before the `/goal` run** — that is the point. Adjusting weights and `min_pass` thresholds is how the user injects judgement into the loop without rewriting assertions (rubric-as-environment-feedback, Lance Martin 2026-06-09). The post-timeout grader (§7) treats the rubric, if present, as the user's intent — senior to the literal assertion text.
+
 ## 5. Worked examples
 
 ### Example A — Bug fix PRD
@@ -144,7 +164,29 @@ Rationale: the LOC bound is the convergent signal — without it, `/goal` can ke
 | `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l &lt; src/auth.ts) -lt 200 ]` |
 | `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `abort-if turns > 50` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `/ork:write-prd`. |
 
-## 7. Related skills
+## 7. Post-timeout assertion grader
+
+If the `/goal` loop hits `abort-if` (turn/token cap or no-progress stall), do NOT retry the same line and do NOT let the looping agent critique its own assertions. Spawn a FRESH-context grader that audits the assertion set itself:
+
+```python
+# Bare-eval pattern — independent context window, zero shared state:
+Bash("CLAUDE_CODE_FORK_SUBAGENT=1 claude -p --bare \"$(cat /tmp/grader-prompt.txt)\"")
+# or: Agent(subagent_type="general-purpose", prompt=grader_prompt)  # fresh spawn, no producer prose
+```
+
+The grader receives the `/goal` line, `.claude/rubric.json` (if emitted), a compressed summary of the last N turns, and freshly regenerated repo-state evidence. It returns one verdict:
+
+| Verdict | Diagnosis | Action |
+|---|---|---|
+| `tighten` | Assertions too weak — agent could satisfy them without real success | Re-run with the stricter revised line |
+| `loosen` | Assertions unsatisfiable as written (wrong path, impossible bound, pre-broken suite) | Re-run with the achievable revised line |
+| `abort` | Task genuinely blocked (missing access, contradictory spec, broken env) | Stop; surface the blocker to the user |
+
+Grading must happen in an independent context window — never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
+
+Full pattern (prompt template, independence rules, worked example): `chain-patterns/references/assertion-grader.md`.
+
+## 8. Related skills
 
 - `ork:write-prd` — if the input has no acceptance criteria, run this first.
 - `ork:brainstorm` — useful when the PRD itself is contested and you want options before writing the goal.
