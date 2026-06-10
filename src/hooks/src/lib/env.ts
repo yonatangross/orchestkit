@@ -82,23 +82,43 @@ export function getSessionId(): string {
   return getOrGenerateSessionId();
 }
 
+/** Per-directory branch cache (#2363): one git exec per dir per process. */
+const branchCacheByDir = new Map<string, string>();
+
 /**
- * Get cached git branch (set at session start or first call)
- * Caches result in process.env to avoid repeated execSync calls
+ * Get cached git branch (set at session start or first call).
+ *
+ * The ORCHESTKIT_BRANCH env var remains the override/stub contract for the
+ * PROJECT dir (tests, pre-compact-saver read it directly) — but it must
+ * never answer for OTHER directories; that was the #2363 worktree false
+ * positive, where a feature-branch worktree was judged by the primary
+ * tree's cached "main".
  */
 export function getCachedBranch(projectDir?: string): string {
-  if (process.env.ORCHESTKIT_BRANCH) {
+  const dir = projectDir || getProjectDir();
+  const isProjectDir = dir === getProjectDir();
+
+  if (process.env.ORCHESTKIT_BRANCH && isProjectDir) {
     return process.env.ORCHESTKIT_BRANCH;
+  }
+
+  const cached = branchCacheByDir.get(dir);
+  if (cached !== undefined) {
+    return cached;
   }
 
   try {
     const branch = execFileSync('git', ['branch', '--show-current'], {
-      cwd: projectDir || getProjectDir(),
+      cwd: dir,
       encoding: 'utf8',
       timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
-    process.env.ORCHESTKIT_BRANCH = branch;
+    branchCacheByDir.set(dir, branch);
+    if (isProjectDir) {
+      // Keep priming the env var for direct readers (pre-compact-saver).
+      process.env.ORCHESTKIT_BRANCH = branch;
+    }
     return branch;
   } catch {
     return 'unknown';
