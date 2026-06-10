@@ -1,6 +1,6 @@
 ---
 name: checkpoint-resume
-compatibility: "Claude Code 2.1.168+"
+compatibility: "Claude Code 2.1.170+"
 description: Rate-limit-resilient pipeline with checkpoint/resume for long multi-phase sessions. Saves progress to .claude/pipeline-state.json after each phase. Use when starting a complex multi-phase task that risks hitting rate limits, when resuming an interrupted session, or when orchestrating work spanning commits, GitHub issues, and large file changes.
 tags: [resilience, checkpoint, pipeline, orchestkit]
 version: 2.0.0
@@ -78,3 +78,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 > Plan mode preserved across `--resume` (CC 2.1.132+) — `--permission-mode plan` is honored on resume, and `ExitPlanMode` re-applies plan mode for the rest of the session. See `configure/references/cc-version-settings.md` (`## CC 2.1.132 Settings`).
 
 > Claude-managed worktrees are unlocked on finish (CC 2.1.157+) and `EnterWorktree` can switch worktrees mid-session — a resumed session can clean up prior worktrees with plain `git worktree remove`/`prune`.
+
+> `/cd` (CC 2.1.169+) moves the session to a new working directory WITHOUT breaking the prompt cache — prefer it over restarting when a checkpointed task continues in a different directory (e.g. hopping into a manually created worktree).
+
+> Self-hosted runners: the `post-session` lifecycle hook (CC 2.1.169+) runs after session end and before workspace deletion — the right place to snapshot uncommitted checkpoint state or export `.claude/chain/` handoffs that would otherwise be destroyed with the workspace.

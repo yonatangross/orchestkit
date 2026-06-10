@@ -1,7 +1,7 @@
 ---
 name: configure
 license: MIT
-compatibility: "Claude Code 2.1.168+."
+compatibility: "Claude Code 2.1.170+."
 description: "Interactive configuration wizard for OrchestKit plugin settings including MCP server enablement, hook permissions, keybindings, and installation presets (Complete/Standard/Lite). Supports preset shortcuts, per-category skill customization, and webhook configuration. Use when customizing plugin behavior or managing settings."
 argument-hint: "[preset-name]"
 context: inherit
@@ -129,6 +129,8 @@ Categories available:
 > **CC 2.1.141 — `ANTHROPIC_WORKSPACE_ID` for workload identity federation:** When authenticating headless/CI agents (e.g. `/ork:ci-sentinel`, `/ork:bare-eval`) through Anthropic's WIF flow, set `ANTHROPIC_WORKSPACE_ID` to scope the minted token to one workspace when the federation rule covers more than one. Without it, a multi-workspace rule mints an unscoped token.
 
 > **CC 2.1.142 — `MCP_TOOL_TIMEOUT` for remote MCP:** the per-request timeout now actually applies to remote **HTTP/SSE** MCP servers (previously capped at 60s regardless of the configured value). Raise it (e.g. `MCP_TOOL_TIMEOUT=180000`) for long-poll tools — NotebookLM `studio_status`, knowledge-base ingest, index rebuilds — that legitimately run past 60s, so they don't silently time out and self-skip.
+
+> **CC 2.1.169 — safe-mode + policy-enforcement fixes:** `--safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) starts CC with ALL customizations disabled — CLAUDE.md, plugins, skills, hooks, MCP servers — the fastest way to bisect "is ork (or any plugin) causing this?" before filing a bug. Enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) are now enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, and before remote settings load — if your org sets them, previously-working unlisted servers may now be (correctly) blocked. Untrusted project settings can no longer set OTEL client-certificate paths without trust confirmation. Self-hosted runners get a `post-session` lifecycle hook (after session end, before workspace deletion) for snapshotting uncommitted work or exporting logs, plus a configurable SIGTERM→SIGKILL window (default 5s).
 
 > **CC 2.1.166 — `fallbackModel` setting (up to 3 models):** the `fallbackModel` setting now accepts up to three models, tried in order when the primary is overloaded or unavailable, and `--fallback-model` now also applies to **interactive** sessions (not just headless). Set it for long `ork:implement` / `ork:brainstorm` runs so an overloaded primary degrades to the next model instead of stalling the run. Extends the 2.1.152 fallback note in `references/cc-version-settings.md`.
 

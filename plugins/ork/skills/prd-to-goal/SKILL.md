@@ -6,7 +6,7 @@ tags: [/goal, planning, prd, automation, cc-2.1.139]
 version: 0.1.0
 author: OrchestKit
 license: MIT
-compatibility: "Claude Code 2.1.168+ (uses GA `/goal` loop)."
+compatibility: "Claude Code 2.1.170+ (uses GA `/goal` loop)."
 user-invocable: true
 complexity: low
 context: inherit

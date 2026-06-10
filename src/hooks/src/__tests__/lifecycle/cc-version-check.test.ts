@@ -85,8 +85,8 @@ describe('cc-version-check', () => {
     // M134 W4 closeout (2026-05-10) bumped to 2.1.138 floor / latest,
     // M137 (2026-05-12) bumped to 2.1.139 floor / latest,
     // #1945 (2026-05-24) ladder capstone bumped to 2.1.148 floor / latest.
-    // 2026-06-07 owner decision: strict floor=latest=latest_known=2.1.168.
-    process.env.CLAUDE_CODE_VERSION = '2.1.168';
+    // 2026-06-10 owner decision: strict floor=latest=latest_known=2.1.170.
+    process.env.CLAUDE_CODE_VERSION = '2.1.170';
     const result = ccVersionCheck(makeInput('in-range-test'), createTestContext());
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeUndefined();

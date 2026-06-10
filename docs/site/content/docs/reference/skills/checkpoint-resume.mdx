@@ -77,6 +77,10 @@ Load on demand with `Read("$\{CLAUDE_SKILL_DIR\}/references/&lt;file&gt;")`:
 
 > Claude-managed worktrees are unlocked on finish (CC 2.1.157+) and `EnterWorktree` can switch worktrees mid-session — a resumed session can clean up prior worktrees with plain `git worktree remove`/`prune`.
 
+> `/cd` (CC 2.1.169+) moves the session to a new working directory WITHOUT breaking the prompt cache — prefer it over restarting when a checkpointed task continues in a different directory (e.g. hopping into a manually created worktree).
+
+> Self-hosted runners: the `post-session` lifecycle hook (CC 2.1.169+) runs after session end and before workspace deletion — the right place to snapshot uncommitted checkpoint state or export `.claude/chain/` handoffs that would otherwise be destroyed with the workspace.
+
 
 ---
 

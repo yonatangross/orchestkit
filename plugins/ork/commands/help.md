@@ -134,6 +134,8 @@ Not OrchestKit skills — these are Claude Code built-ins:
 | `/undo` | Alias for `/rewind` | CC 2.1.108 |
 | `/skills` | Native skill picker — type to filter | CC 2.1.121 |
 | `/effort` | Reasoning effort — sets `${CLAUDE_EFFORT}` env for skills | CC 2.1.72 (env var since 2.1.120) |
+| `/cd` | Move session to a new working directory without breaking the prompt cache | CC 2.1.169 |
+| `--safe-mode` | Start with ALL customizations disabled (troubleshooting bisect) | CC 2.1.169 (flag/env, not a slash command) |
 
 ## Performance Tips
 

@@ -1,7 +1,7 @@
 ---
 name: mcp-patterns
 license: MIT
-compatibility: "Claude Code 2.1.168+."
+compatibility: "Claude Code 2.1.170+."
 author: OrchestKit
 description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, adding authentication, creating interactive UIs, hardening MCP security, or debugging MCP integrations.
 version: 3.1.0
@@ -160,6 +160,8 @@ Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`) �
 > **CC 2.1.128 — reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__<server>__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
 
 > **CC 2.1.133 — MCP OAuth honors HTTP(S)_PROXY / NO_PROXY / mTLS**: the full MCP OAuth flow (discovery, dynamic client registration, token exchange, token refresh) now respects standard proxy and client-certificate env vars end-to-end. Enterprise deployments behind corporate proxies no longer need OAuth-specific workarounds — the same `HTTPS_PROXY` / `NO_PROXY` / `NODE_EXTRA_CA_CERTS` config that already routes MCP transport now also routes auth. See `configure/references/cc-version-settings.md` (CC 2.1.133 section) for the env-var example. The companion deployment skill `building-mcp-server-on-cloudflare` can drop any prior "proxy-aware OAuth requires manual handling" caveat at this floor.
+
+> **CC 2.1.169 — managed MCP policies enforced everywhere:** enterprise `allowedMcpServers`/`deniedMcpServers` now apply on reconnect, IDE-typed configs, `--mcp-config` servers in the first session after install, and before remote settings load (previously all four paths skipped enforcement). Orgs without remote settings also get faster cold starts. If a previously-working server stops connecting after 2.1.169, check the managed policy before debugging the server.
 
 > **CC 2.1.163 — stdio servers get `CLAUDE_CODE_SESSION_ID`:** on `--resume`, stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` env var that hooks and Bash already get. Read it inside the server to correlate logs/telemetry across resumed sessions instead of minting your own session key — but never store auth tokens keyed off it (see Common Mistake #7).
 
