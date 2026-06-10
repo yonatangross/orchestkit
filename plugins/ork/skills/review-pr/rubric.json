@@ -1,0 +1,86 @@
+{
+  "rubric": "ork-rubric/1.0",
+  "skill": "review-pr",
+  "description": "review-pr does NOT compute a weighted 0-10 composite — its verdict is severity-bucket driven (critical|high|medium|low|info findings per category, deduplicated by file+line+category). This rubric maps the 6 finding categories to dimensions and encodes severity buckets as score bands: any CRITICAL finding in a dimension lands it in the 0-3 band, below min_blocker 4.0 -> hard blocker -> request-changes verdict. Weights reflect severity-sorting/reporting emphasis (security findings shown first), not a composite gate — hence no composite.min_pass.",
+  "source": "rules/agent-prompts-task-tool.md (structured output contract: severity + category buckets), SKILL.md Phase 5/6 (approve | comment | request-changes verdict)",
+  "dimensions": [
+    {
+      "name": "security",
+      "weight": 0.25,
+      "min_blocker": 4.0,
+      "description": "SEC findings from security-auditor: secrets, injection, auth flaws.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical — request-changes or comment per synthesis" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM — comment-only" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info — nitpicks and suggestions" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "correctness",
+      "weight": 0.20,
+      "min_blocker": 4.0,
+      "description": "BUG findings from code-quality reviewers: logic errors, broken paths, regressions.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "testing",
+      "weight": 0.15,
+      "min_blocker": 4.0,
+      "description": "TEST findings from test-generator: coverage gaps, missing edge cases.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "maintainability",
+      "weight": 0.15,
+      "min_blocker": 4.0,
+      "description": "MAINT findings from code-quality reviewers: readability, complexity, DRY, type safety.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "performance",
+      "weight": 0.15,
+      "min_blocker": 4.0,
+      "description": "PERF findings from backend-system-architect: N+1, async misuse, transaction issues.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "accessibility",
+      "weight": 0.10,
+      "min_blocker": 4.0,
+      "description": "A11Y findings from frontend-ui-developer: WCAG, hooks, React 19 patterns. Dimension only active when the frontend domain is detected in the diff.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "critical", "description": "At least one CRITICAL finding — blocks merge (request-changes)" },
+        { "score_min": 4, "score_max": 5, "label": "high", "description": "HIGH findings present, no critical" },
+        { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
+        { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
+        { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    }
+  ]
+}

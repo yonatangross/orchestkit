@@ -121,3 +121,22 @@
 | 6.0-6.9 | C | IMPROVEMENTS RECOMMENDED |
 | 5.0-5.9 | D | IMPROVEMENTS RECOMMENDED |
 | 0.0-4.9 | F | BLOCKED |
+
+---
+
+## Dimension-Level Blockers (ork-rubric/1.0)
+
+The composite table above is overridden by per-dimension floors. Thresholds live in `../rubric.json` (`min_blocker` / `min_pass` fields; schema: `../../shared/rubric.schema.json`) — they map to the 0-3 "Poor, blocks merge" band of each dimension rubric.
+
+| Dimension | Threshold | Effect when below |
+|-----------|-----------|-------------------|
+| Security | `min_blocker` 4.0 | Verdict BLOCKED regardless of composite |
+| Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
+
+Reporting format — the tripped dimension leads the verdict, with the threshold named:
+
+```
+Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)
+```
+
+A passing composite never clears a tripped `min_blocker`; list every tripped dimension with the fix required to clear it.
