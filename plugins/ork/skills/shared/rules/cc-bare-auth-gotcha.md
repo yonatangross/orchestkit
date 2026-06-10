@@ -135,3 +135,22 @@ HOME=$TMPH ANTHROPIC_API_KEY=$KEY claude -p \
   --max-turns 1 --output-format json "hi"
 # → {"is_error":false, "result":"Hi there, friend."}
 ```
+
+## Sibling gotcha: permission mode + error capture (#1862)
+
+Auth succeeding is not enough — the permission mode decides whether tools run:
+
+| Mode | Headless behavior |
+|---|---|
+| `dontAsk` | Silently REFUSES permission-requiring tools (incl. Bash). Skills needing `gh`/`git` return empty output, no error. |
+| `acceptEdits` | Uses tools without prompting — right for read-only headless skills (`/ci-debug`). |
+
+```bash
+# WRONG — empty verdicts, invisible errors, loop dies on first failure
+claude -p --permission-mode dontAsk ... > verdict.json 2> err.log \
+  || { cat err.log; continue; }   # errors are on STDOUT; empty-cat kills errexit loop
+
+# RIGHT — acceptEdits + log both streams, cats guarded for bash -e
+claude -p --permission-mode acceptEdits ... > verdict.json 2> err.log \
+  || { cat verdict.json 2>/dev/null || true; cat err.log 2>/dev/null || true; continue; }
+```

@@ -237,21 +237,35 @@ jobs:
             # cost goes from ~4k to ~10k tokens per PR but the workflow actually
             # authenticates. Documented the trade-off in SKILL.md.
             #
-            # M146-6 (#1849): explicit --permission-mode locks the dispatch
-            # envelope. The skill is read-only by design (no edits), so
-            # `dontAsk` is the right tradeoff. `--effort` removed alongside
-            # --bare — it's a session config that needs the full CC load to
-            # take effect and is duplicated by --max-turns 4 for our use case.
+            # M146-7 (#1862 Bug C): `dontAsk` silently REFUSES permission-requiring
+            # tools — and /ci-debug needs Bash for `gh pr checks` / `gh api ...logs`,
+            # so every analysis came back empty. `acceptEdits` is the headless
+            # "use tools without prompting" mode for this read-only skill.
+            # `--effort` removed alongside --bare — it's a session config that
+            # needs the full CC load to take effect and is duplicated by
+            # --max-turns 4 for our use case.
             tmpdir="$(mktemp -d)"
+            # #1862 Bugs A+B: claude -p reports auth/permission errors as JSON on
+            # STDOUT (verdict.json), not stderr — so log BOTH on failure. Each cat
+            # is `|| true`-guarded: under errexit a cat of an empty/missing file
+            # would kill the whole step before `continue` fires, silently skipping
+            # every remaining PR in the loop.
             timeout "${ORK_SENTINEL_PER_PR_TIMEOUT_S}s" \
               claude -p \
-                --permission-mode dontAsk \
+                --permission-mode acceptEdits \
                 --max-turns 4 \
                 --output-format json \
                 --no-session-persistence \
                 "Run /ci-debug on PR ${number} in repo ${{ steps.ctx.outputs.owner }}/${{ steps.ctx.outputs.repo }}. Use only the gh CLI. Output the report markdown only — no preamble." \
               > "${tmpdir}/verdict.json" 2> "${tmpdir}/err.log" \
-              || { echo "::warning::claude run failed for #${number}, see error log"; cat "${tmpdir}/err.log"; continue; }
+              || {
+                echo "::warning::claude run failed for #${number} — error output follows"
+                echo "--- stdout (verdict.json) ---"
+                cat "${tmpdir}/verdict.json" 2>/dev/null || true
+                echo "--- stderr (err.log) ---"
+                cat "${tmpdir}/err.log" 2>/dev/null || true
+                continue
+              }
 
             verdict_md=$(jq -r '.content // ""' "${tmpdir}/verdict.json")
             tokens=$(jq -r '.usage.total_tokens // 0' "${tmpdir}/verdict.json")
