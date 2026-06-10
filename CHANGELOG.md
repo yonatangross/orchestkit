@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.31.0](https://github.com/yonatangross/orchestkit/compare/v8.30.0...v8.31.0) (2026-06-10)
+
+
+### Features
+
+* **rubric:** adopt ork-rubric/1.0 stop-gating contract ([#2356](https://github.com/yonatangross/orchestkit/issues/2356)) ([0ce1c7f](https://github.com/yonatangross/orchestkit/commit/0ce1c7f80ed47910e4b3ae24607cbca42bf4d85a))
+
+
+### Miscellaneous
+
+* **cc:** bump supported floor to 2.1.170 + adopt 2.1.169 features ([#2355](https://github.com/yonatangross/orchestkit/issues/2355)) ([44f5d29](https://github.com/yonatangross/orchestkit/commit/44f5d29851cf82c7abf138b6575c7ad46e23b3b0))
+
 ## [8.30.0](https://github.com/yonatangross/orchestkit/compare/v8.29.1...v8.30.0) (2026-06-10)
 
 
