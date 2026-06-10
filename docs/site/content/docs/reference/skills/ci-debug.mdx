@@ -113,6 +113,14 @@ adding it to the playbook (in this SKILL.md) so the next run catches
 it automatically.
 ```
 
+## Headless invocation (permission mode)
+
+`/ci-debug` REQUIRES Bash tool access — `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In headless `claude -p` runs (ci-sentinel, cron):
+
+- Use `--permission-mode acceptEdits` — the headless "use tools without prompting" mode. The skill is read-only by design, so this grants nothing risky.
+- **NEVER `dontAsk`** — it silently REFUSES permission-requiring tools (including Bash), so every analysis returns empty output with no error (#1862 Bug C).
+- `claude -p` reports auth/permission failures as JSON on **stdout**, not stderr — capture and log both streams on failure (see `shared/rules/cc-bare-auth-gotcha.md` for the auth side).
+
 ## CRITICAL guardrails
 
 - **NEVER auto-apply a fix.** This skill proposes; the user approves. Wasted cycles from misclassification are exactly the failure mode we're hardening against.

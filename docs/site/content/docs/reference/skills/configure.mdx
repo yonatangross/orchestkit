@@ -1783,6 +1783,12 @@ $ claude  /mcp
 
 A zero-tool count after a successful connection means `tools/list` failed silently — usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
 
+### Paginated `tools/list` truncation fixed (CC 2.1.144)
+
+Pre-2.1.144, CC only read the FIRST page of a paginated `tools/list` response — servers exposing 50+ tools silently lost everything past page 1, a classic cause of "why doesn't this MCP tool show up". CC 2.1.144 fixed tools; 2.1.146 fixed the same family for `resources/list`, `resources/templates/list`, and `prompts/list`.
+
+After upgrading past the fix, verify once per large server: compare the `/mcp` tool count against the server's own registry. If the count is still short on CC ≥ 2.1.144, the bug is in the SERVER's pagination (file upstream there — CC is fixed).
+
 ### Experimental plugin manifest fields move under `experimental` (CC 2.1.129)
 
 CC 2.1.129+ expects plugin manifests to declare experimental fields (e.g. `themes`) under an `"experimental"` block. Top-level still works but `claude plugin validate` warns. Future CC versions are expected to error on top-level entries.

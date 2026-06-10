@@ -997,7 +997,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ci-debug",
     "description": "Diagnose a failing CI run against a 10-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific).",
     "version": "0.2.0",
-    "sha256": "90a09c3466574369eccd509ecefd06101aefe3820d9390097e0792ea4b44df15",
+    "sha256": "ba9b81eb32f50e811f03f7063ca7c13d7e95f0a8fe3303c5d2e724f642ce9d91",
     "author": "OrchestKit",
     "tags": [
       "ci",
