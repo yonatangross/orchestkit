@@ -481,7 +481,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "assess",
     "description": "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches.",
     "version": "1.7.0",
-    "sha256": "a05ea262a15c5818c07400384cb0d97d76698069d6c60587466fe6a9e04246ca",
+    "sha256": "c903e9c13ecce65a07391bbb7e90cfbdcba74f8a269f31f28c53b7a9e35666dd",
     "author": "OrchestKit",
     "tags": [
       "assessment",
@@ -907,7 +907,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "chain-patterns",
     "description": "Chain patterns for CC 2.1.71 pipelines — MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreate monitoring. Use when building multi-phase pipeline skills. Loaded via skills: field by pipeline skills (fix-issue, implement, brainstorm, verify). Not user-invocable.",
     "version": "1.0.0",
-    "sha256": "7283c2496a43795a33cf2098dac203c391a54f89d59ea4dc9a90a0892769cd5e",
+    "sha256": "5975bca64e8b7841b1dd463dbc8c8fce9feeeb71638040a11a2702f873b61f19",
     "author": "OrchestKit",
     "tags": [
       "pipeline",
@@ -927,6 +927,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
+        "assertion-grader.md",
         "checkpoint-resume.md",
         "cron-monitoring.md",
         "dynamic-workflow-patterns.md",
@@ -2671,7 +2672,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.7.0",
-    "sha256": "904e3c0442f68de21576e3652e56fd209df03c2c904e0082a0b2d163071971cc",
+    "sha256": "783d82fc77dc1b3433c1cdc71d5bc1a8dfa1371f68b616ab64f7d1d7833ddae5",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3620,7 +3621,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prd-to-goal",
     "description": "Decomposes a PRD, issue, or spec into a copy-pasteable `/goal until ... abort-if ...` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
     "version": "0.1.0",
-    "sha256": "d242ca2a7b8559e188aa34012f9e9e90498e2fe667853c9a9d88284ff8ea0289",
+    "sha256": "98c8c4aa104daae7d05500408b8ef8525a7c512bbd3b6423a6733da651d8d678",
     "author": "OrchestKit",
     "tags": [
       "/goal",
@@ -3633,6 +3634,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [
       "Read",
+      "Write",
       "Bash",
       "Grep"
     ],
@@ -5321,7 +5323,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Comprehensive verification using parallel test agents for unit tests, integration tests, E2E validation, security scanning, and type checking. Runs coverage analysis, detects regressions, and validates against project conventions. Reports pass/fail with detailed findings and coverage deltas. Use when verifying implementations, validating changes after /ork:implement, or running pre-merge quality gates.",
     "version": "4.3.0",
-    "sha256": "51e298ecde5a4467611299e84870e7d0cb10f2cc6eef09313358d3b0a3268609",
+    "sha256": "fe4c93b7b32203f07a551b57acd301caeb0f68a3e6b206d9cf438cb76bc21bb7",
     "author": "OrchestKit",
     "tags": [
       "verification",

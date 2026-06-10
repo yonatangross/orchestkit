@@ -1,0 +1,108 @@
+{
+  "rubric": "ork-rubric/1.0",
+  "skill": "verify",
+  "description": "Verification grading rubric: 8 dimensions (unified scoring framework + Visual 8th), 0-10 scale, weighted composite. Fails the merge gate below composite 6.0 (BLOCKED verdict below 5.0 per the grade table); security below 4.0 is a hard blocker; compliance below 6.0 fails the gate. When Visual is skipped (API-only projects), its 0.10 weight is redistributed proportionally across the base dimensions. Bands use integer anchors: round a fractional score to the nearest integer before band lookup (3.2 -> 3 -> poor).",
+  "source": "references/grading-rubric.md (weights canonical in references/quality-model.md, extends quality-gates/references/unified-scoring-framework.md)",
+  "composite": { "min_pass": 6.0 },
+  "dimensions": [
+    {
+      "name": "correctness",
+      "weight": 0.14,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Does not run" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Broken core paths" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "Partial functionality, notable gaps" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "Core paths work, some edge cases missing" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Core requirements met, most edge cases handled" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "All functional requirements met, edge cases handled, zero regressions" }
+      ]
+    },
+    {
+      "name": "maintainability",
+      "weight": 0.14,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Lint/type check fails to run" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Many errors, poor patterns, high complexity" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "4-10 errors, pattern issues, needs refactoring" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "1-3 errors, some warnings, acceptable patterns" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Zero errors, < 5 warnings, minimal any, good patterns" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "Zero lint errors/warnings, strict types, exemplary patterns, low complexity" }
+      ]
+    },
+    {
+      "name": "performance",
+      "weight": 0.11,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Unresponsive or crashes under load" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Severe bottlenecks, resource leaks" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "Notable bottlenecks, missing caching" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "Acceptable latency, minor inefficiencies" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Good latency, no N+1, reasonable caching" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "p99 within budget, zero N+1, optimal caching, efficient resource usage" }
+      ]
+    },
+    {
+      "name": "security",
+      "weight": 0.18,
+      "min_blocker": 4.0,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Multiple critical, secrets exposed" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "1+ critical or many high vulnerabilities" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "No critical, 3-5 high, some gaps" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "No critical, 1-2 high, most OWASP compliant" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "No critical/high, all OWASP, excellent practices" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "No vulnerabilities, all OWASP compliant, secure by design" }
+      ]
+    },
+    {
+      "name": "scalability",
+      "weight": 0.09,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Cannot handle production load" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Single-instance only, monolithic state" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "Will hit limits soon, needs rework" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "Scales for current needs, some concerns" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Good scaling patterns, minor bottlenecks" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "Horizontal scaling ready, stateless design, efficient data patterns" }
+      ]
+    },
+    {
+      "name": "testability",
+      "weight": 0.12,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "< 30% coverage or tests fail to run" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "30-49% coverage" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "50-69% coverage" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": ">= 70% coverage (target), basic assertions" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": ">= 80% coverage, good assertions, critical paths" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": ">= 90% coverage, meaningful assertions, edge cases, no flaky tests" }
+      ]
+    },
+    {
+      "name": "compliance",
+      "weight": 0.12,
+      "min_pass": 6.0,
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Broken contracts or inaccessible" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Poor API/UI design, missing validation" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "Several convention violations" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "Acceptable patterns, minor inconsistencies" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Good conventions, proper validation, accessibility" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "Perfect REST/UI contracts, RFC 9457 errors, full Zod, WCAG AA" }
+      ]
+    },
+    {
+      "name": "visual",
+      "weight": 0.10,
+      "description": "Weight is 0.00 for API-only projects — redistributed proportionally across base dimensions (see quality-model.md).",
+      "bands": [
+        { "score_min": 0, "score_max": 0, "label": "failing", "description": "Page fails to render" },
+        { "score_min": 1, "score_max": 3, "label": "poor", "description": "Broken layout, major content missing" },
+        { "score_min": 4, "score_max": 5, "label": "partial", "description": "Layout issues, missing content, a11y problems" },
+        { "score_min": 6, "score_max": 7, "label": "adequate", "description": "Acceptable layout, some a11y gaps" },
+        { "score_min": 8, "score_max": 9, "label": "good", "description": "Good layout, minor visual issues, WCAG AA" },
+        { "score_min": 10, "score_max": 10, "label": "excellent", "description": "Pixel-perfect layout, full a11y, complete content, responsive" }
+      ]
+    }
+  ]
+}

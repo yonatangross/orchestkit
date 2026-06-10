@@ -358,6 +358,35 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ---
 
+## Phase 7d: Emit Chain Verdict (stop-gating)
+
+After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict — this is the stop-gate `/ork:implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
+
+```json
+// .claude/chain/assess-verdict.json
+{
+  "rubric": "ork-rubric/1.0",
+  "skill": "assess",
+  "verdict": "fail",
+  "composite": 5.1,
+  "dimension_scores": {"correctness": 7.0, "maintainability": 6.5, "performance": 5.5, "security": 3.2, "scalability": 6.0, "testability": 4.8, "compliance": 6.2},
+  "blockers": [
+    {"dimension": "security", "score": 3.2, "reason": "Unparameterized SQL in auth path (src/api/auth.ts:42)"}
+  ],
+  "feature": "<assessment topic, e.g. first non-flag token of $ARGUMENTS>"
+}
+```
+
+Verdict rules — thresholds come from `${CLAUDE_SKILL_DIR}/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/skills/shared/rubric.schema.json`):
+
+- `verdict = "fail"` when `composite < min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
+- Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
+- Scores are the post-refutation numbers — the same ones in the report. Refutation never silently flips a fail to pass.
+
+Consumers: `/ork:implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (user must fix-first or explicitly override); Phase 7c memory writeback persists the verdict + dimension scores to the memory graph (add a `verdict=pass|fail` observation) for cross-session learning.
+
+---
+
 ## Self-Reported Uncertainty (Opus 4.8, `xhigh` effort)
 
 Opus 4.8 is materially better than older tiers at honestly reporting its own limits. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.

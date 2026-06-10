@@ -231,6 +231,7 @@ Load on demand with `Read("${CLAUDE_SKILL_DIR}/references/<file>")`:
 | `sendmessage-resume.md` | SendMessage auto-resume (CC 2.1.77) |
 | `tier-fallbacks.md` | T1/T2/T3 graceful degradation |
 | `dynamic-workflow-patterns.md` | The 6 Dynamic-Workflow patterns → ork map, failure-mode selection, per-agent model tiers, use-directly-vs-template, quarantine pointer |
+| `assertion-grader.md` | Fresh-context grader auditing a `/goal` assertion set on timeout/stall — verdict tighten/loosen/abort + revised line |
 
 ## Related Skills
 

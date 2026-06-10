@@ -321,6 +321,8 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "SKILL.md Validation" "$SCRIPT_DIR/skills/structure/test-skill-md.sh" || true
         run_test "Rule File Validation" "$SCRIPT_DIR/skills/structure/test-rule-validation.sh" || true  # silent: best-effort (run_test records failures; suite exits non-zero at end)
         run_test "AskUserQuestion Schema" "$SCRIPT_DIR/skills/structure/test-askuserquestion-schema.sh" || true  # silent: best-effort
+        run_test "Model ID Vocabulary" "$SCRIPT_DIR/skills/structure/test-model-id-vocab.sh" || true  # silent: best-effort
+        run_test "Rubric Schema (ork-rubric/1.0)" "$SCRIPT_DIR/skills/structure/test-rubric-schema.sh" || true  # silent: best-effort
         run_test "Semantic Matching" "$SCRIPT_DIR/skills/semantic-matching/test-skill-discovery.sh" || true
         run_test "Skill-Agent Integration" "$SCRIPT_DIR/skills/integration/test-skill-agent-integration.sh" || true
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true

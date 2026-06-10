@@ -1,0 +1,16 @@
+{
+  "rubric": "ork-rubric/1.0",
+  "skill": "assess",
+  "description": "Assess quality model, default mode (single implementation review): 7 base dimensions from the unified scoring framework, no Visual. Composite 5.5 is the implement gate. Comparison mode (design alternatives) adds Simplicity at 0.10 and rebalances — see references/quality-model.md; this rubric encodes the default mode.",
+  "source": "references/quality-model.md (extends quality-gates/references/unified-scoring-framework.md)",
+  "composite": { "min_pass": 5.5 },
+  "dimensions": [
+    { "name": "correctness", "weight": 0.15 },
+    { "name": "maintainability", "weight": 0.15 },
+    { "name": "performance", "weight": 0.12 },
+    { "name": "security", "weight": 0.20, "min_blocker": 4.0 },
+    { "name": "scalability", "weight": 0.10 },
+    { "name": "testability", "weight": 0.13 },
+    { "name": "compliance", "weight": 0.15 }
+  ]
+}

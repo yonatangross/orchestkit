@@ -97,6 +97,16 @@ When CC's native task-budget API ships GA, replace the estimate with the real si
 > Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
 
 
+## Step -0.5: Assess Verdict Gate
+
+If `.claude/chain/assess-verdict.json` exists with a `feature` matching this run and `verdict == "fail"` (composite < the 5.5 `min_pass` in `${CLAUDE_PLUGIN_ROOT}/skills/assess/rubric.json`, or any dimension below its `min_blocker`), **BLOCK Phase 1**. Present each `blockers[]` entry (dimension, score, reason), then `AskUserQuestion` with plain label+description options (no `preview`):
+
+1. **Fix blockers first (Recommended)** — address the blockers, re-run `/ork:assess`, then return here.
+2. **Override and implement** — proceed anyway; record `"assess_gate": "overridden"` in `state.json` and carry the blockers into Phase 1 context.
+
+Missing file or `verdict == "pass"` → no gate; continue to Step 0.
+
+
 ## Step 0: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
 
 Read the `/effort` setting to scale implementation depth. The effort-aware context budgeting hook detects effort level automatically — adapt the phase plan accordingly:
