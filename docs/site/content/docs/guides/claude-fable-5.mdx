@@ -1,0 +1,47 @@
+---
+title: "Claude Fable 5 with OrchestKit"
+description: "How OrchestKit supports Claude Fable 5: correct pricing, a spend-consent gate for agent pins, advisor warnings, and the deliberate opt-in path (ORK_FABLE_OK)."
+---
+
+# Claude Fable 5 with OrchestKit
+
+Claude Fable 5 (`claude-fable-5`, released 2026-06-09) is Anthropic's Mythos-class frontier model: state-of-the-art on coding, vision, and knowledge work, with week-long autonomous-run capability and a 1M-context variant (`claude-fable-5[1m]`). It bills at **$10 input / $50 output per MTok** — 2x Opus 4.8 output pricing — and in under 5% of sessions a safety classifier transparently falls back to Opus 4.8 (cyber/bio topics; you are informed when it happens).
+
+OrchestKit supports Fable 5 fully, while treating it as a **deliberate spend decision** rather than a default.
+
+> **Dated note:** Fable 5 is included at no extra cost in Pro/Max/Team subscriptions until **June 22, 2026**; after that it requires usage credits. Everything below is evergreen.
+
+## What OrchestKit does for you
+
+| Surface | Behavior |
+|---------|----------|
+| Pricing | `claude-fable-5` (+ `fable` alias and the `[1m]` variant) is priced correctly in cost estimation — previously unknown models silently fell back to sonnet pricing, underbilling by ~70% |
+| Model vocabulary | One source of truth (`src/hooks/src/lib/models.vocab.json`) feeds agent-frontmatter validation, docs generation, the skill content lint, and pricing — `model: fable` is a first-class, CI-validated value |
+| Spend consent | Spawning an agent **pinned** to fable triggers a permission prompt with the cost spelled out — approve per-spawn, or pre-consent with `ORK_FABLE_OK=1` |
+| Cost advice | An agent that merely *inherits* fable from your session gets a downgrade warning when its task is low/medium complexity (~70%/60% savings vs. sonnet, derived from real pricing) |
+| Tier rules | `fable` joins `opus` as a premium tier: CI reserves it for high-complexity agents (security/safety/system-design/event-driven/workflow) |
+
+## Choosing where Fable 5 runs
+
+There are three distinct decisions, and OrchestKit treats them differently:
+
+1. **Your session model** (`/model`) — entirely yours; OrchestKit never interferes. `inherit` agents follow it.
+2. **An agent pinned to fable** (`model: fable` in a spawn or agent frontmatter) — this commits future runs to frontier pricing, so the spend-consent gate asks first.
+3. **Pre-consented automation** — set `ORK_FABLE_OK=1` in the environment (or CI) when you have deliberately decided a workload is worth frontier pricing.
+
+```bash
+# One-off: approve the permission prompt when it appears.
+# Session/CI-wide pre-consent:
+export ORK_FABLE_OK=1
+```
+
+The cost-neutral default for agent fleets is `model: inherit` — quality follows whatever you chose for the session (including fable when *you* chose it), prompt-cache forking keeps working, and nothing is silently committed to frontier pricing.
+
+## Fallback behavior to know about
+
+Fable 5's safety classifiers fall back to Opus 4.8 in a small fraction of sessions, most likely on cyber/bio-adjacent content. For security-audit workloads this means a fable-pinned auditor could silently switch models mid-run — one reason OrchestKit keeps its own security agents on an explicit `opus` pin rather than fable.
+
+## Requirements
+
+- Claude Code **2.1.170+** (OrchestKit's support floor) — Fable 5 access shipped in CC 2.1.170.
+- No OrchestKit configuration is needed for any of the above; it ships in the `ork` plugin.

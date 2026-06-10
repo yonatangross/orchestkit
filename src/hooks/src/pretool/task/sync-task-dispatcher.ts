@@ -22,6 +22,7 @@ import { outputSilentSuccess, extractContext } from '../../lib/common.js';
 // Import consolidated hook implementations
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
 import { teamSizeGate } from './team-size-gate.js';
+import { fableSpendConsent } from './fable-spend-consent.js';
 import { taskExistenceGate } from './task-existence-gate.js';
 import { taskAgentAdvisor } from './task-agent-advisor.js';
 import { toolInvocationLinter } from '../tool-invocation-linter.js';
@@ -42,6 +43,9 @@ interface TaskHookConfig {
 const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
+  // fable-spend-consent: escalates explicit fable model pins to a user
+  // permission prompt ($10/$50 per MTok is a deliberate spend decision).
+  { name: 'fable-spend-consent', fn: fableSpendConsent },
   { name: 'task-existence-gate', fn: taskExistenceGate },
   // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
@@ -71,6 +75,16 @@ export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
 
       if (!result.continue) {
         ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
+        return result;
+      }
+
+      // Permission escalations (ask/deny) carry continue:true but must reach
+      // CC verbatim — merging them into additionalContext would swallow the
+      // prompt. Short-circuit and propagate (fable-spend-consent emits these).
+      const decision = (result.hookSpecificOutput as { permissionDecision?: string } | undefined)
+        ?.permissionDecision;
+      if (decision === 'ask' || decision === 'deny') {
+        ctx.log(HOOK_NAME, `${hook.name} escalated (${decision}) — short-circuiting`);
         return result;
       }
 
