@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.32.2](https://github.com/yonatangross/orchestkit/compare/v8.32.1...v8.32.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* **ci:** repair ci-sentinel analyze loop (3 bugs) ([#2366](https://github.com/yonatangross/orchestkit/issues/2366)) ([d6d0e1e](https://github.com/yonatangross/orchestkit/commit/d6d0e1e0983d37971bf0bc34e14afce7267bd3b3)), closes [#1862](https://github.com/yonatangross/orchestkit/issues/1862) [#1934](https://github.com/yonatangross/orchestkit/issues/1934)
+* **hooks:** worktree-aware git-validator branch protection ([#2365](https://github.com/yonatangross/orchestkit/issues/2365)) ([7ed184c](https://github.com/yonatangross/orchestkit/commit/7ed184c2bec1f54bf19388ad5e16e5f539dc3e91)), closes [#2363](https://github.com/yonatangross/orchestkit/issues/2363) [#2244](https://github.com/yonatangross/orchestkit/issues/2244)
+
 ## [8.32.1](https://github.com/yonatangross/orchestkit/compare/v8.32.0...v8.32.1) (2026-06-10)
 
 
