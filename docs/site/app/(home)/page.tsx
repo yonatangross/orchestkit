@@ -4,6 +4,7 @@ import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
 import { formatStars } from "@/lib/format-stars";
 import { AnimateOnView } from "@/components/animate-on-view";
+import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 
 async function getStarCount(): Promise<number | null> {
@@ -456,6 +457,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ============ FOR AI AGENTS (SSR, text-dense) ============ */}
+      <AgentReadinessSection />
+
       {/* ============ FOOTER ============ */}
       <footer>
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-7 py-5 text-[13px] text-fd-muted-foreground">
@@ -495,6 +499,15 @@ export default async function HomePage() {
             </Link>
             <Link href="/about" className="hover:text-fd-foreground">
               About
+            </Link>
+            <Link href="/contact" className="hover:text-fd-foreground">
+              Contact
+            </Link>
+            <Link href="/privacy" className="hover:text-fd-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-fd-foreground">
+              Terms
             </Link>
           </nav>
         </div>

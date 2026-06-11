@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.33.0",
+    "date": "2026-06-11",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**adoption:** adopt CC nested sub-agents + /release-notes ([#2368](https://github.com/yonatangross/orchestkit/issues/2368)) ([6f1219d](https://github.com/yonatangross/orchestkit/commit/6f1219d6243c3ab63e8d4ed55d77578e267839b8))",
+          "**agents:** nested-delegation sweep + depth injection ([#2370](https://github.com/yonatangross/orchestkit/issues/2370)) ([59bc53b](https://github.com/yonatangross/orchestkit/commit/59bc53bc9586aa1d0950a7e890c9bf5d91a6fdf1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.32.2",
     "date": "2026-06-10",
     "compareUrl": "",

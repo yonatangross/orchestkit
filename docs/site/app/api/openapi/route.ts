@@ -2,10 +2,13 @@
 // Created: 2026-06-05
 
 import { COUNTS, SITE } from "@/lib/constants";
+import { OPENAPI_COMPONENTS } from "@/lib/openapi/components";
+import { OPENAPI_PATHS } from "@/lib/openapi/paths";
 
 // OpenAPI 3.1 description of the public, read-only OrchestKit API. Referenced as
 // the `service-desc` relation of the API catalog (/.well-known/api-catalog) so
 // agents can discover the API surface and call it via function-calling. No auth.
+// Components live in lib/openapi/components.ts, paths in lib/openapi/paths.ts.
 export const revalidate = false;
 
 export function GET() {
@@ -15,7 +18,7 @@ export function GET() {
 			title: `${SITE.name} Docs API`,
 			version: SITE.version,
 			summary: "Public, read-only API over the OrchestKit documentation.",
-			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks). No authentication is required — see ${SITE.domain}/auth.md. Errors use the RFC 9457 Problem Details shape (served as application/json) and reference the Problem schema. **Versioning:** this is API v1, also reachable under the path-versioned alias \`/api/v1/*\` (e.g. \`/api/v1/search\`). Breaking changes ship under a new \`/api/vN\` prefix; the unversioned path tracks the latest. **Deprecation policy:** nothing is deprecated today. When an endpoint is eventually deprecated, its responses will carry the RFC 8594 \`Deprecation\` and \`Sunset\` HTTP headers (and a \`Link\` header with \`rel="deprecation"\` pointing at the migration notes); the endpoint keeps working until the date in \`Sunset\`. Breaking replacements ship under a new \`/api/vN\` prefix so existing integrations stay on their current version. **Rate limits:** the API is public and CDN-fronted with no per-key quota; cache responses and retry transient 5xx with exponential backoff.`,
+			description: `Read-only API for the ${SITE.name} documentation site (${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks). No authentication is required — see ${SITE.domain}/auth.md. Errors use the RFC 9457 Problem Details shape (served as application/json) and reference the Problem schema. **Versioning:** this is API v1, also reachable under the path-versioned alias \`/api/v1/*\` (e.g. \`/api/v1/search\`). Breaking changes ship under a new \`/api/vN\` prefix; the unversioned path tracks the latest. **Deprecation policy:** nothing is deprecated today. When an endpoint is eventually deprecated, its responses will carry the RFC 8594 \`Deprecation\` and \`Sunset\` HTTP headers (and a \`Link\` header with \`rel="deprecation"\` pointing at the migration notes); the endpoint keeps working until the date in \`Sunset\`. Breaking replacements ship under a new \`/api/vN\` prefix so existing integrations stay on their current version. **Rate limits:** 120 requests per minute per IP per endpoint, communicated via the IETF \`RateLimit-*\` response headers on every response; exceeding the window returns 429 with \`Retry-After\`. Cache responses and retry transient 5xx with exponential backoff. **Pagination:** list endpoints use opaque cursors — pass \`limit\`, then follow the \`Link: rel="next"\` header (or \`X-Next-Cursor\`) until absent. **Idempotency:** every endpoint is a read and therefore idempotent; an \`Idempotency-Key\` request header is accepted and echoed back so clients can correlate retries.`,
 			license: {
 				name: "MIT",
 				url: "https://opensource.org/license/mit",
@@ -26,201 +29,8 @@ export function GET() {
 			{ url: SITE.domain, description: "Production (latest)" },
 			{ url: `${SITE.domain}/api/v1`, description: "Production (v1 alias)" },
 		],
-		paths: {
-			"/api/search": {
-				get: {
-					operationId: "searchDocs",
-					summary: "Full-text search across the documentation",
-					description:
-						"Returns documentation pages matching a search term, ranked by relevance. Use this to find the right doc before fetching its Markdown.",
-					tags: ["search"],
-					parameters: [
-						{
-							name: "query",
-							in: "query",
-							required: true,
-							description: "Search term, e.g. 'install' or 'memory'.",
-							schema: { type: "string", minLength: 1 },
-						},
-						{
-							name: "limit",
-							in: "query",
-							required: false,
-							description:
-								"Max results to return (pagination). Omit for all. The total before limiting is returned in the `X-Total-Count` response header.",
-							schema: { type: "integer", minimum: 1, maximum: 100 },
-						},
-						{
-							name: "tag",
-							in: "query",
-							required: false,
-							description:
-								"Filter by content type: docs | skill | agent | hook | composition.",
-							schema: {
-								type: "string",
-								enum: ["docs", "skill", "agent", "hook", "composition"],
-							},
-						},
-					],
-					responses: {
-						"200": {
-							description: "Ranked search results.",
-							headers: {
-								"X-Total-Count": {
-									description: "Total matches before `limit` was applied.",
-									schema: { type: "integer" },
-								},
-							},
-							content: {
-								"application/json": {
-									schema: {
-										type: "array",
-										items: { $ref: "#/components/schemas/SearchResult" },
-									},
-								},
-							},
-						},
-						"400": { $ref: "#/components/responses/Problem" },
-						"500": { $ref: "#/components/responses/Problem" },
-					},
-				},
-			},
-			"/ask": {
-				post: {
-					operationId: "askQuestion",
-					summary: "Answer a natural-language question about OrchestKit",
-					description:
-						"NLWeb endpoint. Accepts a natural-language query and returns matching documentation as structured JSON (with a `_meta` block). Send `Accept: text/event-stream` to stream results as Server-Sent Events.",
-					tags: ["ask"],
-					requestBody: {
-						required: true,
-						content: {
-							"application/json": {
-								schema: { $ref: "#/components/schemas/AskRequest" },
-							},
-						},
-					},
-					responses: {
-						"200": {
-							description: "Structured answer with matching documentation.",
-							content: {
-								"application/json": {
-									schema: { $ref: "#/components/schemas/AskResponse" },
-								},
-								"text/event-stream": {
-									schema: {
-										type: "string",
-										description:
-											"SSE stream of NLWeb events: start, result, complete.",
-									},
-								},
-							},
-						},
-						"400": { $ref: "#/components/responses/Problem" },
-						"415": { $ref: "#/components/responses/Problem" },
-						"500": { $ref: "#/components/responses/Problem" },
-					},
-				},
-			},
-			"/api/health": {
-				get: {
-					operationId: "getHealth",
-					summary: "Liveness check",
-					description:
-						"Returns 200 with service name and version when serving.",
-					tags: ["meta"],
-					responses: {
-						"200": {
-							description: "Service is serving.",
-							content: {
-								"application/json": {
-									schema: {
-										type: "object",
-										properties: {
-											status: { type: "string", examples: ["ok"] },
-											service: { type: "string" },
-											version: { type: "string" },
-										},
-										required: ["status"],
-									},
-								},
-							},
-						},
-						"503": { $ref: "#/components/responses/Problem" },
-					},
-				},
-			},
-		},
-		components: {
-			schemas: {
-				SearchResult: {
-					type: "object",
-					description: "A single documentation search hit.",
-					properties: {
-						id: { type: "string", description: "Stable result id." },
-						url: { type: "string", description: "Path to the doc page." },
-						content: {
-							type: "string",
-							description: "Matching heading or text excerpt.",
-						},
-					},
-					required: ["id", "url"],
-				},
-				AskRequest: {
-					type: "object",
-					properties: {
-						query: {
-							type: "string",
-							minLength: 1,
-							description: "The natural-language question.",
-						},
-					},
-					required: ["query"],
-				},
-				AskResponse: {
-					type: "object",
-					properties: {
-						results: {
-							type: "array",
-							items: { $ref: "#/components/schemas/SearchResult" },
-						},
-						_meta: {
-							type: "object",
-							description: "NLWeb metadata.",
-							properties: {
-								response_type: { type: "string", examples: ["docs"] },
-								version: { type: "string" },
-							},
-							required: ["response_type", "version"],
-						},
-					},
-					required: ["results", "_meta"],
-				},
-				Problem: {
-					type: "object",
-					description: "RFC 9457 Problem Details.",
-					properties: {
-						type: { type: "string" },
-						title: { type: "string" },
-						status: { type: "integer" },
-						detail: { type: "string" },
-						instance: { type: "string" },
-					},
-					required: ["title", "status"],
-				},
-			},
-			responses: {
-				Problem: {
-					description:
-						"Error using the RFC 9457 Problem Details shape, served as application/json.",
-					content: {
-						"application/json": {
-							schema: { $ref: "#/components/schemas/Problem" },
-						},
-					},
-				},
-			},
-		},
+		paths: OPENAPI_PATHS,
+		components: OPENAPI_COMPONENTS,
 	};
 
 	return new Response(JSON.stringify(spec, null, 2), {
