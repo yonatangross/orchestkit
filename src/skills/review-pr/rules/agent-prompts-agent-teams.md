@@ -39,7 +39,7 @@ CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
 
 TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
 
-Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
+Agent(subagent_type="ork:code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review code quality and type safety for PR #$PR_NUMBER.
 
@@ -54,7 +54,7 @@ Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
      When you find test gaps, message test-reviewer.
      Return findings as a JSON block (```json```) with category prefix MAINT.""")
 
-Agent(subagent_type="security-auditor", name="security-reviewer",
+Agent(subagent_type="ork:security-auditor", name="security-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Security audit for PR #$PR_NUMBER.
 
@@ -70,7 +70,7 @@ Agent(subagent_type="security-auditor", name="security-reviewer",
      for API issues, frontend-reviewer for XSS).
      Return findings as a JSON block (```json```) with category prefix SEC.""")
 
-Agent(subagent_type="test-generator", name="test-reviewer",
+Agent(subagent_type="ork:test-generator", name="test-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -92,7 +92,7 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      Return findings as a JSON block (```json```) with category prefix TEST.""")
 
 # Only spawn if backend files detected (HAS_BACKEND)
-Agent(subagent_type="backend-system-architect", name="backend-reviewer",
+Agent(subagent_type="ork:backend-system-architect", name="backend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review backend code for PR #$PR_NUMBER.
 
@@ -108,7 +108,7 @@ Agent(subagent_type="backend-system-architect", name="backend-reviewer",
      Return findings as a JSON block (```json```) with prefixes BUG/PERF/MAINT.""")
 
 # Only spawn if frontend files detected (HAS_FRONTEND)
-Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
+Agent(subagent_type="ork:frontend-ui-developer", name="frontend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review frontend code for PR #$PR_NUMBER.
 
@@ -137,8 +137,8 @@ ExitWorktree(action="keep")
 **Incorrect — No team teardown:**
 ```python
 # Agents keep running indefinitely
-Agent(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
-Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="ork:code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="ork:security-auditor", team_name="review-pr-$PR_NUMBER")
 # No teardown — agents keep running (needs TeamDelete(), below)
 ```
 

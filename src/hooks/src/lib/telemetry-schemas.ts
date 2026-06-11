@@ -377,8 +377,10 @@ export const CANONICAL_DECISION_LOG_ENTRY: DecisionLogEntry = {
 
 export const CANONICAL_SUBAGENT_SPAWN_ENTRY: SubagentSpawnEntry = {
   timestamp: '2026-04-23T12:34:56.000Z',
+  source: 'start',
   agent_id: 'a1b2c3d4',
   subagent_type: 'Explore',
+  description: 'Explore the hooks directory structure',
   parent_agent_id: 'e5f6a7b8',
   spawn_depth: 2,
 };

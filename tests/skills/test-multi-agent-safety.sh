@@ -174,8 +174,11 @@ for builtin in "${CC_BUILTIN_AGENTS[@]}"; do
     KNOWN_AGENTS["$builtin"]=1
 done
 
-for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
-    skill_name=$(basename "$(dirname "$skill_md")")
+# Cover ALL markdown under src/skills/ (SKILL.md, rules/, references/, any
+# depth) plus CONTRIBUTING-SKILLS.md — bare ork spawns in reference files are
+# just as broken at dispatch as ones in SKILL.md (#2371 follow-up).
+while IFS= read -r skill_md; do
+    skill_name="${skill_md#"$SKILLS_DIR"/}"
 
     # Extract agent types from Task(subagent_type="...") calls
     while IFS= read -r agent_type; do
@@ -183,6 +186,12 @@ for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
         agent_type=$(echo "$agent_type" | sed 's/[",]//g' | tr -d ' ')
 
         if [[ -z "$agent_type" ]]; then
+            continue
+        fi
+
+        # Documentation placeholders (<agent-a>, <classifier>, ...) are
+        # illustrative, not dispatchable types — skip them.
+        if [[ "$agent_type" == \<*\> ]]; then
             continue
         fi
 
@@ -212,7 +221,7 @@ for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
             info "$skill_name: agent '$agent_type' exists (OK)"
         fi
     done < <(grep -oE 'subagent_type="[^"]*"' "$skill_md" 2>/dev/null | sed 's/subagent_type="//;s/"//')
-done
+done < <(find "$SKILLS_DIR" -name '*.md' -type f | sort)
 
 if [[ ${#MISSING_AGENTS[@]} -eq 0 ]]; then
     pass "All referenced agent types have matching definitions"

@@ -1691,9 +1691,9 @@ Glob(pattern="**/*{topic}*")
 
 ```python
 # Launch ALL agents in ONE message
-Agent(subagent_type="workflow-architect", prompt="...", run_in_background=True)
-Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Agent(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:workflow-architect", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)
 ```
 
 **Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3.

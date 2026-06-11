@@ -27,14 +27,14 @@ Agent(subagent_type="Explore", name="data-flow-explorer",
      When you discover cross-boundary data flows (frontend→backend or vice versa),
      message both backend-explorer and frontend-explorer.""")
 
-Agent(subagent_type="backend-system-architect", name="backend-explorer",
+Agent(subagent_type="ork:backend-system-architect", name="backend-explorer",
      team_name="explore-{topic}",
      prompt="""Analyze backend architecture patterns for: {topic}
      When structure-explorer or data-flow-explorer share backend findings,
      investigate deeper — API design, database schema, service patterns.
      Share integration points with frontend-explorer for consistency.""")
 
-Agent(subagent_type="frontend-ui-developer", name="frontend-explorer",
+Agent(subagent_type="ork:frontend-ui-developer", name="frontend-explorer",
      team_name="explore-{topic}",
      prompt="""Analyze frontend components, state, and routes for: {topic}
      When structure-explorer shares component locations, investigate deeper.

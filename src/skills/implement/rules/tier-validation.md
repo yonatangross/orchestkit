@@ -26,7 +26,7 @@ Claude defaults to enterprise-grade patterns regardless of project size. A take-
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Design hexagonal architecture with DI container, repository pattern,
   CQRS for read/write separation, and event sourcing for the todo API")
 # Result: 35 files, 4 abstraction layers for a CRUD app
@@ -36,7 +36,7 @@ Agent(subagent_type="backend-system-architect",
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Design a simple flat-file Express app for the todo API.
   Tier: 1 (Interview). Max 10 files. No DI, no abstractions beyond MVC.
   Focus: working code, clear tests, clean README.")

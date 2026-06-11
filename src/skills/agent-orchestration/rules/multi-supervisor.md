@@ -157,7 +157,7 @@ TaskUpdate(taskId="2", addBlockedBy=["1"])  # link deps after the task exists
 # 3. Spawn teammates
 Agent(prompt="You are the backend architect...",
      team_name="feature-auth", name="backend-dev",
-     subagent_type="backend-system-architect")
+     subagent_type="ork:backend-system-architect")
 ```
 
 ### Peer Messaging

@@ -709,7 +709,7 @@ Every Agent prompt must include project context, not just "do X":
 
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt=f"""Design backend for: {feature}
 Changed files: {changed_files}
 Project conventions: {conventions_from_memory}

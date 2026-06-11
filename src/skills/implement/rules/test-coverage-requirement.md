@@ -31,9 +31,9 @@ Grep(pattern="def test_|class Test", glob="**/test_*.py")
 **Incorrect — proceed without tests:**
 ```python
 # Phase 5: Implementation
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement user auth endpoints", run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement login form", run_in_background=True)
 # No test-generator agent spawned
 # Phase 6: "Let's verify integration..." ← no tests exist to run
@@ -42,11 +42,11 @@ Agent(subagent_type="frontend-ui-developer",
 **Correct — tests are parallel and mandatory:**
 ```python
 # Phase 5: Implementation + Tests (parallel)
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement user auth endpoints", run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement login form", run_in_background=True)
-Agent(subagent_type="test-generator",
+Agent(subagent_type="ork:test-generator",
   prompt="Generate tests for user auth: unit tests for endpoints,
   integration tests for auth flow, component tests for login form.
   Change types: API endpoint + UI component (see Test Requirements Matrix)",
@@ -58,7 +58,7 @@ for agent in [backend, frontend, test_gen]:
 
 if test_file_count == 0:
     # DO NOT proceed — return to Phase 5
-    Agent(subagent_type="test-generator",
+    Agent(subagent_type="ork:test-generator",
       prompt="BLOCKED: No tests found. Generate tests for: {files_created}")
 ```
 

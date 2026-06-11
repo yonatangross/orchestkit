@@ -290,7 +290,7 @@ INPUT: URL/Content
 **Quality Evaluator Agent:**
 ```python
 Agent(
-    subagent_type="code-quality-reviewer",
+    subagent_type="ork:code-quality-reviewer",
     prompt="""GOLDEN DATASET QUALITY EVALUATION
 
     Evaluate this content for golden dataset inclusion:
@@ -438,10 +438,10 @@ query_result = await generate_queries(content)
 **Correct — Parallel agent execution:**
 ```python
 # Parallel - all agents run concurrently
-quality_task = Agent(subagent_type="code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
-difficulty_task = Agent(subagent_type="classifier", prompt=difficulty_prompt, run_in_background=True)
-domain_task = Agent(subagent_type="tagger", prompt=domain_prompt, run_in_background=True)
-query_task = Agent(subagent_type="query-generator", prompt=query_prompt, run_in_background=True)
+quality_task = Agent(subagent_type="ork:code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
+difficulty_task = Agent(subagent_type="<classifier>", prompt=difficulty_prompt, run_in_background=True)
+domain_task = Agent(subagent_type="<tagger>", prompt=domain_prompt, run_in_background=True)
+query_task = Agent(subagent_type="<query-generator>", prompt=query_prompt, run_in_background=True)
 
 # Wait for all results
 results = await gather_task_results([quality_task, difficulty_task, domain_task, query_task])
@@ -1766,7 +1766,7 @@ OUTPUT: Curated document entry
 
 ```python
 Agent(
-    subagent_type="code-quality-reviewer",
+    subagent_type="ork:code-quality-reviewer",
     prompt="""GOLDEN DATASET QUALITY EVALUATION
 
     Evaluate this content for golden dataset inclusion:
@@ -1815,7 +1815,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="workflow-architect",
+    subagent_type="ork:workflow-architect",
     prompt="""DIFFICULTY CLASSIFICATION
 
     Analyze document complexity for retrieval testing:
@@ -1850,7 +1850,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="data-pipeline-engineer",
+    subagent_type="ork:data-pipeline-engineer",
     prompt="""DOMAIN TAGGING
 
     Extract domain tags for this content:
@@ -1886,7 +1886,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="test-generator",
+    subagent_type="ork:test-generator",
     prompt="""TEST QUERY GENERATION
 
     Generate test queries for this golden dataset document:

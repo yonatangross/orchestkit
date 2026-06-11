@@ -19,7 +19,7 @@ If ANY condition fails, CC falls back to standard cold-start `Agent()`.
 
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   name="backend-explorer",            # Named for @mention routing
   prompt="""Scope: {specific_task}
 

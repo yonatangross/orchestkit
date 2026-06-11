@@ -39,7 +39,7 @@ See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 ```python
 # PARALLEL — All 6 in ONE message
 Agent(
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   model=MODEL_OVERRIDE,  # None inherits default; "opus" for thorough verification (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify code quality. Score 0-10.
@@ -50,7 +50,7 @@ Agent(
   run_in_background=True, max_turns=25
 )
 Agent(
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Security verification. Score 0-10.
@@ -61,7 +61,7 @@ Agent(
   run_in_background=True, max_turns=25
 )
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify test coverage. Score 0-10.
@@ -73,7 +73,7 @@ Agent(
   run_in_background=True, max_turns=25
 )
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify API design and backend patterns. Score 0-10.
@@ -84,7 +84,7 @@ Agent(
   run_in_background=True, max_turns=25
 )
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify frontend implementation. Score 0-10.
@@ -95,7 +95,7 @@ Agent(
   run_in_background=True, max_turns=25
 )
 Agent(
-  subagent_type="python-performance-engineer",
+  subagent_type="ork:python-performance-engineer",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.72)
   Verify performance and scalability. Score 0-10.
@@ -114,7 +114,7 @@ In Agent Teams mode, form a verification team where agents share findings and co
 ```python
 TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
 
-Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
+Agent(subagent_type="ork:code-quality-reviewer", name="quality-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify code quality. Score 0-10.
@@ -123,7 +123,7 @@ Agent(subagent_type="code-quality-reviewer", name="quality-verifier",
      Share your quality score with all teammates for composite calculation.
      Feature: {feature}.""")
 
-Agent(subagent_type="security-auditor", name="security-verifier",
+Agent(subagent_type="ork:security-auditor", name="security-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Security verification. Score 0-10.
@@ -132,7 +132,7 @@ Agent(subagent_type="security-auditor", name="security-verifier",
      Share severity findings with test-verifier for test gap analysis.
      Feature: {feature}.""")
 
-Agent(subagent_type="test-generator", name="test-verifier",
+Agent(subagent_type="ork:test-generator", name="test-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify test coverage. Score 0-10.
@@ -141,7 +141,7 @@ Agent(subagent_type="test-generator", name="test-verifier",
      Message the lead with coverage data for composite scoring.
      Feature: {feature}.""")
 
-Agent(subagent_type="backend-system-architect", name="api-verifier",
+Agent(subagent_type="ork:backend-system-architect", name="api-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify API design and backend patterns. Score 0-10.
@@ -149,7 +149,7 @@ Agent(subagent_type="backend-system-architect", name="api-verifier",
      Share API compliance findings with ui-verifier for consistency check.
      Feature: {feature}.""")
 
-Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
+Agent(subagent_type="ork:frontend-ui-developer", name="ui-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify frontend implementation. Score 0-10.
@@ -160,7 +160,7 @@ Agent(subagent_type="frontend-ui-developer", name="ui-verifier",
 
 # Conditional 6th agent — use python-performance-engineer for backend,
 # frontend-performance-engineer for frontend
-Agent(subagent_type="python-performance-engineer", name="perf-verifier",
+Agent(subagent_type="ork:python-performance-engineer", name="perf-verifier",
      team_name="verify-{feature}", model=MODEL_OVERRIDE,
      prompt="""# Cache-optimized: stable content first (CC 2.1.72)
      Verify performance and scalability. Score 0-10.

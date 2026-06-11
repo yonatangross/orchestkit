@@ -11,7 +11,7 @@ Identify highly-coupled code and dependency bottlenecks. See [dependency-analysi
 
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""DEPENDENCY HOTSPOT ANALYSIS for: $ARGUMENTS
 
   Analyze coupling and dependencies:

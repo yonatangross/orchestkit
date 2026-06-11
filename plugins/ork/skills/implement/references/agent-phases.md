@@ -29,7 +29,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ### Agent 1: Workflow Architect
 ```python
 Agent(
-  subagent_type="workflow-architect",
+  subagent_type="ork:workflow-architect",
   model=MODEL_OVERRIDE,  # None inherits default; "opus" for large features (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
@@ -68,7 +68,7 @@ Agent(
 ### Agent 2: Backend Architect
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
@@ -95,7 +95,7 @@ Agent(
 ### Agent 3: Frontend Developer
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
@@ -123,7 +123,7 @@ Agent(
 ### Agent 4: LLM Integrator
 ```python
 Agent(
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
@@ -162,7 +162,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ### Agent 1: Backend — Complete Implementation
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
@@ -203,7 +203,7 @@ Agent(
 ### Agent 2: Frontend — Complete Implementation
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
@@ -248,7 +248,7 @@ Agent(
 ### Agent 3: AI Integration (if needed)
 ```python
 Agent(
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
@@ -274,7 +274,7 @@ Agent(
 ### Agent 4: Test Suite — Complete Coverage
 ```python
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
@@ -371,7 +371,7 @@ npm test -- --coverage
 ### Agent 1: Backend Integration
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""BACKEND INTEGRATION VERIFICATION
 
   Verify all backend code works together:
@@ -389,7 +389,7 @@ Agent(
 ### Agent 2: Frontend Integration
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""FRONTEND INTEGRATION VERIFICATION
 
   Verify all frontend code works together:
@@ -407,7 +407,7 @@ Agent(
 ### Agent 3: Code Quality Review
 ```python
 Agent(
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
 
   Review ALL new code in one comprehensive report:
@@ -425,7 +425,7 @@ Agent(
 ### Agent 4: Security Audit
 ```python
 Agent(
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
 
   Audit ALL new code in one comprehensive report:

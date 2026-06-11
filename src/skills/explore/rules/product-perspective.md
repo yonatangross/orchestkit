@@ -11,7 +11,7 @@ Add business context and findability suggestions. See [findability-patterns.md](
 
 ```python
 Agent(
-  subagent_type="product-strategist",
+  subagent_type="ork:product-strategist",
   prompt="""PRODUCT PERSPECTIVE for: $ARGUMENTS
 
   Analyze from a product/business viewpoint:

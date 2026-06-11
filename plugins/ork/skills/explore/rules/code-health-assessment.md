@@ -11,7 +11,7 @@ Rate found code quality 0-10 with specific dimensions. See [code-health-rubric.m
 
 ```python
 Agent(
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""CODE HEALTH ASSESSMENT for files related to: $ARGUMENTS
 
   Rate each dimension 0-10:

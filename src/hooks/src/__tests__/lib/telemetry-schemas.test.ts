@@ -241,6 +241,30 @@ describe('SubagentSpawnEntry shape lock (.claude/logs/subagent-spawns.jsonl)', (
     expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', spawn_depth: 1.5 })).toBe(false);
     expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', spawn_depth: '2' })).toBe(false);
   });
+
+  it('accepts both source tags written by the two spawn-log writers', () => {
+    // spawn-intent-logger writes source:"pretool"; subagent-validator writes source:"start"
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', source: 'pretool' })).toBe(true);
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', source: 'start' })).toBe(true);
+  });
+
+  it('rejects unknown or non-string source values', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', source: 'bogus' })).toBe(false);
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', source: 42 })).toBe(false);
+  });
+
+  it('rejects non-string description when present', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', description: 42 })).toBe(false);
+  });
+
+  it('rejects non-string tool_use_id when present', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-06-11T12:00:00.000Z', tool_use_id: 42 })).toBe(false);
+  });
+
+  it('canonical sample carries source + description (matches the start-writer shape)', () => {
+    expect(CANONICAL_SUBAGENT_SPAWN_ENTRY.source).toBe('start');
+    expect(typeof CANONICAL_SUBAGENT_SPAWN_ENTRY.description).toBe('string');
+  });
 });
 
 describe('EditHistoryEntry shape lock (.claude/state/edit-history.jsonl)', () => {

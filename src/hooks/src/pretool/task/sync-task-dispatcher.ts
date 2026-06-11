@@ -44,16 +44,19 @@ interface TaskHookConfig {
 const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
   { name: 'team-size-gate', fn: teamSizeGate },
+  // spawn-intent-logger: records subagent_type + description to the spawn
+  // log — PreToolUse is the only event that carries them (SubagentStart
+  // payload has neither; live-verified CC 2.1.173). Append-only, never
+  // blocks. Runs BEFORE fable-spend-consent so intents are logged even when
+  // the consent hook escalates to a permission prompt and short-circuits the
+  // chain (trade-off: declined intents are logged too).
+  { name: 'spawn-intent-logger', fn: spawnIntentLogger },
   // fable-spend-consent: escalates explicit fable model pins to a user
   // permission prompt ($10/$50 per MTok is a deliberate spend decision).
   { name: 'fable-spend-consent', fn: fableSpendConsent },
   { name: 'task-existence-gate', fn: taskExistenceGate },
   // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
-  // spawn-intent-logger: records subagent_type + description to the spawn
-  // log — PreToolUse is the only event that carries them (SubagentStart
-  // payload has neither; live-verified CC 2.1.173). Append-only, never blocks.
-  { name: 'spawn-intent-logger', fn: spawnIntentLogger },
   // tool-invocation-linter: registry-driven advisory for known-bad invocations
   // (e.g. Agent isolation:'worktree' — #1883). Runs LAST in the chain because
   // it's purely informational; never blocks at the warn/info severities.

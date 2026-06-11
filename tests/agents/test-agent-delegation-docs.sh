@@ -71,6 +71,14 @@ done
 echo ""
 echo "Checked $CHECKED agent(s) with Agent(...) declarations."
 
+# Self-decay floor: agents with Agent(...) grants exist today, so extracting
+# zero declarations means the frontmatter/regex extraction silently broke —
+# the guard would pass forever while checking nothing.
+if [ "$CHECKED" -eq 0 ]; then
+  echo "FAIL: guard extracted zero Agent() declarations — extraction regex broken?"
+  FAILED=1
+fi
+
 if [ "$FAILED" -eq 1 ]; then
   echo "RESULT: FAIL"
   exit 1

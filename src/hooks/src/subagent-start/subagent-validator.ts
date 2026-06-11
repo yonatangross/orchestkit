@@ -370,7 +370,10 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
-  // Log spawn to tracking file (with nesting lineage — CC 2.1.172 chains up to 5 levels)
+  // Log spawn to tracking file. Nesting lineage is currently DORMANT: CC
+  // ≤ 2.1.173 sends no parent_agent_id at SubagentStart, so spawn_depth is
+  // omitted and the depth warning below never fires today. The lineage path
+  // lights up automatically if CC ships parent context (anthropics/claude-code#16424).
   const spawnDepth = logSpawn(subagentType, description, sessionId, input.agent_id, input.parent_agent_id);
   if (spawnDepth !== null && spawnDepth >= 4) {
     ctx.log('subagent-validator', `WARNING: spawn depth ${spawnDepth} approaching CC's 5-level nesting limit`);

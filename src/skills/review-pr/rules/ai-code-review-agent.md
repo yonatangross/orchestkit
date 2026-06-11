@@ -12,7 +12,7 @@ If PR includes AI/ML code, add a 7th agent:
 ```python
 Agent(
   description="Review LLM integration",
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   prompt="""LLM CODE REVIEW for PR $ARGUMENTS
 
   Review AI/LLM integration:
@@ -31,8 +31,8 @@ Agent(
 **Incorrect — Missing LLM review for AI code:**
 ```python
 # PR modifies prompt.py but no LLM reviewer
-Agent(subagent_type="code-quality-reviewer", ...)
-Agent(subagent_type="security-auditor", ...)
+Agent(subagent_type="ork:code-quality-reviewer", ...)
+Agent(subagent_type="ork:security-auditor", ...)
 # Missing: LLM-specific review
 ```
 
@@ -40,5 +40,5 @@ Agent(subagent_type="security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Agent(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
 ```

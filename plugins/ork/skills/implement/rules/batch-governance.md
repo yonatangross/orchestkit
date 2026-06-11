@@ -40,7 +40,7 @@ If count > 10, engage batch governance. If > 50, also consider whether the opera
 
 ```python
 # Don't: one Agent call to rewrite 176 files
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
       prompt="Migrate all repository.py files to the new RepositoryBase pattern")
 # Result: agent edits all 176, tests fail in 40 places, no clean rollback target
 ```
@@ -51,7 +51,7 @@ Agent(subagent_type="backend-system-architect",
 # Do: loop with tests between batches
 files = find_affected_files(pattern)  # 176 files
 for batch in chunks(files, size=5):
-    Agent(subagent_type="backend-system-architect",
+    Agent(subagent_type="ork:backend-system-architect",
           prompt=f"Migrate these 5 files to the new RepositoryBase pattern: {batch}")
     result = Bash("npm test -- src/repositories")
     if result.failed:

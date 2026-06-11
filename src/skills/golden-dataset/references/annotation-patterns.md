@@ -50,7 +50,7 @@ OUTPUT: Curated document entry
 
 ```python
 Agent(
-    subagent_type="code-quality-reviewer",
+    subagent_type="ork:code-quality-reviewer",
     prompt="""GOLDEN DATASET QUALITY EVALUATION
 
     Evaluate this content for golden dataset inclusion:
@@ -99,7 +99,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="workflow-architect",
+    subagent_type="ork:workflow-architect",
     prompt="""DIFFICULTY CLASSIFICATION
 
     Analyze document complexity for retrieval testing:
@@ -134,7 +134,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="data-pipeline-engineer",
+    subagent_type="ork:data-pipeline-engineer",
     prompt="""DOMAIN TAGGING
 
     Extract domain tags for this content:
@@ -170,7 +170,7 @@ Agent(
 
 ```python
 Agent(
-    subagent_type="test-generator",
+    subagent_type="ork:test-generator",
     prompt="""TEST QUERY GENERATION
 
     Generate test queries for this golden dataset document:
