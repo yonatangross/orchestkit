@@ -225,7 +225,15 @@ describe('hooks.json wiring E2E', () => {
       //                          must be captured at PreToolUse; the SubagentStart
       //                          payload carries neither description nor prompt
       //                          (live-verified CC 2.1.173).
-      expect(hooksConfig.description).toContain('211 total');
+      // 211 -> 210: count standardized on hooks.json WIRING ENTRIES — the
+      //                          bin/count-hooks.sh canonical that stamps README
+      //                          and the docs site. spawn-intent-logger is a
+      //                          sync-task-dispatcher CHILD (one of 7 with no
+      //                          wiring entry of their own), so #2371's +1 mixed
+      //                          two conventions and drifted from every stamped
+      //                          surface. Dispatcher children are counted by
+      //                          dispatcher-registry tests, not here.
+      expect(hooksConfig.description).toContain('210 total');
     });
 
     it('description counts add up (global + agent + skill = total)', () => {
