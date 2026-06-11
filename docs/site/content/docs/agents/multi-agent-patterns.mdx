@@ -223,6 +223,35 @@ backend-system-architect   "Fixes implemented"
 security-layer-auditor     "Defense-in-depth verified"
 ```
 
+## Pattern 4: Nested Delegation (CC 2.1.172+)
+
+Since Claude Code 2.1.172, sub-agents can spawn their own sub-agents -- up to 5 levels deep. Eleven ork agents declare delegation grants (`Agent(ork:<name>)` in their tools frontmatter), and each documents *when* to delegate in a CI-guarded `## Delegation` section.
+
+### The real delegation graph
+
+```
+/ork:implement (orchestrator session)
+├── backend-system-architect          [depth 1]
+│   ├── ork:database-engineer         [depth 2]  schema, migrations
+│   └── ork:test-generator            [depth 2]  endpoint test suite
+├── frontend-ui-developer             [depth 1]
+└── code-quality-reviewer             [depth 1]
+    ├── ork:security-auditor          [depth 2]  vulnerability pass
+    └── ork:test-generator            [depth 2]  coverage gaps
+```
+
+The deepest declared chain is `infrastructure-architect -> ork:ci-cd-engineer -> ork:deployment-manager` (depth 3). The hub specialist is `ork:database-engineer` with 5 inbound delegation edges.
+
+### Three rules, all live-verified
+
+1. **Use registry names.** Nested spawns must use the namespaced type -- `Agent(subagent_type="ork:database-engineer")`. Bare names fail at dispatch with "Agent type not found". CI fails any bare-name grant or skill example.
+2. **The grant is advisory.** Claude Code does not enforce the parenthesized list -- an agent with the Agent tool can spawn any registry type. The grant steers behavior through prompt documentation only, so each agent's Delegation section is the real control surface.
+3. **Nest bounded, flatten independent.** Delegate only a bounded sub-problem that is explicitly outside the parent's scope (e.g. migration DDL from a data-pipeline task). Independent sub-tasks should be parallel-dispatched from the orchestrator instead -- nesting hides intermediates and multiplies latency.
+
+### Depth budget
+
+Treat **3 as the practical ceiling** (CC hard-caps at 5). Note that depth *telemetry* is currently dormant: Claude Code sends no parent linkage in hook payloads, so the budget is enforced by agent guidance, not by hooks (upstream: anthropics/claude-code#16424). See the `chain-patterns` skill, Pattern 9, for the full nest-vs-flatten decision rule.
+
 ## Task Management with TaskCreate and TaskUpdate
 
 All multi-agent workflows use Claude Code's task management system (CC 2.1.16+) to track progress. This is mandatory -- not optional.
