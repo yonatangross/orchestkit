@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.36.0](https://github.com/yonatangross/orchestkit/compare/v8.35.0...v8.36.0) (2026-06-11)
+
+
+### Features
+
+* **docs-site:** skills.sh bi-directional verification + registry version sync ([#2379](https://github.com/yonatangross/orchestkit/issues/2379)) ([f4d15fe](https://github.com/yonatangross/orchestkit/commit/f4d15fe3c15ea690131c195ea7f22f65eff731ca))
+
 ## [8.35.0](https://github.com/yonatangross/orchestkit/compare/v8.34.0...v8.35.0) (2026-06-11)
 
 
