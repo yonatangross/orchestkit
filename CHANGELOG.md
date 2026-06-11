@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.37.1](https://github.com/yonatangross/orchestkit/compare/v8.37.0...v8.37.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* **docker:** pin base images by digest ([#2388](https://github.com/yonatangross/orchestkit/issues/2388)) ([e15d01e](https://github.com/yonatangross/orchestkit/commit/e15d01edd9e5d7fd24d1c10e8aace47c135b4a51))
+
 ## [8.37.0](https://github.com/yonatangross/orchestkit/compare/v8.36.2...v8.37.0) (2026-06-11)
 
 
