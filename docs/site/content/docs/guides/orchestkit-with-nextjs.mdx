@@ -1,0 +1,73 @@
+---
+title: "Using OrchestKit with Next.js"
+description: "How OrchestKit's skills, agents, and hooks apply to a Next.js / React codebase — installation, which components activate, and real workflows."
+---
+
+# Using OrchestKit with Next.js
+
+OrchestKit is framework-agnostic — it extends Claude Code, not your app — but several of its skills and agents are written specifically for React and Next.js work. This guide shows what activates on a Next.js codebase and the workflows that benefit most.
+
+## Install
+
+```bash
+claude plugin install ork@orchestkit
+```
+
+That's the whole setup. OrchestKit detects your stack from the codebase itself (package.json, file extensions, framework conventions) — there is no Next.js-specific configuration.
+
+## What activates on a Next.js codebase
+
+**Skills** (auto-injected context when relevant, or invoked as `/ork:<name>`):
+
+- `react-server-components-framework` — App Router, Cache Components, streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
+- `performance` — Core Web Vitals, render optimization, lazy loading, bundle and image optimization.
+- `testing-e2e` — Playwright page objects, visual regression, accessibility testing with axe-core.
+- `testing-unit` — Vitest/Jest patterns, MSW network-level mocking, fixture scoping.
+- `api-design` — REST design and RFC 9457 error handling for your route handlers.
+
+**Agents** (spawned by workflows like `/ork:implement` and `/ork:review-pr`):
+
+- `frontend-ui-developer` — React 19/TypeScript components, optimistic updates, Zod-validated APIs.
+- `frontend-performance-engineer` — bundle analysis, render profiling, Web Vitals.
+- `accessibility-specialist` — WCAG 2.2 audits, keyboard navigation, ARIA patterns.
+- `test-generator` — coverage gap analysis and test generation across the stack.
+
+**Hooks** run regardless of framework: dangerous-command blocking, secret detection, stale-import detection after refactors, and the commit/PR quality gates.
+
+## Workflows that pay off
+
+### Implement a feature end-to-end
+
+```text
+/ork:implement add an account-settings page with optimistic profile updates
+```
+
+`/ork:implement` plans the feature, then runs parallel specialist agents — frontend, backend (if your app has API routes), and test generation — inside an isolated git worktree, and verifies the result before handing it back.
+
+### Review a PR with parallel reviewers
+
+```text
+/ork:review-pr 123
+```
+
+Code-quality, security, testing, and architecture reviewers run in parallel and synthesize one verdict. On frontend-heavy diffs the frontend and accessibility specialists join automatically.
+
+### Diff-aware browser testing
+
+```text
+/ork:expect
+```
+
+Reads your git diff, maps changed components to affected pages, and runs targeted browser checks via the agent-browser CLI — useful before pushing UI changes.
+
+## Honest limitations
+
+- OrchestKit does not replace Next.js tooling — `next build`, ESLint, and your test runner still do the verifying; OrchestKit orchestrates them.
+- Skills encode patterns current as of their last release; for bleeding-edge Next.js canary features, check the [changelog](/docs/changelog) for adoption status.
+- The plugin runs only inside Claude Code. It adds nothing to your production bundle — and nothing to your runtime.
+
+## See also
+
+- [What OrchestKit adds to Claude Code](/compare)
+- [All skills reference](/docs/reference/skills)
+- [Developer resources](/developers)
