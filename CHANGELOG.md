@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.35.0](https://github.com/yonatangross/orchestkit/compare/v8.34.0...v8.35.0) (2026-06-11)
+
+
+### Features
+
+* **delegation:** specialist routing + Agent() grant repairs ([#2374](https://github.com/yonatangross/orchestkit/issues/2374)) ([27aff02](https://github.com/yonatangross/orchestkit/commit/27aff02e3ceea35822d3898a41b2274ef92b577c))
+* **docs-site:** close orank agent-readiness gaps ([#2378](https://github.com/yonatangross/orchestkit/issues/2378)) ([bba0e84](https://github.com/yonatangross/orchestkit/commit/bba0e842838ea79161d2a10594e344c874449620))
+
 ## [8.34.0](https://github.com/yonatangross/orchestkit/compare/v8.33.0...v8.34.0) (2026-06-11)
 
 
