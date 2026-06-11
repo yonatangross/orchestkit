@@ -20,6 +20,8 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/",
 	"/about",
 	"/alternatives",
+	"/best-claude-code-plugins",
+	"/claude-agent-sdk-vs-claude-code-plugins",
 	"/compare",
 	"/contact",
 	"/developers",

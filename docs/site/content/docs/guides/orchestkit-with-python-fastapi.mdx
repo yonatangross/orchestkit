@@ -1,0 +1,70 @@
+---
+title: "Using OrchestKit with Python and FastAPI"
+description: "How OrchestKit applies to a Python backend — async patterns, SQLAlchemy, migrations, and the typed hook contract on PyPI."
+---
+
+# Using OrchestKit with Python and FastAPI
+
+OrchestKit extends Claude Code rather than your application, so it works the same on a Python backend as anywhere else — but its backend skills encode patterns that are specifically Python-shaped, and its hook I/O contract ships as a typed package on PyPI.
+
+## Install
+
+```bash
+claude plugin install ork@orchestkit
+```
+
+No Python-specific configuration. Stack detection reads your `pyproject.toml`, imports, and project layout.
+
+## What activates on a Python codebase
+
+**Skills:**
+
+- `python-backend` — asyncio TaskGroup patterns, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, connection-pool tuning (Python 3.11+).
+- `database-patterns` — Alembic migrations, schema design, versioning, drift handling.
+- `api-design` — REST/GraphQL design, versioning strategies, RFC 9457 Problem Details errors.
+- `testing-integration` — API endpoint tests, database testing, contract verification.
+- `testing-perf` — k6/Locust load tests and pytest execution optimization (xdist, fixture scoping).
+- `security-patterns` — auth flows, input validation, OWASP coverage.
+
+**Agents:** `backend-system-architect` (API and schema boundaries), `database-engineer` (PostgreSQL, query optimization, pgvector), `python-performance-engineer` (profiling, async performance), `security-auditor`, and `test-generator`.
+
+**Hooks** enforce the guardrails that bite hardest on backends: dangerous-command blocking, secret-exfiltration detection, and batch-change discipline (run tests every few files in a migration sweep, not after fifty).
+
+## Workflows that pay off
+
+### Implement an endpoint with its migration and tests
+
+```text
+/ork:implement add a paginated /api/orders endpoint with cursor pagination and an Alembic migration
+```
+
+The backend architect designs the boundary, the database engineer writes the migration, and the test generator covers the endpoint — in parallel, in an isolated worktree. Cursor pagination is the encoded default; offset pagination is flagged as an anti-pattern.
+
+### Review with backend-aware specialists
+
+```text
+/ork:review-pr 123
+```
+
+On Python diffs the reviewer set includes async-correctness and N+1-query checks alongside the standard security and test-coverage passes.
+
+## The typed hook contract on PyPI
+
+If you build tooling that consumes OrchestKit hook events, the I/O contract is published as a typed package:
+
+```bash
+pip install orchestkit-hook-contract
+```
+
+It pins the exact JSON shapes hooks read and emit, so Python-side integrations stay in lockstep with the plugin's TypeScript hook runtime. Published via OIDC trusted publishing on every contract change — see the [PyPI project page](https://pypi.org/project/orchestkit-hook-contract/).
+
+## Honest limitations
+
+- OrchestKit's skills assume modern Python (3.11+) and SQLAlchemy 2.x idioms; legacy 1.x codebases get generic help, not the encoded patterns.
+- Your own toolchain (pytest, ruff, mypy/ty) remains the source of truth — hooks and workflows orchestrate it, they do not replace it.
+
+## See also
+
+- [What OrchestKit adds to Claude Code](/compare)
+- [All skills reference](/docs/reference/skills)
+- [Developer resources](/developers)

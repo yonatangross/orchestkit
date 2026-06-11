@@ -96,6 +96,8 @@ export function GET() {
 		"- [NLWeb natural-language query endpoint](/ask)",
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		"- [Developer resource hub](/developers)",
+		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
+		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
 		"- [MCP server](/api/mcp) · [server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)",
 		"- [API catalog (RFC 9727)](/.well-known/api-catalog)",
 		"- [Pricing](/pricing.md)",
