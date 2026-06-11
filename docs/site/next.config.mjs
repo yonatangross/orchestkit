@@ -58,6 +58,12 @@ const config = {
 			destination: "/api/well-known/mcp-server-card",
 		},
 		{
+			// RFC 9728 Protected Resource Metadata — anonymous-only signal (the
+			// API has no auth; this says so in spec shape instead of a 404).
+			source: "/.well-known/oauth-protected-resource",
+			destination: "/api/well-known/oauth-protected-resource",
+		},
+		{
 			// NLWeb natural-language query endpoint.
 			source: "/ask",
 			destination: "/api/ask",
