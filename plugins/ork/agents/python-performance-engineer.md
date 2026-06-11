@@ -380,6 +380,17 @@ Task: "The /api/v1/orders endpoint is slow"
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
 - **Skill references:** python-backend, performance, testing-perf, testing-unit, monitoring-observability
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `test-generator` | An optimization needs regression tests or benchmark fixtures to lock in the gains — unit test authoring is outside your boundary |
+| `database-engineer` | Profiling points to schema-level fixes — new indexes via migration, partitioning, or query-plan work beyond ORM-level eager loading |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 ## Profiling Tools Reference
 
 | Tool | Purpose | Command |

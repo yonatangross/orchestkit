@@ -294,6 +294,8 @@ Agent(subagent_type="debug-investigator",
   isolation="worktree", run_in_background=true)
 ```
 
+> **Nested delegation (CC 2.1.172+):** Phase 4 RCA agents MAY be instructed to delegate a bounded sub-problem to their declared sub-agents (e.g. code-quality-reviewer → security-auditor for a vulnerability hypothesis) instead of investigating everything inline. Keep chains ≤ 3 levels deep; independent hypotheses belong in the existing 5-agent parallel fan-out, not a serial chain. See chain-patterns Pattern 9 (CC 2.1.172+).
+
 ### Post-Fix Monitoring (CC 2.1.71)
 
 After Phase 11 (commit + PR), schedule CI monitoring:

@@ -237,6 +237,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 Load agent prompts: `Read("${CLAUDE_SKILL_DIR}/references/agent-phases.md")`
 
 For Agent Teams mode: `Read("${CLAUDE_SKILL_DIR}/references/agent-teams-phases.md")`
+> **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).
 
 ### Phase Handoffs (CC 2.1.71)
 

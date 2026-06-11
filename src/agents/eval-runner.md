@@ -296,6 +296,16 @@ Read `init.plugin_errors` from `--output-format stream-json` before running any 
 - **Hands off to:** monitoring-engineer (Langfuse dashboard alerts), team lead (regression decisions)
 - **Skill references:** testing-llm, testing-integration, golden-dataset, monitoring-observability
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `data-pipeline-engineer` | A golden dataset has quality issues (bad chunks, stale embeddings, schema drift) and needs regeneration — you flag data problems but must never modify datasets yourself |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 

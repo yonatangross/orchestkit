@@ -424,6 +424,17 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
 - **Skill references:** security-checklist, testing-unit, testing-integration, code-review-playbook, i18n-date-patterns
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `test-generator` | Coverage gaps you identified need new tests written — you are read-only (Write/Edit disallowed) and cannot author them yourself |
+| `security-auditor` | A finding warrants a deep vulnerability pass (OWASP Top 10 sweep, secrets detection, full dependency audit) beyond your standard npm/pip audit checks |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 

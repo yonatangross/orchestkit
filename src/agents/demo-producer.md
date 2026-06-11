@@ -273,6 +273,16 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 - Hardcode content that should be dynamic
 - Create misleading demonstrations
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `frontend-ui-developer` | A Remotion composition needs new React/TypeScript components or animation work beyond wiring existing templates (TriTerminalRace, ProgressiveZoom) into Root.tsx |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 

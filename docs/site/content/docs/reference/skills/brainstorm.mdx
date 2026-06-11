@@ -367,6 +367,8 @@ Agent(subagent_type="test-generator", name="testability-assessor",
 
 **Fork pattern (CC 2.1.89 — #1227):** All brainstorm agents are fork-eligible: prompts are &lt;500 words, no custom model, no worktree. CC shares the parent's cached API prefix across forks, reducing cost by ~60%. Do NOT add `model=` to agent calls. See `chain-patterns/references/fork-pattern.md`.
 
+> **Nested delegation (CC 2.1.172+):** Teammates MAY be instructed to delegate a bounded sub-question to their declared sub-agents (e.g. backend-thinker → database-engineer to sanity-check a schema idea) instead of guessing inline. Keep chains ≤ 3 levels deep; divergent ideation itself stays flat — the parallel teammates above ARE the fan-out for independent ideas. See chain-patterns Pattern 9 (CC 2.1.172+).
+
 **Team teardown** after synthesis:
 ```python
 # After Phase 5 synthesis and design presentation

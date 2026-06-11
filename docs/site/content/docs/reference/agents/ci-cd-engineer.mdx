@@ -214,6 +214,16 @@ Task: "Set up CI/CD for FastAPI backend"
 - **Hands off to:** deployment-manager (for releases), security-auditor (scan results)
 - **Skill references:** devops-deployment, security-patterns, github-operations
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `deployment-manager` | The pipeline work crosses into release execution — production rollouts, rollback procedures, blue-green cutover, or environment promotion beyond what workflow YAML expresses |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 
