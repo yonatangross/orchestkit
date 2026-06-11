@@ -17,7 +17,18 @@ export function GET() {
 		// discovery checkers matching either field shape find the endpoint.
 		url: `${d}/api/mcp`,
 		remotes: [{ type: "streamable-http", url: `${d}/api/mcp` }],
+		// Second surface: the same server as a local stdio process, distributed as
+		// a multi-arch OCI image (mirrors the registry server.json packages shape).
+		packages: [
+			{
+				registryType: "oci",
+				identifier: "ghcr.io/yonatangross/orchestkit-docs-mcp",
+				runtimeHint: "docker",
+				transport: { type: "stdio" },
+			},
+		],
 		transport: "streamable-http",
+		transports: ["streamable-http", "stdio"],
 		authentication: { type: "none" },
 		// Official MCP registry entry (bi-directional verification with the
 		// registry's `websiteUrl` pointing back at this domain).

@@ -42,6 +42,21 @@ export function GET() {
 						type: "application/json",
 						title: "A2A agent card",
 					},
+					{
+						href: `${d}/api-policy.md`,
+						type: "text/markdown",
+						title: "API versioning, deprecation & sunset policy",
+					},
+					{
+						href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
+						type: "text/html",
+						title: "MCP server (stdio, Docker image — second MCP surface)",
+					},
+					{
+						href: "https://pypi.org/project/orchestkit-hook-contract/",
+						type: "text/html",
+						title: "Python SDK package (PyPI: orchestkit-hook-contract)",
+					},
 				],
 			},
 			{
