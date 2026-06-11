@@ -460,10 +460,48 @@ export default async function HomePage() {
       {/* ============ FOR AI AGENTS (SSR, text-dense) ============ */}
       <AgentReadinessSection />
 
+      {/* ============ WHAT IS ORCHESTKIT (SSR prose — semantic indexability) ============
+          Server-rendered plain-text answers; RAG indexers and search engines read raw
+          HTML, so this section carries the canonical name-based descriptions. */}
+      <section className="border-t border-fd-border">
+        <div className="mx-auto max-w-[1200px] px-7 py-12">
+          <h2 className="text-lg font-semibold">What is OrchestKit?</h2>
+          <div className="mt-4 grid gap-6 text-sm leading-relaxed text-fd-muted-foreground md:grid-cols-2">
+            <p>
+              OrchestKit is a free, MIT-licensed plugin for Claude Code, Anthropic&apos;s
+              agentic coding CLI. It packages {COUNTS.skills} reusable skills,{" "}
+              {COUNTS.agents} specialist agents, and {COUNTS.hooks} lifecycle hooks into a
+              single install, so the agent applies proven auth, migration, API-design,
+              testing, and security patterns to your codebase without being re-taught
+              every session. It runs entirely inside Claude Code — there is no hosted
+              service, no account, and no telemetry requirement.
+            </p>
+            <p>
+              OrchestKit is built and maintained by Yonyon, the software studio of
+              Yonatan Gross. Developer resources live at predictable URLs: the{" "}
+              <Link href="/docs/getting-started/installation" className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+                documentation
+              </Link>
+              , the{" "}
+              <Link href="/developers" className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+                developer resource hub
+              </Link>{" "}
+              (OpenAPI spec, MCP server, SDK packages, auth and API policy), and the{" "}
+              <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary">
+                open-source repository on GitHub
+              </a>
+              . AI agents can query the docs through the NLWeb /ask endpoint or the
+              OrchestKit Docs MCP server, hosted and as a Docker image.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ============ FOOTER ============ */}
       <footer>
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-7 py-5 text-[13px] text-fd-muted-foreground">
           <span>
+            OrchestKit is built by Yonyon{" · "}
             Built with{" "}
             <a
               href="https://fumadocs.dev"

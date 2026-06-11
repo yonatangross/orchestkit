@@ -22,6 +22,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/alternatives",
 	"/compare",
 	"/contact",
+	"/developers",
 	"/pricing",
 	"/privacy",
 	"/status",

@@ -33,6 +33,10 @@ export function organizationNode(): JsonLdNode {
 		"@type": "Organization",
 		"@id": ORG_ID,
 		name: SITE.name,
+		// Brand disambiguation: the apex brand "Yonyon" collides with an unrelated
+		// music artist in search/training corpora; alternateName ties the studio
+		// name to THIS entity so name-based queries resolve here.
+		alternateName: ["Yonyon", "OrchestKit by Yonyon"],
 		legalName: ORG.legalName,
 		url: SITE.domain,
 		logo: `${SITE.domain}/favicon.svg`,

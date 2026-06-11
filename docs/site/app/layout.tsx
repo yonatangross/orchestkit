@@ -19,7 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: {
 		template: `%s | ${SITE.name}`,
-		default: `${SITE.name} — AI Development Toolkit`,
+		// "by Yonyon" ties the studio brand to the product for name-based search
+		// queries — the word appeared nowhere as text on the site before this.
+		default: `${SITE.name} by Yonyon — AI Development Toolkit for Claude Code`,
 	},
 	description: `${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks for Claude Code. Stop explaining your stack. Start shipping.`,
 	icons: { icon: "/favicon.svg" },
