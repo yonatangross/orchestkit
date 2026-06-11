@@ -48,6 +48,11 @@ export function GET() {
 						title: "API versioning, deprecation & sunset policy",
 					},
 					{
+						href: `${d}/.well-known/oauth-protected-resource`,
+						type: "application/json",
+						title: "Protected-resource metadata (RFC 9728, anonymous-only)",
+					},
+					{
 						href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
 						type: "text/html",
 						title: "MCP server (stdio, Docker image — second MCP surface)",
