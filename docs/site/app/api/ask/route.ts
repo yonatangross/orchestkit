@@ -2,30 +2,66 @@
 // Created: 2026-06-07
 
 import { type DocHit, searchDocs } from "@/lib/doc-search";
+import { SITE } from "@/lib/constants";
 import { problemResponse } from "@/lib/problem";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // NLWeb /ask endpoint (rewritten from /ask in next.config.mjs). Accepts a
 // natural-language query and returns matching documentation as JSON with a
-// `_meta` block. With `Accept: text/event-stream` (or `prefer.streaming: true`)
-// it streams NLWeb events: start, result, complete.
+// `_meta` block. Follows the NLWeb reference implementation's request
+// contract: GET with ?query= (aliases: q, question), POST with a JSON or
+// form-encoded body, `mode` (list | summarize | generate), and streaming via
+// `?streaming=true`, `prefer.streaming: true`, or `Accept: text/event-stream`.
 // Spec: https://github.com/microsoft/NLWeb
 export const dynamic = "force-dynamic";
 
 const NLWEB_VERSION = "0.1";
+const NLWEB_MODES = new Set(["list", "summarize", "generate"]);
 
-function jsonResponse(query: string, hits: DocHit[]): Response {
-	return Response.json({
-		query,
-		results: hits,
-		_meta: {
-			response_type: "docs",
-			version: NLWEB_VERSION,
-			count: hits.length,
-		},
-	});
+// NLWeb-canonical result shape: `name`, `site`, `score`, `description` are
+// what NLWeb clients consume; `id`, `title`, `url`, `content` are kept for
+// existing consumers of this endpoint.
+function toNlwebResult(hit: DocHit, index: number, total: number) {
+	return {
+		...hit,
+		name: hit.title,
+		site: SITE.domain,
+		score: Math.round(((total - index) / total) * 100) / 100,
+		description: hit.content,
+	};
 }
 
-function sseResponse(query: string, hits: DocHit[]): Response {
+function meta(mode: string, count?: number) {
+	return {
+		response_type: mode,
+		version: NLWEB_VERSION,
+		...(count === undefined ? {} : { count }),
+	};
+}
+
+function jsonResponse(
+	query: string,
+	mode: string,
+	hits: DocHit[],
+	headers: Record<string, string>,
+): Response {
+	return Response.json(
+		{
+			query_id: crypto.randomUUID(),
+			query,
+			results: hits.map((hit, i) => toNlwebResult(hit, i, hits.length)),
+			_meta: meta(mode, hits.length),
+		},
+		{ headers },
+	);
+}
+
+function sseResponse(
+	query: string,
+	mode: string,
+	hits: DocHit[],
+	extraHeaders: Record<string, string>,
+): Response {
 	const encoder = new TextEncoder();
 	const event = (type: string, data: unknown) =>
 		encoder.encode(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -33,10 +69,10 @@ function sseResponse(query: string, hits: DocHit[]): Response {
 	const stream = new ReadableStream({
 		start(controller) {
 			controller.enqueue(
-				event("start", { query, _meta: { response_type: "docs", version: NLWEB_VERSION } }),
+				event("start", { query_id: crypto.randomUUID(), query, _meta: meta(mode) }),
 			);
-			for (const hit of hits) {
-				controller.enqueue(event("result", hit));
+			for (const [i, hit] of hits.entries()) {
+				controller.enqueue(event("result", toNlwebResult(hit, i, hits.length)));
 			}
 			controller.enqueue(event("complete", { count: hits.length }));
 			controller.close();
@@ -45,6 +81,7 @@ function sseResponse(query: string, hits: DocHit[]): Response {
 
 	return new Response(stream, {
 		headers: {
+			...extraHeaders,
 			"Content-Type": "text/event-stream; charset=utf-8",
 			"Cache-Control": "no-cache",
 			Connection: "keep-alive",
@@ -52,48 +89,102 @@ function sseResponse(query: string, hits: DocHit[]): Response {
 	});
 }
 
-async function readQuery(req: Request): Promise<{ query: string; streaming: boolean } | null> {
+type ParsedAsk = { query: string; mode: string; streaming: boolean };
+
+function truthy(value: string | null | undefined): boolean {
+	return value === "true" || value === "1" || value === "yes";
+}
+
+async function readQuery(req: Request): Promise<ParsedAsk | null> {
 	const accept = req.headers.get("accept") ?? "";
-	let streaming = accept.includes("text/event-stream");
+	const params = new URL(req.url).searchParams;
+	let streaming = accept.includes("text/event-stream") || truthy(params.get("streaming"));
+	let query = params.get("query") ?? params.get("q") ?? params.get("question") ?? "";
+	let mode = params.get("mode") ?? "list";
 
-	if (req.method === "GET") {
-		const q = new URL(req.url).searchParams.get("query") ?? "";
-		return { query: q, streaming };
+	if (req.method !== "GET") {
+		const contentType = req.headers.get("content-type") ?? "";
+		try {
+			if (contentType.includes("application/x-www-form-urlencoded")) {
+				const form = new URLSearchParams(await req.text());
+				query = form.get("query") ?? form.get("q") ?? form.get("question") ?? query;
+				mode = form.get("mode") ?? mode;
+				if (truthy(form.get("streaming"))) streaming = true;
+			} else {
+				const body = (await req.json()) as {
+					query?: string;
+					q?: string;
+					question?: string;
+					mode?: string;
+					streaming?: boolean | string;
+					prefer?: { streaming?: boolean };
+				};
+				query = body?.query ?? body?.q ?? body?.question ?? query;
+				mode = body?.mode ?? mode;
+				if (body?.prefer?.streaming || body?.streaming === true || truthy(String(body?.streaming))) {
+					streaming = true;
+				}
+			}
+		} catch {
+			// A POST with an unreadable body still honors query-string params.
+			if (!query) return null;
+		}
 	}
 
-	try {
-		const body = (await req.json()) as {
-			query?: string;
-			prefer?: { streaming?: boolean };
-		};
-		if (body?.prefer?.streaming) streaming = true;
-		return { query: body?.query ?? "", streaming };
-	} catch {
-		return null;
-	}
+	if (!NLWEB_MODES.has(mode)) mode = "list";
+	return { query, mode, streaming };
 }
 
 async function handle(req: Request): Promise<Response> {
+	const rate = checkRateLimit(req, "ask");
+	if (rate.limited) {
+		return problemResponse(
+			{
+				title: "Too many requests",
+				status: 429,
+				detail: `Rate limit exceeded; retry after ${rate.resetSeconds}s.`,
+				instance: "/ask",
+			},
+			{ ...rateLimitHeaders(rate), "Retry-After": String(rate.resetSeconds) },
+		);
+	}
+
+	// /ask is a read — naturally idempotent. Echo the Idempotency-Key so clients
+	// can correlate retried requests with their originals.
+	const idempotencyKey = req.headers.get("idempotency-key");
+	const headers = {
+		...rateLimitHeaders(rate),
+		...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+	};
+
 	const parsed = await readQuery(req);
 	if (!parsed) {
-		return problemResponse({
-			title: "Invalid request body",
-			status: 400,
-			detail: "Expected a JSON body of the form { \"query\": \"...\" }.",
-		});
+		return problemResponse(
+			{
+				title: "Invalid request body",
+				status: 400,
+				detail: 'Expected a JSON body of the form { "query": "..." } or a ?query= parameter.',
+			},
+			headers,
+		);
 	}
 
 	const query = parsed.query.trim();
 	if (!query) {
-		return problemResponse({
-			title: "Missing query",
-			status: 400,
-			detail: "Provide a non-empty `query` (in the JSON body or as a ?query= parameter).",
-		});
+		return problemResponse(
+			{
+				title: "Missing query",
+				status: 400,
+				detail: "Provide a non-empty `query` (in the JSON body or as a ?query= parameter).",
+			},
+			headers,
+		);
 	}
 
 	const hits = searchDocs(query);
-	return parsed.streaming ? sseResponse(query, hits) : jsonResponse(query, hits);
+	return parsed.streaming
+		? sseResponse(query, parsed.mode, hits, headers)
+		: jsonResponse(query, parsed.mode, hits, headers);
 }
 
 export async function POST(req: Request) {

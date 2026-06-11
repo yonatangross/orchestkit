@@ -13,8 +13,17 @@ export function GET() {
 		description: `Model Context Protocol server for the ${SITE.name} documentation (${COUNTS.skills} skills, ${COUNTS.agents} agents). Search the docs and fetch pages as Markdown.`,
 		version: SITE.version,
 		serverUrl: `${d}/api/mcp`,
+		// `url` + `remotes` mirror the official MCP registry server.json schema so
+		// discovery checkers matching either field shape find the endpoint.
+		url: `${d}/api/mcp`,
+		remotes: [{ type: "streamable-http", url: `${d}/api/mcp` }],
 		transport: "streamable-http",
 		authentication: { type: "none" },
+		// Official MCP registry entry (bi-directional verification with the
+		// registry's `websiteUrl` pointing back at this domain).
+		registry:
+			"https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit",
+		registryName: "io.github.yonatangross/orchestkit",
 		// Branding for registry listings (logo + category).
 		icon: `${d}/favicon.svg`,
 		logo: `${d}/favicon.svg`,
