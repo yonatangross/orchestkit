@@ -223,7 +223,7 @@ export const OPENAPI_PATHS = {
 			operationId: "batchGetMarkdown",
 			summary: "Fetch up to 20 documentation pages as Markdown in one request",
 			description:
-				"Batch read: pass an array of doc URL paths (e.g. `/docs/getting-started/installation`) and receive each page's Markdown in a single response. Per-path failures are reported inline so one bad path does not fail the batch. Reads are idempotent; an `Idempotency-Key` header is echoed back.",
+				"Batch read: pass an array of doc URL paths (e.g. `/docs/getting-started/installation`) and receive each page's Markdown in a single response. Per-path failures are reported inline so one bad path does not fail the batch. Reads are idempotent; an `Idempotency-Key` header is echoed back. **Async-job pattern (RFC 7240):** send `Prefer: respond-async` (or `?async=1`) to receive `202 Accepted` with a `Location` header pointing at `/api/jobs/{jobId}`; poll that URL for the job status and result. Jobs are stateless and deterministic — they complete by the first poll.",
 			tags: ["docs"],
 			parameters: [IDEMPOTENCY_KEY_PARAM],
 			requestBody: {
@@ -244,7 +244,71 @@ export const OPENAPI_PATHS = {
 						},
 					},
 				},
+				"202": {
+					description:
+						"Async accepted (when `Prefer: respond-async` or `?async=1` is sent). `Location` points at the job status URL.",
+					headers: {
+						...RATE_LIMIT_HEADER_REFS,
+						Location: {
+							description: "Job status URL (`/api/jobs/{jobId}`).",
+							schema: { type: "string" },
+						},
+					},
+					content: {
+						"application/json": {
+							schema: {
+								type: "object",
+								properties: {
+									job_id: { type: "string" },
+									status: { type: "string", enum: ["accepted"] },
+									status_url: { type: "string" },
+								},
+								required: ["job_id", "status", "status_url"],
+							},
+						},
+					},
+				},
 				"400": PROBLEM_RESPONSE,
+				"429": TOO_MANY_REQUESTS_RESPONSE,
+				"500": PROBLEM_RESPONSE,
+			},
+		},
+	},
+	"/api/jobs/{jobId}": {
+		get: {
+			operationId: "getJobStatus",
+			summary: "Async-job status + result",
+			description:
+				"Poll target for the `Prefer: respond-async` flow on `POST /api/md/batch`. Job ids are stateless: they encode the deterministic read-only request, so this endpoint executes it idempotently and a valid job always reports `completed` with its result inline. Unknown or malformed ids return an RFC 9457 problem with status 404.",
+			tags: ["docs"],
+			parameters: [
+				{
+					name: "jobId",
+					in: "path",
+					required: true,
+					description: "Job id issued by the 202 response of `POST /api/md/batch`.",
+					schema: { type: "string" },
+				},
+			],
+			responses: {
+				"200": {
+					description: "Job state; `completed` jobs carry the result inline.",
+					headers: { ...RATE_LIMIT_HEADER_REFS },
+					content: {
+						"application/json": {
+							schema: {
+								type: "object",
+								properties: {
+									job_id: { type: "string" },
+									status: { type: "string", enum: ["completed"] },
+									result: { $ref: "#/components/schemas/BatchMarkdownResponse" },
+								},
+								required: ["job_id", "status", "result"],
+							},
+						},
+					},
+				},
+				"404": PROBLEM_RESPONSE,
 				"429": TOO_MANY_REQUESTS_RESPONSE,
 				"500": PROBLEM_RESPONSE,
 			},

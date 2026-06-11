@@ -2,6 +2,7 @@
 // Created: 2026-06-11
 
 import { readDocBody } from "@/lib/docs-content";
+import { encodeJobToken } from "@/lib/job-token";
 import { problemResponse } from "@/lib/problem";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { source } from "@/lib/source";
@@ -70,6 +71,30 @@ export async function POST(req: Request) {
 				detail: `At most ${MAX_PATHS} paths per batch request.`,
 			},
 			rateLimitHeaders(rate),
+		);
+	}
+
+	// RFC 7240 async-job pattern: `Prefer: respond-async` (or ?async=1) gets a
+	// 202 + Location pointing at the stateless job endpoint. The job id encodes
+	// the request itself (deterministic read), so the status endpoint can
+	// execute it idempotently with no queue or store.
+	const url = new URL(req.url);
+	const prefersAsync =
+		(req.headers.get("prefer") ?? "").toLowerCase().includes("respond-async") ||
+		url.searchParams.get("async") === "1";
+	if (prefersAsync) {
+		const token = encodeJobToken({ v: 1, kind: "md-batch", paths: paths as string[] });
+		const statusUrl = `/api/jobs/${token}`;
+		return Response.json(
+			{ job_id: token, status: "accepted", status_url: statusUrl },
+			{
+				status: 202,
+				headers: {
+					...rateLimitHeaders(rate),
+					Location: statusUrl,
+					"Preference-Applied": "respond-async",
+				},
+			},
 		);
 	}
 
