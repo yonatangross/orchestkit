@@ -117,6 +117,7 @@ const config = {
 						'</.well-known/agent-skills/index.json>; rel="https://agentskills.io/rel/index"',
 						'</.well-known/agent-card.json>; rel="https://a2a.dev/rel/agent-card"',
 						'</.well-known/mcp/server-card.json>; rel="https://modelcontextprotocol.io/rel/server-card"',
+						'</api-policy.md>; rel="deprecation"',
 					].join(", "),
 				},
 				// Vary on Accept: the same URL serves HTML or Markdown depending on the
