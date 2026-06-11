@@ -94,6 +94,7 @@ export function GET() {
 		"- [API surface context](/api/llms.txt)",
 		"- [OpenAPI spec](/api/openapi)",
 		"- [NLWeb natural-language query endpoint](/ask)",
+		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		"- [MCP server](/api/mcp) · [server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)",
 		"- [API catalog (RFC 9727)](/.well-known/api-catalog)",
 		"- [Pricing](/pricing.md)",

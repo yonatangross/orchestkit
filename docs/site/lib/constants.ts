@@ -55,6 +55,10 @@ export const SAME_AS = [
   "https://smithery.ai/servers/yonaigross/orchestkit",
   // mcp.so listing. Bi-directional verification for the docs ⇄ mcp.so registry.
   "https://mcp.so/server/orchestkit/yonaigross",
+  // skills.sh directory listing (self-published from this repo; installable via
+  // `npx skills add yonatangross/orchestkit`). Bi-directional verification for
+  // the docs ⇄ skills.sh directory.
+  "https://www.skills.sh/yonatangross/orchestkit",
 ] as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;

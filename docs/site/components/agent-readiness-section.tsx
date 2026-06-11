@@ -64,6 +64,16 @@ export function AgentReadinessSection() {
 					leaving the page.
 				</p>
 
+				<h3 className="mt-6 font-semibold text-fd-foreground">Agent skills directory</h3>
+				<p className="mt-1 leading-7 text-fd-muted-foreground">
+					All OrchestKit skills are self-published on{" "}
+					<a href="https://www.skills.sh/yonatangross/orchestkit" className="text-fd-primary underline underline-offset-2">
+						skills.sh
+					</a>{" "}
+					straight from this repository — install any of them with{" "}
+					<code>npx skills add yonatangross/orchestkit</code>.
+				</p>
+
 				<h3 className="mt-6 font-semibold text-fd-foreground">Discovery endpoints</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
 					Agent card at{" "}
