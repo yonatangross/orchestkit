@@ -18,8 +18,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Agent(database-engineer)
-  - Agent(test-generator)
+  - Agent(ork:database-engineer)
+  - Agent(ork:test-generator)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -312,12 +312,12 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `database-engineer` | The API design requires Alembic migrations, index tuning, or schema changes beyond your SQLAlchemy model definitions — migration authoring is outside your boundary |
-| `test-generator` | Endpoint and service-layer test coverage needs a dedicated pass beyond your inline curl/httpie verification |
+| `ork:database-engineer` | The API design requires Alembic migrations, index tuning, or schema changes beyond your SQLAlchemy model definitions — migration authoring is outside your boundary |
+| `ork:test-generator` | Endpoint and service-layer test coverage needs a dedicated pass beyond your inline curl/httpie verification |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

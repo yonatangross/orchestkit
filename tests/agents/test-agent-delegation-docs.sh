@@ -37,7 +37,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   # Frontmatter only — Agent(...) mentions in the body don't count as declarations.
   frontmatter=$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$agent_file")
   mapfile -t refs < <(printf '%s\n' "$frontmatter" \
-    | grep -oE 'Agent\([a-zA-Z0-9_-]+\)' \
+    | grep -oE 'Agent\([a-zA-Z0-9:_-]+\)' \
     | sed -E 's/Agent\(([^)]+)\)/\1/' | sort -u)
 
   [ "${#refs[@]}" -eq 0 ] && continue
@@ -52,6 +52,15 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   # Each declared sub-agent must be mentioned somewhere in the Delegation section.
   delegation_section=$(awk '/^##+ Delegation/{found=1; print; next} found && /^##+ /{exit} found{print}' "$agent_file")
   for ref in "${refs[@]}"; do
+    # Grants must use the runtime-registry name: bare Agent(name) fails at
+    # dispatch ("Agent type 'name' not found") — live-verified, #2371.
+    case "$ref" in
+      *:*) ;;
+      *)
+        echo "FAIL: $agent_name declares bare Agent($ref) — runtime registry only resolves namespaced types (use Agent(ork:$ref), #2371)"
+        FAILED=1
+        ;;
+    esac
     if ! printf '%s\n' "$delegation_section" | grep -q "$ref"; then
       echo "FAIL: $agent_name's Delegation section does not mention declared sub-agent '$ref'"
       FAILED=1

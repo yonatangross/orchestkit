@@ -16,7 +16,7 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Agent(deployment-manager)
+  - Agent(ork:deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -229,11 +229,11 @@ Task: "Set up CI/CD for FastAPI backend"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `deployment-manager` | The pipeline work crosses into release execution — production rollouts, rollback procedures, blue-green cutover, or environment promotion beyond what workflow YAML expresses |
+| `ork:deployment-manager` | The pipeline work crosses into release execution — production rollouts, rollback procedures, blue-green cutover, or environment promotion beyond what workflow YAML expresses |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

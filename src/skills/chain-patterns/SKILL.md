@@ -209,14 +209,16 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 ## Pattern 9: Nested Delegation (CC 2.1.172)
 
-Sub-agents can spawn their own sub-agents, up to 5 levels deep. Agents declaring `Agent(xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ci-cd-engineer → deployment-manager` runs as a live 3-level chain.
+Sub-agents can spawn their own sub-agents, up to 5 levels deep. Agents declaring `Agent(ork:xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager` runs as a live 3-level chain.
 
 ```python
 # Parent agent's prompt can delegate a sub-problem to ITS declared specialist:
-Agent(subagent_type="backend-system-architect",
-      prompt="Design the API. Delegate schema design to database-engineer.")
-# backend-system-architect internally calls Agent(database-engineer) — depth 2.
+Agent(subagent_type="ork:backend-system-architect",
+      prompt="Design the API. Delegate schema design to ork:database-engineer.")
+# backend-system-architect internally calls Agent(ork:database-engineer) — depth 2.
 ```
+
+> **Registry names, advisory scope (#2371, live-verified on CC 2.1.173):** nested spawns must use the namespaced registry type — bare `Agent(database-engineer)` fails at dispatch. And the `Agent(...)` grant is advisory: CC does not block out-of-grant spawns, so the declared list steers the model only through its prompt documentation.
 
 **Nest when** (depth 2-3):
 - A specialist needs its OWN specialist for a bounded sub-problem (schema → index tuning)
@@ -228,7 +230,7 @@ Agent(subagent_type="backend-system-architect",
 - The main loop needs each raw result anyway (nesting hides intermediates)
 - You're tempted past depth 3 — each level multiplies latency and token cost; CC hard-caps at 5
 
-**Depth budget:** treat 3 as the practical ceiling. The `subagent-validator` hook logs `spawn_depth` + `parent_agent_id` to `subagent-spawns.jsonl` and warns at depth ≥ 4.
+**Depth budget:** treat 3 as the practical ceiling. Depth telemetry is currently DORMANT: CC sends no `parent_agent_id` at SubagentStart (live-verified 2026-06-11), so `spawn_depth` is logged only when lineage is real and the validator's depth ≥ 4 warning cannot fire until upstream exposes agent context in hook payloads (anthropics/claude-code#16424). Until then the budget is enforced by THIS guidance, not by hooks — respect it.
 
 > **Compatibility:** chains deeper than 2 require CC 2.1.172+. On older CC, nested `Agent(...)` calls fail at dispatch — design chains to degrade (intermediate agent does the work inline) rather than assume the specialist ran.
 

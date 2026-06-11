@@ -55,6 +55,36 @@ const BUILTIN_CASING_FIXES: Record<string, string> = {
 /** Built-in names that are already correct (exact casing per CC Feb 2026 spec) — never suggest replacing these. */
 const VALID_BUILTINS = new Set(['Explore', 'Plan', 'general-purpose', 'Bash', 'statusline-setup']);
 
+/**
+ * Domain-shaped prompts dispatched as `general-purpose` get a specialist
+ * nudge. Telemetry (424 spawns, 2026-06-11): 17% of real spawns were
+ * general-purpose while ork specialists sat at 10% — the advisor previously
+ * whitelisted general-purpose and could never suggest otherwise.
+ * Order matters: first match wins, so narrower domains come first.
+ * Advisory only — general-purpose remains correct for genuinely mixed tasks.
+ */
+const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp }> = [
+  { agent: 'ork:security-auditor', pattern: /\b(vulnerabilit|security (audit|review|scan)|owasp|cve-\d|secrets? (scan|leak)|injection attack)/i },
+  { agent: 'ork:debug-investigator', pattern: /\b(root.?cause|stack.?trace|debug (the|this|a|an)\b|investigate (the |this |a |an )?(failure|error|crash|bug|regression)|why (does|is|did) .{0,40}(fail|crash|break|error))/i },
+  { agent: 'ork:test-generator', pattern: /\b((write|generate|add|create) (unit |integration |e2e )?tests?\b|coverage gaps?|test suite for)/i },
+  { agent: 'ork:code-quality-reviewer', pattern: /\b(code review|review (this|the|my) (code|pr|pull request|diff|changes?))\b/i },
+  { agent: 'ork:database-engineer', pattern: /\b(schema migration|alembic|pgvector|database (schema|index|migration)|(optimize|slow) (sql|quer))/i },
+  { agent: 'ork:ci-cd-engineer', pattern: /\b(github actions|ci (pipeline|workflow|failure)|\.github\/workflows|gitlab.ci)/i },
+  { agent: 'ork:web-research-analyst', pattern: /\b(web research|search (the web|online)|competitor analysis|market (research|landscape))/i },
+  { agent: 'ork:frontend-ui-developer', pattern: /\b(react (component|hook)|\.tsx\b|tailwind|css (layout|grid|flex)|frontend (component|page|ui))/i },
+  { agent: 'ork:backend-system-architect', pattern: /\b((rest|graphql) api|api endpoints?|microservice|fastapi|backend (service|architecture))/i },
+];
+
+/** Bound the prompt scan so regex work stays inside the PreToolUse budget. */
+const NUDGE_SCAN_MAX_CHARS = 2000;
+
+/** Find a specialist whose domain matches a general-purpose task's text. */
+export function matchSpecialistDomain(description: string, prompt: string): string | null {
+  const text = `${description}\n${prompt.slice(0, NUDGE_SCAN_MAX_CHARS)}`;
+  const match = SPECIALIST_DOMAINS.find((domain) => domain.pattern.test(text));
+  return match ? match.agent : null;
+}
+
 export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
   const agentType = (toolInput.subagent_type as string) || '';
@@ -64,6 +94,20 @@ export function taskAgentAdvisor(input: HookInput, ctx: HookContext = NOOP_CTX):
   }
 
   const normalizedName = agentType.toLowerCase().trim();
+
+  // general-purpose with a clearly domain-shaped task → specialist nudge.
+  if (agentType === 'general-purpose') {
+    const description = (toolInput.description as string) || '';
+    const prompt = (toolInput.prompt as string) || '';
+    const specialist = matchSpecialistDomain(description, prompt);
+    if (specialist) {
+      ctx.log(HOOK_NAME, `general-purpose task matches ${specialist} domain — nudging`);
+      return outputAllowWithContext(
+        `This task looks like \`${specialist}\`'s domain — consider it over \`general-purpose\` (curated system prompt + scoped tools). Keep \`general-purpose\` if the task genuinely spans multiple domains.`,
+      );
+    }
+    return outputSilentSuccess();
+  }
 
   // Skip already-correct built-in names
   if (VALID_BUILTINS.has(agentType)) {

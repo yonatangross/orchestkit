@@ -17,8 +17,8 @@ tools:
   - Edit
   - Grep
   - Glob
-  - Agent(ci-cd-engineer)
-  - Agent(deployment-manager)
+  - Agent(ork:ci-cd-engineer)
+  - Agent(ork:deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -252,12 +252,12 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `ci-cd-engineer` | New infrastructure needs pipeline integration — terraform plan/apply workflows, image build stages, or deploy gates in GitHub Actions/GitLab CI |
-| `deployment-manager` | Production rollout strategy needs dedicated handling — blue-green cutover, rollback procedures, or feature-flagged releases onto the provisioned infrastructure |
+| `ork:ci-cd-engineer` | New infrastructure needs pipeline integration — terraform plan/apply workflows, image build stages, or deploy gates in GitHub Actions/GitLab CI |
+| `ork:deployment-manager` | Production rollout strategy needs dedicated handling — blue-green cutover, rollback procedures, or feature-flagged releases onto the provisioned infrastructure |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

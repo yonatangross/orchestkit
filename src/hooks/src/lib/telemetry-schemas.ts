@@ -147,10 +147,22 @@ export function isValidDecisionLogEntry(raw: unknown): raw is DecisionLogEntry {
 export interface SubagentSpawnEntry {
   /** ISO-8601 timestamp of the spawn event */
   timestamp: string;
+  /**
+   * Which event wrote the entry: 'pretool' = spawn-intent-logger at
+   * PreToolUse[Task] (carries description; no agent_id), 'start' =
+   * subagent-validator at SubagentStart (carries agent_id; CC 2.1.173 sends
+   * no description there — live-verified). Entries before 2026-06-11 have
+   * neither tag. CC provides no field to correlate the two.
+   */
+  source?: 'pretool' | 'start';
   /** Agent identifier (UUID or name) */
   agent_id?: string;
+  /** PreToolUse tool_use_id (CC 2.1.69) — present on source:'pretool' entries */
+  tool_use_id?: string;
   /** Agent type (e.g., 'Explore', 'workflow-architect') */
   subagent_type?: string;
+  /** Task summary — Agent tool description, else first line of the prompt (max 200 chars) */
+  description?: string;
   /** Spawning agent's ID — present when the spawn is nested (CC 2.1.139 input field; chains execute since CC 2.1.172) */
   parent_agent_id?: string;
   /** 1-based nesting depth: 1 = spawned by the main loop, 2+ = nested (CC 2.1.172 allows up to 5) */
@@ -168,6 +180,9 @@ export function isValidSubagentSpawnEntry(raw: unknown): raw is SubagentSpawnEnt
   if (Number.isNaN(Date.parse(entry.timestamp))) return false;
   if (entry.agent_id !== undefined && typeof entry.agent_id !== 'string') return false;
   if (entry.subagent_type !== undefined && typeof entry.subagent_type !== 'string') return false;
+  if (entry.description !== undefined && typeof entry.description !== 'string') return false;
+  if (entry.source !== undefined && entry.source !== 'pretool' && entry.source !== 'start') return false;
+  if (entry.tool_use_id !== undefined && typeof entry.tool_use_id !== 'string') return false;
   if (entry.parent_agent_id !== undefined && typeof entry.parent_agent_id !== 'string') return false;
   if (
     entry.spawn_depth !== undefined &&

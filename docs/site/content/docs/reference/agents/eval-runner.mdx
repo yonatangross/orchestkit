@@ -15,7 +15,7 @@ description: "LLM evaluation specialist who runs structured eval datasets, compu
 - `Write`
 - `Grep`
 - `Glob`
-- `Agent(data-pipeline-engineer)`
+- `Agent(ork:data-pipeline-engineer)`
 - `SendMessage`
 - `TaskCreate`
 - `TaskUpdate`
@@ -275,11 +275,11 @@ Read `init.plugin_errors` from `--output-format stream-json` before running any 
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `data-pipeline-engineer` | A golden dataset has quality issues (bad chunks, stale embeddings, schema drift) and needs regeneration — you flag data problems but must never modify datasets yourself |
+| `ork:data-pipeline-engineer` | A golden dataset has quality issues (bad chunks, stale embeddings, schema drift) and needs regeneration — you flag data problems but must never modify datasets yourself |
 
 Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
 

@@ -293,13 +293,24 @@ function computeSpawnDepth(trackingLog: string, parentAgentId: string | undefine
   return 2;
 }
 
+/**
+ * Returns the computed spawn depth when lineage is resolvable, else null.
+ *
+ * HONESTY NOTE (#2371 finding 3, live-verified 2026-06-11): CC ≤ 2.1.173
+ * sends NO `parent_agent_id` at SubagentStart, so nested spawns are
+ * indistinguishable from top-level ones here. We therefore OMIT
+ * `spawn_depth` rather than fabricate `1` for every entry (which made
+ * nested spawns under-count and kept the depth ≥ 4 warning permanently
+ * dormant). The lineage path below lights up automatically if CC ships
+ * parent context (upstream: anthropics/claude-code#16424).
+ */
 function logSpawn(
   subagentType: string,
   description: string,
   sessionId: string,
   agentId?: string,
   parentAgentId?: string,
-): number {
+): number | null {
   const trackingLog = getTrackingLog();
   const dir = dirname(trackingLog);
 
@@ -321,16 +332,17 @@ function logSpawn(
     // Ignore — rotation is opportunistic.
   }
 
-  const spawnDepth = computeSpawnDepth(trackingLog, parentAgentId);
+  const spawnDepth = parentAgentId ? computeSpawnDepth(trackingLog, parentAgentId) : null;
 
   const entry = {
     timestamp: new Date().toISOString(),
+    source: 'start' as const,
     subagent_type: subagentType,
     description: description,
     session_id: sessionId,
     ...(agentId ? { agent_id: agentId } : {}),
     ...(parentAgentId ? { parent_agent_id: parentAgentId } : {}),
-    spawn_depth: spawnDepth,
+    ...(spawnDepth !== null ? { spawn_depth: spawnDepth } : {}),
   };
 
   try {
@@ -349,6 +361,10 @@ function logSpawn(
 export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
   const subagentType = (toolInput.subagent_type as string) || '';
+  // SubagentStart payload carries NO description/prompt (live-captured on
+  // CC 2.1.173: only session_id/transcript_path/cwd/agent_id/agent_type/
+  // hook_event_name). Task summaries are logged by pretool/task/
+  // spawn-intent-logger instead; this stays for forward-compat if CC adds it.
   const description = (toolInput.description as string) || '';
   const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
 
@@ -356,7 +372,7 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   // Log spawn to tracking file (with nesting lineage — CC 2.1.172 chains up to 5 levels)
   const spawnDepth = logSpawn(subagentType, description, sessionId, input.agent_id, input.parent_agent_id);
-  if (spawnDepth >= 4) {
+  if (spawnDepth !== null && spawnDepth >= 4) {
     ctx.log('subagent-validator', `WARNING: spawn depth ${spawnDepth} approaching CC's 5-level nesting limit`);
     console.error(
       `Warning: agent chain depth ${spawnDepth}/5 — CC caps nested sub-agents at 5 levels (2.1.172). Consider flattening to parallel dispatch.`,

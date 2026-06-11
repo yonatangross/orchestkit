@@ -2,7 +2,9 @@
 
 Agents defined under `src/agents/` and callable via `Agent(subagent_type=...)` when the orchestkit plugin is loaded.
 
-> **Nested delegation (CC 2.1.172+):** agents declaring `Agent(sub-name)` in their tools can spawn those sub-agents from inside their own run — chains execute up to 5 levels deep (e.g. `infrastructure-architect → ci-cd-engineer → deployment-manager`). Practical depth budget is 3; the `subagent-validator` hook records `spawn_depth`/`parent_agent_id` in `.claude/logs/subagent-spawns.jsonl` and warns at depth ≥ 4. See `src/skills/chain-patterns/SKILL.md` Pattern 9 for nest-vs-flatten guidance.
+> **Nested delegation (CC 2.1.172+):** agents declaring `Agent(ork:sub-name)` in their tools can spawn those sub-agents from inside their own run — chains execute up to 5 levels deep (e.g. `infrastructure-architect → ork:ci-cd-engineer → ork:deployment-manager`). Practical depth budget is 3. See `src/skills/chain-patterns/SKILL.md` Pattern 9 for nest-vs-flatten guidance.
+>
+> **Three live-verified caveats (#2371, CC 2.1.173):** (1) grants MUST use the runtime registry name — bare `Agent(database-engineer)` fails at dispatch with "Agent type not found"; only `Agent(ork:database-engineer)` resolves (CI-guarded by `tests/agents/test-agent-delegation-docs.sh`). (2) The parenthesized grant is ADVISORY — CC does not enforce it; any agent with the Agent tool can spawn any registry type. The grant steers the model via prompt documentation, nothing more. (3) Depth telemetry is DORMANT: CC sends no `parent_agent_id` at SubagentStart, so `spawn_depth` is only logged when lineage is real (today: never) and the depth ≥ 4 warning cannot fire until upstream ships agent context in hook payloads (anthropics/claude-code#16424).
 
 This file is partially generated. The list of agents below is maintained by `scripts/list-invocable-agents.mjs`. Run that script with `--write` to refresh after adding, removing, or relabeling an agent.
 
