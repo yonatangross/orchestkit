@@ -245,6 +245,16 @@ Task: "Should we build a visual workflow builder?"
 - **Hands off to:** `market-intelligence` (validated opportunities with competitive landscape)
 - **Skill references:** brainstorm (for exploring alternatives)
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `market-intelligence` | The assessment needs fresh competitive landscape, TAM/SAM/SOM sizing, or market trend data not already covered by a prior market-intelligence report |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 ## Notes
 - Second agent in the product thinking pipeline
 - RECOMMENDS decisions, does not MAKE them (human decides)

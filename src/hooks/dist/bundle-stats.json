@@ -32,8 +32,8 @@
       "exports": 49
     },
     "subagent": {
-      "size": 87820,
-      "sizeKB": "85.76",
+      "size": 89015,
+      "sizeKB": "86.93",
       "exports": 82
     },
     "notification": {
@@ -57,14 +57,14 @@
       "exports": 66
     },
     "hooks": {
-      "size": 381298,
-      "sizeKB": "372.36",
+      "size": 382493,
+      "sizeKB": "373.53",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 753228,
-  "totalSizeKB": "735.57",
+  "totalSize": 754423,
+  "totalSizeKB": "736.74",
   "inputs": 110,
-  "avgBundleSizeKB": "66.87"
+  "avgBundleSizeKB": "66.98"
 }

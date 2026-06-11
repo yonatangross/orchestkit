@@ -310,6 +310,17 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
 - **Skill references:** api-design, database-patterns, architecture-patterns, distributed-systems, performance, async-jobs, python-backend, mcp-patterns
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `database-engineer` | The API design requires Alembic migrations, index tuning, or schema changes beyond your SQLAlchemy model definitions — migration authoring is outside your boundary |
+| `test-generator` | Endpoint and service-layer test coverage needs a dedicated pass beyond your inline curl/httpie verification |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 

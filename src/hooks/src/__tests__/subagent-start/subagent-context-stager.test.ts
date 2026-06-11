@@ -739,6 +739,41 @@ describe('subagentContextStager', () => {
   // Fork detection (CC 2.1.89 — #1227)
   // ---------------------------------------------------------------------------
 
+  describe('nesting depth injection (CC 2.1.172)', () => {
+    test('depth-1 spawn (no parent_agent_id) gets no NESTING context', () => {
+      const input = createToolInput({
+        agent_id: 'a1',
+        tool_input: { subagent_type: 'Explore', description: 'scan repo' },
+      });
+      const result = subagentContextStager(input);
+      expect(result.systemMessage ?? '').not.toContain('NESTING');
+    });
+
+    test('nested spawn (parent_agent_id present) injects depth context', () => {
+      const input = createToolInput({
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'database-engineer', description: 'design schema' },
+      });
+      const result = subagentContextStager(input);
+      expect(result.systemMessage).toContain('NESTING');
+      // Registry is empty (fs mocked to "nothing exists") → unknown parent
+      // falls back to depth 2.
+      expect(result.systemMessage).toContain('depth 2/5');
+    });
+
+    test('nested spawn injects NESTING even for forks (lightweight mode)', () => {
+      const input = createToolInput({
+        is_fork: true,
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'database-engineer', description: 'design schema' },
+      });
+      const result = subagentContextStager(input);
+      expect(result.systemMessage).toContain('NESTING');
+    });
+  });
+
   describe('fork detection (#1227)', () => {
     test('returns silentSuccess when is_fork is true', () => {
       const input = createToolInput({ is_fork: true });

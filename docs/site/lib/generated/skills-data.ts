@@ -741,7 +741,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "f043026664f28cfe998fab19f7e621e337240e3dc890a553350f6e508ce05af7",
+    "sha256": "30a35d2b5d569471a17207cdf36c2a1bae765e39d983c0b21d63f478e60d993c",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -2406,7 +2406,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.5.0",
-    "sha256": "f03fbeed674b756a5282b3bb080604e1ba475b5623995d75c8b2d12af7955e00",
+    "sha256": "e225ae721035f742ee00b42e4d77e29e1f64f931c9ad3df0a8d11fc6a25d0a69",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2672,7 +2672,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security. Coordinates architecture design, code generation, test coverage, and quality verification in a single workflow with worktree isolation. Chains with /ork:cover for test generation and /ork:verify for validation. Use when implementing features, building new capabilities, or creating full-stack functionality.",
     "version": "2.7.0",
-    "sha256": "783d82fc77dc1b3433c1cdc71d5bc1a8dfa1371f68b616ab64f7d1d7833ddae5",
+    "sha256": "133fbe0c6cf4248cfaf624dc35beb4abba7bdfc7e5ffcfe4ec83d3bd573c85ab",
     "author": "OrchestKit",
     "tags": [
       "implementation",

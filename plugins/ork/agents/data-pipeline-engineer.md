@@ -229,6 +229,16 @@ Task: "Regenerate embeddings for the golden dataset"
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
 - **Skill references:** rag-retrieval, golden-dataset, context-optimization
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `database-engineer` | The pipeline needs schema-level work — new vector columns, HNSW/IVFFlat index DDL, or migrations — schema changes are explicitly outside your boundary |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 

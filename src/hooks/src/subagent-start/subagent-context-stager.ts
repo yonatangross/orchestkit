@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { resolveAndRecordDepth, MAX_SPAWN_DEPTH, SPAWN_DEPTH_BUDGET } from '../lib/spawn-depth.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -306,6 +307,19 @@ export function subagentContextStager(input: HookInput, ctx: HookContext = NOOP_
   ctx.log('subagent-context-stager', `Staging context for ${subagentType}${isFork ? ' (fork — lightweight mode)' : ''}`);
 
   let stagedContext = '';
+
+  // === NESTING DEPTH (CC 2.1.172 — chains up to 5 levels) — always, even for forks ===
+  // Record this agent's depth for its future children; tell nested agents
+  // where they sit so chains self-limit instead of relying on the
+  // subagent-validator depth warning alone. Depth-1 agents get nothing
+  // (zero token cost for the common case).
+  const spawnDepth = resolveAndRecordDepth(getProjectDir(), input.agent_id, input.parent_agent_id);
+  if (spawnDepth >= 2) {
+    ctx.log('subagent-context-stager', `Nested spawn at depth ${spawnDepth}/${MAX_SPAWN_DEPTH}`);
+    stagedContext += `NESTING: You are a nested sub-agent at spawn depth ${spawnDepth}/${MAX_SPAWN_DEPTH} (practical budget ${SPAWN_DEPTH_BUDGET}). Delegate deeper only for a bounded specialist sub-problem; prefer inline work or parallel dispatch.${
+      spawnDepth >= SPAWN_DEPTH_BUDGET ? ' You are at the budget — do NOT spawn further sub-agents unless strictly necessary.' : ''
+    }\n\n`;
+  }
 
   // === INJECT AGENT-SPECIFIC GUARDRAILS (#1231) — always, even for forks ===
   const criticalReminder = injectCriticalReminder(subagentType);

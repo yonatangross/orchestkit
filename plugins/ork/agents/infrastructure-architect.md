@@ -250,6 +250,17 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 - **Hands off to:** ci-cd-engineer (deployment targets), deployment-manager (production setup)
 - **Skill references:** devops-deployment, monitoring-observability
 
+## Delegation (CC 2.1.172+)
+
+You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3).
+
+| Sub-agent | Delegate when |
+|---|---|
+| `ci-cd-engineer` | New infrastructure needs pipeline integration — terraform plan/apply workflows, image build stages, or deploy gates in GitHub Actions/GitLab CI |
+| `deployment-manager` | Production rollout strategy needs dedicated handling — blue-green cutover, rollback procedures, or feature-flagged releases onto the provisioned infrastructure |
+
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+
 
 ## Status Protocol
 
