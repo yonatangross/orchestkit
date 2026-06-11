@@ -36,7 +36,7 @@ describe("isServedPath", () => {
 		for (const p of [
 			"/checkout_sessions",
 			"/delegate_payment",
-			"/.well-known/oauth-protected-resource",
+			"/.well-known/oauth-authorization-server",
 			"/random-nonsense",
 		]) {
 			expect(isServedPath(p)).toBe(false);

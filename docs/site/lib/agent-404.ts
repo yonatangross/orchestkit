@@ -42,10 +42,12 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/mcp.json",
 	// Specific /.well-known/* paths we actually rewrite to handlers. Listed
 	// individually (not as a prefix) so UNKNOWN well-known probes — e.g.
-	// /.well-known/oauth-protected-resource, which we don't serve — still get a
-	// structured JSON 404 for agents instead of an HTML page. Kept in sync with
-	// next.config.mjs by agent-404.test.ts.
+	// /.well-known/oauth-authorization-server, which we don't serve (no
+	// authorization server exists) — still get a structured JSON 404 for
+	// agents instead of an HTML page. Kept in sync with next.config.mjs by
+	// agent-404.test.ts.
 	"/.well-known/agent-skills/index.json",
+	"/.well-known/oauth-protected-resource",
 	"/.well-known/api-catalog",
 	"/.well-known/agent-card.json",
 	"/.well-known/mcp",
