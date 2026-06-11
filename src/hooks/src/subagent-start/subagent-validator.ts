@@ -264,7 +264,42 @@ ${hasBash ? '> This agent requests Bash access. Review commands carefully.\n' : 
 // Matches the order-of-magnitude of the hooks.log rotation in lib/log.ts.
 const SPAWN_LOG_ROTATE_BYTES = 500 * 1024;
 
-function logSpawn(subagentType: string, description: string, sessionId: string): void {
+/**
+ * Resolve the 1-based nesting depth of a spawn (CC 2.1.172: chains up to 5 levels).
+ * No parent → depth 1 (main loop). Otherwise look the parent up in the spawn log
+ * (bounded — rotated at 500KB) and add 1. Parent missing from the log (rotated
+ * away, or written pre-upgrade without lineage) → conservative depth 2.
+ */
+function computeSpawnDepth(trackingLog: string, parentAgentId: string | undefined): number {
+  if (!parentAgentId) return 1;
+  try {
+    if (existsSync(trackingLog)) {
+      const lines = readFileSync(trackingLog, 'utf8').trimEnd().split('\n');
+      // Walk backwards — the most recent entry for the parent wins.
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const entry = JSON.parse(lines[i]) as { agent_id?: string; spawn_depth?: number };
+          if (entry.agent_id && entry.agent_id === parentAgentId) {
+            return (typeof entry.spawn_depth === 'number' ? entry.spawn_depth : 1) + 1;
+          }
+        } catch {
+          // Skip malformed line.
+        }
+      }
+    }
+  } catch {
+    // Best-effort — never block a dispatch on telemetry.
+  }
+  return 2;
+}
+
+function logSpawn(
+  subagentType: string,
+  description: string,
+  sessionId: string,
+  agentId?: string,
+  parentAgentId?: string,
+): number {
   const trackingLog = getTrackingLog();
   const dir = dirname(trackingLog);
 
@@ -286,11 +321,16 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
     // Ignore — rotation is opportunistic.
   }
 
+  const spawnDepth = computeSpawnDepth(trackingLog, parentAgentId);
+
   const entry = {
     timestamp: new Date().toISOString(),
     subagent_type: subagentType,
     description: description,
     session_id: sessionId,
+    ...(agentId ? { agent_id: agentId } : {}),
+    ...(parentAgentId ? { parent_agent_id: parentAgentId } : {}),
+    spawn_depth: spawnDepth,
   };
 
   try {
@@ -298,6 +338,8 @@ function logSpawn(subagentType: string, description: string, sessionId: string):
   } catch {
     // Ignore
   }
+
+  return spawnDepth;
 }
 
 // -----------------------------------------------------------------------------
@@ -312,8 +354,14 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
-  // Log spawn to tracking file
-  logSpawn(subagentType, description, sessionId);
+  // Log spawn to tracking file (with nesting lineage — CC 2.1.172 chains up to 5 levels)
+  const spawnDepth = logSpawn(subagentType, description, sessionId, input.agent_id, input.parent_agent_id);
+  if (spawnDepth >= 4) {
+    ctx.log('subagent-validator', `WARNING: spawn depth ${spawnDepth} approaching CC's 5-level nesting limit`);
+    console.error(
+      `Warning: agent chain depth ${spawnDepth}/5 — CC caps nested sub-agents at 5 levels (2.1.172). Consider flattening to parallel dispatch.`,
+    );
+  }
 
   // Extract agent type (strip namespace prefix like "ork:")
   const agentTypeOnly = subagentType.replace(/^[^:]+:/, '');

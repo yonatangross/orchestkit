@@ -221,6 +221,26 @@ describe('SubagentSpawnEntry shape lock (.claude/logs/subagent-spawns.jsonl)', (
   it('rejects non-string agent_id when present', () => {
     expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', agent_id: 42 })).toBe(false);
   });
+
+  it('accepts nesting lineage fields (CC 2.1.172)', () => {
+    expect(
+      isValidSubagentSpawnEntry({
+        timestamp: '2026-04-23T12:00:00.000Z',
+        parent_agent_id: 'parent-1',
+        spawn_depth: 3,
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects non-string parent_agent_id when present', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', parent_agent_id: 7 })).toBe(false);
+  });
+
+  it('rejects spawn_depth below 1 or non-integer', () => {
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', spawn_depth: 0 })).toBe(false);
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', spawn_depth: 1.5 })).toBe(false);
+    expect(isValidSubagentSpawnEntry({ timestamp: '2026-04-23T12:00:00.000Z', spawn_depth: '2' })).toBe(false);
+  });
 });
 
 describe('EditHistoryEntry shape lock (.claude/state/edit-history.jsonl)', () => {

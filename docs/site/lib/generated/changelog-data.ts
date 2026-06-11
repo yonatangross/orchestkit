@@ -17,6 +17,39 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "8.32.2",
+    "date": "2026-06-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** repair ci-sentinel analyze loop (3 bugs) ([#2366](https://github.com/yonatangross/orchestkit/issues/2366)) ([d6d0e1e](https://github.com/yonatangross/orchestkit/commit/d6d0e1e0983d37971bf0bc34e14afce7267bd3b3)), closes [#1862](https://github.com/yonatangross/orchestkit/issues/1862) [#1934](https://github.com/yonatangross/orchestkit/issues/1934)",
+          "**hooks:** worktree-aware git-validator branch protection ([#2365](https://github.com/yonatangross/orchestkit/issues/2365)) ([7ed184c](https://github.com/yonatangross/orchestkit/commit/7ed184c2bec1f54bf19388ad5e16e5f539dc3e91)), closes [#2363](https://github.com/yonatangross/orchestkit/issues/2363) [#2244](https://github.com/yonatangross/orchestkit/issues/2244)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "8.32.1",
+    "date": "2026-06-10",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**build:** ship hook dist bundles + hard-fail stale-bundle paths ([#2362](https://github.com/yonatangross/orchestkit/issues/2362)) ([a680f3c](https://github.com/yonatangross/orchestkit/commit/a680f3ce4268d1d01136a4d1fa3b2edf77dd3f1e)), closes [#2360](https://github.com/yonatangross/orchestkit/issues/2360)"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**cc-watch:** snapshot upstream CHANGELOG (2.1.170) ([#2361](https://github.com/yonatangross/orchestkit/issues/2361)) ([f3bdc89](https://github.com/yonatangross/orchestkit/commit/f3bdc89b7f69e43c250c79b3f4255f538df43922))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "8.32.0",
     "date": "2026-06-10",
     "compareUrl": "",

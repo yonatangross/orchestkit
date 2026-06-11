@@ -2,6 +2,8 @@
 
 Agents defined under `src/agents/` and callable via `Agent(subagent_type=...)` when the orchestkit plugin is loaded.
 
+> **Nested delegation (CC 2.1.172+):** agents declaring `Agent(sub-name)` in their tools can spawn those sub-agents from inside their own run — chains execute up to 5 levels deep (e.g. `infrastructure-architect → ci-cd-engineer → deployment-manager`). Practical depth budget is 3; the `subagent-validator` hook records `spawn_depth`/`parent_agent_id` in `.claude/logs/subagent-spawns.jsonl` and warns at depth ≥ 4. See `src/skills/chain-patterns/SKILL.md` Pattern 9 for nest-vs-flatten guidance.
+
 This file is partially generated. The list of agents below is maintained by `scripts/list-invocable-agents.mjs`. Run that script with `--write` to refresh after adding, removing, or relabeling an agent.
 
 > **Hook authors:** the CC ≥ 2.1.116 main-thread firing guidance for agent-scoped `hooks:` lives in `.claude/rules/agent-authoring.md` (auto-loaded when editing files under `src/agents/**`).

@@ -864,6 +864,106 @@ describe('subagentValidator', () => {
   });
 
   // -----------------------------------------------------------------------
+  // 8b. Nesting lineage (CC 2.1.172 — chains up to 5 levels)
+  // -----------------------------------------------------------------------
+
+  describe('nesting lineage (CC 2.1.172)', () => {
+    /** Extract the parsed spawn-log entry from the mocked append calls */
+    function getSpawnEntry(): Record<string, unknown> {
+      const call = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.find(
+        (c: unknown[]) => typeof c[0] === 'string' && normalizePath(c[0] as string).includes('subagent-spawns.jsonl')
+      );
+      expect(call).toBeDefined();
+      return JSON.parse(call![1].toString().trim());
+    }
+
+    /** Point readFileSync at a fake spawn log; everything else returns '{}' */
+    function mockSpawnLog(lines: string[]): void {
+      (existsSync as ReturnType<typeof vi.fn>).mockImplementation((rawPath: unknown) =>
+        typeof rawPath === 'string' && normalizePath(rawPath).includes('subagent-spawns.jsonl')
+      );
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((rawPath: unknown) => {
+        if (typeof rawPath === 'string' && normalizePath(rawPath).includes('subagent-spawns.jsonl')) {
+          return `${lines.join('\n')}\n`;
+        }
+        return '{}';
+      });
+    }
+
+    test('top-level spawn logs depth 1 with no lineage fields', () => {
+      const input = createToolInput({
+        tool_input: { subagent_type: 'general-purpose', description: 'Task' },
+      });
+
+      subagentValidator(input);
+
+      const entry = getSpawnEntry();
+      expect(entry.spawn_depth).toBe(1);
+      expect(entry).not.toHaveProperty('agent_id');
+      expect(entry).not.toHaveProperty('parent_agent_id');
+    });
+
+    test('nested spawn records agent_id + parent_agent_id, depth 2 when parent not in log', () => {
+      const input = createToolInput({
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'general-purpose', description: 'Task' },
+      });
+
+      subagentValidator(input);
+
+      const entry = getSpawnEntry();
+      expect(entry.agent_id).toBe('child-1');
+      expect(entry.parent_agent_id).toBe('parent-1');
+      expect(entry.spawn_depth).toBe(2);
+    });
+
+    test('depth chains from parent entry in spawn log', () => {
+      mockSpawnLog([
+        JSON.stringify({ timestamp: '2026-06-11T00:00:00.000Z', agent_id: 'parent-1', spawn_depth: 2 }),
+      ]);
+      const input = createToolInput({
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'general-purpose', description: 'Task' },
+      });
+
+      subagentValidator(input);
+
+      expect(getSpawnEntry().spawn_depth).toBe(3);
+    });
+
+    test('warns on console.error when depth reaches 4', () => {
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockSpawnLog([
+        JSON.stringify({ timestamp: '2026-06-11T00:00:00.000Z', agent_id: 'parent-1', spawn_depth: 3 }),
+      ]);
+      const input = createToolInput({
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'general-purpose', description: 'Task' },
+      });
+
+      subagentValidator(input);
+
+      expect(getSpawnEntry().spawn_depth).toBe(4);
+      expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('depth 4/5'));
+    });
+
+    test('malformed log lines are skipped, falls back to depth 2', () => {
+      mockSpawnLog(['not-json', '{"timestamp":"2026-06-11T00:00:00.000Z"}']);
+      const input = createToolInput({
+        agent_id: 'child-1',
+        parent_agent_id: 'parent-1',
+        tool_input: { subagent_type: 'general-purpose', description: 'Task' },
+      });
+
+      expect(() => subagentValidator(input)).not.toThrow();
+      expect(getSpawnEntry().spawn_depth).toBe(2);
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // 9. Edge cases
   // -----------------------------------------------------------------------
 

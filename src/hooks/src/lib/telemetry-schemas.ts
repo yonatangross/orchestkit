@@ -151,6 +151,10 @@ export interface SubagentSpawnEntry {
   agent_id?: string;
   /** Agent type (e.g., 'Explore', 'workflow-architect') */
   subagent_type?: string;
+  /** Spawning agent's ID — present when the spawn is nested (CC 2.1.139 input field; chains execute since CC 2.1.172) */
+  parent_agent_id?: string;
+  /** 1-based nesting depth: 1 = spawned by the main loop, 2+ = nested (CC 2.1.172 allows up to 5) */
+  spawn_depth?: number;
 }
 
 export const SUBAGENT_SPAWN_REQUIRED_KEYS: ReadonlyArray<keyof SubagentSpawnEntry> = [
@@ -164,6 +168,13 @@ export function isValidSubagentSpawnEntry(raw: unknown): raw is SubagentSpawnEnt
   if (Number.isNaN(Date.parse(entry.timestamp))) return false;
   if (entry.agent_id !== undefined && typeof entry.agent_id !== 'string') return false;
   if (entry.subagent_type !== undefined && typeof entry.subagent_type !== 'string') return false;
+  if (entry.parent_agent_id !== undefined && typeof entry.parent_agent_id !== 'string') return false;
+  if (
+    entry.spawn_depth !== undefined &&
+    (typeof entry.spawn_depth !== 'number' || !Number.isInteger(entry.spawn_depth) || entry.spawn_depth < 1)
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -353,6 +364,8 @@ export const CANONICAL_SUBAGENT_SPAWN_ENTRY: SubagentSpawnEntry = {
   timestamp: '2026-04-23T12:34:56.000Z',
   agent_id: 'a1b2c3d4',
   subagent_type: 'Explore',
+  parent_agent_id: 'e5f6a7b8',
+  spawn_depth: 2,
 };
 
 export const CANONICAL_EDIT_HISTORY_ENTRY: EditHistoryEntry = {

@@ -93,6 +93,31 @@ export function pluginsTouchedSince(projectDir: string, sinceIso: string): boole
   }
 }
 
+/**
+ * Is `plugins/` dirty in the working tree right now?
+ *
+ * `npm run build` rewrites plugins/ WITHOUT committing, so commit history
+ * alone misses an in-session rebuild — the hook then re-blocks every src/
+ * edit until something touching plugins/ is committed (observed after a
+ * branch switch mid-session: snapshot hashes from the old branch never
+ * match, and the rebuild evidence never appears). Uncommitted plugins/
+ * changes count as rebuild evidence; the snapshot refresh re-baselines
+ * hashes, so a later src/ edit still re-arms the check.
+ * Returns false on git failure (treat as "no rebuild evidence").
+ */
+export function pluginsDirtyNow(projectDir: string): boolean {
+  try {
+    const out = execFileSync(
+      'git',
+      ['-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function checkPluginsDrift(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
@@ -122,7 +147,9 @@ export function checkPluginsDrift(
   }
 
   // Build inputs changed — has plugins/ been rebuilt since snapshot?
-  if (pluginsTouchedSince(ctx.projectDir, snapshot.at)) {
+  // Evidence: a commit touching plugins/ OR uncommitted plugins/ changes
+  // (npm run build rewrites the working tree without committing).
+  if (pluginsTouchedSince(ctx.projectDir, snapshot.at) || pluginsDirtyNow(ctx.projectDir)) {
     // Treat as "already rebuilt": refresh snapshot so we don't re-fire.
     try {
       const refreshed = buildSnapshot(ctx.projectDir);

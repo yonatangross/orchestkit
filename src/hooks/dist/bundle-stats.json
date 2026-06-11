@@ -12,8 +12,8 @@
       "exports": 81
     },
     "posttool": {
-      "size": 129299,
-      "sizeKB": "126.27",
+      "size": 129484,
+      "sizeKB": "126.45",
       "exports": 64
     },
     "prompt": {
@@ -22,8 +22,8 @@
       "exports": 106
     },
     "lifecycle": {
-      "size": 139166,
-      "sizeKB": "135.90",
+      "size": 139227,
+      "sizeKB": "135.96",
       "exports": 64
     },
     "stop": {
@@ -32,8 +32,8 @@
       "exports": 49
     },
     "subagent": {
-      "size": 87194,
-      "sizeKB": "85.15",
+      "size": 87820,
+      "sizeKB": "85.76",
       "exports": 82
     },
     "notification": {
@@ -57,14 +57,14 @@
       "exports": 66
     },
     "hooks": {
-      "size": 380671,
-      "sizeKB": "371.75",
+      "size": 381298,
+      "sizeKB": "372.36",
       "exports": 164,
       "unified": true
     }
   },
-  "totalSize": 752356,
-  "totalSizeKB": "734.72",
+  "totalSize": 753228,
+  "totalSizeKB": "735.57",
   "inputs": 110,
-  "avgBundleSizeKB": "66.79"
+  "avgBundleSizeKB": "66.87"
 }

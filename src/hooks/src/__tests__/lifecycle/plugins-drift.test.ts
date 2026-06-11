@@ -207,4 +207,34 @@ describe('check-plugins-drift (PostToolUse Write|Edit)', () => {
     const refreshed = readSnapshot();
     expect(refreshed.plugins_file_count).toBe(2);
   });
+
+  it('treats UNCOMMITTED plugins/ changes as rebuild evidence (npm run build does not commit)', () => {
+    // Set up a real git repo with everything committed BEFORE the snapshot,
+    // so git log since the snapshot shows no plugins/ touch.
+    execFileSync('git', ['-C', projectDir, 'init', '-q'], { stdio: 'ignore' });
+    execFileSync('git', ['-C', projectDir, 'config', 'user.email', 't@t'], { stdio: 'ignore' });
+    execFileSync('git', ['-C', projectDir, 'config', 'user.name', 't'], { stdio: 'ignore' });
+    execFileSync('git', ['-C', projectDir, 'config', 'commit.gpgsign', 'false'], { stdio: 'ignore' });
+    execFileSync('git', ['-C', projectDir, 'add', '-A'], { stdio: 'ignore' });
+    execFileSync('git', ['-C', projectDir, 'commit', '-q', '-m', 'baseline'], { stdio: 'ignore' });
+
+    pluginsDriftSnapshot(makeInput(), createTestContext({ projectDir }));
+
+    // Diverge build inputs + simulate `npm run build`: plugins/ rewritten
+    // in the working tree, NO commit.
+    writeFileSync(join(projectDir, HOOKS_JSON_REL), '{"hooks":{"new":true}}');
+    writeFileSync(join(projectDir, 'plugins', 'rebuilt.txt'), 'rebuilt');
+
+    const ctx = createTestContext({ projectDir });
+    const res = checkPluginsDrift(
+      makeInput({ file_path: join(projectDir, 'src', 'foo.ts') }),
+      ctx,
+    );
+
+    expect(res.continue).toBe(true);
+    expect(res.stopReason).toBeUndefined();
+    // Snapshot refreshed → hashes re-baselined for the next src/ edit.
+    const refreshed = readSnapshot();
+    expect(refreshed.hooks_json_hash).not.toBe('');
+  });
 });

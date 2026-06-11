@@ -86,7 +86,8 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
     ctx.log('cc-version-check', `running=${running} > matrix=${matrixLatest} — adoption nudge to Claude`);
     return outputPromptContext(
       `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
-        `New features may be available for adoption. Check shared/cc-adoption-gaps.json or open issues with label "cc-adoption".`,
+        `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
+        `check shared/cc-adoption-gaps.json or open issues with label "cc-adoption".`,
     );
   }
 

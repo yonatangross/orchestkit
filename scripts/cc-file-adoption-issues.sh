@@ -128,7 +128,7 @@ jq -c --argjson floor "$MIN_GAP_SCORE" \
         "" \
         "${DESC}" \
         "" \
-        "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up." \
+        "See \`shared/cc-snapshots/${VERSION}.md\` for the full version notes, or run \`/release-notes\` in Claude Code (2.1.173+) to view the live upstream changelog. When closing this issue, link the PR with \`Closes #N\` so release-please picks it up." \
         "" \
         "## Policy" \
         "" \

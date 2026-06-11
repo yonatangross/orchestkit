@@ -492,6 +492,51 @@ describe('pre-commit-quality-runner', () => {
   });
 
   // -----------------------------------------------------------------------
+  // 8b. Vitest related-tests check
+  // -----------------------------------------------------------------------
+
+  describe('vitest related-tests check', () => {
+    it('uses the `related` SUBCOMMAND (not --related, which throws CACError)', () => {
+      // Arrange
+      vi.mocked(execSync).mockImplementation((cmd: string) => {
+        if (cmd === 'git diff --cached --name-only --diff-filter=ACMR') {
+          return 'src/auth.ts';
+        }
+        return '';
+      });
+      vi.mocked(execFileSync).mockImplementation((_cmd: any, args: any) => {
+        const argsStr = Array.isArray(args) ? args.join(' ') : '';
+        if (argsStr.includes('diff --cached --name-only')) return 'src/auth.ts';
+        return '';
+      });
+      vi.mocked(existsSync).mockImplementation((p: unknown) => {
+        const path = String(p);
+        return path.endsWith('package.json') || path.endsWith('vitest.config.ts');
+      });
+      const input = createBashInput('git commit -m "feat: auth"');
+
+      // Act
+      preCommitQualityRunner(input, testCtx);
+
+      // Assert
+      const calls = vi.mocked(execFileSync).mock.calls;
+      const vitestCall = calls.find(
+        ([cmd, args]) => cmd === 'npx' && Array.isArray(args) && (args as string[]).includes('vitest'),
+      );
+      expect(vitestCall).toBeDefined();
+      const args = vitestCall![1] as string[];
+      // `vitest related <files> --run` — `related` is a subcommand; the old
+      // `vitest run --related` form crashed with "Unknown option `--related`".
+      expect(args[0]).toBe('vitest');
+      expect(args[1]).toBe('related');
+      expect(args).toContain('src/auth.ts');
+      expect(args).toContain('--run');
+      expect(args).toContain('--passWithNoTests');
+      expect(args).not.toContain('--related');
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // 9. Jest related-tests check
   // -----------------------------------------------------------------------
 

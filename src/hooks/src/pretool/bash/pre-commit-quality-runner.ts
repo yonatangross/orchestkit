@@ -136,7 +136,10 @@ export function preCommitQualityRunner(input: HookInput, ctx: HookContext = NOOP
       const hasJest = existsSync(join(projectDir, 'jest.config.js')) ||
                       existsSync(join(projectDir, 'jest.config.ts'));
       if (hasVitest) {
-        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'run', '--related', ...sourceFiles, '--passWithNoTests'], projectDir, 5000));
+        // `related` is a vitest SUBCOMMAND, not a flag — `vitest run --related`
+        // throws CACError "Unknown option `--related`" and fails every commit
+        // that stages source files.
+        checks.push(runCheckWithArgs('related-tests', 'npx', ['vitest', 'related', ...sourceFiles, '--run', '--passWithNoTests'], projectDir, 5000));
       } else if (hasJest) {
         checks.push(runCheckWithArgs('related-tests', 'npx', ['jest', '--findRelatedTests', ...sourceFiles, '--passWithNoTests'], projectDir, 5000));
       }

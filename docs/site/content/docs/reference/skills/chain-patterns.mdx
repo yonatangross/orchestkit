@@ -205,6 +205,31 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 
 > **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd &lt;dir&gt;` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
 
+## Pattern 9: Nested Delegation (CC 2.1.172)
+
+Sub-agents can spawn their own sub-agents, up to 5 levels deep. Agents declaring `Agent(xxx)` in their tools frontmatter (12 ork agents do) now execute those chains for real — e.g. `infrastructure-architect → ci-cd-engineer → deployment-manager` runs as a live 3-level chain.
+
+```python
+# Parent agent's prompt can delegate a sub-problem to ITS declared specialist:
+Agent(subagent_type="backend-system-architect",
+      prompt="Design the API. Delegate schema design to database-engineer.")
+# backend-system-architect internally calls Agent(database-engineer) — depth 2.
+```
+
+**Nest when** (depth 2-3):
+- A specialist needs its OWN specialist for a bounded sub-problem (schema → index tuning)
+- The sub-result must be synthesized by the intermediate agent, not the main loop
+- Worktree isolation should scope to the subtree (`isolation: "worktree"` works recursively)
+
+**Flatten when** (parallel dispatch from the main loop):
+- Sub-tasks are independent — parallel fan-out is faster and cheaper than a serial chain
+- The main loop needs each raw result anyway (nesting hides intermediates)
+- You're tempted past depth 3 — each level multiplies latency and token cost; CC hard-caps at 5
+
+**Depth budget:** treat 3 as the practical ceiling. The `subagent-validator` hook logs `spawn_depth` + `parent_agent_id` to `subagent-spawns.jsonl` and warns at depth ≥ 4.
+
+> **Compatibility:** chains deeper than 2 require CC 2.1.172+. On older CC, nested `Agent(...)` calls fail at dispatch — design chains to degrade (intermediate agent does the work inline) rather than assume the specialist ran.
+
 ## Rules
 
 | Rule | Impact | Key Pattern |
