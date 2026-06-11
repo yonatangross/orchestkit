@@ -186,18 +186,28 @@ for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
             continue
         fi
 
-        # Strip ork: prefix — subagent_type should NOT include plugin prefix
+        # ork agents MUST be spawned by their registry name — bare names fail
+        # at dispatch ("Agent type 'x' not found", live-verified #2371).
+        # CC builtins (Explore, general-purpose, ...) stay bare.
         clean_type="$agent_type"
         if [[ "$agent_type" == ork:* ]]; then
             clean_type="${agent_type#ork:}"
-            fail "$skill_name: uses 'ork:' prefix in subagent_type='$agent_type' (should be '$clean_type')"
-            MISSING_AGENTS+=("$skill_name → $agent_type (has ork: prefix)")
+            if [[ -z "${KNOWN_AGENTS[$clean_type]+_}" ]]; then
+                MISSING_AGENTS+=("$skill_name → $agent_type")
+                fail "$skill_name: references agent '$agent_type' but no $AGENTS_DIR/$clean_type.md exists"
+            else
+                info "$skill_name: agent '$agent_type' resolves (OK)"
+            fi
             continue
         fi
 
         if [[ -z "${KNOWN_AGENTS[$agent_type]+_}" ]]; then
             MISSING_AGENTS+=("$skill_name → $agent_type")
             fail "$skill_name: references agent '$agent_type' but no $AGENTS_DIR/$agent_type.md exists"
+        elif [[ -f "$AGENTS_DIR/$agent_type.md" ]]; then
+            # Exists as an ork agent but referenced bare — broken at runtime (#2371).
+            MISSING_AGENTS+=("$skill_name → $agent_type (bare ork agent name)")
+            fail "$skill_name: bare subagent_type='$agent_type' fails at dispatch — use 'ork:$agent_type' (#2371)"
         else
             info "$skill_name: agent '$agent_type' exists (OK)"
         fi

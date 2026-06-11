@@ -256,7 +256,7 @@ Load: `Read("${CLAUDE_SKILL_DIR}/references/test-plan.md")`
 
 ```python
 expect_task = Agent(
-  subagent_type="expect-agent",
+  subagent_type="ork:expect-agent",
   prompt=f"""Execute this test plan:
   {test_plan}
 

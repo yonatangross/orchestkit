@@ -104,7 +104,7 @@ Use `isolation: "worktree"` when spawning agents that WRITE files in parallel.
 ```python
 # Agents editing different files in parallel:
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="Implement backend for: {feature}...",
   isolation="worktree",       # own copy of repo
   run_in_background=true
@@ -144,11 +144,11 @@ Launch agents with `run_in_background=true` and output results as each returns â
 
 ```python
 # Launch all agents in ONE message with run_in_background=true
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="...", run_in_background=true, name="backend")
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="...", run_in_background=true, name="frontend")
-Agent(subagent_type="test-generator",
+Agent(subagent_type="ork:test-generator",
   prompt="...", run_in_background=true, name="tests")
 
 # As each agent completes, output its findings immediately.
@@ -170,7 +170,7 @@ Continue a previously spawned agent using `SendMessage`. CC 2.1.77 auto-resumes 
 
 ```python
 # Spawn agent
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Design the API schema", name="api-designer")
 
 # Later, continue the same agent with new context

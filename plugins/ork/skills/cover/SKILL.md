@@ -287,7 +287,7 @@ for tier in TIERS:
 # Unit tests agent (manual pre-create pattern)
 if "unit" in TIERS:
     Agent(
-        subagent_type="test-generator",
+        subagent_type="ork:test-generator",
         prompt=f"""FIRST: cd {TIER_WORKTREES["unit"]}
 
         Generate unit tests for: {SCOPE}
@@ -313,7 +313,7 @@ if "unit" in TIERS:
 # Integration + E2E agents follow the same pattern:
 # - Pre-create worktree at TIER_WORKTREES["integration"] / TIER_WORKTREES["e2e"]
 # - Agent prompt FIRST line: `cd <path>`
-# - subagent_type="test-generator", run_in_background=True (no isolation kwarg)
+# - subagent_type="ork:test-generator", run_in_background=True (no isolation kwarg)
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
@@ -321,7 +321,7 @@ if "unit" in TIERS:
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
-# - subagent_type="emulate-engineer" (same manual-worktree pattern)
+# - subagent_type="ork:emulate-engineer" (same manual-worktree pattern)
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
