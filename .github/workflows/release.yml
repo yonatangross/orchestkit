@@ -132,13 +132,43 @@ jobs:
         with:
           subject-path: bom.json
 
+  # Build + push the stdio Docs MCP image to GHCR on every release. The image
+  # is the OCI package surface advertised in server.json (packages[0]), so it
+  # MUST exist at the version tag before publish-mcp-registry runs — the MCP
+  # registry validates the image and its io.modelcontextprotocol.server.name
+  # label at publish time. Plain docker CLI on purpose: no third-party actions
+  # to pin, GITHUB_TOKEN scoped to packages:write.
+  publish-docker:
+    permissions:
+      contents: read
+      packages: write
+    name: Docs MCP Image (GHCR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+
+      - name: Build and push image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER}/orchestkit-docs-mcp"
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build -t "$IMAGE:$VERSION" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$VERSION"
+          docker push "$IMAGE:latest"
+
   # Republish server.json to the official MCP registry on every release so the
   # registry version never drifts from the live site (orank scores the
   # registry<->site version sync). server.json's version field is bumped by
   # release-please (extra-files), so by tag time it always matches the tag.
   # Auth is GitHub OIDC: the io.github.yonatangross/* namespace trusts
   # workflows in yonatangross-owned repos — no long-lived secrets.
+  # needs publish-docker: the OCI package in server.json is validated against
+  # GHCR at publish time, so the image tag must exist first.
   publish-mcp-registry:
+    needs: publish-docker
     permissions:
       contents: read
       id-token: write
@@ -152,8 +182,13 @@ jobs:
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
           SERVER_VERSION="$(jq -r '.version' server.json)"
+          PKG_VERSION="$(jq -r '.packages[0].version // empty' server.json)"
           if [ "$SERVER_VERSION" != "$VERSION" ]; then
             echo "::error::server.json version ($SERVER_VERSION) != tag ($VERSION). release-please should have bumped it — refusing to publish a stale version to the registry."
+            exit 1
+          fi
+          if [ -n "$PKG_VERSION" ] && [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::server.json packages[0].version ($PKG_VERSION) != tag ($VERSION) — the OCI image tag would not match the published package. Check the release-please extra-files jsonpath."
             exit 1
           fi
 

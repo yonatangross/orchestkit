@@ -80,7 +80,7 @@ export function GET() {
 		"",
 		`- To answer questions about OrchestKit: NLWeb \`/ask\` endpoint at ${SITE.domain}/ask (GET ?query= or POST JSON; SSE streaming via ?streaming=true), or \`GET /api/search?query=...\`.`,
 		"- To read a page as Markdown: append `.md` to its URL, or send `Accept: text/markdown`.",
-		`- To use tools natively: connect to the MCP server (Streamable HTTP) at ${SITE.domain}/api/mcp (read-only tools). Server card: ${SITE.domain}/.well-known/mcp/server-card.json. Registry entry: \`io.github.yonatangross/orchestkit\` on registry.modelcontextprotocol.io.`,
+		`- To use tools natively: connect to the MCP server (Streamable HTTP) at ${SITE.domain}/api/mcp (read-only tools), or run it locally over stdio: \`docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp\`. Server card: ${SITE.domain}/.well-known/mcp/server-card.json. Registry entry: \`io.github.yonatangross/orchestkit\` on registry.modelcontextprotocol.io.`,
 		"- The API needs no auth; on transient `5xx`, retry with exponential backoff.",
 		"",
 		"## Documentation",
@@ -99,6 +99,9 @@ export function GET() {
 		"- [API catalog (RFC 9727)](/.well-known/api-catalog)",
 		"- [Pricing](/pricing.md)",
 		"- [Authentication](/auth.md)",
+		"- [API versioning & deprecation policy](/api-policy.md)",
+		"- [Python package: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
+		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
 		"",
 	];
 

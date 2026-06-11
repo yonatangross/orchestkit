@@ -17,6 +17,8 @@ COPY src/mcp-server/src ./src
 RUN npm run build
 
 FROM node:22-alpine
+# MCP registry ownership validation — must match server.json "name"
+LABEL io.modelcontextprotocol.server.name="io.github.yonatangross/orchestkit"
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/dist/docs-server.mjs ./docs-server.mjs
