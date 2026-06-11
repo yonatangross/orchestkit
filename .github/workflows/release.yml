@@ -131,3 +131,41 @@ jobs:
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
         with:
           subject-path: bom.json
+
+  # Republish server.json to the official MCP registry on every release so the
+  # registry version never drifts from the live site (orank scores the
+  # registry<->site version sync). server.json's version field is bumped by
+  # release-please (extra-files), so by tag time it always matches the tag.
+  # Auth is GitHub OIDC: the io.github.yonatangross/* namespace trusts
+  # workflows in yonatangross-owned repos — no long-lived secrets.
+  publish-mcp-registry:
+    permissions:
+      contents: read
+      id-token: write
+    name: MCP Registry Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+
+      - name: Verify server.json matches tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          SERVER_VERSION="$(jq -r '.version' server.json)"
+          if [ "$SERVER_VERSION" != "$VERSION" ]; then
+            echo "::error::server.json version ($SERVER_VERSION) != tag ($VERSION). release-please should have bumped it — refusing to publish a stale version to the registry."
+            exit 1
+          fi
+
+      - name: Install mcp-publisher (pinned)
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz" -o mcp-publisher.tar.gz
+          echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+          sudo install mcp-publisher /usr/local/bin/mcp-publisher
+          rm mcp-publisher.tar.gz mcp-publisher
+
+      - name: Publish to MCP registry
+        run: |
+          mcp-publisher login github-oidc
+          mcp-publisher publish
