@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.34.0](https://github.com/yonatangross/orchestkit/compare/v8.33.0...v8.34.0) (2026-06-11)
+
+
+### Features
+
+* **docs:** add Glama ownership claim files (server + connector) ([#2372](https://github.com/yonatangross/orchestkit/issues/2372)) ([7cc33f8](https://github.com/yonatangross/orchestkit/commit/7cc33f8639345e2c93fb7b5d7c8345f5d776312c))
+
 ## [8.33.0](https://github.com/yonatangross/orchestkit/compare/v8.32.2...v8.33.0) (2026-06-11)
 
 
