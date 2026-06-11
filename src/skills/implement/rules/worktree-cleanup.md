@@ -19,7 +19,7 @@ Claude enters a worktree for isolation but forgets to exit when the implementati
 EnterWorktree(name="feat-user-auth")
 
 # Phase 5: Implementation agents run in worktree
-Agent(subagent_type="backend-system-architect", prompt="Implement auth...")
+Agent(subagent_type="ork:backend-system-architect", prompt="Implement auth...")
 
 # Phase 9: Documentation
 # "Done! Here's what was implemented..."
@@ -50,7 +50,7 @@ worktree_active = True
 
 # Phase 5: Implementation fails
 try:
-    Agent(subagent_type="backend-system-architect", prompt="...")
+    Agent(subagent_type="ork:backend-system-architect", prompt="...")
 except:
     # STILL clean up the worktree
     if worktree_active:

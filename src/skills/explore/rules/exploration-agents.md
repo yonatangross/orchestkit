@@ -34,7 +34,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
 
   Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
@@ -45,7 +45,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
 
   Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
@@ -78,7 +78,7 @@ Agent(subagent_type="Explore", prompt="Find auth files")
 # Wait...
 Agent(subagent_type="Explore", prompt="Trace auth flow")
 # Wait...
-Agent(subagent_type="backend-system-architect", prompt="Analyze patterns")
+Agent(subagent_type="ork:backend-system-architect", prompt="Analyze patterns")
 # Slow, sequential
 ```
 
@@ -89,9 +89,9 @@ Agent(subagent_type="Explore", prompt="Code Structure: Find all files related to
      run_in_background=True, max_turns=25)
 Agent(subagent_type="Explore", prompt="Data Flow: Trace auth entry→storage",
      run_in_background=True, max_turns=25)
-Agent(subagent_type="backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
+Agent(subagent_type="ork:backend-system-architect", prompt="Backend Patterns: Analyze auth architecture",
      run_in_background=True, max_turns=25)
-Agent(subagent_type="frontend-ui-developer", prompt="Frontend: Find auth components",
+Agent(subagent_type="ork:frontend-ui-developer", prompt="Frontend: Find auth components",
      run_in_background=True, max_turns=25)
 # Parallel execution
 ```

@@ -40,10 +40,10 @@ scopes = {
 **Incorrect — no scope boundaries in agent prompts:**
 ```python
 # Phase 5: Agents with overlapping scope
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement the user auth feature",
   run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement the user auth feature",
   run_in_background=True)
 # Both agents edit src/types/user.ts — last write wins, first is lost
@@ -53,7 +53,7 @@ Agent(subagent_type="frontend-ui-developer",
 **Correct — explicit scope in every agent prompt:**
 ```python
 # Phase 5: Agents with strict scope boundaries
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="""Implement backend for user auth.
   YOUR SCOPE (only modify these): src/api/, src/services/, src/models/
   SHARED TYPES (read-only): src/types/
@@ -61,7 +61,7 @@ Agent(subagent_type="backend-system-architect",
   If you need a shared type, create it in src/types/auth.types.ts""",
   run_in_background=True)
 
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="""Implement frontend for user auth.
   YOUR SCOPE (only modify these): src/components/, src/pages/, src/hooks/
   SHARED TYPES (read-only): src/types/

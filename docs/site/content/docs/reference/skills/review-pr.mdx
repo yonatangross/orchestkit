@@ -494,7 +494,7 @@ CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
 
 TeamCreate(team_name="review-pr-$PR_NUMBER", description="Review PR #$PR_NUMBER")
 
-Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
+Agent(subagent_type="ork:code-quality-reviewer", name="quality-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review code quality and type safety for PR #$PR_NUMBER.
 
@@ -509,7 +509,7 @@ Agent(subagent_type="code-quality-reviewer", name="quality-reviewer",
      When you find test gaps, message test-reviewer.
      Return findings as a JSON block (```json```) with category prefix MAINT.""")
 
-Agent(subagent_type="security-auditor", name="security-reviewer",
+Agent(subagent_type="ork:security-auditor", name="security-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Security audit for PR #$PR_NUMBER.
 
@@ -525,7 +525,7 @@ Agent(subagent_type="security-auditor", name="security-reviewer",
      for API issues, frontend-reviewer for XSS).
      Return findings as a JSON block (```json```) with category prefix SEC.""")
 
-Agent(subagent_type="test-generator", name="test-reviewer",
+Agent(subagent_type="ork:test-generator", name="test-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
      Scope: ONLY review the following changed files:
@@ -547,7 +547,7 @@ Agent(subagent_type="test-generator", name="test-reviewer",
      Return findings as a JSON block (```json```) with category prefix TEST.""")
 
 # Only spawn if backend files detected (HAS_BACKEND)
-Agent(subagent_type="backend-system-architect", name="backend-reviewer",
+Agent(subagent_type="ork:backend-system-architect", name="backend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review backend code for PR #$PR_NUMBER.
 
@@ -563,7 +563,7 @@ Agent(subagent_type="backend-system-architect", name="backend-reviewer",
      Return findings as a JSON block (```json```) with prefixes BUG/PERF/MAINT.""")
 
 # Only spawn if frontend files detected (HAS_FRONTEND)
-Agent(subagent_type="frontend-ui-developer", name="frontend-reviewer",
+Agent(subagent_type="ork:frontend-ui-developer", name="frontend-reviewer",
      team_name="review-pr-$PR_NUMBER",
      prompt="""Review frontend code for PR #$PR_NUMBER.
 
@@ -592,8 +592,8 @@ ExitWorktree(action="keep")
 **Incorrect — No team teardown:**
 ```python
 # Agents keep running indefinitely
-Agent(subagent_type="code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
-Agent(subagent_type="security-auditor", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="ork:code-quality-reviewer", team_name="review-pr-$PR_NUMBER")
+Agent(subagent_type="ork:security-auditor", team_name="review-pr-$PR_NUMBER")
 # No teardown — agents keep running (needs TeamDelete(), below)
 ```
 
@@ -694,7 +694,7 @@ The lead reviewer collects all agent JSON outputs, deduplicates by file+line+cat
 # PARALLEL - All agents in ONE message
 Agent(
   description="Review code quality",
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   CODE QUALITY REVIEW
 
@@ -721,7 +721,7 @@ Agent(
 )
 Agent(
   description="Review type safety",
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TYPE SAFETY REVIEW
 
@@ -748,7 +748,7 @@ Agent(
 )
 Agent(
   description="Security audit PR",
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   SECURITY REVIEW
 
@@ -778,7 +778,7 @@ Agent(
 )
 Agent(
   description="Review test adequacy",
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TEST ADEQUACY REVIEW
 
@@ -824,7 +824,7 @@ Agent(
 )
 Agent(
   description="Review backend code",
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   BACKEND REVIEW
 
@@ -853,7 +853,7 @@ Agent(
 )
 Agent(
   description="Review frontend code",
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   FRONTEND REVIEW
 
@@ -884,18 +884,18 @@ Agent(
 **Incorrect — Sequential agents:**
 ```python
 # 6 reviewers run one-by-one (slow)
-Agent(subagent_type="code-quality-reviewer", prompt="...")
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...")
 # Wait for completion
-Agent(subagent_type="security-auditor", prompt="...")
+Agent(subagent_type="ork:security-auditor", prompt="...")
 # Wait again...
 ```
 
 **Correct — Parallel agents:**
 ```python
 # All 6 agents in ONE message (fast)
-Agent(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
-Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Agent(subagent_type="test-generator", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=True)
 # All launch simultaneously
 ```
 
@@ -910,7 +910,7 @@ If PR includes AI/ML code, add a 7th agent:
 ```python
 Agent(
   description="Review LLM integration",
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   prompt="""LLM CODE REVIEW for PR $ARGUMENTS
 
   Review AI/LLM integration:
@@ -929,8 +929,8 @@ Agent(
 **Incorrect — Missing LLM review for AI code:**
 ```python
 # PR modifies prompt.py but no LLM reviewer
-Agent(subagent_type="code-quality-reviewer", ...)
-Agent(subagent_type="security-auditor", ...)
+Agent(subagent_type="ork:code-quality-reviewer", ...)
+Agent(subagent_type="ork:security-auditor", ...)
 # Missing: LLM-specific review
 ```
 
@@ -938,7 +938,7 @@ Agent(subagent_type="security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Agent(subagent_type="llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
 ```
 
 

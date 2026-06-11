@@ -31,7 +31,7 @@ Applies to: `ork:cover`, `ork:verify`, any skill that runs a test suite longer t
 
 ```python
 # Spawn a background agent
-Agent(subagent_type="test-generator", run_in_background=true,
+Agent(subagent_type="ork:test-generator", run_in_background=true,
       prompt="Generate integration tests for the auth module")
 
 # Watch its task-notification stream for partial progress (CC 2.1.98)

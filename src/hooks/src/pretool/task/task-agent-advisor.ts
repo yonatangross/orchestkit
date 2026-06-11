@@ -23,8 +23,9 @@ const HOOK_NAME = 'task-agent-advisor';
 /**
  * Ad-hoc names that should be replaced with curated ork agents.
  * Keys are lowercase for case-insensitive matching.
+ * Exported so tests can cross-check every value against src/agents/.
  */
-const ORK_AGENT_SYNONYMS: Record<string, string> = {
+export const ORK_AGENT_SYNONYMS: Record<string, string> = {
   'frontend-dev': 'ork:frontend-ui-developer',
   'frontend-engineer': 'ork:frontend-ui-developer',
   'frontend-fixer': 'ork:frontend-ui-developer',
@@ -50,6 +51,10 @@ const BUILTIN_CASING_FIXES: Record<string, string> = {
   'explorer': 'Explore',
   'explore-agent': 'Explore',
   'generalpurpose': 'general-purpose',
+  // Mis-casings like `General-Purpose` lowercase to this key. Correct-cased
+  // `general-purpose` never reaches here — the exact-match nudge branch
+  // returns first — so this only ever fires for wrong casings.
+  'general-purpose': 'general-purpose',
 };
 
 /** Built-in names that are already correct (exact casing per CC Feb 2026 spec) — never suggest replacing these. */
@@ -62,8 +67,9 @@ const VALID_BUILTINS = new Set(['Explore', 'Plan', 'general-purpose', 'Bash', 's
  * whitelisted general-purpose and could never suggest otherwise.
  * Order matters: first match wins, so narrower domains come first.
  * Advisory only — general-purpose remains correct for genuinely mixed tasks.
+ * Exported so tests can cross-check every agent against src/agents/.
  */
-const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp }> = [
+export const SPECIALIST_DOMAINS: ReadonlyArray<{ agent: string; pattern: RegExp }> = [
   { agent: 'ork:security-auditor', pattern: /\b(vulnerabilit|security (audit|review|scan)|owasp|cve-\d|secrets? (scan|leak)|injection attack)/i },
   { agent: 'ork:debug-investigator', pattern: /\b(root.?cause|stack.?trace|debug (the|this|a|an)\b|investigate (the |this |a |an )?(failure|error|crash|bug|regression)|why (does|is|did) .{0,40}(fail|crash|break|error))/i },
   { agent: 'ork:test-generator', pattern: /\b((write|generate|add|create) (unit |integration |e2e )?tests?\b|coverage gaps?|test suite for)/i },

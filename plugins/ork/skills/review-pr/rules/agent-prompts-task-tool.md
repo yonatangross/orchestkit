@@ -88,7 +88,7 @@ The lead reviewer collects all agent JSON outputs, deduplicates by file+line+cat
 # PARALLEL - All agents in ONE message
 Agent(
   description="Review code quality",
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   CODE QUALITY REVIEW
 
@@ -115,7 +115,7 @@ Agent(
 )
 Agent(
   description="Review type safety",
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TYPE SAFETY REVIEW
 
@@ -142,7 +142,7 @@ Agent(
 )
 Agent(
   description="Security audit PR",
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   SECURITY REVIEW
 
@@ -172,7 +172,7 @@ Agent(
 )
 Agent(
   description="Review test adequacy",
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TEST ADEQUACY REVIEW
 
@@ -218,7 +218,7 @@ Agent(
 )
 Agent(
   description="Review backend code",
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   BACKEND REVIEW
 
@@ -247,7 +247,7 @@ Agent(
 )
 Agent(
   description="Review frontend code",
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   FRONTEND REVIEW
 
@@ -278,17 +278,17 @@ Agent(
 **Incorrect — Sequential agents:**
 ```python
 # 6 reviewers run one-by-one (slow)
-Agent(subagent_type="code-quality-reviewer", prompt="...")
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...")
 # Wait for completion
-Agent(subagent_type="security-auditor", prompt="...")
+Agent(subagent_type="ork:security-auditor", prompt="...")
 # Wait again...
 ```
 
 **Correct — Parallel agents:**
 ```python
 # All 6 agents in ONE message (fast)
-Agent(subagent_type="code-quality-reviewer", prompt="...", run_in_background=True)
-Agent(subagent_type="security-auditor", prompt="...", run_in_background=True)
-Agent(subagent_type="test-generator", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=True)
 # All launch simultaneously
 ```

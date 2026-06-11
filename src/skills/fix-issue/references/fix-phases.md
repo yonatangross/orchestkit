@@ -63,7 +63,7 @@ Agents that edit files SHOULD use `isolation: "worktree"` to prevent conflicts:
 ```python
 # PARALLEL — All 5 in ONE message
 Agent(
-  subagent_type="debug-investigator",
+  subagent_type="ork:debug-investigator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ROOT CAUSE TRACING
 
@@ -82,7 +82,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="debug-investigator",
+  subagent_type="ork:debug-investigator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPACT ANALYSIS
 
@@ -100,7 +100,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   BACKEND FIX DESIGN
 
@@ -117,7 +117,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   FRONTEND FIX DESIGN
 
@@ -134,7 +134,7 @@ Agent(
   max_turns=25
 )
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   TEST REQUIREMENTS
 

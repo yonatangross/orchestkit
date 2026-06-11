@@ -533,10 +533,10 @@ scopes = {
 **Incorrect — no scope boundaries in agent prompts:**
 ```python
 # Phase 5: Agents with overlapping scope
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement the user auth feature",
   run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement the user auth feature",
   run_in_background=True)
 # Both agents edit src/types/user.ts — last write wins, first is lost
@@ -546,7 +546,7 @@ Agent(subagent_type="frontend-ui-developer",
 **Correct — explicit scope in every agent prompt:**
 ```python
 # Phase 5: Agents with strict scope boundaries
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="""Implement backend for user auth.
   YOUR SCOPE (only modify these): src/api/, src/services/, src/models/
   SHARED TYPES (read-only): src/types/
@@ -554,7 +554,7 @@ Agent(subagent_type="backend-system-architect",
   If you need a shared type, create it in src/types/auth.types.ts""",
   run_in_background=True)
 
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="""Implement frontend for user auth.
   YOUR SCOPE (only modify these): src/components/, src/pages/, src/hooks/
   SHARED TYPES (read-only): src/types/
@@ -618,7 +618,7 @@ If count > 10, engage batch governance. If > 50, also consider whether the opera
 
 ```python
 # Don't: one Agent call to rewrite 176 files
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
       prompt="Migrate all repository.py files to the new RepositoryBase pattern")
 # Result: agent edits all 176, tests fail in 40 places, no clean rollback target
 ```
@@ -629,7 +629,7 @@ Agent(subagent_type="backend-system-architect",
 # Do: loop with tests between batches
 files = find_affected_files(pattern)  # 176 files
 for batch in chunks(files, size=5):
-    Agent(subagent_type="backend-system-architect",
+    Agent(subagent_type="ork:backend-system-architect",
           prompt=f"Migrate these 5 files to the new RepositoryBase pattern: {batch}")
     result = Bash("npm test -- src/repositories")
     if result.failed:
@@ -754,9 +754,9 @@ Grep(pattern="def test_|class Test", glob="**/test_*.py")
 **Incorrect — proceed without tests:**
 ```python
 # Phase 5: Implementation
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement user auth endpoints", run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement login form", run_in_background=True)
 # No test-generator agent spawned
 # Phase 6: "Let's verify integration..." ← no tests exist to run
@@ -765,11 +765,11 @@ Agent(subagent_type="frontend-ui-developer",
 **Correct — tests are parallel and mandatory:**
 ```python
 # Phase 5: Implementation + Tests (parallel)
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Implement user auth endpoints", run_in_background=True)
-Agent(subagent_type="frontend-ui-developer",
+Agent(subagent_type="ork:frontend-ui-developer",
   prompt="Implement login form", run_in_background=True)
-Agent(subagent_type="test-generator",
+Agent(subagent_type="ork:test-generator",
   prompt="Generate tests for user auth: unit tests for endpoints,
   integration tests for auth flow, component tests for login form.
   Change types: API endpoint + UI component (see Test Requirements Matrix)",
@@ -781,7 +781,7 @@ for agent in [backend, frontend, test_gen]:
 
 if test_file_count == 0:
     # DO NOT proceed — return to Phase 5
-    Agent(subagent_type="test-generator",
+    Agent(subagent_type="ork:test-generator",
       prompt="BLOCKED: No tests found. Generate tests for: {files_created}")
 ```
 
@@ -828,7 +828,7 @@ Claude defaults to enterprise-grade patterns regardless of project size. A take-
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Design hexagonal architecture with DI container, repository pattern,
   CQRS for read/write separation, and event sourcing for the todo API")
 # Result: 35 files, 4 abstraction layers for a CRUD app
@@ -838,7 +838,7 @@ Agent(subagent_type="backend-system-architect",
 ```python
 # Detected: Tier 1 (Interview, README says "take-home, 4-hour limit")
 # Phase 4 agent prompt:
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt="Design a simple flat-file Express app for the todo API.
   Tier: 1 (Interview). Max 10 files. No DI, no abstractions beyond MVC.
   Focus: working code, clear tests, clean README.")
@@ -882,7 +882,7 @@ Claude enters a worktree for isolation but forgets to exit when the implementati
 EnterWorktree(name="feat-user-auth")
 
 # Phase 5: Implementation agents run in worktree
-Agent(subagent_type="backend-system-architect", prompt="Implement auth...")
+Agent(subagent_type="ork:backend-system-architect", prompt="Implement auth...")
 
 # Phase 9: Documentation
 # "Done! Here's what was implemented..."
@@ -913,7 +913,7 @@ worktree_active = True
 
 # Phase 5: Implementation fails
 try:
-    Agent(subagent_type="backend-system-architect", prompt="...")
+    Agent(subagent_type="ork:backend-system-architect", prompt="...")
 except:
     # STILL clean up the worktree
     if worktree_active:
@@ -986,7 +986,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ### Agent 1: Workflow Architect
 ```python
 Agent(
-  subagent_type="workflow-architect",
+  subagent_type="ork:workflow-architect",
   model=MODEL_OVERRIDE,  # None inherits default; "opus" for large features (CC 2.1.72)
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
@@ -1025,7 +1025,7 @@ Agent(
 ### Agent 2: Backend Architect
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
@@ -1052,7 +1052,7 @@ Agent(
 ### Agent 3: Frontend Developer
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
@@ -1080,7 +1080,7 @@ Agent(
 ### Agent 4: LLM Integrator
 ```python
 Agent(
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   model=MODEL_OVERRIDE,
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   AI/ML INTEGRATION ANALYSIS — SINGLE PASS
@@ -1119,7 +1119,7 @@ All 5 agents launch in ONE message with `run_in_background=true`.
 ### Agent 1: Backend — Complete Implementation
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
@@ -1160,7 +1160,7 @@ Agent(
 ### Agent 2: Frontend — Complete Implementation
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
 
@@ -1205,7 +1205,7 @@ Agent(
 ### Agent 3: AI Integration (if needed)
 ```python
 Agent(
-  subagent_type="llm-integrator",
+  subagent_type="ork:llm-integrator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
 
@@ -1231,7 +1231,7 @@ Agent(
 ### Agent 4: Test Suite — Complete Coverage
 ```python
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""# Cache-optimized: stable content first (CC 2.1.73)
   GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
 
@@ -1328,7 +1328,7 @@ npm test -- --coverage
 ### Agent 1: Backend Integration
 ```python
 Agent(
-  subagent_type="backend-system-architect",
+  subagent_type="ork:backend-system-architect",
   prompt="""BACKEND INTEGRATION VERIFICATION
 
   Verify all backend code works together:
@@ -1346,7 +1346,7 @@ Agent(
 ### Agent 2: Frontend Integration
 ```python
 Agent(
-  subagent_type="frontend-ui-developer",
+  subagent_type="ork:frontend-ui-developer",
   prompt="""FRONTEND INTEGRATION VERIFICATION
 
   Verify all frontend code works together:
@@ -1364,7 +1364,7 @@ Agent(
 ### Agent 3: Code Quality Review
 ```python
 Agent(
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
 
   Review ALL new code in one comprehensive report:
@@ -1382,7 +1382,7 @@ Agent(
 ### Agent 4: Security Audit
 ```python
 Agent(
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
 
   Audit ALL new code in one comprehensive report:
@@ -1818,19 +1818,19 @@ In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teamma
 TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
 
 # Spawn 4 teammates (5th role — UX — is lead-managed or optional)
-Agent(subagent_type="backend-system-architect", name="backend-architect",
+Agent(subagent_type="ork:backend-system-architect", name="backend-architect",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design backend architecture. Message frontend-dev when API contract ready.")
 
-Agent(subagent_type="frontend-ui-developer", name="frontend-dev",
+Agent(subagent_type="ork:frontend-ui-developer", name="frontend-dev",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Design frontend architecture. Wait for API contract from backend-architect.")
 
-Agent(subagent_type="test-generator", name="test-engineer",
+Agent(subagent_type="ork:test-generator", name="test-engineer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
 
-Agent(subagent_type="code-quality-reviewer", name="code-reviewer",
+Agent(subagent_type="ork:code-quality-reviewer", name="code-reviewer",
      team_name="implement-{feature-slug}", model=MODEL_OVERRIDE,
      prompt="Review architecture decisions as they're shared. Flag issues to author directly.")
 ```
@@ -2252,10 +2252,10 @@ one-run completion, zero HEAD thrash.
 Spawned 4 parallel background agents on 2026-05-11 22:30 IDT with:
 
 ```python
-Agent(subagent_type="x", isolation="worktree", run_in_background=true)
-Agent(subagent_type="y", isolation="worktree", run_in_background=true)
-Agent(subagent_type="z", isolation="worktree", run_in_background=true)
-Agent(subagent_type="w", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-a>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-b>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-c>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-d>", isolation="worktree", run_in_background=true)
 ```
 
 **Expected:** Each agent operates in its own isolated worktree.
@@ -2288,7 +2288,7 @@ Then spawning with **no** `isolation` param, but with an explicit `cd`
 as the first instruction:
 
 ```python
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt=f"FIRST: cd {backend_wt}. THEN implement backend: {feature}. "
          f"Commit + push + open PR from {backend_wt} when done.",
   run_in_background=true)

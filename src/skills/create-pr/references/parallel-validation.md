@@ -15,7 +15,7 @@ For Feature and Bug fix PRs, launch validation agents in parallel BEFORE creatin
 
 ```python
 Agent(
-  subagent_type="security-auditor",
+  subagent_type="ork:security-auditor",
   prompt="""Security audit for PR changes:
   1. Check for secrets/credentials in diff
   2. Dependency vulnerabilities (npm audit/pip-audit)
@@ -35,7 +35,7 @@ Agent(
 
 ```python
 Agent(
-  subagent_type="test-generator",
+  subagent_type="ork:test-generator",
   prompt="""Test coverage verification:
   1. Run test suite with coverage
   2. Identify untested code in changed files
@@ -54,7 +54,7 @@ Agent(
 
 ```python
 Agent(
-  subagent_type="code-quality-reviewer",
+  subagent_type="ork:code-quality-reviewer",
   prompt="""Code quality check:
   1. Run linting (ruff/eslint)
   2. Type checking (mypy/tsc)

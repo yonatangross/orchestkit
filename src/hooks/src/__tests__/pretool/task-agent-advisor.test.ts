@@ -9,12 +9,21 @@
  * pre-existing synonym and casing suggestions.
  */
 
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { describe, test, expect } from 'vitest';
 import type { HookInput } from '../../types.js';
 import {
   taskAgentAdvisor,
   matchSpecialistDomain,
+  ORK_AGENT_SYNONYMS,
+  SPECIALIST_DOMAINS,
 } from '../../pretool/task/task-agent-advisor.js';
+
+// Repo-root src/agents/, resolved from this test file's location
+// (vitest runs with cwd=src/hooks, so cwd-relative paths would be wrong).
+const AGENTS_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../../../../src/agents');
 
 function makeInput(toolInput: Record<string, unknown>): HookInput {
   return {
@@ -107,4 +116,65 @@ describe('pre-existing advisor behaviors still intact', () => {
     const result = taskAgentAdvisor(makeInput({ subagent_type: 'my-custom-agent', description: 'x' }));
     expect(contextOf(result)).toBe('');
   });
+
+  test('mis-cased General-Purpose gets a casing suggestion', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'General-Purpose', description: 'x' }),
+    );
+    expect(contextOf(result)).toContain('`general-purpose` is the correct built-in name');
+    expect(contextOf(result)).toContain('General-Purpose');
+  });
+
+  test('correct-cased general-purpose never hits the casing branch', () => {
+    // The exact-case nudge branch returns first, so the casing map entry
+    // for 'general-purpose' must not produce a spurious suggestion.
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'summarize meeting notes' }),
+    );
+    expect(contextOf(result)).toBe('');
+  });
+});
+
+describe('advisor edge cases', () => {
+  test('first match wins when text spans two domains', () => {
+    // Matches both ork:security-auditor ("security audit") and
+    // ork:debug-investigator ("root cause") — the earlier registry entry wins.
+    expect(
+      matchSpecialistDomain('investigate the root cause of the security audit failure', ''),
+    ).toBe('ork:security-auditor');
+  });
+
+  test('domain phrase beyond NUDGE_SCAN_MAX_CHARS yields no nudge', () => {
+    const prompt = `${'.'.repeat(2050)} write unit tests for the parser module`;
+    expect(matchSpecialistDomain('', prompt)).toBeNull();
+
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: '', prompt }),
+    );
+    expect(contextOf(result)).toBe('');
+  });
+});
+
+describe('advisor maps cross-checked against src/agents/ (map existence)', () => {
+  test('AGENTS_DIR resolves to the real agents directory', () => {
+    expect(existsSync(AGENTS_DIR)).toBe(true);
+  });
+
+  test.each(Object.entries(ORK_AGENT_SYNONYMS))(
+    'synonym %s → %s has a matching agent definition',
+    (_synonym, agent) => {
+      expect(agent.startsWith('ork:')).toBe(true);
+      const file = join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`);
+      expect(existsSync(file)).toBe(true);
+    },
+  );
+
+  test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(
+    'specialist domain agent %s has a matching agent definition',
+    (agent) => {
+      expect(agent.startsWith('ork:')).toBe(true);
+      const file = join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`);
+      expect(existsSync(file)).toBe(true);
+    },
+  );
 });

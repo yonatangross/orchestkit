@@ -31,10 +31,10 @@ one-run completion, zero HEAD thrash.
 Spawned 4 parallel background agents on 2026-05-11 22:30 IDT with:
 
 ```python
-Agent(subagent_type="x", isolation="worktree", run_in_background=true)
-Agent(subagent_type="y", isolation="worktree", run_in_background=true)
-Agent(subagent_type="z", isolation="worktree", run_in_background=true)
-Agent(subagent_type="w", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-a>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-b>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-c>", isolation="worktree", run_in_background=true)
+Agent(subagent_type="<agent-d>", isolation="worktree", run_in_background=true)
 ```
 
 **Expected:** Each agent operates in its own isolated worktree.
@@ -67,7 +67,7 @@ Then spawning with **no** `isolation` param, but with an explicit `cd`
 as the first instruction:
 
 ```python
-Agent(subagent_type="backend-system-architect",
+Agent(subagent_type="ork:backend-system-architect",
   prompt=f"FIRST: cd {backend_wt}. THEN implement backend: {feature}. "
          f"Commit + push + open PR from {backend_wt} when done.",
   run_in_background=true)
